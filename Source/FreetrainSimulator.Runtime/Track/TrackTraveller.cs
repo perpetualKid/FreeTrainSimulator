@@ -24,8 +24,6 @@ namespace FreeTrainSimulator.Runtime.Track
     /// </summary>
     public readonly record struct TrackTraveller : ISaveStateApi<TrackTravellerSaveState>
     {
-        private static TrackWorld trackWorld;
-
         /// <summary>The <see cref="VectorNode"/> (track node) the traveller is currently on, or <see langword="null"/> if not on track.</summary>
         public VectorNode CurrentNode { get; private init; }
 
@@ -65,13 +63,17 @@ namespace FreeTrainSimulator.Runtime.Track
         {
             if (node == null)
                 return null;
-            _ = trackWorld.SectionGeometry.TryGetValue(node.VectorSections[sectionIndex], out SectionGeometry result);
+            _ = TrackWorld.Instance.SectionGeometry.TryGetValue(node.VectorSections[sectionIndex], out SectionGeometry result);
             return result;
         }
 
+        private static TrackDatabase ResolveDatabase(TrackDataBaseType trackDataBaseType)
+            => trackDataBaseType == TrackDataBaseType.Road
+                ? TrackWorld.Instance.TrackModel.RoadDatabase
+                : TrackWorld.Instance.TrackModel.TrackDatabase;
+
         /// <summary>
         /// Heading angle (Y-axis rotation in radians) at the traveller's current position in the direction of travel.
-        /// Equivalent to the legacy <c>Traveller.RotY</c>.
         /// For straight sections this equals <see cref="VectorSectionNode.Direction"/>.Y;
         /// for curved sections the angle advances along the arc at rate 1/R per metre of offset.
         /// The value is wrapped to the range (−π, π].
@@ -127,15 +129,13 @@ namespace FreeTrainSimulator.Runtime.Track
         /// <summary>
         /// Total track length of the current <see cref="VectorNode"/> in metres.
         /// Returns <c>0</c> when the traveller is not on track.
-        /// Equivalent to the legacy <c>Traveller.TrackNodeLength</c>.
         /// </summary>
-        public double VectorNodeLength => OnTrack ? trackWorld.VectorNodeLength(CurrentNode) : 0.0;
+        public double VectorNodeLength => OnTrack ? TrackWorld.Instance.VectorNodeLength(CurrentNode) : 0.0;
 
         /// <summary>
         /// Distance in metres from the start of the current <see cref="VectorNode"/> to the traveller's
         /// position, measured in the current <see cref="Direction"/> of travel.
         /// Returns <c>0</c> when the traveller is not on track.
-        /// Equivalent to the legacy <c>Traveller.TrackNodeOffset</c>.
         /// </summary>
         public double VectorNodeOffset
         {
@@ -143,9 +143,10 @@ namespace FreeTrainSimulator.Runtime.Track
             {
                 if (!OnTrack)
                     return 0.0;
-                double offset = trackWorld.SectionOffset(CurrentNode, SectionIndex) + SectionOffset;
+                TrackWorld world = TrackWorld.Instance;
+                double offset = world.SectionOffset(CurrentNode, SectionIndex) + SectionOffset;
                 if (Direction == TrackDirection.Reverse)
-                    offset = trackWorld.VectorNodeLength(CurrentNode) - offset;
+                    offset = world.VectorNodeLength(CurrentNode) - offset;
                 return offset;
             }
         }
@@ -155,19 +156,6 @@ namespace FreeTrainSimulator.Runtime.Track
         /// keeping the same node, section, offset, and location.
         /// </summary>
         public TrackTraveller WithDirection(TrackDirection direction) => this with { Direction = direction };
-
-        /// <summary>
-        /// Builds (or rebuilds) the shared ownership map from every <see cref="VectorSectionNode"/> instance
-        /// to its parent <see cref="VectorNode"/>, section index, and resolved <see cref="TrackSection"/>,
-        /// covering both the rail (<see cref="TrackModel.TrackDatabase"/>) and road
-        /// (<see cref="TrackModel.RoadDatabase"/>) databases.
-        /// Must be called once after <see cref="TrackWorld.Initialize"/> before any <see cref="TrackTraveller"/> is used.
-        /// </summary>
-        public static void Initialize(TrackWorld trackWorld)
-        {
-            ArgumentNullException.ThrowIfNull(trackWorld);
-            TrackTraveller.trackWorld = trackWorld;
-        }
 
         /// <summary>
         /// Creates a new <see cref="TrackTraveller"/> not yet placed on any track.
@@ -231,15 +219,16 @@ namespace FreeTrainSimulator.Runtime.Track
             double bestOffset = 0.0;
             double bestDistSq = WorldLocation.ProximityTolerance * WorldLocation.ProximityTolerance;
 
+            TrackWorld world = TrackWorld.Instance;
             MapContentType contentType = trackDataBaseType == TrackDataBaseType.Road ? MapContentType.Roads : MapContentType.Tracks;
-            ITileIndexedList<ITileCoordinate> bucket = trackWorld.ContentByTile[contentType];
+            ITileIndexedList<ITileCoordinate> bucket = world.ContentByTile[contentType];
             if (bucket == null)
                 return null;
 
             int tileRadius = WorldLocation.IsNearTileBoundary(location) ? 1 : 0;
             foreach (VectorSectionNode section in bucket.BoundingBox(location.Tile, tileRadius).Cast<VectorSectionNode>())
             {
-                if (!trackWorld.SectionGeometry.TryGetValue(section, out SectionGeometry sectionGeometry) || !sectionGeometry.HasGeometry)
+                if (!world.SectionGeometry.TryGetValue(section, out SectionGeometry sectionGeometry) || !sectionGeometry.HasGeometry)
                     continue;
 
                 (WorldLocation snapped, double offset) = SnapToSection(location, section, sectionGeometry);
@@ -284,15 +273,16 @@ namespace FreeTrainSimulator.Runtime.Track
             Dictionary<VectorNode, (SectionGeometry geometry, WorldLocation snapped, double offset, double distSq)> bestPerNode = new(ReferenceEqualityComparer.Instance);
             double maxDistSq = WorldLocation.ProximityTolerance * WorldLocation.ProximityTolerance;
 
+            TrackWorld world = TrackWorld.Instance;
             MapContentType contentType = trackDataBaseType == TrackDataBaseType.Road ? MapContentType.Roads : MapContentType.Tracks;
-            ITileIndexedList<ITileCoordinate> bucket = trackWorld.ContentByTile[contentType];
+            ITileIndexedList<ITileCoordinate> bucket = world.ContentByTile[contentType];
             if (bucket == null)
                 return Array.Empty<TrackTraveller>();
 
             int tileRadius = WorldLocation.IsNearTileBoundary(location) ? 1 : 0;
             foreach (VectorSectionNode section in bucket.BoundingBox(location.Tile, tileRadius).Cast<VectorSectionNode>())
             {
-                if (!trackWorld.SectionGeometry.TryGetValue(section, out SectionGeometry sectionGeometry) || !sectionGeometry.HasGeometry)
+                if (!world.SectionGeometry.TryGetValue(section, out SectionGeometry sectionGeometry) || !sectionGeometry.HasGeometry)
                     continue;
 
                 (WorldLocation snapped, double offset) = SnapToSection(location, section, sectionGeometry);
@@ -325,7 +315,6 @@ namespace FreeTrainSimulator.Runtime.Track
         /// <paramref name="nextLocation"/>.  All nearby <see cref="VectorNode"/> candidates are tried;
         /// for each, both travel directions are evaluated using a walk-based projection (see
         /// <see cref="WalkDistanceToLocation"/>) which is robust for imprecise path node locations.
-        /// Replicates the legacy <c>Traveller(loc1, loc2)</c> constructor behaviour.
         /// </summary>
         /// <param name="startLocation">The world location where the traveller is placed.</param>
         /// <param name="nextLocation">A second path node location used to determine the direction of travel.</param>
@@ -368,11 +357,9 @@ namespace FreeTrainSimulator.Runtime.Track
         /// <returns>A new <see cref="TrackTraveller"/> on the preferred node, or <see langword="null"/> if not possible.</returns>
         public static TrackTraveller? InitializeTraveller(in WorldLocation location, int trackNodeIndex, TrackDirection direction, TrackDataBaseType trackDataBaseType = TrackDataBaseType.Rail)
         {
-            TrackDatabase trackDatabase = trackDataBaseType == TrackDataBaseType.Road
-                ? trackWorld.TrackModel.RoadDatabase
-                : trackWorld.TrackModel.TrackDatabase;
+            TrackDatabase trackDatabase = ResolveDatabase(trackDataBaseType);
 
-            if (trackDatabase != null && trackNodeIndex >= 0 && trackNodeIndex < trackDatabase.TrackNodes.Length
+            if (trackDatabase != null
                 && trackDatabase.TrackNodes[trackNodeIndex] is VectorNode node)
             {
                 return InitializeTraveller(location, node, direction, trackDataBaseType);
@@ -404,7 +391,7 @@ namespace FreeTrainSimulator.Runtime.Track
 
             foreach ((VectorSectionNode section, int idx) in node.VectorSections.IndexedSelect())
             {
-                if (!trackWorld.SectionGeometry.TryGetValue(section, out SectionGeometry sectionGeometry) || !sectionGeometry.HasGeometry)
+                if (!TrackWorld.Instance.SectionGeometry.TryGetValue(section, out SectionGeometry sectionGeometry) || !sectionGeometry.HasGeometry)
                     continue;
 
                 (WorldLocation snapped, double offset) = SnapToSection(location, section, sectionGeometry);
@@ -456,7 +443,7 @@ namespace FreeTrainSimulator.Runtime.Track
                 SectionIndex = sectionIndex,
                 CurrentSectionGeometry = ResolveGeometry(node, sectionIndex),
                 SectionOffset = sectionOffset,
-                Location = trackWorld.ComputeSectionLocation(node, sectionIndex, sectionOffset),
+                Location = TrackWorld.Instance.ComputeSectionLocation(node, sectionIndex, sectionOffset),
                 Direction = direction,
             };
         }
@@ -504,9 +491,7 @@ namespace FreeTrainSimulator.Runtime.Track
         public static TrackTraveller? InitializeTraveller(TrackTravellerSaveState saveState)
         {
             ArgumentNullException.ThrowIfNull(saveState);
-            TrackDatabase trackDatabase = saveState.TrackDataBaseType == TrackDataBaseType.Road
-                ? trackWorld.TrackModel.RoadDatabase
-                : trackWorld.TrackModel.TrackDatabase;
+            TrackDatabase trackDatabase = ResolveDatabase(saveState.TrackDataBaseType);
             if (trackDatabase == null)
                 return null;
             if (saveState.TrackNodeIndex >= trackDatabase.TrackNodes.Length)
@@ -636,27 +621,26 @@ namespace FreeTrainSimulator.Runtime.Track
                     SectionIndex = next,
                     CurrentSectionGeometry = ResolveGeometry(CurrentNode, next),
                     SectionOffset = 0,
-                    Location = trackWorld.ComputeSectionLocation(CurrentNode, next, 0)
+                    Location = TrackWorld.Instance.ComputeSectionLocation(CurrentNode, next, 0)
                 };
             }
 
             if (!forward && SectionIndex > 0)
             {
                 int next = SectionIndex - 1;
-                double offset = trackWorld.SectionLength(CurrentNode, next);
+                double offset = TrackWorld.Instance.SectionLength(CurrentNode, next);
                 return this with
                 {
                     SectionIndex = next,
                     CurrentSectionGeometry = ResolveGeometry(CurrentNode, next),
                     SectionOffset = offset,
-                    Location = trackWorld.ComputeSectionLocation(CurrentNode, next, offset)
+                    Location = TrackWorld.Instance.ComputeSectionLocation(CurrentNode, next, offset)
                 };
             }
 
             // At a node boundary — attempt to cross it.
-            TrackDatabase trackDatabase = TrackDataBaseType == TrackDataBaseType.Road
-                ? trackWorld.TrackModel.RoadDatabase
-                : trackWorld.TrackModel.TrackDatabase;
+            TrackWorld world = TrackWorld.Instance;
+            TrackDatabase trackDatabase = ResolveDatabase(TrackDataBaseType);
 
             VectorNode node = CurrentNode;
             int index = SectionIndex;
@@ -667,7 +651,7 @@ namespace FreeTrainSimulator.Runtime.Track
                 return null;
 
             TrackDirection newDirection = newForward.Value ? TrackDirection.Ahead : TrackDirection.Reverse;
-            WorldLocation newLocation = trackWorld.ComputeSectionLocation(node, index, sectionOffset);
+            WorldLocation newLocation = world.ComputeSectionLocation(node, index, sectionOffset);
             return this with { CurrentNode = node, SectionIndex = index, CurrentSectionGeometry = ResolveGeometry(node, index), SectionOffset = sectionOffset, Location = newLocation, Direction = newDirection };
         }
 
@@ -686,9 +670,7 @@ namespace FreeTrainSimulator.Runtime.Track
             if (!OnTrack)
                 return null;
 
-            TrackDatabase trackDatabase = TrackDataBaseType == TrackDataBaseType.Road
-                ? trackWorld.TrackModel.RoadDatabase
-                : trackWorld.TrackModel.TrackDatabase;
+            TrackDatabase trackDatabase = ResolveDatabase(TrackDataBaseType);
 
             if (trackDatabase == null)
                 return null;
@@ -749,9 +731,7 @@ namespace FreeTrainSimulator.Runtime.Track
             if (!atNodeBoundary)
                 return false;
 
-            TrackDatabase trackDatabase = TrackDataBaseType == TrackDataBaseType.Road
-                ? trackWorld.TrackModel.RoadDatabase
-                : trackWorld.TrackModel.TrackDatabase;
+            TrackDatabase trackDatabase = ResolveDatabase(TrackDataBaseType);
 
             if (trackDatabase == null)
                 return false;
@@ -780,7 +760,7 @@ namespace FreeTrainSimulator.Runtime.Track
 
             // Trailing switch: check whether this branch is the active switch route.
             int branchIndex = incomingIdx - jConns.InboundCount;
-            int switchState = trackWorld.SwitchStates.TryGetValue(junctionNode.NodeIndex, out int state) ? state : 0;
+            int switchState = TrackWorld.Instance.SwitchStates.TryGetValue(junctionNode.NodeIndex, out int state) ? state : 0;
             if (branchIndex == switchState)
                 return false;
 
@@ -791,7 +771,6 @@ namespace FreeTrainSimulator.Runtime.Track
         /// <summary>
         /// Tests whether the node boundary in the current direction of travel is an <see cref="EndNode"/>,
         /// indicating end-of-track. Does not move the traveller.
-        /// Equivalent to the legacy pattern: <c>copy.NextTrackNode() &amp;&amp; copy.TrackNodeType == TrackNodeType.End</c>.
         /// </summary>
         /// <returns><see langword="true"/> when the adjacent node boundary in the current direction is an <see cref="EndNode"/>; otherwise <see langword="false"/>.</returns>
         public bool IsNextNodeEndOfTrack()
@@ -801,9 +780,7 @@ namespace FreeTrainSimulator.Runtime.Track
 
             bool forward = Direction == TrackDirection.Ahead;
 
-            TrackDatabase trackDatabase = TrackDataBaseType == TrackDataBaseType.Road
-                ? trackWorld.TrackModel.RoadDatabase
-                : trackWorld.TrackModel.TrackDatabase;
+            TrackDatabase trackDatabase = ResolveDatabase(TrackDataBaseType);
 
             if (trackDatabase == null)
                 return false;
@@ -837,7 +814,6 @@ namespace FreeTrainSimulator.Runtime.Track
         /// Returns the signed curvature (1/R) at the traveller's current position.
         /// Positive values curve right (positive arc angle), negative values curve left.
         /// Returns <c>0</c> for straight sections or when the traveller is not on track.
-        /// Equivalent to the legacy <c>Traveller.GetCurvature()</c>.
         /// </summary>
         public float GetCurvature()
         {
@@ -851,7 +827,6 @@ namespace FreeTrainSimulator.Runtime.Track
         /// Positive values tilt the track to the right relative to the direction of travel.
         /// Returns <c>0</c> when no elevation data is set, the section is straight, or the traveller is not on track.
         /// Elevation data is populated by <c>Orts.Simulation.SuperElevation</c> at simulation start.
-        /// Equivalent to the legacy <c>Traveller.GetSuperElevation()</c>.
         /// </summary>
         public float GetSuperElevation()
         {
@@ -881,7 +856,6 @@ namespace FreeTrainSimulator.Runtime.Track
         /// Returns the average super-elevation over this position and a position
         /// <paramref name="smoothingOffset"/> metres ahead, providing a smoothed value
         /// for rendering purposes.
-        /// Equivalent to the legacy <c>Traveller.GetSuperElevation(float)</c>.
         /// </summary>
         public float GetSuperElevation(float smoothingOffset)
         {
@@ -893,7 +867,6 @@ namespace FreeTrainSimulator.Runtime.Track
         /// <paramref name="speedMpS"/> metres per second, based on curve direction.
         /// Returns <c>0</c> when speed is below 12 m/s (~43 km/h), the section is straight,
         /// or the traveller is not on track.
-        /// Equivalent to the legacy <c>Traveller.FindTiltedZ(float)</c>.
         /// </summary>
         public float FindTiltedZ(float speedMpS)
         {
@@ -912,9 +885,8 @@ namespace FreeTrainSimulator.Runtime.Track
         private TrackTraveller MoveInternal(double remaining, bool forward)
         {
             // Resolve once — TryCrossNodeBoundary is called on every node boundary crossing.
-            TrackDatabase trackDatabase = TrackDataBaseType == TrackDataBaseType.Road
-                ? trackWorld.TrackModel.RoadDatabase
-                : trackWorld.TrackModel.TrackDatabase;
+            TrackWorld world = TrackWorld.Instance;
+            TrackDatabase trackDatabase = ResolveDatabase(TrackDataBaseType);
 
             VectorNode node = CurrentNode;
             int index = SectionIndex;
@@ -924,7 +896,7 @@ namespace FreeTrainSimulator.Runtime.Track
             {
                 if (forward)
                 {
-                    double sectionLength = trackWorld.SectionLength(node, index);
+                    double sectionLength = world.SectionLength(node, index);
                     double available = sectionLength - offset;
 
                     if (remaining <= available)
@@ -965,7 +937,7 @@ namespace FreeTrainSimulator.Runtime.Track
                         if (index > 0)
                         {
                             index--;
-                            offset = trackWorld.SectionLength(node, index);
+                            offset = world.SectionLength(node, index);
                         }
                         else
                         {
@@ -979,7 +951,7 @@ namespace FreeTrainSimulator.Runtime.Track
                 }
             }
 
-            WorldLocation newLocation = trackWorld.ComputeSectionLocation(node, index, offset);
+            WorldLocation newLocation = world.ComputeSectionLocation(node, index, offset);
             TrackDirection newDirection = forward ? TrackDirection.Ahead : TrackDirection.Reverse;
             return this with { CurrentNode = node, SectionIndex = index, CurrentSectionGeometry = ResolveGeometry(node, index), SectionOffset = offset, Location = newLocation, Direction = newDirection };
         }
@@ -995,9 +967,8 @@ namespace FreeTrainSimulator.Runtime.Track
         /// </summary>
         private float? WalkDistanceToLocation(in WorldLocation location, bool forward, float maxDistance)
         {
-            TrackDatabase trackDatabase = TrackDataBaseType == TrackDataBaseType.Road
-                ? trackWorld.TrackModel.RoadDatabase
-                : trackWorld.TrackModel.TrackDatabase;
+            TrackWorld world = TrackWorld.Instance;
+            TrackDatabase trackDatabase = ResolveDatabase(TrackDataBaseType);
 
             VectorNode node = CurrentNode;
             int index = SectionIndex;
@@ -1006,17 +977,16 @@ namespace FreeTrainSimulator.Runtime.Track
 
             while (accumulated < maxDistance)
             {
-                double sectionLength = trackWorld.SectionLength(node, index);
+                double sectionLength = world.SectionLength(node, index);
                 VectorSectionNode section = node.VectorSections[index];
 
-                if (trackWorld.SectionGeometry.TryGetValue(section, out SectionGeometry geom) && geom.HasGeometry && sectionLength > 0)
+                if (world.SectionGeometry.TryGetValue(section, out SectionGeometry geom) && geom.HasGeometry && sectionLength > 0)
                 {
                     (_, double offset) = SnapToSection(location, section, geom);
 
                     // SnapToSection clamps the offset to [0, sectionLength]. An offset at a
                     // boundary means the target projects outside this section, so we only
-                    // accept genuinely interior projections (matching the legacy walk-based
-                    // InitTrackSectionSucceeded approach).
+                    // accept genuinely interior projections.
                     const double epsilon = 1e-4;
                     if (offset > epsilon && offset < sectionLength - epsilon)
                     {
@@ -1052,7 +1022,7 @@ namespace FreeTrainSimulator.Runtime.Track
                     if (index > 0)
                     {
                         index--;
-                        entryOffset = trackWorld.SectionLength(node, index);
+                        entryOffset = world.SectionLength(node, index);
                     }
                     else
                     {
@@ -1072,9 +1042,8 @@ namespace FreeTrainSimulator.Runtime.Track
         private float? DistanceToTravellerInternal(in TrackTraveller other, bool forward, float maxDistance)
         {
             // Resolve once — TryCrossNodeBoundary is called on every node boundary crossing.
-            TrackDatabase trackDatabase = TrackDataBaseType == TrackDataBaseType.Road
-                ? trackWorld.TrackModel.RoadDatabase
-                : trackWorld.TrackModel.TrackDatabase;
+            TrackWorld world = TrackWorld.Instance;
+            TrackDatabase trackDatabase = ResolveDatabase(TrackDataBaseType);
 
             VectorNode node = CurrentNode;
             int index = SectionIndex;
@@ -1094,7 +1063,7 @@ namespace FreeTrainSimulator.Runtime.Track
                 }
 
                 // Accumulate the remaining distance in the current section and advance.
-                double sectionLength = trackWorld.SectionLength(node, index);
+                double sectionLength = world.SectionLength(node, index);
                 if (sectionLength > 0.0)
                     accumulated += forward ? sectionLength - entryOffset : entryOffset;
 
@@ -1118,7 +1087,7 @@ namespace FreeTrainSimulator.Runtime.Track
                     if (index > 0)
                     {
                         index--;
-                        entryOffset = trackWorld.SectionLength(node, index);
+                        entryOffset = world.SectionLength(node, index);
                     }
                     else
                     {
@@ -1179,7 +1148,7 @@ namespace FreeTrainSimulator.Runtime.Track
             if (incomingIdx < junctionConnectors.InboundCount)
             {
                 // Arrived from the stem → select the active branch (OutPin).
-                int switchState = trackWorld.SwitchStates.TryGetValue(junctionNode.NodeIndex, out int state) ? state : 0;
+                int switchState = TrackWorld.Instance.SwitchStates.TryGetValue(junctionNode.NodeIndex, out int state) ? state : 0;
                 ReadOnlySpan<TrackNodeConnector> outPins = junctionConnectors.OutConnectors;
                 if ((uint)switchState >= (uint)outPins.Length)
                     switchState = 0;
@@ -1210,7 +1179,7 @@ namespace FreeTrainSimulator.Runtime.Track
             {
                 // The new node's END is at this junction: enter from the last section and move in reverse.
                 sectionIndex = nextNode.VectorSections.Length - 1;
-                sectionOffset = trackWorld.SectionLength(nextNode, sectionIndex);
+                sectionOffset = TrackWorld.Instance.SectionLength(nextNode, sectionIndex);
                 return false;
             }
         }

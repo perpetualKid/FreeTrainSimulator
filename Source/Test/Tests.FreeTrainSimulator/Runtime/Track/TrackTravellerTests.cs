@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Immutable;
 
+using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Position;
 using FreeTrainSimulator.Models.Track;
 using FreeTrainSimulator.Runtime.Track;
@@ -45,7 +46,7 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
         {
             // Arrange
             TrackWorld trackWorld = CreateEmptyTrackWorld();
-            TrackTraveller.Initialize(trackWorld);            
+            GameService<TrackWorld>.Set(null, trackWorld);            
             TrackTraveller traveller = CreateTraveller();
             WorldLocation testLocation = new WorldLocation(0, 0, 0, 0, 0);
 
@@ -68,7 +69,7 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
         {
             // Arrange
             TrackWorld trackWorld = CreateEmptyTrackWorld();
-            TrackTraveller.Initialize(trackWorld);
+            GameService<TrackWorld>.Set(null, trackWorld);
 
             // Create multiple VectorSectionNodes for testing
             WorldLocation loc1 = new WorldLocation(new Tile(0, 0), Vector3.Zero);
@@ -115,7 +116,7 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
         {
             // Arrange
             TrackWorld trackWorld = CreateEmptyTrackWorld();
-            TrackTraveller.Initialize(trackWorld);
+            GameService<TrackWorld>.Set(null, trackWorld);
 
             // Create multiple VectorSectionNodes for testing
             WorldLocation loc1 = new WorldLocation(new Tile(0, 0), Vector3.Zero);
@@ -164,7 +165,7 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
             // Arrange
             // When Initialize() is not called, ContentByTile[Tracks] remains null
             TrackWorld trackWorld = CreateEmptyTrackWorld();
-            TrackTraveller.Initialize(trackWorld);            TrackTraveller traveller = CreateTraveller();
+            GameService<TrackWorld>.Set(null, trackWorld);            TrackTraveller traveller = CreateTraveller();
             WorldLocation location = new WorldLocation(0, 0, 0, 0, 0);
 
             // Act
@@ -186,7 +187,7 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
         {
             // Arrange
             TrackWorld trackWorld = CreateEmptyTrackWorld();
-            TrackTraveller.Initialize(trackWorld);            TrackTraveller traveller = CreateTraveller();
+            GameService<TrackWorld>.Set(null, trackWorld);            TrackTraveller traveller = CreateTraveller();
             WorldLocation location = new WorldLocation(new Tile(0, 0), Vector3.Zero);
 
             // Act
@@ -211,7 +212,7 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
         {
             // Arrange
             TrackWorld trackWorld = CreateEmptyTrackWorld();
-            TrackTraveller.Initialize(trackWorld);            TrackTraveller traveller = CreateTraveller();
+            GameService<TrackWorld>.Set(null, trackWorld);            TrackTraveller traveller = CreateTraveller();
             WorldLocation location = new WorldLocation(new Tile(0, 0), Vector3.Zero);
 
             // Act
@@ -237,7 +238,7 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
         {
             // Arrange
             TrackWorld trackWorld = CreateEmptyTrackWorld();
-            TrackTraveller.Initialize(trackWorld);            TrackTraveller traveller = CreateTraveller();
+            GameService<TrackWorld>.Set(null, trackWorld);            TrackTraveller traveller = CreateTraveller();
             WorldLocation location = new WorldLocation(new Tile(0, 0), Vector3.Zero);
 
             // Act
@@ -258,7 +259,7 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
         {
             // Arrange
             TrackWorld trackWorld = CreateEmptyTrackWorld();
-            TrackTraveller.Initialize(trackWorld);            TrackTraveller traveller = CreateTraveller();
+            GameService<TrackWorld>.Set(null, trackWorld);            TrackTraveller traveller = CreateTraveller();
             WorldLocation location = new WorldLocation(new Tile(0, 0), Vector3.Zero);
 
             // Act
@@ -285,7 +286,7 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
         {
             // Arrange
             TrackWorld trackWorld = CreateEmptyTrackWorld();
-            TrackTraveller.Initialize(trackWorld);            TrackTraveller traveller = CreateTraveller();
+            GameService<TrackWorld>.Set(null, trackWorld);            TrackTraveller traveller = CreateTraveller();
             
             // Create a location near tile boundary (e.g., at tile edge coordinates)
             // WorldLocation with Location.X or Location.Z close to tile boundary (near 1024 or 0)
@@ -313,7 +314,7 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
         {
             // Arrange
             TrackWorld trackWorld = CreateEmptyTrackWorld();
-            TrackTraveller.Initialize(trackWorld);            TrackTraveller traveller = CreateTraveller();
+            GameService<TrackWorld>.Set(null, trackWorld);            TrackTraveller traveller = CreateTraveller();
             
             // Create a location NOT near tile boundary (in the middle of tile, far from edges)
             // WorldLocation with Location.X and Location.Z far from tile boundaries (not near 0 or 1024)
@@ -341,7 +342,7 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
         {
             // Arrange
             TrackWorld trackWorld = CreateEmptyTrackWorld();
-            TrackTraveller.Initialize(trackWorld);            TrackTraveller traveller = CreateTraveller();
+            GameService<TrackWorld>.Set(null, trackWorld);            TrackTraveller traveller = CreateTraveller();
             WorldLocation location = new WorldLocation(new Tile(0, 0), Vector3.Zero);
 
             // Act
@@ -365,7 +366,7 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
         {
             // Arrange
             TrackWorld trackWorld = CreateEmptyTrackWorld();
-            TrackTraveller.Initialize(trackWorld);            TrackTraveller traveller = CreateTraveller();
+            GameService<TrackWorld>.Set(null, trackWorld);            TrackTraveller traveller = CreateTraveller();
             WorldLocation location = new WorldLocation(new Tile(0, 0), Vector3.Zero);
 
             // Act
@@ -395,7 +396,7 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
         {
             // Arrange
             TrackWorld trackWorld = CreateEmptyTrackWorld();
-            TrackTraveller.Initialize(trackWorld);            TrackTraveller traveller = CreateTraveller();
+            GameService<TrackWorld>.Set(null, trackWorld);            TrackTraveller traveller = CreateTraveller();
             WorldLocation location = new WorldLocation(new Tile(tileX, tileZ), Vector3.Zero);
 
             // Act
@@ -421,7 +422,7 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
         {
             // Arrange
             TrackWorld trackWorld = CreateEmptyTrackWorld();
-            TrackTraveller.Initialize(trackWorld);            TrackTraveller traveller = CreateTraveller();
+            GameService<TrackWorld>.Set(null, trackWorld);            TrackTraveller traveller = CreateTraveller();
             WorldLocation location = new WorldLocation(new Tile(0, 0), new Vector3(x, y, z));
 
             // Act
@@ -444,7 +445,7 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
         {
             // Arrange
             TrackWorld trackWorld = CreateEmptyTrackWorld();
-            TrackTraveller.Initialize(trackWorld);
+            GameService<TrackWorld>.Set(null, trackWorld);
 
             // Create VectorSectionNodes for testing
             WorldLocation loc1 = new WorldLocation(new Tile(0, 0), Vector3.Zero);
@@ -495,7 +496,7 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
         {
             // Arrange
             TrackWorld trackWorld = CreateEmptyTrackWorld();
-            TrackTraveller.Initialize(trackWorld);
+            GameService<TrackWorld>.Set(null, trackWorld);
 
             // Create VectorSectionNodes for testing
             WorldLocation loc1 = new WorldLocation(new Tile(0, 0), Vector3.Zero);

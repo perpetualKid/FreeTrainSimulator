@@ -89,7 +89,6 @@ namespace FreeTrainSimulator.Runtime.Track
             }
 
             SectionGeometry = BuildSectionGeometry(trackSectionModel);
-            TrackTraveller.Initialize(this);
         }
 
         private FrozenDictionary<VectorSectionNode, SectionGeometry> BuildSectionGeometry(TrackSectionModel trackSectionModel)
