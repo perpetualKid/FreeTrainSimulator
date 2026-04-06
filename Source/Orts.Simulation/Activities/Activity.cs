@@ -417,10 +417,13 @@ namespace Orts.Simulation.Activities
                 }
                 else if (startOffset != null && endOffset != null && startOffset <= endOffset)
                     distanceOfWarningPost = (float)Math.Max(-MaxDistanceOfWarningPost, -(double)startOffset);
-                traveller = traveller.Move(distanceOfWarningPost);
                 WorldPosition worldPosition3 = WorldPosition.None;
                 TempSpeedPostItem speedWarningPostItem = new TempSpeedPostItem(simulator.RouteModel.SpeedRestrictions[SpeedRestrictionType.Temporary], simulator.RouteModel.MetricUnits, restrictionZone.StartPosition, false, worldPosition3, true);
-                SpeedPostPosition(speedWarningPostItem, traveller);
+                if (traveller.OnTrack)
+                {
+                    traveller = traveller.Move(distanceOfWarningPost);
+                    SpeedPostPosition(speedWarningPostItem, traveller);
+                }
                 if (startOffset != null && endOffset != null && startOffset > endOffset)
                     speedWarningPostItem.Flip();
                 ((TempSpeedPostItem)newSpeedPostItems[0]).ComputeTablePosition();
@@ -440,7 +443,7 @@ namespace Orts.Simulation.Activities
         /// <param name="traveller">The computed traveller to the speedPost position</param>
         private static float? AddItemIdToTrackNode(in WorldLocation location, TrackItem newTrItem, out TrackTraveller traveller)
         {
-            float? offset = 0.0f;
+            float? offset = null;
             traveller = TrackTraveller.InitializeTraveller(location) ?? default;
             if (traveller.OnTrack && RuntimeData.Instance.TrackDB.TrackNodes[traveller.TrackNodeIndex] is TrackVectorNode trackVectorNode)
             {
