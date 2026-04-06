@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Api;
 using FreeTrainSimulator.Models.Imported.State;
+using FreeTrainSimulator.Runtime.Track;
 
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Models;
@@ -290,8 +291,8 @@ namespace Orts.Simulation.Track
                     {
                         TrackVectorNode reversalNode = RuntimeData.Instance.TrackDB.TrackNodes.VectorNodes[nextPathNode.NextMainTVNIndex];
                         TrackVectorSection firstSection = reversalNode.TrackVectorSections[0];
-                        Traveller TDBTrav = new Traveller(reversalNode, firstSection.Location, Direction.Forward);
-                        offset = TDBTrav.DistanceTo(reversalNode, nextPathNode.Location);
+                        TrackTraveller? tdbTrav = TrackTraveller.InitializeTraveller(firstSection.Location, nextPathNode.NextMainTVNIndex, TrackDirection.Ahead);
+                        offset = tdbTrav?.DistanceTo(nextPathNode.Location) ?? 0;
                         float reverseOffset = 0;
                         int sectionIndex = -1;
                         TrackDirection validDir = currentDir;
@@ -399,8 +400,8 @@ namespace Orts.Simulation.Track
 
             thisNode = RuntimeData.Instance.TrackDB.TrackNodes[trackNodeIndex];
             TrackVectorSection endFirstSection = (thisNode as TrackVectorNode).TrackVectorSections[0];
-            Traveller TDBEndTrav = new Traveller(thisNode as TrackVectorNode, endFirstSection.Location, Direction.Forward);
-            float endOffset = TDBEndTrav.DistanceTo(thisNode, lastPathNode.Location);
+            TrackTraveller? tdbEndTrav = TrackTraveller.InitializeTraveller(endFirstSection.Location, trackNodeIndex, TrackDirection.Ahead);
+            float endOffset = tdbEndTrav?.DistanceTo(lastPathNode.Location) ?? 0;
 
             // Prepare info about route end point
             float reverseEndOffset = 0;
@@ -1567,8 +1568,8 @@ namespace Orts.Simulation.Track
         {
             TrackVectorNode waitingNode = RuntimeData.Instance.TrackDB.TrackNodes.VectorNodes[stopPathNode.NextMainTVNIndex];
             TrackVectorSection firstSection = waitingNode.TrackVectorSections[0];
-            Traveller tdbTraveller = new Traveller(waitingNode, firstSection.Location, Direction.Forward);
-            float offset = tdbTraveller.DistanceTo(waitingNode, stopPathNode.Location);
+            TrackTraveller? tdbTraveller = TrackTraveller.InitializeTraveller(firstSection.Location, stopPathNode.NextMainTVNIndex, TrackDirection.Ahead);
+            float offset = tdbTraveller?.DistanceTo(stopPathNode.Location) ?? 0;
 
             int sectionIndex = -1;
 
