@@ -2253,7 +2253,8 @@ namespace Orts.Simulation.Timetables
 
             // get traveller at start of path tracknode
             TrackCircuitSection thisSection = parentTrain.ValidRoutes[Direction.Forward][0].TrackCircuitSection;
-            Traveller middlePosition = new Traveller(RuntimeData.Instance.TrackDB.TrackNodes.VectorNodes[thisSection.OriginalIndex]);
+            TrackVectorNode vectorNode = RuntimeData.Instance.TrackDB.TrackNodes.VectorNodes[thisSection.OriginalIndex];
+            TrackTraveller middlePosition = TrackTraveller.InitializeTraveller(vectorNode.TrackVectorSections[0].Location, thisSection.OriginalIndex, TrackDirection.Ahead).Value;
 
 #if DEBUG_TURNTABLEINFO
             Trace.TraceInformation("Pool {0} - Train {1} [{2}] : calculating middle position for state : {3} , orientation : {4}",
@@ -2266,21 +2267,21 @@ namespace Orts.Simulation.Timetables
             {
                 if (parentPool.AdditionalTurntableDetails.AccessPaths[AccessPathIndex].AccessTraveller.Direction == TrackDirection.Ahead)
                 {
-                    middlePosition.Move(parentPool.AdditionalTurntableDetails.AccessPaths[AccessPathIndex].TableMiddleExit);
+                    middlePosition = middlePosition.Move(parentPool.AdditionalTurntableDetails.AccessPaths[AccessPathIndex].TableMiddleExit);
 #if DEBUG_TURNTABLEINFO
                     Trace.TraceInformation("    used correction : {0} , resulting middle offset : TN : {1} , offset : {2} (off length : {3} ), Vector : {4}",
                         parentPool.AdditionalTurntableDetails.AccessPaths[AccessPathIndex].TableMiddleExit,
-                        middlePosition.TrackNodeIndex, middlePosition.TrackNodeOffset, middlePosition.TrackNodeLength, middlePosition.TrackVectorSectionIndex);
+                        middlePosition.TrackNodeIndex, middlePosition.VectorNodeOffset, middlePosition.VectorNodeLength, middlePosition.SectionIndex);
 #endif
                 }
                 else
                 {
                     // if tracknode direction through turntable is backward, use opposite position
-                    middlePosition.Move(parentPool.AdditionalTurntableDetails.AccessPaths[AccessPathIndex].TableMiddleEntry);
+                    middlePosition = middlePosition.Move(parentPool.AdditionalTurntableDetails.AccessPaths[AccessPathIndex].TableMiddleEntry);
 #if DEBUG_TURNTABLEINFO
                     Trace.TraceInformation("    used correction : {0} , resulting middle offset : TN : {1} , offset : {2} (off length : {3} ), Vector : {4}",
                         parentPool.AdditionalTurntableDetails.AccessPaths[AccessPathIndex].TableMiddleExit,
-                        middlePosition.TrackNodeIndex, middlePosition.TrackNodeOffset, middlePosition.TrackNodeLength, middlePosition.TrackVectorSectionIndex);
+                        middlePosition.TrackNodeIndex, middlePosition.VectorNodeOffset, middlePosition.VectorNodeLength, middlePosition.SectionIndex);
 #endif
                 }
             }
@@ -2288,31 +2289,27 @@ namespace Orts.Simulation.Timetables
             {
                 if (parentPool.StoragePool[StoragePathIndex].StoragePathTraveller.Direction == TrackDirection.Ahead)
                 {
-                    middlePosition.Move(parentPool.StoragePool[StoragePathIndex].TableMiddleExit);
+                    middlePosition = middlePosition.Move(parentPool.StoragePool[StoragePathIndex].TableMiddleExit);
 #if DEBUG_TURNTABLEINFO
                     Trace.TraceInformation("    used correction : {0} , resulting middle offset : TN : {1} , offset : {2} (off length : {3} ), Vector : {4}",
                         parentPool.StoragePool[StoragePathIndex].TableMiddleExit,
-                        middlePosition.TrackNodeIndex, middlePosition.TrackNodeOffset, middlePosition.TrackNodeLength, middlePosition.TrackVectorSectionIndex);
+                        middlePosition.TrackNodeIndex, middlePosition.VectorNodeOffset, middlePosition.VectorNodeLength, middlePosition.SectionIndex);
 #endif
                 }
                 else
                 {
                     // if tracknode direction through turntable is backward, use opposite position
-                    middlePosition.Move(parentPool.StoragePool[StoragePathIndex].TableMiddleEntry);
+                    middlePosition = middlePosition.Move(parentPool.StoragePool[StoragePathIndex].TableMiddleEntry);
 #if DEBUG_TURNTABLEINFO
                     Trace.TraceInformation("    used correction : {0} , resulting middle offset : TN : {1} , offset : {2} (off length : {3} ), Vector : {4}",
                         parentPool.StoragePool[StoragePathIndex].TableMiddleEntry,
-                        middlePosition.TrackNodeIndex, middlePosition.TrackNodeOffset, middlePosition.TrackNodeLength, middlePosition.TrackVectorSectionIndex);
+                        middlePosition.TrackNodeIndex, middlePosition.VectorNodeOffset, middlePosition.VectorNodeLength, middlePosition.SectionIndex);
 #endif
                 }
             }
 
-            // Compute shadow independently from middle position
-            TrackDirection middleDir = middlePosition.Direction == Direction.Forward ? TrackDirection.Ahead : TrackDirection.Reverse;
-            TrackTraveller middleShadow = TrackTraveller.InitializeTraveller(middlePosition.WorldLocation, middlePosition.TrackNode.Index, middleDir).Value;
-
             float offsetPosition = reverseFormation ? (-parentTrain.Length / 2.0f) - stopPositionOnTurntableM : (-parentTrain.Length / 2.0f) + stopPositionOnTurntableM;
-            parentTrain.RearTrackTraveller = middleShadow.Move(offsetPosition);
+            parentTrain.RearTrackTraveller = middlePosition.Move(offsetPosition);
 
             parentTrain.FrontTrackTraveller = parentTrain.RearTrackTraveller.Move(parentTrain.Length);
 
