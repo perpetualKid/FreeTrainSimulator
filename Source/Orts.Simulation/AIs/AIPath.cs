@@ -35,6 +35,7 @@ using FreeTrainSimulator.Common.Api;
 using FreeTrainSimulator.Common.Position;
 using FreeTrainSimulator.Models.Content;
 using FreeTrainSimulator.Models.Imported.State;
+using FreeTrainSimulator.Runtime.Track;
 
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Models;
@@ -390,8 +391,7 @@ namespace Orts.Simulation.AIs
         /// <returns>The track node index that has been found (or an exception)</returns>
         private static int FindTrackNodeIndex(AIPathNode node)
         {
-            Traveller traveller = new Traveller(node.Location);
-            return traveller.TrackNode?.Index ?? -1;
+            return TrackTraveller.InitializeTraveller(node.Location)?.TrackNodeIndex ?? -1;
         }
 
         /// <summary>
