@@ -143,36 +143,6 @@ namespace Orts.Simulation.Activities
             return false;
         }
 
-        private protected static DistanceResult CalculateToPoint(Traveller start, in WorldLocation target)
-        {
-            Traveller poiTraveller;
-            poiTraveller = new Traveller(start);
-
-            // Find distance once
-            float distance = poiTraveller.DistanceTo(target, MaxPlatformOrStationSize);
-
-            // If valid
-            if (distance > 0)
-            {
-                return DistanceResult.Valid;
-            }
-            else
-            {
-                // Go to opposite direction
-                poiTraveller = new Traveller(start, true);
-
-                distance = poiTraveller.DistanceTo(target, MaxPlatformOrStationSize);
-                // If valid, it is behind us
-                if (distance > 0)
-                {
-                    return DistanceResult.Behind;
-                }
-            }
-
-            // Otherwise off path
-            return DistanceResult.OffPath;
-        }
-
         private protected static DistanceResult CalculateToPoint(in TrackTraveller start, in WorldLocation target)
         {
             float? distance = start.DistanceTo(target, MaxPlatformOrStationSize);
@@ -399,36 +369,6 @@ namespace Orts.Simulation.Activities
         /// <param name="sidingEnd1"></param>
         /// <param name="sidingEnd2"></param>
         /// <returns>true if both ends of train within siding</returns>
-        private static bool AtSiding(Traveller frontPosition, Traveller rearPosition, SidingItem sidingEnd1, SidingItem sidingEnd2)
-        {
-            if (sidingEnd1 == null || sidingEnd2 == null)
-            {
-                return true;
-            }
-
-            DistanceResult distanceEnd1 = CalculateToPoint(frontPosition, sidingEnd1.Location);
-            DistanceResult distanceEnd2 = CalculateToPoint(frontPosition, sidingEnd2.Location);
-
-            // If front between the ends of the siding
-            if (((distanceEnd1 == DistanceResult.Behind && distanceEnd2 == DistanceResult.Valid)
-                || (distanceEnd1 == DistanceResult.Valid && distanceEnd2 == DistanceResult.Behind)))
-            {
-                return true;
-            }
-
-            distanceEnd1 = CalculateToPoint(rearPosition, sidingEnd1.Location);
-            distanceEnd2 = CalculateToPoint(rearPosition, sidingEnd2.Location);
-
-            // If rear between the ends of the siding
-            if (((distanceEnd1 == DistanceResult.Behind && distanceEnd2 == DistanceResult.Valid)
-                || (distanceEnd1 == DistanceResult.Valid && distanceEnd2 == DistanceResult.Behind)))
-            {
-                return true;
-            }
-
-            return false;
-        }
-
         private static bool AtSiding(in TrackTraveller frontPosition, in TrackTraveller rearPosition, SidingItem sidingEnd1, SidingItem sidingEnd2)
         {
             if (sidingEnd1 == null || sidingEnd2 == null)

@@ -30,6 +30,7 @@ using FreeTrainSimulator.Common.Position;
 using FreeTrainSimulator.Common.Xna;
 using FreeTrainSimulator.Models.Content;
 using FreeTrainSimulator.Models.Imported.State;
+using FreeTrainSimulator.Runtime.Track;
 
 using Microsoft.Xna.Framework;
 
@@ -405,18 +406,18 @@ namespace Orts.Simulation.Activities
 
                 // And now update the various (vector) tracknodes (this needs the TrItemIds.
                 float? endOffset = AddItemIdToTrackNode(restrictionZone.EndPosition, newSpeedPostItems[1], out _);
-                float? startOffset = AddItemIdToTrackNode(restrictionZone.StartPosition, newSpeedPostItems[0], out Traveller traveller);
+                float? startOffset = AddItemIdToTrackNode(restrictionZone.StartPosition, newSpeedPostItems[0], out TrackTraveller traveller);
                 float distanceOfWarningPost = 0;
 
                 if (startOffset != null && endOffset != null && startOffset > endOffset)
                 {
                     ((TempSpeedPostItem)newSpeedPostItems[0]).Flip();
                     ((TempSpeedPostItem)newSpeedPostItems[1]).Flip();
-                    distanceOfWarningPost = (float)Math.Min(MaxDistanceOfWarningPost, traveller.TrackNodeLength - (double)startOffset);
+                    distanceOfWarningPost = (float)Math.Min(MaxDistanceOfWarningPost, traveller.VectorNodeLength - (double)startOffset);
                 }
                 else if (startOffset != null && endOffset != null && startOffset <= endOffset)
                     distanceOfWarningPost = (float)Math.Max(-MaxDistanceOfWarningPost, -(double)startOffset);
-                traveller.Move(distanceOfWarningPost);
+                traveller = traveller.Move(distanceOfWarningPost);
                 WorldPosition worldPosition3 = WorldPosition.None;
                 TempSpeedPostItem speedWarningPostItem = new TempSpeedPostItem(simulator.RouteModel.SpeedRestrictions[SpeedRestrictionType.Temporary], simulator.RouteModel.MetricUnits, restrictionZone.StartPosition, false, worldPosition3, true);
                 SpeedPostPosition(speedWarningPostItem, traveller);
@@ -437,13 +438,13 @@ namespace Orts.Simulation.Activities
         /// <param name="location">Position of the new </param>
         /// <param name="newTrItem">The Id of the new TrItem to add to the tracknode</param>
         /// <param name="traveller">The computed traveller to the speedPost position</param>
-        private static float? AddItemIdToTrackNode(in WorldLocation location, TrackItem newTrItem, out Traveller traveller)
+        private static float? AddItemIdToTrackNode(in WorldLocation location, TrackItem newTrItem, out TrackTraveller traveller)
         {
             float? offset = 0.0f;
-            traveller = new Traveller(location);
-            if (traveller.TrackNode is TrackVectorNode trackVectorNode)
+            traveller = TrackTraveller.InitializeTraveller(location) ?? default;
+            if (traveller.OnTrack && RuntimeData.Instance.TrackDB.TrackNodes[traveller.TrackNodeIndex] is TrackVectorNode trackVectorNode)
             {
-                offset = traveller.TrackNodeOffset;
+                offset = (float)traveller.VectorNodeOffset;
                 SpeedPostPosition((TempSpeedPostItem)newTrItem, traveller);
                 InsertTrackItemRef(trackVectorNode, (int)newTrItem.TrackItemId, (float)offset);
             }
@@ -456,9 +457,9 @@ namespace Orts.Simulation.Activities
         /// <param name="restrSpeedPost">The Id of the new restricted speed post to position</param>
         /// <param name="traveller">The traveller to the speedPost position</param>
         /// 
-        private static void SpeedPostPosition(TempSpeedPostItem restrSpeedPost, Traveller traveller)
+        private static void SpeedPostPosition(TempSpeedPostItem restrSpeedPost, in TrackTraveller traveller)
         {
-            restrSpeedPost.Update(traveller.Y, -traveller.RotY + (float)Math.PI / 2, new WorldPosition(traveller.Tile, MatrixExtension.SetTranslation(Matrix.CreateFromYawPitchRoll(-traveller.RotY, 0, 0), traveller.X, traveller.Y, -traveller.Z)));
+            restrSpeedPost.Update(traveller.Location.Location.Y, -traveller.Heading + (float)Math.PI / 2, new WorldPosition(traveller.Location.Tile, MatrixExtension.SetTranslation(Matrix.CreateFromYawPitchRoll(-traveller.Heading, 0, 0), traveller.Location.Location.X, traveller.Location.Location.Y, -traveller.Location.Location.Z)));
         }
 
         /// <summary>
@@ -473,8 +474,8 @@ namespace Orts.Simulation.Activities
             {
                 int currTrItemID = thisVectorNode.TrackItemIndices[iTrItems];
                 TrackItem currTrItem = RuntimeData.Instance.TrackDB.TrackItems[currTrItemID];
-                Traveller traveller = new Traveller(currTrItem.Location);
-                if (offset >= traveller.TrackNodeOffset)
+                TrackTraveller? traveller = TrackTraveller.InitializeTraveller(currTrItem.Location);
+                if (traveller.HasValue && offset >= (float)traveller.Value.VectorNodeOffset)
                 {
                     index = iTrItems + 1;
                     break;
