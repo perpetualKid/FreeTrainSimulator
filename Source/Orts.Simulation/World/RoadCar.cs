@@ -6,6 +6,7 @@ using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Calc;
 using FreeTrainSimulator.Common.Position;
 using FreeTrainSimulator.Common.Xna;
+using FreeTrainSimulator.Runtime.Track;
 
 using Microsoft.Xna.Framework;
 
@@ -33,24 +34,24 @@ namespace Orts.Simulation.World
         public bool IgnoreXRotation { get; }
         public bool CarriesCamera { get; set; }
 
-        public Traveller FrontTraveller { get; }
-        public Traveller RearTraveller { get; }
+        public TrackTraveller FrontTraveller { get; private set; }
+        public TrackTraveller RearTraveller { get; private set; }
         public float Speed { get; private set; }
 
         public Vector3 FrontLocation
         {
             get
             {
-                return new Vector3(FrontTraveller.WorldLocation.Location.X,
-                    FrontTraveller.WorldLocation.Location.Y + Math.Max(Spawner.GetRoadHeightAdjust(Travelled - Length * 0.25f), 0) + VisualHeightAdjustment,
-                    FrontTraveller.WorldLocation.Location.Z);
+                return new Vector3(FrontTraveller.Location.Location.X,
+                    FrontTraveller.Location.Location.Y + Math.Max(Spawner.GetRoadHeightAdjust(Travelled - Length * 0.25f), 0) + VisualHeightAdjustment,
+                    FrontTraveller.Location.Location.Z);
             }
         }
         public Vector3 RearLocation
         {
             get
             {
-                WorldLocation location = RearTraveller.WorldLocation.NormalizeTo(FrontTraveller.Tile);
+                WorldLocation location = RearTraveller.Location.NormalizeTo(FrontTraveller.Location.Tile);
                 return new Vector3(location.Location.X,
                     location.Location.Y + Math.Max(Spawner.GetRoadHeightAdjust(Travelled + Length * 0.25f), 0) + VisualHeightAdjustment,
                     location.Location.Z);
@@ -78,7 +79,7 @@ namespace Orts.Simulation.World
                             frontY = rearY;
                     }
                 }
-                position = new WorldPosition(FrontTraveller.Tile, MatrixExtension.XNAMatrixFromMSTSCoordinates(front.X, frontY, front.Z, rear.X, rearY, rear.Z));
+                position = new WorldPosition(FrontTraveller.Location.Tile, MatrixExtension.XNAMatrixFromMSTSCoordinates(front.X, frontY, front.Z, rear.X, rearY, rear.Z));
                 return ref position;
             }
         }
@@ -90,10 +91,8 @@ namespace Orts.Simulation.World
             Type = StaticRandom.Next() % Simulator.Instance.CarSpawnerLists[this.CarSpawnerListIdx].Count;
             Length = Simulator.Instance.CarSpawnerLists[this.CarSpawnerListIdx][Type].Distance;
             // Front and rear travellers approximate wheel positions at 25% and 75% along vehicle.
-            FrontTraveller = new Traveller(spawner.Traveller);
-            FrontTraveller.Move(Length * 0.15f);
-            RearTraveller = new Traveller(spawner.Traveller);
-            RearTraveller.Move(Length * 0.85f);
+            FrontTraveller = spawner.Traveller.Move(Length * 0.15f);
+            RearTraveller = spawner.Traveller.Move(Length * 0.85f);
             // Travelled is the center of the vehicle.
             Travelled = Length * 0.50f;
             Speed = speedMax = averageSpeed * (0.75f + (float)StaticRandom.NextDouble() / 2);
@@ -147,8 +146,8 @@ namespace Orts.Simulation.World
 
             double distance = elapsedTime.ClockSeconds * Speed;
             Travelled += (float)distance;
-            FrontTraveller.Move(distance);
-            RearTraveller.Move(distance);
+            FrontTraveller = FrontTraveller.Move((float)distance);
+            RearTraveller = RearTraveller.Move((float)distance);
         }
 
         public void ChangeSpeed(float speed)

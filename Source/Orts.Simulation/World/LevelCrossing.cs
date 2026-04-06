@@ -422,21 +422,6 @@ namespace Orts.Simulation.World
                 ? traveller.DistanceTo(crossingTraveller.Value, maxDistance) ?? -1f
                 : -1f;
         }
-
-        public float DistanceTo(Traveller traveller)
-        {
-            return DistanceTo(traveller, float.MaxValue);
-        }
-
-        public float DistanceTo(Traveller traveller, float maxDistance)
-        {
-            ArgumentNullException.ThrowIfNull(traveller);
-            if (vectorNode == null)
-                return -1f;
-            TrackNodes nodes = RuntimeData.Instance?.TrackDB?.TrackNodes;
-            TrackNode trackNode = nodes != null && vectorNode.NodeIndex < nodes.Count ? nodes[vectorNode.NodeIndex] : null;
-            return trackNode != null ? traveller.DistanceTo(trackNode, Location, maxDistance) : -1f;
-        }
     }
 
     public class LevelCrossing

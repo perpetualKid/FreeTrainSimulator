@@ -2935,10 +2935,9 @@ namespace Orts.ActivityRunner.Viewer3D
                 // camera location is always behind the near road car, at a distance which increases at increased speed
                 if (rearRoadCar != null && rearRoadCar.Travelled < rearRoadCar.Spawner.Length - 10f)
                 {
-                    var traveller = new Traveller(rearRoadCar.FrontTraveller);
-                    traveller.Move(-2.5f - 0.15f * rearRoadCar.Length - rearRoadCar.Speed * 0.5f);
-                    trackCameraLocation = traveller.WorldLocation;
-                    cameraLocation = traveller.WorldLocation.ChangeElevation(+1.8f);
+                    var traveller = rearRoadCar.FrontTraveller.Move(-2.5f - 0.15f * rearRoadCar.Length - rearRoadCar.Speed * 0.5f);
+                    trackCameraLocation = traveller.Location;
+                    cameraLocation = traveller.Location.ChangeElevation(+1.8f);
                 }
                 else
                     rearRoadCar = null;
@@ -3118,7 +3117,7 @@ namespace Orts.ActivityRunner.Viewer3D
                     foreach (RoadCar visibleCar in viewer.World.RoadCars.VisibleCars)
                     {
                         // check for direction
-                        if (Math.Abs(visibleCar.FrontTraveller.RotY - train.FrontHeading) < 0.5f && visibleCar.Travelled < visibleCar.Spawner.Length - 30)
+                        if (Math.Abs(visibleCar.FrontTraveller.Heading - train.FrontHeading) < 0.5f && visibleCar.Travelled < visibleCar.Spawner.Length - 30)
                         {
                             TrainCar testTrainCar = null;
                             if (visibleCar.Speed < Math.Abs(train.SpeedMpS) ^ trainForwards)
@@ -3136,9 +3135,9 @@ namespace Orts.ActivityRunner.Viewer3D
                                 // select first car in direction of movement
                                 testTrainCar = trainForwards ? train.FirstCar : train.LastCar;
                             }
-                            if (Math.Abs(visibleCar.FrontTraveller.WorldLocation.Location.Y - testTrainCar.WorldPosition.WorldLocation.Location.Y) < 30.0f)
+                            if (Math.Abs(visibleCar.FrontTraveller.Location.Location.Y - testTrainCar.WorldPosition.WorldLocation.Location.Y) < 30.0f)
                             {
-                                var distanceTo = WorldLocation.GetDistance2D(visibleCar.FrontTraveller.WorldLocation, testTrainCar.WorldPosition.WorldLocation).Length();
+                                var distanceTo = WorldLocation.GetDistance2D(visibleCar.FrontTraveller.Location, testTrainCar.WorldPosition.WorldLocation).Length();
                                 if (distanceTo < MaxDistFromRoadCarM)
                                 {
                                     minDistanceM = distanceTo;
@@ -3156,9 +3155,8 @@ namespace Orts.ActivityRunner.Viewer3D
                         roadCarFound = true;
                         // CarriesCamera needed to increase distance of following car
                         rearRoadCar.CarriesCamera = true;
-                        var traveller = new Traveller(rearRoadCar.FrontTraveller);
-                        traveller.Move(-2.5f - 0.15f * rearRoadCar.Length);
-                        trackCameraLocation = traveller.WorldLocation;
+                        var traveller = rearRoadCar.FrontTraveller.Move(-2.5f - 0.15f * rearRoadCar.Length);
+                        trackCameraLocation = traveller.Location;
                     }
                 }
 

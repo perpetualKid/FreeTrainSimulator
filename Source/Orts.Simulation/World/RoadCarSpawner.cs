@@ -6,6 +6,8 @@ using System.Linq;
 using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Calc;
 using FreeTrainSimulator.Common.Position;
+using FreeTrainSimulator.Models.Track;
+using FreeTrainSimulator.Runtime.Track;
 
 using Microsoft.Xna.Framework;
 
@@ -36,8 +38,8 @@ namespace Orts.Simulation.World
         // Level crossing which interact with this spawner. Distances are used for speed curves and the list must be sorted by distance from spawner.
         public List<RoadCarCrossing> Crossings { get; } = new List<RoadCarCrossing>();
 
-        public Traveller Traveller { get; }
-        public float Length { get; }
+        public TrackTraveller Traveller { get; private set; }
+        public float Length { get; private set; }
 
         public RoadCarSpawner(in WorldPosition position, CarSpawnerObject carSpawnerObj)
         {
@@ -53,27 +55,44 @@ namespace Orts.Simulation.World
             ref readonly WorldLocation startLocation = ref trItems[start].Location;
             ref readonly WorldLocation endLocation = ref trItems[end].Location;
 
-            Traveller = new Traveller(startLocation, true);
-            Length = Traveller.DistanceTo(endLocation);
-            if (Length < 0)
+            TrackTraveller? spawnerTraveller = TrackTraveller.InitializeTraveller(startLocation, TrackDirection.Ahead, TrackDataBaseType.Road);
+            if (spawnerTraveller.HasValue)
             {
-                Traveller.ReverseDirection();
-                Length = Traveller.DistanceTo(endLocation);
+                Traveller = spawnerTraveller.Value;
+                Length = Traveller.DistanceTo(endLocation) ?? -1f;
                 if (Length < 0)
-                    Trace.TraceWarning("{0} car spawner {1} doesn't have connected road route between {2} and {3}", position, carSpawnerObj.UiD, startLocation, endLocation);
+                {
+                    Traveller = Traveller.Reverse();
+                    Length = Traveller.DistanceTo(endLocation) ?? -1f;
+                    if (Length < 0)
+                        Trace.TraceWarning("{0} car spawner {1} doesn't have connected road route between {2} and {3}", position, carSpawnerObj.UiD, startLocation, endLocation);
+                }
+            }
+            else
+            {
+                Trace.TraceWarning("{0} car spawner {1} could not find road track near {2}", position, carSpawnerObj.UiD, startLocation);
             }
 
             SortedList<float, LevelCrossingItem> sortedLevelCrossings = new SortedList<float, LevelCrossingItem>();
-            for (Traveller crossingTraveller = new Traveller(Traveller); crossingTraveller.NextSection();)
-                if (crossingTraveller.TrackNode is TrackVectorNode trackVectorNode && trackVectorNode.TrackItemIndices != null)
+            int lastNodeIndex = -1;
+            for (TrackTraveller? crossingTraveller = Traveller.AdvanceToNextSection(); crossingTraveller.HasValue; crossingTraveller = crossingTraveller.Value.AdvanceToNextSection())
+            {
+                int nodeIndex = crossingTraveller.Value.TrackNodeIndex;
+                if (nodeIndex == lastNodeIndex)
+                    continue;
+
+                lastNodeIndex = nodeIndex;
+                // Road track has no junctions — every on-track node is a TrackVectorNode.
+                TrackVectorNode trackVectorNode = RuntimeData.Instance.RoadTrackDB.TrackNodes[nodeIndex] as TrackVectorNode;
+                if (trackVectorNode?.TrackItemIndices != null)
                 {
                     foreach (int trItemRef in trackVectorNode.TrackItemIndices)
                     {
                         if (Simulator.Instance.LevelCrossings.RoadCrossingItems.TryGetValue(trItemRef, out LevelCrossingItem value))
                             sortedLevelCrossings[value.DistanceTo(Traveller)] = value;
                     }
-
                 }
+            }
 
             Crossings = sortedLevelCrossings.Select(slc => new RoadCarCrossing(slc.Value, slc.Key, float.NaN)).ToList();
         }
