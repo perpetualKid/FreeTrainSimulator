@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
+using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Input;
 using FreeTrainSimulator.Common.Position;
 using FreeTrainSimulator.Graphics.Window;
@@ -9,6 +10,8 @@ using FreeTrainSimulator.Graphics.Window.Controls;
 using FreeTrainSimulator.Graphics.Window.Controls.Layout;
 using FreeTrainSimulator.Graphics.Xna;
 using FreeTrainSimulator.Models.Settings;
+using FreeTrainSimulator.Models.Track;
+using FreeTrainSimulator.Runtime.Track;
 
 using GetText;
 
@@ -75,19 +78,26 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
                 void AddTrackItems(TrackNodes trackNodes, List<TrackItem> trackItems, bool roadTracks)
                 {
                     ref readonly WorldLocation cameraLocation = ref viewer.Camera.CameraWorldLocation;
+                    TrackDataBaseType dbType = roadTracks ? TrackDataBaseType.Road : TrackDataBaseType.Rail;
                     foreach (TrackVectorNode trackVectorNode in trackNodes.VectorNodes)
                     {
                         if (Math.Abs(trackVectorNode.TrackVectorSections[0].Location.TileX - cameraLocation.TileX) < 2 &&
                             Math.Abs(trackVectorNode.TrackVectorSections[0].Location.TileZ - cameraLocation.TileZ) < 2)
                         {
-                            Traveller currentPosition = new Traveller(trackVectorNode);
-                            while (true)
+                            TrackTraveller? init = TrackTraveller.InitializeTraveller(
+                                trackVectorNode.TrackVectorSections[0].Location, trackVectorNode.Index, TrackDirection.Ahead, dbType);
+                            if (init is TrackTraveller currentPosition)
                             {
-                                WorldLocation previousLocation = currentPosition.WorldLocation;
-                                float remaining = currentPosition.MoveInSection(SegmentLength);
-                                if ((Math.Abs(remaining - SegmentLength) < Tolerance) && !currentPosition.NextVectorSection())
-                                    break;
-                                trackOverlay.Add(previousLocation, currentPosition.WorldLocation, roadTracks ? Color.LightSalmon : Color.LightBlue);
+                                int startNodeIndex = currentPosition.TrackNodeIndex;
+                                while (true)
+                                {
+                                    WorldLocation previousLocation = currentPosition.Location;
+                                    double previousOffset = currentPosition.VectorNodeOffset;
+                                    currentPosition = currentPosition.Move(SegmentLength);
+                                    trackOverlay.Add(previousLocation, currentPosition.Location, roadTracks ? Color.LightSalmon : Color.LightBlue);
+                                    if (currentPosition.TrackNodeIndex != startNodeIndex || Math.Abs(currentPosition.VectorNodeOffset - previousOffset) < Tolerance)
+                                        break;
+                                }
                             }
 
                             IEnumerable<IGrouping<float, TrackItem>> grouping = trackVectorNode.TrackItemIndices.Select(i => trackItems[i]).GroupBy(item => item.SData1);
@@ -97,10 +107,12 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
                                     () =>
                                     {
                                         string line = string.Join(System.Environment.NewLine, item.Select(t => $"{t.TrackItemId} {t.GetType().Name[..^4]} {t.ItemName}"));
-                                        Traveller currentPosition = new Traveller(trackVectorNode, roadTracks);
-                                        currentPosition.Move(item.Key);
+                                        WorldLocation labelLocation = trackVectorNode.TrackVectorSections[0].Location;
+                                        TrackTraveller? ttInit = TrackTraveller.InitializeTraveller(labelLocation, trackVectorNode.Index, TrackDirection.Ahead, dbType);
+                                        if (ttInit is TrackTraveller ttLabel)
+                                            labelLocation = ttLabel.Move(item.Key).Location;
                                         return new Label3DOverlay(this, line, roadTracks ? LabelType.RoadTrackDebug : LabelType.TrackDebug, 0,
-                                            new FixedWorldPositionSource(new WorldPosition(currentPosition.WorldLocation)), cameraViewProjection);
+                                            new FixedWorldPositionSource(new WorldPosition(labelLocation)), cameraViewProjection);
                                     }));
                             }
                         }
