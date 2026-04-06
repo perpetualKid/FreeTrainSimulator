@@ -1,6 +1,7 @@
 ﻿using System.Collections.ObjectModel;
 
 using FreeTrainSimulator.Common.Api;
+using FreeTrainSimulator.Runtime.Track;
 
 using MemoryPack;
 
@@ -12,8 +13,8 @@ namespace FreeTrainSimulator.Models.Imported.State
     public sealed partial class TimetablePoolDetailSaveState : SaveStateBase
     {
         public TrackCircuitPartialPathRouteSaveState StoragePath { get; set; }
-        public TravellerSaveState StoragePathTraveller { get; set; }
-        public TravellerSaveState StoragePathReverseTraveller { get; set; }
+        public TrackTravellerSaveState StoragePathTraveller { get; set; }
+        public TrackTravellerSaveState StoragePathReverseTraveller { get; set; }
         public string StorageName { get; set; }
 #pragma warning disable CA2227 // Collection properties should be read only
         public Collection<TrackCircuitPartialPathRouteSaveState> AccessPaths { get; set; }

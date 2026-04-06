@@ -1,8 +1,7 @@
 ﻿using FreeTrainSimulator.Common.Api;
+using FreeTrainSimulator.Runtime.Track;
 
 using MemoryPack;
-
-using Orts.Formats.Msts;
 
 namespace FreeTrainSimulator.Models.Imported.State
 {
@@ -10,7 +9,7 @@ namespace FreeTrainSimulator.Models.Imported.State
     public sealed partial class AccessPathDetailSaveState : SaveStateBase
     {
         public TrackCircuitPartialPathRouteSaveState AccessPath { get; set; }
-        public TravellerSaveState AccessTraveller { get; set; }
+        public TrackTravellerSaveState AccessTraveller { get; set; }
         public string AccessPathName { get; set; }
         public int TableExitIndex { get; set; }
         public int TableVectorIndex { get; set; }

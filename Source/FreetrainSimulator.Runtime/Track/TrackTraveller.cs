@@ -151,6 +151,12 @@ namespace FreeTrainSimulator.Runtime.Track
         }
 
         /// <summary>
+        /// Returns a copy of this traveller with the specified <paramref name="direction"/>,
+        /// keeping the same node, section, offset, and location.
+        /// </summary>
+        public TrackTraveller WithDirection(TrackDirection direction) => this with { Direction = direction };
+
+        /// <summary>
         /// Builds (or rebuilds) the shared ownership map from every <see cref="VectorSectionNode"/> instance
         /// to its parent <see cref="VectorNode"/>, section index, and resolved <see cref="TrackSection"/>,
         /// covering both the rail (<see cref="TrackModel.TrackDatabase"/>) and road

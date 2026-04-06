@@ -64,7 +64,7 @@ namespace Orts.Simulation.Timetables
         public class AccessPathDetails : ISaveStateApi<AccessPathDetailSaveState>
         {
             public TrackCircuitPartialPathRoute AccessPath { get; set; }           // actual access path
-            public Traveller AccessTraveller { get; set; }                 // traveler based on access path
+            public TrackTraveller AccessTraveller { get; set; }               // traveler based on access path
             public string AccessPathName { get; set; }                     // access path name
             public int TableVectorIndex { get; set; }                      // index in VectorList of tracknode which is the table
             public int TableExitIndex { get; set; }                        // index in table exit list for this exit
@@ -78,8 +78,7 @@ namespace Orts.Simulation.Timetables
                 AccessPath = new TrackCircuitPartialPathRoute();
                 await AccessPath.Restore(saveState.AccessPath).ConfigureAwait(false);
 
-                AccessTraveller = new Traveller(false);
-                await AccessTraveller.Restore(saveState.AccessTraveller).ConfigureAwait(false);
+                AccessTraveller = TrackTraveller.InitializeTraveller(saveState.AccessTraveller) ?? default;
 
                 AccessPathName = saveState.AccessPathName;
                 TableExitIndex = saveState.TableExitIndex;
@@ -248,7 +247,7 @@ namespace Orts.Simulation.Timetables
 
                                 AccessPathDetails thisAccess = new AccessPathDetails();
                                 thisAccess.AccessPath = new TrackCircuitPartialPathRoute(usedRoute);
-                                thisAccess.AccessTraveller = new Traveller(newPath.FirstNode.Location, newPath.FirstNode.NextMainNode.Location);
+                                thisAccess.AccessTraveller = TrackTraveller.InitializeDirectedTraveller(newPath.FirstNode.Location, newPath.FirstNode.NextMainNode.Location);
                                 thisAccess.AccessPathName = accessPath;
                                 AdditionalTurntableDetails.AccessPaths.Add(thisAccess);
                             }
@@ -525,7 +524,7 @@ namespace Orts.Simulation.Timetables
             float entrySectionLength = 0.0f;
             float exitSectionLength = 0.0f;
 
-            if (thisPath.TableVectorIndex < thisPath.AccessTraveller.TrackVectorSectionIndex)
+            if (thisPath.TableVectorIndex < thisPath.AccessTraveller.SectionIndex)
             {
                 // path is behind turntable - calculate length from turntable to end
                 // also set direction forward (path is outbound)
@@ -533,7 +532,7 @@ namespace Orts.Simulation.Timetables
                 entrySectionLength = CalculateVectorLength(lastVectorIndex, trackVectors.Length - 1, lastVectorIndex, trackVectors);
                 exitSectionLength = CalculateVectorLength(0, lastVectorIndex - 2, lastVectorIndex, trackVectors);
                 thisPath.AccessPath[0].Direction = TrackDirection.Reverse;
-                thisPath.AccessTraveller.Direction = Direction.Forward;
+                thisPath.AccessTraveller = thisPath.AccessTraveller.WithDirection(TrackDirection.Ahead);
             }
             else
             {
@@ -543,7 +542,7 @@ namespace Orts.Simulation.Timetables
                 entrySectionLength = CalculateVectorLength(0, lastVectorIndex, lastVectorIndex, trackVectors);
                 exitSectionLength = CalculateVectorLength(lastVectorIndex + 2, trackVectors.Length - 1, lastVectorIndex, trackVectors);
                 thisPath.AccessPath[0].Direction = TrackDirection.Ahead;
-                thisPath.AccessTraveller.Direction = Direction.Backward;
+                thisPath.AccessTraveller = thisPath.AccessTraveller.WithDirection(TrackDirection.Reverse);
             }
 
             // deduct clearance for turntable
@@ -595,7 +594,7 @@ namespace Orts.Simulation.Timetables
             float entrySectionLength = 0.0f;
             float exitSectionLength = 0.0f;
 
-            if (thisPath.TableVectorIndex < thisPath.StoragePathTraveller.TrackVectorSectionIndex)
+            if (thisPath.TableVectorIndex < thisPath.StoragePathTraveller.SectionIndex)
             {
                 // path is behind turntable - calculate length from turntable to end
                 // also set direction forward (path is outbound)
@@ -603,8 +602,8 @@ namespace Orts.Simulation.Timetables
                 entrySectionLength = CalculateVectorLength(lastVectorIndex, trackVectors.Length - 1, lastVectorIndex, trackVectors);
                 exitSectionLength = CalculateVectorLength(0, lastVectorIndex - 2, lastVectorIndex, trackVectors);
                 thisPath.StoragePath[0].Direction = TrackDirection.Reverse;
-                thisPath.StoragePathTraveller.Direction = Direction.Forward;
-                thisPath.StoragePathReverseTraveller.Direction = Direction.Backward;
+                thisPath.StoragePathTraveller = thisPath.StoragePathTraveller.WithDirection(TrackDirection.Ahead);
+                thisPath.StoragePathReverseTraveller = thisPath.StoragePathReverseTraveller.WithDirection(TrackDirection.Reverse);
             }
             else
             {
@@ -614,8 +613,8 @@ namespace Orts.Simulation.Timetables
                 entrySectionLength = CalculateVectorLength(0, lastVectorIndex, lastVectorIndex, trackVectors);
                 exitSectionLength = CalculateVectorLength(lastVectorIndex + 2, trackVectors.Length - 1, lastVectorIndex, trackVectors);
                 thisPath.StoragePath[0].Direction = TrackDirection.Ahead;
-                thisPath.StoragePathTraveller.Direction = Direction.Backward;
-                thisPath.StoragePathReverseTraveller.Direction = Direction.Forward;
+                thisPath.StoragePathTraveller = thisPath.StoragePathTraveller.WithDirection(TrackDirection.Reverse);
+                thisPath.StoragePathReverseTraveller = thisPath.StoragePathReverseTraveller.WithDirection(TrackDirection.Ahead);
             }
 
             float totalLength = baseLength + entrySectionLength;
@@ -683,9 +682,8 @@ namespace Orts.Simulation.Timetables
             if (StoragePool[PoolStorageState].MaxStoredUnits.HasValue && StoragePool[PoolStorageState].MaxStoredUnits == 1)
             {
                 // use stored traveller
-                Traveller storedTraveller = StoragePool[PoolStorageState].StoragePathTraveller;
-                TrackDirection storageDir = storedTraveller.Direction == Direction.Forward ? TrackDirection.Ahead : TrackDirection.Reverse;
-                train.RearTrackTraveller = TrackTraveller.InitializeTraveller(storedTraveller.WorldLocation, storedTraveller.TrackNode.Index, storageDir).Value;
+                TrackTraveller storedTraveller = StoragePool[PoolStorageState].StoragePathTraveller;
+                train.RearTrackTraveller = TrackTraveller.InitializeTraveller(storedTraveller.Location, storedTraveller.TrackNodeIndex, storedTraveller.Direction).Value;
             }
 
             else
@@ -694,9 +692,8 @@ namespace Orts.Simulation.Timetables
                 train.TCRoute.TCRouteSubpaths[0] = new TrackCircuitPartialPathRoute(train.TCRoute.TCRouteSubpaths[0].ReversePath());
                 train.ValidRoutes[Direction.Forward] = new TrackCircuitPartialPathRoute(train.TCRoute.TCRouteSubpaths[0]);
 
-                Traveller storedReverseTraveller = StoragePool[PoolStorageState].StoragePathReverseTraveller;
-                TrackDirection reverseDir = storedReverseTraveller.Direction == Direction.Forward ? TrackDirection.Ahead : TrackDirection.Reverse;
-                train.RearTrackTraveller = TrackTraveller.InitializeTraveller(storedReverseTraveller.WorldLocation, storedReverseTraveller.TrackNode.Index, reverseDir).Value;
+                TrackTraveller storedReverseTraveller = StoragePool[PoolStorageState].StoragePathReverseTraveller;
+                train.RearTrackTraveller = TrackTraveller.InitializeTraveller(storedReverseTraveller.Location, storedReverseTraveller.TrackNodeIndex, storedReverseTraveller.Direction).Value;
 
                 // if storage available check for other engines on storage track
                 if (StoragePool[PoolStorageState].StoredUnits.Count > 0)
@@ -1439,10 +1436,10 @@ namespace Orts.Simulation.Timetables
                 case MovingTableState.WaitingAccessToMovingTable:
 
                     reqTurntableEntry = parentPool.StoragePool[StoragePathIndex].TableExitIndex;
-                    reqEntryDirection = parentPool.StoragePool[StoragePathIndex].StoragePathTraveller.Direction;
+                    reqEntryDirection = (Direction)parentPool.StoragePool[StoragePathIndex].StoragePathTraveller.Direction;
 
                     reqTurntableExit = parentPool.AdditionalTurntableDetails.AccessPaths[AccessPathIndex].TableExitIndex;
-                    reqExitDirection = parentPool.AdditionalTurntableDetails.AccessPaths[AccessPathIndex].AccessTraveller.Direction;
+                    reqExitDirection = (Direction)parentPool.AdditionalTurntableDetails.AccessPaths[AccessPathIndex].AccessTraveller.Direction;
 
                     if (AutoRequestExit(reqTurntableExit, reqEntryDirection, reqExitDirection, elapsedClockSeconds))
                     {
@@ -1473,10 +1470,10 @@ namespace Orts.Simulation.Timetables
                 case MovingTableState.WaitingStorageToMovingTable:
 
                     reqTurntableEntry = parentPool.AdditionalTurntableDetails.AccessPaths[AccessPathIndex].TableExitIndex;
-                    reqEntryDirection = parentPool.AdditionalTurntableDetails.AccessPaths[AccessPathIndex].AccessTraveller.Direction;
+                    reqEntryDirection = (Direction)parentPool.AdditionalTurntableDetails.AccessPaths[AccessPathIndex].AccessTraveller.Direction;
 
                     reqTurntableExit = parentPool.StoragePool[StoragePathIndex].TableExitIndex;
-                    reqExitDirection = parentPool.StoragePool[StoragePathIndex].StoragePathTraveller.Direction;
+                    reqExitDirection = (Direction)parentPool.StoragePool[StoragePathIndex].StoragePathTraveller.Direction;
 
                     if (AutoRequestExit(reqTurntableExit, reqEntryDirection, reqExitDirection, elapsedClockSeconds))
                     {
@@ -1523,10 +1520,10 @@ namespace Orts.Simulation.Timetables
                 case MovingTableState.AccessOnMovingTable:
 
                     reqTurntableEntry = parentPool.AdditionalTurntableDetails.AccessPaths[AccessPathIndex].TableExitIndex;
-                    reqEntryDirection = parentPool.AdditionalTurntableDetails.AccessPaths[AccessPathIndex].AccessTraveller.Direction;
+                    reqEntryDirection = (Direction)parentPool.AdditionalTurntableDetails.AccessPaths[AccessPathIndex].AccessTraveller.Direction;
 
                     reqTurntableExit = parentPool.StoragePool[StoragePathIndex].TableExitIndex;
-                    reqExitDirection = parentPool.StoragePool[StoragePathIndex].StoragePathTraveller.Direction;
+                    reqExitDirection = (Direction)parentPool.StoragePool[StoragePathIndex].StoragePathTraveller.Direction;
 
                     AutoRequestExit(reqTurntableExit, reqEntryDirection, reqExitDirection, elapsedClockSeconds);
                     break;
@@ -1537,10 +1534,10 @@ namespace Orts.Simulation.Timetables
                 case MovingTableState.StorageOnMovingTable:
 
                     reqTurntableEntry = parentPool.StoragePool[StoragePathIndex].TableExitIndex;
-                    reqEntryDirection = parentPool.StoragePool[StoragePathIndex].StoragePathTraveller.Direction;
+                    reqEntryDirection = (Direction)parentPool.StoragePool[StoragePathIndex].StoragePathTraveller.Direction;
 
                     reqTurntableExit = parentPool.AdditionalTurntableDetails.AccessPaths[AccessPathIndex].TableExitIndex;
-                    reqExitDirection = parentPool.AdditionalTurntableDetails.AccessPaths[AccessPathIndex].AccessTraveller.Direction;
+                    reqExitDirection = (Direction)parentPool.AdditionalTurntableDetails.AccessPaths[AccessPathIndex].AccessTraveller.Direction;
 
                     AutoRequestExit(reqTurntableExit, reqEntryDirection, reqExitDirection, elapsedClockSeconds);
                     break;
@@ -1608,10 +1605,10 @@ namespace Orts.Simulation.Timetables
                 case MovingTableState.WaitingAccessToMovingTable:
 
                     reqTurntableEntry = parentPool.StoragePool[StoragePathIndex].TableExitIndex;
-                    reqEntryDirection = parentPool.StoragePool[StoragePathIndex].StoragePathTraveller.Direction;
+                    reqEntryDirection = (Direction)parentPool.StoragePool[StoragePathIndex].StoragePathTraveller.Direction;
 
                     reqTurntableExit = parentPool.AdditionalTurntableDetails.AccessPaths[AccessPathIndex].TableExitIndex;
-                    reqExitDirection = parentPool.AdditionalTurntableDetails.AccessPaths[AccessPathIndex].AccessTraveller.Direction;
+                    reqExitDirection = (Direction)parentPool.AdditionalTurntableDetails.AccessPaths[AccessPathIndex].AccessTraveller.Direction;
 
                     if (AutoRequestExit(reqTurntableExit, reqEntryDirection, reqExitDirection, elapsedClockSeconds))
                     {
@@ -1651,10 +1648,10 @@ namespace Orts.Simulation.Timetables
                 case MovingTableState.WaitingStorageToMovingTable:
 
                     reqTurntableEntry = parentPool.AdditionalTurntableDetails.AccessPaths[AccessPathIndex].TableExitIndex;
-                    reqEntryDirection = parentPool.AdditionalTurntableDetails.AccessPaths[AccessPathIndex].AccessTraveller.Direction;
+                    reqEntryDirection = (Direction)parentPool.AdditionalTurntableDetails.AccessPaths[AccessPathIndex].AccessTraveller.Direction;
 
                     reqTurntableExit = parentPool.StoragePool[StoragePathIndex].TableExitIndex;
-                    reqExitDirection = parentPool.StoragePool[StoragePathIndex].StoragePathTraveller.Direction;
+                    reqExitDirection = (Direction)parentPool.StoragePool[StoragePathIndex].StoragePathTraveller.Direction;
 
                     if (AutoRequestExit(reqTurntableExit, reqEntryDirection, reqExitDirection, elapsedClockSeconds))
                     {
@@ -1806,10 +1803,10 @@ namespace Orts.Simulation.Timetables
                 case MovingTableState.AccessOnMovingTable:
 
                     reqTurntableEntry = parentPool.AdditionalTurntableDetails.AccessPaths[AccessPathIndex].TableExitIndex;
-                    reqEntryDirection = parentPool.AdditionalTurntableDetails.AccessPaths[AccessPathIndex].AccessTraveller.Direction;
+                    reqEntryDirection = (Direction)parentPool.AdditionalTurntableDetails.AccessPaths[AccessPathIndex].AccessTraveller.Direction;
 
                     reqTurntableExit = parentPool.StoragePool[StoragePathIndex].TableExitIndex;
-                    reqExitDirection = parentPool.StoragePool[StoragePathIndex].StoragePathTraveller.Direction;
+                    reqExitDirection = (Direction)parentPool.StoragePool[StoragePathIndex].StoragePathTraveller.Direction;
 
                     AutoRequestExit(reqTurntableExit, reqEntryDirection, reqExitDirection, elapsedClockSeconds);
                     break;
@@ -1820,10 +1817,10 @@ namespace Orts.Simulation.Timetables
                 case MovingTableState.StorageOnMovingTable:
 
                     reqTurntableEntry = parentPool.StoragePool[StoragePathIndex].TableExitIndex;
-                    reqEntryDirection = parentPool.StoragePool[StoragePathIndex].StoragePathTraveller.Direction;
+                    reqEntryDirection = (Direction)parentPool.StoragePool[StoragePathIndex].StoragePathTraveller.Direction;
 
                     reqTurntableExit = parentPool.AdditionalTurntableDetails.AccessPaths[AccessPathIndex].TableExitIndex;
-                    reqExitDirection = parentPool.AdditionalTurntableDetails.AccessPaths[AccessPathIndex].AccessTraveller.Direction;
+                    reqExitDirection = (Direction)parentPool.AdditionalTurntableDetails.AccessPaths[AccessPathIndex].AccessTraveller.Direction;
 
                     AutoRequestExit(reqTurntableExit, reqEntryDirection, reqExitDirection, elapsedClockSeconds);
                     break;
@@ -2267,7 +2264,7 @@ namespace Orts.Simulation.Timetables
             // get position of front and rear of train in present tracknode
             if (MovingTableState == MovingTableState.StorageOnMovingTable)
             {
-                if (parentPool.AdditionalTurntableDetails.AccessPaths[AccessPathIndex].AccessTraveller.Direction == Direction.Forward)
+                if (parentPool.AdditionalTurntableDetails.AccessPaths[AccessPathIndex].AccessTraveller.Direction == TrackDirection.Ahead)
                 {
                     middlePosition.Move(parentPool.AdditionalTurntableDetails.AccessPaths[AccessPathIndex].TableMiddleExit);
 #if DEBUG_TURNTABLEINFO
@@ -2289,7 +2286,7 @@ namespace Orts.Simulation.Timetables
             }
             else if (MovingTableState == MovingTableState.AccessOnMovingTable)
             {
-                if (parentPool.StoragePool[StoragePathIndex].StoragePathTraveller.Direction == Direction.Forward)
+                if (parentPool.StoragePool[StoragePathIndex].StoragePathTraveller.Direction == TrackDirection.Ahead)
                 {
                     middlePosition.Move(parentPool.StoragePool[StoragePathIndex].TableMiddleExit);
 #if DEBUG_TURNTABLEINFO
@@ -2343,7 +2340,7 @@ namespace Orts.Simulation.Timetables
                 parentTrain.FormsStatic = true;
 
                 // calculate stop position
-                float endOffset = parentPool.StoragePool[StoragePathIndex].StoragePathTraveller.TrackNodeOffset + parentTrain.Length;
+                float endOffset = (float)parentPool.StoragePool[StoragePathIndex].StoragePathTraveller.VectorNodeOffset + parentTrain.Length;
                 if (endOffset < parentTrain.EndAuthorities[Direction.Forward].Distance)
                 {
                     parentTrain.EndAuthorities[Direction.Forward].Distance = parentTrain.NextStopDistanceM = endOffset;
