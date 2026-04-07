@@ -10,7 +10,6 @@ namespace Orts.Formats.Msts
 {
     public class RuntimeData
     {
-        public RouteModel RouteData { get; }
         /// <summary>Track database, public such that other classes have access as well</summary>
         public TrackDB TrackDB { get; }
         /// <summary>Road track database</summary>
@@ -23,19 +22,18 @@ namespace Orts.Formats.Msts
 
         public static RuntimeData GameInstance(Game game) => GameService<RuntimeData>.Get(game);
 
-        public static void Initialize(RouteModel route, TrackDB trackDb, RoadTrackDB roadTrackDB, SignalConfigurationFile signalConfig, IRuntimeReferenceResolver runtimeReferenceResolver = null)
+        public static void Initialize(TrackDB trackDb, RoadTrackDB roadTrackDB, SignalConfigurationFile signalConfig, IRuntimeReferenceResolver runtimeReferenceResolver = null)
         {
-            GameService<RuntimeData>.Set(null, new RuntimeData(route, trackDb, roadTrackDB, signalConfig, runtimeReferenceResolver));
+            GameService<RuntimeData>.Set(null, new RuntimeData(trackDb, roadTrackDB, signalConfig, runtimeReferenceResolver));
         }
 
-        public static void Initialize(RouteModel route, SignalConfigurationFile signalConfig, IRuntimeReferenceResolver runtimeReferenceResolver = null)
+        public static void Initialize(SignalConfigurationFile signalConfig, IRuntimeReferenceResolver runtimeReferenceResolver = null)
         {
-            GameService<RuntimeData>.Set(null, new RuntimeData(route, null, null, signalConfig, runtimeReferenceResolver));
+            GameService<RuntimeData>.Set(null, new RuntimeData(null, null, signalConfig, runtimeReferenceResolver));
         }
 
-        protected RuntimeData(RouteModel route, TrackDB trackDb, RoadTrackDB roadTrackDB, SignalConfigurationFile signalConfig, IRuntimeReferenceResolver runtimeReferenceResolver)
+        protected RuntimeData(TrackDB trackDb, RoadTrackDB roadTrackDB, SignalConfigurationFile signalConfig, IRuntimeReferenceResolver runtimeReferenceResolver)
         {
-            RouteData = route;
             TrackDB = trackDb;
             RoadTrackDB = roadTrackDB;
             SignalConfigFile = signalConfig;

@@ -978,7 +978,7 @@ namespace ORTS.TrackViewer
                 Properties.Settings.Default.Save();
                 DrawArea.ZoomReset(DrawTrackDB);
                 drawAreaInset.ZoomReset(DrawTrackDB);
-                SetTitle();
+                SetTitle(CurrentRoute.Name);
 
             }
 #pragma warning disable CA1031 // Do not catch general exception types
@@ -1023,11 +1023,11 @@ namespace ORTS.TrackViewer
         /// <summary>
         /// Set the title of the window itself
         /// </summary>
-        private void SetTitle()
+        private void SetTitle(string routeName)
         {
             Assembly assembly = Assembly.GetExecutingAssembly();
             AssemblyTitleAttribute assemblyTitle = assembly.GetCustomAttributes(typeof(AssemblyTitleAttribute), false)[0] as AssemblyTitleAttribute;
-            Window.Title = assemblyTitle.Title + ": " + RuntimeData.Instance.RouteData.Name;
+            Window.Title = assemblyTitle.Title + ": " + routeName;
         }
 
         #endregion

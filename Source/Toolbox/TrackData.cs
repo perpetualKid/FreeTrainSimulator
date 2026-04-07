@@ -22,7 +22,7 @@ namespace FreeTrainSimulator.Toolbox
             if (cancellationToken.IsCancellationRequested)
                 return;
 
-            Initialize(routeModel, await signalConfigTask.ConfigureAwait(false));
+            Initialize(await signalConfigTask.ConfigureAwait(false));
         }
     }
 }
