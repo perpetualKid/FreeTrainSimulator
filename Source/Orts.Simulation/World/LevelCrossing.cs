@@ -44,8 +44,8 @@ namespace Orts.Simulation.World
 
         public LevelCrossings()
         {
-            TrackDatabase trackDatabase = RuntimeDataResolver.Instance?.TrackModel.TrackDatabase;
-            TrackDatabase roadDatabase = RuntimeDataResolver.Instance?.TrackModel.RoadDatabase;
+            TrackDatabase trackDatabase = RuntimeDataResolver.Instance?.TrackWorld.TrackModel.TrackDatabase;
+            TrackDatabase roadDatabase = RuntimeDataResolver.Instance?.TrackWorld.TrackModel.RoadDatabase;
 
             TrackCrossingItems = trackDatabase != null
                 ? GetLevelCrossingsFromDB(trackDatabase) : FrozenDictionary<int, LevelCrossingItem>.Empty;

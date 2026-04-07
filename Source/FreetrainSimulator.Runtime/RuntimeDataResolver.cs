@@ -14,7 +14,6 @@ namespace FreeTrainSimulator.Runtime
     {
         public RouteModel RouteData { get; }
         public TrackSectionModel TrackSections { get; }
-        public TrackModel TrackModel { get; }
         public Track.TrackWorld TrackWorld { get; }
         public bool MetricUnits { get; }
         public IRuntimeReferenceResolver RuntimeReferenceResolver { get; }
@@ -30,15 +29,14 @@ namespace FreeTrainSimulator.Runtime
 
             Track.TrackWorld trackWorld = Track.TrackWorld.Initialize(null, trackModel, trackSectionModel);
 
-            _ = GameService<RuntimeDataResolver>.Set(null, new RuntimeDataResolver(route, trackSectionModel, trackModel, trackWorld, metricUnits, runtimeReferenceResolver));
+            _ = GameService<RuntimeDataResolver>.Set(null, new RuntimeDataResolver(route, trackSectionModel, trackWorld, metricUnits, runtimeReferenceResolver));
         }
 
-        protected RuntimeDataResolver(RouteModel route, TrackSectionModel trackSectionModel, TrackModel trackModel, Track.TrackWorld trackWorld,
+        protected RuntimeDataResolver(RouteModel route, TrackSectionModel trackSectionModel, Track.TrackWorld trackWorld,
             bool useMetricUnits, IRuntimeReferenceResolver runtimeReferenceResolver)
         {
             RouteData = route;
             TrackSections = trackSectionModel;
-            TrackModel = trackModel;
             TrackWorld = trackWorld;
             MetricUnits = useMetricUnits;
             RuntimeReferenceResolver = runtimeReferenceResolver;

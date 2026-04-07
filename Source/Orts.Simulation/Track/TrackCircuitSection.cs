@@ -172,7 +172,7 @@ namespace Orts.Simulation.Track
             if (CircuitType == TrackCircuitType.Junction)
             {
                 SignalsPassingRoutes = new List<int>();
-                JunctionNode junctionNode = RuntimeDataResolver.Instance.TrackModel.TrackDatabase.JunctionNodes[(node as TrackJunctionNode).Index];
+                JunctionNode junctionNode = RuntimeDataResolver.Instance.TrackWorld.TrackModel.TrackDatabase.JunctionNodes[(node as TrackJunctionNode).Index];
                 JunctionDefaultRoute = junctionNode.MainRoute;
                 Overlap = junctionNode.ClearanceDistance;
 

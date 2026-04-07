@@ -85,7 +85,7 @@ namespace FreeTrainSimulator.Runtime.Track
 
         internal IEnumerable<TrackSegmentBase> ConnectedSegments(TrackModel trackModel)
         {
-            ImmutableArray<TrackNodeConnector> connectors = trackModel.RuntimeData.TrackModel.TrackDatabase.TrackNodeConnectors[TrackNodeIndex].TrackNodeConnectors;
+            ImmutableArray<TrackNodeConnector> connectors = trackModel.RuntimeData.TrackWorld.TrackModel.TrackDatabase.TrackNodeConnectors[TrackNodeIndex].TrackNodeConnectors;
 
             foreach (TrackNodeConnector connector in connectors)
             {

@@ -107,7 +107,7 @@ namespace Orts.Simulation
             // Copy the computed elevation values into the new-model SectionGeometry cache so that
             // TrackTraveller.GetSuperElevation() and FindTiltedZ() can use them without touching the old model.
             // Cross-reference: old TrackVectorNode.Index == new VectorNode.NodeIndex; section arrays are co-indexed.
-            TrackDatabase newTrackDatabase = RuntimeDataResolver.Instance?.TrackModel.TrackDatabase;
+            TrackDatabase newTrackDatabase = RuntimeDataResolver.Instance?.TrackWorld.TrackModel.TrackDatabase;
             TrackWorld trackWorld = TrackWorld.Instance;
             if (newTrackDatabase != null && trackWorld != null)
             {

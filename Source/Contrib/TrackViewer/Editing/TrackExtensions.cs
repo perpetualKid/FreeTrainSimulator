@@ -53,7 +53,7 @@ namespace ORTS.TrackViewer.Editing
                 if (trackNodes[tni] is not TrackJunctionNode tn)
                     continue;
 
-                int mainRoute = RuntimeDataResolver.Instance.TrackModel.TrackDatabase.JunctionNodes[tn.Index].MainRoute;
+                int mainRoute = RuntimeDataResolver.Instance.TrackWorld.TrackModel.TrackDatabase.JunctionNodes[tn.Index].MainRoute;
 
                 mainRouteIndex[tni] = tn.InPins + mainRoute;
                 sidingRouteIndex[tni] = mainRoute == 0 ? tn.InPins + 1 : tn.InPins;

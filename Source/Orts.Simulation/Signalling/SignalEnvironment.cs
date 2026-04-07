@@ -666,7 +666,7 @@ namespace Orts.Simulation.Signalling
         /// </summary>
         private bool AddSignal(int trackNode, int nodeIndex, SignalItem sigItem, int tdbRef, Dictionary<int, Signal> signalHeadList)
         {
-            VectorNode vectorNode = RuntimeDataResolver.Instance.TrackModel.TrackDatabase.TrackNodes[trackNode] as VectorNode;
+            VectorNode vectorNode = RuntimeDataResolver.Instance.TrackWorld.TrackModel.TrackDatabase.TrackNodes[trackNode] as VectorNode;
             if (vectorNode == null)
             {
                 Trace.TraceInformation("Reference to invalid track node {0} for Signal {1}\n", trackNode, tdbRef);
@@ -705,7 +705,7 @@ namespace Orts.Simulation.Signalling
         /// </summary>
         private void AddSpeed(int trackNode, int nodeIndex, SpeedPostItem speedItem, int tdbRef)
         {
-            VectorNode vectorNode = RuntimeDataResolver.Instance.TrackModel.TrackDatabase.TrackNodes[trackNode] as VectorNode;
+            VectorNode vectorNode = RuntimeDataResolver.Instance.TrackWorld.TrackModel.TrackDatabase.TrackNodes[trackNode] as VectorNode;
             if (vectorNode == null)
                 return;
 
@@ -1239,7 +1239,7 @@ namespace Orts.Simulation.Signalling
             if (tvn != null && tvn.TrackItemIndices.Length > 0)
             {
                 // Create traveller at start of section to calculate distances
-                VectorNode vectorNode = RuntimeDataResolver.Instance.TrackModel.TrackDatabase.TrackNodes[tvn.Index] as VectorNode;
+                VectorNode vectorNode = RuntimeDataResolver.Instance.TrackWorld.TrackModel.TrackDatabase.TrackNodes[tvn.Index] as VectorNode;
                 TrackVectorSection firstSection = tvn.TrackVectorSections[0];
                 TrackTraveller? traveller = TrackTraveller.InitializeTraveller(firstSection.Location, vectorNode, TrackDirection.Ahead);
                 if (traveller == null)
@@ -1362,7 +1362,7 @@ namespace Orts.Simulation.Signalling
             else if (trackItem is CrossoverItem crossOver)
             {
                 float cdist = traveller.DistanceTo(crossOver.Location,
-                    RuntimeDataResolver.Instance.TrackModel.TrackDatabase.TrackNodes[circuitNode.Index] as VectorNode) ?? -1f;
+                    RuntimeDataResolver.Instance.TrackWorld.TrackModel.TrackDatabase.TrackNodes[circuitNode.Index] as VectorNode) ?? -1f;
 
                 int crossOverId = crossOver.TrackItemId;
                 int crossId = crossOver.TrackNode;

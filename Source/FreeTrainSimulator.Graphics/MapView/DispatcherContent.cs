@@ -190,7 +190,7 @@ namespace FreeTrainSimulator.Graphics.MapView
 
         private void AddTrackSegments()
         {
-            Models.Track.TrackDatabase trackDatabase = RuntimeDataResolver.GameInstance(game).TrackModel.TrackDatabase;
+            Models.Track.TrackDatabase trackDatabase = RuntimeDataResolver.GameInstance(game).TrackWorld.TrackModel.TrackDatabase;
 
             ConcurrentBag<TrackSegment> trackSegments = new ConcurrentBag<TrackSegment>();
             ConcurrentBag<EndNode> endSegments = new ConcurrentBag<Widgets.EndNode>();
@@ -239,9 +239,9 @@ namespace FreeTrainSimulator.Graphics.MapView
             Orts.Formats.Msts.RuntimeData runtimeData = Orts.Formats.Msts.RuntimeData.GameInstance(game);
 
             IEnumerable<TrackItemBase> trackItems = TrackItemWidget.CreateTrackItems(
-                RuntimeDataResolver.GameInstance(game).TrackModel.TrackDatabase,
+                RuntimeDataResolver.GameInstance(game).TrackWorld.TrackModel.TrackDatabase,
                 runtimeData.SignalConfigFile,
-                trackModel.SegmentSections).Concat(TrackItemWidget.CreateRoadItems(RuntimeDataResolver.GameInstance(game).TrackModel.RoadDatabase));
+                trackModel.SegmentSections).Concat(TrackItemWidget.CreateRoadItems(RuntimeDataResolver.GameInstance(game).TrackWorld.TrackModel.RoadDatabase));
 
             IEnumerable<PlatformPath> platforms = PlatformPath.CreatePlatforms(trackModel, trackItems.OfType<PlatformTrackItem>());
             trackModel.ContentByTile[MapContentType.Platforms] = new TileIndexedList<PlatformPath>(platforms);
