@@ -81,12 +81,11 @@ namespace Orts.ActivityRunner.Viewer3D.Sound
             float prevDist = float.MaxValue;
             float nextDist = float.MaxValue;
 
-            TrackTraveller tt = train.SpeedMpS >= 0
+            TrackTraveller trackTraveller = train.SpeedMpS >= 0
                 ? train.FrontTrackTraveller
                 : train.RearTrackTraveller.Reverse();
 
-            TrackTraveller reversed = tt.Reverse();
-
+            TrackTraveller reversed = trackTraveller.Reverse();
             foreach (List<WorldSoundRegion> lwsr in soundRegions.Values)
             {
                 foreach (WorldSoundRegion wsr in lwsr)
@@ -96,7 +95,7 @@ namespace Orts.ActivityRunner.Viewer3D.Sound
                         if (trItems[trNode] is SoundRegionItem)
                         {
                             // Try to find forward
-                            float? fd = tt.DistanceTo(trItems[trNode].Location, 8192);
+                            float? fd = trackTraveller.DistanceTo(trItems[trNode].Location, 8192);
 
                             if (fd.HasValue)
                             {
@@ -129,7 +128,7 @@ namespace Orts.ActivityRunner.Viewer3D.Sound
                                     else if (bd.Value == prevDist)
                                     {
                                         // Applicable if faces with us
-                                        if (Math.Abs(tt.Heading - wsr.RotY) < .35)
+                                        if (Math.Abs(trackTraveller.Heading - wsr.RotY) < .35)
                                         {
                                             prevDist = bd.Value;
                                             prevItem = wsr;

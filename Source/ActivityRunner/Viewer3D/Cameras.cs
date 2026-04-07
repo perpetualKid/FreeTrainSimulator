@@ -2780,15 +2780,15 @@ namespace Orts.ActivityRunner.Viewer3D
 
         public override void Update(in ElapsedTime elapsedTime)
         {
-            var train = PrepUpdate(out bool trainForwards);
+            Train train = PrepUpdate(out bool trainForwards);
 
             // Train is close enough if the last car we used is part of the same train and still close enough.
-            var trainClose = (lastCheckCar?.Train == train) && (WorldLocation.GetDistance2D(lastCheckCar.WorldPosition.WorldLocation, cameraLocation).Length() < MaximumDistance);
+            bool trainClose = (lastCheckCar?.Train == train) && (WorldLocation.GetDistance2D(lastCheckCar.WorldPosition.WorldLocation, cameraLocation).Length() < MaximumDistance);
 
             // Otherwise, let's check out every car and remember which is the first one close enough for next time.
             if (!trainClose)
             {
-                foreach (var car in train.Cars)
+                foreach (TrainCar car in train.Cars)
                 {
                     if (WorldLocation.GetDistance2D(car.WorldPosition.WorldLocation, cameraLocation).Length() < MaximumDistance)
                     {
@@ -2802,11 +2802,11 @@ namespace Orts.ActivityRunner.Viewer3D
             // Switch to new position.
             if (!trainClose || (trackCameraLocation == WorldLocation.None))
             {
-                TrackTraveller tt = trainForwards
+                TrackTraveller trackTraveller = trainForwards
                     ? train.FrontTrackTraveller
                     : train.RearTrackTraveller.Reverse();
 
-                (WorldLocation newLoc, float trackY) = GoToNewLocation(tt, train, trainForwards);
+                (WorldLocation newLoc, float trackY) = GoToNewLocation(trackTraveller, train, trainForwards);
                 WorldLocation newLocation = newLoc.Normalize();
                 float newLocationElevation = viewer.Tiles.GetElevation(newLocation);
                 cameraLocation = newLocation.SetElevation(Math.Max(trackY, newLocationElevation) + CameraAltitude + cameraAltitudeOffset);
@@ -2820,7 +2820,7 @@ namespace Orts.ActivityRunner.Viewer3D
 
         protected Train PrepUpdate(out bool trainForwards)
         {
-            var train = AttachedCar.Train;
+            Train train = AttachedCar.Train;
 
             // TODO: What is this code trying to do?
             //if (train != Viewer.PlayerTrain && train.LeadLocomotive == null) train.ChangeToNextCab();

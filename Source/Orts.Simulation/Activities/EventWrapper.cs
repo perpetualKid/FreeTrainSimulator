@@ -422,11 +422,11 @@ namespace Orts.Simulation.Activities
             // Just after reversal the old train front position must be considered
             bool useRear = train.NextRouteReady && train.TCRoute.ActiveSubPath > 0
                 && train.TCRoute.ReversalInfo[train.TCRoute.ActiveSubPath - 1].Valid;
-            TrackTraveller tt = useRear ? train.RearTrackTraveller : train.FrontTrackTraveller;
+            TrackTraveller trackTraveller = useRear ? train.RearTrackTraveller : train.FrontTrackTraveller;
 
-            float? distance = tt.DistanceTo(e.Location, e.RadiusM);
+            float? distance = trackTraveller.DistanceTo(e.Location, e.RadiusM);
             if (!distance.HasValue)
-                distance = tt.Reverse().DistanceTo(e.Location, e.RadiusM);
+                distance = trackTraveller.Reverse().DistanceTo(e.Location, e.RadiusM);
             if (distance.HasValue && distance.Value < e.RadiusM)
                 triggered = true;
 
