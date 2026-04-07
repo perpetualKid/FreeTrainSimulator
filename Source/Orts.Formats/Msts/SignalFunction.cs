@@ -1,4 +1,5 @@
 using System;
+using System.Globalization;
 
 namespace Orts.Formats.Msts
 {
@@ -69,7 +70,29 @@ namespace Orts.Formats.Msts
         /// <summary>Implicit conversion to <see langword="int"/> for array/list indexing.</summary>
         public static implicit operator int(SignalFunction signalFunction) => signalFunction.Index;
 
+        public int ToInt32() => Index;
+
         /// <inheritdoc/>
-        public override string ToString() => SignalTypeRegistry.Instance?.GetFunctionName(this) ?? Index.ToString();
+        public override string ToString() => SignalTypeRegistry.Instance?.GetFunctionName(this) ?? Index.ToString(CultureInfo.InvariantCulture);
+
+        public static bool operator <(SignalFunction left, SignalFunction right)
+        {
+            return left.CompareTo(right) < 0;
+        }
+
+        public static bool operator <=(SignalFunction left, SignalFunction right)
+        {
+            return left.CompareTo(right) <= 0;
+        }
+
+        public static bool operator >(SignalFunction left, SignalFunction right)
+        {
+            return left.CompareTo(right) > 0;
+        }
+
+        public static bool operator >=(SignalFunction left, SignalFunction right)
+        {
+            return left.CompareTo(right) >= 0;
+        }
     }
 }

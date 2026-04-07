@@ -1,4 +1,5 @@
 using System;
+using System.Globalization;
 
 namespace Orts.Formats.Msts
 {
@@ -29,9 +30,31 @@ namespace Orts.Formats.Msts
         public int CompareTo(SignalNormalSubType other) => Index.CompareTo(other.Index);
 
         /// <summary>Implicit conversion to <see langword="int"/> for array/list indexing.</summary>
-        public static implicit operator int(SignalNormalSubType id) => id.Index;
+        public static implicit operator int(SignalNormalSubType normalSubType) => normalSubType.Index;
+
+        public int ToInt32() => Index;
 
         /// <inheritdoc/>
-        public override string ToString() => SignalTypeRegistry.Instance?.GetNormalSubTypeName(this) ?? Index.ToString();
+        public override string ToString() => SignalTypeRegistry.Instance?.GetNormalSubTypeName(this) ?? Index.ToString(CultureInfo.InvariantCulture);
+
+        public static bool operator <(SignalNormalSubType left, SignalNormalSubType right)
+        {
+            return left.CompareTo(right) < 0;
+        }
+
+        public static bool operator <=(SignalNormalSubType left, SignalNormalSubType right)
+        {
+            return left.CompareTo(right) <= 0;
+        }
+
+        public static bool operator >(SignalNormalSubType left, SignalNormalSubType right)
+        {
+            return left.CompareTo(right) > 0;
+        }
+
+        public static bool operator >=(SignalNormalSubType left, SignalNormalSubType right)
+        {
+            return left.CompareTo(right) >= 0;
+        }
     }
 }

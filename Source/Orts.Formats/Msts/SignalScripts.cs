@@ -622,9 +622,6 @@ namespace Orts.Formats.Msts
 
             internal static SCRParameterType ParameterFromToken(ScriptToken token, int lineNumber, IDictionary<string, int> localFloats)
             {
-
-                int index;
-
                 // try constant
                 if (int.TryParse(token.Token, out int constantInt))
                 {
