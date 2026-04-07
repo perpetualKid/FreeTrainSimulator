@@ -31,8 +31,7 @@ namespace FreeTrainSimulator.Runtime.Track
         /// keyed by <see cref="VectorSectionNode"/> reference identity.
         /// Built once during <see cref="Initialize"/> before <see cref="TrackTraveller"/> is used.
         /// </summary>
-        public FrozenDictionary<VectorSectionNode, SectionGeometry> SectionGeometry { get; private set; }
-            = FrozenDictionary<VectorSectionNode, SectionGeometry>.Empty;
+        public FrozenDictionary<VectorSectionNode, SectionGeometry> SectionGeometry { get; private set; } = FrozenDictionary<VectorSectionNode, SectionGeometry>.Empty;
 
         private TrackWorld(Models.Track.TrackModel trackModel)
         {
@@ -96,11 +95,11 @@ namespace FreeTrainSimulator.Runtime.Track
             Dictionary<VectorSectionNode, SectionGeometry> map = new Dictionary<VectorSectionNode, SectionGeometry>(ReferenceEqualityComparer.Instance);
             ImmutableDictionary<int, TrackSection> trackSections = trackSectionModel.TrackSections;
 
-            BuildFor(TrackModel.TrackDatabase);
-            BuildFor(TrackModel.RoadDatabase);
+            InitializeFor(TrackModel.TrackDatabase);
+            InitializeFor(TrackModel.RoadDatabase);
             return map.ToFrozenDictionary(ReferenceEqualityComparer.Instance);
 
-            void BuildFor(TrackDatabase trackDatabase)
+            void InitializeFor(TrackDatabase trackDatabase)
             {
                 if (trackDatabase == null)
                     return;

@@ -3,8 +3,6 @@ using System.Threading.Tasks;
 
 using FreeTrainSimulator.Models.Content;
 using FreeTrainSimulator.Models.Imported.Shim;
-using FreeTrainSimulator.Models.Shim;
-using FreeTrainSimulator.Models.Track;
 
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Files;
@@ -17,15 +15,14 @@ namespace FreeTrainSimulator.Toolbox
         {
             FolderStructure.ContentFolder.RouteFolder routeFolder = routeModel.MstsRouteFolder();
 
-            Task<TrackSectionModel> tracksectionModelTask = routeModel.GetTrackSectionModel(cancellationToken);
             Task<SignalConfigurationFile> signalConfigTask = Task.Run(() => new SignalConfigurationFile(routeFolder.SignalConfigurationFile, routeFolder.ORSignalConfigFile), cancellationToken);
 
-            await Task.WhenAll(tracksectionModelTask, signalConfigTask).ConfigureAwait(false);
+            await Task.WhenAll(signalConfigTask).ConfigureAwait(false);
 
             if (cancellationToken.IsCancellationRequested)
                 return;
 
-            Initialize(routeModel, await tracksectionModelTask.ConfigureAwait(false), await signalConfigTask.ConfigureAwait(false));
+            Initialize(routeModel, await signalConfigTask.ConfigureAwait(false));
         }
     }
 }
