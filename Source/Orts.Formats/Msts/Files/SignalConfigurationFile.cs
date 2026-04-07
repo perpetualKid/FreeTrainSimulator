@@ -63,9 +63,8 @@ namespace Orts.Formats.Msts.Files
         {
             ScriptPath = Path.GetDirectoryName(fileName);
 
-            OrSignalTypes.Reset();
-            // preset OR function types and related MSTS function types for default types
-            OrSignalTypes.Instance.FunctionTypes.AddRange(EnumExtension.GetNames<SignalFunction>());
+            SignalTypeRegistry.Reset();
+            SignalTypeRegistry.Initialize();
 
             if (orMode)
             {
@@ -125,8 +124,8 @@ namespace Orts.Formats.Msts.Files
                     else
                     {
                         string functionType = stf.ReadString();
-                        // check agains default types
-                        if (EnumExtension.GetValue(functionType, out SignalFunction result))
+                        // check against predefined MSTS types
+                        if (SignalTypeRegistry.Instance.TryGetFunction(functionType, out SignalFunction existingId) && existingId.MstsSignalFunction)
                         {
                             STFException.TraceWarning(stf, "Invalid definition of ORTSFunctionType, type is equal to MSTS defined type : " + functionType);
                         }
@@ -136,11 +135,11 @@ namespace Orts.Formats.Msts.Files
                         }
                         else
                         {
-                            if (OrSignalTypes.Instance.FunctionTypes.Contains(functionType, StringComparer.OrdinalIgnoreCase))
+                            if (SignalTypeRegistry.Instance.ContainsFunction(functionType))
                                 STFException.TraceWarning(stf, "Skipped duplicate ORTSSignalFunction definition : " + functionType);
                             else
                             {
-                                OrSignalTypes.Instance.FunctionTypes.Add(functionType);
+                                SignalTypeRegistry.Instance.RegisterFunction(functionType);
                                 tokensRead ++;
                             }
                         }
@@ -166,13 +165,13 @@ namespace Orts.Formats.Msts.Files
                     else
                     {
                         string subType = stf.ReadString().ToUpperInvariant();
-                        if (OrSignalTypes.Instance.NormalSubTypes.Contains(subType, StringComparer.OrdinalIgnoreCase))
+                        if (SignalTypeRegistry.Instance.ContainsNormalSubType(subType))
                         {
                             STFException.TraceWarning(stf, "Skipped duplicate ORTSNormalSubtype definition : " + subType);
                         }
                         else
                         {
-                            OrSignalTypes.Instance.NormalSubTypes.Add(subType);
+                            SignalTypeRegistry.Instance.RegisterNormalSubType(subType);
                             tokensRead ++;
                         }
                     }

@@ -337,9 +337,9 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems.Etcs
                     CurrentValue = PreviousValue;
                 if (Accepted)
                 {
-                    //TechnicalRangeInvalid = !DataEntryWindow.Definition.TechnicalRangeCheck[Name].IsValid(AcceptedValue);
-                    //TechnicalResolutionInvalid = !DataEntryWindow.Definition.TechnicalResolutionCheck[Name].IsValid(AcceptedValue);
-                    //if (!TechnicalRangeInvalid && !TechnicalResolutionInvalid) OperationalRangeInvalid = !DataEntryWindow.Definition.OperationalRangeCheck[Name].IsValid(AcceptedValue);
+                    //TechnicalRangeInvalid = !DataEntryWindow.Definition.TechnicalRangeCheck[Name].Valid(AcceptedValue);
+                    //TechnicalResolutionInvalid = !DataEntryWindow.Definition.TechnicalResolutionCheck[Name].Valid(AcceptedValue);
+                    //if (!TechnicalRangeInvalid && !TechnicalResolutionInvalid) OperationalRangeInvalid = !DataEntryWindow.Definition.OperationalRangeCheck[Name].Valid(AcceptedValue);
                 }
                 else
                 {

@@ -75,36 +75,6 @@ namespace Orts.Formats.Msts.Models
     }
     #endregion
 
-    #region OR Signal Types
-    //using a Singleton instance for OR Signal Types read from SigCfg.dat
-    //these are really an extension to the static MSTS signal types/functions
-    //Static/singleton is used to avoid overly passing arround the values, while needed in very few distinct places only
-    public class OrSignalTypes
-    {
-        private static OrSignalTypes instance;
-
-        /// <summary>List of OR defined function types</summary>
-        public List<string> FunctionTypes { get; } = new List<string>();
-        /// <summary>List of OR defined subtypes for Norman signals</summary>
-        public List<string> NormalSubTypes { get; } = new List<string>();
-
-        public static OrSignalTypes Instance
-        {
-            get
-            {
-                if (null == instance)
-                    instance = new OrSignalTypes();
-                return instance;
-            }
-        }
-
-        public static void Reset()
-        {
-            instance = null;
-        }
-    }
-    #endregion
-
     #region SignalType
     /// <summary>
     /// Signal Type which defines the attributes of a type or category of signal-heads
@@ -122,12 +92,10 @@ namespace Orts.Formats.Msts.Models
         public string Name { get; private set; }
         /// allocated script
         public string Script { get; private set; } = string.Empty;
-        /// <summary>MSTS Function type (normal, speed, ...) of this signal type </summary>
-        public SignalFunction FunctionType { get; private set; }
-        /// <summary>OR Function type (additional function types may be set using OR_FUNCTIONTYPES).</summary>
-        public int OrtsFunctionTypeIndex { get; private set; }
-        /// <summary>OR Additional subtype for Normal signals</summary>
-        public int OrtsNormalSubTypeIndex { get; private set; }
+        /// <summary>Extensible signal function type identifier (covers both MSTS and custom ORTS function types).</summary>
+        public SignalFunction SignalFunction { get; private set; }
+        /// <summary>Extensible normal subtype identifier for Normal signals.</summary>
+        public SignalNormalSubType NormalSubType { get; private set; }
         /// <summary>Unknown, used at least in Marias Pass route</summary>
         public bool Abs { get; private set; }
         /// <summary>This signal type is not suitable for placement on a gantry</summary>
@@ -187,7 +155,7 @@ namespace Orts.Formats.Msts.Models
         public SignalType(SignalFunction function, SignalAspectState aspect)
             : this()
         {
-            FunctionType = function;
+            SignalFunction = function;
             Name = "UNDEFINED";
             Semaphore = false;
             DrawStates = new Dictionary<string, SignalDrawState>(StringComparer.OrdinalIgnoreCase)
@@ -214,6 +182,7 @@ namespace Orts.Formats.Msts.Models
             int numdefs = 0;
             string ortsFunctionType = string.Empty;
             string ortsNormalSubType = string.Empty;
+            SignalFunction parsedFunctionType = SignalFunction.Info;
 
             stf.ParseBlock(new STFReader.TokenProcessor[] {
                 new STFReader.TokenProcessor("ortsscript", ()=>{ Script = stf.ReadStringBlock(""); }),
@@ -221,7 +190,7 @@ namespace Orts.Formats.Msts.Models
                     if (orMode)
                         ortsFunctionType = ReadOrtsFunctionType(stf);
                     else
-                        FunctionType = ReadFunctionType(stf);
+                        parsedFunctionType = ReadFunctionType(stf);
                 }),
                 new STFReader.TokenProcessor("signallighttex", ()=>{ LightTextureName = stf.ReadStringBlock(""); }),
                 new STFReader.TokenProcessor("signallights", ()=>{ Lights = ReadLights(stf); }),
@@ -256,15 +225,15 @@ namespace Orts.Formats.Msts.Models
 
             if (orMode)
             {
-                // set related MSTS function type
-                OrtsFunctionTypeIndex = OrSignalTypes.Instance.FunctionTypes.FindIndex(i => StringComparer.OrdinalIgnoreCase.Equals(i, ortsFunctionType));
-                if (!EnumExtension.GetValue(ortsFunctionType, out SignalFunction functionType))
-                    FunctionType = SignalFunction.Info;
-                else
-                    FunctionType = functionType;
+                // resolve function type via registry
+                SignalFunction = SignalTypeRegistry.Instance.TryGetFunction(ortsFunctionType, out SignalFunction fnId)
+                    ? fnId
+                    : SignalFunction.Info;
 
-                // set index for Normal Subtype
-                OrtsNormalSubTypeIndex = OrSignalTypes.Instance.NormalSubTypes.FindIndex(i => StringComparer.OrdinalIgnoreCase.Equals(i, ortsNormalSubType));
+                // resolve normal subtype via registry
+                NormalSubType = SignalTypeRegistry.Instance.TryGetNormalSubType(ortsNormalSubType, out SignalNormalSubType stId)
+                    ? stId
+                    : SignalNormalSubType.None;
 
                 // set SNCA
                 ClearAheadNumberMsts = -2;
@@ -272,8 +241,8 @@ namespace Orts.Formats.Msts.Models
             }
             else
             {
-                // set defaulted OR function type
-                OrtsFunctionTypeIndex = (int)FunctionType;
+                // set function type from parsed name
+                SignalFunction = parsedFunctionType;
 
                 // set SNCA
 #pragma warning disable CA1508 // Avoid dead conditional code
@@ -286,39 +255,39 @@ namespace Orts.Formats.Msts.Models
         private static SignalFunction ReadFunctionType(STFReader stf)
         {
             string signalType = stf.ReadStringBlock(null);
-            if (!EnumExtension.GetValue(signalType, out SignalFunction result))
+            if (SignalTypeRegistry.Instance.TryGetFunction(signalType, out SignalFunction result))
             {
-                STFException.TraceInformation(stf, $"Skipped unknown SignalFnType {signalType}");
-                return SignalFunction.Info;
+                return result;
             }
-            return result;
+            STFException.TraceInformation(stf, $"Skipped unknown SignalFnType {signalType}");
+            return SignalFunction.Info;
         }
 
         private static string ReadOrtsFunctionType(STFReader stf)
         {
             string type = stf.ReadStringBlock(null);
-            if (OrSignalTypes.Instance.FunctionTypes.Contains(type, StringComparer.OrdinalIgnoreCase))
+            if (SignalTypeRegistry.Instance.ContainsFunction(type))
             {
                 return type;
             }
             else
             {
                 STFException.TraceInformation(stf, "Skipped unknown ORTSSignalFnType " + type);
-                return SignalFunction.Info.ToString();
+                return nameof(SignalFunction.Info);
             }
         }
 
         private static string ReadOrtsNormalSubType(STFReader stf)
         {
             string type = stf.ReadStringBlock(null);
-            if (OrSignalTypes.Instance.NormalSubTypes.Contains(type, StringComparer.OrdinalIgnoreCase))
+            if (SignalTypeRegistry.Instance.ContainsNormalSubType(type))
             {
-                return (type);
+                return type;
             }
             else
             {
                 STFException.TraceInformation(stf, "Skipped unknown ORTSNormalSubtype " + type);
-                return (string.Empty);
+                return string.Empty;
             }
         }
 

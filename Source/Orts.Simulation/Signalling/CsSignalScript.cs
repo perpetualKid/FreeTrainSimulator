@@ -25,7 +25,7 @@ namespace Orts.Simulation.Signalling
 
         private static int SigFnIndex(string sigFn)
         {
-            return OrSignalTypes.Instance.FunctionTypes.FindIndex(functionType => StringComparer.OrdinalIgnoreCase.Equals(functionType, sigFn));
+            return SignalTypeRegistry.Instance.TryGetFunction(sigFn, out SignalFunction id) ? id.Index : -1;
         }
 
         // Public interface
@@ -170,7 +170,8 @@ namespace Orts.Simulation.Signalling
         /// <returns>Id of required signal</returns>
         public int NextSignalId(string sigfn, int count = 0)
         {
-            return SignalObject.NextNthSignalId(OrSignalTypes.Instance.FunctionTypes.FindIndex(i => StringComparer.OrdinalIgnoreCase.Equals(i, sigfn)), count + 1);
+            int fnIndex = SigFnIndex(sigfn);
+            return fnIndex >= 0 ? SignalObject.NextNthSignalId(fnIndex, count + 1) : -1;
         }
 
         /// <summary>
@@ -190,7 +191,9 @@ namespace Orts.Simulation.Signalling
         /// <returns>Id of required signal</returns>
         public int RequiredNormalSignalId(string normalSubtype)
         {
-            return SignalObject.FindRequiredNormalSignal(OrSignalTypes.Instance.NormalSubTypes.IndexOf(normalSubtype));
+            return SignalTypeRegistry.Instance.TryGetNormalSubType(normalSubtype, out SignalNormalSubType id)
+                ? SignalObject.FindRequiredNormalSignal(id.Index)
+                : -1;
         }
 
         /// <summary>
@@ -200,7 +203,8 @@ namespace Orts.Simulation.Signalling
         /// <param name="normalSubtype">Normal subtype to test</param>
         public bool IdSignalHasNormalSubtype(int id, string normalSubtype)
         {
-            return signalHead.SignalHasNormalSubtypeById(id, OrSignalTypes.Instance.NormalSubTypes.IndexOf(normalSubtype)) == 1;
+            return SignalTypeRegistry.Instance.TryGetNormalSubType(normalSubtype, out SignalNormalSubType stId)
+                && signalHead.SignalHasNormalSubtypeById(id, stId.Index) == 1;
         }
 
         /// <summary>
@@ -216,7 +220,7 @@ namespace Orts.Simulation.Signalling
 
             foreach (SignalHead head in Simulator.Instance.SignalEnvironment.Signals[id].SignalHeads)
             {
-                if (head.OrtsSignalFunctionIndex == SigFnIndex(sigfn))
+                if (head.SignalFunction.Index == SigFnIndex(sigfn))
                 {
                     if (headindex <= 0)
                         return head.TextSignalAspect;
@@ -244,7 +248,7 @@ namespace Orts.Simulation.Signalling
         /// Get aspect of required signal
         /// </summary>
         /// <param name="id">Id of required signal</param>
-        /// <param name="sigfn">Function of the signal heads to consider</param>
+        /// <param name="sigfn">SignalFunction of the signal heads to consider</param>
         /// <param name="mostRestrictive">Get most restrictive instead of least restrictive</param>
         /// <param name="checkRouting">If looking for most restrictive aspect, consider only heads with the route link activated</param>
         public SignalAspectState IdSignalAspect(int id, string sigfn, bool mostRestrictive = false, bool checkRouting = false)

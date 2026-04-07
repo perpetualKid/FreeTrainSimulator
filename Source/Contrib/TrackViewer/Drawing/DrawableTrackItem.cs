@@ -157,7 +157,7 @@ namespace ORTS.TrackViewer.Drawing
             }
             if (sigcfgFile.SignalTypes.TryGetValue(signalType, out SignalType value))
             {
-                isNormal = value.FunctionType == SignalFunction.Normal;
+                isNormal = value.SignalFunction == SignalFunction.Normal;
             }
         }
 

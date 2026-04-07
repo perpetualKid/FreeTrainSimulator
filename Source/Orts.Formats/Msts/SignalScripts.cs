@@ -674,10 +674,9 @@ namespace Orts.Formats.Msts
                             break;
                         // try SIGFN definition
                         case "SIGFN":
-                            index = OrSignalTypes.Instance.FunctionTypes.FindIndex(i => StringComparer.OrdinalIgnoreCase.Equals(i, definitions[1]));
-                            if (index != -1)
+                            if (SignalTypeRegistry.Instance.TryGetFunction(definitions[1], out SignalFunction fnId))
                             {
-                                return new SCRParameterType(SCRTermType.Sigfn, index);
+                                return new SCRParameterType(SCRTermType.Sigfn, fnId.Index);
                             }
                             else
                             {
@@ -689,10 +688,9 @@ namespace Orts.Formats.Msts
                             break;
                         // try ORSubtype definition
                         case "ORSUBTYPE":
-                            index = OrSignalTypes.Instance.NormalSubTypes.FindIndex(i => StringComparer.OrdinalIgnoreCase.Equals(i, definitions[1]));
-                            if (index != -1)
+                            if (SignalTypeRegistry.Instance.TryGetNormalSubType(definitions[1], out SignalNormalSubType stId))
                             {
-                                return new SCRParameterType(SCRTermType.ORNormalSubtype, index);
+                                return new SCRParameterType(SCRTermType.ORNormalSubtype, stId.Index);
                             }
                             else
                             {
@@ -863,7 +861,7 @@ namespace Orts.Formats.Msts
                                 statementBlock.Tokens.RemoveAt(0);
                                 negated = true;
                             }
-                            if (statementBlock.Tokens.Count > 1 && EnumExtension.GetValue(statementBlock.Tokens[0].Token, out SCRExternalFunctions externalFunctionsResult) && statementBlock.Tokens[1] is Enclosure)   //check if it is a Sub Function ()
+                            if (statementBlock.Tokens.Count > 1 && EnumExtension.GetValue(statementBlock.Tokens[0].Token, out SCRExternalFunctions externalFunctionsResult) && statementBlock.Tokens[1] is Enclosure)   //check if it is a Sub SignalFunction ()
                             {
                                 StatementTerms.Add(
                                     new SCRStatTerm(externalFunctionsResult, statementBlock.Tokens[1] as Enclosure, level, operatorString, negated, localFloats));
@@ -913,7 +911,7 @@ namespace Orts.Formats.Msts
                     TermOperator = TranslateOperator.TryGetValue(operatorTerm, out SCRTermOperator termOperator) ? termOperator : SCRTermOperator.NONE;
                 } // constructor
 
-                // Function term
+                // SignalFunction term
                 internal SCRStatTerm(SCRExternalFunctions externalFunction, BlockBase block, int subLevel, string operatorTerm, bool negated, IDictionary<string, int> localFloats)
                 {
                     Negated = negated;
@@ -925,9 +923,9 @@ namespace Orts.Formats.Msts
 
                     while (block.Tokens.Count > 0)
                     {
-                        if (block.Tokens.Count > 1 && EnumExtension.GetValue(block.Tokens[0].Token, out SCRExternalFunctions externalFunctionsResult) && block.Tokens[1] is Enclosure)   //check if it is a Function ()
+                        if (block.Tokens.Count > 1 && EnumExtension.GetValue(block.Tokens[0].Token, out SCRExternalFunctions externalFunctionsResult) && block.Tokens[1] is Enclosure)   //check if it is a SignalFunction ()
                         {
-                            // TODO Nested Function Call in Parameter not supported
+                            // TODO Nested SignalFunction Call in Parameter not supported
                             throw new NotImplementedException($"Nested function call in parameter {block.Token} not supported at line {block.LineNumber}");
                             //SCRParameterType parameter = ParameterFromToken(statement.Tokens[0], lineNumber, localFloats, orSignalTypes, orNormalSubtypes);
                             //StatementTerms.Add(
@@ -989,7 +987,7 @@ namespace Orts.Formats.Msts
                 {
                     PartType = type;
                     PartParameter = value;
-                    SignalFunction = Enum.IsDefined(typeof(SignalFunction), value) ? (SignalFunction)value : SignalFunction.Normal;
+                    SignalFunction = value >= 0 && value <= SignalFunction.Unknown.Index ? new SignalFunction(value) : SignalFunction.Normal;
                 }
 
                 // <summary>
@@ -1072,7 +1070,7 @@ namespace Orts.Formats.Msts
                         statement.Tokens[1].Token = statement.Tokens[0].Token + statement.Tokens[1].Token;
                         statement.Tokens.RemoveAt(0);
                     }
-                    if (statement.Tokens.Count > 1 && EnumExtension.GetValue(statement.Tokens[0].Token, out SCRExternalFunctions externalFunctionsResult) && statement.Tokens[1] is Enclosure)   //check if it is a Sub Function ()
+                    if (statement.Tokens.Count > 1 && EnumExtension.GetValue(statement.Tokens[0].Token, out SCRExternalFunctions externalFunctionsResult) && statement.Tokens[1] is Enclosure)   //check if it is a Sub SignalFunction ()
                     {
                         Term1 = new SCRStatTerm(externalFunctionsResult, statement.Tokens[1] as Enclosure, 0, string.Empty, negated, localFloats);
                         statement.Tokens.RemoveAt(0);
@@ -1117,7 +1115,7 @@ namespace Orts.Formats.Msts
                                 statement.Tokens[1].Token = statement.Tokens[0].Token + statement.Tokens[1].Token;
                                 statement.Tokens.RemoveAt(0);
                             }
-                            if (statement.Tokens.Count > 1 && EnumExtension.GetValue(statement.Tokens[0].Token, out SCRExternalFunctions externalFunctionsResult2) && statement.Tokens[1] is Enclosure)   //check if it is a Sub Function ()
+                            if (statement.Tokens.Count > 1 && EnumExtension.GetValue(statement.Tokens[0].Token, out SCRExternalFunctions externalFunctionsResult2) && statement.Tokens[1] is Enclosure)   //check if it is a Sub SignalFunction ()
                             {
                                 Term2 = new SCRStatTerm(externalFunctionsResult2, statement.Tokens[1] as Enclosure, 0, string.Empty, negated, localFloats);
                                 statement.Tokens.RemoveAt(0);

@@ -84,32 +84,6 @@ namespace Orts.Formats.Msts
         User3,
         User4,
     }
-
-    /// <summary>
-    /// Describe the function of a particular signal head.
-    /// Only SIGFN_NORMAL signal heads will require a train to take action (e.g. to stop).  
-    /// The other values act only as categories for signal types to belong to.
-    /// Within MSTS known as SIGFN_ values.  
-    /// </summary>
-    public enum SignalFunction
-    {
-        /// <summary>Signal head showing primary indication</summary>
-        Normal,
-        /// <summary>Distance signal head</summary>
-        Distance,
-        /// <summary>Repeater signal head</summary>
-        Repeater,
-        /// <summary>Shunting signal head</summary>
-        Shunting,
-        /// <summary>Signal is informational only e.g. direction lights</summary>
-        Info,
-        /// <summary>Speedpost signal (not part of MSTS SIGFN_)</summary>
-        Speed,
-        /// <summary>Alerting function not part of MSTS SIGFN_)</summary>
-        Alert,
-        /// <summary>Unknown (or undefined) signal type</summary>
-        Unknown, // needs to be last because some code depends this for looping. That should be changed of course.
-    }
     #endregion
 
     #region Path

@@ -66,7 +66,7 @@ namespace ORTS.TrackViewer.Editing
         #endregion
 
         /// <summary>
-        /// Function that gives the amoung of nodes that will be added when extending the path significantly
+        /// SignalFunction that gives the amoung of nodes that will be added when extending the path significantly
         /// </summary>
         /// <returns>Depending on a preference, either 0 or a lot</returns>
         public static int NodesToAddForLongExtend() { return Properties.Settings.Default.pgupExtendsPath ? 100 : 0; }

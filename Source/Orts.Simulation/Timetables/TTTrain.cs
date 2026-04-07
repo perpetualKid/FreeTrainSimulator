@@ -2649,7 +2649,7 @@ namespace Orts.Simulation.Timetables
                                 {
                                     // set this signal as passed, and next signal as waiting
                                     signalCleared = false;   // signal is not clear
-                                    int nextSignalIndex = NextSignalObjects[Direction.Forward].Signalfound[(int)SignalFunction.Normal];
+                                    int nextSignalIndex = NextSignalObjects[Direction.Forward].Signalfound[SignalFunction.Normal];
                                     if (nextSignalIndex >= 0)
                                     {
                                         NextSignalObjects[Direction.Forward] = Simulator.Instance.SignalEnvironment.Signals[nextSignalIndex];

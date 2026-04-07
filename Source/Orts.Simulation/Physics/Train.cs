@@ -4433,7 +4433,7 @@ namespace Orts.Simulation.Physics
                             SetTrainOutOfControl(OutOfControlReason.PassedAtDanger);
                             break;
                         }
-                        else if (ControlMode == TrainControlMode.AutoSignal && NextSignalObjects[direction].Signalfound[(int)SignalFunction.Normal] < 0) // no next signal
+                        else if (ControlMode == TrainControlMode.AutoSignal && NextSignalObjects[direction].Signalfound[SignalFunction.Normal] < 0) // no next signal
                         {
                             SwitchToNodeControl(EndAuthorities[direction].LastReservedSection);
                             break;
@@ -4445,7 +4445,7 @@ namespace Orts.Simulation.Physics
                         }
 
                         // get next signal
-                        int nextSignalIndex = NextSignalObjects[direction].Signalfound[(int)SignalFunction.Normal];
+                        int nextSignalIndex = NextSignalObjects[direction].Signalfound[SignalFunction.Normal];
                         if (nextSignalIndex >= 0)
                         {
                             NextSignalObjects[direction] = Simulator.Instance.SignalEnvironment.Signals[nextSignalIndex];
@@ -4463,7 +4463,7 @@ namespace Orts.Simulation.Physics
                     else
                     {
                         // get next signal
-                        int nextSignalIndex = NextSignalObjects[direction].Signalfound[(int)SignalFunction.Normal];
+                        int nextSignalIndex = NextSignalObjects[direction].Signalfound[SignalFunction.Normal];
                         if (nextSignalIndex >= 0)
                         {
                             NextSignalObjects[direction] = Simulator.Instance.SignalEnvironment.Signals[nextSignalIndex];
@@ -5114,7 +5114,7 @@ namespace Orts.Simulation.Physics
             if (signalObjectIndex >= 0)
             {
                 Signal signal = Simulator.Instance.SignalEnvironment.Signals[signalObjectIndex];
-                int nextSignalIndex = signal.Signalfound[(int)SignalFunction.Normal];
+                int nextSignalIndex = signal.Signalfound[SignalFunction.Normal];
                 if (nextSignalIndex >= 0)
                 {
                     Signal nextSignal = Simulator.Instance.SignalEnvironment.Signals[nextSignalIndex];
@@ -5574,7 +5574,7 @@ namespace Orts.Simulation.Physics
                     SignalAspectState aspect = section.EndSignals[reqDirection].SignalLR(SignalFunction.Normal);
                     hasEndSignal = true;
                     if (previousSignal != null)
-                        previousSignal.Signalfound[(int)SignalFunction.Normal] = endSignal.Index;
+                        previousSignal.Signalfound[SignalFunction.Normal] = endSignal.Index;
                     previousSignal = section.EndSignals[reqDirection];
 
                     if (aspect == SignalAspectState.Stop && endSignal.OverridePermission != SignalPermission.Granted)
@@ -9675,8 +9675,8 @@ namespace Orts.Simulation.Physics
         // Contains data about all types of signals
         public EnumArray<List<TrainPathItem>[], Direction> PlayerTrainSignals { get; } = new EnumArray<List<TrainPathItem>[], Direction>(() =>
             {
-                List<TrainPathItem>[] result = new List<TrainPathItem>[OrSignalTypes.Instance.FunctionTypes.Count];
-                for (int fn_type = 0; fn_type < OrSignalTypes.Instance.FunctionTypes.Count; fn_type++)
+                List<TrainPathItem>[] result = new List<TrainPathItem>[SignalTypeRegistry.Instance.FunctionCount];
+                for (int fn_type = 0; fn_type < SignalTypeRegistry.Instance.FunctionCount; fn_type++)
                     result[fn_type] = new List<TrainPathItem>();
                 return result;
             }); // first index 0 forward, 1 backward; second index signal type (NORMAL etc.)
@@ -9702,7 +9702,7 @@ namespace Orts.Simulation.Physics
                 {
                     PlayerTrainDivergingSwitches[direction, switchDirection]?.Clear();
                 }
-                for (int i = 0; i < OrSignalTypes.Instance.FunctionTypes.Count; i++)
+                for (int i = 0; i < SignalTypeRegistry.Instance.FunctionCount; i++)
                     PlayerTrainSignals[direction][i]?.Clear();
             }
         }
@@ -9802,9 +9802,9 @@ namespace Orts.Simulation.Physics
                     TrackCircuitRouteElement routeElement = routePath[index];
                     TrackDirection sectionDirection = routeElement.Direction;
                     TrackCircuitSection section = TrackCircuitSection.TrackCircuitList[routeElement.TrackCircuitSection.Index];
-                    for (int fn_type = 0; fn_type < OrSignalTypes.Instance.FunctionTypes.Count; fn_type++)
+                    for (int fn_type = 0; fn_type < SignalTypeRegistry.Instance.FunctionCount; fn_type++)
                     {
-                        if (OrSignalTypes.Instance.FunctionTypes[fn_type].Equals("Normal", StringComparison.OrdinalIgnoreCase) && (ControlMode == TrainControlMode.Manual || ControlMode == TrainControlMode.Explorer))
+                        if (fn_type == SignalFunction.Normal && (ControlMode == TrainControlMode.Manual || ControlMode == TrainControlMode.Explorer))
                         {
                             if (section.EndSignals[sectionDirection] != null)
                             {
@@ -9816,7 +9816,7 @@ namespace Orts.Simulation.Physics
                                 PlayerTrainSignals[dir][fn_type].Add(trainPathItem);
                             }
                         }
-                        else if (!OrSignalTypes.Instance.FunctionTypes[fn_type].Equals("Normal", StringComparison.OrdinalIgnoreCase) && sectionDistanceToTrainM < maxDistanceM)
+                        else if (fn_type != SignalFunction.Normal && sectionDistanceToTrainM < maxDistanceM)
                         {
                             TrackCircuitSignalList signalList = section.CircuitItems.TrackCircuitSignals[sectionDirection][fn_type];
                             foreach (TrackCircuitSignalItem signal in signalList)
@@ -10051,13 +10051,13 @@ namespace Orts.Simulation.Physics
             const float maxDistanceM = 7000.0f;
 
             // Add all normal signals
-            foreach (TrainPathItem trainItem in PlayerTrainSignals[Direction.Forward][(int)SignalFunction.Normal])
+            foreach (TrainPathItem trainItem in PlayerTrainSignals[Direction.Forward][SignalFunction.Normal])
             {
                 result.ObjectInfoForward.Add(trainItem);
             }
 
             // Add all signals which function type is SPEED or assimilated
-            foreach (TrainPathItem trainItem in PlayerTrainSignals[Direction.Forward][(int)SignalFunction.Speed])
+            foreach (TrainPathItem trainItem in PlayerTrainSignals[Direction.Forward][SignalFunction.Speed])
             {
                 result.ObjectInfoForward.Add(trainItem);
             }
@@ -10110,7 +10110,7 @@ namespace Orts.Simulation.Physics
             {
                 if (rearSignalObject != null)
                 {
-                    //TrackMonitorSignalAspect signalAspect = rearSignalObject.TranslateTMAspect(rearSignalObject.SignalLR(SignalFunction.Normal));
+                    //TrackMonitorSignalAspect signalAspect = rearSignalObject.TranslateTMAspect(rearSignalObject.SignalLR(SignalFunctionId.Normal));
                     result.ObjectInfoBackward.Add(PlayerTrainSignals[Direction.Backward][0][0]);
                 }
                 else
@@ -10205,13 +10205,13 @@ namespace Orts.Simulation.Physics
             if (ValidRoutes[Direction.Forward] != null)
             {
                 // Add all normal signals
-                foreach (TrainPathItem trainItem in PlayerTrainSignals[Direction.Forward][(int)SignalFunction.Normal])
+                foreach (TrainPathItem trainItem in PlayerTrainSignals[Direction.Forward][SignalFunction.Normal])
                 {
                     result.ObjectInfoForward.Add(trainItem);
                 }
 
                 // Add all signals which function type is SPEED or assimilated
-                foreach (TrainPathItem trainItem in PlayerTrainSignals[Direction.Forward][(int)SignalFunction.Speed])
+                foreach (TrainPathItem trainItem in PlayerTrainSignals[Direction.Forward][SignalFunction.Speed])
                 {
                     result.ObjectInfoForward.Add(trainItem);
                 }
@@ -10254,13 +10254,13 @@ namespace Orts.Simulation.Physics
             {
 
                 // Add all normal signals
-                foreach (TrainPathItem trainItem in PlayerTrainSignals[Direction.Backward][(int)SignalFunction.Normal])
+                foreach (TrainPathItem trainItem in PlayerTrainSignals[Direction.Backward][SignalFunction.Normal])
                 {
                     result.ObjectInfoBackward.Add(trainItem);
                 }
 
                 // Add all signals which function type is SPEED or assimilated
-                foreach (TrainPathItem trainItem in PlayerTrainSignals[Direction.Backward][(int)SignalFunction.Speed])
+                foreach (TrainPathItem trainItem in PlayerTrainSignals[Direction.Backward][SignalFunction.Speed])
                 {
                     result.ObjectInfoBackward.Add(trainItem);
                 }

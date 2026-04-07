@@ -84,7 +84,7 @@ namespace Orts.Simulation.Signalling
             UseLocationPassingPaths = locationPassingPaths;
             Dictionary<int, int> platformList = new Dictionary<int, int>();
 
-            OrtsSignalTypeCount = OrSignalTypes.Instance.FunctionTypes.Count;
+            OrtsSignalTypeCount = SignalTypeRegistry.Instance.FunctionCount;
 
             trackDB = RuntimeData.Instance.TrackDB;
 
@@ -1289,7 +1289,7 @@ namespace Orts.Simulation.Signalling
                             TrackCircuitSignalList signalList = circuit.CircuitItems.TrackCircuitSignals[direction][i];
 
                             // if signal is SPEED type, insert in speedpost list
-                            if (i == (int)SignalFunction.Speed)
+                            if (i == SignalFunction.Speed)
                             {
                                 signalList = circuit.CircuitItems.TrackCircuitSpeedPosts[direction];
                             }
@@ -1399,7 +1399,7 @@ namespace Orts.Simulation.Signalling
             {
                 addIndex.Add(node);
 
-                List<TrackCircuitSignalItem> sectionSignals = section.CircuitItems.TrackCircuitSignals[0][(int)SignalFunction.Normal];
+                List<TrackCircuitSignalItem> sectionSignals = section.CircuitItems.TrackCircuitSignals[0][SignalFunction.Normal];
 
                 while (sectionSignals.Count > 0)
                 {
@@ -1416,7 +1416,7 @@ namespace Orts.Simulation.Signalling
                     addIndex.Add(newIndex);
 
                     // restore list (link is lost as item is replaced)
-                    sectionSignals = section.CircuitItems.TrackCircuitSignals[0][(int)SignalFunction.Normal];
+                    sectionSignals = section.CircuitItems.TrackCircuitSignals[0][SignalFunction.Normal];
                 }
             }
 
@@ -1433,7 +1433,7 @@ namespace Orts.Simulation.Signalling
                     if (section.CircuitType == TrackCircuitType.Normal)
                     {
 
-                        List<TrackCircuitSignalItem> sectionSignals = section.CircuitItems.TrackCircuitSignals[TrackDirection.Reverse][(int)SignalFunction.Normal];
+                        List<TrackCircuitSignalItem> sectionSignals = section.CircuitItems.TrackCircuitSignals[TrackDirection.Reverse][SignalFunction.Normal];
 
                         if (sectionSignals.Count > 0)
                         {
@@ -1450,10 +1450,10 @@ namespace Orts.Simulation.Signalling
                             section.EndSignals[TrackDirection.Reverse] = signal.Signal;
 
                             // restore list (link is lost as item is replaced)
-                            sectionSignals = section.CircuitItems.TrackCircuitSignals[TrackDirection.Reverse][(int)SignalFunction.Normal];
+                            sectionSignals = section.CircuitItems.TrackCircuitSignals[TrackDirection.Reverse][SignalFunction.Normal];
                         }
                     }
-                    index = section.CircuitItems.TrackCircuitSignals[TrackDirection.Reverse][(int)SignalFunction.Normal].Count > 0 ? index : newIndex;
+                    index = section.CircuitItems.TrackCircuitSignals[TrackDirection.Reverse][SignalFunction.Normal].Count > 0 ? index : newIndex;
                 }
             }
             return nextNode;
