@@ -504,14 +504,23 @@ namespace FreeTrainSimulator.Toolbox
                     $"Please close {RuntimeInfo.ApplicationName}, and use the Menu-application to review current content folder settings for further analysis.", "Please read!");
                 return;
             }
-            await PreSelectRoute(ToolboxSettings.Folder, ToolboxSettings.RouteId, ToolboxSettings.PathId).ConfigureAwait(false);
-            ContentArea?.PresetPosition(ToolboxSettings.ContentPosition, ToolboxSettings.ContentScale);
             if (ToolboxSettings.RestoreLastView)
             {
-                foreach (ToolboxWindowType windowType in EnumExtension.GetValues<ToolboxWindowType>())
+                try
                 {
-                    if (ToolboxSettings.PopupStatus[windowType])
-                        windowManager[windowType].Open();
+                    await PreSelectRoute(ToolboxSettings.Folder, ToolboxSettings.RouteId, ToolboxSettings.PathId).ConfigureAwait(false);
+                    ContentArea?.PresetPosition(ToolboxSettings.ContentPosition, ToolboxSettings.ContentScale);
+                    foreach (ToolboxWindowType windowType in EnumExtension.GetValues<ToolboxWindowType>())
+                    {
+                        if (ToolboxSettings.PopupStatus[windowType])
+                            windowManager[windowType].Open();
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Trace.TraceError($"Error restoring last view: {ex}");
+                    windowManager[ToolboxWindowType.StatusWindow].Close();
+                    ToolboxSettings.RestoreLastView = false;
                 }
             }
         }

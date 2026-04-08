@@ -60,8 +60,7 @@ namespace Orts.Formats.Msts.Files
         {
             ScriptPath = Path.GetDirectoryName(fileName);
 
-            SignalTypeRegistry.Reset();
-            SignalTypeRegistry.Initialize();
+            SignalTypeRegistry signalTypeRegistry = SignalTypeRegistry.Initialize();
 
             if (orMode)
             {
@@ -93,6 +92,8 @@ namespace Orts.Formats.Msts.Files
             SignalTypes = CheckAndInitialize(SignalTypes, nameof(SignalTypes), fileName);
             SignalShapes = CheckAndInitialize(SignalShapes, nameof(SignalShapes), fileName);
             ScriptFiles = CheckAndInitialize(ScriptFiles, nameof(ScriptFiles), fileName);
+
+            signalTypeRegistry.Freeze();
         }
 
         private static T CheckAndInitialize<T>(T obj, string name, string fileName) where T: new()
