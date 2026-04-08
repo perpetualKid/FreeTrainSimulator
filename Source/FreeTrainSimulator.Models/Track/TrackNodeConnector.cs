@@ -8,7 +8,7 @@ namespace FreeTrainSimulator.Models.Track
 {
 
     [MemoryPackable(GenerateType.VersionTolerant, SerializeLayout.Sequential)]
-    public partial record TrackNodeConnector
+    public sealed partial record TrackNodeConnector
     {
         public ConnectorType ConnectorType { get; init; }
         /// <summary>Index of the tracknode connected to the parent of this pin</summary>

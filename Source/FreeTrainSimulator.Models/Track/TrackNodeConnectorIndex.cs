@@ -6,7 +6,7 @@ using MemoryPack;
 namespace FreeTrainSimulator.Models.Track
 {
     [MemoryPackable(GenerateType.VersionTolerant, SerializeLayout.Sequential)]
-    public partial record TrackNodeConnectorIndex
+    public sealed partial record TrackNodeConnectorIndex
     {
         public int NodeIndex { get; init; }
         public int InboundCount { get; init; }

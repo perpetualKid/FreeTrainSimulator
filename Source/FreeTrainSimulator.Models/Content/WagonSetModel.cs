@@ -9,7 +9,7 @@ namespace FreeTrainSimulator.Models.Content
 {
     [MemoryPackable(GenerateType.VersionTolerant, SerializeLayout.Sequential)]
     [ModelResolver("TrainSets", ".trainset")]
-    public partial record WagonSetModel : ModelBase
+    public sealed partial record WagonSetModel : ModelBase
     {
         public override FolderModel Parent => _parent as FolderModel;
 
