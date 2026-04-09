@@ -31,7 +31,7 @@ namespace FreeTrainSimulator.Models.Imported.ImportHandler.TrainSimulator
         {
             FolderStructure.ContentFolder.RouteFolder routeFolder = routeModel.MstsRouteFolder();
             string sigcfgFile = routeFolder.SignalConfigurationFile;
-            bool orMode = routeFolder.ORSignalConfigFile;
+            CompatibilityMode compatibilityMode = routeFolder.ORSignalConfigFile;
 
             if (!System.IO.File.Exists(sigcfgFile))
             {
@@ -44,7 +44,7 @@ namespace FreeTrainSimulator.Models.Imported.ImportHandler.TrainSimulator
                 return emptyModel;
             }
 
-            SignalConfigurationFile signalConfigurationFile = new SignalConfigurationFile(sigcfgFile, orMode);
+            SignalConfigurationFile signalConfigurationFile = new SignalConfigurationFile(sigcfgFile, compatibilityMode);
 
             SignalConfigurationModel signalConfigModel = new SignalConfigurationModel()
             {

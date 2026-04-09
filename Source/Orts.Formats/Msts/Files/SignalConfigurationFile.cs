@@ -57,14 +57,14 @@ namespace Orts.Formats.Msts.Files
         /// Constructor from file
         /// </summary>
         /// <param name="fileName">Full file name of the sigcfg.dat file</param>
-        /// <param name="orMode">Read file in OR Mode (set NumClearAhead_ORTS only)</param>
-        public SignalConfigurationFile(string fileName, bool orMode)
+        /// <param name="compatibilityMode">Enhanced mode reads additional ORT-specific signal definitions</param>
+        public SignalConfigurationFile(string fileName, CompatibilityMode compatibilityMode)
         {
             ScriptPath = Path.GetDirectoryName(fileName);
 
             SignalTypeRegistry signalTypeRegistry = SignalTypeRegistry.Initialize();
 
-            if (orMode)
+            if (compatibilityMode == CompatibilityMode.Enhanced)
             {
                 using (STFReader stf = new STFReader(fileName, false))
                     stf.ParseFile(new STFReader.TokenProcessor[] {
@@ -72,7 +72,7 @@ namespace Orts.Formats.Msts.Files
                     new STFReader.TokenProcessor("lightstab", ()=>{ LightsTable = ReadLightsTable(stf); }),
                     new STFReader.TokenProcessor("ortssignalfunctions", ()=>{ ReadOrtsSignalFunctionTypes(stf); }),
                     new STFReader.TokenProcessor("ortsnormalsubtypes", ()=>{ ReadOrtsNormalSubtypes(stf); }),
-                    new STFReader.TokenProcessor("signaltypes", ()=>{ SignalTypes = ReadSignalTypes(stf, orMode); }),
+                    new STFReader.TokenProcessor("signaltypes", ()=>{ SignalTypes = ReadSignalTypes(stf, compatibilityMode); }),
                     new STFReader.TokenProcessor("signalshapes", ()=>{ SignalShapes = ReadSignalShapes(stf); }),
                     new STFReader.TokenProcessor("scriptfiles", ()=>{ ScriptFiles = ReadScriptFiles(stf); }),
                 });
@@ -83,7 +83,7 @@ namespace Orts.Formats.Msts.Files
                     stf.ParseFile(new STFReader.TokenProcessor[] {
                     new STFReader.TokenProcessor("lighttextures", ()=>{ LightTextures = ReadLightTextures(stf); }),
                     new STFReader.TokenProcessor("lightstab", ()=>{ LightsTable = ReadLightsTable(stf); }),
-                    new STFReader.TokenProcessor("signaltypes", ()=>{ SignalTypes = ReadSignalTypes(stf, orMode); }),
+                    new STFReader.TokenProcessor("signaltypes", ()=>{ SignalTypes = ReadSignalTypes(stf, compatibilityMode); }),
                     new STFReader.TokenProcessor("signalshapes", ()=>{ SignalShapes = ReadSignalShapes(stf); }),
                     new STFReader.TokenProcessor("scriptfiles", ()=>{ ScriptFiles = ReadScriptFiles(stf); }),
                 });
@@ -222,7 +222,7 @@ namespace Orts.Formats.Msts.Files
             return lightsTable;
         }
 
-        private static Dictionary<string, Models.SignalType> ReadSignalTypes(STFReader stf, bool orMode)
+        private static Dictionary<string, Models.SignalType> ReadSignalTypes(STFReader stf, CompatibilityMode compatibilityMode)
         {
             stf.MustMatchBlockStart();
             int count = stf.ReadInt(null);
@@ -233,7 +233,7 @@ namespace Orts.Formats.Msts.Files
                         STFException.TraceWarning(stf, "Skipped extra SignalType");
                     else
                     {
-                        Models.SignalType signalType = new Models.SignalType(stf, orMode);
+                        Models.SignalType signalType = new Models.SignalType(stf, compatibilityMode);
                         if (!signalTypes.TryAdd(signalType.Name, signalType))
                             STFException.TraceWarning(stf, "Skipped duplicate SignalType " + signalType.Name); }
                 }),

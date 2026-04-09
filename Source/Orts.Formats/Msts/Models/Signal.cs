@@ -177,7 +177,7 @@ namespace Orts.Formats.Msts.Models
         /// </summary>
         /// <param name="stf">The STFreader containing the file stream</param>
         /// <param name="orMode">Process SignalType for ORTS mode (always set NumClearAhead_ORTS only)</param>
-        internal SignalType(STFReader stf, bool orMode)
+        internal SignalType(STFReader stf, CompatibilityMode compatibilityMode)
             : this()
         {
             stf.MustMatchBlockStart();
@@ -191,7 +191,7 @@ namespace Orts.Formats.Msts.Models
             stf.ParseBlock(new STFReader.TokenProcessor[] {
                 new STFReader.TokenProcessor("ortsscript", ()=>{ Script = stf.ReadStringBlock(""); }),
                 new STFReader.TokenProcessor("signalfntype", ()=>{
-                    if (orMode)
+                    if (compatibilityMode == CompatibilityMode.Enhanced)
                         ortsFunctionType = ReadOrtsFunctionType(stf);
                     else
                         parsedFunctionType = ReadFunctionType(stf);
@@ -227,7 +227,7 @@ namespace Orts.Formats.Msts.Models
                 }),
             });
 
-            if (orMode)
+            if (compatibilityMode == CompatibilityMode.Enhanced)
             {
                 // resolve function type via registry
                 SignalFunction = SignalTypeRegistry.Instance.TryGetFunction(ortsFunctionType, out SignalFunction signalFunction)

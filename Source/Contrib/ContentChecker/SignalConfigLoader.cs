@@ -17,6 +17,8 @@
 
 using System.IO;
 
+using FreeTrainSimulator.Models.Signal;
+
 using Orts.Formats.Msts.Files;
 
 namespace Orts.ContentChecker
@@ -36,7 +38,10 @@ namespace Orts.ContentChecker
         public override void TryLoading(string file)
         {
             string subdirname = Path.GetFileName(Path.GetDirectoryName(file));
-            sigcfg = new SignalConfigurationFile(file, subdirname.Equals("openrails", System.StringComparison.OrdinalIgnoreCase));
+            CompatibilityMode compatibilityMode = subdirname.Equals("openrails", System.StringComparison.OrdinalIgnoreCase)
+                ? CompatibilityMode.Enhanced
+                : CompatibilityMode.Simple;
+            sigcfg = new SignalConfigurationFile(file, compatibilityMode);
         }
 
         protected override void AddDependentFiles()
