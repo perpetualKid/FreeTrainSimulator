@@ -1,7 +1,7 @@
 using System;
 using System.Globalization;
 
-namespace Orts.Formats.Msts
+namespace FreeTrainSimulator.Models.Signal
 {
     /// <summary>
     /// A type-safe, extensible identifier for normal signal subtypes.

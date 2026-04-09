@@ -30,6 +30,7 @@ using System.IO;
 using System.Linq;
 
 using FreeTrainSimulator.Common;
+using FreeTrainSimulator.Models.Signal;
 
 using Orts.Formats.Msts.Models;
 using Orts.Formats.Msts.Signalling;
@@ -210,18 +211,18 @@ namespace Orts.Formats.Msts
         public static string dout_fileLoc = @"C:\temp\";    /* file path for debug files */
 #endif
 
-        public IDictionary<SignalType, SCRScripts> Scripts { get; private set; }
+        public IDictionary<Models.SignalType, SCRScripts> Scripts { get; private set; }
 
         //================================================================================================//
         //
         // Constructor
         //
         //================================================================================================//
-        public SignalScripts(string routePath, IList<string> scriptFiles, IDictionary<string, SignalType> signalTypes)
+        public SignalScripts(string routePath, IList<string> scriptFiles, IDictionary<string, Models.SignalType> signalTypes)
         {
             ArgumentNullException.ThrowIfNull(signalTypes);
 
-            Scripts = new Dictionary<SignalType, SCRScripts>();
+            Scripts = new Dictionary<Models.SignalType, SCRScripts>();
 
 #if DEBUG_PRINT_PROCESS
             TDB_debug_ref = new int[5] { 7305, 7307, 7308, 7309, 7310 };   /* signal tdb ref.no selected for print-out */
@@ -495,14 +496,14 @@ namespace Orts.Formats.Msts
         /// <summary>
         /// Links the script to the required signal type
         /// </summary>
-        private void AssignScriptToSignalType(SCRScripts script, IDictionary<string, SignalType> signalTypes, int currentLine, string fileName)
+        private void AssignScriptToSignalType(SCRScripts script, IDictionary<string, Models.SignalType> signalTypes, int currentLine, string fileName)
         {
 #pragma warning disable 219     //variable only used for DEBUG output using DEBUG_PRINT_OUT or DEBUG_PRINT_IN
             bool isValid = false;
 #pragma warning restore 219
             string scriptName = script.ScriptName;
             // try and find signal type with same name as script
-            if (signalTypes.TryGetValue(script.ScriptName, out SignalType signalType))
+            if (signalTypes.TryGetValue(script.ScriptName, out Models.SignalType signalType))
             {
                 if (Scripts.ContainsKey(signalType))
                 {
@@ -521,7 +522,7 @@ namespace Orts.Formats.Msts
             }
 
             // try and find any other signal types which reference this script
-            foreach (KeyValuePair<string, SignalType> currentSignal in signalTypes)
+            foreach (KeyValuePair<string, Models.SignalType> currentSignal in signalTypes)
             {
                 if (scriptName.Equals(currentSignal.Value.Script, StringComparison.OrdinalIgnoreCase))
                 {

@@ -4,6 +4,7 @@ using System.Diagnostics;
 
 using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Calc;
+using FreeTrainSimulator.Models.Signal;
 using FreeTrainSimulator.Runtime;
 
 using Orts.Formats.Msts;
@@ -27,7 +28,7 @@ namespace Orts.Simulation.Signalling
         /// <summary>Extensible signal function type identifier.</summary>
         public SignalFunction SignalFunction { get; private set; } = SignalFunction.Unknown;
 
-        public SignalType SignalType { get; private set; }
+        public Formats.Msts.Models.SignalType SignalType { get; private set; }
 
         /// <summary>Extensible normal subtype identifier.</summary>
         public SignalNormalSubType NormalSubType { get; set; }
@@ -86,7 +87,7 @@ namespace Orts.Simulation.Signalling
             TDBIndex = tbdRef;
             DrawState = 1;
             SignalIndicationState = SignalAspectState.Clear_2;
-            SignalType = new SignalType(SignalFunction.Speed, SignalAspectState.Clear_2);
+            SignalType = new Formats.Msts.Models.SignalType(SignalFunction.Speed, SignalAspectState.Clear_2);
             SignalFunction = SignalFunction.Speed;
 
             double speedMpS = Speed.MeterPerSecond.ToMpS(speedItem.Distance, !speedItem.IsMPH);
@@ -113,7 +114,7 @@ namespace Orts.Simulation.Signalling
             {
 
                 // set signal type
-                if (signalConfig.SignalTypes.TryGetValue(signalItem.SignalType, out SignalType value))
+                if (signalConfig.SignalTypes.TryGetValue(signalItem.SignalType, out Formats.Msts.Models.SignalType value))
                 {
                     // set signal type
                     SignalType = value;

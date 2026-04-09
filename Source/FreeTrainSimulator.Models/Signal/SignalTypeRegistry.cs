@@ -2,7 +2,7 @@ using System;
 using System.Collections.Frozen;
 using System.Collections.Generic;
 
-namespace Orts.Formats.Msts
+namespace FreeTrainSimulator.Models.Signal
 {
     /// <summary>
     /// Central registry for signal function types and normal subtypes.

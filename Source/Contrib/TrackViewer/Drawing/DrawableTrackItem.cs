@@ -19,9 +19,9 @@ using System;
 
 using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Position;
+using FreeTrainSimulator.Models.Signal;
 using FreeTrainSimulator.Runtime.Track;
 
-using Orts.Formats.Msts;
 using Orts.Formats.Msts.Files;
 using Orts.Formats.Msts.Models;
 
@@ -155,7 +155,7 @@ namespace ORTS.TrackViewer.Drawing
             {   // if no sigcfgFile is available, just keep default
                 return;
             }
-            if (sigcfgFile.SignalTypes.TryGetValue(signalType, out SignalType value))
+            if (sigcfgFile.SignalTypes.TryGetValue(signalType, out Orts.Formats.Msts.Models.SignalType value))
             {
                 isNormal = value.SignalFunction == SignalFunction.Normal;
             }

@@ -27,6 +27,8 @@ using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
 
+using FreeTrainSimulator.Models.Signal;
+
 using Orts.Formats.Msts.Models;
 using Orts.Formats.Msts.Parsers;
 
@@ -43,7 +45,7 @@ namespace Orts.Formats.Msts.Files
         /// <summary>Name-indexed list of available colours for lights</summary>
         public Dictionary<string, LightTableEntry> LightsTable { get; private set; }
         /// <summary>Name-indexed list of available signal types</summary>
-        public Dictionary<string, SignalType> SignalTypes { get; private set; }
+        public Dictionary<string, Models.SignalType> SignalTypes { get; private set; }
         /// <summary>Name-indexed list of available signal shapes (including heads and other sub-objects)</summary>
         public Dictionary<string, SignalShape> SignalShapes { get; private set; }
         /// <summary>list of names of script files</summary>
@@ -220,18 +222,18 @@ namespace Orts.Formats.Msts.Files
             return lightsTable;
         }
 
-        private static Dictionary<string, SignalType> ReadSignalTypes(STFReader stf, bool orMode)
+        private static Dictionary<string, Models.SignalType> ReadSignalTypes(STFReader stf, bool orMode)
         {
             stf.MustMatchBlockStart();
             int count = stf.ReadInt(null);
-            Dictionary<string, SignalType> signalTypes = new Dictionary<string, SignalType>(count, StringComparer.OrdinalIgnoreCase);
+            Dictionary<string, Models.SignalType> signalTypes = new Dictionary<string, Models.SignalType>(count, StringComparer.OrdinalIgnoreCase);
             stf.ParseBlock(new STFReader.TokenProcessor[] {
                 new STFReader.TokenProcessor("signaltype", ()=>{
                     if (signalTypes.Count >= count)
                         STFException.TraceWarning(stf, "Skipped extra SignalType");
                     else
                     {
-                        SignalType signalType = new SignalType(stf, orMode);
+                        Models.SignalType signalType = new Models.SignalType(stf, orMode);
                         if (!signalTypes.TryAdd(signalType.Name, signalType))
                             STFException.TraceWarning(stf, "Skipped duplicate SignalType " + signalType.Name); }
                 }),

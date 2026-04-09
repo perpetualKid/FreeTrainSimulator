@@ -10,6 +10,7 @@ using FreeTrainSimulator.Common.DebugInfo;
 using FreeTrainSimulator.Common.Position;
 using FreeTrainSimulator.Graphics.MapView.Shapes;
 using FreeTrainSimulator.Graphics.Xna;
+using FreeTrainSimulator.Models.Signal;
 using FreeTrainSimulator.Models.Track;
 using FreeTrainSimulator.Runtime.Track;
 
@@ -126,7 +127,7 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
                         result.Add(new SoundRegionTrackItem(soundRegionItem));
                         break;
                     case Models.Track.SignalTrackItem signalItem:
-                        bool normalSignal = signalConfig.SignalTypes.TryGetValue(signalItem.SignalType, out Orts.Formats.Msts.Models.SignalType signalType) && signalType.SignalFunction == Orts.Formats.Msts.SignalFunction.Normal;
+                        bool normalSignal = signalConfig.SignalTypes.TryGetValue(signalItem.SignalType, out Orts.Formats.Msts.Models.SignalType signalType) && signalType.SignalFunction == SignalFunction.Normal;
                         result.Add(new SignalTrackItem(signalItem, trackNodeSegments[signalItem.NodeIndex], normalSignal));
                         break;
                     case Models.Track.CrossoverTrackItem crossOverItem:

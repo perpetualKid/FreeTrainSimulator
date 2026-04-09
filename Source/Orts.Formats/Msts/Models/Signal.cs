@@ -6,6 +6,7 @@ using System.Linq;
 using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Calc;
 using FreeTrainSimulator.Common.Xna;
+using FreeTrainSimulator.Models.Signal;
 
 using Microsoft.Xna.Framework;
 
@@ -226,13 +227,13 @@ namespace Orts.Formats.Msts.Models
             if (orMode)
             {
                 // resolve function type via registry
-                SignalFunction = SignalTypeRegistry.Instance.TryGetFunction(ortsFunctionType, out SignalFunction fnId)
-                    ? fnId
+                SignalFunction = SignalTypeRegistry.Instance.TryGetFunction(ortsFunctionType, out SignalFunction signalFunction)
+                    ? signalFunction
                     : SignalFunction.Info;
 
                 // resolve normal subtype via registry
-                NormalSubType = SignalTypeRegistry.Instance.TryGetNormalSubType(ortsNormalSubType, out SignalNormalSubType stId)
-                    ? stId
+                NormalSubType = SignalTypeRegistry.Instance.TryGetNormalSubType(ortsNormalSubType, out SignalNormalSubType signalSubType)
+                    ? signalSubType
                     : SignalNormalSubType.None;
 
                 // set SNCA

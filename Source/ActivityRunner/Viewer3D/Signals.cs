@@ -29,6 +29,7 @@ using System.Linq;
 using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Position;
 using FreeTrainSimulator.Common.Xna;
+using FreeTrainSimulator.Models.Signal;
 
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -216,7 +217,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 }
 
 
-                if (!Simulator.Instance.SignalConfig.SignalTypes.TryGetValue(mstsSignalSubObj.SignalSubSignalType, out SignalType mstsSignalType))
+                if (!Simulator.Instance.SignalConfig.SignalTypes.TryGetValue(mstsSignalSubObj.SignalSubSignalType, out Formats.Msts.Models.SignalType mstsSignalType))
                     return;
 
                 SignalTypeData = viewer.SignalTypeDataManager.Get(mstsSignalType);

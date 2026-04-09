@@ -24,6 +24,8 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 
+using FreeTrainSimulator.Models.Signal;
+
 using Orts.Formats.Msts;
 
 namespace Orts.Simulation.Signalling
