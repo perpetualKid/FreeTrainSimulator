@@ -13,4 +13,13 @@ namespace FreeTrainSimulator.Models.Signal
         /// <summary>Unknown, used at least in Marias Pass route</summary>
         Abs = 1 << 2,
     }
+
+    public enum CompatibilityMode
+    {
+        None,
+        Simple,
+        Enhanced,
+        Msts = Simple,
+        Orts = Enhanced,
+    }
 }

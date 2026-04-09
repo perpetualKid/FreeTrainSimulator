@@ -121,12 +121,15 @@ namespace Orts.Formats.Msts.Models
 #pragma warning disable CA1002 // Do not expose generic lists
         public List<SignalAspect> Aspects { get; private set; }
 #pragma warning restore CA1002 // Do not expose generic lists
+        /// <summary>Determines the clear-ahead calculation mode (MSTS or ORTS).
+        /// MSTS mode counts by number of signal heads; ORTS mode counts by number of signals.
+        /// MSTS-style calculation: subtracts signal head count when propagating.
+        /// ORTS-style calculation: subtracts 1 per signal when propagating.
+        /// </summary>
+        public CompatibilityMode ClearAheadMode { get; private set; }
         /// <summary>Number of blocks ahead which need to be cleared in order to maintain a 'clear' indication
-        /// in front of a train. MSTS calculation</summary>
-        public int ClearAheadNumberMsts { get; private set; }
-        /// <summary>Number of blocks ahead which need to be cleared in order to maintain a 'clear' indication
-        /// in front of a train. ORTS calculation</summary>
-        public int ClearAheadNumberOrts { get; private set; }
+        /// in front of a train.</summary>
+        public int ClearAheadNumber { get; private set; }
         /// <summary>Number of seconds to spend animating a semaphore signal.</summary>
         public float SemaphoreInfo { get; private set; }
         public ApproachControlLimits ApproachControlDetails { get; private set; }
@@ -237,8 +240,8 @@ namespace Orts.Formats.Msts.Models
                     : SignalNormalSubType.None;
 
                 // set SNCA
-                ClearAheadNumberMsts = -2;
-                ClearAheadNumberOrts = numClearAhead;
+                ClearAheadMode = CompatibilityMode.Orts;
+                ClearAheadNumber = numClearAhead;
             }
             else
             {
@@ -246,10 +249,16 @@ namespace Orts.Formats.Msts.Models
                 SignalFunction = parsedFunctionType;
 
                 // set SNCA
-#pragma warning disable CA1508 // Avoid dead conditional code
-                ClearAheadNumberMsts = numdefs == 1 ? numClearAhead : -2;
-                ClearAheadNumberOrts = numdefs == 2 ? numClearAhead : -2;
-#pragma warning restore CA1508 // Avoid dead conditional code
+                if (numdefs == 1)
+                {
+                    ClearAheadMode = CompatibilityMode.Msts;
+                    ClearAheadNumber = numClearAhead;
+                }
+                else if (numdefs == 2)
+                {
+                    ClearAheadMode = CompatibilityMode.Orts;
+                    ClearAheadNumber = numClearAhead;
+                }
             }
         }
 

@@ -40,12 +40,15 @@ namespace FreeTrainSimulator.Models.Signal
         public float? NightGlow { get; init; }
         /// <summary> Lights switched off or on during daytime (default : on) (optional).</summary>
         public bool DayLight { get; init; } = true;
+        /// <summary>Determines the clear-ahead calculation mode (MSTS or ORTS).
+        /// MSTS mode counts by number of signal heads; ORTS mode counts by number of signals.
+        /// MSTS-style calculation: subtracts signal head count when propagating.
+        /// ORTS-style calculation: subtracts 1 per signal when propagating.
+        /// </summary>
+        public CompatibilityMode SignalClearAheadMode { get; init; }
         /// <summary>Number of blocks ahead which need to be cleared in order to maintain a 'clear' indication
-        /// in front of a train. MSTS calculation</summary>
-        public int ClearAheadNumberMsts { get; init; }
-        /// <summary>Number of blocks ahead which need to be cleared in order to maintain a 'clear' indication
-        /// in front of a train. ORTS calculation</summary>
-        public int ClearAheadNumberOrts { get; init; }
+        /// in front of a train.</summary>
+        public int ClearAheadNumber { get; init; }
         //public ImmutableArray<SignalLightModel> Lights { get; init; } = ImmutableArray<SignalLightModel>.Empty;
         //public ImmutableDictionary<string, SignalDrawStateModel> DrawStates { get; init; } = ImmutableDictionary<string, SignalDrawStateModel>.Empty;
         //public ImmutableArray<SignalAspectModel> Aspects { get; init; } = ImmutableArray<SignalAspectModel>.Empty;

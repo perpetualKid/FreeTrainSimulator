@@ -82,9 +82,9 @@ namespace Orts.Simulation.Signalling
 
         private List<(int Key, int Path)> lockedTrains;
 
-        internal int SignalNumClearAheadMsts { get; set; } = -2;    // Overall maximum SignalNumClearAhead over all heads (MSTS calculation)
-        internal int SignalNumClearAheadOrts { get; set; } = -2;    // Overall maximum SignalNumClearAhead over all heads (ORTS calculation)
-        internal int SignalNumClearAheadActive { get; set; } = -2;   // Active SignalNumClearAhead (for ORST calculation only, as set by script)
+        internal CompatibilityMode ClearAheadMode { get; set; }                    // Determines MSTS vs ORTS clear-ahead calculation
+        internal int SignalNumClearAheadDefault { get; set; } = -2;  // Overall maximum SignalNumClearAhead over all heads (baseline value)
+        internal int SignalNumClearAheadActive { get; set; } = -2;   // Active SignalNumClearAhead (mutable working value, as set by script)
 
         internal bool Static { get; set; }                  // set if signal does not required updates (fixed signals)
 
@@ -172,8 +172,8 @@ namespace Orts.Simulation.Signalling
             TrackCircuitNextDirection = source.TrackCircuitNextDirection;
 
             TrackDirection = source.TrackDirection;
-            SignalNumClearAheadMsts = source.SignalNumClearAheadMsts;
-            SignalNumClearAheadOrts = source.SignalNumClearAheadOrts;
+            ClearAheadMode = source.ClearAheadMode;
+            SignalNumClearAheadDefault = source.SignalNumClearAheadDefault;
             SignalNumClearAheadActive = source.SignalNumClearAheadActive;
             signalNumberNormalHeads = source.signalNumberNormalHeads;
 
@@ -1818,9 +1818,9 @@ namespace Orts.Simulation.Signalling
         public int GetRequestNumberClearAheadExplorer(bool propagated, int signalNumClearAhead)
         {
             int requestNumberClearAhead;
-            if (SignalNumClearAheadMsts > -2)
+            if (ClearAheadMode == CompatibilityMode.Msts)
             {
-                requestNumberClearAhead = propagated ? signalNumClearAhead - signalNumberNormalHeads : SignalNumClearAheadMsts - signalNumberNormalHeads;
+                requestNumberClearAhead = propagated ? signalNumClearAhead - signalNumberNormalHeads : SignalNumClearAheadDefault - signalNumberNormalHeads;
             }
             else
             {
@@ -1984,9 +1984,9 @@ namespace Orts.Simulation.Signalling
             Signalfound[SignalFunction.Normal] = nextSignal?.Index ?? -1;
 
             // set number of signals to clear ahead
-            if (SignalNumClearAheadMsts > -2)
+            if (ClearAheadMode == CompatibilityMode.Msts)
             {
-                requestedNumClearAhead = clearNextSignals > 0 ? clearNextSignals - signalNumberNormalHeads : SignalNumClearAheadMsts - signalNumberNormalHeads;
+                requestedNumClearAhead = clearNextSignals > 0 ? clearNextSignals - signalNumberNormalHeads : SignalNumClearAheadDefault - signalNumberNormalHeads;
             }
             else
             {
@@ -2320,13 +2320,13 @@ namespace Orts.Simulation.Signalling
 
             bool propagateState = true;  // normal propagate state
 
-            // update ReqNumClearAhead if signal is not propagated (only when SignamNumClearAheadActive has other than default value)
+            // update ReqNumClearAhead if signal is not propagated (only when SignalNumClearAheadActive has other than default value)
 
             if (!isPropagated)
             {
                 // set number of signals to clear ahead
 
-                if (SignalNumClearAheadMsts <= -2 && SignalNumClearAheadActive != SignalNumClearAheadOrts)
+                if (ClearAheadMode != CompatibilityMode.Msts && SignalNumClearAheadActive != SignalNumClearAheadDefault)
                 {
                     if (SignalNumClearAheadActive == 0)
                     {
@@ -3422,9 +3422,9 @@ namespace Orts.Simulation.Signalling
         /// <summary>
         public void IncreaseSignalNumClearAhead(int requiredIncreaseValue)
         {
-            if (SignalNumClearAheadOrts > -2)
+            if (SignalNumClearAheadDefault > -2)
             {
-                SignalNumClearAheadActive = SignalNumClearAheadOrts + requiredIncreaseValue;
+                SignalNumClearAheadActive = SignalNumClearAheadDefault + requiredIncreaseValue;
             }
         }
 
@@ -3433,9 +3433,9 @@ namespace Orts.Simulation.Signalling
         /// </summary>
         public void DecreaseSignalNumClearAhead(int requiredDecreaseValue)
         {
-            if (SignalNumClearAheadOrts > -2)
+            if (SignalNumClearAheadDefault > -2)
             {
-                SignalNumClearAheadActive = SignalNumClearAheadOrts - requiredDecreaseValue;
+                SignalNumClearAheadActive = SignalNumClearAheadDefault - requiredDecreaseValue;
             }
         }
 
@@ -3444,7 +3444,7 @@ namespace Orts.Simulation.Signalling
         /// <summary>
         public void SetSignalNumClearAhead(int requiredValue)
         {
-            if (SignalNumClearAheadOrts > -2)
+            if (SignalNumClearAheadDefault > -2)
             {
                 SignalNumClearAheadActive = requiredValue;
             }
@@ -3455,9 +3455,9 @@ namespace Orts.Simulation.Signalling
         /// </summary>
         public void ResetSignalNumClearAhead()
         {
-            if (SignalNumClearAheadOrts > -2)
+            if (SignalNumClearAheadDefault > -2)
             {
-                SignalNumClearAheadActive = SignalNumClearAheadOrts;
+                SignalNumClearAheadActive = SignalNumClearAheadDefault;
             }
         }
 
