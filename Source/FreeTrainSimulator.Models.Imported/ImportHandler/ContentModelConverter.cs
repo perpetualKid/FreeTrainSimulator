@@ -82,6 +82,7 @@ namespace FreeTrainSimulator.Models.Imported.ImportHandler
                     ).ConfigureAwait(false);
                 // Expanding track model needs the track sections expanded before
                 await Task.WhenAll(
+                    SignalConfigurationModelImportHandler.ExpandSignalConfigurationModel(routeModel, cancellationToken),
                     TrackModelImportHandler.ExpandTrackModel(routeModel, cancellationToken)
                     ).ConfigureAwait(false);
             }
