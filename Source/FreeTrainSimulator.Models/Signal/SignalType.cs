@@ -1,5 +1,7 @@
 ﻿using System.Collections.Immutable;
 
+using FreeTrainSimulator.Common;
+
 using MemoryPack;
 
 namespace FreeTrainSimulator.Models.Signal
@@ -48,7 +50,7 @@ namespace FreeTrainSimulator.Models.Signal
         public int ClearAheadNumber { get; init; }
         public ImmutableArray<SignalLight> Lights { get; init; } = ImmutableArray<SignalLight>.Empty;
         public ImmutableDictionary<string, SignalDrawState> DrawStates { get; init; } = ImmutableDictionary<string, SignalDrawState>.Empty;
-        //public ImmutableArray<SignalAspectModel> Aspects { get; init; } = ImmutableArray<SignalAspectModel>.Empty;
+        public ImmutableArray<SignalAspect> SignalAspects { get; init; } = ImmutableArray<SignalAspect>.Empty;
         //public ApproachControlLimitsModel ApproachControlDetails { get; init; }
 
     }

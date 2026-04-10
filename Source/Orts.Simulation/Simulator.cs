@@ -273,7 +273,7 @@ namespace Orts.Simulation
 
             TrackDB trackDatabase = new TrackDatabaseFile(RouteFolder.TrackDatabaseFile(RouteModel.RouteKey)).TrackDB;
 
-            SignalConfig = new SignalConfigurationFile(RouteFolder.SignalConfigurationFile, RouteFolder.ORSignalConfigFile);
+            SignalConfig = new SignalConfigurationFile(RouteFolder.SignalConfigurationFile, RouteFolder.SignalConfigMode);
 
             RoadTrackDB roadDatabase = null;
             if (File.Exists(RouteFolder.RoadTrackDatabaseFile(RouteModel.RouteKey)))

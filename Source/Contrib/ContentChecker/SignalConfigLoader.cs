@@ -17,7 +17,7 @@
 
 using System.IO;
 
-using FreeTrainSimulator.Models.Signal;
+using FreeTrainSimulator.Common;
 
 using Orts.Formats.Msts.Files;
 

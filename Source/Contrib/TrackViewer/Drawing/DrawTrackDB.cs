@@ -73,7 +73,7 @@ namespace ORTS.TrackViewer.Drawing
                 RDB = new RoadDatabaseFile(roadTrackFileName);
             }
             messageDelegate?.Invoke(TrackViewer.catalog.GetString("Loading sigcfg.dat ..."));
-            sigcfgFile = new SignalConfigurationFile(routeFolder.SignalConfigurationFile, routeFolder.ORSignalConfigFile);
+            sigcfgFile = new SignalConfigurationFile(routeFolder.SignalConfigurationFile, routeFolder.SignalConfigMode);
 
             Initialize(TDB.TrackDB, RDB?.RoadTrackDB, sigcfgFile);
             Task.Run(async () => await RuntimeDataResolver.Initialize(routeModel, true).ConfigureAwait(false)).Wait();

@@ -6,6 +6,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
+using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Models.Content;
 using FreeTrainSimulator.Models.Handler;
 using FreeTrainSimulator.Models.Imported.Shim;
@@ -33,7 +34,7 @@ namespace FreeTrainSimulator.Models.Imported.ImportHandler.TrainSimulator
         {
             FolderStructure.ContentFolder.RouteFolder routeFolder = routeModel.MstsRouteFolder();
             string sigcfgFile = routeFolder.SignalConfigurationFile;
-            CompatibilityMode compatibilityMode = routeFolder.ORSignalConfigFile;
+            CompatibilityMode compatibilityMode = routeFolder.SignalConfigMode;
 
             if (!System.IO.File.Exists(sigcfgFile))
             {
@@ -85,7 +86,7 @@ namespace FreeTrainSimulator.Models.Imported.ImportHandler.TrainSimulator
                     FunctionType = signalType.Value.SignalFunction,
                     NormalSubType = signalType.Value.NormalSubType,
                     SignalFlags = (signalType.Value.Abs ? SignalFlags.Abs : SignalFlags.None)
-                        | (signalType.Value.NoGantry ? SignalFlags.NoGantry : SignalFlags.None) 
+                        | (signalType.Value.NoGantry ? SignalFlags.NoGantry : SignalFlags.None)
                         | (signalType.Value.Semaphore ? SignalFlags.Semaphore : SignalFlags.None),
                     FlashTimeOn = signalType.Value.FlashTimeOn,
                     FlashTimeOff = signalType.Value.FlashTimeOff,
@@ -97,7 +98,7 @@ namespace FreeTrainSimulator.Models.Imported.ImportHandler.TrainSimulator
                     DayLight = signalType.Value.DayLight,
                     SignalClearAheadMode = signalType.Value.ClearAheadMode,
                     ClearAheadNumber = signalType.Value.ClearAheadNumber,
-                    Lights = signalType.Value.Lights?.Select(light => 
+                    Lights = signalType.Value.Lights?.Select(light =>
                     {
                         if (!signalConfigurationFile.LightsTable.TryGetValue(light.Name, out Orts.Formats.Msts.Models.LightTableEntry colorEntry))
                         {
@@ -119,7 +120,15 @@ namespace FreeTrainSimulator.Models.Imported.ImportHandler.TrainSimulator
                             DrawStateLights = ToSparseDrawStateLightArray(kvp.Value.DrawLights),
                         },
                         StringComparer.OrdinalIgnoreCase) ?? ImmutableDictionary<string, SignalDrawState>.Empty,
-                    //Aspects = signalType.Aspects?.Select(ConvertAspect).ToImmutableArray() ?? ImmutableArray<SignalAspectModel>.Empty,
+                    SignalAspects = signalType.Value.Aspects?.Select(aspect => new SignalAspect()
+                        {
+                            Aspect = aspect.Aspect,
+                            DrawStateName = aspect.DrawStateName,
+                            SpeedLimit = aspect.SpeedLimit,
+                            AspectFlags = (aspect.Asap ? SignalAspectFlags.Asap : SignalAspectFlags.None)
+                                | (aspect.Reset ? SignalAspectFlags.SpeedReset : SignalAspectFlags.None)
+                                | (aspect.NoSpeedReduction ? SignalAspectFlags.NoSpeedReduction : SignalAspectFlags.None),
+                        }).ToImmutableArray() ?? ImmutableArray<SignalAspect>.Empty,
                     //ApproachControlDetails = signalType.ApproachControlDetails != null
                     //    ? new ApproachControlLimitsModel()
                     //    {

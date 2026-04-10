@@ -1,8 +1,9 @@
 ﻿using System;
 
+using FreeTrainSimulator.Common;
+
 using MemoryPack;
 
-using Orts.Formats.Msts;
 using Orts.Simulation.Signalling;
 
 namespace Orts.Simulation.Multiplayer.Messaging

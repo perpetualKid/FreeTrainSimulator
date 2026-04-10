@@ -8,6 +8,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 
+using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Models.Signal;
 
 using Microsoft.Win32;
@@ -159,14 +160,14 @@ namespace Orts.Formats.Msts
                         string signalConfig;
                         if (File.Exists(signalConfig = Path.Combine(CurrentFolder, OpenRailsSpecificFolder, "sigcfg.dat")))
                         {
-                            ORSignalConfigFile = CompatibilityMode.Enhanced;
+                            SignalConfigMode = CompatibilityMode.Orts;
                             return signalConfig;
                         }
                         return Path.Combine(CurrentFolder, "sigcfg.dat");
                     }
                 }
 
-                public CompatibilityMode ORSignalConfigFile { get; private set; }
+                public CompatibilityMode SignalConfigMode { get; private set; }
 
                 public string CarSpawnerFile => Path.Combine(CurrentFolder, "carspawn.dat");
                 public string OpenRailsCarSpawnerFile => Path.Combine(CurrentFolder, OpenRailsSpecificFolder, "carspawn.dat");

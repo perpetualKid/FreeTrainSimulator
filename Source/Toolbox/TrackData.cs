@@ -15,7 +15,7 @@ namespace FreeTrainSimulator.Toolbox
         {
             FolderStructure.ContentFolder.RouteFolder routeFolder = routeModel.MstsRouteFolder();
 
-            Task<SignalConfigurationFile> signalConfigTask = Task.Run(() => new SignalConfigurationFile(routeFolder.SignalConfigurationFile, routeFolder.ORSignalConfigFile), cancellationToken);
+            Task<SignalConfigurationFile> signalConfigTask = Task.Run(() => new SignalConfigurationFile(routeFolder.SignalConfigurationFile, routeFolder.SignalConfigMode), cancellationToken);
 
             await Task.WhenAll(signalConfigTask).ConfigureAwait(false);
 

@@ -132,7 +132,7 @@ namespace Orts.Simulation.Signalling
                     }
 
                     // set signal speeds
-                    foreach (SignalAspect aspect in SignalType.Aspects)
+                    foreach (Formats.Msts.Models.SignalAspect aspect in SignalType.Aspects)
                     {
                         SpeedInfoSet[aspect.Aspect] = new SpeedInfo(aspect.SpeedLimit, aspect.SpeedLimit, aspect.Asap, aspect.Reset, aspect.NoSpeedReduction ? 1 : 0, false);
                     }

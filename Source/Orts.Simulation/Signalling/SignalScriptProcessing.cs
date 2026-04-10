@@ -22,8 +22,8 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Diagnostics;
 
+using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Models.Signal;
 
 using Orts.Formats.Msts;
