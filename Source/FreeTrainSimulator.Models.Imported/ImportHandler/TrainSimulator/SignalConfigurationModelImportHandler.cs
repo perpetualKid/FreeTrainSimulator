@@ -129,13 +129,8 @@ namespace FreeTrainSimulator.Models.Imported.ImportHandler.TrainSimulator
                                 | (aspect.Reset ? SignalAspectFlags.SpeedReset : SignalAspectFlags.None)
                                 | (aspect.NoSpeedReduction ? SignalAspectFlags.NoSpeedReduction : SignalAspectFlags.None),
                         }).ToImmutableArray() ?? ImmutableArray<SignalAspect>.Empty,
-                    //ApproachControlDetails = signalType.ApproachControlDetails != null
-                    //    ? new ApproachControlLimitsModel()
-                    //    {
-                    //        ApproachControlPositionM = signalType.ApproachControlDetails.ApproachControlPositionM,
-                    //        ApproachControlSpeedMpS = signalType.ApproachControlDetails.ApproachControlSpeedMpS,
-                    //    }
-                    //    : null,
+                    ApproachControlLimitPosition = signalType.Value.ApproachControlDetails?.ApproachControlPositionM,
+                    ApproachControlLimitSpeed = signalType.Value.ApproachControlDetails?.ApproachControlSpeedMpS,
                 },
                 StringComparer.OrdinalIgnoreCase);
         }

@@ -51,7 +51,7 @@ namespace FreeTrainSimulator.Models.Signal
         public ImmutableArray<SignalLight> Lights { get; init; } = ImmutableArray<SignalLight>.Empty;
         public ImmutableDictionary<string, SignalDrawState> DrawStates { get; init; } = ImmutableDictionary<string, SignalDrawState>.Empty;
         public ImmutableArray<SignalAspect> SignalAspects { get; init; } = ImmutableArray<SignalAspect>.Empty;
-        //public ApproachControlLimitsModel ApproachControlDetails { get; init; }
-
+        public float? ApproachControlLimitPosition { get; init; }
+        public float? ApproachControlLimitSpeed { get; init; }
     }
 }

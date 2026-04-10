@@ -699,9 +699,6 @@ namespace Orts.Formats.Msts.Models
             });
         }
     }
-    #endregion
-
-    #region SignalShape
     /// <summary>
     /// Describes a signal object shape and the set of signal heads and other sub-objects that are present on this.
     /// </summary>
@@ -724,7 +721,9 @@ namespace Orts.Formats.Msts.Models
                 });
         }
     }
+    #endregion
 
+    #region SignalShape
     public class SignalShape
     {
         /// <summary>Name (without path) of the file that contains the shape itself</summary>
