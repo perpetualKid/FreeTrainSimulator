@@ -16,7 +16,6 @@ namespace FreeTrainSimulator.Models.Signal
         public override RouteModel Parent => _parent as RouteModel;
 
         public ImmutableDictionary<string, SignalLightTexture> LightTextures { get; init; } = ImmutableDictionary<string, SignalLightTexture>.Empty;
-
-        public ImmutableDictionary<string, Color> LightColors { get; init; } = ImmutableDictionary<string, Color>.Empty;
+        public ImmutableDictionary<string, SignalType> SignalTypes { get; init; } = ImmutableDictionary<string, SignalType>.Empty;
     }
 }

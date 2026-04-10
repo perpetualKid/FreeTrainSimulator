@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Text;
+﻿using System.Collections.Immutable;
 
 using MemoryPack;
 
@@ -49,7 +46,7 @@ namespace FreeTrainSimulator.Models.Signal
         /// <summary>Number of blocks ahead which need to be cleared in order to maintain a 'clear' indication
         /// in front of a train.</summary>
         public int ClearAheadNumber { get; init; }
-        //public ImmutableArray<SignalLightModel> Lights { get; init; } = ImmutableArray<SignalLightModel>.Empty;
+        public ImmutableArray<SignalLight> Lights { get; init; } = ImmutableArray<SignalLight>.Empty;
         //public ImmutableDictionary<string, SignalDrawStateModel> DrawStates { get; init; } = ImmutableDictionary<string, SignalDrawStateModel>.Empty;
         //public ImmutableArray<SignalAspectModel> Aspects { get; init; } = ImmutableArray<SignalAspectModel>.Empty;
         //public ApproachControlLimitsModel ApproachControlDetails { get; init; }

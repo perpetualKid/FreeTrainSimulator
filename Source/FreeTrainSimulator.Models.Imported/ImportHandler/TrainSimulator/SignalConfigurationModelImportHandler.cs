@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Windows.Forms;
 
 using FreeTrainSimulator.Models.Content;
 using FreeTrainSimulator.Models.Handler;
@@ -36,12 +38,7 @@ namespace FreeTrainSimulator.Models.Imported.ImportHandler.TrainSimulator
             if (!System.IO.File.Exists(sigcfgFile))
             {
                 Trace.TraceWarning($"Signal Configuration File not found: {sigcfgFile}");
-                SignalConfigurationModel emptyModel = new SignalConfigurationModel()
-                {
-                    Id = routeModel.Id
-                };
-                await Create(emptyModel, routeModel, cancellationToken).ConfigureAwait(false);
-                return emptyModel;
+                return null;
             }
 
             SignalConfigurationFile signalConfigurationFile = new SignalConfigurationFile(sigcfgFile, compatibilityMode);
@@ -50,7 +47,7 @@ namespace FreeTrainSimulator.Models.Imported.ImportHandler.TrainSimulator
             {
                 Id = routeModel.Id,
                 LightTextures = ConvertLightTextures(signalConfigurationFile),
-                LightColors = ConvertLightColors(signalConfigurationFile),
+                SignalTypes = ConvertSignalTypes(signalConfigurationFile, sigcfgFile),
             };
 
             await Create(signalConfigModel, routeModel, cancellationToken).ConfigureAwait(false);
@@ -75,14 +72,59 @@ namespace FreeTrainSimulator.Models.Imported.ImportHandler.TrainSimulator
                 StringComparer.OrdinalIgnoreCase);
         }
 
-        private static ImmutableDictionary<string, Color> ConvertLightColors(SignalConfigurationFile signalConfigurationFile)
+        private static ImmutableDictionary<string, SignalType> ConvertSignalTypes(SignalConfigurationFile signalConfigurationFile, string sigcfgFile)
         {
-            return signalConfigurationFile.LightsTable == null || signalConfigurationFile.LightsTable.Count == 0
-                ? ImmutableDictionary<string, Color>.Empty
-                : signalConfigurationFile.LightsTable.ToImmutableDictionary(
-                kvp => kvp.Key,
-                kvp => kvp.Value.Color,
+            return signalConfigurationFile.SignalTypes == null || signalConfigurationFile.SignalTypes.Count == 0
+                ? ImmutableDictionary<string, SignalType>.Empty
+                : signalConfigurationFile.SignalTypes.ToImmutableDictionary(
+                signalType => signalType.Key,
+                signalType => new SignalType()
+                {
+                    Name = signalType.Value.Name,
+                    Script = signalType.Value.Script,
+                    FunctionType = signalType.Value.SignalFunction,
+                    NormalSubType = signalType.Value.NormalSubType,
+                    SignalFlags = (signalType.Value.Abs ? SignalFlags.Abs : SignalFlags.None)
+                        | (signalType.Value.NoGantry ? SignalFlags.NoGantry : SignalFlags.None) 
+                        | (signalType.Value.Semaphore ? SignalFlags.Semaphore : SignalFlags.None),
+                    FlashTimeOn = signalType.Value.FlashTimeOn,
+                    FlashTimeOff = signalType.Value.FlashTimeOff,
+                    TransitionTime = signalType.Value.TransitionTime,
+                    LightTexture = signalType.Value.LightTextureName,
+                    SemaphoreAnimationnDuration = signalType.Value.SemaphoreInfo,
+                    DayGlow = signalType.Value.DayGlow,
+                    NightGlow = signalType.Value.NightGlow,
+                    DayLight = signalType.Value.DayLight,
+                    SignalClearAheadMode = signalType.Value.ClearAheadMode,
+                    ClearAheadNumber = signalType.Value.ClearAheadNumber,
+                    Lights = signalType.Value.Lights?.Select(light => 
+                    {
+                        if (!signalConfigurationFile.LightsTable.TryGetValue(light.Name, out Orts.Formats.Msts.Models.LightTableEntry colorEntry))
+                        {
+                            Trace.TraceWarning($"Missing or invalid signal light {light.Name} for signal type {signalType.Value.Name} in {sigcfgFile}");
+                        }
+                        return new SignalLight(light.Position, colorEntry?.Color ?? Color.Black)
+                        {
+                            Name = light.Name,
+                            Radius = light.Radius,
+                            SemaphoreChange = light.SemaphoreChange,
+                        };
+                    }).ToImmutableArray() ?? ImmutableArray<SignalLight>.Empty,
+                    //DrawStates = signalType.DrawStates?.ToImmutableDictionary(
+                    //    kvp => kvp.Key,
+                    //    kvp => ConvertDrawState(kvp.Value),
+                    //    StringComparer.OrdinalIgnoreCase) ?? ImmutableDictionary<string, SignalDrawStateModel>.Empty,
+                    //Aspects = signalType.Aspects?.Select(ConvertAspect).ToImmutableArray() ?? ImmutableArray<SignalAspectModel>.Empty,
+                    //ApproachControlDetails = signalType.ApproachControlDetails != null
+                    //    ? new ApproachControlLimitsModel()
+                    //    {
+                    //        ApproachControlPositionM = signalType.ApproachControlDetails.ApproachControlPositionM,
+                    //        ApproachControlSpeedMpS = signalType.ApproachControlDetails.ApproachControlSpeedMpS,
+                    //    }
+                    //    : null,
+                },
                 StringComparer.OrdinalIgnoreCase);
         }
+
     }
 }
