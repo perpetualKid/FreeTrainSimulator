@@ -5,8 +5,6 @@ using FreeTrainSimulator.Models.Content;
 
 using MemoryPack;
 
-using Microsoft.Xna.Framework;
-
 namespace FreeTrainSimulator.Models.Signal
 {
     [MemoryPackable(GenerateType.VersionTolerant, SerializeLayout.Sequential)]

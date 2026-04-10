@@ -540,7 +540,7 @@ namespace Orts.ActivityRunner.Viewer3D
                     }
                 }
 
-                foreach (KeyValuePair<string, SignalDrawState> sdrawstate in mstsSignalType.DrawStates)
+                foreach (KeyValuePair<string, Formats.Msts.Models.SignalDrawState> sdrawstate in mstsSignalType.DrawStates)
                     DrawAspects.Add(sdrawstate.Value.Index, new SignalAspectData(mstsSignalType, sdrawstate.Value));
                 FlashTimeOn = mstsSignalType.FlashTimeOn;
                 FlashTimeTotal = mstsSignalType.FlashTimeOn + mstsSignalType.FlashTimeOff;
@@ -575,7 +575,7 @@ namespace Orts.ActivityRunner.Viewer3D
         public readonly bool[] FlashLights;
         public float SemaphorePos;
 
-        public SignalAspectData(Formats.Msts.Models.SignalType mstsSignalType, SignalDrawState drawStateData)
+        public SignalAspectData(Formats.Msts.Models.SignalType mstsSignalType, Formats.Msts.Models.SignalDrawState drawStateData)
         {
             if (mstsSignalType.Lights != null)
             {

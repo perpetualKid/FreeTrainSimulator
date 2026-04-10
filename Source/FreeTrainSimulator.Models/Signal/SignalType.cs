@@ -47,7 +47,7 @@ namespace FreeTrainSimulator.Models.Signal
         /// in front of a train.</summary>
         public int ClearAheadNumber { get; init; }
         public ImmutableArray<SignalLight> Lights { get; init; } = ImmutableArray<SignalLight>.Empty;
-        //public ImmutableDictionary<string, SignalDrawStateModel> DrawStates { get; init; } = ImmutableDictionary<string, SignalDrawStateModel>.Empty;
+        public ImmutableDictionary<string, SignalDrawState> DrawStates { get; init; } = ImmutableDictionary<string, SignalDrawState>.Empty;
         //public ImmutableArray<SignalAspectModel> Aspects { get; init; } = ImmutableArray<SignalAspectModel>.Empty;
         //public ApproachControlLimitsModel ApproachControlDetails { get; init; }
 

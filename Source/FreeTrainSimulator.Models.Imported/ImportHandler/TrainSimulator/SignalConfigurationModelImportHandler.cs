@@ -1,10 +1,10 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Windows.Forms;
 
 using FreeTrainSimulator.Models.Content;
 using FreeTrainSimulator.Models.Handler;
@@ -110,10 +110,15 @@ namespace FreeTrainSimulator.Models.Imported.ImportHandler.TrainSimulator
                             SemaphoreChange = light.SemaphoreChange,
                         };
                     }).ToImmutableArray() ?? ImmutableArray<SignalLight>.Empty,
-                    //DrawStates = signalType.DrawStates?.ToImmutableDictionary(
-                    //    kvp => kvp.Key,
-                    //    kvp => ConvertDrawState(kvp.Value),
-                    //    StringComparer.OrdinalIgnoreCase) ?? ImmutableDictionary<string, SignalDrawStateModel>.Empty,
+                    DrawStates = signalType.Value.DrawStates?.ToImmutableDictionary(
+                        kvp => kvp.Key,
+                        kvp => new SignalDrawState()
+                        {
+                            Name = kvp.Value.Name,
+                            SemaphorePosition = (int)kvp.Value.SemaphorePosition,
+                            DrawStateLights = ToSparseDrawStateLightArray(kvp.Value.DrawLights),
+                        },
+                        StringComparer.OrdinalIgnoreCase) ?? ImmutableDictionary<string, SignalDrawState>.Empty,
                     //Aspects = signalType.Aspects?.Select(ConvertAspect).ToImmutableArray() ?? ImmutableArray<SignalAspectModel>.Empty,
                     //ApproachControlDetails = signalType.ApproachControlDetails != null
                     //    ? new ApproachControlLimitsModel()
@@ -126,5 +131,25 @@ namespace FreeTrainSimulator.Models.Imported.ImportHandler.TrainSimulator
                 StringComparer.OrdinalIgnoreCase);
         }
 
+        /// <summary>
+        /// Converts a list of items with an Index property into a sparse array.
+        /// Missing indices will be null.
+        /// </summary>
+        private static ImmutableArray<SignalDrawStateLightMode> ToSparseDrawStateLightArray(List<Orts.Formats.Msts.Models.SignalDrawLight> drawLights)
+        {
+            ArgumentNullException.ThrowIfNull(drawLights);
+            if (drawLights.Count == 0)
+                return ImmutableArray<SignalDrawStateLightMode>.Empty;
+
+            // Create array with nulls
+            SignalDrawStateLightMode[] result = new SignalDrawStateLightMode[drawLights.Max(light => light.Index) + 1];
+
+            // Place items at their index positions
+            foreach (Orts.Formats.Msts.Models.SignalDrawLight item in drawLights)
+            {
+                result[item.Index] = item.Flashing ? SignalDrawStateLightMode.Flashing : SignalDrawStateLightMode.Lit;
+            }
+            return result.ToImmutableArray();
+        }
     }
 }

@@ -14,6 +14,13 @@ namespace FreeTrainSimulator.Models.Signal
         Abs = 1 << 2,
     }
 
+    public enum SignalDrawStateLightMode
+    {
+        Unlit,
+        Lit,
+        Flashing,
+    }
+
     public enum CompatibilityMode
     {
         None,
