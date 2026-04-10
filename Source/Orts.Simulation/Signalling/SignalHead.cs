@@ -86,8 +86,8 @@ namespace Orts.Simulation.Signalling
             TrackItemIndex = trackItem;
             TDBIndex = tbdRef;
             DrawState = 1;
-            SignalIndicationState = SignalAspectState.Clear_2;
-            SignalType = new Formats.Msts.Models.SignalType(SignalFunction.Speed, SignalAspectState.Clear_2);
+            SignalIndicationState = SignalAspectState.Clear2;
+            SignalType = new Formats.Msts.Models.SignalType(SignalFunction.Speed, SignalAspectState.Clear2);
             SignalFunction = SignalFunction.Speed;
 
             double speedMpS = Speed.MeterPerSecond.ToMpS(speedItem.Distance, !speedItem.IsMPH);
@@ -310,7 +310,7 @@ namespace Orts.Simulation.Signalling
         /// </summary>
         public SignalAspectState MRSignalMultiOnRoute(int signalType, int signalTypeOther)
         {
-            SignalAspectState foundState = SignalAspectState.Clear_2;
+            SignalAspectState foundState = SignalAspectState.Clear2;
             bool foundValid = false;
 
             // get signal of type 2 (end signal)
@@ -374,7 +374,7 @@ namespace Orts.Simulation.Signalling
         /// </summary>
         public SignalAspectState LRSignalMultiOnRoute(int signalType, int signalTypeOther)
         {
-            SignalAspectState foundState = SignalAspectState.Clear_2;
+            SignalAspectState foundState = SignalAspectState.Clear2;
             bool foundValid = false;
 
             // get signal of type 2 (end signal)
@@ -482,10 +482,10 @@ namespace Orts.Simulation.Signalling
             }
             else
             {
-                int drawState1 = DefaultDrawState(SignalAspectState.Approach_1);
-                int drawState2 = DefaultDrawState(SignalAspectState.Approach_2);
+                int drawState1 = DefaultDrawState(SignalAspectState.Approach1);
+                int drawState2 = DefaultDrawState(SignalAspectState.Approach2);
 
-                SignalIndicationState = drawState1 > 0 ? SignalAspectState.Approach_1 : drawState2 > 0 ? SignalAspectState.Approach_2 : SignalAspectState.Approach_3;
+                SignalIndicationState = drawState1 > 0 ? SignalAspectState.Approach1 : drawState2 > 0 ? SignalAspectState.Approach2 : SignalAspectState.Approach3;
                 DrawState = DefaultDrawState(SignalIndicationState);
             }
         }
@@ -503,7 +503,7 @@ namespace Orts.Simulation.Signalling
             }
             else
             {
-                SignalIndicationState = SignalType?.GetLeastRestrictiveAspect() ?? SignalAspectState.Clear_2;
+                SignalIndicationState = SignalType?.GetLeastRestrictiveAspect() ?? SignalAspectState.Clear2;
                 DefaultDrawState(SignalIndicationState);
             }
         }

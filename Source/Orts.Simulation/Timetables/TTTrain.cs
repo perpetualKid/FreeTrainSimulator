@@ -2596,7 +2596,7 @@ namespace Orts.Simulation.Timetables
                 }
 
                 else if (nextAspect > SignalAspectState.Stop &&
-                        nextAspect < SignalAspectState.Approach_1)
+                        nextAspect < SignalAspectState.Approach1)
                 {
                     // check if any other signals within clearing distance
                     bool signalCleared = true;
@@ -2629,7 +2629,7 @@ namespace Orts.Simulation.Timetables
                         DelayedStartMoving(AiStartMovement.SignalRestricted);
                     }
                 }
-                else if (nextAspect >= SignalAspectState.Approach_1)
+                else if (nextAspect >= SignalAspectState.Approach1)
                 {
                     // check if any other signals within clearing distance
                     bool signalCleared = true;
@@ -3214,7 +3214,7 @@ namespace Orts.Simulation.Timetables
             else if (nextActionInfo.NextAction == AiActionType.SignalAspectStop)
             {
 
-                if (nextActionInfo.ActiveItem.SignalState >= SignalAspectState.Approach_1)
+                if (nextActionInfo.ActiveItem.SignalState >= SignalAspectState.Approach1)
                 {
                     clearAction = true;
                 }
@@ -3233,7 +3233,7 @@ namespace Orts.Simulation.Timetables
 
             else if (nextActionInfo.NextAction == AiActionType.SignalAspectRestricted)
             {
-                if ((nextActionInfo.ActiveItem.SignalState >= SignalAspectState.Approach_1) ||
+                if ((nextActionInfo.ActiveItem.SignalState >= SignalAspectState.Approach1) ||
                    ((nextActionInfo.ActivateDistanceM - PresentPosition[Direction.Forward].DistanceTravelled) < SignalApproachDistance) ||
                    (nextActionInfo.ActiveItem.SignalDetails.SignalNoSpeedReduction(SignalFunction.Normal)))
                 {

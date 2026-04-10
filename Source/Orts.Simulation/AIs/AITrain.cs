@@ -791,7 +791,7 @@ namespace Orts.Simulation.AIs
                 // check signal state
 
                 if (thisInfo.ItemType == SignalItemType.Signal &&
-                        thisInfo.SignalState < SignalAspectState.Approach_1 &&
+                        thisInfo.SignalState < SignalAspectState.Approach1 &&
                         !thisInfo.Processed && thisInfo.SignalDetails.OverridePermission != SignalPermission.Granted)
                 {
                     if (!(ControlMode == TrainControlMode.AutoNode &&
@@ -1204,7 +1204,7 @@ namespace Orts.Simulation.AIs
                 }
 
                 else if ((nextAspect > SignalAspectState.Stop || nextPermission) &&
-                        nextAspect < SignalAspectState.Approach_1)
+                        nextAspect < SignalAspectState.Approach1)
                 {
                     // check if any other signals within clearing distance
                     bool signalCleared = true;
@@ -1237,7 +1237,7 @@ namespace Orts.Simulation.AIs
                         StartMoving(AiStartMovement.SignalRestricted);
                     }
                 }
-                else if (nextAspect >= SignalAspectState.Approach_1)
+                else if (nextAspect >= SignalAspectState.Approach1)
                 {
                     // check if any other signals within clearing distance
                     bool signalCleared = true;
@@ -1631,7 +1631,7 @@ namespace Orts.Simulation.AIs
             {
                 var nextSignal = nextActionInfo.ActiveItem.SignalDetails;
                 var nextPermission = nextSignal.OverridePermission == SignalPermission.Granted;
-                if (nextActionInfo.ActiveItem.SignalState >= SignalAspectState.Approach_1 || nextPermission)
+                if (nextActionInfo.ActiveItem.SignalState >= SignalAspectState.Approach1 || nextPermission)
                 {
                     clearAction = true;
                 }
@@ -1650,7 +1650,7 @@ namespace Orts.Simulation.AIs
 
             else if (nextActionInfo.NextAction == AiActionType.SignalAspectRestricted)
             {
-                if ((nextActionInfo.ActiveItem.SignalState >= SignalAspectState.Approach_1) ||
+                if ((nextActionInfo.ActiveItem.SignalState >= SignalAspectState.Approach1) ||
                    ((nextActionInfo.ActivateDistanceM - PresentPosition[Direction.Forward].DistanceTravelled) < SignalApproachDistance) ||
                    (nextActionInfo.ActiveItem.SignalDetails.SignalNoSpeedReduction(SignalFunction.Normal)))
                 {
@@ -4237,7 +4237,7 @@ namespace Orts.Simulation.AIs
 
                 // check if cleared
 
-                else if (thisItem.ActiveItem.SignalState >= SignalAspectState.Approach_1)
+                else if (thisItem.ActiveItem.SignalState >= SignalAspectState.Approach1)
                 {
                     actionValid = false;
                     actionCleared = true;
@@ -4291,7 +4291,7 @@ namespace Orts.Simulation.AIs
 
             else if (thisItem.NextAction == AiActionType.SignalAspectRestricted)
             {
-                if (thisItem.ActiveItem.SignalState >= SignalAspectState.Approach_1 ||
+                if (thisItem.ActiveItem.SignalState >= SignalAspectState.Approach1 ||
                 (thisItem.ActivateDistanceM - PresentPosition[Direction.Forward].DistanceTravelled) < SignalApproachDistance)
                 {
                     actionValid = false;

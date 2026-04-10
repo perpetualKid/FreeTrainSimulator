@@ -658,7 +658,7 @@ namespace Orts.Formats.Msts
                             break;
                         // try SIGASP definition
                         case "SIGASP":
-                            if (EnumExtension.GetValue(definitions[1], out SignalAspectState aspect))
+                            if (EnumExtension.GetValue(definitions[1].Replace("_", ""), out SignalAspectState aspect))
                             {
                                 return new SCRParameterType(SCRTermType.Sigasp, (int)aspect);
                             }

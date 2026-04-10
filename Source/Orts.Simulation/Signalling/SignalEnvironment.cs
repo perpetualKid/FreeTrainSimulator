@@ -1114,19 +1114,19 @@ namespace Orts.Simulation.Signalling
             {
                 case SignalAspectState.Stop:
                     return TrackMonitorSignalAspect.Stop;
-                case SignalAspectState.Stop_And_Proceed:
+                case SignalAspectState.StopAndProceed:
                     return TrackMonitorSignalAspect.StopAndProceed;
                 case SignalAspectState.Restricting:
                     return TrackMonitorSignalAspect.Restricted;
-                case SignalAspectState.Approach_1:
+                case SignalAspectState.Approach1:
                     return TrackMonitorSignalAspect.Approach1;
-                case SignalAspectState.Approach_2:
+                case SignalAspectState.Approach2:
                     return TrackMonitorSignalAspect.Approach2;
-                case SignalAspectState.Approach_3:
+                case SignalAspectState.Approach3:
                     return TrackMonitorSignalAspect.Approach3;
-                case SignalAspectState.Clear_1:
+                case SignalAspectState.Clear1:
                     return TrackMonitorSignalAspect.Clear1;
-                case SignalAspectState.Clear_2:
+                case SignalAspectState.Clear2:
                     return TrackMonitorSignalAspect.Clear2;
                 default:
                     return TrackMonitorSignalAspect.None;

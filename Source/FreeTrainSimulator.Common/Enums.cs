@@ -1394,6 +1394,7 @@ namespace FreeTrainSimulator.Common
     /// Describe the various aspects (or signal indication states) that MSTS signals can have.
     /// Within MSTS known as SIGASP_ values.  
     /// Note: They are in order from most restrictive to least restrictive.
+    /// Note: DO NOT change the names as they are used for Parsing signal config and scripts.
     /// </summary>
     public enum SignalAspectState
     {
@@ -1402,25 +1403,25 @@ namespace FreeTrainSimulator.Common
         Stop,
         /// <summary>Stop and proceed</summary>
         [Description("StopProceed")]
-        Stop_And_Proceed,
+        StopAndProceed,
         /// <summary>Restricting</summary>
         [Description("Restricting")]
         Restricting,
         /// <summary>Final caution before 'stop' or 'stop and proceed'</summary>
         [Description("Approach1")]
-        Approach_1,
+        Approach1,
         /// <summary>Advanced caution</summary>
         [Description("Approach2")]
-        Approach_2,
+        Approach2,
         /// <summary>Least restrictive advanced caution</summary>
         [Description("Approach3")]
-        Approach_3,
+        Approach3,
         /// <summary>Clear to next signal</summary>
         [Description("Clear1")]
-        Clear_1,
+        Clear1,
         /// <summary>Clear to next signal (least restrictive)</summary>
         [Description("Clear2")]
-        Clear_2,
+        Clear2,
         /// <summary>Signal aspect is unknown (possibly not yet defined)</summary>
         [Description("Unknown")]
         Unknown,

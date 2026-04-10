@@ -384,13 +384,13 @@ namespace Orts.Simulation.Signalling
                 SignalState result = SignalState.Lock;
                 foreach (var head in SignalHeads)
                 {
-                    if (head.SignalIndicationState == SignalAspectState.Clear_1 ||
-                        head.SignalIndicationState == SignalAspectState.Clear_2)
+                    if (head.SignalIndicationState == SignalAspectState.Clear1 ||
+                        head.SignalIndicationState == SignalAspectState.Clear2)
                     {
                         result = SignalState.Clear;
                     }
-                    if (head.SignalIndicationState == SignalAspectState.Approach_1 ||
-                        head.SignalIndicationState == SignalAspectState.Approach_2 || head.SignalIndicationState == SignalAspectState.Approach_3)
+                    if (head.SignalIndicationState == SignalAspectState.Approach1 ||
+                        head.SignalIndicationState == SignalAspectState.Approach2 || head.SignalIndicationState == SignalAspectState.Approach3)
                     {
                         result = SignalState.Approach;
                     }
@@ -572,7 +572,7 @@ namespace Orts.Simulation.Signalling
         public SignalAspectState NextNthSignalLR(int signalType, int number)
         {
             int foundsignal = 0;
-            SignalAspectState foundAspect = SignalAspectState.Clear_2;
+            SignalAspectState foundAspect = SignalAspectState.Clear2;
             Signal nextSignalObject = this;
 
             while (foundsignal < number && foundAspect != SignalAspectState.Stop)
@@ -715,7 +715,7 @@ namespace Orts.Simulation.Signalling
                     sigAspSet = true;
                 }
             }
-            return sigAspSet ? sigAsp : signalType == SignalFunction.Normal ? SignalAspectState.Clear_2 : SignalAspectState.Unknown;
+            return sigAspSet ? sigAsp : signalType == SignalFunction.Normal ? SignalAspectState.Clear2 : SignalAspectState.Unknown;
         }//this_sig_lr
 
         /// <summary>
@@ -850,7 +850,7 @@ namespace Orts.Simulation.Signalling
         /// </summary>
         public int SpeedPostType()
         {
-            SignalAspectState sigAsp = SignalAspectState.Clear_2;
+            SignalAspectState sigAsp = SignalAspectState.Clear2;
             int speedPostType = 0; // default = standard speedpost
 
             SignalHead sigHead = SignalHeads.First();
@@ -1712,19 +1712,19 @@ namespace Orts.Simulation.Signalling
                         return TrackMonitorSignalAspect.Permission;
                     else
                         return TrackMonitorSignalAspect.Stop;
-                case SignalAspectState.Stop_And_Proceed:
+                case SignalAspectState.StopAndProceed:
                     return TrackMonitorSignalAspect.StopAndProceed;
                 case SignalAspectState.Restricting:
                     return TrackMonitorSignalAspect.Restricted;
-                case SignalAspectState.Approach_1:
+                case SignalAspectState.Approach1:
                     return TrackMonitorSignalAspect.Approach1;
-                case SignalAspectState.Approach_2:
+                case SignalAspectState.Approach2:
                     return TrackMonitorSignalAspect.Approach2;
-                case SignalAspectState.Approach_3:
+                case SignalAspectState.Approach3:
                     return TrackMonitorSignalAspect.Approach3;
-                case SignalAspectState.Clear_1:
+                case SignalAspectState.Clear1:
                     return TrackMonitorSignalAspect.Clear1;
-                case SignalAspectState.Clear_2:
+                case SignalAspectState.Clear2:
                     return TrackMonitorSignalAspect.Clear2;
                 default:
                     return TrackMonitorSignalAspect.None;
@@ -2367,7 +2367,7 @@ namespace Orts.Simulation.Signalling
 
             // check if next signal is cleared by default (state != stop and enabled == false) - if so, set train as enabled train but only if train's route covers signal route
 
-            if (nextSignal != null && nextSignal.SignalLR(SignalFunction.Normal) >= SignalAspectState.Approach_1 && nextSignal.FixedRoute && !nextSignal.Enabled && EnabledTrain != null)
+            if (nextSignal != null && nextSignal.SignalLR(SignalFunction.Normal) >= SignalAspectState.Approach1 && nextSignal.FixedRoute && !nextSignal.Enabled && EnabledTrain != null)
             {
                 int firstSectionIndex = nextSignal.fixedRoute.First().TrackCircuitSection.Index;
                 int lastSectionIndex = nextSignal.fixedRoute.Last().TrackCircuitSection.Index;
@@ -2384,7 +2384,7 @@ namespace Orts.Simulation.Signalling
                     while (furtherSignalIndex >= 0)
                     {
                         Signal furtherSignal = signalEnvironment.Signals[furtherSignalIndex];
-                        if (furtherSignal.SignalLR(SignalFunction.Normal) >= SignalAspectState.Approach_1 && !furtherSignal.Enabled && furtherSignal.FixedRoute)
+                        if (furtherSignal.SignalLR(SignalFunction.Normal) >= SignalAspectState.Approach1 && !furtherSignal.Enabled && furtherSignal.FixedRoute)
                         {
                             firstSectionIndex = furtherSignal.fixedRoute.First().TrackCircuitSection.Index;
                             lastSectionIndex = furtherSignal.fixedRoute.Last().TrackCircuitSection.Index;

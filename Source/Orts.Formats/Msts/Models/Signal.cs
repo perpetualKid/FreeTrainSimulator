@@ -436,7 +436,7 @@ namespace Orts.Formats.Msts.Models
                 if (Aspects[i].Aspect > targetAspect)
                     targetAspect = Aspects[i].Aspect;
             }
-            return (targetAspect > SignalAspectState.Clear_2) ? SignalAspectState.Clear_2 : targetAspect;
+            return (targetAspect > SignalAspectState.Clear2) ? SignalAspectState.Clear2 : targetAspect;
         }
 
         /// <summary>
@@ -665,7 +665,7 @@ namespace Orts.Formats.Msts.Models
             SpeedLimit = -1;
             stf.MustMatchBlockStart();
             string aspectName = stf.ReadString();
-            if (!EnumExtension.GetValue(aspectName, out SignalAspectState aspect))
+            if (!EnumExtension.GetValue(aspectName.Replace("_", ""), out SignalAspectState aspect))
             {
                 STFException.TraceInformation(stf, "Skipped unknown signal aspect " + aspectName);
                 Aspect = SignalAspectState.Unknown;
