@@ -665,7 +665,7 @@ namespace Orts.Formats.Msts.Models
             SpeedLimit = -1;
             stf.MustMatchBlockStart();
             string aspectName = stf.ReadString();
-            if (!EnumExtension.GetValue(aspectName.Replace("_", ""), out SignalAspectState aspect))
+            if (!EnumExtension.GetValue(aspectName.Replace("_", "", StringComparison.OrdinalIgnoreCase), out SignalAspectState aspect))
             {
                 STFException.TraceInformation(stf, "Skipped unknown signal aspect " + aspectName);
                 Aspect = SignalAspectState.Unknown;
