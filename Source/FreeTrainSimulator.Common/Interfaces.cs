@@ -8,6 +8,10 @@ namespace FreeTrainSimulator.Common
     {
         ISignal SignalById(int signalId);
         IJunction SwitchById(int switchId);
+        /// <summary>
+        /// Resolves an <see cref="IJunction"/> by the track node index of the junction node
+        /// </summary>
+        IJunction SwitchByNodeIndex(int nodeIndex);
     }
 
     public interface IIndexedElement

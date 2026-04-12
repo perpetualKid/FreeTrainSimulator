@@ -282,8 +282,9 @@ namespace Orts.Simulation
             }
 
             MetricUnits = userSettings.MeasurementUnit == MeasurementUnit.Route ? RouteModel.MetricUnits : (userSettings.MeasurementUnit == MeasurementUnit.Metric || userSettings.MeasurementUnit == MeasurementUnit.System && System.Globalization.RegionInfo.CurrentRegion.IsMetric);
-            RuntimeData.Initialize(trackDatabase, roadDatabase, SignalConfig, new RuntimeResolver());
-            Task.Run(async () => await RuntimeDataResolver.Initialize(routeModel, MetricUnits).ConfigureAwait(false)).Wait();
+            RuntimeResolver runtimeResolver = new RuntimeResolver();
+            RuntimeData.Initialize(trackDatabase, roadDatabase, SignalConfig, runtimeResolver);
+            Task.Run(async () => await RuntimeDataResolver.Initialize(routeModel, MetricUnits, runtimeResolver).ConfigureAwait(false)).Wait();
 
             SuperElevation = new SuperElevation(this);
 

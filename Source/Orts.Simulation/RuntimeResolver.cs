@@ -1,5 +1,6 @@
 ﻿using FreeTrainSimulator.Common;
 
+using Orts.Formats.Msts;
 using Orts.Simulation.Track;
 
 namespace Orts.Simulation
@@ -14,8 +15,13 @@ namespace Orts.Simulation
         }
 
         public IJunction SwitchById(int junctionId)
-{
+        {
             return TrackCircuitSection.TrackCircuitList[junctionId];
+        }
+
+        public IJunction SwitchByNodeIndex(int nodeIndex)
+        {
+            return SwitchById(RuntimeData.Instance.TrackDB.TrackNodes[nodeIndex].TrackCircuitCrossReferences[0].Index);
         }
     }
 }
