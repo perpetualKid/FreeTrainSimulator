@@ -1318,7 +1318,7 @@ namespace Orts.Simulation.Signalling
             }
 
             // find next speed object
-            TrackCircuitSignalItem foundItem = signalEnvironment.FindNextObjectInRoute(EnabledTrain.Train.ValidRoutes[Direction.Forward], routeListIndex, TrackCircuitOffset, -1, FunctionType.Speed, EnabledTrain);
+            TrackCircuitSignalItem foundItem = signalEnvironment.FindNextObjectInRoute(EnabledTrain.Train.ValidRoutes[Direction.Forward], routeListIndex, TrackCircuitOffset, -1, SignalFunctionType.Speed, EnabledTrain);
             return foundItem.SignalState == SignalItemFindState.Item ? foundItem.Signal.Index : -1;
         }
 
