@@ -11,6 +11,7 @@ using FreeTrainSimulator.Graphics.Window.Controls.Layout;
 using FreeTrainSimulator.Graphics.Xna;
 using FreeTrainSimulator.Models.Settings;
 using FreeTrainSimulator.Models.Track;
+using FreeTrainSimulator.Runtime;
 using FreeTrainSimulator.Runtime.Track;
 
 using GetText;
@@ -18,15 +19,12 @@ using GetText;
 using Microsoft.Xna.Framework;
 
 using Orts.ActivityRunner.Viewer3D.Shapes;
-using Orts.Formats.Msts;
-using Orts.Formats.Msts.Models;
 
 namespace Orts.ActivityRunner.Viewer3D.PopupWindows
 {
     internal sealed class TrackDebugOverlay : OverlayBase
     {
         private const int SegmentLength = 10;
-        private const float Tolerance = 0.1f;
 
         private readonly UserCommandController<UserCommand> userCommandController;
         private readonly Viewer viewer;
@@ -40,8 +38,9 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
         private readonly List<Label3DOverlay> labelList = new List<Label3DOverlay>();
         private readonly CameraViewProjectionHolder cameraViewProjection;
 
-        private readonly TrackDB trackDb = RuntimeData.Instance.TrackDB;
-        private readonly RoadTrackDB roadTrackDb = RuntimeData.Instance.RoadTrackDB;
+        private readonly TrackWorld trackWorld = RuntimeDataResolver.Instance.TrackWorld;
+        private readonly TrackDatabase trackDb = RuntimeDataResolver.Instance.TrackWorld.TrackModel.TrackDatabase;
+        private readonly TrackDatabase roadTrackDb = RuntimeDataResolver.Instance.TrackWorld.TrackModel.RoadDatabase;
 
         public TrackDebugOverlay(WindowManager owner, ProfileUserSettingsModel userSettings, Viewer viewer, Catalog catalog = null) :
             base(owner, catalog ?? CatalogManager.Catalog)
@@ -75,43 +74,51 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
                 labelList.Clear();
                 trackOverlay.Clear();
 
-                void AddTrackItems(TrackNodes trackNodes, List<TrackItem> trackItems, bool roadTracks)
+                void AddTrackContent(MapContentType contentType, TrackDatabase trackDatabase, bool roadTracks)
                 {
-                    ref readonly WorldLocation cameraLocation = ref viewer.Camera.CameraWorldLocation;
-                    TrackDataBaseType dbType = roadTracks ? TrackDataBaseType.Road : TrackDataBaseType.Rail;
-                    foreach (TrackVectorNode trackVectorNode in trackNodes.VectorNodes)
-                    {
-                        if (Math.Abs(trackVectorNode.TrackVectorSections[0].Location.TileX - cameraLocation.TileX) < 2 &&
-                            Math.Abs(trackVectorNode.TrackVectorSections[0].Location.TileZ - cameraLocation.TileZ) < 2)
-                        {
-                            TrackTraveller? init = TrackTraveller.InitializeTraveller(
-                                trackVectorNode.TrackVectorSections[0].Location, trackVectorNode.Index, TrackDirection.Ahead, dbType);
-                            if (init is TrackTraveller currentPosition)
-                            {
-                                int startNodeIndex = currentPosition.TrackNodeIndex;
-                                while (true)
-                                {
-                                    WorldLocation previousLocation = currentPosition.Location;
-                                    double previousOffset = currentPosition.VectorNodeOffset;
-                                    currentPosition = currentPosition.Move(SegmentLength);
-                                    trackOverlay.Add(previousLocation, currentPosition.Location, roadTracks ? Color.LightSalmon : Color.LightBlue);
-                                    if (currentPosition.TrackNodeIndex != startNodeIndex || Math.Abs(currentPosition.VectorNodeOffset - previousOffset) < Tolerance)
-                                        break;
-                                }
-                            }
+                    ITileIndexedList<ITileCoordinate> tileIndex = trackWorld.ContentByTile[contentType];
+                    if (tileIndex == null)
+                        return;
 
-                            IEnumerable<IGrouping<float, TrackItem>> grouping = trackVectorNode.TrackItemIndices.Select(i => trackItems[i]).GroupBy(item => item.SData1);
-                            foreach (IGrouping<float, TrackItem> item in grouping)
+                    Color segmentColor = roadTracks ? Color.LightSalmon : Color.LightBlue;
+                    LabelType labelType = roadTracks ? LabelType.RoadTrackDebug : LabelType.TrackDebug;
+                    HashSet<int> processedNodeIndices = new();
+
+                    foreach (VectorSectionNode section in tileIndex.BoundingBox(cameraTile, 1).Cast<VectorSectionNode>())
+                    {
+                        bool hasGeometry = trackWorld.SectionGeometry.TryGetValue(section, out SectionGeometry geometry);
+
+                        // Draw section segments using pre-computed geometry
+                        if (hasGeometry && geometry.HasGeometry && geometry.Length > 0)
+                        {
+                            for (double offset = 0; offset < geometry.Length; offset += SegmentLength)
                             {
-                                labelList.Add(labelCache.Get(HashCode.Combine(trackVectorNode.Index, item.Key),
+                                WorldLocation from = trackWorld.ComputeSectionLocation(section, offset);
+                                WorldLocation to = trackWorld.ComputeSectionLocation(section, Math.Min(offset + SegmentLength, geometry.Length));
+                                trackOverlay.Add(from, to, segmentColor);
+                            }
+                        }
+                        else
+                        {
+                            trackOverlay.Add(section.Location, section.EndLocation, segmentColor);
+                        }
+
+                        // Process track items once per parent VectorNode
+                        if (hasGeometry && trackDatabase != null &&
+                            processedNodeIndices.Add(geometry.Node.NodeIndex) &&
+                            trackDatabase.TrackItemSelectors.TryGetValue(geometry.Node.NodeIndex, out TrackItemIndex trackItemIndex))
+                        {
+                            IEnumerable<IGrouping<float, FreeTrainSimulator.Models.Track.TrackItemBase>> grouping = trackItemIndex.TrackItems
+                                .Select(i => trackDatabase.TrackItems[i])
+                                .GroupBy(item => item.SectionDistance);
+                            foreach (IGrouping<float, FreeTrainSimulator.Models.Track.TrackItemBase> item in grouping)
+                            {
+                                labelList.Add(labelCache.Get(HashCode.Combine(geometry.Node.NodeIndex, item.Key),
                                     () =>
                                     {
-                                        string line = string.Join(System.Environment.NewLine, item.Select(t => $"{t.TrackItemId} {t.GetType().Name[..^4]} {t.ItemName}"));
-                                        WorldLocation labelLocation = trackVectorNode.TrackVectorSections[0].Location;
-                                        TrackTraveller? ttInit = TrackTraveller.InitializeTraveller(labelLocation, trackVectorNode.Index, TrackDirection.Ahead, dbType);
-                                        if (ttInit is TrackTraveller ttLabel)
-                                            labelLocation = ttLabel.Move(item.Key).Location;
-                                        return new Label3DOverlay(this, line, roadTracks ? LabelType.RoadTrackDebug : LabelType.TrackDebug, 0,
+                                        string line = string.Join(System.Environment.NewLine, item.Select(t => $"{t.TrackItemIndex} {TrackItemLabel(t)}"));
+                                        WorldLocation labelLocation = ComputeLocationAlongNode(geometry.Node, item.Key);
+                                        return new Label3DOverlay(this, line, labelType, 0,
                                             new FixedWorldPositionSource(new WorldPosition(labelLocation)), cameraViewProjection);
                                     }));
                             }
@@ -119,10 +126,8 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
                     }
                 }
 
-                AddTrackItems(trackDb.TrackNodes, trackDb.TrackItems, false);
-
-                if (roadTrackDb?.TrackNodes != null)
-                    AddTrackItems(roadTrackDb.TrackNodes, roadTrackDb.TrackItems, true);
+                AddTrackContent(MapContentType.Tracks, trackDb, false);
+                AddTrackContent(MapContentType.Roads, roadTrackDb, true);
 
                 controlLayout.Controls.Clear();
                 foreach (Label3DOverlay item in labelList)
@@ -132,5 +137,31 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
             base.Update(gameTime, shouldUpdate);
         }
 
+        /// <summary>
+        /// Computes the world location at <paramref name="distance"/> metres along <paramref name="node"/> using pre-computed section geometry.
+        /// </summary>
+        private WorldLocation ComputeLocationAlongNode(VectorNode node, double distance)
+        {
+            double remaining = distance;
+            for (int i = 0; i < node.VectorSections.Length; i++)
+            {
+                double sectionLength = trackWorld.SectionLength(node, i);
+                if (remaining <= sectionLength || i == node.VectorSections.Length - 1)
+                    return trackWorld.ComputeSectionLocation(node, i, remaining);
+                remaining -= sectionLength;
+            }
+
+            return node.Location;
+        }
+
+        /// <summary>
+        /// Returns a display label for a track item: platform/siding name when available, otherwise the type name without "TrackItem" suffix.
+        /// </summary>
+        private static string TrackItemLabel(FreeTrainSimulator.Models.Track.TrackItemBase trackItem) => trackItem switch
+        {
+            PlatformTrackItem platform => $"Platform {platform.PlatformName}",
+            SidingTrackItem siding => $"Siding {siding.SidingName}",
+            _ => trackItem.GetType().Name[..^9] // strip "TrackItem" suffix
+        };
     }
 }
