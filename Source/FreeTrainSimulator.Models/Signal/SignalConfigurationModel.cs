@@ -15,5 +15,8 @@ namespace FreeTrainSimulator.Models.Signal
 
         public ImmutableDictionary<string, SignalLightTexture> LightTextures { get; init; } = ImmutableDictionary<string, SignalLightTexture>.Empty;
         public ImmutableDictionary<string, SignalType> SignalTypes { get; init; } = ImmutableDictionary<string, SignalType>.Empty;
+        public ImmutableDictionary<string, SignalShape> SignalShapes { get; init; } = ImmutableDictionary<string, SignalShape>.Empty;
+
+        public ImmutableArray<string> ScriptFiles { get; init; } = ImmutableArray<string>.Empty;
     }
 }

@@ -48,7 +48,7 @@ namespace Orts.Formats.Msts.Files
         /// <summary>Name-indexed list of available signal types</summary>
         public Dictionary<string, Models.SignalType> SignalTypes { get; private set; }
         /// <summary>Name-indexed list of available signal shapes (including heads and other sub-objects)</summary>
-        public Dictionary<string, SignalShape> SignalShapes { get; private set; }
+        public Dictionary<string, Models.SignalShape> SignalShapes { get; private set; }
         /// <summary>list of names of script files</summary>
         public Collection<string> ScriptFiles { get; private set; }
         /// <summary>Full file name and path of the signal config file</summary>
@@ -244,18 +244,18 @@ namespace Orts.Formats.Msts.Files
             return signalTypes;
         }
 
-        private static Dictionary<string, SignalShape> ReadSignalShapes(STFReader stf)
+        private static Dictionary<string, Models.SignalShape> ReadSignalShapes(STFReader stf)
         {
             stf.MustMatchBlockStart();
             int count = stf.ReadInt(null);
-            Dictionary<string, SignalShape> signalShapes = new Dictionary<string, SignalShape>(count, StringComparer.OrdinalIgnoreCase);
+            Dictionary<string, Models.SignalShape> signalShapes = new Dictionary<string, Models.SignalShape>(count, StringComparer.OrdinalIgnoreCase);
             stf.ParseBlock(new STFReader.TokenProcessor[] {
                 new STFReader.TokenProcessor("signalshape", ()=>{
                         if (signalShapes.Count >= count)
                             STFException.TraceWarning(stf, "Skipped extra SignalShape");
                         else
                         {
-                            SignalShape signalShape = new SignalShape(stf);
+                            Models.SignalShape signalShape = new Models.SignalShape(stf);
                             if (!signalShapes.TryAdd(signalShape.ShapeFileName, signalShape))
                                 STFException.TraceWarning(stf, "Skipped duplicate SignalShape " + signalShape.ShapeFileName); }
                 }),

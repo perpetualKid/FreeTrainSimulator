@@ -67,7 +67,7 @@ namespace Orts.Simulation.Signalling
 
             // search defined shapes in SIGCFG to find signal definition
 
-            if (signalConfig.SignalShapes.TryGetValue(fileName, out SignalShape thisCFGShape))
+            if (signalConfig.SignalShapes.TryGetValue(fileName, out Formats.Msts.Models.SignalShape thisCFGShape))
             {
                 HeadsSet = new BitArray(thisCFGShape.SignalSubObjs.Count);
 
@@ -77,7 +77,7 @@ namespace Orts.Simulation.Signalling
                 for (int i = 0; i < thisCFGShape.SignalSubObjs.Count; i++)
                 {
                     uint headSet = signalWorldItem.SignalSubObject & mask;
-                    SignalShape.SignalSubObject signalSubObjects = thisCFGShape.SignalSubObjs[i];
+                    Formats.Msts.Models.SignalShape.SignalSubObject signalSubObjects = thisCFGShape.SignalSubObjs[i];
                     if (headSet != 0)
                     {
                         // set head, and if head is flag, also set flag

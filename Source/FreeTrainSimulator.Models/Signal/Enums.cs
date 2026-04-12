@@ -32,4 +32,18 @@ namespace FreeTrainSimulator.Models.Signal
         /// <summary>Set if no speed reduction is required for RESTRICTED or STOP_AND_PROCEED aspects (ORTS only) </summary>
         NoSpeedReduction = 1 << 2,
     }
+
+    [Flags]
+    public enum SignalSubObjectFlags
+    {
+        None = 0,
+        /// <summary>The sub-object is optional on this signal shape</summary>
+        Optional = 1 << 0,
+        /// <summary>The sub-object will be enabled by default (when manually placed)</summary>
+        Default = 1 << 1,
+        /// <summary>The sub-object is facing backwards w.r.t. rest of object</summary>
+        BackFacing = 1 << 2,
+        /// <summary>Signal should always have a junction link</summary>
+        JunctionLink = 1 << 3,
+    }
 }

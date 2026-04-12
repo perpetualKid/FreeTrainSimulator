@@ -21,6 +21,8 @@ namespace FreeTrainSimulator.Models.Imported.ImportHandler.TrainSimulator
 {
     internal class SignalConfigurationModelImportHandler : ContentHandlerBase<SignalConfigurationModel>
     {
+        internal const string SourceNameKey = "ScriptFilesPath";
+
         public static Task<SignalConfigurationModel> ExpandSignalConfigurationModel(RouteModelHeader routeModel, CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(routeModel, nameof(routeModel));
@@ -49,6 +51,9 @@ namespace FreeTrainSimulator.Models.Imported.ImportHandler.TrainSimulator
                 Id = routeModel.Id,
                 LightTextures = ConvertLightTextures(signalConfigurationFile),
                 SignalTypes = ConvertSignalTypes(signalConfigurationFile, sigcfgFile),
+                SignalShapes = ConvertSignalShapes(signalConfigurationFile),
+                Tags = new Dictionary<string, string> { { SourceNameKey, signalConfigurationFile.ScriptPath } }.ToImmutableDictionary(),
+                ScriptFiles = signalConfigurationFile.ScriptFiles?.ToImmutableArray() ?? ImmutableArray<string>.Empty,
             };
 
             await Create(signalConfigModel, routeModel, cancellationToken).ConfigureAwait(false);
@@ -135,14 +140,38 @@ namespace FreeTrainSimulator.Models.Imported.ImportHandler.TrainSimulator
                 StringComparer.OrdinalIgnoreCase);
         }
 
+        public static ImmutableDictionary<string, SignalShape> ConvertSignalShapes(SignalConfigurationFile signalConfigurationFile)
+        {
+            return signalConfigurationFile.SignalShapes == null || signalConfigurationFile.SignalShapes.Count == 0
+                ? ImmutableDictionary<string, SignalShape>.Empty
+                : signalConfigurationFile.SignalShapes.ToImmutableDictionary(
+                    kvp => kvp.Key,
+                    kvp => new SignalShape()
+                    {
+                        ShapeFileName = kvp.Value.ShapeFileName,
+                        Description = kvp.Value.Description,
+                        SubObjects = kvp.Value.SignalSubObjs?.Select(subObj => new SignalSubObject()
+                        {
+                            MatrixName = subObj.MatrixName,
+                            Description = subObj.Description,
+                            SignalSubType = subObj.SignalSubType,
+                            SignalSubSignalType = subObj.SignalSubSignalType,
+                            SubObjectFlags = (subObj.Optional ? SignalSubObjectFlags.Optional : SignalSubObjectFlags.None)
+                                | (subObj.Default ? SignalSubObjectFlags.Default : SignalSubObjectFlags.None)
+                                | (subObj.BackFacing ? SignalSubObjectFlags.BackFacing : SignalSubObjectFlags.None)
+                                | (subObj.JunctionLink ? SignalSubObjectFlags.JunctionLink : SignalSubObjectFlags.None),
+                        }).ToImmutableArray() ?? ImmutableArray<SignalSubObject>.Empty,
+                    },
+                    StringComparer.OrdinalIgnoreCase) ?? ImmutableDictionary<string, SignalShape>.Empty;
+        }
+
         /// <summary>
         /// Converts a list of items with an Index property into a sparse array.
         /// Missing indices will be null.
         /// </summary>
         private static ImmutableArray<SignalDrawStateLightMode> ToSparseDrawStateLightArray(List<Orts.Formats.Msts.Models.SignalDrawLight> drawLights)
         {
-            ArgumentNullException.ThrowIfNull(drawLights);
-            if (drawLights.Count == 0)
+            if (drawLights == null || drawLights.Count == 0)
                 return ImmutableArray<SignalDrawStateLightMode>.Empty;
 
             // Create array with nulls
