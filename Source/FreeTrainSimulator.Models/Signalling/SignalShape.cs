@@ -2,7 +2,7 @@
 
 using MemoryPack;
 
-namespace FreeTrainSimulator.Models.Signal
+namespace FreeTrainSimulator.Models.Signalling
 {
     /// <summary>
     /// Describes the physical shape of a signal, including the number and arrangement of signal heads and lights.

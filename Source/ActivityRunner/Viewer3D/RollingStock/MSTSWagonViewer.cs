@@ -235,13 +235,13 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
             var wagonFolderSlash = Path.GetDirectoryName(car.WagFilePath) + @"\";
 
             trainCarShape = !string.IsNullOrEmpty(car.MainShapeFileName)
-                ? new PoseableShape(wagonFolderSlash + car.MainShapeFileName + '\0' + wagonFolderSlash, car, ShapeFlags.ShadowCaster)
+                ? new PoseableShape(wagonFolderSlash + car.MainShapeFileName + '\0' + wagonFolderSlash, car, ShapeOptions.ShadowCaster)
                 : new PoseableShape(null, car);
 
             // This insection initialises the MSTS style freight animation - can either be for a coal load, which will adjust with usage, or a static animation, such as additional shape.
             if (car.FreightShapeFileName != null)
             {
-                freightShape = new AnimatedShape(wagonFolderSlash + car.FreightShapeFileName + '\0' + wagonFolderSlash, car, ShapeFlags.ShadowCaster);
+                freightShape = new AnimatedShape(wagonFolderSlash + car.FreightShapeFileName + '\0' + wagonFolderSlash, car, ShapeOptions.ShadowCaster);
 
                 // Reproducing MSTS "bug" of not allowing tender animation in case both minLevel and maxLevel are 0 or maxLevel <  minLevel 
                 // Applies to both a standard tender locomotive or a tank locomotive (where coal load is on same "wagon" as the locomotive -  for the coal load on a tender or tank locomotive - in operation it will raise or lower with caol usage
@@ -263,49 +263,49 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
             // Initialise Coupler shapes 
             if (car.FrontCouplerAnimation != null)
             {
-                frontCouplerShape = new AnimatedShape(wagonFolderSlash + car.FrontCouplerAnimation.ShapeFileName + '\0' + wagonFolderSlash, car, ShapeFlags.ShadowCaster);
+                frontCouplerShape = new AnimatedShape(wagonFolderSlash + car.FrontCouplerAnimation.ShapeFileName + '\0' + wagonFolderSlash, car, ShapeOptions.ShadowCaster);
             }
 
             if (car.FrontCouplerOpenAnimation != null)
             {
-                frontCouplerOpenShape = new AnimatedShape(wagonFolderSlash + car.FrontCouplerOpenAnimation.ShapeFileName + '\0' + wagonFolderSlash, car, ShapeFlags.ShadowCaster);
+                frontCouplerOpenShape = new AnimatedShape(wagonFolderSlash + car.FrontCouplerOpenAnimation.ShapeFileName + '\0' + wagonFolderSlash, car, ShapeOptions.ShadowCaster);
             }
 
             if (car.RearCouplerAnimation != null)
             {
-                rearCouplerShape = new AnimatedShape(wagonFolderSlash + car.RearCouplerAnimation.ShapeFileName + '\0' + wagonFolderSlash, car, ShapeFlags.ShadowCaster);
+                rearCouplerShape = new AnimatedShape(wagonFolderSlash + car.RearCouplerAnimation.ShapeFileName + '\0' + wagonFolderSlash, car, ShapeOptions.ShadowCaster);
             }
 
             if (car.RearCouplerOpenAnimation != null)
             {
-                rearCouplerOpenShape = new AnimatedShape(wagonFolderSlash + car.RearCouplerOpenAnimation.ShapeFileName + '\0' + wagonFolderSlash, car, ShapeFlags.ShadowCaster);
+                rearCouplerOpenShape = new AnimatedShape(wagonFolderSlash + car.RearCouplerOpenAnimation.ShapeFileName + '\0' + wagonFolderSlash, car, ShapeOptions.ShadowCaster);
             }
 
             // Initialise air hose shapes
 
             if (car.FrontAirHoseAnimation != null)
             {
-                frontAirHoseShape = new AnimatedShape(wagonFolderSlash + car.FrontAirHoseAnimation.ShapeFileName + '\0' + wagonFolderSlash, car, ShapeFlags.ShadowCaster);
+                frontAirHoseShape = new AnimatedShape(wagonFolderSlash + car.FrontAirHoseAnimation.ShapeFileName + '\0' + wagonFolderSlash, car, ShapeOptions.ShadowCaster);
             }
 
             if (car.FrontAirHoseDisconnectedAnimation != null)
             {
-                frontAirHoseDisconnectedShape = new AnimatedShape(wagonFolderSlash + car.FrontAirHoseDisconnectedAnimation.ShapeFileName + '\0' + wagonFolderSlash, car, ShapeFlags.ShadowCaster);
+                frontAirHoseDisconnectedShape = new AnimatedShape(wagonFolderSlash + car.FrontAirHoseDisconnectedAnimation.ShapeFileName + '\0' + wagonFolderSlash, car, ShapeOptions.ShadowCaster);
             }
 
             if (car.RearAirHoseAnimation != null)
             {
-                rearAirHoseShape = new AnimatedShape(wagonFolderSlash + car.RearAirHoseAnimation.ShapeFileName + '\0' + wagonFolderSlash, car, ShapeFlags.ShadowCaster);
+                rearAirHoseShape = new AnimatedShape(wagonFolderSlash + car.RearAirHoseAnimation.ShapeFileName + '\0' + wagonFolderSlash, car, ShapeOptions.ShadowCaster);
             }
 
             if (car.RearAirHoseDisconnectedAnimation != null)
             {
-                rearAirHoseDisconnectedShape = new AnimatedShape(wagonFolderSlash + car.RearAirHoseDisconnectedAnimation.ShapeFileName + '\0' + wagonFolderSlash, car, ShapeFlags.ShadowCaster);
+                rearAirHoseDisconnectedShape = new AnimatedShape(wagonFolderSlash + car.RearAirHoseDisconnectedAnimation.ShapeFileName + '\0' + wagonFolderSlash, car, ShapeOptions.ShadowCaster);
             }
 
 
             if (car.InteriorShapeFileName != null)
-                interiorShape = new AnimatedShape(wagonFolderSlash + car.InteriorShapeFileName + '\0' + wagonFolderSlash, car, ShapeFlags.Interior, 30.0f);
+                interiorShape = new AnimatedShape(wagonFolderSlash + car.InteriorShapeFileName + '\0' + wagonFolderSlash, car, ShapeOptions.Interior, 30.0f);
 
             runningGear = new AnimatedPart(trainCarShape);
             pantograph1 = new AnimatedPart(trainCarShape);

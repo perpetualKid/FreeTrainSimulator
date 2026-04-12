@@ -4,7 +4,7 @@ using FreeTrainSimulator.Common;
 
 using MemoryPack;
 
-namespace FreeTrainSimulator.Models.Signal
+namespace FreeTrainSimulator.Models.Signalling
 {
     /// <summary>
     /// Signal type defining the attributes of a category of signal heads.
@@ -22,7 +22,7 @@ namespace FreeTrainSimulator.Models.Signal
         public SignalFunctionType FunctionType { get; init; }
         /// <summary>Extensible normal subtype identifier for Normal signals.</summary>
         public SignalNormalSubType NormalSubType { get; init; }
-        public SignalFlags SignalFlags { get; init; }
+        public SignalOptions SignalFlags { get; init; }
         /// <summary>On duration for flashing light. (In seconds.)</summary>
         public float FlashTimeOn { get; init; } = 1.0f;
         /// <summary>Off duration for flashing light. (In seconds.)</summary>

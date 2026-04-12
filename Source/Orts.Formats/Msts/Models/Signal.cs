@@ -6,7 +6,7 @@ using System.Linq;
 using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Calc;
 using FreeTrainSimulator.Common.Xna;
-using FreeTrainSimulator.Models.Signal;
+using FreeTrainSimulator.Models.Signalling;
 
 using Microsoft.Xna.Framework;
 
@@ -637,9 +637,9 @@ namespace Orts.Formats.Msts.Models
         public string DrawStateName { get; private set; }
         /// <summary>Speed limit (meters per second) for this aspect. -1 if track speed is to be used</summary>
         public float SpeedLimit { get; private set; }
-        /// <summary>Set to true if SignalFlags ASAP option specified, meaning train needs to go to speed As Soon As Possible</summary>
+        /// <summary>Set to true if SignalOptions ASAP option specified, meaning train needs to go to speed As Soon As Possible</summary>
         public bool Asap { get; private set; }
-        /// <summary>Set to true if SignalFlags RESET option specified (ORTS only)</summary>
+        /// <summary>Set to true if SignalOptions RESET option specified (ORTS only)</summary>
         public bool Reset { get; private set; }
         /// <summary>Set to true if no speed reduction is required for RESTRICTED or STOP_AND_PROCEED aspects (ORTS only) </summary>
         public bool NoSpeedReduction { get; private set; }

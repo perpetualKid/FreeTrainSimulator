@@ -1,10 +1,7 @@
-using System;
-
 using FreeTrainSimulator.Common;
-using FreeTrainSimulator.Models.Signal;
+using FreeTrainSimulator.Models.Signalling;
 
 using Orts.Formats.Msts;
-using Orts.Formats.Msts.Models;
 using Orts.Scripting.Api;
 
 namespace Orts.Simulation.Signalling

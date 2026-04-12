@@ -348,7 +348,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.CabView
             Matrix mx = MatrixExtension.ChangeTranslation(trainCarShape.WorldPosition.XNAMatrix, (trainCarShape.WorldPosition.Tile - viewer.Camera.Tile).TileVector().XnaVector());
             MatrixExtension.Multiply(xnaMatrix, mx, out Matrix m);
             // TODO: Make this use AddAutoPrimitive instead.
-            frame.AddPrimitive(shapePrimitive.Material, shapePrimitive, RenderPrimitiveGroup.Interior, ref m, ShapeFlags.None);
+            frame.AddPrimitive(shapePrimitive.Material, shapePrimitive, RenderPrimitiveGroup.Interior, ref m, ShapeOptions.None);
         }
 
         internal void Mark()

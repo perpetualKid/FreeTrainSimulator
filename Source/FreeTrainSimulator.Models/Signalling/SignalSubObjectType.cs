@@ -1,7 +1,7 @@
 using System;
 using System.Globalization;
 
-namespace FreeTrainSimulator.Models.Signal
+namespace FreeTrainSimulator.Models.Signalling
 {
     /// <summary>
     /// A type-safe, extensible identifier for signal sub-object types (e.g. decor, signal head, number plate).

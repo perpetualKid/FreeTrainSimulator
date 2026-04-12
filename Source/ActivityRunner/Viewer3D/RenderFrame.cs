@@ -141,10 +141,10 @@ namespace Orts.ActivityRunner.Viewer3D
         public readonly Material Material;
         public readonly RenderPrimitive RenderPrimitive;
         public readonly Matrix XNAMatrix;
-        public readonly ShapeFlags Flags;
+        public readonly ShapeOptions Flags;
         public readonly object ItemData;
 
-        public RenderItem(Material material, RenderPrimitive renderPrimitive, Matrix xnaMatrix, ShapeFlags flags, object itemData = null)
+        public RenderItem(Material material, RenderPrimitive renderPrimitive, Matrix xnaMatrix, ShapeOptions flags, object itemData = null)
         {
             Material = material;
             RenderPrimitive = renderPrimitive;
@@ -427,7 +427,7 @@ namespace Orts.ActivityRunner.Viewer3D
         /// <param name="group"></param>
         /// <param name="xnaMatrix"></param>
         /// <param name="flags"></param>
-        public void AddAutoPrimitive(Vector3 mstsLocation, float objectRadius, float objectViewingDistance, Material material, RenderPrimitive primitive, RenderPrimitiveGroup group, ref Matrix xnaMatrix, ShapeFlags flags)
+        public void AddAutoPrimitive(Vector3 mstsLocation, float objectRadius, float objectViewingDistance, Material material, RenderPrimitive primitive, RenderPrimitiveGroup group, ref Matrix xnaMatrix, ShapeOptions flags)
         {
             if (float.IsPositiveInfinity(objectViewingDistance) || (camera != null && camera.InRange(mstsLocation, objectRadius, objectViewingDistance)))
             {
@@ -435,7 +435,7 @@ namespace Orts.ActivityRunner.Viewer3D
                     AddPrimitive(material, primitive, group, ref xnaMatrix, flags);
             }
 
-            if (dynamicShadows && (shadowMapCount > 0) && ((flags & ShapeFlags.ShadowCaster) != 0))
+            if (dynamicShadows && (shadowMapCount > 0) && ((flags & ShapeOptions.ShadowCaster) != 0))
                 for (var shadowMapIndex = 0; shadowMapIndex < shadowMapCount; shadowMapIndex++)
                     if (IsInShadowMap(shadowMapIndex, mstsLocation, objectRadius, objectViewingDistance))
                         AddShadowPrimitive(shadowMapIndex, material, primitive, ref xnaMatrix, flags);
@@ -443,10 +443,10 @@ namespace Orts.ActivityRunner.Viewer3D
 
         public void AddPrimitive(Material material, RenderPrimitive primitive, RenderPrimitiveGroup group, ref Matrix xnaMatrix)
         {
-            AddPrimitive(material, primitive, group, ref xnaMatrix, ShapeFlags.None, null);
+            AddPrimitive(material, primitive, group, ref xnaMatrix, ShapeOptions.None, null);
         }
 
-        public void AddPrimitive(Material material, RenderPrimitive primitive, RenderPrimitiveGroup group, ref Matrix xnaMatrix, ShapeFlags flags)
+        public void AddPrimitive(Material material, RenderPrimitive primitive, RenderPrimitiveGroup group, ref Matrix xnaMatrix, ShapeOptions flags)
         {
             AddPrimitive(material, primitive, group, ref xnaMatrix, flags, null);
         }
@@ -455,7 +455,7 @@ namespace Orts.ActivityRunner.Viewer3D
         private static readonly bool[] PrimitiveBlended = new bool[] { true };
         private static readonly bool[] PrimitiveNotBlended = new bool[] { false };
 
-        public void AddPrimitive(Material material, RenderPrimitive primitive, RenderPrimitiveGroup group, ref Matrix xnaMatrix, ShapeFlags flags, object itemData)
+        public void AddPrimitive(Material material, RenderPrimitive primitive, RenderPrimitiveGroup group, ref Matrix xnaMatrix, ShapeOptions flags, object itemData)
         {
             var getBlending = material.GetBlending();
             var blending = getBlending && material is SceneryMaterial ? PrimitiveBlendedScenery : getBlending ? PrimitiveBlended : PrimitiveNotBlended;
@@ -473,11 +473,11 @@ namespace Orts.ActivityRunner.Viewer3D
                 }
                 items.Add(new RenderItem(material, primitive, xnaMatrix, flags, itemData));
             }
-            if (((flags & ShapeFlags.AutoZBias) != 0) && (primitive.ZBias == 0))
+            if (((flags & ShapeOptions.AutoZBias) != 0) && (primitive.ZBias == 0))
                 primitive.ZBias = 1;
         }
 
-        private void AddShadowPrimitive(int shadowMapIndex, Material material, RenderPrimitive primitive, ref Matrix xnaMatrix, ShapeFlags flags)
+        private void AddShadowPrimitive(int shadowMapIndex, Material material, RenderPrimitive primitive, ref Matrix xnaMatrix, ShapeOptions flags)
         {
             if (material is SceneryMaterial)
                 renderShadowSceneryItems[shadowMapIndex].Add(new RenderItem(material, primitive, xnaMatrix, flags));

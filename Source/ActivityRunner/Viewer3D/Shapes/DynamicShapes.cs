@@ -39,7 +39,7 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
 
         public override ref readonly WorldPosition WorldPosition => ref positionSource.WorldPosition;
 
-        public PoseableShape(string path, IWorldPosition positionSource, ShapeFlags flags) :
+        public PoseableShape(string path, IWorldPosition positionSource, ShapeOptions flags) :
             base(path, flags)
         {
             this.positionSource = positionSource;
@@ -55,7 +55,7 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
         }
 
         public PoseableShape(string path, IWorldPosition positionSource)
-            : this(path, positionSource, ShapeFlags.None)
+            : this(path, positionSource, ShapeOptions.None)
         {
         }
 
@@ -169,14 +169,14 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
         /// <summary>
         /// Construct and initialize the class
         /// </summary>
-        public AnimatedShape(string path, IWorldPosition positionSource, ShapeFlags flags, float frameRateDivisor = 1.0f)
+        public AnimatedShape(string path, IWorldPosition positionSource, ShapeOptions flags, float frameRateDivisor = 1.0f)
             : base(path, positionSource, flags)
         {
             frameRateMultiplier = 1 / frameRateDivisor;
         }
 
         public AnimatedShape(string path, IWorldPosition positionSource)
-            : this(path, positionSource, ShapeFlags.None)
+            : this(path, positionSource, ShapeOptions.None)
         {
         }
 
@@ -220,7 +220,7 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
     //Class AnalogClockShape to animate analog OR-Clocks as child of AnimatedShape <- PoseableShape <- StaticShape
     public class AnalogClockShape : AnimatedShape
     {
-        public AnalogClockShape(string path, IWorldPosition positionSource, ShapeFlags flags, float frameRateDivisor = 1.0f)
+        public AnalogClockShape(string path, IWorldPosition positionSource, ShapeOptions flags, float frameRateDivisor = 1.0f)
             : base(path, positionSource, flags, frameRateDivisor)
         {
         }
@@ -357,7 +357,7 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
         private readonly int mainRoute;                  // 0 or 1 - which route is considered the main route
 
         public SwitchTrackShape(string path, IWorldPosition positionSource, TrackJunctionNode trackJunctionNode)
-            : base(path, positionSource, ShapeFlags.AutoZBias)
+            : base(path, positionSource, ShapeOptions.AutoZBias)
         {
             this.trackJunctionNode = trackJunctionNode;
             mainRoute = RuntimeDataResolver.Instance.TrackWorld.TrackModel.TrackDatabase.JunctionNodes[trackJunctionNode.Index].MainRoute;
@@ -401,7 +401,7 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
         private readonly ShapePrimitive shapePrimitive;
 
         public SpeedPostShape(string path, IWorldPosition positionSource, SpeedPostObject speedPostObject)
-            : base(path, positionSource, ShapeFlags.None)
+            : base(path, positionSource, ShapeOptions.None)
         {
 
             this.speedPostObject = speedPostObject;
@@ -607,7 +607,7 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
             // (Transformation is now with respect to camera-tile origin)
 
             // TODO: Make this use AddAutoPrimitive instead.
-            frame.AddPrimitive(shapePrimitive.Material, shapePrimitive, RenderPrimitiveGroup.World, ref xnaXfmWrtCamTile, ShapeFlags.None);
+            frame.AddPrimitive(shapePrimitive.Material, shapePrimitive, RenderPrimitiveGroup.World, ref xnaXfmWrtCamTile, ShapeOptions.None);
 
             // if there is no animation, that's normal and so no animation missing error is displayed
             if (SharedShape.Animations == null || SharedShape.Animations.Count == 0)
@@ -640,7 +640,7 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
         private bool opening = true;
         private double animationKey;
 
-        public LevelCrossingShape(string path, IWorldPosition positionSource, ShapeFlags shapeFlags, LevelCrossingObject crossingObj)
+        public LevelCrossingShape(string path, IWorldPosition positionSource, ShapeOptions shapeFlags, LevelCrossingObject crossingObj)
             : base(path, positionSource, shapeFlags)
         {
             levelCrossingObject = crossingObj;
@@ -747,7 +747,7 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
         private double animationKey;
         private double delayHazAnimation;
 
-        public static HazardShape CreateHazard(string path, IWorldPosition positionSource, ShapeFlags shapeFlags, HazardObject hazardObject)
+        public static HazardShape CreateHazard(string path, IWorldPosition positionSource, ShapeOptions shapeFlags, HazardObject hazardObject)
         {
             var h = viewer.Simulator.HazardManager.AddHazardIntoGame(hazardObject.ItemId, hazardObject.FileName);
             if (h == null)
@@ -756,7 +756,7 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
 
         }
 
-        public HazardShape(string path, IWorldPosition positionSource, ShapeFlags shapeFlags, HazardObject hazardObject, Hazard h)
+        public HazardShape(string path, IWorldPosition positionSource, ShapeOptions shapeFlags, HazardObject hazardObject, Hazard h)
             : base(path, positionSource, shapeFlags)
         {
             this.hazardObject = hazardObject;
@@ -865,7 +865,7 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
         private protected double animationKey;
 
 
-        public FuelPickupItemShape(string path, IWorldPosition positionSource, ShapeFlags shapeFlags, PickupObject fuelpickupitemObj)
+        public FuelPickupItemShape(string path, IWorldPosition positionSource, ShapeOptions shapeFlags, PickupObject fuelpickupitemObj)
             : base(path, positionSource, shapeFlags)
         {
             fuelPickupItemObject = fuelpickupitemObj;
@@ -1023,7 +1023,7 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
 
         private ContainerHandlingStation containerHandlingItem;
 
-        public ContainerHandlingItemShape(string path, IWorldPosition positionSource, ShapeFlags shapeFlags, PickupObject fuelpickupitemObj)
+        public ContainerHandlingItemShape(string path, IWorldPosition positionSource, ShapeOptions shapeFlags, PickupObject fuelpickupitemObj)
                         : base(path, positionSource, shapeFlags, fuelpickupitemObj)
         {
         }
@@ -1344,7 +1344,7 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
     public class RoadCarShape : AnimatedShape
     {
         public RoadCarShape(string path, IWorldPosition positionSource)
-            : base(path, positionSource, ShapeFlags.ShadowCaster)
+            : base(path, positionSource, ShapeOptions.ShadowCaster)
         {
         }
     }

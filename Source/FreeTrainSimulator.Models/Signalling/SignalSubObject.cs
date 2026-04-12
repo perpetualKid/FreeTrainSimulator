@@ -1,6 +1,6 @@
 ﻿using MemoryPack;
 
-namespace FreeTrainSimulator.Models.Signal
+namespace FreeTrainSimulator.Models.Signalling
 {
     /// <summary>
     /// Describes a sub-object of a signal, such as a signal head, number plate, or decorative element.
@@ -16,6 +16,6 @@ namespace FreeTrainSimulator.Models.Signal
         public SignalSubObjectType SignalSubType { get; init; }
         /// <summary>Signal Type of the this sub-object</summary>
         public string SignalSubSignalType { get; init; }
-        public SignalSubObjectFlags SubObjectFlags { get; init; }
+        public SignalSubObjectOptions SubObjectFlags { get; init; }
     }
 }

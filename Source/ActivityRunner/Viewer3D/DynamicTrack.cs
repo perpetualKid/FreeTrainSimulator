@@ -212,7 +212,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 lod = Primitive.TrProfile.LODs[lodIndex];
                 for (int j = lod.PrimIndexStart; j < lod.PrimIndexStop; j++)
                 {
-                    frame.AddPrimitive(Primitive.ShapePrimitives[j].Material, Primitive.ShapePrimitives[j], RenderPrimitiveGroup.World, ref xnaXfmWrtCamTile, ShapeFlags.AutoZBias);
+                    frame.AddPrimitive(Primitive.ShapePrimitives[j].Material, Primitive.ShapePrimitives[j], RenderPrimitiveGroup.World, ref xnaXfmWrtCamTile, ShapeOptions.AutoZBias);
                 }
                 lodIndex++;
             }

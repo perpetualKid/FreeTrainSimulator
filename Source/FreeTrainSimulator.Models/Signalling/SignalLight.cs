@@ -2,7 +2,7 @@
 
 using Microsoft.Xna.Framework;
 
-namespace FreeTrainSimulator.Models.Signal
+namespace FreeTrainSimulator.Models.Signalling
 {
     /// <summary>
     /// Describes a light on a signal: location, colorm size.

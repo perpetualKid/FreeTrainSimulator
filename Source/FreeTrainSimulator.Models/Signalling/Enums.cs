@@ -1,9 +1,9 @@
 ﻿using System;
 
-namespace FreeTrainSimulator.Models.Signal
+namespace FreeTrainSimulator.Models.Signalling
 {
     [Flags]
-    public enum SignalFlags
+    public enum SignalOptions
     {
         None = 0,
         /// <summary>This is a semaphore signal</summary>
@@ -22,19 +22,19 @@ namespace FreeTrainSimulator.Models.Signal
     }
 
     [Flags]
-    public enum SignalAspectFlags
+    public enum SignalAspectOptions
     {
         None = 0,
-        /// <summary>Set if SignalFlags ASAP option specified, meaning train needs to go to speed As Soon As Possible</summary>
+        /// <summary>Set if SignalOptions ASAP option specified, meaning train needs to go to speed As Soon As Possible</summary>
         Asap = 1 << 0,
-        /// <summary>Set if SignalFlags RESET option specified (ORTS only)</summary>
+        /// <summary>Set if SignalOptions RESET option specified (ORTS only)</summary>
         SpeedReset = 1 << 1,
         /// <summary>Set if no speed reduction is required for RESTRICTED or STOP_AND_PROCEED aspects (ORTS only) </summary>
         NoSpeedReduction = 1 << 2,
     }
 
     [Flags]
-    public enum SignalSubObjectFlags
+    public enum SignalSubObjectOptions
     {
         None = 0,
         /// <summary>The sub-object is optional on this signal shape</summary>

@@ -692,7 +692,7 @@ namespace Orts.ActivityRunner.Viewer3D
         TextureAddressModeMirror = 0x200,
         TextureAddressModeClamp = 0x400,
         TextureAddressModeBorder = 0x600,
-        TextureAddressModeMask = 0x600,
+        TextureAddressModeMask = TextureAddressModeBorder,
         // Night texture
         NightTexture = 0x800,
         // Texture to be shown in tunnels and underground (used for 3D cab night textures)

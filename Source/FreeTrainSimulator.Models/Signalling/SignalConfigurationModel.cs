@@ -5,7 +5,7 @@ using FreeTrainSimulator.Models.Content;
 
 using MemoryPack;
 
-namespace FreeTrainSimulator.Models.Signal
+namespace FreeTrainSimulator.Models.Signalling
 {
     [MemoryPackable(GenerateType.VersionTolerant, SerializeLayout.Sequential)]
     [ModelResolver(".sigcfg")]

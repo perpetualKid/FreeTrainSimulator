@@ -1,6 +1,6 @@
 ﻿using MemoryPack;
 
-namespace FreeTrainSimulator.Models.Signal
+namespace FreeTrainSimulator.Models.Signalling
 {
     /// <summary>
     /// Defines a single light texture used as background to draw lit lights onto signals.

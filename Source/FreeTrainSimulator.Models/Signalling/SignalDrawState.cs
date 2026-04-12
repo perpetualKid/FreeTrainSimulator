@@ -2,7 +2,7 @@
 
 using MemoryPack;
 
-namespace FreeTrainSimulator.Models.Signal
+namespace FreeTrainSimulator.Models.Signalling
 {
     /// <summary>
     /// Describes a draw state: a combination of lights and semaphore arm positions.

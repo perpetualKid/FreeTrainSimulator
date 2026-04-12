@@ -32,12 +32,11 @@ using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Api;
 using FreeTrainSimulator.Common.DebugInfo;
 using FreeTrainSimulator.Models.Imported.State;
-using FreeTrainSimulator.Models.Signal;
+using FreeTrainSimulator.Models.Signalling;
 using FreeTrainSimulator.Runtime.Track;
 
 using Microsoft.Xna.Framework;
 
-using Orts.Formats.Msts;
 using Orts.Formats.Msts.Models;
 using Orts.Simulation.Activities;
 using Orts.Simulation.Multiplayer;

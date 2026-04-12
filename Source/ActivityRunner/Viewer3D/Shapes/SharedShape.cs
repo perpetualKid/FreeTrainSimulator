@@ -588,17 +588,17 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
 #endif
         }
 
-        public void PrepareFrame(RenderFrame frame, in WorldPosition location, ShapeFlags flags)
+        public void PrepareFrame(RenderFrame frame, in WorldPosition location, ShapeOptions flags)
         {
             PrepareFrame(frame, location, Matrices, null, flags);
         }
 
-        public void PrepareFrame(RenderFrame frame, WorldPosition location, Matrix[] animatedXNAMatrices, ShapeFlags flags, bool[] matrixVisible = null)
+        public void PrepareFrame(RenderFrame frame, WorldPosition location, Matrix[] animatedXNAMatrices, ShapeOptions flags, bool[] matrixVisible = null)
         {
             PrepareFrame(frame, location, animatedXNAMatrices, null, flags, matrixVisible);
         }
 
-        public void PrepareFrame(RenderFrame frame, in WorldPosition location, Matrix[] animatedXNAMatrices, bool[] subObjVisible, ShapeFlags flags, bool[] matrixVisible = null)
+        public void PrepareFrame(RenderFrame frame, in WorldPosition location, Matrix[] animatedXNAMatrices, bool[] subObjVisible, ShapeOptions flags, bool[] matrixVisible = null)
         {
             var lodBias = ((float)viewer.UserSettings.DetailLevelBias / 100 + 1);
 
@@ -673,7 +673,7 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
 
                         // TODO make shadows depend on shape overrides
 
-                        var interior = (flags & ShapeFlags.Interior) != 0;
+                        var interior = (flags & ShapeOptions.Interior) != 0;
                         frame.AddAutoPrimitive(mstsLocation, distanceDetail.ViewSphereRadius, distanceDetail.ViewingDistance * lodBias, shapePrimitive.Material, shapePrimitive, interior ? RenderPrimitiveGroup.Interior : RenderPrimitiveGroup.World, ref xnaMatrix, flags);
                     }
                 }

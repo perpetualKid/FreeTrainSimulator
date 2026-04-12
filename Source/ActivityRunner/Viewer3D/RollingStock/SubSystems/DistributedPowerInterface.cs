@@ -1070,7 +1070,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems
             Matrix m = xnaMatrix * mx;
 
             // TODO: Make this use AddAutoPrimitive instead.
-            frame.AddPrimitive(this.shapePrimitive.Material, this.shapePrimitive, RenderPrimitiveGroup.Interior, ref m, ShapeFlags.None);
+            frame.AddPrimitive(this.shapePrimitive.Material, this.shapePrimitive, RenderPrimitiveGroup.Interior, ref m, ShapeOptions.None);
         }
 
         internal void Mark()

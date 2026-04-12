@@ -62,7 +62,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.CabView
             if (car.CabView3D != null)
             {
                 var shapePath = car.CabView3D.ShapeFilePath;
-                TrainCarShape = new PoseableShape(shapePath + '\0' + Path.GetDirectoryName(shapePath), car, ShapeFlags.ShadowCaster | ShapeFlags.Interior);
+                TrainCarShape = new PoseableShape(shapePath + '\0' + Path.GetDirectoryName(shapePath), car, ShapeOptions.ShadowCaster | ShapeOptions.Interior);
                 locoViewer.CabRenderer3D = new CabRenderer(viewer, car, car.CabView3D.CVFFile);
             }
             else

@@ -6,9 +6,7 @@ using FreeTrainSimulator.Common.Position;
 namespace Orts.ActivityRunner.Viewer3D.Shapes
 {
     [Flags]
-#pragma warning disable CA1711 // Identifiers should not have incorrect suffix
-    public enum ShapeFlags
-#pragma warning restore CA1711 // Identifiers should not have incorrect suffix
+    public enum ShapeOptions
     {
         None = 0,
         // Shape casts a shadow (scenery objects according to RE setting, and all train objects).
@@ -30,13 +28,13 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
             BaseShape.viewer = viewer;
         }
 
-        protected BaseShape(string path, ShapeFlags flags)
+        protected BaseShape(string path, ShapeOptions flags)
         {
             SharedShape = viewer.ShapeManager.Get(path);
             Flags = flags;
         }
 
-        protected ShapeFlags Flags { get; private set; }
+        protected ShapeOptions Flags { get; private set; }
 
         public abstract ref readonly WorldPosition WorldPosition { get; }
 
@@ -47,9 +45,9 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
 
         internal virtual void Mark() => SharedShape.Mark();
 
-        protected static ShapeFlags GetShapeFlags(BaseShape shape)
+        protected static ShapeOptions GetShapeFlags(BaseShape shape)
         {
-            return shape?.Flags ?? ShapeFlags.None;
+            return shape?.Flags ?? ShapeOptions.None;
         }
 
     }

@@ -232,7 +232,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.CabView
             MatrixExtension.Multiply(xnaMatrix, mx, out Matrix m);
 
             // TODO: Make this use AddAutoPrimitive instead.
-            frame.AddPrimitive(shapePrimitive.Material, shapePrimitive, RenderPrimitiveGroup.Interior, ref m, ShapeFlags.None);
+            frame.AddPrimitive(shapePrimitive.Material, shapePrimitive, RenderPrimitiveGroup.Interior, ref m, ShapeOptions.None);
         }
 
         internal void Mark()

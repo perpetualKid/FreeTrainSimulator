@@ -10,7 +10,7 @@ using FreeTrainSimulator.Common.DebugInfo;
 using FreeTrainSimulator.Common.Position;
 using FreeTrainSimulator.Graphics.MapView.Shapes;
 using FreeTrainSimulator.Graphics.Xna;
-using FreeTrainSimulator.Models.Signal;
+using FreeTrainSimulator.Models.Signalling;
 using FreeTrainSimulator.Models.Track;
 using FreeTrainSimulator.Runtime.Track;
 

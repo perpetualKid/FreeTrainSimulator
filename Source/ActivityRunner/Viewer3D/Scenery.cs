@@ -354,12 +354,12 @@ namespace Orts.ActivityRunner.Viewer3D
                                             //quaternion.Z *= -1;
                                             var startingY = Math.Asin(-2 * (quaternion.X * quaternion.Z - quaternion.Y * quaternion.W));
                                             //var startingY = Math.Asin(-2 * (worldObject.QDirection.A * worldObject.QDirection.C - worldObject.QDirection.B * worldObject.QDirection.D));
-                                            SceneryObjects.Add(new TurntableShape(shapeFilePath, new FixedWorldPositionSource(worldMatrix), shadowCaster ? ShapeFlags.ShadowCaster : ShapeFlags.None, turnTable, startingY));
+                                            SceneryObjects.Add(new TurntableShape(shapeFilePath, new FixedWorldPositionSource(worldMatrix), shadowCaster ? ShapeOptions.ShadowCaster : ShapeOptions.None, turnTable, startingY));
                                         }
                                         else if (movingTable is TransferTable transferTable)
                                         {
                                             transferTable.ComputeCenter(worldMatrix);
-                                            SceneryObjects.Add(new TransfertableShape(shapeFilePath, new FixedWorldPositionSource(worldMatrix), shadowCaster ? ShapeFlags.ShadowCaster : ShapeFlags.None, transferTable));
+                                            SceneryObjects.Add(new TransfertableShape(shapeFilePath, new FixedWorldPositionSource(worldMatrix), shadowCaster ? ShapeOptions.ShadowCaster : ShapeOptions.None, transferTable));
                                         }
                                         break;
                                     }
@@ -397,7 +397,7 @@ namespace Orts.ActivityRunner.Viewer3D
                     }
                     else if (worldObject.GetType() == typeof(Formats.Msts.Models.SignalObject))
                     {
-                        SceneryObjects.Add(new SignalShape((SignalObject)worldObject, shapeFilePath, new FixedWorldPositionSource(worldMatrix), shadowCaster ? ShapeFlags.ShadowCaster : ShapeFlags.None));
+                        SceneryObjects.Add(new SignalShape((SignalObject)worldObject, shapeFilePath, new FixedWorldPositionSource(worldMatrix), shadowCaster ? ShapeOptions.ShadowCaster : ShapeOptions.None));
                     }
                     else if (worldObject.GetType() == typeof(TransferObject))
                     {
@@ -405,11 +405,11 @@ namespace Orts.ActivityRunner.Viewer3D
                     }
                     else if (worldObject.GetType() == typeof(LevelCrossingObject))
                     {
-                        SceneryObjects.Add(new LevelCrossingShape(shapeFilePath, new FixedWorldPositionSource(worldMatrix), shadowCaster ? ShapeFlags.ShadowCaster : ShapeFlags.None, (LevelCrossingObject)worldObject));
+                        SceneryObjects.Add(new LevelCrossingShape(shapeFilePath, new FixedWorldPositionSource(worldMatrix), shadowCaster ? ShapeOptions.ShadowCaster : ShapeOptions.None, (LevelCrossingObject)worldObject));
                     }
                     else if (worldObject.GetType() == typeof(HazardObject))
                     {
-                        var h = HazardShape.CreateHazard(shapeFilePath, new FixedWorldPositionSource(worldMatrix), shadowCaster ? ShapeFlags.ShadowCaster : ShapeFlags.None, (HazardObject)worldObject);
+                        var h = HazardShape.CreateHazard(shapeFilePath, new FixedWorldPositionSource(worldMatrix), shadowCaster ? ShapeOptions.ShadowCaster : ShapeOptions.None, (HazardObject)worldObject);
                         if (h != null)
                             SceneryObjects.Add(h);
                     }
@@ -441,7 +441,7 @@ namespace Orts.ActivityRunner.Viewer3D
                     else if (worldObject.GetType() == typeof(StaticObject))
                     {
                         // preTestShape for lookup if it is an animated clock shape with subobjects named as clock hands 
-                        StaticShape preTestShape = (new StaticShape(shapeFilePath, worldMatrix, shadowCaster ? ShapeFlags.ShadowCaster : ShapeFlags.None));
+                        StaticShape preTestShape = (new StaticShape(shapeFilePath, worldMatrix, shadowCaster ? ShapeOptions.ShadowCaster : ShapeOptions.None));
 
                         // FirstOrDefault() checks for "animations( 0 )" as this is a valid entry in *.s files
                         // and is included by MSTSexporter for Blender 2.8+ Release V4.0 or older
@@ -450,26 +450,26 @@ namespace Orts.ActivityRunner.Viewer3D
 
                         if (isAnimatedClock)
                         {
-                            SceneryObjects.Add(new AnalogClockShape(shapeFilePath, new FixedWorldPositionSource(worldMatrix), shadowCaster ? ShapeFlags.ShadowCaster : ShapeFlags.None));
+                            SceneryObjects.Add(new AnalogClockShape(shapeFilePath, new FixedWorldPositionSource(worldMatrix), shadowCaster ? ShapeOptions.ShadowCaster : ShapeOptions.None));
                         }
                         else if (animated)
-                            SceneryObjects.Add(new AnimatedShape(shapeFilePath, new FixedWorldPositionSource(worldMatrix), shadowCaster ? ShapeFlags.ShadowCaster : ShapeFlags.None));
+                            SceneryObjects.Add(new AnimatedShape(shapeFilePath, new FixedWorldPositionSource(worldMatrix), shadowCaster ? ShapeOptions.ShadowCaster : ShapeOptions.None));
                         else
-                            SceneryObjects.Add(new StaticShape(shapeFilePath, worldMatrix, shadowCaster ? ShapeFlags.ShadowCaster : ShapeFlags.None));
+                            SceneryObjects.Add(new StaticShape(shapeFilePath, worldMatrix, shadowCaster ? ShapeOptions.ShadowCaster : ShapeOptions.None));
                     }
                     else if (worldObject is PickupObject pickupObject)
                     {
                         if (pickupObject.PickupType == PickupType.Container)
                         {
-                            SceneryObjects.Add(new ContainerHandlingItemShape(shapeFilePath, pickupObject, shadowCaster ? ShapeFlags.ShadowCaster : ShapeFlags.None, pickupObject));
+                            SceneryObjects.Add(new ContainerHandlingItemShape(shapeFilePath, pickupObject, shadowCaster ? ShapeOptions.ShadowCaster : ShapeOptions.None, pickupObject));
                         }
                         else
-                            SceneryObjects.Add(new FuelPickupItemShape(shapeFilePath, new FixedWorldPositionSource(worldMatrix), shadowCaster ? ShapeFlags.ShadowCaster : ShapeFlags.None, (PickupObject)worldObject));
+                            SceneryObjects.Add(new FuelPickupItemShape(shapeFilePath, new FixedWorldPositionSource(worldMatrix), shadowCaster ? ShapeOptions.ShadowCaster : ShapeOptions.None, (PickupObject)worldObject));
                         PickupList.Add((PickupObject)worldObject);
                     }
                     else // It's some other type of object - not one of the above.
                     {
-                        SceneryObjects.Add(new StaticShape(shapeFilePath, worldMatrix, shadowCaster ? ShapeFlags.ShadowCaster : ShapeFlags.None));
+                        SceneryObjects.Add(new StaticShape(shapeFilePath, worldMatrix, shadowCaster ? ShapeOptions.ShadowCaster : ShapeOptions.None));
                     }
                 }
                 catch (Exception error) when (error is Exception)
@@ -496,7 +496,7 @@ namespace Orts.ActivityRunner.Viewer3D
                             SceneryObjects.Add(new StaticShape(
                                 tempSpeedItem.IsWarning ? Viewer.SpeedpostDatFile.ShapeNames[SpeedPostShapeNames.Warning] :
                                 (tempSpeedItem.IsResume ? Viewer.SpeedpostDatFile.ShapeNames[SpeedPostShapeNames.EndRestriction] : Viewer.SpeedpostDatFile.ShapeNames[SpeedPostShapeNames.StartRestriction]),
-                                tempSpeedItem.WorldPosition, ShapeFlags.None));
+                                tempSpeedItem.WorldPosition, ShapeOptions.None));
                         }
                     }
                 }

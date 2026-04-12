@@ -93,7 +93,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems
             ArgumentNullException.ThrowIfNull(container);
 
             this.container = container;
-            containerShape = new AnimatedShape(container.BaseShapeFileFolderSlash + container.ShapeFileName + '\0' + container.BaseShapeFileFolderSlash, containerHandlingItem, ShapeFlags.ShadowCaster);
+            containerShape = new AnimatedShape(container.BaseShapeFileFolderSlash + container.ShapeFileName + '\0' + container.BaseShapeFileFolderSlash, containerHandlingItem, ShapeOptions.ShadowCaster);
             if (containerShape.SharedShape.LodControls.Length > 0)
                 foreach (var lodControl in containerShape.SharedShape.LodControls)
                     if (lodControl.DistanceLevels.Length > 0)
@@ -109,7 +109,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems
             ArgumentNullException.ThrowIfNull(container);
 
             this.container = container;
-            containerShape = new AnimatedShape(container.BaseShapeFileFolderSlash + container.ShapeFileName + '\0' + container.BaseShapeFileFolderSlash, container, ShapeFlags.ShadowCaster);
+            containerShape = new AnimatedShape(container.BaseShapeFileFolderSlash + container.ShapeFileName + '\0' + container.BaseShapeFileFolderSlash, container, ShapeOptions.ShadowCaster);
             if (containerShape.SharedShape.LodControls.Length > 0)
                 foreach (var lodControl in containerShape.SharedShape.LodControls)
                     if (lodControl.DistanceLevels.Length > 0)

@@ -12,7 +12,7 @@ using FreeTrainSimulator.Models.Content;
 using FreeTrainSimulator.Models.Handler;
 using FreeTrainSimulator.Models.Imported.Shim;
 using FreeTrainSimulator.Models.Shim;
-using FreeTrainSimulator.Models.Signal;
+using FreeTrainSimulator.Models.Signalling;
 using FreeTrainSimulator.Models.Track;
 
 using Microsoft.Xna.Framework;
@@ -435,7 +435,7 @@ namespace FreeTrainSimulator.Models.Imported.ImportHandler.TrainSimulator
                                 {
                                     JunctionPath = signalItem.SignalDirections[0].LinkLRPath,
                                 } : null,
-                            NormalSignal = signalConfiguration.SignalTypes.TryGetValue(signalItem.SignalType, out Signal.SignalType signalType) && signalType.FunctionType == SignalFunctionType.Normal,
+                            NormalSignal = signalConfiguration.SignalTypes.TryGetValue(signalItem.SignalType, out Signalling.SignalType signalType) && signalType.FunctionType == SignalFunctionType.Normal,
                         });
                         break;
                     case CrossoverItem crossOverItem:

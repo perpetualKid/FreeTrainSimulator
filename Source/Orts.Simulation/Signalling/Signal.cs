@@ -28,7 +28,7 @@ using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Api;
 using FreeTrainSimulator.Common.Position;
 using FreeTrainSimulator.Models.Imported.State;
-using FreeTrainSimulator.Models.Signal;
+using FreeTrainSimulator.Models.Signalling;
 using FreeTrainSimulator.Runtime;
 using FreeTrainSimulator.Runtime.Track;
 
@@ -1318,7 +1318,7 @@ namespace Orts.Simulation.Signalling
             }
 
             // find next speed object
-            TrackCircuitSignalItem foundItem = signalEnvironment.FindNextObjectInRoute(EnabledTrain.Train.ValidRoutes[Direction.Forward], routeListIndex, TrackCircuitOffset, -1, SignalFunctionType.Speed, EnabledTrain);
+            TrackCircuitSignalItem foundItem = signalEnvironment.FindNextObjectInRoute(EnabledTrain.Train.ValidRoutes[Direction.Forward], routeListIndex, TrackCircuitOffset, -1, FunctionType.Speed, EnabledTrain);
             return foundItem.SignalState == SignalItemFindState.Item ? foundItem.Signal.Index : -1;
         }
 

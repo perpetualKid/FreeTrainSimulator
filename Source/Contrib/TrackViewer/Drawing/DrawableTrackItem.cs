@@ -19,7 +19,7 @@ using System;
 
 using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Position;
-using FreeTrainSimulator.Models.Signal;
+using FreeTrainSimulator.Models.Signalling;
 using FreeTrainSimulator.Runtime.Track;
 
 using Orts.Formats.Msts.Files;

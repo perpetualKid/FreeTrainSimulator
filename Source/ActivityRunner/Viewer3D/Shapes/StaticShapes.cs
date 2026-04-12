@@ -22,7 +22,7 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
         /// Construct and initialize the class
         /// This constructor is for objects described by a MSTS shape file
         /// </summary>
-        public StaticShape(string path, in WorldPosition position, ShapeFlags flags):
+        public StaticShape(string path, in WorldPosition position, ShapeOptions flags):
             base(path, flags)
         {
             worldPosition = position;
@@ -39,7 +39,7 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
     public class StaticTrackShape : StaticShape
     {
         public StaticTrackShape(string path, in WorldPosition position)
-            : base(path, in position, ShapeFlags.AutoZBias)
+            : base(path, in position, ShapeOptions.AutoZBias)
         {
         }
     }

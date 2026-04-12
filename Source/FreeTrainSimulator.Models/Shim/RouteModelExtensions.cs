@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Models.Content;
 using FreeTrainSimulator.Models.Handler;
-using FreeTrainSimulator.Models.Signal;
+using FreeTrainSimulator.Models.Signalling;
 using FreeTrainSimulator.Models.Track;
 
 namespace FreeTrainSimulator.Models.Shim

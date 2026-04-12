@@ -25,7 +25,7 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
         /// <summary>
         /// Construct and initialize the class
         /// </summary>
-        public TurntableShape(string path, IWorldPosition positionSource, ShapeFlags flags, TurnTable turntable, double startingY)
+        public TurntableShape(string path, IWorldPosition positionSource, ShapeOptions flags, TurnTable turntable, double startingY)
             : base(path, positionSource, flags)
         {
             this.turntable = turntable;
@@ -140,7 +140,7 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
         /// <summary>
         /// Construct and initialize the class
         /// </summary>
-        public TransfertableShape(string path, IWorldPosition positionSource, ShapeFlags flags, TransferTable transfertable)
+        public TransfertableShape(string path, IWorldPosition positionSource, ShapeOptions flags, TransferTable transfertable)
             : base(path, positionSource, flags)
         {
             this.transfertable = transfertable;

@@ -3,7 +3,7 @@ using System.Threading;
 using System.Threading.Tasks;
 
 using FreeTrainSimulator.Models.Content;
-using FreeTrainSimulator.Models.Signal;
+using FreeTrainSimulator.Models.Signalling;
 
 namespace FreeTrainSimulator.Models.Handler
 {

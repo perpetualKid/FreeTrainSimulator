@@ -10,7 +10,7 @@ using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Models.Content;
 using FreeTrainSimulator.Models.Handler;
 using FreeTrainSimulator.Models.Imported.Shim;
-using FreeTrainSimulator.Models.Signal;
+using FreeTrainSimulator.Models.Signalling;
 
 using Microsoft.Xna.Framework;
 
@@ -90,9 +90,9 @@ namespace FreeTrainSimulator.Models.Imported.ImportHandler.TrainSimulator
                     Script = signalType.Value.Script,
                     FunctionType = signalType.Value.SignalFunction,
                     NormalSubType = signalType.Value.NormalSubType,
-                    SignalFlags = (signalType.Value.Abs ? SignalFlags.Abs : SignalFlags.None)
-                        | (signalType.Value.NoGantry ? SignalFlags.NoGantry : SignalFlags.None)
-                        | (signalType.Value.Semaphore ? SignalFlags.Semaphore : SignalFlags.None),
+                    SignalFlags = (signalType.Value.Abs ? SignalOptions.Abs : SignalOptions.None)
+                        | (signalType.Value.NoGantry ? SignalOptions.NoGantry : SignalOptions.None)
+                        | (signalType.Value.Semaphore ? SignalOptions.Semaphore : SignalOptions.None),
                     FlashTimeOn = signalType.Value.FlashTimeOn,
                     FlashTimeOff = signalType.Value.FlashTimeOff,
                     TransitionTime = signalType.Value.TransitionTime,
@@ -130,9 +130,9 @@ namespace FreeTrainSimulator.Models.Imported.ImportHandler.TrainSimulator
                             Aspect = aspect.Aspect,
                             DrawStateName = aspect.DrawStateName,
                             SpeedLimit = aspect.SpeedLimit,
-                            AspectFlags = (aspect.Asap ? SignalAspectFlags.Asap : SignalAspectFlags.None)
-                                | (aspect.Reset ? SignalAspectFlags.SpeedReset : SignalAspectFlags.None)
-                                | (aspect.NoSpeedReduction ? SignalAspectFlags.NoSpeedReduction : SignalAspectFlags.None),
+                            AspectFlags = (aspect.Asap ? SignalAspectOptions.Asap : SignalAspectOptions.None)
+                                | (aspect.Reset ? SignalAspectOptions.SpeedReset : SignalAspectOptions.None)
+                                | (aspect.NoSpeedReduction ? SignalAspectOptions.NoSpeedReduction : SignalAspectOptions.None),
                         }).ToImmutableArray() ?? ImmutableArray<SignalAspect>.Empty,
                     ApproachControlLimitPosition = signalType.Value.ApproachControlDetails?.ApproachControlPositionM,
                     ApproachControlLimitSpeed = signalType.Value.ApproachControlDetails?.ApproachControlSpeedMpS,
@@ -156,10 +156,10 @@ namespace FreeTrainSimulator.Models.Imported.ImportHandler.TrainSimulator
                             Description = subObj.Description,
                             SignalSubType = subObj.SignalSubType,
                             SignalSubSignalType = subObj.SignalSubSignalType,
-                            SubObjectFlags = (subObj.Optional ? SignalSubObjectFlags.Optional : SignalSubObjectFlags.None)
-                                | (subObj.Default ? SignalSubObjectFlags.Default : SignalSubObjectFlags.None)
-                                | (subObj.BackFacing ? SignalSubObjectFlags.BackFacing : SignalSubObjectFlags.None)
-                                | (subObj.JunctionLink ? SignalSubObjectFlags.JunctionLink : SignalSubObjectFlags.None),
+                            SubObjectFlags = (subObj.Optional ? SignalSubObjectOptions.Optional : SignalSubObjectOptions.None)
+                                | (subObj.Default ? SignalSubObjectOptions.Default : SignalSubObjectOptions.None)
+                                | (subObj.BackFacing ? SignalSubObjectOptions.BackFacing : SignalSubObjectOptions.None)
+                                | (subObj.JunctionLink ? SignalSubObjectOptions.JunctionLink : SignalSubObjectOptions.None),
                         }).ToImmutableArray() ?? ImmutableArray<SignalSubObject>.Empty,
                     },
                     StringComparer.OrdinalIgnoreCase) ?? ImmutableDictionary<string, SignalShape>.Empty;

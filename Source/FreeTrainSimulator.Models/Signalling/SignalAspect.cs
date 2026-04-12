@@ -2,7 +2,7 @@
 
 using MemoryPack;
 
-namespace FreeTrainSimulator.Models.Signal
+namespace FreeTrainSimulator.Models.Signalling
 {
     /// <summary>
     /// Describes a signal aspect: a combination of signal indication state and its meaning.
@@ -14,6 +14,6 @@ namespace FreeTrainSimulator.Models.Signal
         public string DrawStateName { get; init; }
         /// <summary>Speed limit in meters per second. -1 if track speed applies.</summary>
         public float SpeedLimit { get; init; } = -1;
-        public SignalAspectFlags AspectFlags { get; init; }
+        public SignalAspectOptions AspectFlags { get; init; }
     }
 }

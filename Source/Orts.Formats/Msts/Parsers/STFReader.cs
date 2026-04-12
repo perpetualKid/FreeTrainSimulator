@@ -1301,7 +1301,7 @@ namespace Orts.Formats.Msts.Parsers
             {
                 float result = ReadFloat(validUnits, defaultValue);
                 SkipRestOfBlock(); // e.g. to ignore everything after the "30" in
-                // SignalAspect ( APPROACH_1 "Approach" SpeedMPH ( 30 SignalFlags ( ASAP ) ) )
+                // SignalAspect ( APPROACH_1 "Approach" SpeedMPH ( 30 SignalOptions ( ASAP ) ) )
                 return result;
             }
             STFException.TraceWarning(this, "Block Not Found - instead found " + s);

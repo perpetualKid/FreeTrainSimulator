@@ -4,7 +4,7 @@ using System.Diagnostics;
 
 using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Calc;
-using FreeTrainSimulator.Models.Signal;
+using FreeTrainSimulator.Models.Signalling;
 using FreeTrainSimulator.Runtime;
 
 using Orts.Formats.Msts;

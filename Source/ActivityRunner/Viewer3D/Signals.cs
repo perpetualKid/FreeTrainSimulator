@@ -29,7 +29,7 @@ using System.Linq;
 using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Position;
 using FreeTrainSimulator.Common.Xna;
-using FreeTrainSimulator.Models.Signal;
+using FreeTrainSimulator.Models.Signalling;
 
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -52,7 +52,7 @@ namespace Orts.ActivityRunner.Viewer3D
         private readonly bool[] SubObjVisible;
         private readonly List<SignalShapeHead> Heads = new List<SignalShapeHead>();
 
-        public SignalShape(SignalObject mstsSignal, string path, IWorldPosition positionSource, ShapeFlags flags)
+        public SignalShape(SignalObject mstsSignal, string path, IWorldPosition positionSource, ShapeOptions flags)
             : base(path, positionSource, flags)
         {
 #if DEBUG_SIGNAL_SHAPES
@@ -375,9 +375,9 @@ namespace Orts.ActivityRunner.Viewer3D
                     }
                     MatrixExtension.Multiply(in temp, in xnaTileTranslation, out Matrix xnaMatrix);
 
-                    frame.AddPrimitive(SignalTypeData.Material, SignalTypeData.Lights[i], RenderPrimitiveGroup.Lights, ref xnaMatrix, ShapeFlags.None, state);
+                    frame.AddPrimitive(SignalTypeData.Material, SignalTypeData.Lights[i], RenderPrimitiveGroup.Lights, ref xnaMatrix, ShapeOptions.None, state);
                     if (Viewer.UserSettings.SignalLightGlow)
-                        frame.AddPrimitive(SignalTypeData.GlowMaterial, SignalTypeData.Lights[i], RenderPrimitiveGroup.Lights, ref xnaMatrix, ShapeFlags.None, state);
+                        frame.AddPrimitive(SignalTypeData.GlowMaterial, SignalTypeData.Lights[i], RenderPrimitiveGroup.Lights, ref xnaMatrix, ShapeOptions.None, state);
                 }
 
                 if (SignalTypeData.Semaphore)
