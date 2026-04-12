@@ -21,9 +21,9 @@ using System.Windows.Controls;
 using System.Windows.Forms.Integration;
 
 using FreeTrainSimulator.Common.Position;
+using FreeTrainSimulator.Models.Track;
 using FreeTrainSimulator.Runtime;
 
-using Orts.Formats.Msts;
 using Orts.Formats.Msts.Models;
 
 using ORTS.TrackViewer.Drawing;
@@ -108,11 +108,11 @@ namespace ORTS.TrackViewer.UserInterface
             Drawing.CloseToMouseTrack closestTrack = trackViewer.DrawTrackDB.ClosestTrack;
             if (closestTrack == null)
                 return;
-            TrackNode tn = closestTrack.TrackNode;
+            TrackNodeBase tn = closestTrack.TrackNode;
             if (tn == null)
                 return;
             statusTrIndex.Text = string.Format(System.Globalization.CultureInfo.CurrentCulture,
-                "{0} ", tn.Index);
+                "{0} ", tn.NodeIndex);
             //debug: statusAdditional.Text += Math.Sqrt((double)trackViewer.drawTrackDB.closestTrack.ClosestMouseDistanceSquared);
         }
 
@@ -186,7 +186,7 @@ namespace ORTS.TrackViewer.UserInterface
         {
             if (Properties.Settings.Default.statusShowVectorSections)
             {
-                TrackVectorSection tvs = trackViewer.DrawTrackDB.ClosestTrack.VectorSection;
+                VectorSectionNode tvs = trackViewer.DrawTrackDB.ClosestTrack.VectorSection;
                 if (tvs == null)
                     return;
                 int shapeIndex = tvs.ShapeIndex;
@@ -196,12 +196,12 @@ namespace ORTS.TrackViewer.UserInterface
                     {
                     shapeName = shape.FileName;
                 }
-                else if (RuntimeDataResolver.Instance.TrackSections.TrackShapePaths.TryGetValue(tvs.ShapeIndex, out ImmutableArray<FreeTrainSimulator.Models.Track.TrackShapePath> trackPath) && trackPath.Length == 1)
+                else if (RuntimeDataResolver.Instance.TrackSections.TrackShapePaths.TryGetValue(tvs.ShapeIndex, out ImmutableArray<TrackShapePath> trackPath) && trackPath.Length == 1)
                 {
                     shapeName = "<dynamic ?>";
                     foreach (int trackSection in trackPath[0].TrackSections)
                     {
-                        if (trackSection == tvs.SectionIndex)
+                        if (trackSection == tvs.NodeIndex)
                         {
                             shapeName = "<dynamic>";
                         }
@@ -214,9 +214,9 @@ namespace ORTS.TrackViewer.UserInterface
 
                 statusAdditional.Text += string.Format(System.Globalization.CultureInfo.CurrentCulture,
                     " VectorSection ({3}/{4}) filename={2} Index={0} shapeIndex={1}",
-                    tvs.SectionIndex, shapeIndex, shapeName,
+                    tvs.NodeIndex, shapeIndex, shapeName,
                         trackViewer.DrawTrackDB.ClosestTrack.TrackVectorSectionIndex + 1,
-                        (trackViewer.DrawTrackDB.ClosestTrack.TrackNode as TrackVectorNode).TrackVectorSections.Length);
+                        (trackViewer.DrawTrackDB.ClosestTrack.TrackNode as VectorNode).VectorSections.Length);
             }
         }
 
@@ -340,10 +340,10 @@ namespace ORTS.TrackViewer.UserInterface
             if (!string.Equals(description, "platform", StringComparison.OrdinalIgnoreCase))
                 return;
 
-            if (!(RuntimeData.Instance.TrackDB.TrackItems[index] is PlatformItem platform))
+            if (RuntimeDataResolver.Instance.TrackWorld.TrackModel.TrackDatabase.TrackItems[index] is not FreeTrainSimulator.Models.Track.PlatformTrackItem platform)
                 return;
             statusAdditional.Text += string.Format(System.Globalization.CultureInfo.CurrentCulture,
-                "{0} ({1})", platform.Station, platform.ItemName);
+                "{0} ({1})", platform.StationName, platform.PlatformName);
         }
 
         #region IDisposable

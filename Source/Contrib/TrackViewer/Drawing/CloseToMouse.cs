@@ -19,12 +19,10 @@ using System.Collections.Generic;
 using System.Linq;
 
 using FreeTrainSimulator.Common.Position;
+using FreeTrainSimulator.Models.Track;
 using FreeTrainSimulator.Runtime;
 
 using Microsoft.Xna.Framework;
-
-using Orts.Formats.Msts;
-using Orts.Formats.Msts.Models;
 
 namespace ORTS.TrackViewer.Drawing
 {
@@ -87,13 +85,13 @@ namespace ORTS.TrackViewer.Drawing
     internal sealed class CloseToMouseJunctionOrEnd :CloseToMousePoint
     {
         /// <summary>Tracknode of the closest junction or end node</summary>
-        public TrackNode JunctionOrEndNode { get; private set; }
+        public TrackNodeBase JunctionOrEndNode { get; private set; }
         /// <summary>The index of the original item in whatever table it was defined</summary>
-        public override int Index => JunctionOrEndNode.Index;
+        public override int Index => JunctionOrEndNode.NodeIndex;
         /// <summary>The X-coordinate within a tile of the original item in the track database</summary>
-        public override float X => JunctionOrEndNode.UiD.Location.Location.X;
+        public override float X => JunctionOrEndNode.Location.Location.X;
         /// <summary>The Z-coordinate within a tile of the original item in the track database</summary>
-        public override float Z => JunctionOrEndNode.UiD.Location.Location.Z;
+        public override float Z => JunctionOrEndNode.Location.Location.Z;
 
         /// <summary>
         /// Reset the calculation of which item (junction) is closest to the mouse
@@ -116,7 +114,7 @@ namespace ORTS.TrackViewer.Drawing
         /// </summary>
         /// <param name="junctionOrEndNode">Actual tracknode to store as closest item</param>
         /// <param name="description">  to use for printing out</param>
-        public CloseToMouseJunctionOrEnd(TrackNode junctionOrEndNode, string description)
+        public CloseToMouseJunctionOrEnd(TrackNodeBase junctionOrEndNode, string description)
         {
             ClosestDistanceSquared = 0;
             JunctionOrEndNode = junctionOrEndNode;
@@ -130,7 +128,7 @@ namespace ORTS.TrackViewer.Drawing
         /// <param name="mouseLocation">Current mouse location</param>
         /// <param name="junctionOrEndNode">the trackNode that will be stored when it is indeed the closest</param>
         /// <param name="description">The type of item (needed for later printing in statusbar)</param>
-        public void CheckMouseDistance(in WorldLocation location, in WorldLocation mouseLocation, TrackNode junctionOrEndNode, string description)
+        public void CheckMouseDistance(in WorldLocation location, in WorldLocation mouseLocation, TrackNodeBase junctionOrEndNode, string description)
         {
             float distanceSquared = (float)WorldLocation.GetDistanceSquared2D(location, mouseLocation);
             if (distanceSquared < ClosestDistanceSquared)
@@ -219,9 +217,9 @@ namespace ORTS.TrackViewer.Drawing
     {
         //Note: 'Last' is the one with shortest distance
         /// <summary>Tracknode that is closest</summary>
-        public TrackNode TrackNode { get { CalcRealDistances(); return sortedTrackCandidates.Last().Value.trackNode; } }
+        public TrackNodeBase TrackNode { get { CalcRealDistances(); return sortedTrackCandidates.Last().Value.trackNode; } }
         /// <summary>Vectorsection within the tracnode</summary>
-        public TrackVectorSection VectorSection { get { CalcRealDistances(); return sortedTrackCandidates.Last().Value.vectorSection; } }
+        public VectorSectionNode VectorSection { get { CalcRealDistances(); return sortedTrackCandidates.Last().Value.vectorSection; } }
         /// <summary>Index of vector section that is closest to the mouse</summary>
         public int TrackVectorSectionIndex { get { CalcRealDistances(); return sortedTrackCandidates.Last().Value.trackVectorSectionIndex; } }
         /// <summary>Distance along the track describing precisely where the mouse is</summary>
@@ -265,7 +263,7 @@ namespace ORTS.TrackViewer.Drawing
         /// Constructor that immediately sets the closest item (and distance)
         /// </summary>
         /// <param name="tn">Tracknode that will be stored as closest item</param>
-        public CloseToMouseTrack(TrackNode tn)
+        public CloseToMouseTrack(TrackNodeBase tn)
         {
             sortedTrackCandidates = new SortedList<double, TrackCandidate>(new ReverseDoubleComparer())
             {
@@ -297,12 +295,12 @@ namespace ORTS.TrackViewer.Drawing
         /// <param name="tvsi">Current index of the trackvectorsection</param>
         /// <param name="pixelsPerMeter"></param>
         public void CheckMouseDistance(in WorldLocation location, in WorldLocation mouseLocation, 
-            TrackNode trackNode, TrackVectorSection vectorSection, int tvsi, double pixelsPerMeter)
+            TrackNodeBase trackNode, VectorSectionNode vectorSection, int tvsi, double pixelsPerMeter)
         {
             storedMouseLocation = mouseLocation;
             float distanceSquared = (float)WorldLocation.GetDistanceSquared2D(location, mouseLocation);
             // to make unique distances becasue they also act as Key
-            double distanceSquaredIndexed = ((double)distanceSquared) * (1 + 1e-16 * trackNode.Index);
+            double distanceSquaredIndexed = ((double)distanceSquared) * (1 + 1e-16 * trackNode.NodeIndex);
             if (distanceSquaredIndexed < sortedTrackCandidates.First().Key)
             {
                 if (!sortedTrackCandidates.ContainsKey(distanceSquaredIndexed))
@@ -336,7 +334,7 @@ namespace ORTS.TrackViewer.Drawing
             {
                 TrackCandidate trackCandidate = sortedTrackCandidates[distanceKey];
                 if (trackCandidate.trackNode == null) continue;
-                RuntimeDataResolver.Instance.TrackSections.TrackSections.TryGetValue(trackCandidate.vectorSection.SectionIndex, out FreeTrainSimulator.Models.Track.TrackSection trackSection);
+                RuntimeDataResolver.Instance.TrackSections.TrackSections.TryGetValue(trackCandidate.vectorSection.NodeIndex, out TrackSection trackSection);
                 DistanceLon distanceLon = CalcRealDistanceSquared(trackCandidate.vectorSection, trackSection);
                 double realDistanceSquared = (double)distanceLon.distanceSquared;
                 
@@ -361,7 +359,7 @@ namespace ORTS.TrackViewer.Drawing
         /// The math here is not perfect (it is quite difficult to calculate the distances to a curved line 
         /// for all possibilities) but good enough. The math was designed (in Traveller.cs) to work well for close distances.
         /// Math is modified to prevent NaN and to combine straight and curved tracks.</remarks>
-        private DistanceLon CalcRealDistanceSquared(TrackVectorSection trackVectorSection, FreeTrainSimulator.Models.Track.TrackSection trackSection)
+        private DistanceLon CalcRealDistanceSquared(VectorSectionNode trackVectorSection, TrackSection trackSection)
         {
             //Calculate the vector from start of track to the mouse
             Vector3 vectorToMouse = (storedMouseLocation.Location - trackVectorSection.Location.Location) + (storedMouseLocation.Tile - trackVectorSection.Location.Tile).TileVector();
@@ -414,12 +412,12 @@ namespace ORTS.TrackViewer.Drawing
     /// Struct to store a candidate for the track closest to the mouse, so we can keep an ordered list.
     /// </summary>
     internal struct TrackCandidate {
-        public TrackNode trackNode;
-        public TrackVectorSection vectorSection;
+        public TrackNodeBase trackNode;
+        public VectorSectionNode vectorSection;
         public int trackVectorSectionIndex;  // which section within a trackNode that is a vector node
         public float distanceAlongSection;
 
-        public TrackCandidate(TrackNode node, TrackVectorSection section, int tvsi, float lon)
+        public TrackCandidate(TrackNodeBase node, VectorSectionNode section, int tvsi, float lon)
         {
             trackNode = node;
             vectorSection = section;

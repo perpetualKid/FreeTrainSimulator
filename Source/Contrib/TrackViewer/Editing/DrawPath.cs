@@ -19,13 +19,10 @@ using System.Collections.ObjectModel;
 using System.Linq;
 
 using FreeTrainSimulator.Common.Position;
+using FreeTrainSimulator.Models.Track;
 using FreeTrainSimulator.Runtime;
 
 using Microsoft.Xna.Framework;
-
-using Orts.Formats.Msts;
-using Orts.Formats.Msts.Files;
-using Orts.Formats.Msts.Models;
 
 using ORTS.TrackViewer.Drawing;
 
@@ -49,7 +46,7 @@ namespace ORTS.TrackViewer.Editing
         /// <summary>Return the last drawn node</summary>
         public TrainpathNode CurrentMainNode { get; private set; }
 
-        private readonly TrackDB trackDB;
+        private readonly TrackDatabase trackDatabase;
         internal ColorScheme ColorSchemeSiding { get; set; }
         internal ColorScheme ColorSchemeMain { get; set; }
         internal ColorScheme ColorSchemeLast { get; set; }
@@ -57,9 +54,9 @@ namespace ORTS.TrackViewer.Editing
         /// <summary>
         /// Constructor
         /// </summary>
-        public DrawPath (TrackDB trackDB)
+        public DrawPath (TrackDatabase trackDatabase)
         {
-            this.trackDB = trackDB;
+            this.trackDatabase = trackDatabase;
             ColorSchemeMain = DrawColors.colorsPathMain;
             ColorSchemeSiding = DrawColors.colorsPathSiding;
             ColorSchemeLast = DrawColors.ShadeColor(DrawColors.otherPathsReferenceColor, 0, 1);
@@ -271,14 +268,14 @@ namespace ORTS.TrackViewer.Editing
                 DrawPathBrokenNode(drawArea, colors, currentNode, nextNode);
                 return;
             }
-            TrackVectorNode tvn = trackDB.TrackNodes.VectorNodes[TvnIndex];
+            VectorNode tvn = (VectorNode)trackDatabase.TrackNodes[TvnIndex];
 
             TrainpathJunctionNode nextJunctionNode = nextNode as TrainpathJunctionNode;
             TrainpathVectorNode nextVectorNode = nextNode as TrainpathVectorNode;
 
             //Default situation (and most occuring) is to draw the complete vector node 
             int tvsiStart = 0;
-            int tvsiStop = tvn.TrackVectorSections.Length-1;
+            int tvsiStop = tvn.VectorSections.Length-1;
             float sectionOffsetStart = 0;
             float sectionOffsetStop = -1;
             if (currentNode is TrainpathJunctionNode)
@@ -350,30 +347,30 @@ namespace ORTS.TrackViewer.Editing
         /// <param name="sectionOffsetStart">start-offset in the first track section to draw</param>
         /// <param name="sectionOffsetStop">stop-offset in the last track section to draw</param>
         /// <remarks>Very similar to DrawVectorNode in class DrawTrackDB, but this one allows to draw partial vector nodes.</remarks>
-        private static void DrawVectorNode(DrawArea drawArea, TrackVectorNode trackVectorNode, ColorScheme colors, int tvsiStart, int tvsiStop,
+        private static void DrawVectorNode(DrawArea drawArea, VectorNode vectorNode, ColorScheme colors, int tvsiStart, int tvsiStop,
                 float sectionOffsetStart, float sectionOffsetStop)
         {
-            TrackVectorSection tvs;
+            VectorSectionNode tvs;
             if (tvsiStart == tvsiStop)
             {
-                tvs = trackVectorNode.TrackVectorSections[tvsiStart];
+                tvs = vectorNode.VectorSections[tvsiStart];
                 DrawTrackSection(drawArea, tvs, colors, sectionOffsetStart, sectionOffsetStop);
             }
             else
             {
                 // first section
-                tvs = trackVectorNode.TrackVectorSections[tvsiStart];
+                tvs = vectorNode.VectorSections[tvsiStart];
                 DrawTrackSection(drawArea, tvs, colors, sectionOffsetStart, -1);
 
                 // all intermediate sections
                 for (int tvsi = tvsiStart + 1; tvsi <= tvsiStop - 1; tvsi++)
                 {
-                    tvs = trackVectorNode.TrackVectorSections[tvsi];
+                    tvs = vectorNode.VectorSections[tvsi];
                     DrawTrackSection(drawArea, tvs, colors, 0, -1);
                 }
 
                 // last section
-                tvs = trackVectorNode.TrackVectorSections[tvsiStop];
+                tvs = vectorNode.VectorSections[tvsiStop];
                 DrawTrackSection(drawArea, tvs, colors, 0, sectionOffsetStop);
             }
         }
@@ -387,13 +384,13 @@ namespace ORTS.TrackViewer.Editing
         /// <param name="startOffset">Do not draw the first startOffset meters in the section</param>
         /// <param name="stopOffset">Do not draw past stopOffset meters (draw all if stopOffset less than 0)</param>
         /// <remarks>Note that his is very similar to DrawTrackSection in class DrawTrackDB, but this one allows to draw partial sections</remarks>
-        private static void DrawTrackSection(DrawArea drawArea, TrackVectorSection tvs, ColorScheme colors,
+        private static void DrawTrackSection(DrawArea drawArea, VectorSectionNode tvs, ColorScheme colors,
             float startOffset, float stopOffset)
         {
-            RuntimeDataResolver.Instance.TrackSections.TrackSections.TryGetValue(tvs.SectionIndex, out FreeTrainSimulator.Models.Track.TrackSection trackSection);
+            RuntimeDataResolver.Instance.TrackSections.TrackSections.TryGetValue(tvs.NodeIndex, out TrackSection trackSection);
             if (trackSection == null) return;
 
-            ref readonly WorldLocation thisLocation = ref tvs.Location;
+            WorldLocation thisLocation = tvs.Location;
             
             if (trackSection.Curved)
             {   //curved section

@@ -83,8 +83,6 @@ namespace ORTS.TrackViewer
         public int ScreenW { get; private set; }
         /// <summary>Height of the drawing screen in pixels</summary>
         public int ScreenH { get; private set; }
-        /// <summary>The information of the route like trackDB, tsectiondat, ..., loaded from MSTS route files.</summary>
-        public RouteData RouteData { get; private set; }
         /// <summary>(Draw)trackDB, that also contains the track data base and the track section data</summary>
         public DrawTrackDB DrawTrackDB { get; private set; }
         /// <summary>Main draw area</summary>

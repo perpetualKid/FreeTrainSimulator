@@ -24,10 +24,10 @@ using System.Windows.Controls;
 using FreeTrainSimulator.Common.Position;
 using FreeTrainSimulator.Models.Content;
 using FreeTrainSimulator.Models.Imported.Shim;
+using FreeTrainSimulator.Models.Track;
+using FreeTrainSimulator.Runtime;
 
 using Orts.Formats.Msts;
-using Orts.Formats.Msts.Files;
-using Orts.Formats.Msts.Models;
 
 using ORTS.TrackViewer.Drawing;
 
@@ -90,7 +90,7 @@ namespace ORTS.TrackViewer.Editing
 
         #region Private members
         private readonly DrawTrackDB drawTrackDB; // We need to know what has been drawn, especially to get track closest to mouse
-        private readonly TrackDB trackDB;
+        private readonly TrackDatabase trackDatabase;
         private readonly DrawPath drawPath;      // drawing of the path itself
 
         private TrainpathNode activeNode;           // active Node (if present) for which actions can be performed
@@ -139,13 +139,13 @@ namespace ORTS.TrackViewer.Editing
         {
 
             this.drawTrackDB = drawTrackDB;
-            trackDB = RuntimeData.Instance.TrackDB;
+            trackDatabase = RuntimeDataResolver.Instance.TrackWorld.TrackModel.TrackDatabase;
 
-            TrackExtensions.Initialize(trackDB.TrackNodes); // we might be calling this more than once, but so be it.
+            TrackExtensions.Initialize(trackDatabase); // we might be calling this more than once, but so be it.
 
             enableMouseUpdate = true;
 
-            drawPath = new DrawPath(trackDB);
+            drawPath = new DrawPath(trackDatabase);
 
             CreateNonMenuActions();
             CreateDirectActions();
@@ -155,7 +155,7 @@ namespace ORTS.TrackViewer.Editing
 
         private void CreateNonMenuActions()
         {
-            activeTrackLocation = new TrainpathVectorNode(trackDB);
+            activeTrackLocation = new TrainpathVectorNode(trackDatabase);
             nonInteractiveAction = new EditorActionNonInteractive();
         }
 
@@ -168,7 +168,7 @@ namespace ORTS.TrackViewer.Editing
         public PathEditor(DrawTrackDB drawTrackDB, string pathsDirectory)
             :this(drawTrackDB)
         {
-            CurrentTrainPath = new Trainpath(trackDB);
+            CurrentTrainPath = new Trainpath(trackDatabase);
             FileName = CurrentTrainPath.PathId + ".pat";
             CurrentTrainPath.FilePath = System.IO.Path.Combine(pathsDirectory, FileName);
             EditingIsActive = true;
@@ -185,7 +185,7 @@ namespace ORTS.TrackViewer.Editing
             :this(drawTrackDB)
         {
             FileName = System.IO.Path.GetFileName(path.SourceFile());
-            CurrentTrainPath = new Trainpath(trackDB, path.SourceFile());
+            CurrentTrainPath = new Trainpath(trackDatabase, path.SourceFile());
             EditingIsActive = false;
             OnPathChanged();
         }
@@ -599,7 +599,7 @@ namespace ORTS.TrackViewer.Editing
                 return;
             }
 
-            int tni = drawTrackDB.ClosestTrack.TrackNode.Index;
+            int tni = drawTrackDB.ClosestTrack.TrackNode.NodeIndex;
 
             if (!drawnPathData.TrackHasBeenDrawn(tni) && CurrentTrainPath.FirstNode != null && activeMouseDragAction == null)
             {
@@ -686,7 +686,7 @@ namespace ORTS.TrackViewer.Editing
                     TrainpathJunctionNode sidingNodeAsJunction = sidingNode as TrainpathJunctionNode;
                     if ((sidingNodeAsJunction != null) && !sidingNode.IsBroken)
                     {
-                        sidingNode.Location = trackDB.TrackNodes[sidingNodeAsJunction.JunctionIndex].UiD.Location;
+                        sidingNode.Location = trackDatabase.TrackNodes[sidingNodeAsJunction.JunctionIndex].Location;
                     }
                     sidingNode = sidingNode.NextSidingNode;
                 }
@@ -694,7 +694,7 @@ namespace ORTS.TrackViewer.Editing
                 TrainpathJunctionNode mainNodeAsJunction = mainNode as TrainpathJunctionNode;
                 if ((mainNodeAsJunction != null) && !mainNode.IsBroken)
                 {
-                    mainNode.Location = trackDB.TrackNodes[mainNodeAsJunction.JunctionIndex].UiD.Location;
+                    mainNode.Location = trackDatabase.TrackNodes[mainNodeAsJunction.JunctionIndex].Location;
                 }
                 mainNode = mainNode.NextMainNode;
             }
@@ -759,7 +759,7 @@ namespace ORTS.TrackViewer.Editing
             // * Reconnect tail
 
             FileName = System.IO.Path.GetFileName(path.SourceFile());
-            Trainpath newPath = new Trainpath(trackDB, path.SourceFile());
+            Trainpath newPath = new Trainpath(trackDatabase, path.SourceFile());
 
             // We have a current path and a new path.
             // First check if the new path is usable

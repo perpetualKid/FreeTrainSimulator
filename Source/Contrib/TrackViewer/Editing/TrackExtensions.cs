@@ -15,9 +15,10 @@
 // You should have received a copy of the GNU General Public License
 // along with Open Rails.  If not, see <http://www.gnu.org/licenses/>.
 
-using FreeTrainSimulator.Runtime;
+using System.Collections.Immutable;
 
-using Orts.Formats.Msts.Models;
+using FreeTrainSimulator.Models.Track;
+using FreeTrainSimulator.Runtime;
 
 namespace ORTS.TrackViewer.Editing
 {
@@ -34,46 +35,47 @@ namespace ORTS.TrackViewer.Editing
         /// <summary>The TrPin index of the siding route of a junction node</summary>
         private static int[] sidingRouteIndex;
 
-        private static TrackNodes trackNodes;
+        private static TrackDatabase trackDatabase;
 
         /// <summary>
         /// Find the indices we need to use for TrPins in the various junction nodes in case we want to use either main
         /// or siding path. That information is available in the trackshapes in the tsectionDat.
         /// </summary>
-        /// <param name="trackNodesIn">The tracknodes</param>
-        /// <param name="tsectionDatIn">Track section Data</param>
-        public static void Initialize(TrackNodes trackNodesIn)
+        /// <param name="trackDatabaseIn">The track database</param>
+        public static void Initialize(TrackDatabase trackDatabaseIn)
         {
-            trackNodes = trackNodesIn;
+            trackDatabase = trackDatabaseIn;
 
-            mainRouteIndex = new int[trackNodes.Count];
-            sidingRouteIndex = new int[trackNodes.Count];
-            for (int tni = 0; tni < trackNodes.Count; tni++)
+            ImmutableArray<TrackNodeBase> trackNodes = trackDatabase.TrackNodes;
+            mainRouteIndex = new int[trackNodes.Length];
+            sidingRouteIndex = new int[trackNodes.Length];
+            for (int tni = 0; tni < trackNodes.Length; tni++)
             {
-                if (trackNodes[tni] is not TrackJunctionNode tn)
+                if (trackNodes[tni] is not JunctionNode junctionNode)
                     continue;
 
-                int mainRoute = RuntimeDataResolver.Instance.TrackWorld.TrackModel.TrackDatabase.JunctionNodes[tn.Index].MainRoute;
+                int mainRoute = junctionNode.MainRoute;
+                int inPins = trackDatabase.TrackNodeConnectors[tni].InboundCount;
 
-                mainRouteIndex[tni] = tn.InPins + mainRoute;
-                sidingRouteIndex[tni] = mainRoute == 0 ? tn.InPins + 1 : tn.InPins;
+                mainRouteIndex[tni] = inPins + mainRoute;
+                sidingRouteIndex[tni] = mainRoute == 0 ? inPins + 1 : inPins;
             }
         }
 
         /// <summary>Return the vector node index of the trailing path leaving this junction.</summary>
-        public static int TrailingTvn(this TrackNode trackNode) { return trackNode.TrackPins[0].Link; }
+        public static int TrailingTvn(this TrackNodeBase trackNode) { return trackDatabase.TrackNodeConnectors[trackNode.NodeIndex].TrackNodeConnectors[0].Link; }
         /// <summary>Return the vector node index of the main path leaving this junction (main being defined as the first one defined)</summary>
-        public static int MainTvn(this TrackNode trackNode) { return trackNode.TrackPins[mainRouteIndex[trackNode.Index]].Link; }
+        public static int MainTvn(this TrackNodeBase trackNode) { return trackDatabase.TrackNodeConnectors[trackNode.NodeIndex].TrackNodeConnectors[mainRouteIndex[trackNode.NodeIndex]].Link; }
         /// <summary>Return the vector node index of the siding path leaving this junction (siding being defined as the second one defined)</summary>
-        public static int SidingTvn(this TrackNode trackNode) { return trackNode.TrackPins[sidingRouteIndex[trackNode.Index]].Link; }
+        public static int SidingTvn(this TrackNodeBase trackNode) { return trackDatabase.TrackNodeConnectors[trackNode.NodeIndex].TrackNodeConnectors[sidingRouteIndex[trackNode.NodeIndex]].Link; }
 
-        /// <summary>Return the vector node index at the begin of this vector node</summary>
-        public static int JunctionIndexAtStart(this TrackNode trackNode) { return trackNode.TrackPins[0].Link; }
-        /// <summary>Return the vector node index at the end of this vector node</summary>
-        public static int JunctionIndexAtEnd(this TrackNode trackNode) { return trackNode.TrackPins[1].Link; }
+        /// <summary>Return the junction node index at the begin of this vector node</summary>
+        public static int JunctionIndexAtStart(this TrackNodeBase trackNode) { return trackDatabase.TrackNodeConnectors[trackNode.NodeIndex].TrackNodeConnectors[0].Link; }
+        /// <summary>Return the junction node index at the end of this vector node</summary>
+        public static int JunctionIndexAtEnd(this TrackNodeBase trackNode) { return trackDatabase.TrackNodeConnectors[trackNode.NodeIndex].TrackNodeConnectors[1].Link; }
 
         /// <summary>Return the tracknode corresponding the given index</summary>
-        public static TrackNode TrackNode(int tvnIndex) { return trackNodes[tvnIndex]; }
+        public static TrackNodeBase TrackNode(int tvnIndex) { return trackDatabase.TrackNodes[tvnIndex]; }
 
         /// <summary>
         /// Get the index of the junction node at the other side of the linking track vector node.
@@ -87,7 +89,7 @@ namespace ORTS.TrackViewer.Editing
             if (linkingTrackNodeIndex <= 0)
                 return 0; // link is not well-defined
 
-            TrackNode linkingTrackNode = trackNodes[linkingTrackNodeIndex];
+            TrackNodeBase linkingTrackNode = trackDatabase.TrackNodes[linkingTrackNodeIndex];
             if (linkingTrackNode == null)
                 return 0;
 
@@ -114,13 +116,13 @@ namespace ORTS.TrackViewer.Editing
             if (junctionIndex <= 0)
                 return 0; // something wrong in database
 
-            TrackNode junctionTrackNode = trackNodes[junctionIndex];
+            TrackNodeBase junctionTrackNode = trackDatabase.TrackNodes[junctionIndex];
             if (junctionTrackNode == null)
             {
                 return 0;
             }
 
-            if (junctionTrackNode is TrackEndNode)
+            if (junctionTrackNode is EndNode)
             {
                 return 0;
             }

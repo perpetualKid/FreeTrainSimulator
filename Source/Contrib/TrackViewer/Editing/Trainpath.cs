@@ -24,11 +24,14 @@ using System.Collections.ObjectModel;
 using System.Windows.Forms;
 
 using FreeTrainSimulator.Common;
+using FreeTrainSimulator.Models.Track;
 using FreeTrainSimulator.Runtime.Track;
 
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Files;
 using Orts.Formats.Msts.Models;
+
+using TrackItemBase = FreeTrainSimulator.Models.Track.TrackItemBase;
 
 namespace ORTS.TrackViewer.Editing
 {
@@ -148,7 +151,7 @@ namespace ORTS.TrackViewer.Editing
 
         #region private members
 
-        private readonly TrackDB trackDB;
+        private readonly TrackDatabase trackDatabase;
         private readonly List<TrainPathData> trainPaths;
         private int currentIndex; // trainPaths are indexed
         private int currentIndexUnmodified; // The index of the last saved path.
@@ -160,9 +163,9 @@ namespace ORTS.TrackViewer.Editing
         /// </summary>
         /// <param name="trackDB"></param>
         /// <param name="tsectionDat"></param>
-        public Trainpath(TrackDB trackDB)
+        public Trainpath(TrackDatabase trackDatabase)
         {
-            this.trackDB = trackDB;
+            this.trackDatabase = trackDatabase;
             trainPaths = new List<TrainPathData>
             {
                 new TrainPathData()
@@ -176,8 +179,8 @@ namespace ORTS.TrackViewer.Editing
         /// </summary>
         /// <param name="trackDB"></param>
         /// <param name="filePath">file name including path of the .pat file</param>
-        public Trainpath(TrackDB trackDB, string filePath)
-            : this(trackDB)
+        public Trainpath(TrackDatabase trackDatabase, string filePath)
+            : this(trackDatabase)
         {
             FilePath = filePath;
 
@@ -227,7 +230,7 @@ namespace ORTS.TrackViewer.Editing
         private void CreateNodes(PathFile patFile, List<TrainpathNode> Nodes)
         {
             foreach (PathNode tpn in patFile.PathNodes)
-                Nodes.Add(TrainpathNode.CreatePathNode(tpn, trackDB));
+                Nodes.Add(TrainpathNode.CreatePathNode(tpn, trackDatabase));
             FirstNode = Nodes[0];
             FirstNode.NodeType = TrainpathNodeType.Start;
         }
@@ -608,25 +611,24 @@ namespace ORTS.TrackViewer.Editing
             if (tvnIndex < 0)
                 return stationNames;
 
-            TrackVectorNode tvn = trackDB.TrackNodes.VectorNodes[tvnIndex];
+            VectorNode tvn = trackDatabase.TrackNodes[tvnIndex] as VectorNode;
             if (tvn == null)
                 return stationNames;
-            if (tvn.TrackItemIndices == null)
+            if (!trackDatabase.TrackItemSelectors.TryGetValue(tvnIndex, out TrackItemIndex trackItemIndex) || trackItemIndex.TrackItems.IsDefaultOrEmpty)
                 return stationNames;
 
-            foreach (int trackItemIndex in tvn.TrackItemIndices)
+            foreach (int trackItemIdx in trackItemIndex.TrackItems)
             {
-                TrackItem trItem = trackDB.TrackItems[trackItemIndex];
-                if (trItem is PlatformItem)
+                TrackItemBase trItem = trackDatabase.TrackItems[trackItemIdx];
+                if (trItem is PlatformTrackItem platform)
                 {
-                    TrackTraveller? ttInit = TrackTraveller.InitializeTraveller(trItem.Location, tvn.Index, TrackDirection.Ahead);
+                    TrackTraveller? ttInit = TrackTraveller.InitializeTraveller(trItem.Location, tvn.NodeIndex, TrackDirection.Ahead);
                     if (ttInit is TrackTraveller traveller)
                     {
                         TrainpathVectorNode platformNode = new TrainpathVectorNode(firstNode, traveller);
                         if (platformNode.IsBetween(firstNode, secondNode))
                         {
-                            PlatformItem platform = trItem as PlatformItem;
-                            stationNames.Add(platform.Station);
+                            stationNames.Add(platform.StationName);
                         }
                     }
 

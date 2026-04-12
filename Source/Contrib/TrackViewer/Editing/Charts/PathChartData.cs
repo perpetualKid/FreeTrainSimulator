@@ -21,14 +21,13 @@ using System.Linq;
 
 using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Position;
+using FreeTrainSimulator.Models.Track;
 using FreeTrainSimulator.Runtime;
 using FreeTrainSimulator.Runtime.Track;
 
-using Newtonsoft.Json;
+using TrackItemBase = FreeTrainSimulator.Models.Track.TrackItemBase;
 
-using Orts.Formats.Msts;
-using Orts.Formats.Msts.Files;
-using Orts.Formats.Msts.Models;
+using Newtonsoft.Json;
 
 namespace ORTS.TrackViewer.Editing.Charts
 {
@@ -77,7 +76,7 @@ namespace ORTS.TrackViewer.Editing.Charts
         /// <summary>Maximum of all Curvature in PathChartPoints</summary>
         private float MaxCurvature;
 
-        private readonly TrackDB trackDB;
+        private readonly TrackDatabase trackDatabase;
         private readonly TrackItemManager trackItems;
         #endregion
 
@@ -87,8 +86,8 @@ namespace ORTS.TrackViewer.Editing.Charts
         /// <param name="routeData">The data of the route (track database, track section information, ...)</param>
         public PathChartData()
         {
-            trackDB = RuntimeData.Instance.TrackDB;
-            trackItems = new TrackItemManager();
+            trackDatabase = RuntimeDataResolver.Instance.TrackWorld.TrackModel.TrackDatabase;
+            trackItems = new TrackItemManager(trackDatabase);
         }
 
         #region Update the whole path
@@ -207,9 +206,9 @@ namespace ORTS.TrackViewer.Editing.Charts
                 return newPoints;
             }
 
-            TrackNode tn = trackDB.TrackNodes[thisNode.NextMainTvnIndex];
+            TrackNodeBase tn = trackDatabase.TrackNodes[thisNode.NextMainTvnIndex];
 
-            TrackVectorNode vectorNode = tn as TrackVectorNode;
+            VectorNode vectorNode = tn as VectorNode;
             IEnumerable<ChartableTrackItem> trackItemsInTracknode = trackItems.GetItemsInTracknode(tn);
 
 
@@ -223,7 +222,7 @@ namespace ORTS.TrackViewer.Editing.Charts
                 float sectionOffsetNext = sectionOffsetStop;
                 for (int tvsi = tvsiStop; tvsi > tvsiStart; tvsi--)
                 {
-                    height = vectorNode.TrackVectorSections[tvsi].Location.Location.Y;
+                    height = vectorNode.VectorSections[tvsi].Location.Location.Y;
                     AddPointAndTrackItems(newPoints, vectorNode, trackItemsInTracknode, isForward, height, tvsi, 0, sectionOffsetNext);
 
                     sectionOffsetNext = SectionLengthAlongTrack(vectorNode, tvsi - 1);
@@ -240,7 +239,7 @@ namespace ORTS.TrackViewer.Editing.Charts
                 for (int tvsi = tvsiStop; tvsi < tvsiStart; tvsi++)
                 {
                     // The height needs to come from the end of the section, so the where the next section starts. And we only know the height at the start.
-                    height = vectorNode.TrackVectorSections[tvsi + 1].Location.Location.Y;
+                    height = vectorNode.VectorSections[tvsi + 1].Location.Location.Y;
                     AddPointAndTrackItems(newPoints, vectorNode, trackItemsInTracknode, isForward, height, tvsi, sectionOffsetNext, SectionLengthAlongTrack(vectorNode, tvsi));
 
                     sectionOffsetNext = 0;
@@ -277,7 +276,7 @@ namespace ORTS.TrackViewer.Editing.Charts
         /// <param name="tvsi">The section index in the track vector node</param>
         /// <param name="sectionOffsetStart">Offset of the start of this section (in forward direction of track, not of path)</param>
         /// <param name="sectionOffsetEnd">Offset of the end of this section (in forward direction of track, not of path)</param>
-        private static void AddPointAndTrackItems(List<PathChartPoint> newPoints, TrackVectorNode vectorNode, IEnumerable<ChartableTrackItem> trackItems,
+        private static void AddPointAndTrackItems(List<PathChartPoint> newPoints, VectorNode vectorNode, IEnumerable<ChartableTrackItem> trackItems,
             bool isForward, float height, int tvsi, float sectionOffsetStart, float sectionOffsetEnd)
         {
             //Note, we are adding points in in reverse direction
@@ -285,7 +284,7 @@ namespace ORTS.TrackViewer.Editing.Charts
             List<PathChartPoint> additionalPoints = new List<PathChartPoint>();
 
             // not a percentage. We can safely assume the pitch is small enough so we do not to take tan(pitch)
-            float gradeFromPitch = -vectorNode.TrackVectorSections[tvsi].Direction.X * (isForward ? 1 : -1);
+            float gradeFromPitch = -vectorNode.VectorSections[tvsi].Direction.X * (isForward ? 1 : -1);
             float curvature = GetCurvature(vectorNode, tvsi, isForward);
 
             List<ChartableTrackItem> items_local = trackItems.ToList();
@@ -332,10 +331,10 @@ namespace ORTS.TrackViewer.Editing.Charts
         /// <param name="vectorNode">The vector track node</param>
         /// <param name="tvsi">The tracknode vector section index in the given verctor track node</param>
         /// <param name="isForward">Is the path in the same direction as the vector track node?</param>
-        private static float GetCurvature(TrackVectorNode vectorNode, int tvsi, bool isForward)
+        private static float GetCurvature(VectorNode vectorNode, int tvsi, bool isForward)
         {
-            TrackVectorSection tvs = vectorNode.TrackVectorSections[tvsi];
-            RuntimeDataResolver.Instance.TrackSections.TrackSections.TryGetValue(tvs.SectionIndex, out FreeTrainSimulator.Models.Track.TrackSection trackSection);
+            VectorSectionNode tvs = vectorNode.VectorSections[tvsi];
+            RuntimeDataResolver.Instance.TrackSections.TrackSections.TryGetValue(tvs.NodeIndex, out TrackSection trackSection);
 
             float curvature = 0;
             if (trackSection?.Curved ?? false) // if it is null, something is wrong but we do not want to crash
@@ -359,7 +358,7 @@ namespace ORTS.TrackViewer.Editing.Charts
         /// <param name="isForward">Output: whether going from startNode to nextNode is in the forward direction of the track</param>
         /// <param name="tvsiStart">Output: the track vector section index of where the startNode is</param>
         /// <param name="sectionOffsetStart">Output: the offset in the section (in the direction of the tracknode, not necessarily in the direction from startNode to nextNode)</param>
-        private static void DetermineSectionDetails(TrainpathNode startNode, TrainpathNode nextNode, TrackNode tn, out bool isForward, out int tvsiStart, out float sectionOffsetStart)
+        private static void DetermineSectionDetails(TrainpathNode startNode, TrainpathNode nextNode, TrackNodeBase tn, out bool isForward, out int tvsiStart, out float sectionOffsetStart)
         {
             TrainpathVectorNode currentNodeAsVector = startNode as TrainpathVectorNode;
             TrainpathJunctionNode currentNodeAsJunction = startNode as TrainpathJunctionNode;
@@ -373,8 +372,8 @@ namespace ORTS.TrackViewer.Editing.Charts
                 }
                 else
                 {
-                    TrackVectorNode tvn = tn as TrackVectorNode;
-                    tvsiStart = tvn.TrackVectorSections.Length - 1;
+                    VectorNode tvn = tn as VectorNode;
+                    tvsiStart = tvn.VectorSections.Length - 1;
                     sectionOffsetStart = SectionLengthAlongTrack(tvn, tvsiStart);
                 }
             }
@@ -391,10 +390,10 @@ namespace ORTS.TrackViewer.Editing.Charts
         /// </summary>
         /// <param name="tn">The current tracknode, which needs to be a vector node</param>
         /// <param name="tvsi">The track vector section index</param>
-        private static float SectionLengthAlongTrack(TrackVectorNode tn, int tvsi)
+        private static float SectionLengthAlongTrack(VectorNode tn, int tvsi)
         {
-            TrackVectorSection tvs = tn.TrackVectorSections[tvsi];
-            RuntimeDataResolver.Instance.TrackSections.TrackSections.TryGetValue(tvs.SectionIndex, out FreeTrainSimulator.Models.Track.TrackSection trackSection);
+            VectorSectionNode tvs = tn.VectorSections[tvsi];
+            RuntimeDataResolver.Instance.TrackSections.TrackSections.TryGetValue(tvs.NodeIndex, out TrackSection trackSection);
 
             return trackSection?.Length ?? 100; // need to return something. Not easy to recover
         }
@@ -521,15 +520,17 @@ namespace ORTS.TrackViewer.Editing.Charts
     /// </summary>
     internal sealed class TrackItemManager
     {
-        private readonly Dictionary<TrackNode, IEnumerable<ChartableTrackItem>> cachedItems;
+        private readonly Dictionary<TrackNodeBase, IEnumerable<ChartableTrackItem>> cachedItems;
+        private readonly TrackDatabase trackDatabase;
 
         /// <summary>
         /// Constructor
         /// </summary>
-        /// <param name="routeData">The data needed for the route</param>
-        public TrackItemManager()
+        /// <param name="trackDatabase">The track database</param>
+        public TrackItemManager(TrackDatabase trackDatabase)
         {
-            cachedItems = new Dictionary<TrackNode, IEnumerable<ChartableTrackItem>>();
+            this.trackDatabase = trackDatabase;
+            cachedItems = new Dictionary<TrackNodeBase, IEnumerable<ChartableTrackItem>>();
         }
 
         /// <summary>
@@ -537,7 +538,7 @@ namespace ORTS.TrackViewer.Editing.Charts
         /// </summary>
         /// <param name="tn">The tracknode in which to search for track items</param>
         /// <returns>The list/set of track itemss together with their position information</returns>
-        public IEnumerable<ChartableTrackItem> GetItemsInTracknode(TrackNode tn)
+        public IEnumerable<ChartableTrackItem> GetItemsInTracknode(TrackNodeBase tn)
         {
             if (cachedItems.TryGetValue(tn, out IEnumerable<ChartableTrackItem> value))
             {
@@ -545,15 +546,16 @@ namespace ORTS.TrackViewer.Editing.Charts
             }
 
             List<ChartableTrackItem> tracknodeItems = new List<ChartableTrackItem>();
-            TrackVectorNode vectorNode = tn as TrackVectorNode;
-            if (vectorNode?.TrackItemIndices == null) return tracknodeItems;
+            VectorNode vectorNode = tn as VectorNode;
+            if (vectorNode == null || !trackDatabase.TrackItemSelectors.TryGetValue(vectorNode.NodeIndex, out TrackItemIndex trackItemIndex) || trackItemIndex.TrackItems.IsDefaultOrEmpty)
+                return tracknodeItems;
 
-            foreach (int trackItemIndex in vectorNode.TrackItemIndices)
+            foreach (int trackItemIdx in trackItemIndex.TrackItems)
             {
-                TrackItem trItem = RuntimeData.Instance.TrackDB.TrackItems[trackItemIndex];
-                if (trItem is PlatformItem || trItem is SpeedPostItem)
+                TrackItemBase trItem = trackDatabase.TrackItems[trackItemIdx];
+                if (trItem is PlatformTrackItem || trItem is SpeedpostTrackItem || trItem is MilepostTrackItem)
                 {
-                    TrackTraveller? ttInit = TrackTraveller.InitializeTraveller(trItem.Location, vectorNode.Index, TrackDirection.Ahead);
+                    TrackTraveller? ttInit = TrackTraveller.InitializeTraveller(trItem.Location, vectorNode.NodeIndex, TrackDirection.Ahead);
                     if (ttInit is TrackTraveller travellerAtItem)
                         tracknodeItems.Add(new ChartableTrackItem(trItem, travellerAtItem));
                 }
@@ -606,24 +608,24 @@ namespace ORTS.TrackViewer.Editing.Charts
         /// </summary>
         /// <param name="item">The original track item</param>
         /// <param name="travellerAtItem">The traveller located at the location of the track item</param>
-        public ChartableTrackItem(TrackItem item, in TrackTraveller travellerAtItem)
+        public ChartableTrackItem(TrackItemBase item, in TrackTraveller travellerAtItem)
         {
             Height = item.Location.Location.Y;
             ItemText = string.Empty;
             ItemType = ChartableTrackItemType.Station;
             switch (item)
             {
-                case PlatformItem platformItem:
-                    ItemText = platformItem.Station;
+                case PlatformTrackItem platformItem:
+                    ItemText = platformItem.StationName;
                     ItemType = ChartableTrackItemType.Station;
                     break;
-                case SpeedPostItem speedPostItem:
-                    ItemText = speedPostItem.Distance.ToString(System.Globalization.CultureInfo.CurrentCulture);
-                    if (speedPostItem.IsMilePost)
-                    {
-                        ItemType = ChartableTrackItemType.MilePost;
-                    }
-                    if (speedPostItem.IsLimit)
+                case MilepostTrackItem milepostItem:
+                    ItemText = milepostItem.DistanceValue.ToString(System.Globalization.CultureInfo.CurrentCulture);
+                    ItemType = ChartableTrackItemType.MilePost;
+                    break;
+                case SpeedpostTrackItem speedPostItem:
+                    ItemText = speedPostItem.SpeedValue.ToString(System.Globalization.CultureInfo.CurrentCulture);
+                    if (speedPostItem.SpeedpostType.HasFlag(SpeedpostType.Limit))
                     {
                         float relativeAngle = Microsoft.Xna.Framework.MathHelper.WrapAngle(travellerAtItem.Heading + speedPostItem.Angle - (float)Math.PI / 2);
                         bool inSameDirection = Math.Abs(relativeAngle) < Math.PI / 2;

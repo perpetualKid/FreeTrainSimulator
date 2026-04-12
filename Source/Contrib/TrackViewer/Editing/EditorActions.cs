@@ -22,6 +22,7 @@ using System.Windows;
 using System.Windows.Controls;
 
 using FreeTrainSimulator.Common.Position;
+using FreeTrainSimulator.Models.Track;
 
 using Orts.Formats.Msts.Models;
 
@@ -671,7 +672,7 @@ namespace ORTS.TrackViewer.Editing
                 {
                     if (reconnectNode.JunctionIndex == nextJunctionIndex)
                     {   // we found a link, but we still need to check if we don't connect from the trailing side
-                        TrackNode junctionTrackNode = TrackExtensions.TrackNode(nextJunctionIndex);
+                        TrackNodeBase junctionTrackNode = TrackExtensions.TrackNode(nextJunctionIndex);
                         if (TvnIndex == junctionTrackNode.TrailingTvn())
                         {   // too bad, we reconnect from the wrong side. It also does not make sense to continue searching
                             return null;

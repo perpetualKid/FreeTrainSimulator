@@ -17,8 +17,6 @@
 
 using FreeTrainSimulator.Runtime.Track;
 
-using Orts.Formats.Msts;
-
 namespace ORTS.TrackViewer.Editing
 {
     /// <summary>
