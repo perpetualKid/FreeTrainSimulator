@@ -672,7 +672,7 @@ namespace Orts.Formats.Msts
                             break;
                         // try SIGFN definition
                         case "SIGFN":
-                            if (SignalTypeRegistry.Instance.TryGetFunction(definitions[1], out SignalFunction fnId))
+                            if (SignalTypeRegistry.Instance.TryGetFunction(definitions[1], out SignalFunctionType fnId))
                             {
                                 return new SCRParameterType(SCRTermType.Sigfn, fnId.Index);
                             }
@@ -859,7 +859,7 @@ namespace Orts.Formats.Msts
                                 statementBlock.Tokens.RemoveAt(0);
                                 negated = true;
                             }
-                            if (statementBlock.Tokens.Count > 1 && EnumExtension.GetValue(statementBlock.Tokens[0].Token, out SCRExternalFunctions externalFunctionsResult) && statementBlock.Tokens[1] is Enclosure)   //check if it is a Sub SignalFunction ()
+                            if (statementBlock.Tokens.Count > 1 && EnumExtension.GetValue(statementBlock.Tokens[0].Token, out SCRExternalFunctions externalFunctionsResult) && statementBlock.Tokens[1] is Enclosure)   //check if it is a Sub SignalFunctionType ()
                             {
                                 StatementTerms.Add(
                                     new SCRStatTerm(externalFunctionsResult, statementBlock.Tokens[1] as Enclosure, level, operatorString, negated, localFloats));
@@ -909,7 +909,7 @@ namespace Orts.Formats.Msts
                     TermOperator = TranslateOperator.TryGetValue(operatorTerm, out SCRTermOperator termOperator) ? termOperator : SCRTermOperator.NONE;
                 } // constructor
 
-                // SignalFunction term
+                // SignalFunctionType term
                 internal SCRStatTerm(SCRExternalFunctions externalFunction, BlockBase block, int subLevel, string operatorTerm, bool negated, IDictionary<string, int> localFloats)
                 {
                     Negated = negated;
@@ -921,9 +921,9 @@ namespace Orts.Formats.Msts
 
                     while (block.Tokens.Count > 0)
                     {
-                        if (block.Tokens.Count > 1 && EnumExtension.GetValue(block.Tokens[0].Token, out SCRExternalFunctions externalFunctionsResult) && block.Tokens[1] is Enclosure)   //check if it is a SignalFunction ()
+                        if (block.Tokens.Count > 1 && EnumExtension.GetValue(block.Tokens[0].Token, out SCRExternalFunctions externalFunctionsResult) && block.Tokens[1] is Enclosure)   //check if it is a SignalFunctionType ()
                         {
-                            // TODO Nested SignalFunction Call in Parameter not supported
+                            // TODO Nested SignalFunctionType Call in Parameter not supported
                             throw new NotImplementedException($"Nested function call in parameter {block.Token} not supported at line {block.LineNumber}");
                             //SCRParameterType parameter = ParameterFromToken(statement.Tokens[0], lineNumber, localFloats, orSignalTypes, orNormalSubtypes);
                             //StatementTerms.Add(
@@ -976,7 +976,7 @@ namespace Orts.Formats.Msts
 
                 public int PartParameter { get; }
 
-                public SignalFunction SignalFunction { get; }
+                public SignalFunctionType SignalFunction { get; }
 
                 // <summary>
                 // Constructor for generic parameter
@@ -985,13 +985,13 @@ namespace Orts.Formats.Msts
                 {
                     PartType = type;
                     PartParameter = value;
-                    SignalFunction = value >= 0 && value <= SignalFunction.Unknown.Index ? new SignalFunction(value) : SignalFunction.Normal;
+                    SignalFunction = value >= 0 && value <= SignalFunctionType.Unknown.Index ? new SignalFunctionType(value) : SignalFunctionType.Normal;
                 }
 
                 // <summary>
                 // Constructor for signal function parameter
                 // </summary>
-                public SCRParameterType(SCRTermType type, SignalFunction signalFunction)
+                public SCRParameterType(SCRTermType type, SignalFunctionType signalFunction)
                 {
                     PartType = type;
                     PartParameter = -1;
@@ -1068,7 +1068,7 @@ namespace Orts.Formats.Msts
                         statement.Tokens[1].Token = statement.Tokens[0].Token + statement.Tokens[1].Token;
                         statement.Tokens.RemoveAt(0);
                     }
-                    if (statement.Tokens.Count > 1 && EnumExtension.GetValue(statement.Tokens[0].Token, out SCRExternalFunctions externalFunctionsResult) && statement.Tokens[1] is Enclosure)   //check if it is a Sub SignalFunction ()
+                    if (statement.Tokens.Count > 1 && EnumExtension.GetValue(statement.Tokens[0].Token, out SCRExternalFunctions externalFunctionsResult) && statement.Tokens[1] is Enclosure)   //check if it is a Sub SignalFunctionType ()
                     {
                         Term1 = new SCRStatTerm(externalFunctionsResult, statement.Tokens[1] as Enclosure, 0, string.Empty, negated, localFloats);
                         statement.Tokens.RemoveAt(0);
@@ -1113,7 +1113,7 @@ namespace Orts.Formats.Msts
                                 statement.Tokens[1].Token = statement.Tokens[0].Token + statement.Tokens[1].Token;
                                 statement.Tokens.RemoveAt(0);
                             }
-                            if (statement.Tokens.Count > 1 && EnumExtension.GetValue(statement.Tokens[0].Token, out SCRExternalFunctions externalFunctionsResult2) && statement.Tokens[1] is Enclosure)   //check if it is a Sub SignalFunction ()
+                            if (statement.Tokens.Count > 1 && EnumExtension.GetValue(statement.Tokens[0].Token, out SCRExternalFunctions externalFunctionsResult2) && statement.Tokens[1] is Enclosure)   //check if it is a Sub SignalFunctionType ()
                             {
                                 Term2 = new SCRStatTerm(externalFunctionsResult2, statement.Tokens[1] as Enclosure, 0, string.Empty, negated, localFloats);
                                 statement.Tokens.RemoveAt(0);

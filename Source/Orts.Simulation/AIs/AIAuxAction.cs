@@ -1605,7 +1605,7 @@ namespace Orts.Simulation.AIs
                         SignalReferenced.TrackItemIndex, SignalReferenced.TrackNode, thisTrain.Number);
                 }
             }
-            if (ClearSignal(thisTrain) || (thisTrain.NextSignalObjects[Direction.Forward] != null && (thisTrain.NextSignalObjects[Direction.Forward].SignalLR(SignalFunction.Normal) > SignalAspectState.Stop)) ||
+            if (ClearSignal(thisTrain) || (thisTrain.NextSignalObjects[Direction.Forward] != null && (thisTrain.NextSignalObjects[Direction.Forward].SignalLR(SignalFunctionType.Normal) > SignalAspectState.Stop)) ||
                 thisTrain.NextSignalObjects[Direction.Forward] == null || SignalReferenced != thisTrain.NextSignalObjects[Direction.Forward] ||
                 thisTrain.PresentPosition[Direction.Forward].TrackCircuitSectionIndex == thisTrain.ValidRoutes[FreeTrainSimulator.Common.Direction.Forward][thisTrain.ValidRoutes[FreeTrainSimulator.Common.Direction.Forward].Count - 1].TrackCircuitSection.Index)
             {

@@ -19,7 +19,7 @@ namespace FreeTrainSimulator.Models.Signal
         /// allocated script
         public string Script { get; init; }
         /// <summary>Extensible signal function type identifier (covers both MSTS and custom ORTS function types).</summary>
-        public SignalFunction FunctionType { get; init; }
+        public SignalFunctionType FunctionType { get; init; }
         /// <summary>Extensible normal subtype identifier for Normal signals.</summary>
         public SignalNormalSubType NormalSubType { get; init; }
         public SignalFlags SignalFlags { get; init; }

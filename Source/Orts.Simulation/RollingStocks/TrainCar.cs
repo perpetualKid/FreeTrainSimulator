@@ -1490,7 +1490,7 @@ namespace Orts.Simulation.RollingStocks
                 float Sin2Theta = 0.5f * (1 - (float)Math.Cos(2.0 * superElevationAngle));
                 float CriticalMinSpeedMpS = (float)Math.Sqrt((gravitationalAcceleration * CurrentCurveRadius * HalfTrackGaugeM * Sin2Theta) / (CosTheta * (centreOfGravityM.Y * CosTheta + HalfTrackGaugeM * SinTheta)));
 
-                if (curveSpeedDependent) // SignalFunction enabled by menu selection for curve speed limit
+                if (curveSpeedDependent) // SignalFunctionType enabled by menu selection for curve speed limit
                 {
 
                     // This section not required any more???????????

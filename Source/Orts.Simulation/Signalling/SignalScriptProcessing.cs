@@ -328,8 +328,8 @@ namespace Orts.Simulation.Signalling
             int result = 0;
             int parameter1 = 0;
             int parameter2 = 0;
-            SignalFunction function1 = SignalFunction.Normal;
-            SignalFunction function2 = SignalFunction.Normal;
+            SignalFunctionType function1 = SignalFunctionType.Normal;
+            SignalFunctionType function2 = SignalFunctionType.Normal;
 
             // extract parameters (max. 2)
 

@@ -26,7 +26,7 @@ namespace Orts.Simulation.Signalling
 
         private static int SigFnIndex(string sigFn)
         {
-            return SignalTypeRegistry.Instance.TryGetFunction(sigFn, out SignalFunction id) ? id.Index : -1;
+            return SignalTypeRegistry.Instance.TryGetFunction(sigFn, out SignalFunctionType id) ? id.Index : -1;
         }
 
         // Public interface
@@ -249,7 +249,7 @@ namespace Orts.Simulation.Signalling
         /// Get aspect of required signal
         /// </summary>
         /// <param name="id">Id of required signal</param>
-        /// <param name="sigfn">SignalFunction of the signal heads to consider</param>
+        /// <param name="sigfn">SignalFunctionType of the signal heads to consider</param>
         /// <param name="mostRestrictive">Get most restrictive instead of least restrictive</param>
         /// <param name="checkRouting">If looking for most restrictive aspect, consider only heads with the route link activated</param>
         public SignalAspectState IdSignalAspect(int id, string sigfn, bool mostRestrictive = false, bool checkRouting = false)

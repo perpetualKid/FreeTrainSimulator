@@ -488,9 +488,9 @@ namespace Orts.Simulation.RollingStocks.SubSystems.ControlSystems
             {
                 foreach (var signalHead in signal.SignalHeads)
                 {
-                    if (signalHead.SignalType.SignalFunction == SignalFunction.Distance)
+                    if (signalHead.SignalType.SignalFunction == SignalFunctionType.Distance)
                     {
-                        return SignalEnvironment.TranslateToTCSAspect(signal.SignalLR(SignalFunction.Distance));
+                        return SignalEnvironment.TranslateToTCSAspect(signal.SignalLR(SignalFunctionType.Distance));
                     }
                 }
             }
@@ -510,7 +510,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.ControlSystems
                 {
                     foreach (var signalHead in signal.SignalHeads)
                     {
-                        if (signalHead.SignalType.SignalFunction != SignalFunction.Distance &&
+                        if (signalHead.SignalType.SignalFunction != SignalFunctionType.Distance &&
                             signalHead.SignalType.Aspects.Count == 2 &&
                             signalHead.SignalType.Aspects[0].Aspect == 0 &&
                                 ((int)signalHead.SignalType.Aspects[1].Aspect == 7 ||
@@ -556,7 +556,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.ControlSystems
                 Locomotive.Train.ValidRoutes[dir].GetRouteIndex(Locomotive.Train.PresentPosition[dir].TrackCircuitSectionIndex, 0);
             if (index < 0)
                 return SignalFeatures.None;
-            int fn_type = SignalTypeRegistry.Instance.TryGetFunction(signalFunctionTypeName, out SignalFunction fnId) ? fnId.Index : -1;
+            int fn_type = SignalTypeRegistry.Instance.TryGetFunction(signalFunctionTypeName, out SignalFunctionType fnId) ? fnId.Index : -1;
             if (fn_type == -1) // check for not existing signal type
                 return SignalFeatures.None;
 
@@ -647,7 +647,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.ControlSystems
             {
                 foreach (SignalHead signalHead in signal.SignalHeads)
                 {
-                    if (signalHead.SignalType.SignalFunction == SignalFunction.Repeater)
+                    if (signalHead.SignalType.SignalFunction == SignalFunctionType.Repeater)
                         return true;
                 }
                 return false;

@@ -94,7 +94,7 @@ namespace Orts.Formats.Msts.Models
         /// allocated script
         public string Script { get; private set; } = string.Empty;
         /// <summary>Extensible signal function type identifier (covers both MSTS and custom ORTS function types).</summary>
-        public SignalFunction SignalFunction { get; private set; }
+        public SignalFunctionType SignalFunction { get; private set; }
         /// <summary>Extensible normal subtype identifier for Normal signals.</summary>
         public SignalNormalSubType NormalSubType { get; private set; }
         /// <summary>Unknown, used at least in Marias Pass route</summary>
@@ -156,7 +156,7 @@ namespace Orts.Formats.Msts.Models
         /// <summary>
         /// Constructor for dummy entries
         /// </summary>
-        public SignalType(SignalFunction function, SignalAspectState aspect)
+        public SignalType(SignalFunctionType function, SignalAspectState aspect)
             : this()
         {
             SignalFunction = function;
@@ -186,7 +186,7 @@ namespace Orts.Formats.Msts.Models
             int numdefs = 0;
             string ortsFunctionType = string.Empty;
             string ortsNormalSubType = string.Empty;
-            SignalFunction parsedFunctionType = SignalFunction.Info;
+            SignalFunctionType parsedFunctionType = SignalFunctionType.Info;
 
             stf.ParseBlock(new STFReader.TokenProcessor[] {
                 new STFReader.TokenProcessor("ortsscript", ()=>{ Script = stf.ReadStringBlock(""); }),
@@ -230,9 +230,9 @@ namespace Orts.Formats.Msts.Models
             if (compatibilityMode == CompatibilityMode.Enhanced)
             {
                 // resolve function type via registry
-                SignalFunction = SignalTypeRegistry.Instance.TryGetFunction(ortsFunctionType, out SignalFunction signalFunction)
+                SignalFunction = SignalTypeRegistry.Instance.TryGetFunction(ortsFunctionType, out SignalFunctionType signalFunction)
                     ? signalFunction
-                    : SignalFunction.Info;
+                    : SignalFunctionType.Info;
 
                 // resolve normal subtype via registry
                 NormalSubType = SignalTypeRegistry.Instance.TryGetNormalSubType(ortsNormalSubType, out SignalNormalSubType signalSubType)
@@ -262,15 +262,15 @@ namespace Orts.Formats.Msts.Models
             }
         }
 
-        private static SignalFunction ReadFunctionType(STFReader stf)
+        private static SignalFunctionType ReadFunctionType(STFReader stf)
         {
             string signalType = stf.ReadStringBlock(null);
-            if (SignalTypeRegistry.Instance.TryGetFunction(signalType, out SignalFunction result))
+            if (SignalTypeRegistry.Instance.TryGetFunction(signalType, out SignalFunctionType result))
             {
                 return result;
             }
             STFException.TraceInformation(stf, $"Skipped unknown SignalFnType {signalType}");
-            return SignalFunction.Info;
+            return SignalFunctionType.Info;
         }
 
         private static string ReadOrtsFunctionType(STFReader stf)
@@ -283,7 +283,7 @@ namespace Orts.Formats.Msts.Models
             else
             {
                 STFException.TraceInformation(stf, "Skipped unknown ORTSSignalFnType " + type);
-                return nameof(SignalFunction.Info);
+                return nameof(SignalFunctionType.Info);
             }
         }
 

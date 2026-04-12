@@ -26,7 +26,7 @@ namespace Orts.Simulation.Signalling
         private CsSignalScript csSignalScript;
 
         /// <summary>Extensible signal function type identifier.</summary>
-        public SignalFunction SignalFunction { get; private set; } = SignalFunction.Unknown;
+        public SignalFunctionType SignalFunction { get; private set; } = SignalFunctionType.Unknown;
 
         public Formats.Msts.Models.SignalType SignalType { get; private set; }
 
@@ -87,8 +87,8 @@ namespace Orts.Simulation.Signalling
             TDBIndex = tbdRef;
             DrawState = 1;
             SignalIndicationState = SignalAspectState.Clear2;
-            SignalType = new Formats.Msts.Models.SignalType(SignalFunction.Speed, SignalAspectState.Clear2);
-            SignalFunction = SignalFunction.Speed;
+            SignalType = new Formats.Msts.Models.SignalType(SignalFunctionType.Speed, SignalAspectState.Clear2);
+            SignalFunction = SignalFunctionType.Speed;
 
             double speedMpS = Speed.MeterPerSecond.ToMpS(speedItem.Distance, !speedItem.IsMPH);
             if (speedItem.IsResume)
@@ -142,7 +142,7 @@ namespace Orts.Simulation.Signalling
 
                     // update overall SignalNumClearAhead
 
-                    if (SignalFunction == SignalFunction.Normal)
+                    if (SignalFunction == SignalFunctionType.Normal)
                     {
                         if (SignalType.ClearAheadMode != CompatibilityMode.None)
                         {
@@ -325,7 +325,7 @@ namespace Orts.Simulation.Signalling
 
             // ensure next signal of type 1 is located correctly (cannot be done for normal signals searching next normal signal)
 
-            if (!thisSignal.SignalNormal() || signalType != SignalFunction.Normal)
+            if (!thisSignal.SignalNormal() || signalType != SignalFunctionType.Normal)
             {
                 thisSignal.Signalfound[signalType] = thisSignal.SONextSignal(signalType);
             }
@@ -339,13 +339,13 @@ namespace Orts.Simulation.Signalling
                 SignalAspectState thisState = thisSignal.MRSignalOnRoute(signalType);
 
                 // ensure correct next signals are located
-                if (signalType != SignalFunction.Normal || !thisSignal.SignalNormal())
+                if (signalType != SignalFunctionType.Normal || !thisSignal.SignalNormal())
                 {
                     int sigFound = thisSignal.SONextSignal(signalType);
                     if (sigFound >= 0)
                         thisSignal.Signalfound[(int)signalType] = thisSignal.SONextSignal(signalType);
                 }
-                if (signalTypeOther != SignalFunction.Normal || !thisSignal.SignalNormal())
+                if (signalTypeOther != SignalFunctionType.Normal || !thisSignal.SignalNormal())
                 {
                     int sigFound = thisSignal.SONextSignal(signalTypeOther);
                     if (sigFound >= 0)
@@ -390,7 +390,7 @@ namespace Orts.Simulation.Signalling
 
             // ensure next signal of type 1 is located correctly (cannot be done for normal signals searching next normal signal)
 
-            if (!thisSignal.SignalNormal() || signalType != SignalFunction.Normal)
+            if (!thisSignal.SignalNormal() || signalType != SignalFunctionType.Normal)
             {
                 thisSignal.Signalfound[signalType] = thisSignal.SONextSignal(signalType);
             }
@@ -404,13 +404,13 @@ namespace Orts.Simulation.Signalling
                 SignalAspectState thisState = thisSignal.SignalLRLimited(signalType);
 
                 // ensure correct next signals are located
-                if (signalType != SignalFunction.Normal || !thisSignal.SignalNormal())
+                if (signalType != SignalFunctionType.Normal || !thisSignal.SignalNormal())
                 {
                     int sigFound = thisSignal.SONextSignal(signalType);
                     if (sigFound >= 0)
                         thisSignal.Signalfound[signalType] = thisSignal.SONextSignal(signalType);
                 }
-                if (signalTypeOther != SignalFunction.Normal || !thisSignal.SignalNormal())
+                if (signalTypeOther != SignalFunctionType.Normal || !thisSignal.SignalNormal())
                 {
                     int sigFound = thisSignal.SONextSignal(signalTypeOther);
                     if (sigFound >= 0)

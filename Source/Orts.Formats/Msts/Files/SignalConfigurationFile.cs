@@ -126,7 +126,7 @@ namespace Orts.Formats.Msts.Files
                     {
                         string functionType = stf.ReadString();
                         // check against predefined MSTS types
-                        if (SignalTypeRegistry.Instance.TryGetFunction(functionType, out SignalFunction existingId) && existingId.MstsSignalFunction)
+                        if (SignalTypeRegistry.Instance.TryGetFunction(functionType, out SignalFunctionType existingId) && existingId.MstsSignalFunction)
                         {
                             STFException.TraceWarning(stf, "Invalid definition of ORTSFunctionType, type is equal to MSTS defined type : " + functionType);
                         }

@@ -2582,7 +2582,7 @@ namespace Orts.Simulation.Timetables
                 if (nextActionInfo != null && nextActionInfo.ActiveItem != null &&
                     nextActionInfo.ActiveItem.SignalDetails == NextSignalObjects[Direction.Forward])
                 {
-                    nextAspect = nextActionInfo.ActiveItem.SignalDetails.SignalLR(SignalFunction.Normal);
+                    nextAspect = nextActionInfo.ActiveItem.SignalDetails.SignalLR(SignalFunctionType.Normal);
                 }
                 else
                 {
@@ -2650,7 +2650,7 @@ namespace Orts.Simulation.Timetables
                                 {
                                     // set this signal as passed, and next signal as waiting
                                     signalCleared = false;   // signal is not clear
-                                    int nextSignalIndex = NextSignalObjects[Direction.Forward].Signalfound[SignalFunction.Normal];
+                                    int nextSignalIndex = NextSignalObjects[Direction.Forward].Signalfound[SignalFunctionType.Normal];
                                     if (nextSignalIndex >= 0)
                                     {
                                         NextSignalObjects[Direction.Forward] = Simulator.Instance.SignalEnvironment.Signals[nextSignalIndex];
@@ -3222,7 +3222,7 @@ namespace Orts.Simulation.Timetables
                 {
                     nextActionInfo.NextAction = AiActionType.SignalAspectRestricted;
                     if (((nextActionInfo.ActivateDistanceM - PresentPosition[Direction.Forward].DistanceTravelled) < SignalApproachDistance) ||
-                         nextActionInfo.ActiveItem.SignalDetails.SignalNoSpeedReduction(SignalFunction.Normal))
+                         nextActionInfo.ActiveItem.SignalDetails.SignalNoSpeedReduction(SignalFunctionType.Normal))
                     {
                         clearAction = true;
                     }
@@ -3235,7 +3235,7 @@ namespace Orts.Simulation.Timetables
             {
                 if ((nextActionInfo.ActiveItem.SignalState >= SignalAspectState.Approach1) ||
                    ((nextActionInfo.ActivateDistanceM - PresentPosition[Direction.Forward].DistanceTravelled) < SignalApproachDistance) ||
-                   (nextActionInfo.ActiveItem.SignalDetails.SignalNoSpeedReduction(SignalFunction.Normal)))
+                   (nextActionInfo.ActiveItem.SignalDetails.SignalNoSpeedReduction(SignalFunctionType.Normal)))
                 {
                     clearAction = true;
                 }
@@ -3321,7 +3321,7 @@ namespace Orts.Simulation.Timetables
                     // check if station has exit signal and if signal is clear
                     // if signal is at stop, check if stop position is sufficiently clear of signal
 
-                    if (NextSignalObjects[Direction.Forward] != null && NextSignalObjects[Direction.Forward].SignalLR(SignalFunction.Normal) == SignalAspectState.Stop)
+                    if (NextSignalObjects[Direction.Forward] != null && NextSignalObjects[Direction.Forward].SignalLR(SignalFunctionType.Normal) == SignalAspectState.Stop)
                     {
                         float reqsignaldistance = StationStops[0].CloseupSignal ? keepDistanceCloseupSignalM : SignalApproachDistance;
                         if (distanceToGoM > DistanceToSignal.Value - reqsignaldistance)
@@ -8723,7 +8723,7 @@ namespace Orts.Simulation.Timetables
                             else if (!MayDepart)
                             {
                                 // check if signal ahead is cleared - if not, and signal is station exit signal, do not allow depart
-                                if (NextSignalObjects[Direction.Forward] != null && NextSignalObjects[Direction.Forward].SignalLR(SignalFunction.Normal) == SignalAspectState.Stop
+                                if (NextSignalObjects[Direction.Forward] != null && NextSignalObjects[Direction.Forward].SignalLR(SignalFunctionType.Normal) == SignalAspectState.Stop
                                     && NextSignalObjects[Direction.Forward].OverridePermission != SignalPermission.Granted && !StationStops[0].NoWaitSignal
                                     && NextSignalObjects[Direction.Forward].Index == StationStops[0].ExitSignal)
                                 {

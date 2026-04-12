@@ -514,7 +514,7 @@ namespace Orts.ActivityRunner.Viewer3D
 
                     if (mstsSignalType.Semaphore)
                         glowDay = 0.0f;
-                    if (mstsSignalType.SignalFunction == SignalFunction.Info || mstsSignalType.SignalFunction == SignalFunction.Shunting) // These are good at identifying theatre boxes.
+                    if (mstsSignalType.SignalFunction == SignalFunctionType.Info || mstsSignalType.SignalFunction == SignalFunctionType.Shunting) // These are good at identifying theatre boxes.
                         glowDay = glowNight = 0.0f;
 
                     // use values from signal if defined

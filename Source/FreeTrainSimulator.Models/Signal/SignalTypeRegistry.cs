@@ -21,13 +21,13 @@ namespace FreeTrainSimulator.Models.Signal
         private static SignalTypeRegistry instance;
 
         // Mutable dictionaries for registration phase, nulled after Freeze()
-        private Dictionary<string, SignalFunction> mutableFunctionLookup;
+        private Dictionary<string, SignalFunctionType> mutableFunctionLookup;
         private Dictionary<string, SignalNormalSubType> mutableSubTypeLookup;
         private Dictionary<string, SignalSubObjectType> mutableSubObjectTypeLookup;
 
         // Active dictionary references — backed by mutable Dictionary during init,
         // swapped to FrozenDictionary after Freeze()
-        private IReadOnlyDictionary<string, SignalFunction> functionLookup;
+        private IReadOnlyDictionary<string, SignalFunctionType> functionLookup;
         private IReadOnlyDictionary<string, SignalNormalSubType> subTypeLookup;
         private IReadOnlyDictionary<string, SignalSubObjectType> subObjectTypeLookup;
 
@@ -56,14 +56,14 @@ namespace FreeTrainSimulator.Models.Signal
 
         /// <summary>
         /// Initializes a fresh registry pre-loaded with the predefined MSTS function types.
-        /// Ordinals are guaranteed to match <see cref="SignalFunction"/> static constants.
+        /// Ordinals are guaranteed to match <see cref="SignalFunctionType"/> static constants.
         /// </summary>
         public static SignalTypeRegistry Initialize()
         {
             SignalTypeRegistry registry = new SignalTypeRegistry();
 
             // Register predefined types to match SignalFunctionId constants
-            foreach (string name in SignalFunction.MstsNames)
+            foreach (string name in SignalFunctionType.MstsNames)
             {
                 _ = registry.RegisterFunction(name);
             }
@@ -82,13 +82,13 @@ namespace FreeTrainSimulator.Models.Signal
         /// Registers a custom signal function type. Returns the existing id if already registered.
         /// </summary>
         /// <exception cref="InvalidOperationException">Thrown if registry is frozen.</exception>
-        public SignalFunction RegisterFunction(string name)
+        public SignalFunctionType RegisterFunction(string name)
         {
             ThrowIfFrozen();
-            if (mutableFunctionLookup.TryGetValue(name, out SignalFunction existing))
+            if (mutableFunctionLookup.TryGetValue(name, out SignalFunctionType existing))
                 return existing;
 
-            SignalFunction id = new SignalFunction(mutableFunctionLookup.Count);
+            SignalFunctionType id = new SignalFunctionType(mutableFunctionLookup.Count);
             mutableFunctionLookup[name] = id;
             return id;
         }
@@ -145,7 +145,7 @@ namespace FreeTrainSimulator.Models.Signal
         }
 
         /// <summary>Looks up a function type by name.</summary>
-        public bool TryGetFunction(string name, out SignalFunction id) => functionLookup.TryGetValue(name, out id);
+        public bool TryGetFunction(string name, out SignalFunctionType id) => functionLookup.TryGetValue(name, out id);
 
         /// <summary>Looks up a normal subtype by name.</summary>
         public bool TryGetNormalSubType(string name, out SignalNormalSubType id) => subTypeLookup.TryGetValue(name, out id);
@@ -163,9 +163,9 @@ namespace FreeTrainSimulator.Models.Signal
         public bool ContainsSubObjectType(string name) => subObjectTypeLookup.ContainsKey(name);
 
         /// <summary>Returns the registered name for a function type identifier.</summary>
-        public string GetFunctionName(SignalFunction id)
+        public string GetFunctionName(SignalFunctionType id)
         {
-            foreach (KeyValuePair<string, SignalFunction> entry in functionLookup)
+            foreach (KeyValuePair<string, SignalFunctionType> entry in functionLookup)
             {
                 if (entry.Value.Index == id.Index)
                     return entry.Key;

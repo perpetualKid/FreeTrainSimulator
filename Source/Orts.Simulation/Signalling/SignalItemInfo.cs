@@ -65,7 +65,7 @@ namespace Orts.Simulation.Signalling
             {
                 ItemType = SignalItemType.SpeedLimit;
                 SignalState = SignalAspectState.Unknown;
-                SpeedInfo = signal.SpeedLimit(SignalFunction.Speed);
+                SpeedInfo = signal.SpeedLimit(SignalFunctionType.Speed);
             }
         }
 
@@ -108,7 +108,7 @@ namespace Orts.Simulation.Signalling
             ActualSpeed = saveState.ActualSpeed;
 
             Processed = saveState.Processed;
-            SignalState = SignalDetails.SignalType == SignalCategory.Signal ? SignalDetails.SignalLR(SignalFunction.Normal) : SignalAspectState.Unknown;
+            SignalState = SignalDetails.SignalType == SignalCategory.Signal ? SignalDetails.SignalLR(SignalFunctionType.Normal) : SignalAspectState.Unknown;
 
             return ValueTask.CompletedTask;
         }

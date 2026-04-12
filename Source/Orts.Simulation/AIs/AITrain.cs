@@ -817,7 +817,7 @@ namespace Orts.Simulation.AIs
                         }
                         else if (thisInfo.DistanceToTrain > 2.0f * SignalApproachDistance) // set restricted only if not close
                         {
-                            if (!thisInfo.SignalDetails.SignalNoSpeedReduction(SignalFunction.Normal))
+                            if (!thisInfo.SignalDetails.SignalNoSpeedReduction(SignalFunctionType.Normal))
                             {
                                 CreateTrainAction(validSpeed, 0.0f,
                                         thisInfo.DistanceToTrain, thisInfo,
@@ -1187,7 +1187,7 @@ namespace Orts.Simulation.AIs
                     nextActionInfo.ActiveItem.SignalDetails == NextSignalObjects[Direction.Forward])
                 {
                     nextSignal = nextActionInfo.ActiveItem.SignalDetails;
-                    nextAspect = nextSignal.SignalLR(SignalFunction.Normal);
+                    nextAspect = nextSignal.SignalLR(SignalFunctionType.Normal);
                 }
                 else
                 {
@@ -1639,7 +1639,7 @@ namespace Orts.Simulation.AIs
                 {
                     nextActionInfo.NextAction = AiActionType.SignalAspectRestricted;
                     if (((nextActionInfo.ActivateDistanceM - PresentPosition[Direction.Forward].DistanceTravelled) < SignalApproachDistance) ||
-                         nextActionInfo.ActiveItem.SignalDetails.SignalNoSpeedReduction(SignalFunction.Normal))
+                         nextActionInfo.ActiveItem.SignalDetails.SignalNoSpeedReduction(SignalFunctionType.Normal))
                     {
                         clearAction = true;
                     }
@@ -1652,7 +1652,7 @@ namespace Orts.Simulation.AIs
             {
                 if ((nextActionInfo.ActiveItem.SignalState >= SignalAspectState.Approach1) ||
                    ((nextActionInfo.ActivateDistanceM - PresentPosition[Direction.Forward].DistanceTravelled) < SignalApproachDistance) ||
-                   (nextActionInfo.ActiveItem.SignalDetails.SignalNoSpeedReduction(SignalFunction.Normal)))
+                   (nextActionInfo.ActiveItem.SignalDetails.SignalNoSpeedReduction(SignalFunctionType.Normal)))
                 {
                     clearAction = true;
                 }
@@ -4249,7 +4249,7 @@ namespace Orts.Simulation.AIs
                 {
                     thisItem.NextAction = AiActionType.SignalAspectRestricted;
                     if (((thisItem.ActivateDistanceM - PresentPosition[Direction.Forward].DistanceTravelled) < SignalApproachDistance) ||
-                         thisItem.ActiveItem.SignalDetails.SignalNoSpeedReduction(SignalFunction.Normal))
+                         thisItem.ActiveItem.SignalDetails.SignalNoSpeedReduction(SignalFunctionType.Normal))
                     {
                         actionValid = false;
                         actionCleared = true;
@@ -4780,7 +4780,7 @@ namespace Orts.Simulation.AIs
                                     distanceToNextSignal = SignalDistanceTo(NextSignalObjects[Direction.Forward], FrontTrackTraveller);
                                 // check if signal ahead is cleared - if not, do not allow depart
                                 if (NextSignalObjects[Direction.Forward] != null && distanceToNextSignal >= 0 && distanceToNextSignal < 300 &&
-                                        NextSignalObjects[Direction.Forward].SignalLR(SignalFunction.Normal) == SignalAspectState.Stop
+                                        NextSignalObjects[Direction.Forward].SignalLR(SignalFunctionType.Normal) == SignalAspectState.Stop
                                     && NextSignalObjects[Direction.Forward].OverridePermission != SignalPermission.Granted)
                                 {
                                     DisplayMessage = Simulator.Catalog.GetString("Passenger boarding completed. Waiting for signal ahead to clear.");
