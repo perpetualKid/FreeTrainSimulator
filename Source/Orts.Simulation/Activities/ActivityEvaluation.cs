@@ -11,6 +11,8 @@ using FreeTrainSimulator.Common.Api;
 using FreeTrainSimulator.Common.Info;
 using FreeTrainSimulator.Common.Logging;
 using FreeTrainSimulator.Models.Imported.State;
+using FreeTrainSimulator.Models.Track;
+using FreeTrainSimulator.Runtime;
 
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Models;
@@ -273,7 +275,7 @@ namespace Orts.Simulation.Activities
                 {
                     stopTasks.Add(new PassengerStopTask()
                     {
-                        StationName = stopTask.PlatformEnd1.Station,
+                        StationName = stopTask.PlatformEnd1.StationName,
                         ScheduledArrival = stopTask.ScheduledArrival.ToString(),
                         ActualArrival = stopTask.ActualArrival.HasValue ? stopTask.ActualArrival.Value.ToString() : null,
                         ScheduledDeparture = stopTask.ScheduledDeparture.ToString(),
@@ -345,7 +347,7 @@ namespace Orts.Simulation.Activities
                                 {
                                     int sidingId = eventAction.Type == EventType.AssembleTrainAtLocation || eventAction.Type == EventType.DropOffWagonsAtLocation
                                         ? eventAction.SidingId : wagonItem.SidingId;
-                                    string location = RuntimeData.Instance.TrackDB.TrackItems.OfType<SidingItem>().Where((siding) => siding.TrackItemId == sidingId).FirstOrDefault()?.ItemName;
+                                    string location = RuntimeDataResolver.Instance.TrackWorld.TrackModel.TrackDatabase.TrackItems.OfType<SidingTrackItem>().Where((siding) => siding.TrackItemIndex == sidingId).FirstOrDefault()?.SidingName;
 
                                     if (activityEvent.ActivityLocation != location)
                                         activityEvent.ActivityLocation = location;

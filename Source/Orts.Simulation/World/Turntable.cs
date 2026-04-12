@@ -126,18 +126,26 @@ namespace Orts.Simulation.World
                 trackVectorSectionsIndex[i] = -1;
                 i++;
             }
-            foreach (TrackVectorNode tvn in RuntimeData.Instance.TrackDB.TrackNodes.VectorNodes)
+            foreach (VectorNode tvn in RuntimeDataResolver.Instance.TrackWorld.TrackModel.TrackDatabase.VectorNodes)
             {
-                if (tvn.TrackVectorSections != null)
+                if (!tvn.VectorSections.IsDefaultOrEmpty)
                 {
-                    int trackVectorSection = Array.FindIndex(tvn.TrackVectorSections, trVectorSection => trVectorSection.Location.Tile == WorldPosition.Tile && trVectorSection.WorldFileUiD == UID);
-                    if (trackVectorSection >= 0)
-                        if (tvn.TrackVectorSections.Length > (int)nSections)
+                    int trackVectorSection = -1;
+                    for (int j = 0; j < tvn.VectorSections.Length; j++)
+                    {
+                        if (tvn.VectorSections[j].Tile == WorldPosition.Tile && tvn.VectorSections[j].WorldId == UID)
                         {
-                            i = tvn.TrackVectorSections[trackVectorSection].Flag1 / 2;
-                            trackNodesIndex[i] = tvn.Index;
+                            trackVectorSection = j;
+                            break;
+                        }
+                    }
+                    if (trackVectorSection >= 0)
+                        if (tvn.VectorSections.Length > (int)nSections)
+                        {
+                            i = tvn.VectorSections[trackVectorSection].Flag1 / 2;
+                            trackNodesIndex[i] = tvn.NodeIndex;
                             trackVectorSectionsIndex[i] = trackVectorSection;
-                            trackNodesOrientation[i] = tvn.TrackVectorSections[trackVectorSection].Flag1 % 2 == 0;
+                            trackNodesOrientation[i] = tvn.VectorSections[trackVectorSection].Flag1 % 2 == 0;
 
                         }
                 }

@@ -27,6 +27,8 @@ using FreeTrainSimulator.Common.Api;
 using FreeTrainSimulator.Common.Calc;
 using FreeTrainSimulator.Models.Imported.State;
 using FreeTrainSimulator.Models.Signalling;
+using FreeTrainSimulator.Models.Track;
+using FreeTrainSimulator.Runtime;
 
 using Microsoft.Xna.Framework;
 
@@ -76,8 +78,8 @@ namespace Orts.Simulation.Activities
         public TimeSpan ScheduledDeparture { get; private set; }
         public TimeSpan? ActualArrival { get; private set; }
         public TimeSpan? ActualDeparture { get; private set; }
-        public PlatformItem PlatformEnd1 { get; private set; }
-        public PlatformItem PlatformEnd2 { get; private set; }
+        public PlatformTrackItem PlatformEnd1 { get; private set; }
+        public PlatformTrackItem PlatformEnd2 { get; private set; }
 
         internal double BoardingS { get; private set; }   // MSTS calls this the Load/Unload time. Cargo gets loaded, but passengers board the train.
         internal double BoardingEndS { get; private set; }
@@ -92,7 +94,7 @@ namespace Orts.Simulation.Activities
 
         private bool debriefEvalDepartBeforeBoarding;//Debrief Eval
 
-        public ActivityTaskPassengerStopAt(ActivityTask prev, int arrivalTime, int departureTime, PlatformItem platformStart, PlatformItem platformeEnd)
+        public ActivityTaskPassengerStopAt(ActivityTask prev, int arrivalTime, int departureTime, PlatformTrackItem platformStart, PlatformTrackItem platformeEnd)
         {
             ScheduledArrival = TimeSpan.FromSeconds(arrivalTime);
             ScheduledDeparture = TimeSpan.FromSeconds(departureTime);
@@ -154,11 +156,11 @@ namespace Orts.Simulation.Activities
                             // <CSComment> No midnight checks here? There are some in Train.CalculateDepartTime
                             double plannedBoardingS = (ScheduledDeparture - ScheduledArrival).TotalSeconds;
                             double punctualBoardingS = (ScheduledDeparture - ActualArrival.GetValueOrDefault(ScheduledArrival)).TotalSeconds;
-                            double expectedBoardingS = plannedBoardingS > 0 ? plannedBoardingS : PlatformEnd1.PlatformMinWaitingTime;
+                            double expectedBoardingS = plannedBoardingS > 0 ? plannedBoardingS : PlatformEnd1.MinWaitingTime;
                             BoardingS = punctualBoardingS;                                     // default is leave on time
                             if (punctualBoardingS < expectedBoardingS)                         // if not enough time for boarding
                             {
-                                if (plannedBoardingS > 0 && plannedBoardingS < PlatformEnd1.PlatformMinWaitingTime)
+                                if (plannedBoardingS > 0 && plannedBoardingS < PlatformEnd1.MinWaitingTime)
                                 { // and tight schedule
                                     BoardingS = plannedBoardingS;                              // leave late with no recovery of time
                                 }
@@ -166,7 +168,7 @@ namespace Orts.Simulation.Activities
                                 {                                                       // generous schedule
                                     BoardingS = Math.Max(
                                         punctualBoardingS,                                     // leave on time
-                                        PlatformEnd1.PlatformMinWaitingTime);                  // leave late with some recovery
+                                        PlatformEnd1.MinWaitingTime);                  // leave late with some recovery
                                 }
                             }
                             // ActArrive is usually same as ClockTime
@@ -222,13 +224,13 @@ namespace Orts.Simulation.Activities
                         // Completeness depends on the elapsed waiting time
                         IsCompleted = maydepart;
                         if (playerTrain.TrainType != TrainType.AiPlayerHosting)
-                            playerTrain.ClearStation(PlatformEnd1.LinkedPlatformItemId, PlatformEnd2.LinkedPlatformItemId, true);
+                            playerTrain.ClearStation(PlatformEnd1.LinkedPlatformItem, PlatformEnd2.LinkedPlatformItem, true);
 
                         if (logStationStops)
                         {
                             StringBuilder stringBuild = new StringBuilder();
                             char separator = (char)simulator.UserSettings.DataLogSeparator;
-                            stringBuild.Append(PlatformEnd1.Station);
+                            stringBuild.Append(PlatformEnd1.StationName);
                             stringBuild.Append(separator);
                             stringBuild.Append(ScheduledArrival.ToString("c"));
                             stringBuild.Append(separator);
@@ -262,7 +264,7 @@ namespace Orts.Simulation.Activities
 
                         if (remaining < 120 && (playerTrain.TrainType != TrainType.AiPlayerHosting))
                         {
-                            playerTrain.ClearStation(PlatformEnd1.LinkedPlatformItemId, PlatformEnd2.LinkedPlatformItemId, false);
+                            playerTrain.ClearStation(PlatformEnd1.LinkedPlatformItem, PlatformEnd2.LinkedPlatformItem, false);
                         }
 
                         // Still have to wait
@@ -308,7 +310,7 @@ namespace Orts.Simulation.Activities
                                 {
                                     StringBuilder stringBuild = new StringBuilder();
                                     char separator = (char)simulator.UserSettings.DataLogSeparator;
-                                    stringBuild.Append(PlatformEnd1.Station);
+                                    stringBuild.Append(PlatformEnd1.StationName);
                                     stringBuild.Append(separator);
                                     stringBuild.Append(ScheduledArrival.ToString("hh\\:mm\\:ss", CultureInfo.InvariantCulture));
                                     stringBuild.Append(separator);
@@ -339,14 +341,14 @@ namespace Orts.Simulation.Activities
                         {
                             if (TrainMissedStation() && (playerTrain.TrainType != TrainType.AiPlayerHosting))
                             {
-                                playerTrain.ClearStation(PlatformEnd1.LinkedPlatformItemId, PlatformEnd2.LinkedPlatformItemId, true);
+                                playerTrain.ClearStation(PlatformEnd1.LinkedPlatformItem, PlatformEnd2.LinkedPlatformItem, true);
                                 IsCompleted = false;
 
                                 if (logStationStops)
                                 {
                                     StringBuilder stringBuild = new StringBuilder();
                                     char separator = (char)simulator.UserSettings.DataLogSeparator;
-                                    stringBuild.Append(PlatformEnd1.Station);
+                                    stringBuild.Append(PlatformEnd1.StationName);
                                     stringBuild.Append(separator);
                                     stringBuild.Append(ScheduledArrival.ToString("c"));
                                     stringBuild.Append(separator);
@@ -376,8 +378,8 @@ namespace Orts.Simulation.Activities
             result.ScheduledDeparture = ScheduledDeparture;
             result.ActualArrival = ActualArrival;
             result.ActualDeparture = ActualDeparture;
-            result.PlatformEnd1 = PlatformEnd1.TrackItemId;
-            result.PlatformEnd2 = PlatformEnd2.TrackItemId;
+            result.PlatformEnd1 = PlatformEnd1.TrackItemIndex;
+            result.PlatformEnd2 = PlatformEnd2.TrackItemIndex;
             result.BooardingTime = BoardingS;
             result.BooardingTime = BoardingEndS;
             result.TimerCheck = timerChk;
@@ -394,8 +396,8 @@ namespace Orts.Simulation.Activities
             ScheduledDeparture = saveState.ScheduledDeparture;
             ActualArrival = saveState.ActualArrival;
             ActualDeparture = saveState.ActualDeparture;
-            PlatformEnd1 = RuntimeData.Instance.TrackDB.TrackItems[saveState.PlatformEnd1] as PlatformItem;
-            PlatformEnd2 = RuntimeData.Instance.TrackDB.TrackItems[saveState.PlatformEnd2] as PlatformItem;
+            PlatformEnd1 = RuntimeDataResolver.Instance.TrackWorld.TrackModel.TrackDatabase.TrackItems[saveState.PlatformEnd1] as PlatformTrackItem;
+            PlatformEnd2 = RuntimeDataResolver.Instance.TrackWorld.TrackModel.TrackDatabase.TrackItems[saveState.PlatformEnd2] as PlatformTrackItem;
             BoardingS = saveState.BooardingTime;
             BoardingEndS = saveState.BoardingEndTime;
             timerChk = saveState.TimerCheck;

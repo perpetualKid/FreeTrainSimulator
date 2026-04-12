@@ -171,7 +171,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
                         {
                             Label actualArrival, actualDeparture;
                             line = activityTimetableScrollbox.AddLayoutHorizontalLineOfText();
-                            line.Add(new Label(this, columnWidth * 3, line.RemainingHeight, activityTask.PlatformEnd1.Station));
+                            line.Add(new Label(this, columnWidth * 3, line.RemainingHeight, activityTask.PlatformEnd1.StationName));
                             line.Add(new Label(this, columnWidth, line.RemainingHeight, $"{activityTask.ScheduledArrival}", HorizontalAlignment.Center));
                             line.Add(actualArrival = new Label(this, columnWidth, line.RemainingHeight,
                                 $"{(activityTask.ActualArrival.HasValue ? activityTask.ActualArrival : activityTask.IsCompleted.HasValue && activityTask.NextTask != null ? Catalog.GetString("(missed)") : string.Empty)}", HorizontalAlignment.Center)
@@ -375,7 +375,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
                             foreach (ActivityTaskPassengerStopAt item in Simulator.Instance.ActivityRun.Tasks.OfType<ActivityTaskPassengerStopAt>().Where((stopTask) => !(stopTask.ActualArrival.HasValue || !stopTask.ActualDeparture.HasValue) && stopTask.IsCompleted.HasValue && stopTask.NextTask != null))
                             {
                                 ControlLayout line = evaluationLayoutContainer.AddLayoutHorizontalLineOfText();
-                                line.Add(new Label(this, columnWidth, line.RemainingHeight, $"\t{item.PlatformEnd1.ItemName}") { TextColor = Color.LightSalmon });
+                                line.Add(new Label(this, columnWidth, line.RemainingHeight, $"\t{item.PlatformEnd1.PlatformName}") { TextColor = Color.LightSalmon });
                             }
                             evaluationLayoutContainer.AddHorizontalSeparator();
                             AddEvaluationLine(evaluationLayoutContainer, "Work orders:", null);

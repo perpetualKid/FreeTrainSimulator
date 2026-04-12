@@ -7,7 +7,7 @@ namespace FreeTrainSimulator.Common
     public interface IRuntimeReferenceResolver
     {
         ISignal SignalById(int signalId);
-        IJunction SwitchById(int switchId);
+
         /// <summary>
         /// Resolves an <see cref="IJunction"/> by the track node index of the junction node
         /// </summary>

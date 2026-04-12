@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 
@@ -7,11 +8,11 @@ using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Calc;
 using FreeTrainSimulator.Common.Position;
 using FreeTrainSimulator.Models.Track;
+using FreeTrainSimulator.Runtime;
 using FreeTrainSimulator.Runtime.Track;
 
 using Microsoft.Xna.Framework;
 
-using Orts.Formats.Msts;
 using Orts.Formats.Msts.Models;
 
 namespace Orts.Simulation.World
@@ -46,12 +47,12 @@ namespace Orts.Simulation.World
             Debug.Assert(TrackMergeDistance >= 2 * (RampLength + TrackHalfWidth), "TrackMergeDistance is less than 2 * (RampLength + TrackHalfWidth); vertical inconsistencies will occur at close, but not merged, tracks.");
             CarSpawnerObj = carSpawnerObj;
 
-            if (RuntimeData.Instance.RoadTrackDB == null || Simulator.Instance.CarSpawnerLists == null)
+            if (RuntimeDataResolver.Instance.TrackWorld.TrackModel.RoadDatabase == null || Simulator.Instance.CarSpawnerLists == null)
                 throw new InvalidOperationException("RoadCarSpawner requires a RDB and CARSPAWN.DAT");
 
             int start = CarSpawnerObj.TrackItemIds.RoadDbItems.Count > 0 ? CarSpawnerObj.TrackItemIds.RoadDbItems[0] : -1;
             int end = CarSpawnerObj.TrackItemIds.RoadDbItems.Count > 1 ? CarSpawnerObj.TrackItemIds.RoadDbItems[1] : -1;
-            List<TrackItem> trItems = RuntimeData.Instance.RoadTrackDB.TrackItems;
+            ImmutableArray<FreeTrainSimulator.Models.Track.TrackItemBase> trItems = RuntimeDataResolver.Instance.TrackWorld.TrackModel.RoadDatabase.TrackItems;
             ref readonly WorldLocation startLocation = ref trItems[start].Location;
             ref readonly WorldLocation endLocation = ref trItems[end].Location;
 
@@ -82,11 +83,11 @@ namespace Orts.Simulation.World
                     continue;
 
                 lastNodeIndex = nodeIndex;
-                // Road track has no junctions — every on-track node is a TrackVectorNode.
-                TrackVectorNode trackVectorNode = RuntimeData.Instance.RoadTrackDB.TrackNodes[nodeIndex] as TrackVectorNode;
-                if (trackVectorNode?.TrackItemIndices != null)
+                // Road track has no junctions — every on-track node is a VectorNode.
+                if (RuntimeDataResolver.Instance.TrackWorld.TrackModel.RoadDatabase.TrackNodes[nodeIndex] is VectorNode &&
+                    RuntimeDataResolver.Instance.TrackWorld.TrackModel.RoadDatabase.TrackItemSelectors.TryGetValue(nodeIndex, out TrackItemIndex trackItemIndex))
                 {
-                    foreach (int trItemRef in trackVectorNode.TrackItemIndices)
+                    foreach (int trItemRef in trackItemIndex.TrackItems)
                     {
                         if (Simulator.Instance.LevelCrossings.RoadCrossingItems.TryGetValue(trItemRef, out LevelCrossingItem value))
                             sortedLevelCrossings[value.DistanceTo(Traveller)] = value;

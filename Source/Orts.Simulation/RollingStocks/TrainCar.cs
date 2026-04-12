@@ -47,6 +47,7 @@ using FreeTrainSimulator.Common.DebugInfo;
 using FreeTrainSimulator.Common.Position;
 using FreeTrainSimulator.Common.Xna;
 using FreeTrainSimulator.Models.Imported.State;
+using FreeTrainSimulator.Runtime;
 using FreeTrainSimulator.Runtime.Track;
 
 using GetText;
@@ -2661,7 +2662,7 @@ namespace Orts.Simulation.RollingStocks
                     if (section.CircuitType == TrackCircuitType.Junction || section.CircuitType == TrackCircuitType.Crossover)
                     {
                         // train is on a switch; let's see if car is on a switch too
-                        WorldLocation switchLocation = RuntimeData.Instance.TrackDB.TrackNodes[section.OriginalIndex].UiD.Location;
+                        WorldLocation switchLocation = RuntimeDataResolver.Instance.TrackWorld.TrackModel.TrackDatabase.TrackNodes[section.OriginalIndex].Location;
                         double distanceFromSwitch = WorldLocation.GetDistanceSquared(WorldPosition.WorldLocation, switchLocation);
                         if (distanceFromSwitch < CarLengthM * CarLengthM + Math.Min(SpeedMpS * 3, 150))
                         {

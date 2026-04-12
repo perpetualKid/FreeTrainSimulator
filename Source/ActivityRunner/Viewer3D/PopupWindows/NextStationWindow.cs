@@ -444,7 +444,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
                     }
 
                     UpdateCurrentStop(currentStop);
-                    if (playerTrain.StationStops.Count > 0 && string.Equals(playerTrain.StationStops[0].PlatformItem?.Name, currentStop.PlatformEnd1.Station, StringComparison.OrdinalIgnoreCase) &&
+                    if (playerTrain.StationStops.Count > 0 && string.Equals(playerTrain.StationStops[0].PlatformItem?.Name, currentStop.PlatformEnd1.StationName, StringComparison.OrdinalIgnoreCase) &&
                         playerTrain.StationStops[0].DistanceToTrainM > 0 && playerTrain.StationStops[0].DistanceToTrainM < float.MaxValue)
                     {
                         currentStationDistance.Text = FormatStrings.FormatDistanceDisplay(playerTrain.StationStops[0].DistanceToTrainM, Simulator.Instance.RouteModel.MetricUnits);
@@ -474,7 +474,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
         {
             if (previousStop != null)
             {
-                previousStationName.Text = previousStop.PlatformEnd1.Station;
+                previousStationName.Text = previousStop.PlatformEnd1.StationName;
                 previousStationArriveScheduled.Text = previousStop.ScheduledArrival.ToString("c");
                 previousStationArriveActual.Text = previousStop.ActualArrival?.ToString("c") ?? Catalog.GetString("(missed)");
                 previousStationArriveActual.TextColor = ColorCoding.ArrivalColor(previousStop.ScheduledArrival, previousStop.ActualArrival);
@@ -498,8 +498,8 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
         {
             if (currentStop != null)
             {
-                stationPlatform.Text = currentStop.PlatformEnd1.ItemName;
-                currentStationName.Text = currentStop.PlatformEnd1.Station;
+                stationPlatform.Text = currentStop.PlatformEnd1.PlatformName;
+                currentStationName.Text = currentStop.PlatformEnd1.StationName;
                 currentStationArriveScheduled.Text = currentStop.ScheduledArrival.ToString("c");
                 currentStationArriveActual.Text = currentStop.ActualArrival?.ToString("c");
                 currentStationArriveActual.TextColor = ColorCoding.ArrivalColor(currentStop.ScheduledArrival, currentStop.ActualArrival);
@@ -522,7 +522,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
         {
             if (nextStop != null)
             {
-                nextStationName.Text = nextStop.PlatformEnd1.Station;
+                nextStationName.Text = nextStop.PlatformEnd1.StationName;
                 nextStationArriveScheduled.Text = nextStop.ScheduledArrival.ToString("c");
                 nextStationDepartScheduled.Text = nextStop.ScheduledDeparture.ToString("c");
             }

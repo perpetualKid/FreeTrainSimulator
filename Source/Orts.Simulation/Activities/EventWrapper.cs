@@ -25,6 +25,8 @@ using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Api;
 using FreeTrainSimulator.Common.Position;
 using FreeTrainSimulator.Models.Imported.State;
+using FreeTrainSimulator.Models.Track;
+using FreeTrainSimulator.Runtime;
 
 using FreeTrainSimulator.Runtime.Track;
 
@@ -159,8 +161,8 @@ namespace Orts.Simulation.Activities
 
     public class EventCategoryActionWrapper : EventWrapper
     {
-        private readonly SidingItem sidingEnd1;
-        private readonly SidingItem sidingEnd2;
+        private readonly SidingTrackItem sidingEnd1;
+        private readonly SidingTrackItem sidingEnd2;
         private List<string> changeWagonIdList;   // Wagons to be assembled, picked up or dropped off.
 
         public EventCategoryActionWrapper(ActivityEvent activityEvent)
@@ -171,9 +173,9 @@ namespace Orts.Simulation.Activities
                 int i = actionActivityEvent.SidingId;
                 try
                 {
-                    sidingEnd1 = RuntimeData.Instance.TrackDB.TrackItems[i] as SidingItem;
-                    i = sidingEnd1.LinkedSidingId;
-                    sidingEnd2 = RuntimeData.Instance.TrackDB.TrackItems[i] as SidingItem;
+                    sidingEnd1 = RuntimeDataResolver.Instance.TrackWorld.TrackModel.TrackDatabase.TrackItems[i] as SidingTrackItem;
+                    i = sidingEnd1.LinkedSidingItem;
+                    sidingEnd2 = RuntimeDataResolver.Instance.TrackWorld.TrackModel.TrackDatabase.TrackItems[i] as SidingTrackItem;
                 }
                 catch (IndexOutOfRangeException)
                 {
@@ -369,7 +371,7 @@ namespace Orts.Simulation.Activities
         /// <param name="sidingEnd1"></param>
         /// <param name="sidingEnd2"></param>
         /// <returns>true if both ends of train within siding</returns>
-        private static bool AtSiding(in TrackTraveller frontPosition, in TrackTraveller rearPosition, SidingItem sidingEnd1, SidingItem sidingEnd2)
+        private static bool AtSiding(in TrackTraveller frontPosition, in TrackTraveller rearPosition, SidingTrackItem sidingEnd1, SidingTrackItem sidingEnd2)
         {
             if (sidingEnd1 == null || sidingEnd2 == null)
                 return true;
