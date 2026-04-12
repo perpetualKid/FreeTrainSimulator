@@ -700,9 +700,9 @@ namespace Orts.Formats.Msts
                             break;
                         // try SIGFEAT definition
                         case "SIGFEAT":
-                            if (EnumExtension.GetValue(definitions[1], out SignalSubType signalSubType))
+                            if (SignalTypeRegistry.Instance.TryGetSubObjectType(definitions[1], out SignalSubObjectType signalSubObjectType))
                             {
-                                return new SCRParameterType(SCRTermType.Sigfeat, (int)signalSubType);
+                                return new SCRParameterType(SCRTermType.Sigfeat, signalSubObjectType);
                             }
                             else
                             {

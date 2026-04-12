@@ -30,24 +30,6 @@ namespace Orts.Formats.Msts
         /// <summary>Block ahead is impassable due to the state of a switch or occupied by moving train or not accesible</summary>
         Jn_Obstructed,
     }
-
-    /// <summary>
-    /// List of allowed signal sub types, as defined by MSTS (SIGSUBT_ values)
-    /// </summary>
-    public enum SignalSubType
-    {
-        None = -1,
-        Decor,
-        Signal_Head,
-        Dummy1,
-        Dummy2,
-        Number_Plate,
-        Gradient_Plate,
-        User1,
-        User2,
-        User3,
-        User4,
-    }
     #endregion
 
     #region Path

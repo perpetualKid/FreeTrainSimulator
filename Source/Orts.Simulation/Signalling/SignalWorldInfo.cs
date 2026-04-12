@@ -24,6 +24,7 @@ using System.Diagnostics;
 using System.IO;
 
 using FreeTrainSimulator.Common;
+using FreeTrainSimulator.Models.Signal;
 
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Files;
@@ -56,10 +57,10 @@ namespace Orts.Simulation.Signalling
 
             HeadReference = new Dictionary<int, int>();
 
-            // set flags with length to number of possible SubObjects type
+            // set flags with length to number of registered sub-object types
 
-            FlagsSet = new BitArray(EnumExtension.GetLength<SignalSubType>());
-            FlagsSetBackfacing = new BitArray(EnumExtension.GetLength<SignalSubType>());
+            FlagsSet = new BitArray(SignalTypeRegistry.Instance.SubObjectTypeCount);
+            FlagsSetBackfacing = new BitArray(SignalTypeRegistry.Instance.SubObjectTypeCount);
 
             string fileName = Path.GetFileName(signalWorldItem.FileName);
             ShapeFileName = Path.GetFileNameWithoutExtension(fileName);
@@ -85,14 +86,14 @@ namespace Orts.Simulation.Signalling
                         if (signalSubObjects.BackFacing)
                         {
                             Backfacing.Add(i);
-                            if ((int)signalSubObjects.SignalSubType >= 1)
+                            if (signalSubObjects.SignalSubType >= 1)
                             {
-                                FlagsSetBackfacing[(int)signalSubObjects.SignalSubType] = true;
+                                FlagsSetBackfacing[signalSubObjects.SignalSubType] = true;
                             }
                         }
-                        else if ((int)signalSubObjects.SignalSubType >= 1)
+                        else if (signalSubObjects.SignalSubType >= 1)
                         {
-                            FlagsSet[(int)signalSubObjects.SignalSubType] = true;
+                            FlagsSet[signalSubObjects.SignalSubType] = true;
                         }
                     }
                     mask <<= 1;

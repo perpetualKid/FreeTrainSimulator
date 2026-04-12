@@ -108,7 +108,7 @@ namespace Orts.ActivityRunner.Viewer3D
 
 #if DEBUG_SIGNAL_SHAPES
             for (var i = 0; i < mstsSignalShape.SignalSubObjs.Count; i++)
-                Trace.WriteLine("  SUBOBJ {1,-12} {0,-7} {2,3} {3,3} {4,2} {5,2} {6,-14} {8} ({7})", ((mstsSignal.SignalSubObj >> i) & 0x1) != 0 ? "VISIBLE" : "hidden", mstsSignalShape.SignalSubObjs[i].MatrixName, mstsSignalShape.SignalSubObjs[i].Optional ? "Opt" : "", mstsSignalShape.SignalSubObjs[i].Default ? "Def" : "", mstsSignalShape.SignalSubObjs[i].JunctionLink ? "JL" : "", mstsSignalShape.SignalSubObjs[i].BackFacing ? "BF" : "", mstsSignalShape.SignalSubObjs[i].SignalSubType == -1 ? "<none>" : MSTS.SignalShape.SignalSubObj.SignalSubTypes[mstsSignalShape.SignalSubObjs[i].SignalSubType], mstsSignalShape.SignalSubObjs[i].SignalSubSignalType, mstsSignalShape.SignalSubObjs[i].Description);
+                Trace.WriteLine("  SUBOBJ {1,-12} {0,-7} {2,3} {3,3} {4,2} {5,2} {6,-14} {8} ({7})", ((mstsSignal.SignalSubObj >> i) & 0x1) != 0 ? "VISIBLE" : "hidden", mstsSignalShape.SignalSubObjs[i].MatrixName, mstsSignalShape.SignalSubObjs[i].Optional ? "Opt" : "", mstsSignalShape.SignalSubObjs[i].Default ? "Def" : "", mstsSignalShape.SignalSubObjs[i].JunctionLink ? "JL" : "", mstsSignalShape.SignalSubObjs[i].BackFacing ? "BF" : "", mstsSignalShape.SignalSubObjs[i].SignalSubType.Valid ? mstsSignalShape.SignalSubObjs[i].SignalSubType.ToString() : "<none>", mstsSignalShape.SignalSubObjs[i].SignalSubSignalType, mstsSignalShape.SignalSubObjs[i].Description);
             for (var i = 0; i < SubObjVisible.Length; i++)
                 Trace.WriteLine("  SUBOBJ {0,-2} {1,-7}", i, SubObjVisible[i] ? "VISIBLE" : "hidden");
 #endif
@@ -133,7 +133,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 }
                 // Get the signal sub-object for this unit (head).
                 var mstsSignalSubObj = mstsSignalShape.SignalSubObjs[mstsSignal.SignalUnits[i].SubObject];
-                if (mstsSignalSubObj.SignalSubType != SignalSubType.Signal_Head) // SIGNAL_HEAD
+                if (mstsSignalSubObj.SignalSubType != SignalSubObjectType.SignalHead) // SIGNAL_HEAD
                 {
                     Trace.TraceWarning("Skipped {0} signal {1} unit {2} with invalid SubObj {3}", WorldPosition.ToString(), mstsSignal.UiD, i, mstsSignal.SignalUnits[i].SubObject);
                     continue;

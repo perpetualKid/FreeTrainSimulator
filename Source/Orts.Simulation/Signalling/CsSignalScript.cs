@@ -148,9 +148,9 @@ namespace Orts.Simulation.Signalling
         /// <returns></returns>
         public bool IsSignalFeatureEnabled(string signalFeature)
         {
-            if (!EnumExtension.GetValue(signalFeature, out SignalSubType subType))
-                subType = SignalSubType.None;
-            return signalHead.VerifySignalFeature((int)subType);
+            if (!SignalTypeRegistry.Instance.TryGetSubObjectType(signalFeature, out SignalSubObjectType subType))
+                subType = SignalSubObjectType.None;
+            return signalHead.VerifySignalFeature(subType);
         }
 
         /// <summary>

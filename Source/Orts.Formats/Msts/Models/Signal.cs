@@ -785,8 +785,8 @@ namespace Orts.Formats.Msts.Models
             public string MatrixName { get; private set; }
             /// <summary></summary>
             public string Description { get; private set; }
-            /// <summary>Index of the signal sub type (decor, signal_head, ...). -1 if not specified</summary>
-            public SignalSubType SignalSubType { get; private set; }
+            /// <summary>Index of the signal sub-object type (decor, signal_head, ...). -1 if not specified</summary>
+            public SignalSubObjectType SignalSubType { get; private set; }
             /// <summary>Signal Type of the this sub-object</summary>
             public string SignalSubSignalType { get; private set; }
             /// <summary>The sub-object is optional on this signal shape</summary>
@@ -806,14 +806,14 @@ namespace Orts.Formats.Msts.Models
             /// <param name="stf">The STFreader containing the file stream</param>
             internal SignalSubObject(STFReader stf)
             {
-                SignalSubType = SignalSubType.None;
+                SignalSubType = SignalSubObjectType.None;
                 stf.MustMatchBlockStart();
                 Index = stf.ReadInt(null);
                 MatrixName = stf.ReadString().ToUpperInvariant();
                 Description = stf.ReadString();
                 stf.ParseBlock(new STFReader.TokenProcessor[] {
                     new STFReader.TokenProcessor("sigsubtype", ()=>{
-                        if (EnumExtension.GetValue(stf.ReadStringBlock(null), out SignalSubType subType))
+                        if (SignalTypeRegistry.Instance.TryGetSubObjectType(stf.ReadStringBlock(null), out SignalSubObjectType subType))
                             SignalSubType = subType;
                     }),
                     new STFReader.TokenProcessor("sigsubstype", ()=>{ SignalSubSignalType = stf.ReadStringBlock(null); }),

@@ -5,13 +5,13 @@ using System.Collections.Generic;
 namespace FreeTrainSimulator.Models.Signal
 {
     /// <summary>
-    /// Central registry for signal function types and normal subtypes.
+    /// Central registry for signal function types, normal subtypes, and sub-object types.
     /// Manages name ↔ identifier mapping for both predefined MSTS types and
     /// custom types registered at runtime from configuration files.
     /// </summary>
     /// <remarks>
     /// <para>Lifecycle: call <see cref="Initialize"/> at startup, register custom types via
-    /// <see cref="RegisterFunction"/> / <see cref="RegisterNormalSubType"/>,
+    /// <see cref="RegisterFunction"/> / <see cref="RegisterNormalSubType"/> / <see cref="RegisterSubObjectType"/>,
     /// then call <see cref="Freeze"/> to lock the registry and enable optimized lookups.</para>
     /// <para>After <see cref="Freeze"/>, name lookups use <see cref="FrozenDictionary{TKey, TValue}"/>
     /// for maximum performance.</para>
@@ -23,19 +23,23 @@ namespace FreeTrainSimulator.Models.Signal
         // Mutable dictionaries for registration phase, nulled after Freeze()
         private Dictionary<string, SignalFunction> mutableFunctionLookup;
         private Dictionary<string, SignalNormalSubType> mutableSubTypeLookup;
+        private Dictionary<string, SignalSubObjectType> mutableSubObjectTypeLookup;
 
         // Active dictionary references — backed by mutable Dictionary during init,
         // swapped to FrozenDictionary after Freeze()
         private IReadOnlyDictionary<string, SignalFunction> functionLookup;
         private IReadOnlyDictionary<string, SignalNormalSubType> subTypeLookup;
+        private IReadOnlyDictionary<string, SignalSubObjectType> subObjectTypeLookup;
 
         private SignalTypeRegistry()
         {
             mutableFunctionLookup = new(StringComparer.OrdinalIgnoreCase);
             mutableSubTypeLookup = new(StringComparer.OrdinalIgnoreCase);
+            mutableSubObjectTypeLookup = new(StringComparer.OrdinalIgnoreCase);
 
             functionLookup = mutableFunctionLookup;
             subTypeLookup = mutableSubTypeLookup;
+            subObjectTypeLookup = mutableSubObjectTypeLookup;
         }
 
         /// <summary>Current registry instance, or <see langword="null"/> if not yet initialized.</summary>
@@ -46,6 +50,9 @@ namespace FreeTrainSimulator.Models.Signal
 
         /// <summary>Number of registered normal subtypes.</summary>
         public int NormalSubTypeCount => subTypeLookup.Count;
+
+        /// <summary>Number of registered sub-object types (predefined + custom).</summary>
+        public int SubObjectTypeCount => subObjectTypeLookup.Count;
 
         /// <summary>
         /// Initializes a fresh registry pre-loaded with the predefined MSTS function types.
@@ -59,6 +66,12 @@ namespace FreeTrainSimulator.Models.Signal
             foreach (string name in SignalFunction.MstsNames)
             {
                 _ = registry.RegisterFunction(name);
+            }
+
+            // Register predefined MSTS sub-object types
+            foreach (string name in SignalSubObjectType.MstsNames)
+            {
+                _ = registry.RegisterSubObjectType(name);
             }
 
             instance = registry;
@@ -96,6 +109,21 @@ namespace FreeTrainSimulator.Models.Signal
         }
 
         /// <summary>
+        /// Registers a sub-object type. Returns the existing id if already registered.
+        /// </summary>
+        /// <exception cref="InvalidOperationException">Thrown if registry is frozen.</exception>
+        public SignalSubObjectType RegisterSubObjectType(string name)
+        {
+            ThrowIfFrozen();
+            if (mutableSubObjectTypeLookup.TryGetValue(name, out SignalSubObjectType existing))
+                return existing;
+
+            SignalSubObjectType id = new(mutableSubObjectTypeLookup.Count);
+            mutableSubObjectTypeLookup[name] = id;
+            return id;
+        }
+
+        /// <summary>
         /// Freezes the registry, disallowing further registrations and switching to
         /// <see cref="FrozenDictionary{TKey, TValue}"/> for optimal lookup performance.
         /// Releases mutable initialization resources.
@@ -108,10 +136,12 @@ namespace FreeTrainSimulator.Models.Signal
             // Swap active dictionary references to frozen
             functionLookup = mutableFunctionLookup.ToFrozenDictionary(StringComparer.OrdinalIgnoreCase);
             subTypeLookup = mutableSubTypeLookup.ToFrozenDictionary(StringComparer.OrdinalIgnoreCase);
+            subObjectTypeLookup = mutableSubObjectTypeLookup.ToFrozenDictionary(StringComparer.OrdinalIgnoreCase);
 
             // Release mutable initialization resources
             mutableFunctionLookup = null;
             mutableSubTypeLookup = null;
+            mutableSubObjectTypeLookup = null;
         }
 
         /// <summary>Looks up a function type by name.</summary>
@@ -120,11 +150,17 @@ namespace FreeTrainSimulator.Models.Signal
         /// <summary>Looks up a normal subtype by name.</summary>
         public bool TryGetNormalSubType(string name, out SignalNormalSubType id) => subTypeLookup.TryGetValue(name, out id);
 
+        /// <summary>Looks up a sub-object type by name.</summary>
+        public bool TryGetSubObjectType(string name, out SignalSubObjectType id) => subObjectTypeLookup.TryGetValue(name, out id);
+
         /// <summary>Checks whether a function type name has been registered.</summary>
         public bool ContainsFunction(string name) => functionLookup.ContainsKey(name);
 
         /// <summary>Checks whether a normal subtype name has been registered.</summary>
         public bool ContainsNormalSubType(string name) => subTypeLookup.ContainsKey(name);
+
+        /// <summary>Checks whether a sub-object type name has been registered.</summary>
+        public bool ContainsSubObjectType(string name) => subObjectTypeLookup.ContainsKey(name);
 
         /// <summary>Returns the registered name for a function type identifier.</summary>
         public string GetFunctionName(SignalFunction id)
@@ -141,6 +177,17 @@ namespace FreeTrainSimulator.Models.Signal
         public string GetNormalSubTypeName(SignalNormalSubType id)
         {
             foreach (KeyValuePair<string, SignalNormalSubType> entry in subTypeLookup)
+            {
+                if (entry.Value.Index == id.Index)
+                    return entry.Key;
+            }
+            return "None";
+        }
+
+        /// <summary>Returns the registered name for a sub-object type identifier.</summary>
+        public string GetSubObjectTypeName(SignalSubObjectType id)
+        {
+            foreach (KeyValuePair<string, SignalSubObjectType> entry in subObjectTypeLookup)
             {
                 if (entry.Value.Index == id.Index)
                     return entry.Key;
