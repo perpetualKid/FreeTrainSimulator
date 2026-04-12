@@ -9885,7 +9885,6 @@ namespace Orts.Simulation.Physics
                     if (section.CircuitType == TrackCircuitType.Junction && sectionDistanceToTrainM < maxDistanceM)
                     {
                         bool rightSwitch = true;
-                        TrackJunctionNode junctionNode = RuntimeData.Instance.TrackDB.TrackNodes.JunctionNodes[section.OriginalIndex];
                         if (section.Pins[sectionDirection, SignalLocation.FarEnd].Link != -1)
                         {
                             //facing
@@ -9895,7 +9894,7 @@ namespace Orts.Simulation.Physics
                             {
                                 // diverging 
                                 diverging = true;
-                                if (RuntimeDataResolver.Instance.TrackWorld.TrackModel.TrackDatabase.JunctionNodes[junctionNode.Index].OpeningAngle < 0)
+                                if (RuntimeDataResolver.Instance.TrackWorld.TrackModel.TrackDatabase.JunctionNodes[section.OriginalIndex].OpeningAngle < 0)
                                     rightSwitch = false;
                             }
                             if (diverging)
@@ -9911,7 +9910,7 @@ namespace Orts.Simulation.Physics
                                 (section.ActivePins[sectionDirection.Reverse(), SignalLocation.NearEnd].Link > 0 && section.JunctionDefaultRoute > 0))
                             {
                                 // trailing diverging
-                                if (RuntimeDataResolver.Instance.TrackWorld.TrackModel.TrackDatabase.JunctionNodes[junctionNode.Index].OpeningAngle < 0)
+                                if (RuntimeDataResolver.Instance.TrackWorld.TrackModel.TrackDatabase.JunctionNodes[section.OriginalIndex].OpeningAngle < 0)
                                     rightSwitch = false; // FIXME: or the opposite? untested...
 
                                 trainPathItem = new TrainPathItem(rightSwitch, sectionDistanceToTrainM, TrainPathItemType.TrailingSwitch);

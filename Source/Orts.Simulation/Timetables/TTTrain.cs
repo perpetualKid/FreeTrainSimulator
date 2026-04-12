@@ -36,6 +36,8 @@ using FreeTrainSimulator.Common.Calc;
 using FreeTrainSimulator.Common.DebugInfo;
 using FreeTrainSimulator.Models.Imported.State;
 using FreeTrainSimulator.Models.Signalling;
+using FreeTrainSimulator.Models.Track;
+using FreeTrainSimulator.Runtime;
 using FreeTrainSimulator.Runtime.Track;
 
 using Microsoft.Xna.Framework;
@@ -10576,9 +10578,9 @@ namespace Orts.Simulation.Timetables
             {
                 DetachSection = TrackCircuitSection.TrackCircuitList[DetachSection.Pins[TrackDirection.Ahead, SignalLocation.NearEnd].Link];
             }
-            TrackVectorNode detachNode = RuntimeData.Instance.TrackDB.TrackNodes[DetachSection.OriginalIndex] as TrackVectorNode;
+            VectorNode detachNode = RuntimeDataResolver.Instance.TrackWorld.TrackModel.TrackDatabase.VectorNodes[DetachSection.OriginalIndex];
 
-            formedTrain.RearTrackTraveller = TrackTraveller.InitializeTraveller(detachNode.TrackVectorSections[0].Location, DetachSection.OriginalIndex, TrackDirection.Ahead).Value;
+            formedTrain.RearTrackTraveller = TrackTraveller.InitializeTraveller(detachNode.VectorSections[0].Location, DetachSection.OriginalIndex, TrackDirection.Ahead).Value;
 
             trainlist.Add(formedTrain);
 
@@ -10598,9 +10600,9 @@ namespace Orts.Simulation.Timetables
         {
             TTTrain formedTrain = new TTTrain(train);
             TrackCircuitSection DetachSection = TrackCircuitSection.TrackCircuitList[sectionInfo];
-            TrackVectorNode DetachNode = RuntimeData.Instance.TrackDB.TrackNodes.VectorNodes[DetachSection.OriginalIndex];
+            VectorNode detachNode = RuntimeDataResolver.Instance.TrackWorld.TrackModel.TrackDatabase.VectorNodes[DetachSection.OriginalIndex];
 
-            formedTrain.RearTrackTraveller = TrackTraveller.InitializeTraveller(DetachNode.TrackVectorSections[0].Location, DetachSection.OriginalIndex, TrackDirection.Ahead).Value;
+            formedTrain.RearTrackTraveller = TrackTraveller.InitializeTraveller(detachNode.VectorSections[0].Location, DetachSection.OriginalIndex, TrackDirection.Ahead).Value;
             formedTrain.PresentPosition[Direction.Forward].UpdateFrom(train.PresentPosition[Direction.Forward]);
             formedTrain.PresentPosition[Direction.Backward].UpdateFrom(train.PresentPosition[Direction.Backward]);
             formedTrain.CreateRoute(true);

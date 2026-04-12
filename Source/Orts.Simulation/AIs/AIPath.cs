@@ -35,10 +35,9 @@ using FreeTrainSimulator.Common.Api;
 using FreeTrainSimulator.Common.Position;
 using FreeTrainSimulator.Models.Content;
 using FreeTrainSimulator.Models.Imported.State;
+using FreeTrainSimulator.Models.Track;
+using FreeTrainSimulator.Runtime;
 using FreeTrainSimulator.Runtime.Track;
-
-using Orts.Formats.Msts;
-using Orts.Formats.Msts.Models;
 
 namespace Orts.Simulation.AIs
 {
@@ -193,10 +192,10 @@ namespace Orts.Simulation.AIs
         {
             if (junctionIndex < 0 || vectorIndex < 0)
                 return false;
-            TrackJunctionNode tn = RuntimeData.Instance.TrackDB.TrackNodes.JunctionNodes[junctionIndex];
-            if (tn == null || tn.TrackPins[0].Link == vectorIndex)
+            TrackDatabase trackDatabase = RuntimeDataResolver.Instance.TrackWorld.TrackModel.TrackDatabase;
+            if (trackDatabase.TrackNodes[junctionIndex] is not JunctionNode)
                 return false;
-            return true;
+            return trackDatabase.TrackNodeConnectors[junctionIndex].TrackNodeConnectors[0].Link != vectorIndex;
         }
 
         public async ValueTask<AiPathSaveState> Snapshot()
@@ -360,19 +359,21 @@ namespace Orts.Simulation.AIs
             }
 
             //both this node and the next node are junctions: find the vector node connecting them.
+            TrackDatabase trackDatabase = RuntimeDataResolver.Instance.TrackWorld.TrackModel.TrackDatabase;
             var iCand = -1;
-            foreach (TrackVectorNode vectorNode in RuntimeData.Instance.TrackDB.TrackNodes.VectorNodes)
+            foreach (VectorNode vectorNode in trackDatabase.VectorNodes)
             {
-                if (vectorNode.TrackPins[0].Link == junctionIndexThis && vectorNode.TrackPins[1].Link == junctionIndexNext)
+                TrackNodeConnectorIndex connectors = trackDatabase.TrackNodeConnectors[vectorNode.NodeIndex];
+                if (connectors.TrackNodeConnectors[0].Link == junctionIndexThis && connectors.TrackNodeConnectors[1].Link == junctionIndexNext)
                 {
-                    iCand = vectorNode.Index;
+                    iCand = vectorNode.NodeIndex;
                     if (iCand != previousNextMainTVNIndex)
                         break;
                     Trace.TraceInformation("Managing rocket loop at trackNode {0}", iCand);
                 }
-                else if (vectorNode.TrackPins[1].Link == junctionIndexThis && vectorNode.TrackPins[0].Link == junctionIndexNext)
+                else if (connectors.TrackNodeConnectors[1].Link == junctionIndexThis && connectors.TrackNodeConnectors[0].Link == junctionIndexNext)
                 {
-                    iCand = vectorNode.Index;
+                    iCand = vectorNode.NodeIndex;
                     if (iCand != previousNextMainTVNIndex)
                         break;
                     Trace.TraceInformation("Managing rocket loop at trackNode {0}", iCand);
@@ -403,25 +404,26 @@ namespace Orts.Simulation.AIs
         /// <returns>tracknode index of the closes node</returns>
         public static int FindJunctionOrEndIndex(in WorldLocation location, bool wantJunctionNode)
         {
+            TrackDatabase trackDatabase = RuntimeDataResolver.Instance.TrackWorld.TrackModel.TrackDatabase;
             int bestIndex = -1;
             float bestDistance2 = 1e10f;
-            for (int j = 0; j < RuntimeData.Instance.TrackDB.TrackNodes.Count; j++)
+            for (int j = 0; j < trackDatabase.TrackNodes.Length; j++)
             {
-                TrackNode tn = RuntimeData.Instance.TrackDB.TrackNodes[j];
+                TrackNodeBase tn = trackDatabase.TrackNodes[j];
                 if (tn == null)
                     continue;
-                if (wantJunctionNode && !(tn is TrackJunctionNode))
+                if (wantJunctionNode && tn is not JunctionNode)
                     continue;
-                if (!wantJunctionNode && !(tn is TrackEndNode))
+                if (!wantJunctionNode && tn is not EndNode)
                     continue;
-                if (tn.UiD.Location.Tile != location.Tile)
+                if (tn.Location.Tile != location.Tile)
                     continue;
 
-                float dx = tn.UiD.Location.Location.X - location.Location.X;
-                dx += (tn.UiD.Location.TileX - location.TileX) * 2048;
-                float dz = tn.UiD.Location.Location.Z - location.Location.Z;
-                dz += (tn.UiD.Location.TileZ - location.TileZ) * 2048;
-                float dy = tn.UiD.Location.Location.Y - location.Location.Y;
+                float dx = tn.Location.Location.X - location.Location.X;
+                dx += (tn.Location.TileX - location.TileX) * 2048;
+                float dz = tn.Location.Location.Z - location.Location.Z;
+                dz += (tn.Location.TileZ - location.TileZ) * 2048;
+                float dy = tn.Location.Location.Y - location.Location.Y;
                 float d = dx * dx + dy * dy + dz * dz;
                 if (bestDistance2 > d)
                 {

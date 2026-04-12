@@ -5,6 +5,7 @@ using System.Diagnostics;
 using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Calc;
 using FreeTrainSimulator.Models.Signalling;
+using FreeTrainSimulator.Models.Track;
 using FreeTrainSimulator.Runtime;
 
 using Orts.Formats.Msts;
@@ -522,15 +523,18 @@ namespace Orts.Simulation.Signalling
             //added by JTang
             else if (MultiPlayerManager.IsMultiPlayer())
             {
-                TrackNode node = RuntimeData.Instance.TrackDB.TrackNodes[MainSignal.TrackNode];
-                if (!(node is TrackJunctionNode) && node.TrackPins != null && (int)MainSignal.TrackCircuitDirection < node.TrackPins.Length)
+                TrackDatabase trackDatabase = RuntimeDataResolver.Instance.TrackWorld.TrackModel.TrackDatabase;
+                TrackNodeConnectorIndex connectorIndex = trackDatabase.TrackNodeConnectors[MainSignal.TrackNode];
+                TrackNodeBase node = trackDatabase.TrackNodes[MainSignal.TrackNode];
+                if (node is not JunctionNode && !connectorIndex.TrackNodeConnectors.IsDefaultOrEmpty && (int)MainSignal.TrackCircuitDirection < connectorIndex.TrackNodeConnectors.Length)
                 {
-                    node = RuntimeData.Instance.TrackDB.TrackNodes[node.TrackPins[(int)MainSignal.TrackCircuitDirection].Link];
-                    if (!(node is TrackJunctionNode junctionNode))
+                    int linkedNodeIndex = connectorIndex.TrackNodeConnectors[(int)MainSignal.TrackCircuitDirection].Link;
+                    TrackNodeConnectorIndex linkedConnectors = trackDatabase.TrackNodeConnectors[linkedNodeIndex];
+                    if (trackDatabase.TrackNodes[linkedNodeIndex] is not JunctionNode)
                         return 0;
-                    for (int pin = junctionNode.InPins; pin < junctionNode.InPins + junctionNode.OutPins; pin++)
+                    for (int pin = linkedConnectors.InboundCount; pin < linkedConnectors.TrackNodeConnectors.Length; pin++)
                     {
-                        if (junctionNode.TrackPins[pin].Link == MainSignal.TrackNode && pin - junctionNode.InPins != RuntimeDataResolver.Instance.TrackWorld.SwitchStates[MainSignal.TrackNode])
+                        if (linkedConnectors.TrackNodeConnectors[pin].Link == MainSignal.TrackNode && pin - linkedConnectors.InboundCount != RuntimeDataResolver.Instance.TrackWorld.SwitchStates[MainSignal.TrackNode])
                         {
                             return 0;
                         }
