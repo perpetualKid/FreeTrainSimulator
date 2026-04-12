@@ -12,6 +12,6 @@ namespace FreeTrainSimulator.Models.Signal
     {
         public string ShapeFileName { get; init; }
         public string Description { get; init; }
-        public ImmutableArray<SignalSubObject> SubObjects { get; init; } = new ImmutableArray<SignalSubObject>();
+        public ImmutableArray<SignalSubObject> SubObjects { get; init; } = ImmutableArray<SignalSubObject>.Empty;
     }
 }
