@@ -10,14 +10,11 @@ using FreeTrainSimulator.Common.Position;
 using FreeTrainSimulator.Graphics.DrawableComponents;
 using FreeTrainSimulator.Graphics.MapView.Widgets;
 using FreeTrainSimulator.Graphics.Xna;
-using FreeTrainSimulator.Models.Shim;
 using FreeTrainSimulator.Models.Track;
 using FreeTrainSimulator.Runtime;
 using FreeTrainSimulator.Runtime.Track;
 
 using Microsoft.Xna.Framework;
-
-using Orts.Formats.Msts;
 
 namespace FreeTrainSimulator.Graphics.MapView
 {
@@ -296,11 +293,8 @@ namespace FreeTrainSimulator.Graphics.MapView
 
         private void AddTrackItems()
         {
-            RuntimeData runtimeData = RuntimeData.GameInstance(game);
-
             IEnumerable<Runtime.Track.TrackItemBase> trackItems = TrackItemWidget.CreateTrackItems(
                 RuntimeDataResolver.GameInstance(game).TrackWorld.TrackModel.TrackDatabase,
-                runtimeData.SignalConfigFile,
                 trackModel.SegmentSections).Concat(TrackItemWidget.CreateRoadItems(RuntimeDataResolver.GameInstance(game).TrackWorld.TrackModel.RoadDatabase));
 
             trackModel.InitializeTrackItems(trackItems);

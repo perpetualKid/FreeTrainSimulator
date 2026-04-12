@@ -78,11 +78,11 @@ namespace FreeTrainSimulator.Models.Imported.ImportHandler
                     PathModelImportHandler.ExpandPathModels(routeModel, cancellationToken),
                     ActivityModelImportHandler.ExpandActivityModels(routeModel, cancellationToken),
                     TimetableModelHandler.ExpandTimetableModels(routeModel, cancellationToken),
-                    WeatherModelHandler.ExpandPathModels(routeModel, cancellationToken)
+                    WeatherModelHandler.ExpandPathModels(routeModel, cancellationToken),
+                    SignalConfigurationModelImportHandler.ExpandSignalConfigurationModel(routeModel, cancellationToken)
                     ).ConfigureAwait(false);
-                // Expanding track model needs the track sections expanded before
+                // Expanding track model needs the track sections and signal config expanded before
                 await Task.WhenAll(
-                    SignalConfigurationModelImportHandler.ExpandSignalConfigurationModel(routeModel, cancellationToken),
                     TrackModelImportHandler.ExpandTrackModel(routeModel, cancellationToken)
                     ).ConfigureAwait(false);
             }

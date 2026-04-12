@@ -86,7 +86,7 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
             return result.ToImmutableArray();
         }
 
-        public static ImmutableArray<TrackItemWidget> CreateTrackItems(TrackDatabase trackDatabase, Orts.Formats.Msts.Files.SignalConfigurationFile signalConfig, IReadOnlyList<TrackSegmentSection> trackNodeSegments)
+        public static ImmutableArray<TrackItemWidget> CreateTrackItems(TrackDatabase trackDatabase, IReadOnlyList<TrackSegmentSection> trackNodeSegments)
         {
             List<TrackItemWidget> result = new List<TrackItemWidget>();
             if (trackDatabase?.TrackItems == null)
@@ -127,8 +127,7 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
                         result.Add(new SoundRegionTrackItem(soundRegionItem));
                         break;
                     case Models.Track.SignalTrackItem signalItem:
-                        bool normalSignal = signalConfig.SignalTypes.TryGetValue(signalItem.SignalType, out Orts.Formats.Msts.Models.SignalType signalType) && signalType.SignalFunction == SignalFunctionType.Normal;
-                        result.Add(new SignalTrackItem(signalItem, trackNodeSegments[signalItem.NodeIndex], normalSignal));
+                        result.Add(new SignalTrackItem(signalItem, trackNodeSegments[signalItem.NodeIndex], signalItem.NormalSignal));
                         break;
                     case Models.Track.CrossoverTrackItem crossOverItem:
                         result.Add(new CrossOverTrackItem(crossOverItem));

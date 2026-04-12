@@ -12,6 +12,7 @@ using FreeTrainSimulator.Models.Content;
 using FreeTrainSimulator.Models.Handler;
 using FreeTrainSimulator.Models.Imported.Shim;
 using FreeTrainSimulator.Models.Shim;
+using FreeTrainSimulator.Models.Signal;
 using FreeTrainSimulator.Models.Track;
 
 using Microsoft.Xna.Framework;
@@ -68,6 +69,7 @@ namespace FreeTrainSimulator.Models.Imported.ImportHandler.TrainSimulator
             await Task.WhenAll(loadTasks).ConfigureAwait(false);
 
             TrackSectionModel trackSections = await routeModel.GetTrackSectionModel(CancellationToken.None).ConfigureAwait(false);
+            SignalConfigurationModel signalConfiguration = await routeModel.GetSignalConfigurationModel(CancellationToken.None).ConfigureAwait(false);
 
             TrackDatabase trackDatabase = new TrackDatabase()
             {
@@ -89,11 +91,11 @@ namespace FreeTrainSimulator.Models.Imported.ImportHandler.TrainSimulator
                 Id = routeModel.Id,
                 TrackDatabase = trackDatabase with
                 {
-                    TrackItems = ConvertTrackItems(trackDB.TrackItems, trackDatabase, trackSections, tdbFile),
+                    TrackItems = ConvertTrackItems(trackDB.TrackItems, trackDatabase, trackSections, tdbFile, signalConfiguration),
                 },
                 RoadDatabase = roadDatabase == null ? null : roadDatabase with
                 {
-                    TrackItems = ConvertTrackItems(roadTrackDB.TrackItems, roadDatabase, trackSections, rdbFile),
+                    TrackItems = ConvertTrackItems(roadTrackDB.TrackItems, roadDatabase, trackSections, rdbFile, signalConfiguration),
                 },
             };
 
@@ -253,7 +255,7 @@ namespace FreeTrainSimulator.Models.Imported.ImportHandler.TrainSimulator
         }
 
         private static ImmutableArray<TrackItemBase> ConvertTrackItems(List<TrackItem> trackItems, TrackDatabase trackDatabase, TrackSectionModel trackSections,
-            string trackdatabaseFile)
+            string trackdatabaseFile, SignalConfigurationModel signalConfiguration)
         {
             if (trackItems == null)
                 return ImmutableArray<TrackItemBase>.Empty;
@@ -433,6 +435,7 @@ namespace FreeTrainSimulator.Models.Imported.ImportHandler.TrainSimulator
                                 {
                                     JunctionPath = signalItem.SignalDirections[0].LinkLRPath,
                                 } : null,
+                            NormalSignal = signalConfiguration.SignalTypes.TryGetValue(signalItem.SignalType, out Signal.SignalType signalType) && signalType.FunctionType == SignalFunctionType.Normal,
                         });
                         break;
                     case CrossoverItem crossOverItem:

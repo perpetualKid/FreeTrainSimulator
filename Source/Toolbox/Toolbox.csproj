@@ -15,7 +15,6 @@
     <PackageReference Include="MonoGame.Framework.WindowsDX" Version="3.8.4.1" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\FreeTrainSimulator.Models.Imported\FreeTrainSimulator.Models.Imported.csproj" />
     <ProjectReference Include="..\FreeTrainSimulator.Models\FreeTrainSimulator.Models.csproj" />
     <ProjectReference Include="..\FreeTrainSimulator.Graphics\FreeTrainSimulator.Graphics.csproj" />
   </ItemGroup>

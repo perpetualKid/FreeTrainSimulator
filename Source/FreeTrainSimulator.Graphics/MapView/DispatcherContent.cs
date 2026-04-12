@@ -236,11 +236,8 @@ namespace FreeTrainSimulator.Graphics.MapView
 
         private void AddTrackItems()
         {
-            Orts.Formats.Msts.RuntimeData runtimeData = Orts.Formats.Msts.RuntimeData.GameInstance(game);
-
             IEnumerable<TrackItemBase> trackItems = TrackItemWidget.CreateTrackItems(
                 RuntimeDataResolver.GameInstance(game).TrackWorld.TrackModel.TrackDatabase,
-                runtimeData.SignalConfigFile,
                 trackModel.SegmentSections).Concat(TrackItemWidget.CreateRoadItems(RuntimeDataResolver.GameInstance(game).TrackWorld.TrackModel.RoadDatabase));
 
             IEnumerable<PlatformPath> platforms = PlatformPath.CreatePlatforms(trackModel, trackItems.OfType<PlatformTrackItem>());

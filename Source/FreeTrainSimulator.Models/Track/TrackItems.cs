@@ -140,6 +140,7 @@ namespace FreeTrainSimulator.Models.Track
         public float SignalData { get; init; }
         public string SignalType { get; init; }
         public SignalDirection SignalDirection { get; init; }
+        public bool NormalSignal { get; init; }
 
         [MemoryPackConstructor]
         public SignalTrackItem(in WorldLocation location) : base(location)
