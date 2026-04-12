@@ -208,8 +208,6 @@ namespace ORTS.TrackViewer.Drawing
         private readonly TrackDB trackDB;
         /// <summary>Road track database</summary>
         private readonly RoadTrackDB roadTrackDB;
-        /// <summary>The signal config file to distinguish normal and non-normal signals</summary>
-        private readonly SignalConfigurationFile sigcfgFile;
 
         /// <summary>Normally highlights are based on mouse location. When searching this is overridden</summary>
         private bool IsHighlightOverridden;
@@ -242,7 +240,6 @@ namespace ORTS.TrackViewer.Drawing
             trackSections = RuntimeDataResolver.Instance.TrackSections;
             trackDB = routeData.TrackDB;
             roadTrackDB = routeData.RoadTrackDB;
-            sigcfgFile = routeData.SignalConfigFile;
 
             messageDelegate(TrackViewer.catalog.GetString("Finding the angles to draw signals, endnodes, ..."));
 
@@ -294,6 +291,7 @@ namespace ORTS.TrackViewer.Drawing
         /// </summary>
         private void FindSignalDetails()
         {
+            FreeTrainSimulator.Models.Track.TrackDatabase newTrackDatabase = RuntimeDataResolver.Instance.TrackWorld.TrackModel.TrackDatabase;
             foreach (TrackVectorNode trackVectorNode in trackDB.TrackNodes.VectorNodes)
             {
                 if (trackVectorNode.TrackItemIndices == null)
@@ -305,7 +303,11 @@ namespace ORTS.TrackViewer.Drawing
                     if (trackItem is DrawableSignalItem signalItem)
                     {
                         signalItem.FindAngle(trackDB, trackVectorNode);
-                        signalItem.DetermineIfNormal(sigcfgFile);
+                        if (newTrackDatabase?.TrackItems.Length > trackItemIndex &&
+                            newTrackDatabase.TrackItems[trackItemIndex] is FreeTrainSimulator.Models.Track.SignalTrackItem signalTrackItem)
+                        {
+                            signalItem.SetNormalSignal(signalTrackItem.NormalSignal);
+                        }
                     }
                 }
             }

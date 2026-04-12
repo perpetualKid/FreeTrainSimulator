@@ -19,10 +19,8 @@ using System;
 
 using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Position;
-using FreeTrainSimulator.Models.Signalling;
 using FreeTrainSimulator.Runtime.Track;
 
-using Orts.Formats.Msts.Files;
 using Orts.Formats.Msts.Models;
 
 namespace ORTS.TrackViewer.Drawing
@@ -100,9 +98,6 @@ namespace ORTS.TrackViewer.Drawing
         /// <summary>Is it a normal signal</summary>
         private bool isNormal;
 
-        /// <summary>Signal Type, which is a name to cross-reference to sigcfg file</summary>
-        private readonly string signalType;
-
         /// <summary>
         /// Default constructor
         /// </summary>
@@ -114,13 +109,19 @@ namespace ORTS.TrackViewer.Drawing
             isNormal = true; // default value
             SignalItem originalSignalItem = originalTrItem as SignalItem;
             direction = originalSignalItem.Direction;
-            signalType = originalSignalItem.SignalType;
+        }
+
+        /// <summary>
+        /// Sets whether this signal is a normal signal based on precomputed model data.
+        /// </summary>
+        public void SetNormalSignal(bool normalSignal)
+        {
+            isNormal = normalSignal;
         }
 
         /// <summary>
         /// Find the angle that the signal needs to be drawn at
         /// </summary>
-        /// <param name="tsectionDat">Database with track sections</param>
         /// <param name="trackDB">Database with tracks</param>
         /// <param name="tn">TrackNode on which the signal actually is</param>
         public void FindAngle(TrackDB trackDB, TrackVectorNode tn)
@@ -142,23 +143,6 @@ namespace ORTS.TrackViewer.Drawing
 #pragma warning disable CA1031 // Do not catch general exception types
             catch { }
 #pragma warning restore CA1031 // Do not catch general exception types
-        }
-
-        /// <summary>
-        /// Determine if the current signal is a normal signal (i.s.a. distance, ...)
-        /// </summary>
-        /// <param name="sigcfgFile">The signal configuration file</param>
-        public void DetermineIfNormal(SignalConfigurationFile sigcfgFile)
-        {
-            isNormal = true; //default
-            if (sigcfgFile == null)
-            {   // if no sigcfgFile is available, just keep default
-                return;
-            }
-            if (sigcfgFile.SignalTypes.TryGetValue(signalType, out Orts.Formats.Msts.Models.SignalType value))
-            {
-                isNormal = value.SignalFunction == SignalFunctionType.Normal;
-            }
         }
 
         /// <summary>
