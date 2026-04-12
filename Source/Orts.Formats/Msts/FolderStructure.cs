@@ -9,7 +9,6 @@ using System.IO;
 using System.Linq;
 
 using FreeTrainSimulator.Common;
-using FreeTrainSimulator.Models.Signalling;
 
 using Microsoft.Win32;
 
