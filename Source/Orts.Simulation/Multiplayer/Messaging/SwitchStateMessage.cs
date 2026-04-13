@@ -7,8 +7,6 @@ using FreeTrainSimulator.Runtime.Track;
 
 using MemoryPack;
 
-using Orts.Formats.Msts;
-using Orts.Formats.Msts.Models;
 using Orts.Simulation.Physics;
 using Orts.Simulation.Track;
 
@@ -43,11 +41,10 @@ namespace Orts.Simulation.Multiplayer.Messaging
         {
             if (RuntimeDataResolver.Instance.TrackWorld.SwitchStates[junctionNodeIndex] != desiredState)
             {
-                TrackJunctionNode junctionNode = RuntimeData.Instance.TrackDB.TrackNodes.JunctionNodes[junctionNodeIndex];
-                if (!SwitchOccupiedByPlayerTrain(junctionNode))
+                if (!SwitchOccupiedByPlayerTrain(junctionNodeIndex))
                 {
-                    TrackCircuitSection switchSection = TrackCircuitSection.TrackCircuitList[junctionNode.TrackCircuitCrossReferences[0].Index];
-                    RuntimeData.Instance.TrackDB.TrackNodes.JunctionNodes[switchSection.OriginalIndex].SelectedRoute = switchSection.JunctionSetManual = desiredState;
+                    TrackCircuitSection switchSection = TrackCircuitSection.TrackCircuitList[Simulator.Instance.SignalEnvironment.NodeCrossReferences[junctionNodeIndex][0].Index];
+                    switchSection.JunctionSetManual = desiredState;
                     RuntimeDataResolver.Instance.TrackWorld.SwitchStates[junctionNodeIndex] = desiredState;
                     switchSection.JunctionLastRoute = switchSection.JunctionSetManual;
 
@@ -60,7 +57,7 @@ namespace Orts.Simulation.Multiplayer.Messaging
             }
         }
 
-        private static bool SwitchOccupiedByPlayerTrain(TrackJunctionNode junctionNode)
+        private static bool SwitchOccupiedByPlayerTrain(int junctionNodeIndex)
         {
             Train train = Simulator.Instance.PlayerLocomotive?.Train;
             if (train == null)
@@ -76,7 +73,7 @@ namespace Orts.Simulation.Multiplayer.Messaging
                     (JunctionNode Junction, VectorNode ApproachNode)? jResult = walker.NextJunction();
                     if (!jResult.HasValue)
                         return false;
-                    if (jResult.Value.Junction.NodeIndex == junctionNode.Index)
+                    if (jResult.Value.Junction.NodeIndex == junctionNodeIndex)
                         return true;
                     // Advance past the junction to the next VectorNode
                     int currentNodeIdx = walker.TrackNodeIndex;

@@ -8,7 +8,6 @@ using GetText;
 
 using MemoryPack;
 
-using Orts.Formats.Msts;
 using Orts.Formats.Msts.Models;
 using Orts.Simulation.Track;
 
@@ -48,15 +47,13 @@ namespace Orts.Simulation.Multiplayer.Messaging
                     MultiPlayerManager.Broadcast(new ControlMessage(User, ControlMessageType.SwitchWarning, "Server does not allow hand thrown of switch"));
                     return;
                 }
-                TrackJunctionNode junctionNode = RuntimeData.Instance.TrackDB.TrackNodes.JunctionNodes[JunctionNodeIndex];
-                if (!Simulator.Instance.SignalEnvironment.RequestSetSwitch(junctionNode, SwitchState))
+                if (!Simulator.Instance.SignalEnvironment.RequestSetSwitch(JunctionNodeIndex, SwitchState))
                     MultiPlayerManager.Broadcast(new ControlMessage(User, ControlMessageType.Warning, "Train on the switch, cannot throw"));
             }
             else
             {
-                TrackJunctionNode junctionNode = RuntimeData.Instance.TrackDB.TrackNodes.JunctionNodes[JunctionNodeIndex];
-                TrackCircuitSection switchSection = TrackCircuitSection.TrackCircuitList[junctionNode.TrackCircuitCrossReferences[0].Index];
-                RuntimeData.Instance.TrackDB.TrackNodes.JunctionNodes[switchSection.OriginalIndex].SelectedRoute = switchSection.JunctionSetManual = (int)SwitchState;
+                TrackCircuitSection switchSection = TrackCircuitSection.TrackCircuitList[Simulator.Instance.SignalEnvironment.NodeCrossReferences[JunctionNodeIndex][0].Index];
+                switchSection.JunctionSetManual = (int)SwitchState;
                 RuntimeDataResolver.Instance.TrackWorld.SwitchStates[switchSection.OriginalIndex] = (int)SwitchState;
                 switchSection.JunctionLastRoute = switchSection.JunctionSetManual;
 

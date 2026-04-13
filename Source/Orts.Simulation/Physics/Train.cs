@@ -3656,11 +3656,10 @@ namespace Orts.Simulation.Physics
 
             // get starting position and route
 
-            TrackNode tn = RuntimeData.Instance.TrackDB.TrackNodes[RearTrackNodeIndex];
             float offset = RearTrackNodeOffset;
             TrackDirection direction = RearDirection.Reverse();
 
-            PresentPosition[Direction.Backward].SetPosition(tn.TrackCircuitCrossReferences, offset, direction);
+            PresentPosition[Direction.Backward].SetPosition(Simulator.Instance.SignalEnvironment.NodeCrossReferences[RearTrackNodeIndex], offset, direction);
             TrackCircuitSection section = TrackCircuitSection.TrackCircuitList[PresentPosition[Direction.Backward].TrackCircuitSectionIndex];
             offset = PresentPosition[Direction.Backward].Offset;
 
@@ -3762,11 +3761,10 @@ namespace Orts.Simulation.Physics
         /// </summary>
         protected static void UpdateTrackCircuitPosition(TrackCircuitPosition position, TrackTraveller traveller, bool reverseDirection = true)
         {
-            TrackNode trackNode = RuntimeData.Instance.TrackDB.TrackNodes[traveller.TrackNodeIndex];
             float offset = (float)traveller.VectorNodeOffset;
             TrackDirection direction = reverseDirection ? traveller.Direction.Reverse() : traveller.Direction;
 
-            position.SetPosition(trackNode.TrackCircuitCrossReferences, offset, direction);
+            position.SetPosition(Simulator.Instance.SignalEnvironment.NodeCrossReferences[traveller.TrackNodeIndex], offset, direction);
         }
 
         // Initial train placement

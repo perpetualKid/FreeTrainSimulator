@@ -74,6 +74,13 @@ namespace Orts.Simulation.Signalling
 
         internal Dictionary<int, int> DeadlockReference;            // cross-reference between trackcircuitsection (key) and deadlockinforeference (value)
 
+        /// <summary>
+        /// Runtime-computed cross-references from track node index to track circuit sections.
+        /// Populated during <see cref="CreateTrackCircuits"/> and used by consumers that previously
+        /// accessed <c>TrackNode.TrackCircuitCrossReferences</c> through the legacy TrackDB.
+        /// </summary>
+        internal Dictionary<int, TrackCircuitCrossReferences> NodeCrossReferences { get; } = new Dictionary<int, TrackCircuitCrossReferences>();
+
         private List<Milepost> milepostList = new List<Milepost>();                     // list of mileposts
         private int foundMileposts;
 
@@ -1214,6 +1221,15 @@ namespace Orts.Simulation.Signalling
                 SetCrossReferenceCrossOver(i, trackNodes);
             }
 
+            // Build standalone node-to-circuit cross-reference dictionary
+            foreach (TrackNode trackNode in trackNodes)
+            {
+                if (trackNode != null && trackNode.TrackCircuitCrossReferences.Count > 0)
+                {
+                    NodeCrossReferences[trackNode.Index] = trackNode.TrackCircuitCrossReferences;
+                }
+            }
+
             // Set cross-reference for signals
             foreach (TrackCircuitSection section in TrackCircuitSection.TrackCircuitList)
             {
@@ -1769,8 +1785,6 @@ namespace Orts.Simulation.Signalling
 
             if (MultiPlayerManager.NoAutoSwitch())
                 return;
-            TrackJunctionNode node = trackDB.TrackNodes[nodeIndex] as TrackJunctionNode;
-            node.SelectedRoute = switchPos;
             RuntimeDataResolver.Instance.TrackWorld.SwitchStates[nodeIndex] = switchPos;
             section.JunctionLastRoute = switchPos;
 
@@ -3587,7 +3601,6 @@ namespace Orts.Simulation.Signalling
             if (!switchSection.CircuitState.Occupied())
             {
                 switchSection.JunctionSetManual = targetState == SwitchState.SideRoute ? 1 - switchSection.JunctionDefaultRoute : switchSection.JunctionDefaultRoute;
-                (trackDB.TrackNodes[switchSection.OriginalIndex] as TrackJunctionNode).SelectedRoute = switchSection.JunctionSetManual;
                 RuntimeDataResolver.Instance.TrackWorld.SwitchStates[switchSection.OriginalIndex] = switchSection.JunctionSetManual;
                 switchSection.JunctionLastRoute = switchSection.JunctionSetManual;
                 switchSet = true;
@@ -3615,11 +3628,9 @@ namespace Orts.Simulation.Signalling
         }
 
         //only used by MP to manually set a switch to a desired position
-        public bool RequestSetSwitch(TrackJunctionNode switchNode, SwitchState desiredState)
+        public bool RequestSetSwitch(int junctionNodeIndex, SwitchState desiredState)
         {
-            ArgumentNullException.ThrowIfNull(switchNode);
-
-            TrackCircuitSection switchSection = TrackCircuitSection.TrackCircuitList[switchNode.TrackCircuitCrossReferences[0].Index];
+            TrackCircuitSection switchSection = TrackCircuitSection.TrackCircuitList[NodeCrossReferences[junctionNodeIndex][0].Index];
             return RequestSetSwitch(switchSection, desiredState);
         }
     }
