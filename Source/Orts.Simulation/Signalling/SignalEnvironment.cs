@@ -739,6 +739,81 @@ namespace Orts.Simulation.Signalling
         }
 
         /// <summary>
+        /// Registers runtime-created speed restriction posts (from activity restricted speed zones)
+        /// directly into the signal system and track circuits, without mutating the TrackDB.
+        /// </summary>
+        internal void AddRuntimeSpeedPosts(IList<TempSpeedPostItem> runtimeSpeedPosts)
+        {
+            if (runtimeSpeedPosts == null || runtimeSpeedPosts.Count == 0)
+                return;
+
+            // Create a traveller at the start of each track node to compute distances (same pattern as ProcessNodes)
+            TrackNodes trackNodes = trackDB.TrackNodes;
+
+            foreach (TempSpeedPostItem speedItem in runtimeSpeedPosts)
+            {
+                // Create a traveller at the item's location to determine the track node
+                TrackTraveller? itemTraveller = TrackTraveller.InitializeTraveller(speedItem.Location);
+                if (!itemTraveller.HasValue || !itemTraveller.Value.OnTrack)
+                    continue;
+
+                int trackNodeIndex = itemTraveller.Value.TrackNodeIndex;
+
+                // Create the Signal object via AddSpeed (nodeIndex and tdbRef are -1 since runtime items are not in TrackDB)
+                int signalIndex = Signals.Count;
+                AddSpeed(trackNodeIndex, -1, speedItem, -1);
+
+                // Verify the signal was actually created
+                if (Signals.Count <= signalIndex)
+                    continue;
+
+                Signal speedpost = Signals[signalIndex];
+
+                // Find the track circuit section for this track node using cross-references
+                if (!NodeCrossReferences.TryGetValue(trackNodeIndex, out TrackCircuitCrossReferences crossReferences) || crossReferences.Count == 0)
+                    continue;
+
+                // Create a traveller at the start of the vector node (same pattern as ProcessNodes)
+                if (trackNodes[trackNodeIndex] is not TrackVectorNode tvn || tvn.TrackVectorSections.Length == 0)
+                    continue;
+
+                VectorNode vectorNode = RuntimeDataResolver.Instance.TrackWorld.TrackModel.TrackDatabase.TrackNodes[trackNodeIndex] as VectorNode;
+                TrackVectorSection firstSection = tvn.TrackVectorSections[0];
+                TrackTraveller? nodeStartTraveller = TrackTraveller.InitializeTraveller(firstSection.Location, vectorNode, TrackDirection.Ahead);
+                if (!nodeStartTraveller.HasValue)
+                    continue;
+
+                // Compute absolute distance from node start (same as InsertNode)
+                float speedpostDistance = speedpost.DistanceTo(nodeStartTraveller.Value);
+
+                // Find the correct post-split circuit section using the offset
+                int xrefIndex = crossReferences.GetCrossReferenceIndex(speedpostDistance, TrackDirection.Ahead);
+                if (xrefIndex < 0)
+                    continue;
+
+                TrackCircuitSectionCrossReference crossRef = crossReferences[xrefIndex];
+                TrackCircuitSection section = TrackCircuitSection.TrackCircuitList[crossRef.Index];
+
+                // Adjust distance to be relative to this section
+                float distanceInSection = speedpostDistance - crossRef.OffsetLength[TrackDirection.Ahead];
+                if (speedpost.TrackDirection == TrackDirection.Reverse)
+                    distanceInSection = section.Length - distanceInSection;
+
+                TrackCircuitSignalItem trackCircuitItem = new TrackCircuitSignalItem(speedpost, distanceInSection);
+                TrackDirection direction = speedpost.TrackDirection.Reverse();
+                TrackCircuitSignalList signalList = section.CircuitItems.TrackCircuitSpeedPosts[direction];
+
+                if (direction == TrackDirection.Ahead)
+                    signalList.Insert(0, trackCircuitItem);
+                else
+                    signalList.Add(trackCircuitItem);
+
+                // Set the signal's track circuit cross-reference via the existing mechanism
+                Signal.SetSignalCrossReference(section);
+            }
+        }
+
+        /// <summary>
         /// This method adds a new Milepost to the list
         /// </summary>
         private int AddMilepost(SpeedPostItem speedItem, int tdbRef)

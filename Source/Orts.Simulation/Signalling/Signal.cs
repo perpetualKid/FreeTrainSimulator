@@ -196,6 +196,8 @@ namespace Orts.Simulation.Signalling
             foreach (SignalHead head in SignalHeads)
             {
                 head.ResetMain(this);
+                if (head.TDBIndex < 0 || head.TDBIndex >= trackItems.Count)
+                    continue;
                 switch (trackItems[head.TDBIndex])
                 {
                     case SignalItem signalItem:

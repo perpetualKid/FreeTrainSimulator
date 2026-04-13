@@ -36,7 +36,6 @@ using FreeTrainSimulator.Runtime.Track;
 
 using Microsoft.Xna.Framework;
 
-using Orts.Formats.Msts;
 using Orts.Formats.Msts.Files;
 using Orts.Formats.Msts.Models;
 using Orts.Simulation.AIs;
@@ -381,9 +380,10 @@ namespace Orts.Simulation.Activities
         }
 
         /// <summary>
-        /// Add speedposts to the track database for each Temporary Speed Restriction zone
+        /// Create speedpost items for each Temporary Speed Restriction zone.
+        /// Items are stored in <see cref="TempSpeedPostItems"/> for later registration
+        /// into the signal system via <see cref="SignalEnvironment.AddRuntimeSpeedPosts"/>.
         /// </summary>
-        /// <param name="routeFile"></param>
         /// <param name="zones">List of speed restriction zones</param>
         internal void AddRestrictZones(RestrictedSpeedZones zones)
         {
@@ -394,33 +394,27 @@ namespace Orts.Simulation.Activities
 
             TempSpeedPostItems = new List<TempSpeedPostItem>();
 
-            TrackItem[] newSpeedPostItems = new TempSpeedPostItem[2];
-
             const float MaxDistanceOfWarningPost = 2000;
 
             foreach (RestrictedSpeedZone restrictionZone in zones)
             {
-                newSpeedPostItems[0] = new TempSpeedPostItem(simulator.RouteModel.SpeedRestrictions[SpeedRestrictionType.Temporary], simulator.RouteModel.MetricUnits, restrictionZone.StartPosition, true, WorldPosition.None, false);
-                newSpeedPostItems[1] = new TempSpeedPostItem(simulator.RouteModel.SpeedRestrictions[SpeedRestrictionType.Temporary], simulator.RouteModel.MetricUnits, restrictionZone.EndPosition, false, WorldPosition.None, false);
+                TempSpeedPostItem startPost = new TempSpeedPostItem(simulator.RouteModel.SpeedRestrictions[SpeedRestrictionType.Temporary], simulator.RouteModel.MetricUnits, restrictionZone.StartPosition, true, WorldPosition.None, false);
+                TempSpeedPostItem endPost = new TempSpeedPostItem(simulator.RouteModel.SpeedRestrictions[SpeedRestrictionType.Temporary], simulator.RouteModel.MetricUnits, restrictionZone.EndPosition, false, WorldPosition.None, false);
 
-                // Add the speedposts to the track database. This will set the TrItemId's of all speedposts
-                RuntimeData.Instance.TrackDB.AddTrackItems(newSpeedPostItems);
-
-                // And now update the various (vector) tracknodes (this needs the TrItemIds.
-                float? endOffset = AddItemIdToTrackNode(restrictionZone.EndPosition, newSpeedPostItems[1], out _);
-                float? startOffset = AddItemIdToTrackNode(restrictionZone.StartPosition, newSpeedPostItems[0], out TrackTraveller traveller);
+                // Compute positions on track for start and end posts
+                float? endOffset = ComputeSpeedPostPosition(restrictionZone.EndPosition, endPost, out _);
+                float? startOffset = ComputeSpeedPostPosition(restrictionZone.StartPosition, startPost, out TrackTraveller traveller);
                 float distanceOfWarningPost = 0;
 
                 if (startOffset != null && endOffset != null && startOffset > endOffset)
                 {
-                    ((TempSpeedPostItem)newSpeedPostItems[0]).Flip();
-                    ((TempSpeedPostItem)newSpeedPostItems[1]).Flip();
+                    startPost.Flip();
+                    endPost.Flip();
                     distanceOfWarningPost = (float)Math.Min(MaxDistanceOfWarningPost, traveller.VectorNodeLength - (double)startOffset);
                 }
                 else if (startOffset != null && endOffset != null && startOffset <= endOffset)
                     distanceOfWarningPost = (float)Math.Max(-MaxDistanceOfWarningPost, -(double)startOffset);
-                WorldPosition worldPosition3 = WorldPosition.None;
-                TempSpeedPostItem speedWarningPostItem = new TempSpeedPostItem(simulator.RouteModel.SpeedRestrictions[SpeedRestrictionType.Temporary], simulator.RouteModel.MetricUnits, restrictionZone.StartPosition, false, worldPosition3, true);
+                TempSpeedPostItem speedWarningPostItem = new TempSpeedPostItem(simulator.RouteModel.SpeedRestrictions[SpeedRestrictionType.Temporary], simulator.RouteModel.MetricUnits, restrictionZone.StartPosition, false, WorldPosition.None, true);
                 if (traveller.OnTrack)
                 {
                     traveller = traveller.Move(distanceOfWarningPost);
@@ -428,32 +422,32 @@ namespace Orts.Simulation.Activities
                 }
                 if (startOffset != null && endOffset != null && startOffset > endOffset)
                     speedWarningPostItem.Flip();
-                ((TempSpeedPostItem)newSpeedPostItems[0]).ComputeTablePosition();
-                TempSpeedPostItems.Add((TempSpeedPostItem)newSpeedPostItems[0]);
-                ((TempSpeedPostItem)newSpeedPostItems[1]).ComputeTablePosition();
-                TempSpeedPostItems.Add((TempSpeedPostItem)newSpeedPostItems[1]);
+                startPost.ComputeTablePosition();
+                TempSpeedPostItems.Add(startPost);
+                endPost.ComputeTablePosition();
+                TempSpeedPostItems.Add(endPost);
                 speedWarningPostItem.ComputeTablePosition();
                 TempSpeedPostItems.Add(speedWarningPostItem);
             }
         }
 
         /// <summary>
-        /// Add a reference to a new TrItemId to the correct trackNode (which needs to be determined from the position)
+        /// Compute position parameters of a speed post item from its world location.
         /// </summary>
-        /// <param name="location">Position of the new </param>
-        /// <param name="newTrItem">The Id of the new TrItem to add to the tracknode</param>
-        /// <param name="traveller">The computed traveller to the speedPost position</param>
-        private static float? AddItemIdToTrackNode(in WorldLocation location, TrackItem newTrItem, out TrackTraveller traveller)
+        /// <param name="location">World location of the speed post</param>
+        /// <param name="speedPost">The speed post item to position</param>
+        /// <param name="traveller">The computed traveller at the speed post position</param>
+        /// <returns>The offset along the vector node, or null if the location is not on track</returns>
+        private static float? ComputeSpeedPostPosition(in WorldLocation location, TempSpeedPostItem speedPost, out TrackTraveller traveller)
         {
-            float? offset = null;
             traveller = TrackTraveller.InitializeTraveller(location) ?? default;
-            if (traveller.OnTrack && RuntimeData.Instance.TrackDB.TrackNodes[traveller.TrackNodeIndex] is TrackVectorNode trackVectorNode)
+            if (traveller.OnTrack)
             {
-                offset = (float)traveller.VectorNodeOffset;
-                SpeedPostPosition((TempSpeedPostItem)newTrItem, traveller);
-                InsertTrackItemRef(trackVectorNode, (int)newTrItem.TrackItemId, (float)offset);
+                float offset = (float)traveller.VectorNodeOffset;
+                SpeedPostPosition(speedPost, traveller);
+                return offset;
             }
-            return offset;
+            return null;
         }
 
         /// <summary>
@@ -465,28 +459,6 @@ namespace Orts.Simulation.Activities
         private static void SpeedPostPosition(TempSpeedPostItem restrSpeedPost, in TrackTraveller traveller)
         {
             restrSpeedPost.Update(traveller.Location.Location.Y, -traveller.Heading + (float)Math.PI / 2, new WorldPosition(traveller.Location.Tile, MatrixExtension.SetTranslation(Matrix.CreateFromYawPitchRoll(-traveller.Heading, 0, 0), traveller.Location.Location.X, traveller.Location.Location.Y, -traveller.Location.Location.Z)));
-        }
-
-        /// <summary>
-        /// Insert a reference to a new TrItem to the already existing TrItemRefs basing on its offset within the track node.
-        /// </summary>
-        /// 
-        private static void InsertTrackItemRef(TrackVectorNode thisVectorNode, int newTrItemId, float offset)
-        {
-            int index = 0;
-            // insert the new TrItemRef accordingly to its offset
-            for (int iTrItems = thisVectorNode.TrackItemIndices.Length - 1; iTrItems >= 0; iTrItems--)
-            {
-                int currTrItemID = thisVectorNode.TrackItemIndices[iTrItems];
-                TrackItem currTrItem = RuntimeData.Instance.TrackDB.TrackItems[currTrItemID];
-                TrackTraveller? traveller = TrackTraveller.InitializeTraveller(currTrItem.Location);
-                if (traveller.HasValue && offset >= (float)traveller.Value.VectorNodeOffset)
-                {
-                    index = iTrItems + 1;
-                    break;
-                }
-            }
-            thisVectorNode.InsertTrackItemIndex(newTrItemId, index);
         }
 
         internal void AssociateEvents(Train train)

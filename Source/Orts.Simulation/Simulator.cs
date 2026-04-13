@@ -404,6 +404,8 @@ namespace Orts.Simulation
                 ContainerManager.LoadPopulationFromFile(Path.Combine(RouteFolder.OpenRailsActivitiesFolder, Path.ChangeExtension(loadStationStockfile, ".load-stations-loads-or")));
             }
             SignalEnvironment = new SignalEnvironment(SignalConfig, UserSettings.UseLocationPassingPaths, cancellationToken);
+            if (ActivityRun?.TempSpeedPostItems?.Count > 0)
+                SignalEnvironment.AddRuntimeSpeedPosts(ActivityRun.TempSpeedPostItems);
             MovingTables.AddRange(MovingTableFile.ReadTurntableFile(Path.Combine(RouteFolder.OpenRailsRouteFolder, "turntables.dat")));
             LevelCrossings = new LevelCrossings();
             Trains = new TrainList(this);
