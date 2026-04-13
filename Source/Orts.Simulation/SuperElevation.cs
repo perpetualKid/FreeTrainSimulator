@@ -17,6 +17,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 
 using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Calc;
@@ -26,15 +27,12 @@ using FreeTrainSimulator.Runtime.Track;
 
 using Microsoft.Xna.Framework;
 
-using Orts.Formats.Msts;
-using Orts.Formats.Msts.Models;
-
 namespace Orts.Simulation
 {
     public class SuperElevation
     {
-        public ICollection<List<TrackVectorSection>> Curves { get; }
-        public Dictionary<int, List<TrackVectorSection>> Sections { get; }
+        public ICollection<List<SectionGeometry>> Curves { get; }
+        public Dictionary<int, List<SectionGeometry>> Sections { get; }
         public float MaximumAllowedM { get; }
 
         //check TDB for long curves and determine each section's position/elev in the curve
@@ -42,29 +40,38 @@ namespace Orts.Simulation
         {
             ArgumentNullException.ThrowIfNull(simulator);
 
-            Curves = new List<List<TrackVectorSection>>();
-            Sections = new Dictionary<int, List<TrackVectorSection>>();
+            Curves = new List<List<SectionGeometry>>();
+            Sections = new Dictionary<int, List<SectionGeometry>>();
 
             MaximumAllowedM = 0.07f + simulator.UserSettings.SuperElevationLevel / 100f;//max allowed elevation controlled by user setting
 
-            List<TrackVectorSection> SectionList = new List<TrackVectorSection>();
-            foreach (TrackVectorNode trackVectorNode in RuntimeData.Instance.TrackDB.TrackNodes.VectorNodes)
+            TrackWorld trackWorld = TrackWorld.Instance;
+            TrackDatabase trackDatabase = RuntimeDataResolver.Instance.TrackWorld.TrackModel.TrackDatabase;
+            ImmutableDictionary<int, TrackSection> trackSections = RuntimeDataResolver.Instance.TrackSections.TrackSections;
+
+            if (trackDatabase == null || trackWorld == null)
+                return;
+
+            List<SectionGeometry> SectionList = new List<SectionGeometry>();
+            foreach (VectorNode vectorNode in trackDatabase.VectorNodes)
             {
                 bool StartCurve = false;
                 int CurveDir = 0;
                 float Len = 0.0f;
                 SectionList.Clear();
                 int i = 0;
-                int count = trackVectorNode.TrackVectorSections.Length;
-                foreach (TrackVectorSection section in trackVectorNode.TrackVectorSections)//loop all curves
+                int count = vectorNode.VectorSections.Length;
+                foreach (VectorSectionNode vectorSection in vectorNode.VectorSections)//loop all curves
                 {
                     i++;
-                    if (!RuntimeDataResolver.Instance.TrackSections.TrackSections.TryGetValue(section.SectionIndex, out FreeTrainSimulator.Models.Track.TrackSection sec))
+                    if (!trackWorld.SectionGeometry.TryGetValue(vectorSection, out SectionGeometry sectionGeometry) || !sectionGeometry.HasGeometry)
+                        continue;
+                    if (!trackSections.TryGetValue(vectorSection.NodeIndex, out TrackSection sec))
                         continue;
                     if (Math.Abs(sec.Gauge - (simulator.UserSettings.TrackGauge / 1000f)) > 0.2)
                         continue;//the main route has a gauge different than mine
                     float angle = sec.Angle;
-                    if (sec.Curved && !angle.AlmostEqual(0f, 0.01f)) //a good curve
+                    if (sectionGeometry.Curved && !angle.AlmostEqual(0f, 0.01f)) //a good curve
                     {
                         if (i == 1 || i == count)
                         {
@@ -83,8 +90,8 @@ namespace Orts.Simulation
                             SectionList.Clear();
                             Len = 0f; //StartCurve remains true as we are still in a curve
                         }
-                        Len += sec.Radius * (float)Math.Abs(MathHelper.ToRadians(sec.Angle));
-                        SectionList.Add(section);
+                        Len += (float)sectionGeometry.Length;
+                        SectionList.Add(sectionGeometry);
                     }
                     else //meet a straight line
                     {
@@ -103,43 +110,18 @@ namespace Orts.Simulation
                 }
                 SectionList.Clear();
             }
-
-            // Copy the computed elevation values into the new-model SectionGeometry cache so that
-            // TrackTraveller.GetSuperElevation() and FindTiltedZ() can use them without touching the old model.
-            // Cross-reference: old TrackVectorNode.Index == new VectorNode.NodeIndex; section arrays are co-indexed.
-            TrackDatabase newTrackDatabase = RuntimeDataResolver.Instance?.TrackWorld.TrackModel.TrackDatabase;
-            TrackWorld trackWorld = TrackWorld.Instance;
-            if (newTrackDatabase != null && trackWorld != null)
-            {
-                foreach (VectorNode vectorNode in newTrackDatabase.VectorNodes)
-                {
-                    if (RuntimeData.Instance.TrackDB.TrackNodes[vectorNode.NodeIndex] is not TrackVectorNode tvn)
-                        continue;
-                    foreach ((VectorSectionNode Item, int Index) section in vectorNode.VectorSections.IndexedSelect())
-                    {
-                        if (trackWorld.SectionGeometry.TryGetValue(section.Item, out SectionGeometry sectionGeometry))
-                        {
-                            TrackVectorSection oldSection = tvn.TrackVectorSections[section.Index];
-                            if (oldSection.MaxElevation == 0f)
-                                continue;
-                            sectionGeometry.SetElevation(oldSection.StartElevation, oldSection.EndElevation, oldSection.MaxElevation);
-                        }
-                    }
-                }
-            }
         }
 
-        private void MarkSections(Simulator simulator, List<TrackVectorSection> SectionList, float Len)
+        private void MarkSections(Simulator simulator, List<SectionGeometry> SectionList, float Len)
         {
             ArgumentNullException.ThrowIfNull(simulator);
 
             //if (Len < simulator.Settings.SuperElevationMinLen || SectionList.Count == 0) 
             if (SectionList.Count == 0)
                 return;//too short a curve or the list is empty
-            if (!RuntimeDataResolver.Instance.TrackSections.TrackSections.TryGetValue(SectionList[0].SectionIndex, out FreeTrainSimulator.Models.Track.TrackSection sectionData))
-                return;
             //loop all section to determine the max elevation for the whole track
-            double Curvature = sectionData.Angle * SectionList.Count * 33 / Len;//average radius in degree/100feet
+            float sectionAngle = MathHelper.ToDegrees((float)SectionList[0].ArcAngle);
+            double Curvature = sectionAngle * SectionList.Count * 33 / Len;//average radius in degree/100feet
             float Max = (float)(Math.Pow(simulator.RouteModel.SpeedRestrictions[SpeedRestrictionType.Route] * 2.25, 2) * 0.0007 * Math.Abs(Curvature) - 3); //in inch
             Max *= 2.5f;//change to cm
             Max = (float)Math.Round(Max * 2, MidpointRounding.AwayFromZero) / 200f;//closest to 5 mm increase;
@@ -149,34 +131,29 @@ namespace Orts.Simulation
                 Max = MaximumAllowedM;//max
             Max = (float)Math.Atan(Max / 1.44f); //now change to rotation in radius by quick estimation as the angle is small
 
-            Curves.Add(new List<TrackVectorSection>(SectionList)); //add the curve
+            Curves.Add(new List<SectionGeometry>(SectionList)); //add the curve
             MapWFiles2Sections(SectionList);//map these sections to tiles, so we can compute it quicker later
             if (SectionList.Count == 1)//only one section in the curve
             {
-                SectionList[0].StartElevation = SectionList[0].EndElevation = 0f;
-                SectionList[0].MaxElevation = Max;
+                SectionList[0].SetElevation(0f, 0f, Max);
             }
             else//more than one section in the curve
             {
                 int count = 0;
 
-                foreach (TrackVectorSection section in SectionList)
+                foreach (SectionGeometry section in SectionList)
                 {
                     if (count == 0)
                     {
-                        section.StartElevation = 0f;
-                        section.MaxElevation = Max;
-                        section.EndElevation = Max;
+                        section.SetElevation(0f, Max, Max);
                     }
                     else if (count == SectionList.Count - 1)
                     {
-                        section.StartElevation = Max;
-                        section.MaxElevation = Max;
-                        section.EndElevation = 0f;
+                        section.SetElevation(Max, 0f, Max);
                     }
                     else
                     {
-                        section.StartElevation = section.EndElevation = section.MaxElevation = Max;
+                        section.SetElevation(Max, Max, Max);
                     }
                     count++;
                 }
@@ -184,18 +161,19 @@ namespace Orts.Simulation
         }
 
         //find all sections in a tile, save the info to a look-up table
-        private void MapWFiles2Sections(List<TrackVectorSection> sections)
+        private void MapWFiles2Sections(List<SectionGeometry> sections)
         {
-            foreach (TrackVectorSection section in sections)
+            foreach (SectionGeometry sg in sections)
             {
-                int key = Math.Abs(section.Location.TileX) + Math.Abs(section.Location.TileZ);
-                if (Sections.TryGetValue(key, out List<TrackVectorSection> value))
-                    value.Add(section);
+                VectorSectionNode vsn = sg.Node.VectorSections[sg.SectionIndex];
+                int key = Math.Abs(vsn.Location.TileX) + Math.Abs(vsn.Location.TileZ);
+                if (Sections.TryGetValue(key, out List<SectionGeometry> value))
+                    value.Add(sg);
                 else
                 {
-                    List<TrackVectorSection> tmpSections = new List<TrackVectorSection>
+                    List<SectionGeometry> tmpSections = new List<SectionGeometry>
                     {
-                        section
+                        sg
                     };
                     Sections.Add(key, tmpSections);
                 }
