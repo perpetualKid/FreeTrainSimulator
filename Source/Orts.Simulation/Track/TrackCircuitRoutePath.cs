@@ -8,9 +8,10 @@ using System.Threading.Tasks;
 using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Api;
 using FreeTrainSimulator.Models.Imported.State;
+using FreeTrainSimulator.Models.Track;
+using FreeTrainSimulator.Runtime;
 using FreeTrainSimulator.Runtime.Track;
 
-using Orts.Formats.Msts;
 using Orts.Formats.Msts.Models;
 using Orts.Simulation.AIs;
 using Orts.Simulation.Physics;
@@ -49,6 +50,9 @@ namespace Orts.Simulation.Track
             ActiveAlternativePath = -1;
             float offset = 0;
 
+            TrackDatabase trackDatabase = RuntimeDataResolver.Instance.TrackWorld.TrackModel.TrackDatabase;
+            Dictionary<int, TrackCircuitCrossReferences> nodeCrossReferences = Simulator.Instance.SignalEnvironment.NodeCrossReferences;
+
             //
             // collect all TC Elements
             //
@@ -83,13 +87,13 @@ namespace Orts.Simulation.Track
                     AIPathNode pNode = aiPath.Nodes[i];
                     if (pNode.JunctionIndex > 0)
                     {
-                        TrackJunctionNode jn = RuntimeData.Instance.TrackDB.TrackNodes.JunctionNodes[pNode.JunctionIndex];
+                        TrackNodeConnectorIndex jnConnectors = trackDatabase.TrackNodeConnectors[pNode.JunctionIndex];
                         firstSwitch = true;
-                        for (int iPin = 0; iPin < jn.TrackPins.Length; iPin++)
+                        for (int iPin = 0; iPin < jnConnectors.TrackNodeConnectors.Length; iPin++)
                         {
-                            if (jn.TrackPins[iPin].Link == prevTNode)
+                            if (jnConnectors.TrackNodeConnectors[iPin].Link == prevTNode)
                             {
-                                jnDir = jn.TrackPins[iPin].Direction.Reverse();
+                                jnDir = jnConnectors.TrackNodeConnectors[iPin].Direction.Reverse();
                             }
                         }
                     }
@@ -112,7 +116,6 @@ namespace Orts.Simulation.Track
             AIPathNode lastPathNode = null;
 
             int trackNodeIndex = currentPathNode.NextMainTVNIndex;
-            TrackNode thisNode = null;
 
             currentPathNode = currentPathNode.NextMainNode;
             int reversal = 0;
@@ -125,8 +128,7 @@ namespace Orts.Simulation.Track
 
                 if (currentPathNode.Type == FreeTrainSimulator.Common.TrainPathNodeType.SidingStart)
                 {
-                    TrackNode sidingNode = RuntimeData.Instance.TrackDB.TrackNodes[currentPathNode.JunctionIndex];
-                    int startTCSectionIndex = sidingNode.TrackCircuitCrossReferences[0].Index;
+                    int startTCSectionIndex = nodeCrossReferences[currentPathNode.JunctionIndex][0].Index;
                     int[] altRouteReference = new int[3];
                     altRouteReference[0] = sublist;
                     altRouteReference[1] = currentPathNode.Index;
@@ -138,8 +140,7 @@ namespace Orts.Simulation.Track
                 }
                 else if (currentPathNode.Type == FreeTrainSimulator.Common.TrainPathNodeType.SidingEnd)
                 {
-                    TrackNode sidingNode = RuntimeData.Instance.TrackDB.TrackNodes[currentPathNode.JunctionIndex];
-                    int endTCSectionIndex = sidingNode.TrackCircuitCrossReferences[0].Index;
+                    int endTCSectionIndex = nodeCrossReferences[currentPathNode.JunctionIndex][0].Index;
 
                     int refStartIndex = ActiveAlternativeRoutes.Dequeue();
                     int[] altRouteReference = alternativeRoutes[refStartIndex];
@@ -154,29 +155,29 @@ namespace Orts.Simulation.Track
 
                 if (currentPathNode.Type == FreeTrainSimulator.Common.TrainPathNodeType.Other)
                 {
-                    thisNode = RuntimeData.Instance.TrackDB.TrackNodes[trackNodeIndex];
+                    TrackCircuitCrossReferences crossRefs = nodeCrossReferences[trackNodeIndex];
 
                     //  SPA:    Subpath:    Add TCRouteElement for each TrackCircuitsection in node
                     if (currentDir == 0)
                     {
-                        for (int iTC = 0; iTC < thisNode.TrackCircuitCrossReferences.Count; iTC++)
+                        for (int iTC = 0; iTC < crossRefs.Count; iTC++)
                         {
-                            TrackCircuitRouteElement element = new TrackCircuitRouteElement(thisNode, iTC, currentDir);
+                            TrackCircuitRouteElement element = new TrackCircuitRouteElement(crossRefs, iTC, currentDir);
                             thisSubpath.Add(element);
                             SetStationReference(TCRouteSubpaths, element.TrackCircuitSection);
                         }
-                        newDir = thisNode.TrackPins[(int)currentDir].Direction;
+                        newDir = trackDatabase.TrackNodeConnectors[trackNodeIndex].TrackNodeConnectors[(int)currentDir].Direction;
 
                     }
                     else
                     {
-                        for (int iTC = thisNode.TrackCircuitCrossReferences.Count - 1; iTC >= 0; iTC--)
+                        for (int iTC = crossRefs.Count - 1; iTC >= 0; iTC--)
                         {
-                            TrackCircuitRouteElement element = new TrackCircuitRouteElement(thisNode, iTC, currentDir);
+                            TrackCircuitRouteElement element = new TrackCircuitRouteElement(crossRefs, iTC, currentDir);
                             thisSubpath.Add(element);
                             SetStationReference(TCRouteSubpaths, element.TrackCircuitSection);
                         }
-                        newDir = thisNode.TrackPins[(int)currentDir].Direction;
+                        newDir = trackDatabase.TrackNodeConnectors[trackNodeIndex].TrackNodeConnectors[(int)currentDir].Direction;
                     }
 
                     if (reversal > 0)
@@ -240,32 +241,32 @@ namespace Orts.Simulation.Track
 
                     if (currentPathNode.JunctionIndex > 0)
                     {
-                        TrackNode junctionNode = RuntimeData.Instance.TrackDB.TrackNodes[currentPathNode.JunctionIndex];
+                        TrackNodeConnectorIndex junctionConnectors = trackDatabase.TrackNodeConnectors[currentPathNode.JunctionIndex];
                         TrackCircuitRouteElement thisElement =
-                            new TrackCircuitRouteElement(junctionNode, 0, newDir);
+                            new TrackCircuitRouteElement(nodeCrossReferences[currentPathNode.JunctionIndex], 0, newDir);
                         thisSubpath.Add(thisElement);
 
                         trackNodeIndex = currentPathNode.NextMainTVNIndex;
 
                         if (currentPathNode.IsFacingPoint)   // exit is one of two switch paths //
                         {
-                            int firstpin = (junctionNode.InPins > 1) ? 0 : junctionNode.InPins;
-                            if (junctionNode.TrackPins[firstpin].Link == trackNodeIndex)
+                            int firstpin = (junctionConnectors.InboundCount > 1) ? 0 : junctionConnectors.InboundCount;
+                            if (junctionConnectors.TrackNodeConnectors[firstpin].Link == trackNodeIndex)
                             {
-                                newDir = junctionNode.TrackPins[firstpin].Direction;
+                                newDir = junctionConnectors.TrackNodeConnectors[firstpin].Direction;
                                 thisElement.OutPin[SignalLocation.FarEnd] = TrackDirection.Ahead;
                             }
                             else
                             {
                                 firstpin++;
-                                newDir = junctionNode.TrackPins[firstpin].Direction;
+                                newDir = junctionConnectors.TrackNodeConnectors[firstpin].Direction;
                                 thisElement.OutPin[SignalLocation.FarEnd] = TrackDirection.Reverse;
                             }
                         }
                         else  // exit is single path //
                         {
-                            int firstpin = (junctionNode.InPins > 1) ? junctionNode.InPins : 0;
-                            newDir = junctionNode.TrackPins[firstpin].Direction;
+                            int firstpin = (junctionConnectors.InboundCount > 1) ? junctionConnectors.InboundCount : 0;
+                            newDir = junctionConnectors.TrackNodeConnectors[firstpin].Direction;
                         }
                     }
                     //
@@ -289,22 +290,22 @@ namespace Orts.Simulation.Track
 
                     if (nextPathNode.Type == FreeTrainSimulator.Common.TrainPathNodeType.Reverse)
                     {
-                        TrackVectorNode reversalNode = RuntimeData.Instance.TrackDB.TrackNodes.VectorNodes[nextPathNode.NextMainTVNIndex];
-                        TrackVectorSection firstSection = reversalNode.TrackVectorSections[0];
-                        TrackTraveller? tdbTrav = TrackTraveller.InitializeTraveller(firstSection.Location, nextPathNode.NextMainTVNIndex, TrackDirection.Ahead);
+                        VectorNode reversalVectorNode = trackDatabase.VectorNodes[nextPathNode.NextMainTVNIndex];
+                        TrackTraveller? tdbTrav = TrackTraveller.InitializeTraveller(reversalVectorNode.VectorSections[0].Location, nextPathNode.NextMainTVNIndex, TrackDirection.Ahead);
                         offset = tdbTrav?.DistanceTo(nextPathNode.Location) ?? 0;
                         float reverseOffset = 0;
                         int sectionIndex = -1;
                         TrackDirection validDir = currentDir;
                         if (reversal % 2 == 1)
                             validDir = validDir.Reverse();
+                        TrackCircuitCrossReferences reversalCrossRefs = nodeCrossReferences[nextPathNode.NextMainTVNIndex];
                         if (validDir == TrackDirection.Ahead)
                         {
                             reverseOffset = -offset;
-                            for (int i = reversalNode.TrackCircuitCrossReferences.Count - 1; i >= 0 && reverseOffset <= 0; i--)
+                            for (int i = reversalCrossRefs.Count - 1; i >= 0 && reverseOffset <= 0; i--)
                             {
-                                reverseOffset += reversalNode.TrackCircuitCrossReferences[i].Length;
-                                sectionIndex = reversalNode.TrackCircuitCrossReferences[i].Index;
+                                reverseOffset += reversalCrossRefs[i].Length;
+                                sectionIndex = reversalCrossRefs[i].Index;
 
                             }
                         }
@@ -312,13 +313,13 @@ namespace Orts.Simulation.Track
                         {
                             int exti = 0;
                             reverseOffset = offset;
-                            for (int i = reversalNode.TrackCircuitCrossReferences.Count - 1; i >= 0 && reverseOffset >= 0; i--)
+                            for (int i = reversalCrossRefs.Count - 1; i >= 0 && reverseOffset >= 0; i--)
                             {
-                                reverseOffset -= reversalNode.TrackCircuitCrossReferences[i].Length;
-                                sectionIndex = reversalNode.TrackCircuitCrossReferences[i].Index;
+                                reverseOffset -= reversalCrossRefs[i].Length;
+                                sectionIndex = reversalCrossRefs[i].Index;
                                 exti = i;
                             }
-                            reverseOffset += reversalNode.TrackCircuitCrossReferences[exti].Length;
+                            reverseOffset += reversalCrossRefs[exti].Length;
                         }
                         RoughReversalInfo roughReversalInfo = new RoughReversalInfo(sublist + reversal, reverseOffset, sectionIndex);
                         RoughReversalInfos.Add(roughReversalInfo);
@@ -356,36 +357,36 @@ namespace Orts.Simulation.Track
                 // insert reversals when they are in last section
                 while (reversal > 0)
                 {
-                    thisNode = RuntimeData.Instance.TrackDB.TrackNodes[trackNodeIndex];
+                    TrackCircuitCrossReferences revCrossRefs = nodeCrossReferences[trackNodeIndex];
                     if (currentDir == 0)
                     {
-                        for (int iTC = 0; iTC < thisNode.TrackCircuitCrossReferences.Count; iTC++)
+                        for (int iTC = 0; iTC < revCrossRefs.Count; iTC++)
                         {
-                            TrackCircuitRouteElement element = new TrackCircuitRouteElement(thisNode, iTC, currentDir);
+                            TrackCircuitRouteElement element = new TrackCircuitRouteElement(revCrossRefs, iTC, currentDir);
                             thisSubpath.Add(element);
                             //  SPA:    Station:    A adapter, 
                             SetStationReference(TCRouteSubpaths, element.TrackCircuitSection);
-                            if (thisNode.TrackCircuitCrossReferences[iTC].Index == RoughReversalInfos[sublist].ReversalSectionIndex)
+                            if (revCrossRefs[iTC].Index == RoughReversalInfos[sublist].ReversalSectionIndex)
                             {
                                 break;
                             }
                         }
-                        newDir = thisNode.TrackPins[(int)currentDir].Direction;
+                        newDir = trackDatabase.TrackNodeConnectors[trackNodeIndex].TrackNodeConnectors[(int)currentDir].Direction;
 
                     }
                     else
                     {
-                        for (int iTC = thisNode.TrackCircuitCrossReferences.Count - 1; iTC >= 0; iTC--)
+                        for (int iTC = revCrossRefs.Count - 1; iTC >= 0; iTC--)
                         {
-                            TrackCircuitRouteElement element = new TrackCircuitRouteElement(thisNode, iTC, currentDir);
+                            TrackCircuitRouteElement element = new TrackCircuitRouteElement(revCrossRefs, iTC, currentDir);
                             thisSubpath.Add(element);
                             SetStationReference(TCRouteSubpaths, element.TrackCircuitSection);
-                            if (thisNode.TrackCircuitCrossReferences[iTC].Index == RoughReversalInfos[sublist].ReversalSectionIndex)
+                            if (revCrossRefs[iTC].Index == RoughReversalInfos[sublist].ReversalSectionIndex)
                             {
                                 break;
                             }
                         }
-                        newDir = thisNode.TrackPins[(int)currentDir].Direction;
+                        newDir = trackDatabase.TrackNodeConnectors[trackNodeIndex].TrackNodeConnectors[(int)currentDir].Direction;
                     }
                     sublist++;
                     thisSubpath = new TrackCircuitPartialPathRoute();
@@ -398,21 +399,21 @@ namespace Orts.Simulation.Track
             // add last section
             //
 
-            thisNode = RuntimeData.Instance.TrackDB.TrackNodes[trackNodeIndex];
-            TrackVectorSection endFirstSection = (thisNode as TrackVectorNode).TrackVectorSections[0];
-            TrackTraveller? tdbEndTrav = TrackTraveller.InitializeTraveller(endFirstSection.Location, trackNodeIndex, TrackDirection.Ahead);
+            VectorNode endVectorNode = trackDatabase.VectorNodes[trackNodeIndex];
+            TrackTraveller? tdbEndTrav = TrackTraveller.InitializeTraveller(endVectorNode.VectorSections[0].Location, trackNodeIndex, TrackDirection.Ahead);
             float endOffset = tdbEndTrav?.DistanceTo(lastPathNode.Location) ?? 0;
 
             // Prepare info about route end point
             float reverseEndOffset = 0;
             int endNodeSectionIndex = -1;
+            TrackCircuitCrossReferences endCrossRefs = nodeCrossReferences[trackNodeIndex];
             if (currentDir == 0)
             {
                 reverseEndOffset = -endOffset;
-                for (int i = thisNode.TrackCircuitCrossReferences.Count - 1; i >= 0 && reverseEndOffset <= 0; i--)
+                for (int i = endCrossRefs.Count - 1; i >= 0 && reverseEndOffset <= 0; i--)
                 {
-                    reverseEndOffset += thisNode.TrackCircuitCrossReferences[i].Length;
-                    endNodeSectionIndex = thisNode.TrackCircuitCrossReferences[i].Index;
+                    reverseEndOffset += endCrossRefs[i].Length;
+                    endNodeSectionIndex = endCrossRefs[i].Index;
 
                 }
             }
@@ -420,29 +421,29 @@ namespace Orts.Simulation.Track
             {
                 int exti = 0;
                 reverseEndOffset = endOffset;
-                for (int i = thisNode.TrackCircuitCrossReferences.Count - 1; i >= 0 && reverseEndOffset >= 0; i--)
+                for (int i = endCrossRefs.Count - 1; i >= 0 && reverseEndOffset >= 0; i--)
                 {
-                    reverseEndOffset -= thisNode.TrackCircuitCrossReferences[i].Length;
-                    endNodeSectionIndex = thisNode.TrackCircuitCrossReferences[i].Index;
+                    reverseEndOffset -= endCrossRefs[i].Length;
+                    endNodeSectionIndex = endCrossRefs[i].Index;
                     exti = i;
                 }
-                reverseEndOffset += thisNode.TrackCircuitCrossReferences[exti].Length;
+                reverseEndOffset += endCrossRefs[exti].Length;
             }
             RoughReversalInfo lastReversalInfo = new RoughReversalInfo(sublist, reverseEndOffset, endNodeSectionIndex);
             RoughReversalInfos.Add(lastReversalInfo);
 
             // only add last section if end point is in different tracknode as last added item
             if (thisSubpath.Count <= 0 ||
-                thisNode.Index != thisSubpath[thisSubpath.Count - 1].TrackCircuitSection.OriginalIndex)
+                trackNodeIndex != thisSubpath[thisSubpath.Count - 1].TrackCircuitSection.OriginalIndex)
             {
                 if (currentDir == 0)
                 {
-                    for (int iTC = 0; iTC < thisNode.TrackCircuitCrossReferences.Count; iTC++)
+                    for (int iTC = 0; iTC < endCrossRefs.Count; iTC++)
                     {
-                        if ((thisNode.TrackCircuitCrossReferences[iTC].OffsetLength[TrackDirection.Reverse] + thisNode.TrackCircuitCrossReferences[iTC].Length) > endOffset)
+                        if ((endCrossRefs[iTC].OffsetLength[TrackDirection.Reverse] + endCrossRefs[iTC].Length) > endOffset)
                         //                      if (thisNode.TCCrossReference[iTC].Position[0] < endOffset)
                         {
-                            TrackCircuitRouteElement element = new TrackCircuitRouteElement(thisNode, iTC, currentDir);
+                            TrackCircuitRouteElement element = new TrackCircuitRouteElement(endCrossRefs, iTC, currentDir);
                             if (thisSubpath.Count <= 0 || thisSubpath[thisSubpath.Count - 1].TrackCircuitSection.Index != element.TrackCircuitSection.Index)
                             {
                                 thisSubpath.Add(element); // only add if not yet set
@@ -453,11 +454,11 @@ namespace Orts.Simulation.Track
                 }
                 else
                 {
-                    for (int iTC = thisNode.TrackCircuitCrossReferences.Count - 1; iTC >= 0; iTC--)
+                    for (int iTC = endCrossRefs.Count - 1; iTC >= 0; iTC--)
                     {
-                        if (thisNode.TrackCircuitCrossReferences[iTC].OffsetLength[TrackDirection.Reverse] < endOffset)
+                        if (endCrossRefs[iTC].OffsetLength[TrackDirection.Reverse] < endOffset)
                         {
-                            TrackCircuitRouteElement element = new TrackCircuitRouteElement(thisNode, iTC, currentDir);
+                            TrackCircuitRouteElement element = new TrackCircuitRouteElement(endCrossRefs, iTC, currentDir);
                             if (thisSubpath.Count <= 0 || thisSubpath[thisSubpath.Count - 1].TrackCircuitSection.Index != element.TrackCircuitSection.Index)
                             {
                                 thisSubpath.Add(element); // only add if not yet set
@@ -897,6 +898,8 @@ namespace Orts.Simulation.Track
         private void ProcessAlternativePathPathDef(Dictionary<int, int[]> alternativeRoutes, AIPath aiPath)
         {
             int altlist = 0;
+            TrackDatabase trackDatabase = RuntimeDataResolver.Instance.TrackWorld.TrackModel.TrackDatabase;
+            Dictionary<int, TrackCircuitCrossReferences> nodeCrossReferences = Simulator.Instance.SignalEnvironment.NodeCrossReferences;
 
             foreach (KeyValuePair<int, int[]> alternativePath in alternativeRoutes)
             {
@@ -944,27 +947,26 @@ namespace Orts.Simulation.Track
 
                     // process junction node
 
-                    TrackJunctionNode firstJunctionNode = RuntimeData.Instance.TrackDB.TrackNodes.JunctionNodes[currentPathNode.JunctionIndex];
-                    TrackCircuitRouteElement junctionElement = new TrackCircuitRouteElement(firstJunctionNode, 0, currentDir);
+                    TrackNodeConnectorIndex firstJnConnectors = trackDatabase.TrackNodeConnectors[currentPathNode.JunctionIndex];
+                    TrackCircuitRouteElement junctionElement = new TrackCircuitRouteElement(nodeCrossReferences[currentPathNode.JunctionIndex], 0, currentDir);
                     alternativePathRoute.Add(junctionElement);
 
                     int trackNodeIndex = currentPathNode.NextSidingTVNIndex;
 
-                    int firstJunctionPin = (firstJunctionNode.InPins > 1) ? 0 : firstJunctionNode.InPins;
-                    if (firstJunctionNode.TrackPins[firstJunctionPin].Link == trackNodeIndex)
+                    int firstJunctionPin = (firstJnConnectors.InboundCount > 1) ? 0 : firstJnConnectors.InboundCount;
+                    if (firstJnConnectors.TrackNodeConnectors[firstJunctionPin].Link == trackNodeIndex)
                     {
-                        currentDir = firstJunctionNode.TrackPins[firstJunctionPin].Direction;
+                        currentDir = firstJnConnectors.TrackNodeConnectors[firstJunctionPin].Direction;
                         junctionElement.OutPin[SignalLocation.FarEnd] = TrackDirection.Ahead;
                     }
                     else
                     {
                         firstJunctionPin++;
-                        currentDir = firstJunctionNode.TrackPins[firstJunctionPin].Direction;
+                        currentDir = firstJnConnectors.TrackNodeConnectors[firstJunctionPin].Direction;
                         junctionElement.OutPin[SignalLocation.FarEnd] = TrackDirection.Reverse;
                     }
 
                     // process alternative path
-                    TrackNode node = null;
                     currentPathNode = currentPathNode.NextSidingNode;
 
                     while (currentPathNode != null)
@@ -974,26 +976,26 @@ namespace Orts.Simulation.Track
                         {
                             if (trackNodeIndex > 0)
                             {
-                                node = RuntimeData.Instance.TrackDB.TrackNodes[trackNodeIndex];
+                                TrackCircuitCrossReferences altCrossRefs = nodeCrossReferences[trackNodeIndex];
 
                                 if (currentDir == TrackDirection.Ahead)
                                 {
-                                    for (int i = 0; i < node.TrackCircuitCrossReferences.Count; i++)
+                                    for (int i = 0; i < altCrossRefs.Count; i++)
                                     {
-                                        TrackCircuitRouteElement element = new TrackCircuitRouteElement(node, i, currentDir);
+                                        TrackCircuitRouteElement element = new TrackCircuitRouteElement(altCrossRefs, i, currentDir);
                                         alternativePathRoute.Add(element);
                                     }
-                                    newDir = node.TrackPins[(int)currentDir].Direction;
+                                    newDir = trackDatabase.TrackNodeConnectors[trackNodeIndex].TrackNodeConnectors[(int)currentDir].Direction;
 
                                 }
                                 else
                                 {
-                                    for (int i = node.TrackCircuitCrossReferences.Count - 1; i >= 0; i--)
+                                    for (int i = altCrossRefs.Count - 1; i >= 0; i--)
                                     {
-                                        TrackCircuitRouteElement element = new TrackCircuitRouteElement(node, i, currentDir);
+                                        TrackCircuitRouteElement element = new TrackCircuitRouteElement(altCrossRefs, i, currentDir);
                                         alternativePathRoute.Add(element);
                                     }
-                                    newDir = node.TrackPins[(int)currentDir].Direction;
+                                    newDir = trackDatabase.TrackNodeConnectors[trackNodeIndex].TrackNodeConnectors[(int)currentDir].Direction;
                                 }
                                 trackNodeIndex = -1;
                             }
@@ -1004,31 +1006,31 @@ namespace Orts.Simulation.Track
 
                             if (currentPathNode.JunctionIndex > 0)
                             {
-                                TrackJunctionNode junctionNode = RuntimeData.Instance.TrackDB.TrackNodes.JunctionNodes[currentPathNode.JunctionIndex];
-                                TrackCircuitRouteElement element = new TrackCircuitRouteElement(junctionNode, 0, newDir);
+                                TrackNodeConnectorIndex jnConnectors = trackDatabase.TrackNodeConnectors[currentPathNode.JunctionIndex];
+                                TrackCircuitRouteElement element = new TrackCircuitRouteElement(nodeCrossReferences[currentPathNode.JunctionIndex], 0, newDir);
                                 alternativePathRoute.Add(element);
 
                                 trackNodeIndex = currentPathNode.NextSidingTVNIndex;
 
                                 if (currentPathNode.IsFacingPoint)   // exit is one of two switch paths //
                                 {
-                                    int firstpin = (junctionNode.InPins > 1) ? 0 : junctionNode.InPins;
-                                    if (junctionNode.TrackPins[firstpin].Link == trackNodeIndex)
+                                    int firstpin = (jnConnectors.InboundCount > 1) ? 0 : jnConnectors.InboundCount;
+                                    if (jnConnectors.TrackNodeConnectors[firstpin].Link == trackNodeIndex)
                                     {
-                                        newDir = junctionNode.TrackPins[firstpin].Direction;
+                                        newDir = jnConnectors.TrackNodeConnectors[firstpin].Direction;
                                         element.OutPin[SignalLocation.FarEnd] = TrackDirection.Ahead;
                                     }
                                     else
                                     {
                                         firstpin++;
-                                        newDir = junctionNode.TrackPins[firstpin].Direction;
+                                        newDir = jnConnectors.TrackNodeConnectors[firstpin].Direction;
                                         element.OutPin[SignalLocation.FarEnd] = TrackDirection.Reverse;
                                     }
                                 }
                                 else  // exit is single path //
                                 {
-                                    int firstpin = (junctionNode.InPins > 1) ? junctionNode.InPins : 0;
-                                    newDir = junctionNode.TrackPins[firstpin].Direction;
+                                    int firstpin = (jnConnectors.InboundCount > 1) ? jnConnectors.InboundCount : 0;
+                                    newDir = jnConnectors.TrackNodeConnectors[firstpin].Direction;
                                 }
                             }
 
@@ -1053,21 +1055,21 @@ namespace Orts.Simulation.Track
                     // add last section
                     if (trackNodeIndex > 0)
                     {
-                        node = RuntimeData.Instance.TrackDB.TrackNodes[trackNodeIndex];
+                        TrackCircuitCrossReferences lastAltCrossRefs = nodeCrossReferences[trackNodeIndex];
 
                         if (currentDir == TrackDirection.Ahead)
                         {
-                            for (int i = 0; i < node.TrackCircuitCrossReferences.Count; i++)
+                            for (int i = 0; i < lastAltCrossRefs.Count; i++)
                             {
-                                TrackCircuitRouteElement element = new TrackCircuitRouteElement(node, i, currentDir);
+                                TrackCircuitRouteElement element = new TrackCircuitRouteElement(lastAltCrossRefs, i, currentDir);
                                 alternativePathRoute.Add(element);
                             }
                         }
                         else
                         {
-                            for (int i = node.TrackCircuitCrossReferences.Count - 1; i >= 0; i--)
+                            for (int i = lastAltCrossRefs.Count - 1; i >= 0; i--)
                             {
-                                TrackCircuitRouteElement element = new TrackCircuitRouteElement(node, i, currentDir);
+                                TrackCircuitRouteElement element = new TrackCircuitRouteElement(lastAltCrossRefs, i, currentDir);
                                 alternativePathRoute.Add(element);
                             }
                         }
@@ -1082,6 +1084,9 @@ namespace Orts.Simulation.Track
         // process alternative paths - location definition
         private void ProcessAlternativePathLocationDef(Dictionary<int, int[]> alternativeRoutes, AIPath aiPath, int trainNumber)
         {
+            TrackDatabase trackDatabase = RuntimeDataResolver.Instance.TrackWorld.TrackModel.TrackDatabase;
+            Dictionary<int, TrackCircuitCrossReferences> nodeCrossReferences = Simulator.Instance.SignalEnvironment.NodeCrossReferences;
+
             foreach (KeyValuePair<int, int[]> alternativePath in alternativeRoutes)
             {
                 TrackCircuitPartialPathRoute alternativePathRoute = new TrackCircuitPartialPathRoute();
@@ -1117,28 +1122,27 @@ namespace Orts.Simulation.Track
                     AIPathNode pathNode = aiPath.Nodes[pathDetails[1]];
 
                     // process junction node
-                    TrackJunctionNode firstJunctionNode = RuntimeData.Instance.TrackDB.TrackNodes.JunctionNodes[pathNode.JunctionIndex];
-                    TrackCircuitRouteElement junctionElement = new TrackCircuitRouteElement(firstJunctionNode, 0, currentDir);
+                    TrackNodeConnectorIndex firstJnConnectors = trackDatabase.TrackNodeConnectors[pathNode.JunctionIndex];
+                    TrackCircuitRouteElement junctionElement = new TrackCircuitRouteElement(nodeCrossReferences[pathNode.JunctionIndex], 0, currentDir);
                     alternativePathRoute.Add(junctionElement);
 
                     int trackNodeIndex = pathNode.NextSidingTVNIndex;
 
-                    int firstJunctionPin = (firstJunctionNode.InPins > 1) ? 0 : firstJunctionNode.InPins;
-                    if (firstJunctionNode.TrackPins[firstJunctionPin].Link == trackNodeIndex)
+                    int firstJunctionPin = (firstJnConnectors.InboundCount > 1) ? 0 : firstJnConnectors.InboundCount;
+                    if (firstJnConnectors.TrackNodeConnectors[firstJunctionPin].Link == trackNodeIndex)
                     {
-                        currentDir = firstJunctionNode.TrackPins[firstJunctionPin].Direction;
+                        currentDir = firstJnConnectors.TrackNodeConnectors[firstJunctionPin].Direction;
                         junctionElement.OutPin[SignalLocation.FarEnd] = TrackDirection.Ahead;
                     }
                     else
                     {
                         firstJunctionPin++;
-                        currentDir = firstJunctionNode.TrackPins[firstJunctionPin].Direction;
+                        currentDir = firstJnConnectors.TrackNodeConnectors[firstJunctionPin].Direction;
                         junctionElement.OutPin[SignalLocation.FarEnd] = TrackDirection.Reverse;
                     }
 
                     pathNode = pathNode.NextSidingNode;
                     // process alternative path
-                    TrackNode trackNode;
                     while (pathNode != null)
                     {
 
@@ -1149,26 +1153,26 @@ namespace Orts.Simulation.Track
                         {
                             if (trackNodeIndex > 0)
                             {
-                                trackNode = RuntimeData.Instance.TrackDB.TrackNodes[trackNodeIndex];
+                                TrackCircuitCrossReferences altCrossRefs = nodeCrossReferences[trackNodeIndex];
 
                                 if (currentDir == TrackDirection.Ahead)
                                 {
-                                    for (int i = 0; i < trackNode.TrackCircuitCrossReferences.Count; i++)
+                                    for (int i = 0; i < altCrossRefs.Count; i++)
                                     {
-                                        TrackCircuitRouteElement element = new TrackCircuitRouteElement(trackNode, i, currentDir);
+                                        TrackCircuitRouteElement element = new TrackCircuitRouteElement(altCrossRefs, i, currentDir);
                                         alternativePathRoute.Add(element);
                                     }
-                                    newDir = trackNode.TrackPins[(int)currentDir].Direction;
+                                    newDir = trackDatabase.TrackNodeConnectors[trackNodeIndex].TrackNodeConnectors[(int)currentDir].Direction;
 
                                 }
                                 else
                                 {
-                                    for (int i = trackNode.TrackCircuitCrossReferences.Count - 1; i >= 0; i--)
+                                    for (int i = altCrossRefs.Count - 1; i >= 0; i--)
                                     {
-                                        TrackCircuitRouteElement element = new TrackCircuitRouteElement(trackNode, i, currentDir);
+                                        TrackCircuitRouteElement element = new TrackCircuitRouteElement(altCrossRefs, i, currentDir);
                                         alternativePathRoute.Add(element);
                                     }
-                                    newDir = trackNode.TrackPins[(int)currentDir].Direction;
+                                    newDir = trackDatabase.TrackNodeConnectors[trackNodeIndex].TrackNodeConnectors[(int)currentDir].Direction;
                                 }
                                 trackNodeIndex = -1;
                             }
@@ -1176,31 +1180,31 @@ namespace Orts.Simulation.Track
                             // process junction section
                             if (pathNode.JunctionIndex > 0)
                             {
-                                TrackJunctionNode junctionNode = RuntimeData.Instance.TrackDB.TrackNodes.JunctionNodes[pathNode.JunctionIndex];
-                                TrackCircuitRouteElement element = new TrackCircuitRouteElement(junctionNode, 0, newDir);
+                                TrackNodeConnectorIndex jnConnectors = trackDatabase.TrackNodeConnectors[pathNode.JunctionIndex];
+                                TrackCircuitRouteElement element = new TrackCircuitRouteElement(nodeCrossReferences[pathNode.JunctionIndex], 0, newDir);
                                 alternativePathRoute.Add(element);
 
                                 trackNodeIndex = pathNode.NextSidingTVNIndex;
 
                                 if (pathNode.IsFacingPoint)   // exit is one of two switch paths //
                                 {
-                                    int firstpin = (junctionNode.InPins > 1) ? 0 : junctionNode.InPins;
-                                    if (junctionNode.TrackPins[firstpin].Link == trackNodeIndex)
+                                    int firstpin = (jnConnectors.InboundCount > 1) ? 0 : jnConnectors.InboundCount;
+                                    if (jnConnectors.TrackNodeConnectors[firstpin].Link == trackNodeIndex)
                                     {
-                                        newDir = junctionNode.TrackPins[firstpin].Direction;
+                                        newDir = jnConnectors.TrackNodeConnectors[firstpin].Direction;
                                         element.OutPin[SignalLocation.FarEnd] = TrackDirection.Ahead;
                                     }
                                     else
                                     {
                                         firstpin++;
-                                        newDir = junctionNode.TrackPins[firstpin].Direction;
+                                        newDir = jnConnectors.TrackNodeConnectors[firstpin].Direction;
                                         element.OutPin[SignalLocation.FarEnd] = TrackDirection.Reverse;
                                     }
                                 }
                                 else  // exit is single path //
                                 {
-                                    int firstpin = (junctionNode.InPins > 1) ? junctionNode.InPins : 0;
-                                    newDir = junctionNode.TrackPins[firstpin].Direction;
+                                    int firstpin = (jnConnectors.InboundCount > 1) ? jnConnectors.InboundCount : 0;
+                                    newDir = jnConnectors.TrackNodeConnectors[firstpin].Direction;
                                 }
                             }
 
@@ -1225,21 +1229,21 @@ namespace Orts.Simulation.Track
                     // add last section
                     if (trackNodeIndex > 0)
                     {
-                        trackNode = RuntimeData.Instance.TrackDB.TrackNodes[trackNodeIndex];
+                        TrackCircuitCrossReferences lastAltCrossRefs = nodeCrossReferences[trackNodeIndex];
 
                         if (currentDir == TrackDirection.Ahead)
                         {
-                            for (int i = 0; i < trackNode.TrackCircuitCrossReferences.Count; i++)
+                            for (int i = 0; i < lastAltCrossRefs.Count; i++)
                             {
-                                TrackCircuitRouteElement element = new TrackCircuitRouteElement(trackNode, i, currentDir);
+                                TrackCircuitRouteElement element = new TrackCircuitRouteElement(lastAltCrossRefs, i, currentDir);
                                 alternativePathRoute.Add(element);
                             }
                         }
                         else
                         {
-                            for (int i = trackNode.TrackCircuitCrossReferences.Count - 1; i >= 0; i--)
+                            for (int i = lastAltCrossRefs.Count - 1; i >= 0; i--)
                             {
-                                TrackCircuitRouteElement element = new TrackCircuitRouteElement(trackNode, i, currentDir);
+                                TrackCircuitRouteElement element = new TrackCircuitRouteElement(lastAltCrossRefs, i, currentDir);
                                 alternativePathRoute.Add(element);
                             }
                         }
@@ -1526,14 +1530,14 @@ namespace Orts.Simulation.Track
         // Convert waiting point to section no.
         private static int ConvertWaitingPoint(AIPathNode stopPathNode)
         {
-            TrackVectorNode waitingNode = RuntimeData.Instance.TrackDB.TrackNodes.VectorNodes[stopPathNode.NextMainTVNIndex];
-            TrackVectorSection firstSection = waitingNode.TrackVectorSections[0];
-            TrackTraveller? tdbTraveller = TrackTraveller.InitializeTraveller(firstSection.Location, stopPathNode.NextMainTVNIndex, TrackDirection.Ahead);
+            VectorNode waitingVectorNode = RuntimeDataResolver.Instance.TrackWorld.TrackModel.TrackDatabase.VectorNodes[stopPathNode.NextMainTVNIndex];
+            TrackTraveller? tdbTraveller = TrackTraveller.InitializeTraveller(waitingVectorNode.VectorSections[0].Location, stopPathNode.NextMainTVNIndex, TrackDirection.Ahead);
             float offset = tdbTraveller?.DistanceTo(stopPathNode.Location) ?? 0;
 
             int sectionIndex = -1;
 
-            foreach (TrackCircuitSectionCrossReference crossReference in waitingNode.TrackCircuitCrossReferences)
+            TrackCircuitCrossReferences waitingCrossRefs = Simulator.Instance.SignalEnvironment.NodeCrossReferences[stopPathNode.NextMainTVNIndex];
+            foreach (TrackCircuitSectionCrossReference crossReference in waitingCrossRefs)
             {
                 if (offset < (crossReference.OffsetLength[TrackDirection.Reverse] + crossReference.Length))
                 {
@@ -1544,7 +1548,7 @@ namespace Orts.Simulation.Track
 
             if (sectionIndex < 0)
             {
-                sectionIndex = waitingNode.TrackCircuitCrossReferences[0].Index;
+                sectionIndex = waitingCrossRefs[0].Index;
             }
 
             return sectionIndex;

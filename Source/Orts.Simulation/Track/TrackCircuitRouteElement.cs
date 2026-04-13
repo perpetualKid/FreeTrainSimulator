@@ -68,13 +68,13 @@ namespace Orts.Simulation.Track
         public TrackCircuitRouteElement() { }
 
         /// <summary>
-        /// Constructor from tracknode
+        /// Constructor from track circuit cross references
         /// </summary>
-        public TrackCircuitRouteElement(TrackNode node, int trackCircuitIndex, TrackDirection direction)
+        public TrackCircuitRouteElement(TrackCircuitCrossReferences crossReferences, int trackCircuitIndex, TrackDirection direction)
         {
-            ArgumentNullException.ThrowIfNull(node);
+            ArgumentNullException.ThrowIfNull(crossReferences);
 
-            TrackCircuitSection = TrackCircuitSection.TrackCircuitList[node.TrackCircuitCrossReferences[trackCircuitIndex].Index];
+            TrackCircuitSection = TrackCircuitSection.TrackCircuitList[crossReferences[trackCircuitIndex].Index];
             Direction = direction;
             OutPin[SignalLocation.NearEnd] = direction;
             OutPin[SignalLocation.FarEnd] = TrackDirection.Ahead;           // always 0 for NORMAL sections, updated for JUNCTION sections
@@ -82,8 +82,7 @@ namespace Orts.Simulation.Track
             if (TrackCircuitSection.CircuitType == TrackCircuitType.Crossover)
             {
                 TrackDirection outPinLink = direction;
-                int nextIndex;
-                nextIndex = direction == TrackDirection.Reverse ? node.TrackCircuitCrossReferences[trackCircuitIndex - 1].Index : node.TrackCircuitCrossReferences[trackCircuitIndex + 1].Index;
+                int nextIndex = direction == TrackDirection.Reverse ? crossReferences[trackCircuitIndex - 1].Index : crossReferences[trackCircuitIndex + 1].Index;
                 OutPin[SignalLocation.FarEnd] = (TrackCircuitSection.Pins[outPinLink, SignalLocation.NearEnd].Link == nextIndex) ? TrackDirection.Ahead : TrackDirection.Reverse;
             }
 
