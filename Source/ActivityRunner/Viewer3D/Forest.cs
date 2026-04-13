@@ -31,7 +31,6 @@ using Microsoft.Xna.Framework.Graphics;
 
 using Orts.ActivityRunner.Viewer3D.Common;
 using Orts.ActivityRunner.Viewer3D.Shapes;
-using Orts.Formats.Msts;
 using Orts.Formats.Msts.Models;
 using Orts.Simulation;
 
@@ -104,7 +103,7 @@ namespace Orts.ActivityRunner.Viewer3D
         {
             // To get consistent tree placement between sessions, derive the seed from the location.
             Random random = new Random((int)(1000.0 * (position.Location.X + position.Location.Z + position.Location.Y)));
-            List<TrackVectorSection> sections = new List<TrackVectorSection>();
+            List<VectorSectionNode> sections = new List<VectorSectionNode>();
             objectRadius = (float)Math.Sqrt(forest.ForestArea.Width * forest.ForestArea.Width + forest.ForestArea.Height * forest.ForestArea.Height) / 2;
 
             if (maximumCenterlineOffset > 0)
@@ -240,39 +239,37 @@ namespace Orts.ActivityRunner.Viewer3D
         }
 
         //map sections to W tiles
-        private static Dictionary<string, List<TrackVectorSection>> SectionMap;
+        private static Dictionary<string, List<VectorSectionNode>> SectionMap;
 
-        public List<TrackVectorSection> FindTracksAndRoadsClose(in Tile tile)
+        public List<VectorSectionNode> FindTracksAndRoadsClose(in Tile tile)
         {
             if (SectionMap == null)
             {
-                SectionMap = new Dictionary<string, List<TrackVectorSection>>();
+                SectionMap = new Dictionary<string, List<VectorSectionNode>>();
                 if (maximumCenterlineOffset > 0)
                 {
-                    foreach (TrackVectorNode trackVectorNode in RuntimeData.Instance.TrackDB.TrackNodes.VectorNodes)
+                    foreach (VectorNode trackVectorNode in RuntimeDataResolver.Instance.TrackWorld.TrackModel.TrackDatabase.VectorNodes)
                     {
-                        foreach (TrackVectorSection section in trackVectorNode.TrackVectorSections)
+                        foreach (VectorSectionNode section in trackVectorNode.VectorSections)
                         {
                             string key = section.Location.Tile.ToString();
                             if (!SectionMap.ContainsKey(key))
-                                SectionMap.Add(key, new List<TrackVectorSection>());
+                                SectionMap.Add(key, new List<VectorSectionNode>());
                             SectionMap[key].Add(section);
                         }
                     }
                 }
                 if (checkRoads)
                 {
-                    if (RuntimeData.Instance.RoadTrackDB?.TrackNodes != null)
+                    if (RuntimeDataResolver.Instance.TrackWorld.TrackModel.RoadDatabase is { } roadDatabase)
                     {
-                        foreach (var node in RuntimeData.Instance.RoadTrackDB.TrackNodes)
+                        foreach (VectorNode trackVectorNode in roadDatabase.VectorNodes)
                         {
-                            if (!(node is TrackVectorNode trackVectorNode))
-                                continue;
-                            foreach (var section in trackVectorNode.TrackVectorSections)
+                            foreach (VectorSectionNode section in trackVectorNode.VectorSections)
                             {
                                 string key = section.Location.Tile.ToString();
                                 if (!SectionMap.ContainsKey(key))
-                                    SectionMap.Add(key, new List<TrackVectorSection>());
+                                    SectionMap.Add(key, new List<VectorSectionNode>());
                                 SectionMap[key].Add(section);
                             }
                         }
@@ -281,14 +278,14 @@ namespace Orts.ActivityRunner.Viewer3D
             }
 
             string targetKey = tile.ToString();
-            return SectionMap.TryGetValue(targetKey, out List<TrackVectorSection> value) ? value : null;
+            return SectionMap.TryGetValue(targetKey, out List<VectorSectionNode> value) ? value : null;
         }
 
         private FreeTrainSimulator.Models.Track.TrackSection trackSection;
 
-        private bool InitTrackSection(TrackVectorSection section, Vector3 xnaTreePosition, in Tile tile, float treeWidth)
+        private bool InitTrackSection(VectorSectionNode section, Vector3 xnaTreePosition, in Tile tile, float treeWidth)
         {
-            if (!RuntimeDataResolver.Instance.TrackSections.TrackSections.TryGetValue(section.SectionIndex, out trackSection))
+            if (!RuntimeDataResolver.Instance.TrackSections.TrackSections.TryGetValue(section.NodeIndex, out trackSection))
                 return false;
             return trackSection.Curved
                 ? InitTrackSectionCurved(tile, xnaTreePosition.X, -xnaTreePosition.Z, section, treeWidth)
@@ -296,13 +293,13 @@ namespace Orts.ActivityRunner.Viewer3D
         }
 
         // don't consider track sections outside the forest boundaries
-        public void FindTracksAndRoadsMoreClose(List<TrackVectorSection> sections, List<TrackVectorSection> allSections, ForestObject forest, in WorldPosition position, Matrix invForestXNAMatrix)
+        public void FindTracksAndRoadsMoreClose(List<VectorSectionNode> sections, List<VectorSectionNode> allSections, ForestObject forest, in WorldPosition position, Matrix invForestXNAMatrix)
         {
             if (allSections != null && allSections.Count > 0)
             {
                 var toAddX = maximumCenterlineOffset + forest.ForestArea.Width / 2 + forest.ScaleRange.UpperLimit * forest.TreeSize.Width;
                 var toAddZ = maximumCenterlineOffset + forest.ForestArea.Height / 2 + forest.ScaleRange.UpperLimit * forest.TreeSize.Width;
-                foreach (TrackVectorSection section in allSections)
+                foreach (VectorSectionNode section in allSections)
                 {
                     Vector3 sectPosition = section.Location.Location + (section.Location.Tile - position.Tile).TileVector();
                     sectPosition.Z *= -1;
@@ -310,7 +307,7 @@ namespace Orts.ActivityRunner.Viewer3D
 
                     sectPosToForest = Vector3.Transform(sectPosition, invForestXNAMatrix);
                     sectPosToForest.Z *= -1;
-                    if (!RuntimeDataResolver.Instance.TrackSections.TrackSections.TryGetValue(section.SectionIndex, out trackSection))
+                    if (!RuntimeDataResolver.Instance.TrackSections.TrackSections.TryGetValue(section.NodeIndex, out trackSection))
                         continue;
                     if (Math.Abs(sectPosToForest.X) > trackSection.Length + toAddX)
                         continue;
@@ -324,7 +321,7 @@ namespace Orts.ActivityRunner.Viewer3D
 
         private const float InitErrorMargin = 0.5f;
 
-        private bool InitTrackSectionCurved(in Tile tile, float x, float z, TrackVectorSection trackVectorSection, float treeWidth)
+        private bool InitTrackSectionCurved(in Tile tile, float x, float z, VectorSectionNode trackVectorSection, float treeWidth)
         {
             Vector3 delta = (tile - trackVectorSection.Location.Tile).TileVector();
             // We're working relative to the track section, so offset as needed.
@@ -366,7 +363,7 @@ namespace Orts.ActivityRunner.Viewer3D
             return true;
         }
 
-        private bool InitTrackSectionStraight(in Tile tile, float x, float z, TrackVectorSection trackVectorSection, float treeWidth)
+        private bool InitTrackSectionStraight(in Tile tile, float x, float z, VectorSectionNode trackVectorSection, float treeWidth)
         {
             Vector3 delta = (tile - trackVectorSection.Location.Tile).TileVector();
             // We're working relative to the track section, so offset as needed.

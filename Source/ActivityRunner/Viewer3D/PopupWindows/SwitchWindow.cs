@@ -15,8 +15,6 @@ using GetText;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
-using Orts.Formats.Msts;
-using Orts.Formats.Msts.Models;
 using Orts.Simulation;
 using Orts.Simulation.Physics;
 using Orts.Simulation.Track;
@@ -128,9 +126,9 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
 
                 switchSection.X = ((switchBranchesAwayFromUs == front ? 1 : 3) + (switchMainRouteIsLeft ? 1 : 0)) * SwitchImageSize;
                 switchSection.Y = RuntimeDataResolver.Instance.TrackWorld.SwitchStates[switchNode.NodeIndex] * SwitchImageSize;
-                if (RuntimeData.Instance.TrackDB.TrackNodes[switchNode.NodeIndex] is TrackJunctionNode oldSwitchNode)
+                TrackCircuitSection switchCircuitSection = Simulator.Instance.SignalEnvironment.GetJunctionSection(switchNode.NodeIndex);
+                if (switchCircuitSection != null)
                 {
-                    TrackCircuitSection switchCircuitSection = TrackCircuitSection.TrackCircuitList[oldSwitchNode.TrackCircuitCrossReferences[0].Index];
                     if (switchCircuitSection.CircuitState.Occupied() || switchCircuitSection.CircuitState.SignalReserved >= 0 ||
                         (switchCircuitSection.CircuitState.TrainReserved != null && switchCircuitSection.CircuitState.TrainReserved.Train.ControlMode != TrainControlMode.Manual))
                         switchSection.Y += 2 * SwitchImageSize;

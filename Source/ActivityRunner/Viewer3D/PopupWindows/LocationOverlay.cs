@@ -16,7 +16,8 @@ using GetText;
 using Microsoft.Xna.Framework;
 
 using Orts.ActivityRunner.Viewer3D.Shapes;
-using Orts.Formats.Msts;
+using FreeTrainSimulator.Models.Track;
+using FreeTrainSimulator.Runtime;
 using Orts.Formats.Msts.Models;
 using Orts.Simulation;
 using Orts.Simulation.Activities;
@@ -161,7 +162,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
 
         private void UpdateLabelLists()
         {
-            TrackDB tdb = RuntimeData.Instance.TrackDB;
+            TrackDatabase trackDatabase = RuntimeDataResolver.Instance.TrackWorld.TrackModel.TrackDatabase;
             List<StationStop> stationStops = Simulator.Instance.PlayerLocomotive.Train.StationStops;
             Simulation.Activities.Activity activity = Simulator.Instance.ActivityRun;
 
@@ -173,14 +174,14 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
                 autoPlatforms.Clear();
                 autoSidings.Clear();
 
-                if (tdb.TrackItems != null)
+                if (trackDatabase.TrackItems.Length > 0)
                 {
                     foreach (StationStop stop in stationStops)
                     {
                         int platformId = stop.PlatformReference;
-                        if (0 <= platformId && platformId < tdb.TrackItems.Count && tdb.TrackItems[platformId] is PlatformItem)
+                        if (0 <= platformId && platformId < trackDatabase.TrackItems.Length && trackDatabase.TrackItems[platformId] is PlatformTrackItem platformItem)
                         {
-                            autoPlatforms.Add(tdb.TrackItems[platformId].ItemName);
+                            autoPlatforms.Add(platformItem.PlatformName);
                         }
                     }
 
@@ -193,9 +194,9 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
                                 int sidingId1 = eventAction.SidingId;
                                 int sidingId2 = eventAction.WorkOrderWagons != null && eventAction.WorkOrderWagons.Count > 0 ? eventAction.WorkOrderWagons[0].SidingId : -1;
                                 int sidingId = sidingId1 > -1 ? sidingId1 : sidingId2;
-                                if (sidingId > -1 && sidingId < tdb.TrackItems.Count && tdb.TrackItems[sidingId] is SidingItem)
+                                if (sidingId > -1 && sidingId < trackDatabase.TrackItems.Length && trackDatabase.TrackItems[sidingId] is SidingTrackItem sidingItem)
                                 {
-                                    autoSidings.Add(tdb.TrackItems[sidingId].ItemName);
+                                    autoSidings.Add(sidingItem.SidingName);
                                 }
                             }
                         }

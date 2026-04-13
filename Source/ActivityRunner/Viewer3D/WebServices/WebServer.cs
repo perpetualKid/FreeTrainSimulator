@@ -40,7 +40,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 
 using Orts.ActivityRunner.Viewer3D.RollingStock;
-using Orts.Formats.Msts;
+using FreeTrainSimulator.Runtime;
 using Orts.Simulation;
 using Orts.Simulation.RollingStocks.SubSystems.PowerSupplies;
 
@@ -318,8 +318,8 @@ namespace Orts.ActivityRunner.Viewer3D.WebServices
         public static InfoApiMap GetApiMapInfo(Viewer viewer)
         {
             InfoApiMap infoApiMap = new InfoApiMap(viewer.PlayerLocomotive.PowerSupply as ILocomotivePowerSupply);
-            infoApiMap.AddTrackNodesToPointsOnApiMap(RuntimeData.Instance.TrackDB.TrackNodes);
-            infoApiMap.AddTrackItemsToPointsOnApiMap(RuntimeData.Instance.TrackDB.TrackItems);
+            infoApiMap.AddTrackNodesToPointsOnApiMap(RuntimeDataResolver.Instance.TrackWorld.TrackModel.TrackDatabase);
+            infoApiMap.AddTrackItemsToPointsOnApiMap(RuntimeDataResolver.Instance.TrackWorld.TrackModel.TrackDatabase.TrackItems);
             return infoApiMap;
         }
 

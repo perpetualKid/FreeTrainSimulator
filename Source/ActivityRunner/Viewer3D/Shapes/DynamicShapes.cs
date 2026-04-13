@@ -6,6 +6,7 @@ using System.IO;
 using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Position;
 using FreeTrainSimulator.Common.Xna;
+using FreeTrainSimulator.Models.Track;
 using FreeTrainSimulator.Runtime;
 
 using Microsoft.Xna.Framework;
@@ -353,20 +354,20 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
     {
         private protected double animationKey;  // tracks position of points as they move left and right
 
-        private readonly TrackJunctionNode trackJunctionNode;  // has data on current aligment for the switch
+        private readonly JunctionNode junctionNode;  // has data on current alignment for the switch
         private readonly int mainRoute;                  // 0 or 1 - which route is considered the main route
 
-        public SwitchTrackShape(string path, IWorldPosition positionSource, TrackJunctionNode trackJunctionNode)
+        public SwitchTrackShape(string path, IWorldPosition positionSource, JunctionNode junctionNode)
             : base(path, positionSource, ShapeOptions.AutoZBias)
         {
-            this.trackJunctionNode = trackJunctionNode;
-            mainRoute = RuntimeDataResolver.Instance.TrackWorld.TrackModel.TrackDatabase.JunctionNodes[trackJunctionNode.Index].MainRoute;
+            this.junctionNode = junctionNode;
+            mainRoute = junctionNode.MainRoute;
         }
 
         public override void PrepareFrame(RenderFrame frame, in ElapsedTime elapsedTime)
         {
             // ie, with 2 frames of animation, the key will advance from 0 to 1
-            if (RuntimeDataResolver.Instance.TrackWorld.SwitchStates[trackJunctionNode.Index] == mainRoute)
+            if (RuntimeDataResolver.Instance.TrackWorld.SwitchStates[junctionNode.NodeIndex] == mainRoute)
             {
                 if (animationKey > 0.001)
                     animationKey -= 0.002 * elapsedTime.ClockSeconds * 1000.0;
@@ -417,26 +418,10 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
                 int id = speedPostObject.TrackItemIds.TrackDbItems[idlocation];
                 //                SpeedPostItem item;
                 string speed = string.Empty;
-                if (!(RuntimeData.Instance.TrackDB.TrackItems[id] is SpeedPostItem item))
-                    throw new InvalidCastException(RuntimeData.Instance.TrackDB.TrackItems[id].ItemName);  // Error to be handled in Scenery.cs
+                if (RuntimeDataResolver.Instance.TrackWorld.TrackModel.TrackDatabase.TrackItems[id] is not SpeedpostTrackItem item)
+                    throw new InvalidCastException($"TrackItem[{id}] is not SpeedpostTrackItem");  // Error to be handled in Scenery.cs
 
-                //determine what to show: speed or number used in German routes
-                if (item.ShowNumber)
-                {
-                    speed += item.NumberShown;
-                    if (!item.ShowDot)
-                        speed = speed.Replace(".", "", StringComparison.OrdinalIgnoreCase);
-                }
-                else
-                {
-                    //determine if the speed is for passenger or freight
-                    if (item.IsFreight && !item.IsPassenger)
-                        speed += "F";
-                    else if (!item.IsFreight && item.IsPassenger)
-                        speed += "P";
-
-                    speed += item.Distance;
-                }
+                speed = item.ToString();
 
                 vertices = new VertexPositionNormalTexture[maxVertex];
                 triangleListIndices = new short[maxVertex / 2 * 3]; // as is NumIndices

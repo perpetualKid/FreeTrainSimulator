@@ -37,7 +37,6 @@ using Microsoft.Xna.Framework.Graphics;
 using Orts.ActivityRunner.Viewer3D.Common;
 using Orts.ActivityRunner.Viewer3D.Shapes;
 using Orts.ActivityRunner.Viewer3D.Sound;
-using Orts.Formats.Msts;
 using Orts.Formats.Msts.Models;
 using Orts.Simulation;
 using Orts.Simulation.Signalling;
@@ -138,11 +137,10 @@ namespace Orts.ActivityRunner.Viewer3D
                     Trace.TraceWarning("Skipped {0} signal {1} unit {2} with invalid SubObj {3}", WorldPosition.ToString(), mstsSignal.UiD, i, mstsSignal.SignalUnits[i].SubObject);
                     continue;
                 }
-                var mstsSignalItem = (SignalItem)(RuntimeData.Instance.TrackDB.TrackItems[mstsSignal.SignalUnits[i].TrackItem]);
                 try
                 {
                     // Go create the shape head.
-                    Heads.Add(new SignalShapeHead(viewer, this, i, signalAndHead.Value.Value, mstsSignalItem, mstsSignalSubObj));
+                    Heads.Add(new SignalShapeHead(viewer, this, i, signalAndHead.Value.Value, mstsSignalSubObj));
                 }
                 catch (InvalidDataException error)
                 {
@@ -201,7 +199,7 @@ namespace Orts.ActivityRunner.Viewer3D
             private readonly SignalLightState[] lightStates;
 
             public SignalShapeHead(Viewer viewer, SignalShape signalShape, int index, SignalHead signalHead,
-                        SignalItem mstsSignalItem, Orts.Formats.Msts.Models.SignalShape.SignalSubObject mstsSignalSubObj)
+                        Orts.Formats.Msts.Models.SignalShape.SignalSubObject mstsSignalSubObj)
             {
                 Viewer = viewer;
                 SignalShape = signalShape;

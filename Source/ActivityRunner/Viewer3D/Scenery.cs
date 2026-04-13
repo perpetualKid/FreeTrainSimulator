@@ -52,6 +52,8 @@ using System.Threading;
 
 using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Position;
+using FreeTrainSimulator.Models.Track;
+using FreeTrainSimulator.Runtime;
 
 using Microsoft.Xna.Framework;
 
@@ -319,7 +321,10 @@ namespace Orts.ActivityRunner.Viewer3D
                     {
                         var trackObj = (TrackObject)worldObject;
                         // Switch tracks need a link to the simulator engine so they can animate the points.
-                        TrackJunctionNode trJunctionNode = trackObj.WorldLocation != WorldLocation.None ? RuntimeData.Instance.TrackDB.GetJunctionNode(tile.X, tile.Z, (int)trackObj.UiD) : null;
+                        JunctionNode trJunctionNode = trackObj.WorldLocation != WorldLocation.None
+                            ? RuntimeDataResolver.Instance.TrackWorld.TrackModel.TrackDatabase.JunctionNodes
+                                .FirstOrDefault(j => j.WorldId == (int)trackObj.UiD && j.Tile == tile)
+                            : null;
                         // We might not have found the junction node; if so, fall back to the static track shape.
                         if (trJunctionNode != null)
                         {

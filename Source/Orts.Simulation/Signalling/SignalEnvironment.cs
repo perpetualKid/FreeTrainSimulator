@@ -81,20 +81,32 @@ namespace Orts.Simulation.Signalling
         /// </summary>
         internal Dictionary<int, TrackCircuitCrossReferences> NodeCrossReferences { get; } = new Dictionary<int, TrackCircuitCrossReferences>();
 
+        /// <summary>
+        /// Returns the primary <see cref="TrackCircuitSection"/> associated with the given track node index,
+        /// or <see langword="null"/> if no cross-reference exists.
+        /// </summary>
+        public TrackCircuitSection GetJunctionSection(int nodeIndex)
+        {
+            if (NodeCrossReferences.TryGetValue(nodeIndex, out TrackCircuitCrossReferences crossReferences) && crossReferences.Count > 0)
+                return TrackCircuitSection.TrackCircuitList[crossReferences[0].Index];
+
+            return null;
+        }
+
         private List<Milepost> milepostList = new List<Milepost>();                     // list of mileposts
         private int foundMileposts;
 
         /// <summary>
         /// Constructor
         /// </summary>
-        public SignalEnvironment(SignalConfigurationFile sigcfg, bool locationPassingPaths, CancellationToken token)
+        public SignalEnvironment(SignalConfigurationFile sigcfg, TrackDB trackDB, bool locationPassingPaths, CancellationToken token)
         {
             UseLocationPassingPaths = locationPassingPaths;
             Dictionary<int, int> platformList = new Dictionary<int, int>();
 
             OrtsSignalTypeCount = SignalTypeRegistry.Instance.FunctionCount;
 
-            trackDB = RuntimeData.Instance.TrackDB;
+            this.trackDB = trackDB;
 
             // read SIGSCR files
 

@@ -45,6 +45,8 @@ using System.Collections.ObjectModel;
 using System.IO;
 
 using FreeTrainSimulator.Common.Position;
+using FreeTrainSimulator.Models.Track;
+using FreeTrainSimulator.Runtime;
 using FreeTrainSimulator.Runtime.Track;
 
 using Orts.Formats.Msts;
@@ -73,7 +75,7 @@ namespace Orts.ActivityRunner.Viewer3D.Sound
             outPrevDist = -1;
             outNextDist = -1;
 
-            List<TrackItem> trItems = RuntimeData.Instance.TrackDB.TrackItems;
+            var trItems = RuntimeDataResolver.Instance.TrackWorld.TrackModel.TrackDatabase.TrackItems;
 
             WorldSoundRegion prevItem = null;
             WorldSoundRegion nextItem = null;
@@ -92,7 +94,7 @@ namespace Orts.ActivityRunner.Viewer3D.Sound
                 {
                     foreach (int trNode in wsr.TrackNodes)
                     {
-                        if (trItems[trNode] is SoundRegionItem)
+                        if (trItems[trNode] is SoundRegionTrackItem)
                         {
                             // Try to find forward
                             float? fd = trackTraveller.DistanceTo(trItems[trNode].Location, 8192);
@@ -185,7 +187,7 @@ namespace Orts.ActivityRunner.Viewer3D.Sound
         public void AddByTile(in Tile tile)
         {
             string name = Path.Combine(Simulator.Instance.RouteFolder.WorldFolder, WorldFile.WorldFileNameFromTileCoordinates(tile) + "s");
-            WorldSoundFile wf = new WorldSoundFile(name, RuntimeData.Instance.TrackDB.TrackItems.Count);
+            WorldSoundFile wf = new WorldSoundFile(name, RuntimeDataResolver.Instance.TrackWorld.TrackModel.TrackDatabase.TrackItems.Length);
             if (wf.TrackItemSound != null)
             {
                 ImmutableArray<string> pathArray = ImmutableArray.Create(

@@ -39,6 +39,8 @@ using FreeTrainSimulator.Graphics.Xna;
 using FreeTrainSimulator.Models.Imported.State;
 using FreeTrainSimulator.Models.Settings;
 using FreeTrainSimulator.Models.Shim;
+using FreeTrainSimulator.Models.Track;
+using FreeTrainSimulator.Runtime;
 using FreeTrainSimulator.Runtime.Track;
 
 using GetText;
@@ -65,6 +67,7 @@ using Orts.Simulation.Multiplayer;
 using Orts.Simulation.Physics;
 using Orts.Simulation.RollingStocks;
 using Orts.Simulation.Signalling;
+using Orts.Simulation.Track;
 using Orts.Simulation.World;
 
 namespace Orts.ActivityRunner.Viewer3D
@@ -1529,23 +1532,25 @@ namespace Orts.ActivityRunner.Viewer3D
         /// </summary>
         private void TryThrowSwitchAt(Vector3 nearPoint, Vector3 farPoint)
         {
-            TrackNode bestTn = null;
+            JunctionNode bestJunction = null;
             float bestD = 10;
             // check each switch
-            foreach (TrackNode junctionNode in RuntimeData.Instance.TrackDB.TrackNodes.JunctionNodes)
+            foreach (JunctionNode junctionNode in RuntimeDataResolver.Instance.TrackWorld.TrackModel.TrackDatabase.JunctionNodes)
             {
-                Vector3 xnaCenter = Camera.XnaLocation(junctionNode.UiD.Location);
+                Vector3 xnaCenter = Camera.XnaLocation(junctionNode.Location);
                 float d = xnaCenter.LineSegmentDistanceSquare(nearPoint, farPoint);
 
                 if (bestD > d)
                 {
-                    bestTn = junctionNode;
+                    bestJunction = junctionNode;
                     bestD = d;
                 }
             }
-            if (bestTn != null)
+            if (bestJunction != null)
             {
-                _ = new ToggleAnySwitchCommand(Log, bestTn.TrackCircuitCrossReferences[0].Index);
+                TrackCircuitSection switchSection = Simulator.SignalEnvironment.GetJunctionSection(bestJunction.NodeIndex);
+                if (switchSection != null)
+                    _ = new ToggleAnySwitchCommand(Log, switchSection.Index);
             }
         }
 

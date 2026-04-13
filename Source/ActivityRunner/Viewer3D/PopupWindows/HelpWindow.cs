@@ -13,6 +13,9 @@ using FreeTrainSimulator.Graphics.Window.Controls;
 using FreeTrainSimulator.Graphics.Window.Controls.Layout;
 using FreeTrainSimulator.Models.Settings;
 
+using FreeTrainSimulator.Models.Track;
+using FreeTrainSimulator.Runtime;
+
 using GetText;
 
 using Microsoft.Xna.Framework;
@@ -293,11 +296,11 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
                                     {
                                         int sidingId = activityEvent.Type == EventType.AssembleTrainAtLocation || activityEvent.Type == EventType.DropOffWagonsAtLocation
                                             ? activityEvent.SidingId : wagonItem.SidingId;
-                                        foreach (TrackItem item in RuntimeData.Instance.TrackDB.TrackItems)
+                                        foreach (TrackItemBase item in RuntimeDataResolver.Instance.TrackWorld.TrackModel.TrackDatabase.TrackItems)
                                         {
-                                            if (item is SidingItem siding && siding.TrackItemId == sidingId)
+                                            if (item is SidingTrackItem siding && siding.TrackItemIndex == sidingId)
                                             {
-                                                location = siding.ItemName;
+                                                location = siding.SidingName;
                                                 break;
                                             }
                                         }

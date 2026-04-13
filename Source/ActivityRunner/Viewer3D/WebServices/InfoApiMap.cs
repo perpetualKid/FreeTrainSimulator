@@ -17,14 +17,15 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Collections.ObjectModel;
 
 using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Position;
+using FreeTrainSimulator.Models.Track;
 
 using Microsoft.Xna.Framework;
 
-using Orts.Formats.Msts.Models;
 using Orts.Simulation.RollingStocks.SubSystems.PowerSupplies;
 
 namespace Orts.ActivityRunner.Viewer3D.WebServices
@@ -174,30 +175,30 @@ namespace Orts.ActivityRunner.Viewer3D.WebServices
             LineOnApiMapList.Add(lineOnApiMap);
         }
 
-        public void AddTrackNodesToPointsOnApiMap(TrackNodes trackNodes)
+        public void AddTrackNodesToPointsOnApiMap(TrackDatabase trackDatabase)
         {
-            ArgumentNullException.ThrowIfNull(trackNodes);
+            ArgumentNullException.ThrowIfNull(trackDatabase);
 
-            foreach (TrackNode trackNode in trackNodes)
+            foreach (TrackNodeBase trackNode in trackDatabase.TrackNodes)
             {
                 if (trackNode != null)
                 {
-                    if (!trackNode.UiD.Equals(UiD.None))
+                    if (trackNode.Location != WorldLocation.None)
                     {
-                        AddToPointOnApiMap(trackNode.UiD.Location, "red", TypeOfPointOnApiMap.Track, "track");
+                        AddToPointOnApiMap(trackNode.Location, "red", TypeOfPointOnApiMap.Track, "track");
                     }
 
-                    if ((trackNode is TrackJunctionNode junctionNode && !junctionNode.UiD.Equals(UiD.None)))
+                    if (trackNode is JunctionNode junctionNode && junctionNode.Location != WorldLocation.None)
                     {
-                        AddToPointOnApiMap(junctionNode.UiD.Location, "red", TypeOfPointOnApiMap.Track, "track");
+                        AddToPointOnApiMap(junctionNode.Location, "red", TypeOfPointOnApiMap.Track, "track");
                     }
 
-                    if ((trackNode is TrackVectorNode vectorNode && vectorNode.TrackVectorSections != null))
+                    if (trackNode is VectorNode vectorNode && vectorNode.VectorSections.Length > 0)
                     {
                         bool first = true;
                         LatLon latLonFrom = new LatLon(0, 0);
-                        TrackVectorSection trVectorSectionLast = null;
-                        foreach (TrackVectorSection vectorSection in vectorNode.TrackVectorSections)
+                        VectorSectionNode trVectorSectionLast = null;
+                        foreach (VectorSectionNode vectorSection in vectorNode.VectorSections)
                         {
                             LatLon latLonTo = ConvertToLatLon(vectorSection.Location);
                             AddToPointOnApiMap(vectorSection.Location, "red", TypeOfPointOnApiMap.Track, "track");
@@ -214,36 +215,46 @@ namespace Orts.ActivityRunner.Viewer3D.WebServices
                         }
                         if (trVectorSectionLast != null)
                         {
-                            if (trackNode.TrackPins.Length == 2)
+                            var connectors = trackDatabase.TrackNodeConnectors[trackNode.NodeIndex].TrackNodeConnectors;
+                            if (connectors.Length == 2)
                             {
-                                int link = trackNode.TrackPins[1].Link;
-                                LatLon latLonTo = ConvertToLatLon(trackNodes[link].UiD.Location);
+                                int link = connectors[1].Link;
+                                LatLon latLonTo = ConvertToLatLon(trackDatabase.TrackNodes[link].Location);
                                 AddToLineOnApiMap(latLonFrom, latLonTo);
                             }
                         }
                     }
 
-                    if (trackNode is TrackEndNode endNode)
+                    if (trackNode is EndNode endNode)
                     {
-                        LatLon latLonFrom = ConvertToLatLon(endNode.UiD.Location);
-                        int lastIndex = (trackNodes[trackNode.TrackPins[0].Link] as TrackVectorNode).TrackVectorSections.Length - 1;
-                        LatLon latLonTo = ConvertToLatLon((trackNodes[trackNode.TrackPins[0].Link] as TrackVectorNode).TrackVectorSections[lastIndex].Location);
-                        AddToLineOnApiMap(latLonFrom, latLonTo);
+                        LatLon latLonFrom = ConvertToLatLon(endNode.Location);
+                        var connectors = trackDatabase.TrackNodeConnectors[trackNode.NodeIndex].TrackNodeConnectors;
+                        if (connectors.Length > 0 && trackDatabase.TrackNodes[connectors[0].Link] is VectorNode linkedVector && linkedVector.VectorSections.Length > 0)
+                        {
+                            int lastIndex = linkedVector.VectorSections.Length - 1;
+                            LatLon latLonTo = ConvertToLatLon(linkedVector.VectorSections[lastIndex].Location);
+                            AddToLineOnApiMap(latLonFrom, latLonTo);
+                        }
                     }
                 }
             }
         }
 
-        public void AddTrackItemsToPointsOnApiMap(IReadOnlyCollection<TrackItem> trackItems)
+        public void AddTrackItemsToPointsOnApiMap(ImmutableArray<TrackItemBase> trackItems)
         {
-            ArgumentNullException.ThrowIfNull(trackItems);
-
-            foreach (TrackItem trackItem in trackItems)
+            foreach (TrackItemBase trackItem in trackItems)
             {
-                if (trackItem is not LevelCrossingItem)
+                if (trackItem is not LevelCrossingTrackItem)
                 {
-                    if (!string.IsNullOrEmpty(trackItem.ItemName))
-                        AddToPointOnApiMap(trackItem.Location, "green", TypeOfPointOnApiMap.Named, $"{trackItem.ItemName.Replace("'", "", StringComparison.OrdinalIgnoreCase)}, {trackItem.GetType().Name}");
+                    string itemName = trackItem switch
+                    {
+                        SidingTrackItem siding => siding.SidingName,
+                        PlatformTrackItem platform => platform.PlatformName,
+                        _ => null
+                    };
+
+                    if (!string.IsNullOrEmpty(itemName))
+                        AddToPointOnApiMap(trackItem.Location, "green", TypeOfPointOnApiMap.Named, $"{itemName.Replace("'", "", StringComparison.OrdinalIgnoreCase)}, {trackItem.GetType().Name}");
                     else
                         AddToPointOnApiMap(trackItem.Location, "blue", TypeOfPointOnApiMap.Other, $"{trackItem.GetType().Name}");
                 }

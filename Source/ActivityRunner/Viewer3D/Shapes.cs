@@ -32,12 +32,13 @@ using System.Collections.Generic;
 using System.Linq;
 
 using FreeTrainSimulator.Common.Position;
+using FreeTrainSimulator.Models.Track;
+using FreeTrainSimulator.Runtime;
 
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
 using Orts.ActivityRunner.Viewer3D.Shapes;
-using Orts.Formats.Msts;
 using Orts.Formats.Msts.Models;
 
 namespace Orts.ActivityRunner.Viewer3D
@@ -276,10 +277,15 @@ namespace Orts.ActivityRunner.Viewer3D
                 var trID = trObj.TrackItemIds.TrackDbItems[i];
                 if (trID < 0)
                     break;
-                var trItem = RuntimeData.Instance.TrackDB.TrackItems[trID];
-                if (trItem == null)
+                var trItem = RuntimeDataResolver.Instance.TrackWorld.TrackModel.TrackDatabase.TrackItems[trID];
+                if (trItem is null)
                     continue;
-                ItemName = trItem.ItemName;
+                ItemName = trItem switch
+                {
+                    PlatformTrackItem platform => platform.PlatformName,
+                    SidingTrackItem siding => siding.SidingName,
+                    _ => null
+                };
                 i++;
             }
         }

@@ -188,6 +188,7 @@ namespace Orts.Simulation
         public SeasonType Season { get; private set; }
         public WeatherType WeatherType { get; set; }
         public string UserWeatherFile { get; private set; } = string.Empty;
+        public TrackDB TrackDatabase { get; private set; }
         public SignalConfigurationFile SignalConfig { get; }
 
         public string ConsistFileName { get; private set; }
@@ -271,7 +272,7 @@ namespace Orts.Simulation
             if (RouteModel.Settings.TryGetValue("OpenComputerTrainDoors", out string trainDoorsSetting) && bool.TryParse(trainDoorsSetting, out bool openComputerTrainDoors))
                 UserSettings.ComputerTrainDoors = openComputerTrainDoors;
 
-            TrackDB trackDatabase = new TrackDatabaseFile(RouteFolder.TrackDatabaseFile(RouteModel.RouteKey)).TrackDB;
+            TrackDatabase = new TrackDatabaseFile(RouteFolder.TrackDatabaseFile(RouteModel.RouteKey)).TrackDB;
 
             SignalConfig = new SignalConfigurationFile(RouteFolder.SignalConfigurationFile, RouteFolder.SignalConfigMode);
 
@@ -283,7 +284,6 @@ namespace Orts.Simulation
 
             MetricUnits = userSettings.MeasurementUnit == MeasurementUnit.Route ? RouteModel.MetricUnits : (userSettings.MeasurementUnit == MeasurementUnit.Metric || userSettings.MeasurementUnit == MeasurementUnit.System && System.Globalization.RegionInfo.CurrentRegion.IsMetric);
             RuntimeResolver runtimeResolver = new RuntimeResolver();
-            RuntimeData.Initialize(trackDatabase, roadDatabase, SignalConfig, runtimeResolver);
             Task.Run(async () => await RuntimeDataResolver.Initialize(routeModel, MetricUnits, runtimeResolver).ConfigureAwait(false)).Wait();
 
             SuperElevation = new SuperElevation(this);
@@ -403,7 +403,7 @@ namespace Orts.Simulation
             {
                 ContainerManager.LoadPopulationFromFile(Path.Combine(RouteFolder.OpenRailsActivitiesFolder, Path.ChangeExtension(loadStationStockfile, ".load-stations-loads-or")));
             }
-            SignalEnvironment = new SignalEnvironment(SignalConfig, UserSettings.UseLocationPassingPaths, cancellationToken);
+            SignalEnvironment = new SignalEnvironment(SignalConfig, TrackDatabase, UserSettings.UseLocationPassingPaths, cancellationToken);
             if (ActivityRun?.TempSpeedPostItems?.Count > 0)
                 SignalEnvironment.AddRuntimeSpeedPosts(ActivityRun.TempSpeedPostItems);
             MovingTables.AddRange(MovingTableFile.ReadTurntableFile(Path.Combine(RouteFolder.OpenRailsRouteFolder, "turntables.dat")));
@@ -427,7 +427,7 @@ namespace Orts.Simulation
         public void StartTimetable(CancellationToken cancellationToken)
         {
             TimetableMode = true;
-            SignalEnvironment = new SignalEnvironment(SignalConfig, true, cancellationToken);
+            SignalEnvironment = new SignalEnvironment(SignalConfig, TrackDatabase, true, cancellationToken);
             (MovingTables as List<MovingTable>).AddRange(MovingTableFile.ReadTurntableFile(Path.Combine(RouteFolder.OpenRailsRouteFolder, "turntables.dat")));
             LevelCrossings = new LevelCrossings();
             Trains = new TrainList(this);
@@ -502,7 +502,7 @@ namespace Orts.Simulation
 
             PoolHolder = new Poolholder();
             await PoolHolder.Pools.RestoreDictionaryCreateNewInstances(saveState.TimeTablePools, PoolHolder).ConfigureAwait(false);
-            SignalEnvironment = new SignalEnvironment(SignalConfig, false, CancellationToken.None);
+            SignalEnvironment = new SignalEnvironment(SignalConfig, TrackDatabase, false, CancellationToken.None);
             await SignalEnvironment.Restore(saveState.SignalEnvironmentSaveState).ConfigureAwait(false);
 
             MovingTables.AddRange(MovingTableFile.ReadTurntableFile(Path.Combine(RouteFolder.OpenRailsRouteFolder, "turntables.dat")));
