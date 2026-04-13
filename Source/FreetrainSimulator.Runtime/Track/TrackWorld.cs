@@ -137,7 +137,7 @@ namespace FreeTrainSimulator.Runtime.Track
         /// <paramref name="sectionIndex"/> within <paramref name="node"/>.
         /// </summary>
         public WorldLocation ComputeSectionLocation(VectorNode node, int sectionIndex, double sectionOffset)
-            => ComputeSectionLocation(node.VectorSections[sectionIndex], sectionOffset);
+            => ComputeSectionLocation(node?.VectorSections[sectionIndex], sectionOffset);
 
         /// <summary>
         /// Returns the pre-computed arc or straight length in metres for <paramref name="section"/>,
