@@ -23,10 +23,10 @@ using System.Linq;
 
 using FreeTrainSimulator.Common.Calc;
 using FreeTrainSimulator.Common.Position;
+using FreeTrainSimulator.Models.Track;
+using FreeTrainSimulator.Runtime;
 
-using Orts.Formats.Msts;
 using Orts.Formats.Msts.Files;
-using Orts.Formats.Msts.Models;
 
 namespace Orts.Simulation.World
 {
@@ -43,16 +43,17 @@ namespace Orts.Simulation.World
         {
             currentHazards = new Dictionary<int, Hazard>();
             hazardFiles = new Dictionary<string, HazardFile>();
-            hazards = RuntimeData.Instance.TrackDB != null ? GetHazardsFromDB(RuntimeData.Instance.TrackDB.TrackNodes, RuntimeData.Instance.TrackDB.TrackItems) : new Dictionary<int, Hazard>();
+            TrackDatabase trackDatabase = RuntimeDataResolver.Instance?.TrackWorld?.TrackModel?.TrackDatabase;
+            hazards = trackDatabase != null ? GetHazardsFromDB(trackDatabase) : new Dictionary<int, Hazard>();
         }
 
-        private static Dictionary<int, Hazard> GetHazardsFromDB(TrackNodes trackNodes, List<TrackItem> trItemTable)
+        private static Dictionary<int, Hazard> GetHazardsFromDB(TrackDatabase trackDatabase)
         {
-            return (from trackNode in trackNodes
-                    where trackNode is TrackVectorNode tvn && tvn.TrackItemIndices.Length > 0
-                    from itemRef in (trackNode as TrackVectorNode)?.TrackItemIndices.Distinct()
-                    where trItemTable[itemRef] != null && trItemTable[itemRef] is HazardItem
-                    select new KeyValuePair<int, Hazard>(itemRef, new Hazard(trackNode, trItemTable[itemRef])))
+            return (from selector in trackDatabase.TrackItemSelectors.Values
+                    where !selector.TrackItems.IsDefaultOrEmpty
+                    from itemRef in selector.TrackItems.Distinct()
+                    where trackDatabase.TrackItems[itemRef] is HazardTrackItem
+                    select new KeyValuePair<int, Hazard>(itemRef, new Hazard(trackDatabase.TrackItems[itemRef].Location)))
                     .ToDictionary(_ => _.Key, _ => _.Value);
         }
 
@@ -136,11 +137,9 @@ namespace Orts.Simulation.World
         public HazardState State { get; set; }
         internal bool Animal { get; private set; } = true;
 
-        public Hazard(TrackNode trackNode, TrackItem trItem)
+        public Hazard(in WorldLocation location)
         {
-            _ = trackNode;
-            //TrackNode = trackNode;
-            Location = trItem?.Location ?? throw new ArgumentNullException(nameof(trItem));
+            Location = location;
             State = HazardState.Idle1;
         }
 

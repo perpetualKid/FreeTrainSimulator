@@ -101,7 +101,7 @@ namespace Orts.Simulation.World
         }
 
         public ContainerHandlingStation(WorldPosition shapePosition, FuelPickupItem item, PickupObject pickupObject) :
-            base(item?.TrackNode ?? throw new ArgumentNullException(nameof(item)), item.Location)
+            base((item ?? throw new ArgumentNullException(nameof(item))).Location)
         {
             ArgumentNullException.ThrowIfNull(pickupObject);
 

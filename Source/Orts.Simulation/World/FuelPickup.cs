@@ -22,8 +22,9 @@ using System.Collections.Generic;
 using System.Linq;
 
 using FreeTrainSimulator.Common.Position;
+using FreeTrainSimulator.Models.Track;
+using FreeTrainSimulator.Runtime;
 
-using Orts.Formats.Msts;
 using Orts.Formats.Msts.Models;
 using Orts.Simulation.RollingStocks;
 
@@ -36,17 +37,18 @@ namespace Orts.Simulation.World
         public FuelManager(Simulator simulator)
         {
             ArgumentNullException.ThrowIfNull(simulator);
-            FuelPickupItems = RuntimeData.Instance.TrackDB != null ? 
-                GetFuelPickupItemsFromDB(RuntimeData.Instance.TrackDB.TrackNodes, RuntimeData.Instance.TrackDB.TrackItems) : new Dictionary<int, FuelPickupItem>();
+            TrackDatabase trackDatabase = RuntimeDataResolver.Instance?.TrackWorld?.TrackModel?.TrackDatabase;
+            FuelPickupItems = trackDatabase != null ?
+                GetFuelPickupItemsFromDB(trackDatabase) : new Dictionary<int, FuelPickupItem>();
         }
 
-        private static Dictionary<int, FuelPickupItem> GetFuelPickupItemsFromDB(TrackNodes trackNodes, IList<TrackItem> trItemTable)
+        private static Dictionary<int, FuelPickupItem> GetFuelPickupItemsFromDB(TrackDatabase trackDatabase)
         {
-            return (from trackNode in trackNodes
-                    where trackNode is TrackVectorNode tvn && tvn.TrackItemIndices.Length > 0
-                    from itemRef in (trackNode as TrackVectorNode)?.TrackItemIndices.Distinct()
-                    where trItemTable[itemRef] is not null and PickupItem
-                    select new KeyValuePair<int, FuelPickupItem>(itemRef, new FuelPickupItem(trackNode, trItemTable[itemRef])))
+            return (from selector in trackDatabase.TrackItemSelectors.Values
+                    where !selector.TrackItems.IsDefaultOrEmpty
+                    from itemRef in selector.TrackItems.Distinct()
+                    where trackDatabase.TrackItems[itemRef] is PickupTrackItem
+                    select new KeyValuePair<int, FuelPickupItem>(itemRef, new FuelPickupItem(trackDatabase.TrackItems[itemRef].Location)))
                     .ToDictionary(_ => _.Key, _ => _.Value);
         }
 
@@ -91,6 +93,11 @@ namespace Orts.Simulation.World
 
         internal ref readonly WorldLocation Location => ref location;
         public TrackNode TrackNode { get; protected set; }
+
+        public FuelPickupItem(in WorldLocation location)
+        {
+            this.location = location;
+        }
 
         public FuelPickupItem(TrackNode trackNode, in WorldLocation location)
         {
