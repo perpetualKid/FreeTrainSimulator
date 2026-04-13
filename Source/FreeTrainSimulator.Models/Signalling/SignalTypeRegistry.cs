@@ -79,6 +79,31 @@ namespace FreeTrainSimulator.Models.Signalling
         }
 
         /// <summary>
+        /// Restores the registry from a pre-built <see cref="SignalConfigurationModel"/>,
+        /// re-registering all custom function types and normal subtypes preserved during import,
+        /// then freezing the registry for optimized lookups.
+        /// </summary>
+        public static SignalTypeRegistry Restore(SignalConfigurationModel config)
+        {
+            ArgumentNullException.ThrowIfNull(config);
+
+            SignalTypeRegistry registry = Initialize();
+
+            foreach (string name in config.CustomFunctionTypes)
+            {
+                registry.RegisterFunction(name);
+            }
+
+            foreach (string name in config.CustomNormalSubTypes)
+            {
+                registry.RegisterNormalSubType(name);
+            }
+
+            registry.Freeze();
+            return registry;
+        }
+
+        /// <summary>
         /// Registers a custom signal function type. Returns the existing id if already registered.
         /// </summary>
         /// <exception cref="InvalidOperationException">Thrown if registry is frozen.</exception>

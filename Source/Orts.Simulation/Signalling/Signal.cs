@@ -1680,9 +1680,9 @@ namespace Orts.Simulation.Signalling
         }
 
         /// <summary>
-        /// Sets the signal type from the sigcfg file for each signal head.
+        /// Sets the signal type from the signal configuration model for each signal head.
         /// </summary>
-        internal void SetSignalType(SignalConfigurationFile signalConfig)
+        internal void SetSignalType(SignalConfigurationModel signalConfig)
         {
             foreach (SignalHead signalHead in SignalHeads)
             {

@@ -37,7 +37,6 @@ using Microsoft.Xna.Framework.Graphics;
 using Orts.ActivityRunner.Viewer3D.Common;
 using Orts.ActivityRunner.Viewer3D.Shapes;
 using Orts.ActivityRunner.Viewer3D.Sound;
-using Orts.Formats.Msts.Models;
 using Orts.Simulation;
 using Orts.Simulation.Signalling;
 
@@ -51,7 +50,7 @@ namespace Orts.ActivityRunner.Viewer3D
         private readonly bool[] SubObjVisible;
         private readonly List<SignalShapeHead> Heads = new List<SignalShapeHead>();
 
-        public SignalShape(SignalObject mstsSignal, string path, IWorldPosition positionSource, ShapeOptions flags)
+        public SignalShape(Orts.Formats.Msts.Models.SignalObject mstsSignal, string path, IWorldPosition positionSource, ShapeOptions flags)
             : base(path, positionSource, flags)
         {
 #if DEBUG_SIGNAL_SHAPES
@@ -59,40 +58,40 @@ namespace Orts.ActivityRunner.Viewer3D
             UID = mstsSignal.UID;
 #endif
             string signalShape = Path.GetFileName(path);
-            if (!viewer.Simulator.SignalEnvironment.SignalConfig.SignalShapes.TryGetValue(signalShape, out Formats.Msts.Models.SignalShape mstsSignalShape))
+            if (!viewer.Simulator.SignalEnvironment.SignalConfig.SignalShapes.TryGetValue(signalShape, out FreeTrainSimulator.Models.Signalling.SignalShape signalShapeData))
             {
                 Trace.TraceWarning("{0} signal {1} has invalid shape {2}.", WorldPosition.ToString(), mstsSignal.UiD, signalShape);
                 return;
             }
 #if DEBUG_SIGNAL_SHAPES
-            Trace.WriteLine("  Shape={0} SubObjs={1,-2} {2}", Path.GetFileNameWithoutExtension(path).ToUpper(), mstsSignalShape.SignalSubObjs.Count, mstsSignalShape.Description);
+            Trace.WriteLine("  Shape={0} SubObjs={1,-2} {2}", Path.GetFileNameWithoutExtension(path).ToUpper(), signalShapeData.SubObjects.Length, signalShapeData.Description);
 #endif
 
             // The matrix names are used as the sub-object names. The sub-object visibility comes from
-            // mstsSignal.SignalSubObj, which is mapped to names through mstsSignalShape.SignalSubObjs.
-            var visibleMatrixNames = new bool[SharedShape.MatrixNames.Count];
-            for (var i = 0; i < mstsSignalShape.SignalSubObjs.Count; i++)
-                if ((((mstsSignal.SignalSubObject >> i) & 0x1) == 1) && (SharedShape.MatrixNames.Contains(mstsSignalShape.SignalSubObjs[i].MatrixName)))
-                    visibleMatrixNames[SharedShape.MatrixNames.IndexOf(mstsSignalShape.SignalSubObjs[i].MatrixName)] = true;
+            // mstsSignal.SignalSubObj, which is mapped to names through signalShapeData.SubObjects.
+            bool[] visibleMatrixNames = new bool[SharedShape.MatrixNames.Count];
+            for (int i = 0; i < signalShapeData.SubObjects.Length; i++)
+                if ((((mstsSignal.SignalSubObject >> i) & 0x1) == 1) && (SharedShape.MatrixNames.Contains(signalShapeData.SubObjects[i].MatrixName)))
+                    visibleMatrixNames[SharedShape.MatrixNames.IndexOf(signalShapeData.SubObjects[i].MatrixName)] = true;
 
             // All sub-objects except the one pointing to the first matrix (99.00% times it is the first one, but not always, see Protrain) are hidden by default.
             //For each other sub-object, look up its name in the hierarchy and use the visibility of that matrix. 
             visibleMatrixNames[0] = true;
             SubObjVisible = new bool[SharedShape.LodControls[0].DistanceLevels[0].SubObjects.Length];
             SubObjVisible[0] = true;
-            for (var i = 1; i < SharedShape.LodControls[0].DistanceLevels[0].SubObjects.Length; i++)
+            for (int i = 1; i < SharedShape.LodControls[0].DistanceLevels[0].SubObjects.Length; i++)
             {
                 if (i == SharedShape.RootSubObjectIndex)
                     SubObjVisible[i] = true;
                 else
                 {
-                    var subObj = SharedShape.LodControls[0].DistanceLevels[0].SubObjects[i];
+                    SharedShape.SubObject subObj = SharedShape.LodControls[0].DistanceLevels[0].SubObjects[i];
                     int minHiLevIndex = 0;
                     if (subObj.ShapePrimitives[0].Hierarchy[subObj.ShapePrimitives[0].HierarchyIndex] > 0)
                     // Search for ShapePrimitive with lowest Hierarchy Value and check visibility with it
                     {
-                        var minHiLev = 999;
-                        for (var j = 0; j < subObj.ShapePrimitives.Length; j++)
+                        int minHiLev = 999;
+                        for (int j = 0; j < subObj.ShapePrimitives.Length; j++)
                         {
                             if (subObj.ShapePrimitives[0].Hierarchy[subObj.ShapePrimitives[j].HierarchyIndex] < minHiLev)
                             {
@@ -106,8 +105,8 @@ namespace Orts.ActivityRunner.Viewer3D
             }
 
 #if DEBUG_SIGNAL_SHAPES
-            for (var i = 0; i < mstsSignalShape.SignalSubObjs.Count; i++)
-                Trace.WriteLine("  SUBOBJ {1,-12} {0,-7} {2,3} {3,3} {4,2} {5,2} {6,-14} {8} ({7})", ((mstsSignal.SignalSubObj >> i) & 0x1) != 0 ? "VISIBLE" : "hidden", mstsSignalShape.SignalSubObjs[i].MatrixName, mstsSignalShape.SignalSubObjs[i].Optional ? "Opt" : "", mstsSignalShape.SignalSubObjs[i].Default ? "Def" : "", mstsSignalShape.SignalSubObjs[i].JunctionLink ? "JL" : "", mstsSignalShape.SignalSubObjs[i].BackFacing ? "BF" : "", mstsSignalShape.SignalSubObjs[i].SignalSubType.Valid ? mstsSignalShape.SignalSubObjs[i].SignalSubType.ToString() : "<none>", mstsSignalShape.SignalSubObjs[i].SignalSubSignalType, mstsSignalShape.SignalSubObjs[i].Description);
+            for (var i = 0; i < signalShapeData.SubObjects.Length; i++)
+                Trace.WriteLine("  SUBOBJ {1,-12} {0,-7} {2,3} {3,3} {4,2} {5,2} {6,-14} {8} ({7})", ((mstsSignal.SignalSubObj >> i) & 0x1) != 0 ? "VISIBLE" : "hidden", signalShapeData.SubObjects[i].MatrixName, signalShapeData.SubObjects[i].SubObjectFlags.HasFlag(SignalSubObjectOptions.Optional) ? "Opt" : "", signalShapeData.SubObjects[i].SubObjectFlags.HasFlag(SignalSubObjectOptions.Default) ? "Def" : "", signalShapeData.SubObjects[i].SubObjectFlags.HasFlag(SignalSubObjectOptions.JunctionLink) ? "JL" : "", signalShapeData.SubObjects[i].SubObjectFlags.HasFlag(SignalSubObjectOptions.BackFacing) ? "BF" : "", signalShapeData.SubObjects[i].SignalSubType.Valid ? signalShapeData.SubObjects[i].SignalSubType.ToString() : "<none>", signalShapeData.SubObjects[i].SignalSubSignalType, signalShapeData.SubObjects[i].Description);
             for (var i = 0; i < SubObjVisible.Length; i++)
                 Trace.WriteLine("  SUBOBJ {0,-2} {1,-7}", i, SubObjVisible[i] ? "VISIBLE" : "hidden");
 #endif
@@ -118,21 +117,21 @@ namespace Orts.ActivityRunner.Viewer3D
                 return;
             }
 
-            for (var i = 0; i < mstsSignal.SignalUnits.Count; i++)
+            for (int i = 0; i < mstsSignal.SignalUnits.Count; i++)
             {
 #if DEBUG_SIGNAL_SHAPES
                 Trace.Write("  UNIT {0}: TrItem={1,-5} SubObj={2,-2}", i, mstsSignal.SignalUnits.Units[i].TrItem, mstsSignal.SignalUnits.Units[i].SubObj);
 #endif
                 // Find the simulation SignalObject for this shape.
-                var signalAndHead = viewer.Simulator.SignalEnvironment.FindByTrackItem(mstsSignal.SignalUnits[i].TrackItem);
+                KeyValuePair<Signal, SignalHead>? signalAndHead = viewer.Simulator.SignalEnvironment.FindByTrackItem(mstsSignal.SignalUnits[i].TrackItem);
                 if (!signalAndHead.HasValue)
                 {
                     Trace.TraceWarning("Skipped {0} signal {1} unit {2} with invalid TrItem {3}", WorldPosition.ToString(), mstsSignal.UiD, i, mstsSignal.SignalUnits[i].TrackItem);
                     continue;
                 }
                 // Get the signal sub-object for this unit (head).
-                var mstsSignalSubObj = mstsSignalShape.SignalSubObjs[mstsSignal.SignalUnits[i].SubObject];
-                if (mstsSignalSubObj.SignalSubType != SignalSubObjectType.SignalHead) // SIGNAL_HEAD
+                SignalSubObject signalSubObj = signalShapeData.SubObjects[mstsSignal.SignalUnits[i].SubObject];
+                if (signalSubObj.SignalSubType != SignalSubObjectType.SignalHead) // SIGNAL_HEAD
                 {
                     Trace.TraceWarning("Skipped {0} signal {1} unit {2} with invalid SubObj {3}", WorldPosition.ToString(), mstsSignal.UiD, i, mstsSignal.SignalUnits[i].SubObject);
                     continue;
@@ -140,7 +139,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 try
                 {
                     // Go create the shape head.
-                    Heads.Add(new SignalShapeHead(viewer, this, i, signalAndHead.Value.Value, mstsSignalSubObj));
+                    Heads.Add(new SignalShapeHead(viewer, this, i, signalAndHead.Value.Value, signalSubObj));
                 }
                 catch (InvalidDataException error)
                 {
@@ -155,7 +154,7 @@ namespace Orts.ActivityRunner.Viewer3D
         public override void PrepareFrame(RenderFrame frame, in ElapsedTime elapsedTime)
         {
             // Locate relative to the camera
-            var xnaTileTranslation = Matrix.CreateTranslation((WorldPosition.Tile - viewer.Camera.Tile).TileVector().XnaVector());  // object is offset from camera this many tiles
+            Matrix xnaTileTranslation = Matrix.CreateTranslation((WorldPosition.Tile - viewer.Camera.Tile).TileVector().XnaVector());  // object is offset from camera this many tiles
             MatrixExtension.Multiply(in WorldPosition.XNAMatrix, in xnaTileTranslation, out Matrix xnaTileTranslationResult);
 
             foreach (var head in Heads)
@@ -173,7 +172,7 @@ namespace Orts.ActivityRunner.Viewer3D
 
         internal override void Mark()
         {
-            foreach (var head in Heads)
+            foreach (SignalShapeHead head in Heads)
                 head.Mark();
             base.Mark();
         }
@@ -199,7 +198,7 @@ namespace Orts.ActivityRunner.Viewer3D
             private readonly SignalLightState[] lightStates;
 
             public SignalShapeHead(Viewer viewer, SignalShape signalShape, int index, SignalHead signalHead,
-                        Orts.Formats.Msts.Models.SignalShape.SignalSubObject mstsSignalSubObj)
+                        SignalSubObject signalSubObj)
             {
                 Viewer = viewer;
                 SignalShape = signalShape;
@@ -210,15 +209,15 @@ namespace Orts.ActivityRunner.Viewer3D
                 for (int mindex = 0; mindex <= signalShape.SharedShape.MatrixNames.Count - 1; mindex++)
                 {
                     string MatrixName = signalShape.SharedShape.MatrixNames[mindex];
-                    if (string.Equals(MatrixName, mstsSignalSubObj.MatrixName, StringComparison.OrdinalIgnoreCase))
+                    if (string.Equals(MatrixName, signalSubObj.MatrixName, StringComparison.OrdinalIgnoreCase))
                         MatrixIndices.Add(mindex);
                 }
 
 
-                if (!Simulator.Instance.SignalEnvironment.SignalConfig.SignalTypes.TryGetValue(mstsSignalSubObj.SignalSubSignalType, out Formats.Msts.Models.SignalType mstsSignalType))
+                if (!Simulator.Instance.SignalEnvironment.SignalConfig.SignalTypes.TryGetValue(signalSubObj.SignalSubSignalType, out SignalType signalType))
                     return;
 
-                SignalTypeData = viewer.SignalTypeDataManager.Get(mstsSignalType);
+                SignalTypeData = viewer.SignalTypeDataManager.Get(signalType);
 
                 if (SignalTypeData.Semaphore)
                 {
@@ -260,7 +259,7 @@ namespace Orts.ActivityRunner.Viewer3D
                             }
                             if (!SignalTypeData.AreSemaphoresReindexed)
                             {
-                                Trace.TraceInformation("Reindexing semaphore entries of signal type {0} for compatibility with MSTS", mstsSignalType.Name);
+                                Trace.TraceInformation("Reindexing semaphore entries of signal type {0} for compatibility with MSTS", signalType.Name);
                                 SignalTypeData.AreSemaphoresReindexed = true;
                             }
                         }
@@ -278,7 +277,7 @@ namespace Orts.ActivityRunner.Viewer3D
 
                     if (Simulator.Instance.RouteModel.RouteSounds[DefaultSoundType.Signal] != null)
                     {
-                        var soundPath = Simulator.Instance.RouteFolder.SoundFile(Simulator.Instance.RouteModel.RouteSounds[DefaultSoundType.Signal]);
+                        string soundPath = Simulator.Instance.RouteFolder.SoundFile(Simulator.Instance.RouteModel.RouteSounds[DefaultSoundType.Signal]);
                         try
                         {
                             Sound = new SoundSource(SignalShape.WorldPosition.WorldLocation, SoundEventSource.Signal, soundPath);
@@ -423,12 +422,12 @@ namespace Orts.ActivityRunner.Viewer3D
             Viewer = viewer;
         }
 
-        public SignalTypeData Get(Formats.Msts.Models.SignalType mstsSignalType)
+        public SignalTypeData Get(SignalType signalType)
         {
-            if (!SignalTypes.TryGetValue(mstsSignalType.Name, out SignalTypeData value))
+            if (!SignalTypes.TryGetValue(signalType.Name, out SignalTypeData value))
             {
-                value = new SignalTypeData(Viewer, mstsSignalType);
-                SignalTypes[mstsSignalType.Name] = value;
+                value = new SignalTypeData(Viewer, signalType);
+                SignalTypes[signalType.Name] = value;
             }
 
             return value;
@@ -453,7 +452,7 @@ namespace Orts.ActivityRunner.Viewer3D
 
         public void Sweep()
         {
-            foreach (var signalTypeName in SignalTypesMarks.Where(x => !x.Value).Select(x => x.Key))
+            foreach (string signalTypeName in SignalTypesMarks.Where(x => !x.Value).Select(x => x.Key))
             {
                 SignalTypes.Remove(signalTypeName);
             }
@@ -480,12 +479,12 @@ namespace Orts.ActivityRunner.Viewer3D
 
         private readonly Viewer viewer;
 
-        public SignalTypeData(Viewer viewer, Formats.Msts.Models.SignalType mstsSignalType)
+        public SignalTypeData(Viewer viewer, SignalType signalType)
         {
             viewer = viewer ?? throw new ArgumentNullException(nameof(viewer));
-            if (!viewer.Simulator.SignalEnvironment.SignalConfig.LightTextures.TryGetValue(mstsSignalType.LightTextureName, out LightTexture value))
+            if (!viewer.Simulator.SignalEnvironment.SignalConfig.LightTextures.TryGetValue(signalType.LightTexture, out SignalLightTexture lightTexture))
             {
-                Trace.TraceWarning("Skipped invalid light texture {1} for signal type {0}", mstsSignalType.Name, mstsSignalType.LightTextureName);
+                Trace.TraceWarning("Skipped invalid light texture {1} for signal type {0}", signalType.Name, signalType.LightTexture);
                 Material = viewer.MaterialManager.Load("missing-signal-light");
 #if DEBUG_SIGNAL_SHAPES
                     Type = SignalTypeDataType.Normal;
@@ -495,59 +494,53 @@ namespace Orts.ActivityRunner.Viewer3D
             }
             else
             {
-                var mstsLightTexture = value;
-                Material = viewer.MaterialManager.Load("SignalLight", Helpers.GetRouteTextureFile(Helpers.TextureFlags.None, mstsLightTexture.TextureFile));
+                Material = viewer.MaterialManager.Load("SignalLight", Helpers.GetRouteTextureFile(Helpers.TextureFlags.None, lightTexture.TextureFile));
                 GlowMaterial = viewer.MaterialManager.Load("SignalLightGlow");
 #if DEBUG_SIGNAL_SHAPES
-                    Type = (SignalTypeDataType)mstsSignalType.FnType;
+                    Type = (SignalTypeDataType)(int)signalType.FunctionType;
 #endif
-                if (mstsSignalType.Lights != null)
+                if (signalType.Lights.Length > 0)
                 {
                     // Set up some heuristic glow values from the available data:
                     //   Typical electric light is 3.0/5.0
                     //   Semaphore is 0.0/5.0
                     //   Theatre box is 0.0/0.0
-                    var glowDay = 3.0f;
-                    var glowNight = 5.0f;
+                    float glowDay = 3.0f;
+                    float glowNight = 5.0f;
 
-                    if (mstsSignalType.Semaphore)
+                    if (signalType.SignalFlags.HasFlag(SignalOptions.Semaphore))
                         glowDay = 0.0f;
-                    if (mstsSignalType.SignalFunction == SignalFunctionType.Info || mstsSignalType.SignalFunction == SignalFunctionType.Shunting) // These are good at identifying theatre boxes.
+                    if (signalType.FunctionType == SignalFunctionType.Info || signalType.FunctionType == SignalFunctionType.Shunting) // These are good at identifying theatre boxes.
                         glowDay = glowNight = 0.0f;
 
                     // use values from signal if defined
-                    if (mstsSignalType.DayGlow.HasValue)
+                    if (signalType.DayGlow.HasValue)
                     {
-                        glowDay = mstsSignalType.DayGlow.Value;
+                        glowDay = signalType.DayGlow.Value;
                     }
-                    if (mstsSignalType.NightGlow.HasValue)
+                    if (signalType.NightGlow.HasValue)
                     {
-                        glowNight = mstsSignalType.NightGlow.Value;
+                        glowNight = signalType.NightGlow.Value;
                     }
 
-                    foreach (var mstsSignalLight in mstsSignalType.Lights)
+                    Matrix2x2 textureCoordinates = new Matrix2x2(lightTexture.U0, lightTexture.V0, lightTexture.U1, lightTexture.V1);
+                    foreach (SignalLight signalLight in signalType.Lights)
                     {
-                        if (!viewer.Simulator.SignalEnvironment.SignalConfig.LightsTable.ContainsKey(mstsSignalLight.Name))
-                        {
-                            Trace.TraceWarning("Skipped invalid light {1} for signal type {0}", mstsSignalType.Name, mstsSignalLight.Name);
-                            continue;
-                        }
-                        var mstsLight = viewer.Simulator.SignalEnvironment.SignalConfig.LightsTable[mstsSignalLight.Name];
-                        Lights.Add(new SignalLightPrimitive(viewer, mstsSignalLight.Position, mstsSignalLight.Radius, mstsLight.Color, glowDay, glowNight, mstsLightTexture.TextureCoordinates));
-                        LightsSemaphoreChange.Add(mstsSignalLight.SemaphoreChange);
+                        Lights.Add(new SignalLightPrimitive(viewer, signalLight.Position, signalLight.Radius, signalLight.Color, glowDay, glowNight, textureCoordinates));
+                        LightsSemaphoreChange.Add(signalLight.SemaphoreChange);
                     }
                 }
 
-                foreach (KeyValuePair<string, Formats.Msts.Models.SignalDrawState> sdrawstate in mstsSignalType.DrawStates)
-                    DrawAspects.Add(sdrawstate.Value.Index, new SignalAspectData(mstsSignalType, sdrawstate.Value));
-                FlashTimeOn = mstsSignalType.FlashTimeOn;
-                FlashTimeTotal = mstsSignalType.FlashTimeOn + mstsSignalType.FlashTimeOff;
-                Semaphore = mstsSignalType.Semaphore;
-                SemaphoreAnimationTime = mstsSignalType.SemaphoreInfo;
-                DayLight = mstsSignalType.DayLight;
+                foreach (KeyValuePair<string, SignalDrawState> drawState in signalType.DrawStates)
+                    DrawAspects.Add(drawState.Value.Index, new SignalAspectData(signalType, drawState.Value));
+                FlashTimeOn = signalType.FlashTimeOn;
+                FlashTimeTotal = signalType.FlashTimeOn + signalType.FlashTimeOff;
+                Semaphore = signalType.SignalFlags.HasFlag(SignalOptions.Semaphore);
+                SemaphoreAnimationTime = signalType.SemaphoreAnimationnDuration;
+                DayLight = signalType.DayLight;
             }
 
-            TransitionTime = mstsSignalType.TransitionTime;
+            TransitionTime = signalType.TransitionTime;
         }
 
         public void Mark()
@@ -573,12 +566,12 @@ namespace Orts.ActivityRunner.Viewer3D
         public readonly bool[] FlashLights;
         public float SemaphorePos;
 
-        public SignalAspectData(Formats.Msts.Models.SignalType mstsSignalType, Formats.Msts.Models.SignalDrawState drawStateData)
+        public SignalAspectData(SignalType signalType, SignalDrawState drawStateData)
         {
-            if (mstsSignalType.Lights != null)
+            if (signalType.Lights.Length > 0)
             {
-                DrawLights = new bool[mstsSignalType.Lights.Count];
-                FlashLights = new bool[mstsSignalType.Lights.Count];
+                DrawLights = new bool[signalType.Lights.Length];
+                FlashLights = new bool[signalType.Lights.Length];
             }
             else
             {
@@ -586,17 +579,16 @@ namespace Orts.ActivityRunner.Viewer3D
                 FlashLights = null;
             }
 
-            if (drawStateData.DrawLights != null)
+            for (int i = 0; i < drawStateData.DrawStateLights.Length; i++)
             {
-                foreach (var drawLight in drawStateData.DrawLights)
+                if (drawStateData.DrawStateLights[i] == SignalDrawStateLightMode.Unlit)
+                    continue;
+                if (DrawLights == null || i >= DrawLights.Length)
+                    Trace.TraceWarning("Skipped extra draw light {0}", i);
+                else
                 {
-                    if (drawLight.Index < 0 || DrawLights == null || drawLight.Index >= DrawLights.Length)
-                        Trace.TraceWarning("Skipped extra draw light {0}", drawLight.Index);
-                    else
-                    {
-                        DrawLights[drawLight.Index] = true;
-                        FlashLights[drawLight.Index] = drawLight.Flashing;
-                    }
+                    DrawLights[i] = true;
+                    FlashLights[i] = drawStateData.DrawStateLights[i] == SignalDrawStateLightMode.Flashing;
                 }
             }
             SemaphorePos = drawStateData.SemaphorePosition;
@@ -646,7 +638,7 @@ namespace Orts.ActivityRunner.Viewer3D
             GlowIntensityDay = glowDay;
             GlowIntensityNight = glowNight;
 
-            var verticies = new[] {
+            VertexPositionColorTexture[] verticies = new[] {
                 new VertexPositionColorTexture(new Vector3(-radius, +radius, 0), color, new Vector2(textureCoordinates.M10, textureCoordinates.M01)),
                 new VertexPositionColorTexture(new Vector3(+radius, +radius, 0), color, new Vector2(textureCoordinates.M00, textureCoordinates.M01)),
                 new VertexPositionColorTexture(new Vector3(-radius, -radius, 0), color, new Vector2(textureCoordinates.M10, textureCoordinates.M11)),
@@ -696,7 +688,7 @@ namespace Orts.ActivityRunner.Viewer3D
 
         public override void Render(List<RenderItem> renderItems, ref Matrix view, ref Matrix projection, ref Matrix viewProjection)
         {
-            foreach (var pass in shader.CurrentTechnique.Passes)
+            foreach (EffectPass pass in shader.CurrentTechnique.Passes)
             {
                 for (int i = 0; i < renderItems.Count; i++)
                 {
@@ -762,7 +754,7 @@ namespace Orts.ActivityRunner.Viewer3D
 
         public override void Render(List<RenderItem> renderItems, ref Matrix view, ref Matrix projection, ref Matrix viewProjection)
         {
-            foreach (var pass in shader.CurrentTechnique.Passes)
+            foreach (EffectPass pass in shader.CurrentTechnique.Passes)
             {
                 for (int i = 0; i < renderItems.Count; i++)
                 {

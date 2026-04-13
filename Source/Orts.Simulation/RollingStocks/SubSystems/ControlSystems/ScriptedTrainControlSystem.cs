@@ -481,12 +481,12 @@ namespace Orts.Simulation.RollingStocks.SubSystems.ControlSystems
 
         private TrackMonitorSignalAspect NextNormalSignalDistanceHeadsAspect()
         {
-            var signal = Locomotive.Train.NextSignalObjects[Locomotive.Train.MUDirection == MidpointDirection.Reverse ? Direction.Backward : Direction.Forward];
+            Signal signal = Locomotive.Train.NextSignalObjects[Locomotive.Train.MUDirection == MidpointDirection.Reverse ? Direction.Backward : Direction.Forward];
             if (signal != null)
             {
                 foreach (var signalHead in signal.SignalHeads)
                 {
-                    if (signalHead.SignalType.SignalFunction == SignalFunctionType.Distance)
+                    if (signalHead.SignalType.FunctionType == SignalFunctionType.Distance)
                     {
                         return SignalEnvironment.TranslateToTCSAspect(signal.SignalLR(SignalFunctionType.Distance));
                     }
@@ -499,21 +499,21 @@ namespace Orts.Simulation.RollingStocks.SubSystems.ControlSystems
         private bool DoesNextNormalSignalHaveTwoAspects()
         // ...and the two aspects of each head are STOP and ( CLEAR_2 or CLEAR_1 or RESTRICTING)
         {
-            var signal = Locomotive.Train.NextSignalObjects[Locomotive.Train.MUDirection == MidpointDirection.Reverse ? Direction.Backward : Direction.Forward];
+            Signal signal = Locomotive.Train.NextSignalObjects[Locomotive.Train.MUDirection == MidpointDirection.Reverse ? Direction.Backward : Direction.Forward];
             if (signal != null)
             {
-                if (signal.SignalHeads[0].SignalType.Aspects.Count > 2)
+                if (signal.SignalHeads[0].SignalType.SignalAspects.Length > 2)
                     return false;
                 else
                 {
-                    foreach (var signalHead in signal.SignalHeads)
+                    foreach (SignalHead signalHead in signal.SignalHeads)
                     {
-                        if (signalHead.SignalType.SignalFunction != SignalFunctionType.Distance &&
-                            signalHead.SignalType.Aspects.Count == 2 &&
-                            signalHead.SignalType.Aspects[0].Aspect == 0 &&
-                                ((int)signalHead.SignalType.Aspects[1].Aspect == 7 ||
-                                (int)signalHead.SignalType.Aspects[1].Aspect == 6 ||
-                                (int)signalHead.SignalType.Aspects[1].Aspect == 2))
+                        if (signalHead.SignalType.FunctionType != SignalFunctionType.Distance &&
+                           signalHead.SignalType.SignalAspects.Length == 2 &&
+                           signalHead.SignalType.SignalAspects[0].Aspect == SignalAspectState.Stop &&
+                               (signalHead.SignalType.SignalAspects[1].Aspect == SignalAspectState.Clear2 ||
+                               signalHead.SignalType.SignalAspects[1].Aspect == SignalAspectState.Clear1 ||
+                               signalHead.SignalType.SignalAspects[1].Aspect == SignalAspectState.Restricting))
                             continue;
                         else
                             return false;
@@ -645,7 +645,7 @@ namespace Orts.Simulation.RollingStocks.SubSystems.ControlSystems
             {
                 foreach (SignalHead signalHead in signal.SignalHeads)
                 {
-                    if (signalHead.SignalType.SignalFunction == SignalFunctionType.Repeater)
+                    if (signalHead.SignalType.FunctionType == SignalFunctionType.Repeater)
                         return true;
                 }
                 return false;

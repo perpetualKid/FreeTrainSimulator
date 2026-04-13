@@ -54,6 +54,8 @@ namespace FreeTrainSimulator.Models.Imported.ImportHandler.TrainSimulator
                 SignalShapes = ConvertSignalShapes(signalConfigurationFile),
                 Tags = new Dictionary<string, string> { { SourceNameKey, signalConfigurationFile.ScriptPath } }.ToImmutableDictionary(),
                 ScriptFiles = signalConfigurationFile.ScriptFiles?.ToImmutableArray() ?? ImmutableArray<string>.Empty,
+                CustomFunctionTypes = ExtractCustomFunctionTypes(),
+                CustomNormalSubTypes = ExtractCustomNormalSubTypes(),
             };
 
             await Create(signalConfigModel, routeModel, cancellationToken).ConfigureAwait(false);
@@ -120,6 +122,7 @@ namespace FreeTrainSimulator.Models.Imported.ImportHandler.TrainSimulator
                         kvp => kvp.Key,
                         kvp => new SignalDrawState()
                         {
+                            Index = kvp.Value.Index,
                             Name = kvp.Value.Name,
                             SemaphorePosition = (int)kvp.Value.SemaphorePosition,
                             DrawStateLights = ToSparseDrawStateLightArray(kvp.Value.DrawLights),
@@ -163,6 +166,29 @@ namespace FreeTrainSimulator.Models.Imported.ImportHandler.TrainSimulator
                         }).ToImmutableArray() ?? ImmutableArray<SignalSubObject>.Empty,
                     },
                     StringComparer.OrdinalIgnoreCase) ?? ImmutableDictionary<string, SignalShape>.Empty;
+        }
+
+        private static ImmutableArray<string> ExtractCustomFunctionTypes()
+        {
+            SignalTypeRegistry registry = SignalTypeRegistry.Instance;
+            int mstsCount = SignalFunctionType.Unknown.Index + 1;
+            ImmutableArray<string>.Builder builder = ImmutableArray.CreateBuilder<string>(Math.Max(0, registry.FunctionCount - mstsCount));
+            for (int i = mstsCount; i < registry.FunctionCount; i++)
+            {
+                builder.Add(registry.GetFunctionName(new SignalFunctionType(i)));
+            }
+            return builder.ToImmutable();
+        }
+
+        private static ImmutableArray<string> ExtractCustomNormalSubTypes()
+        {
+            SignalTypeRegistry registry = SignalTypeRegistry.Instance;
+            ImmutableArray<string>.Builder builder = ImmutableArray.CreateBuilder<string>(registry.NormalSubTypeCount);
+            for (int i = 0; i < registry.NormalSubTypeCount; i++)
+            {
+                builder.Add(registry.GetNormalSubTypeName(new SignalNormalSubType(i)));
+            }
+            return builder.ToImmutable();
         }
 
         /// <summary>

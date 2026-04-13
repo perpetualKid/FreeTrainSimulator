@@ -32,7 +32,6 @@ using System.Linq;
 using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Models.Signalling;
 
-using Orts.Formats.Msts.Models;
 using Orts.Formats.Msts.Signalling;
 
 namespace Orts.Formats.Msts
@@ -211,18 +210,18 @@ namespace Orts.Formats.Msts
         public static string dout_fileLoc = @"C:\temp\";    /* file path for debug files */
 #endif
 
-        public IDictionary<Models.SignalType, SCRScripts> Scripts { get; private set; }
+        public IDictionary<string, SCRScripts> Scripts { get; private set; }
 
         //================================================================================================//
         //
         // Constructor
         //
         //================================================================================================//
-        public SignalScripts(string routePath, IList<string> scriptFiles, IDictionary<string, Models.SignalType> signalTypes)
+        public SignalScripts(string routePath, IList<string> scriptFiles, IDictionary<string, SignalType> signalTypes)
         {
             ArgumentNullException.ThrowIfNull(signalTypes);
 
-            Scripts = new Dictionary<Models.SignalType, SCRScripts>();
+            Scripts = new Dictionary<string, SCRScripts>(StringComparer.OrdinalIgnoreCase);
 
 #if DEBUG_PRINT_PROCESS
             TDB_debug_ref = new int[5] { 7305, 7307, 7308, 7309, 7310 };   /* signal tdb ref.no selected for print-out */
@@ -270,7 +269,7 @@ namespace Orts.Formats.Msts
                         #region DEBUG
 #if DEBUG_PRINT_OUT
                         // print processed details 
-                        foreach (KeyValuePair<SignalType, SCRScripts> item in Scripts)
+                        foreach (KeyValuePair<string, SCRScripts> item in Scripts)
                         {
                             File.AppendAllText(dout_fileLoc + @"scriptproc.txt", "Script : " + item.Value.ScriptName + "\n\n");
                             File.AppendAllText(dout_fileLoc + @"scriptproc.txt", PrintScript(item.Value.Statements));
@@ -496,16 +495,16 @@ namespace Orts.Formats.Msts
         /// <summary>
         /// Links the script to the required signal type
         /// </summary>
-        private void AssignScriptToSignalType(SCRScripts script, IDictionary<string, Models.SignalType> signalTypes, int currentLine, string fileName)
+        private void AssignScriptToSignalType(SCRScripts script, IDictionary<string, SignalType> signalTypes, int currentLine, string fileName)
         {
 #pragma warning disable 219     //variable only used for DEBUG output using DEBUG_PRINT_OUT or DEBUG_PRINT_IN
             bool isValid = false;
 #pragma warning restore 219
             string scriptName = script.ScriptName;
             // try and find signal type with same name as script
-            if (signalTypes.TryGetValue(script.ScriptName, out Models.SignalType signalType))
+            if (signalTypes.TryGetValue(script.ScriptName, out SignalType signalType))
             {
-                if (Scripts.ContainsKey(signalType))
+                if (Scripts.ContainsKey(signalType.Name))
                 {
                     Trace.TraceWarning($"Ignored duplicate SignalType script {scriptName} in {fileName} before {currentLine}");
                 }
@@ -516,17 +515,17 @@ namespace Orts.Formats.Msts
                     File.AppendAllText(din_fileLoc + @"sigscr.txt", "Adding script : " + signalType.Name + "\n");
 #endif
                     #endregion
-                    Scripts.Add(signalType, script);
+                    Scripts.Add(signalType.Name, script);
                     isValid = true;
                 }
             }
 
             // try and find any other signal types which reference this script
-            foreach (KeyValuePair<string, Models.SignalType> currentSignal in signalTypes)
+            foreach (KeyValuePair<string, SignalType> currentSignal in signalTypes)
             {
                 if (scriptName.Equals(currentSignal.Value.Script, StringComparison.OrdinalIgnoreCase))
                 {
-                    if (Scripts.ContainsKey(currentSignal.Value))
+                    if (Scripts.ContainsKey(currentSignal.Value.Name))
                     {
                         Trace.TraceWarning($"Ignored duplicate SignalType script {scriptName} in {fileName} before {currentLine}");
                     }
@@ -537,7 +536,7 @@ namespace Orts.Formats.Msts
                         File.AppendAllText(din_fileLoc + @"sigscr.txt", "Adding script : " + currentSignal.Value.Script + " to " + currentSignal.Value.Name + "\n");
 #endif
                         #endregion
-                        Scripts.Add(currentSignal.Value, script);
+                        Scripts.Add(currentSignal.Value.Name, script);
                         isValid = true;
                     }
                 }

@@ -18,6 +18,9 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
+
+using FreeTrainSimulator.Models.Signalling;
 
 using Orts.Formats.Msts;
 using Orts.Formats.Msts.Files;
@@ -67,7 +70,11 @@ namespace Orts.ContentChecker
             else {
                 // we want to load the signal scripts one by one, not as a group
                 List<string> scriptFiles = new List<string>() { Path.GetFileName(file) };
-                _ = new SignalScripts(_sigcfg.ScriptPath, scriptFiles, _sigcfg.SignalTypes);
+                Dictionary<string, SignalType> modelSignalTypes = _sigcfg.SignalTypes.ToDictionary(
+                    kvp => kvp.Key,
+                    kvp => new SignalType() { Name = kvp.Value.Name, Script = kvp.Value.Script },
+                    StringComparer.OrdinalIgnoreCase);
+                _ = new SignalScripts(_sigcfg.ScriptPath, scriptFiles, modelSignalTypes);
             }
         }
     }

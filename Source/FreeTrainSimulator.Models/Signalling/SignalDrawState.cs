@@ -10,6 +10,7 @@ namespace FreeTrainSimulator.Models.Signalling
     [MemoryPackable(GenerateType.VersionTolerant, SerializeLayout.Sequential)]
     public sealed partial record SignalDrawState
     {
+        public int Index { get; init; }
         public string Name { get; init; }
         public int SemaphorePosition { get; init; }
         public ImmutableArray<SignalDrawStateLightMode> DrawStateLights { get; init; } = ImmutableArray<SignalDrawStateLightMode>.Empty;

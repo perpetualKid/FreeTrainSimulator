@@ -101,7 +101,7 @@ namespace Orts.Simulation.Signalling
         /// <returns>The index of the draw state, -1 if no one exist with that name</returns>
         public int GetDrawStateByName(string name)
         {
-            return signalHead.SignalType.DrawStates.TryGetValue(name, out Formats.Msts.Models.SignalDrawState drawState) ? drawState.Index : -1;
+            return signalHead.SignalType.DrawStates.TryGetValue(name, out SignalDrawState drawState) ? drawState.Index : -1;
         }
 
         /// <summary>

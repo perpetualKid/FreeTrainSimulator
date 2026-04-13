@@ -23,11 +23,8 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 
-using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Models.Signalling;
 
-using Orts.Formats.Msts;
-using Orts.Formats.Msts.Files;
 using Orts.Formats.Msts.Models;
 
 namespace Orts.Simulation.Signalling
@@ -50,7 +47,7 @@ namespace Orts.Simulation.Signalling
 
         public string ShapeFileName { get; }
 
-        public SignalWorldInfo(SignalObject signalWorldItem, SignalConfigurationFile signalConfig)
+        public SignalWorldInfo(SignalObject signalWorldItem, SignalConfigurationModel signalConfig)
         {
             ArgumentNullException.ThrowIfNull(signalConfig);
             ArgumentNullException.ThrowIfNull(signalWorldItem);
@@ -67,33 +64,33 @@ namespace Orts.Simulation.Signalling
 
             // search defined shapes in SIGCFG to find signal definition
 
-            if (signalConfig.SignalShapes.TryGetValue(fileName, out Formats.Msts.Models.SignalShape thisCFGShape))
+            if (signalConfig.SignalShapes.TryGetValue(fileName, out FreeTrainSimulator.Models.Signalling.SignalShape thisCFGShape))
             {
-                HeadsSet = new BitArray(thisCFGShape.SignalSubObjs.Count);
+                HeadsSet = new BitArray(thisCFGShape.SubObjects.Length);
 
                 // loop through all heads and check SubObj flag per bit to check if head is set
                 uint mask = 1;
 
-                for (int i = 0; i < thisCFGShape.SignalSubObjs.Count; i++)
+                for (int i = 0; i < thisCFGShape.SubObjects.Length; i++)
                 {
                     uint headSet = signalWorldItem.SignalSubObject & mask;
-                    Formats.Msts.Models.SignalShape.SignalSubObject signalSubObjects = thisCFGShape.SignalSubObjs[i];
+                    SignalSubObject signalSubObject = thisCFGShape.SubObjects[i];
                     if (headSet != 0)
                     {
                         // set head, and if head is flag, also set flag
                         HeadsSet[i] = true;
 
-                        if (signalSubObjects.BackFacing)
+                        if (signalSubObject.SubObjectFlags.HasFlag(SignalSubObjectOptions.BackFacing))
                         {
                             Backfacing.Add(i);
-                            if (signalSubObjects.SignalSubType >= 1)
+                            if (signalSubObject.SignalSubType >= 1)
                             {
-                                FlagsSetBackfacing[signalSubObjects.SignalSubType] = true;
+                                FlagsSetBackfacing[signalSubObject.SignalSubType] = true;
                             }
                         }
-                        else if (signalSubObjects.SignalSubType >= 1)
+                        else if (signalSubObject.SignalSubType >= 1)
                         {
-                            FlagsSet[signalSubObjects.SignalSubType] = true;
+                            FlagsSet[signalSubObject.SignalSubType] = true;
                         }
                     }
                     mask <<= 1;

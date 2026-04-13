@@ -60,7 +60,7 @@ namespace Orts.Simulation.Signalling
 
         private readonly TrackDB trackDB;
 
-        public SignalConfigurationFile SignalConfig { get; }
+        public SignalConfigurationModel SignalConfig { get; }
 
         public int OrtsSignalTypeCount { get; private set; }
 
@@ -106,15 +106,19 @@ namespace Orts.Simulation.Signalling
             UseLocationPassingPaths = locationPassingPaths;
             Dictionary<int, int> platformList = new Dictionary<int, int>();
 
-            OrtsSignalTypeCount = SignalTypeRegistry.Instance.FunctionCount;
-
             trackDB = new TrackDatabaseFile(Simulator.Instance.RouteFolder.TrackDatabaseFile(Simulator.Instance.RouteModel.RouteKey)).TrackDB;
-            SignalConfig = new SignalConfigurationFile(Simulator.Instance.RouteFolder.SignalConfigurationFile, Simulator.Instance.RouteFolder.SignalConfigMode);
+
+            SignalConfig = RuntimeDataResolver.Instance.SignalConfiguration;
+
+            // Restore signal type registry from the pre-built configuration model
+            SignalTypeRegistry.Restore(SignalConfig);
+            OrtsSignalTypeCount = SignalTypeRegistry.Instance.FunctionCount;
 
             // read SIGSCR files
 
             Trace.Write(" SIGSCR ");
-            SignalScriptProcessing.Initialize(new SignalScripts(SignalConfig.ScriptPath, SignalConfig.ScriptFiles, SignalConfig.SignalTypes));
+            string scriptPath = SignalConfig.Tags.TryGetValue("ScriptFilesPath", out string path) ? path : Path.GetDirectoryName(Simulator.Instance.RouteFolder.SignalConfigurationFile);
+            SignalScriptProcessing.Initialize(new SignalScripts(scriptPath, SignalConfig.ScriptFiles, SignalConfig.SignalTypes));
 
             ConcurrentBag<SignalWorldInfo> signalWorldList = new ConcurrentBag<SignalWorldInfo>();
             ConcurrentDictionary<int, SignalWorldInfo> signalWorldLookup = new ConcurrentDictionary<int, SignalWorldInfo>();
@@ -261,7 +265,7 @@ namespace Orts.Simulation.Signalling
         /// <summary>
         /// Read all world files to get signal flags
         /// </summary>
-        private void BuildSignalWorld(string worldPath, SignalConfigurationFile sigcfg, ConcurrentBag<SignalWorldInfo> signalWorldList,
+        private void BuildSignalWorld(string worldPath, SignalConfigurationModel sigcfg, ConcurrentBag<SignalWorldInfo> signalWorldList,
             ConcurrentDictionary<int, SignalWorldInfo> signalWorldLookup, ConcurrentDictionary<int, SpeedpostWorldInfo> speedpostWorldList, ConcurrentDictionary<int, int> speedpostLookup, ConcurrentDictionary<int, uint> platformSidesList, CancellationToken token)
         {
             HashSet<TokenID> Tokens = new HashSet<TokenID>
@@ -843,7 +847,7 @@ namespace Orts.Simulation.Signalling
         /// <summary>
         /// Add the sigcfg reference to each signal object.
         /// </summary>
-        private void AddSignalConfiguration(SignalConfigurationFile signalConfig)
+        private void AddSignalConfiguration(SignalConfigurationModel signalConfig)
         {
             foreach (Signal signal in Signals)
             {

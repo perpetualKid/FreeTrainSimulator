@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 
 using FreeTrainSimulator.Common;
@@ -9,7 +10,6 @@ using FreeTrainSimulator.Models.Track;
 using FreeTrainSimulator.Runtime;
 
 using Orts.Formats.Msts;
-using Orts.Formats.Msts.Files;
 using Orts.Formats.Msts.Models;
 using Orts.Simulation.Multiplayer;
 
@@ -29,7 +29,7 @@ namespace Orts.Simulation.Signalling
         /// <summary>Extensible signal function type identifier.</summary>
         public SignalFunctionType SignalFunction { get; private set; } = SignalFunctionType.Unknown;
 
-        public Formats.Msts.Models.SignalType SignalType { get; private set; }
+        public FreeTrainSimulator.Models.Signalling.SignalType SignalType { get; private set; }
 
         /// <summary>Extensible normal subtype identifier.</summary>
         public SignalNormalSubType NormalSubType { get; set; }
@@ -88,7 +88,16 @@ namespace Orts.Simulation.Signalling
             TDBIndex = tbdRef;
             DrawState = 1;
             SignalIndicationState = SignalAspectState.Clear2;
-            SignalType = new Formats.Msts.Models.SignalType(SignalFunctionType.Speed, SignalAspectState.Clear2);
+            SignalType = new FreeTrainSimulator.Models.Signalling.SignalType
+            {
+                Name = "UNDEFINED",
+                FunctionType = SignalFunctionType.Speed,
+                DrawStates = new Dictionary<string, FreeTrainSimulator.Models.Signalling.SignalDrawState>(StringComparer.OrdinalIgnoreCase)
+                {
+                    { "CLEAR", new FreeTrainSimulator.Models.Signalling.SignalDrawState { Name = "CLEAR", Index = 1 } }
+                }.ToImmutableDictionary(StringComparer.OrdinalIgnoreCase),
+                SignalAspects = [new FreeTrainSimulator.Models.Signalling.SignalAspect { Aspect = SignalAspectState.Clear2, DrawStateName = "CLEAR", SpeedLimit = -1 }],
+            };
             SignalFunction = SignalFunctionType.Speed;
 
             double speedMpS = Speed.MeterPerSecond.ToMpS(speedItem.Distance, !speedItem.IsMPH);
@@ -107,35 +116,37 @@ namespace Orts.Simulation.Signalling
 
         //================================================================================================//
         /// <summary>
-        /// Set the signal type object from the SIGCFG file
+        /// Set the signal type object from the signal configuration model
         /// </summary>
-        internal void SetSignalType(List<TrackItem> trackItems, SignalConfigurationFile signalConfig)
+        internal void SetSignalType(List<TrackItem> trackItems, SignalConfigurationModel signalConfig)
         {
             if (trackItems[TDBIndex] is SignalItem signalItem)
             {
 
                 // set signal type
-                if (signalConfig.SignalTypes.TryGetValue(signalItem.SignalType, out Formats.Msts.Models.SignalType value))
+                if (signalConfig.SignalTypes.TryGetValue(signalItem.SignalType, out FreeTrainSimulator.Models.Signalling.SignalType value))
                 {
                     // set signal type
                     SignalType = value;
-                    SignalFunction = SignalType.SignalFunction;
+                    SignalFunction = SignalType.FunctionType;
                     // get related signalscript
-                    SignalScriptProcessing.SignalScripts.Scripts.TryGetValue(SignalType, out signalScript);
+                    SignalScriptProcessing.SignalScripts.Scripts.TryGetValue(SignalType.Name, out signalScript);
 
                     csSignalScript = CsSignalScripts.TryGetScript(SignalType.Name);
                     if (csSignalScript == null && !string.IsNullOrEmpty(SignalType.Script))
                         csSignalScript = CsSignalScripts.TryGetScript(SignalType.Script);
 
-                    if (csSignalScript != null)
-                    {
-                        csSignalScript.AttachToHead(this);
-                    }
+                    csSignalScript?.AttachToHead(this);
 
                     // set signal speeds
-                    foreach (Formats.Msts.Models.SignalAspect aspect in SignalType.Aspects)
+                    foreach (FreeTrainSimulator.Models.Signalling.SignalAspect aspect in SignalType.SignalAspects)
                     {
-                        SpeedInfoSet[aspect.Aspect] = new SpeedInfo(aspect.SpeedLimit, aspect.SpeedLimit, aspect.Asap, aspect.Reset, aspect.NoSpeedReduction ? 1 : 0, false);
+                        SpeedInfoSet[aspect.Aspect] = new SpeedInfo(
+                            aspect.SpeedLimit, aspect.SpeedLimit,
+                            aspect.AspectFlags.HasFlag(SignalAspectOptions.Asap),
+                            aspect.AspectFlags.HasFlag(SignalAspectOptions.SpeedReset),
+                            aspect.AspectFlags.HasFlag(SignalAspectOptions.NoSpeedReduction) ? 1 : 0,
+                            false);
                     }
 
                     // set normal subtype
@@ -145,25 +156,17 @@ namespace Orts.Simulation.Signalling
 
                     if (SignalFunction == SignalFunctionType.Normal)
                     {
-                        if (SignalType.ClearAheadMode != CompatibilityMode.None)
+                        if (SignalType.SignalClearAheadMode != CompatibilityMode.None)
                         {
-                            MainSignal.ClearAheadMode = SignalType.ClearAheadMode;
+                            MainSignal.ClearAheadMode = SignalType.SignalClearAheadMode;
                         }
                         MainSignal.SignalNumClearAheadDefault = Math.Max(MainSignal.SignalNumClearAheadDefault, SignalType.ClearAheadNumber);
                         MainSignal.SignalNumClearAheadActive = MainSignal.SignalNumClearAheadDefault;
                     }
 
                     // set approach control limits
-                    if (SignalType.ApproachControlDetails != null)
-                    {
-                        ApproachControlLimitPositionM = SignalType.ApproachControlDetails.ApproachControlPositionM;
-                        ApproachControlLimitSpeedMpS = SignalType.ApproachControlDetails.ApproachControlSpeedMpS;
-                    }
-                    else
-                    {
-                        ApproachControlLimitPositionM = null;
-                        ApproachControlLimitSpeedMpS = null;
-                    }
+                    ApproachControlLimitPositionM = SignalType.ApproachControlLimitPosition;
+                    ApproachControlLimitSpeedMpS = SignalType.ApproachControlLimitSpeed;
                 }
                 else
                 {
