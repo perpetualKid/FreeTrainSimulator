@@ -241,7 +241,7 @@ namespace Orts.ActivityRunner.Viewer3D
         //map sections to W tiles
         private static Dictionary<string, List<VectorSectionNode>> SectionMap;
 
-        public List<VectorSectionNode> FindTracksAndRoadsClose(in Tile tile)
+        private List<VectorSectionNode> FindTracksAndRoadsClose(in Tile tile)
         {
             if (SectionMap == null)
             {
@@ -293,7 +293,7 @@ namespace Orts.ActivityRunner.Viewer3D
         }
 
         // don't consider track sections outside the forest boundaries
-        public void FindTracksAndRoadsMoreClose(List<VectorSectionNode> sections, List<VectorSectionNode> allSections, ForestObject forest, in WorldPosition position, Matrix invForestXNAMatrix)
+        private void FindTracksAndRoadsMoreClose(List<VectorSectionNode> sections, List<VectorSectionNode> allSections, ForestObject forest, in WorldPosition position, Matrix invForestXNAMatrix)
         {
             if (allSections != null && allSections.Count > 0)
             {

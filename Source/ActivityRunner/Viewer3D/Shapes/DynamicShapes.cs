@@ -360,6 +360,8 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
         public SwitchTrackShape(string path, IWorldPosition positionSource, JunctionNode junctionNode)
             : base(path, positionSource, ShapeOptions.AutoZBias)
         {
+            ArgumentNullException.ThrowIfNull(junctionNode);
+
             this.junctionNode = junctionNode;
             mainRoute = junctionNode.MainRoute;
         }
