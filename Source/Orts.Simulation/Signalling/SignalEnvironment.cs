@@ -60,6 +60,8 @@ namespace Orts.Simulation.Signalling
 
         private readonly TrackDB trackDB;
 
+        public SignalConfigurationFile SignalConfig { get; }
+
         public int OrtsSignalTypeCount { get; private set; }
 
         private int updateStart;
@@ -99,19 +101,20 @@ namespace Orts.Simulation.Signalling
         /// <summary>
         /// Constructor
         /// </summary>
-        public SignalEnvironment(SignalConfigurationFile sigcfg, TrackDB trackDB, bool locationPassingPaths, CancellationToken token)
+        public SignalEnvironment(bool locationPassingPaths, CancellationToken token)
         {
             UseLocationPassingPaths = locationPassingPaths;
             Dictionary<int, int> platformList = new Dictionary<int, int>();
 
             OrtsSignalTypeCount = SignalTypeRegistry.Instance.FunctionCount;
 
-            this.trackDB = trackDB;
+            trackDB = new TrackDatabaseFile(Simulator.Instance.RouteFolder.TrackDatabaseFile(Simulator.Instance.RouteModel.RouteKey)).TrackDB;
+            SignalConfig = new SignalConfigurationFile(Simulator.Instance.RouteFolder.SignalConfigurationFile, Simulator.Instance.RouteFolder.SignalConfigMode);
 
             // read SIGSCR files
 
             Trace.Write(" SIGSCR ");
-            SignalScriptProcessing.Initialize(new SignalScripts(sigcfg.ScriptPath, sigcfg.ScriptFiles, sigcfg.SignalTypes));
+            SignalScriptProcessing.Initialize(new SignalScripts(SignalConfig.ScriptPath, SignalConfig.ScriptFiles, SignalConfig.SignalTypes));
 
             ConcurrentBag<SignalWorldInfo> signalWorldList = new ConcurrentBag<SignalWorldInfo>();
             ConcurrentDictionary<int, SignalWorldInfo> signalWorldLookup = new ConcurrentDictionary<int, SignalWorldInfo>();
@@ -120,7 +123,7 @@ namespace Orts.Simulation.Signalling
             ConcurrentDictionary<int, SpeedpostWorldInfo> speedPostWorldList = new ConcurrentDictionary<int, SpeedpostWorldInfo>();
 
             // build list of signal world file information
-            BuildSignalWorld(Simulator.Instance.RouteFolder.WorldFolder, sigcfg, signalWorldList, signalWorldLookup, speedPostWorldList, speedPostWorldLookup, platformSidesList, token);
+            BuildSignalWorld(Simulator.Instance.RouteFolder.WorldFolder, SignalConfig, signalWorldList, signalWorldLookup, speedPostWorldList, speedPostWorldLookup, platformSidesList, token);
 
             // build list of signals in TDB file
             BuildSignalList(trackDB.TrackItems, trackDB.TrackNodes, platformList, signalWorldList);
@@ -129,7 +132,7 @@ namespace Orts.Simulation.Signalling
             {
                 // Add CFG info
 
-                AddSignalConfiguration(sigcfg);
+                AddSignalConfiguration(SignalConfig);
 
                 // Add World info
                 AddWorldInfo(signalWorldLookup, speedPostWorldLookup, speedPostWorldList);
