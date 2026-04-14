@@ -29,6 +29,7 @@ using FreeTrainSimulator.Common.Api;
 using FreeTrainSimulator.Common.Position;
 using FreeTrainSimulator.Models.Imported.State;
 using FreeTrainSimulator.Models.Signalling;
+using FreeTrainSimulator.Models.Track;
 using FreeTrainSimulator.Runtime;
 using FreeTrainSimulator.Runtime.Track;
 
@@ -47,8 +48,7 @@ namespace Orts.Simulation.Signalling
     /// </summary>
     public class Signal : ISignal, ISaveStateApi<SignalSaveState>
     {
-        private static TrackNodes trackNodes;
-        private static List<TrackItem> trackItems;
+        private static TrackDatabase trackDatabase;
 
         private static SignalEnvironment signalEnvironment; //back reference to the signal environment
 
@@ -117,11 +117,10 @@ namespace Orts.Simulation.Signalling
 
         public bool CallOnEnabled { get; internal set; }      // set if signal script file uses CallOn functionality
 
-        internal static void Initialize(SignalEnvironment signals, TrackNodes trackNodes, List<TrackItem> trackItems)
+        internal static void Initialize(SignalEnvironment signals, TrackDatabase trackDatabase)
         {
-            signalEnvironment = signals;               // reference to overlaying Signal class
-            Signal.trackNodes = trackNodes;
-            Signal.trackItems = trackItems;
+            signalEnvironment = signals;
+            Signal.trackDatabase = trackDatabase;
         }
 
         /// <summary>
@@ -196,16 +195,9 @@ namespace Orts.Simulation.Signalling
             foreach (SignalHead head in SignalHeads)
             {
                 head.ResetMain(this);
-                if (head.TDBIndex < 0 || head.TDBIndex >= trackItems.Count)
-                    continue;
-                switch (trackItems[head.TDBIndex])
+                if (head.TDBIndex >= 0)
                 {
-                    case SignalItem signalItem:
-                        signalItem.SignalObject = Index;
-                        break;
-                    case SpeedPostItem speedItem:
-                        speedItem.SignalObject = Index;
-                        break;
+                    signalEnvironment.TrackItemSignalIndex[head.TDBIndex] = Index;
                 }
             }
         }
@@ -373,7 +365,7 @@ namespace Orts.Simulation.Signalling
             }
         }
 
-        public int TrackItemIndex => (trackNodes[TrackNode] as TrackVectorNode).TrackItemIndices[TrackItemRefIndex];
+        public int TrackItemIndex => trackDatabase.TrackItemSelectors[TrackNode].TrackItems[TrackItemRefIndex];
 
         SignalState ISignal.State { get => State; set => State = value; }
 
@@ -1058,12 +1050,11 @@ namespace Orts.Simulation.Signalling
             {
                 TrackCircuitPartialPathRoute routePart = EnabledTrain.Train.ValidRoutes[EnabledTrain.Direction];
 
-                TrackNode node = trackNodes[mainNode];
-                if (routePart != null)
+                if (routePart != null && signalEnvironment.NodeCrossReferences.TryGetValue(mainNode, out TrackCircuitCrossReferences crossReferences))
                 {
-                    for (int i = 0; i <= node.TrackCircuitCrossReferences.Count - 1 && !routeset; i++)
+                    for (int i = 0; i <= crossReferences.Count - 1 && !routeset; i++)
                     {
-                        int sectionIndex = node.TrackCircuitCrossReferences[i].Index;
+                        int sectionIndex = crossReferences[i].Index;
 
                         for (int j = 0; j < routePart.Count && !routeset; j++)
                         {
@@ -1622,48 +1613,18 @@ namespace Orts.Simulation.Signalling
         }
 
         /// <summary>
-        /// Check whether signal head is for this signal.
+        /// Adds a head to this signal (for signal).
         /// </summary>
-        public bool IsSignalHead(SignalItem signalItem)
+        public void AddHead(int trackItem, int tdbRef, SignalTrackItem sigItem)
         {
-            ArgumentNullException.ThrowIfNull(signalItem);
-            // Tritem for this signal
-            SignalItem currentSignalItem = (SignalItem)trackItems[TrackItemIndex];
-            // Same Tile
-            if (signalItem.Location.TileX == currentSignalItem.Location.TileX && signalItem.Location.TileZ == currentSignalItem.Location.TileZ)
-            {
-                // Same position
-                if ((Math.Abs(signalItem.Location.Location.X - currentSignalItem.Location.Location.X) < 0.01) &&
-                    (Math.Abs(signalItem.Location.Location.Y - currentSignalItem.Location.Location.Y) < 0.01) &&
-                    (Math.Abs(signalItem.Location.Location.Z - currentSignalItem.Location.Location.Z) < 0.01))
-                {
-                    return true;
-                }
-            }
-            return false;
-        }
-
-        /// <summary>
-        /// Adds a head to this signal (for signam).
-        /// </summary>
-        public void AddHead(int trackItem, int tdbRef, SignalItem sigItem)
-        {
-            // create SignalHead
             SignalHead head = new SignalHead(this, trackItem, tdbRef, sigItem);
 
-            // set junction link
             if (head.TrackJunctionNode != 0)
             {
-                if (head.JunctionPath == 0)
-                {
-                    head.JunctionMainNode =
-                       trackNodes[head.TrackJunctionNode].TrackPins[trackNodes[head.TrackJunctionNode].InPins].Link;
-                }
-                else
-                {
-                    head.JunctionMainNode =
-                       trackNodes[head.TrackJunctionNode].TrackPins[trackNodes[head.TrackJunctionNode].InPins + 1].Link;
-                }
+                TrackNodeConnectorIndex connectors = trackDatabase.TrackNodeConnectors[head.TrackJunctionNode];
+                head.JunctionMainNode = head.JunctionPath == 0
+                    ? connectors.OutConnectors[0].Link
+                    : connectors.OutConnectors[1].Link;
             }
             SignalHeads.Add(head);
         }
@@ -1680,13 +1641,22 @@ namespace Orts.Simulation.Signalling
         }
 
         /// <summary>
+        /// Adds a head to this signal (for speedpost) using new TrackDatabase types.
+        /// </summary>
+        public void AddHead(int trItem, int tdbRef, SpeedpostTrackItem speedItem)
+        {
+            SignalHead head = new SignalHead(this, trItem, tdbRef, speedItem);
+            SignalHeads.Add(head);
+        }
+
+        /// <summary>
         /// Sets the signal type from the signal configuration model for each signal head.
         /// </summary>
         internal void SetSignalType(SignalConfigurationModel signalConfig)
         {
             foreach (SignalHead signalHead in SignalHeads)
             {
-                signalHead.SetSignalType(trackItems, signalConfig);
+                signalHead.SetSignalType(trackDatabase.TrackItems, signalConfig);
             }
             if (SignalType == SignalCategory.Signal && !SignalHeads.Exists(x => x.SignalFunction != SignalFunctionType.Speed))
             {

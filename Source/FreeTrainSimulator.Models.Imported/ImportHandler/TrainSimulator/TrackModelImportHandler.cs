@@ -433,6 +433,7 @@ namespace FreeTrainSimulator.Models.Imported.ImportHandler.TrainSimulator
                             SignalDirection = signalItem.SignalDirections?.Count > 0 ?
                                 new SignalDirection()
                                 {
+                                    NodeIndex = signalItem.SignalDirections[0].TrackNode,
                                     JunctionPath = signalItem.SignalDirections[0].LinkLRPath,
                                 } : null,
                             NormalSignal = signalConfiguration.SignalTypes.TryGetValue(signalItem.SignalType, out Signalling.SignalType signalType) && signalType.FunctionType == SignalFunctionType.Normal,
@@ -446,6 +447,7 @@ namespace FreeTrainSimulator.Models.Imported.ImportHandler.TrainSimulator
                             Flags = uint.TryParse(crossOverItem.SData2, NumberStyles.HexNumber, CultureInfo.InvariantCulture, out flags) ? flags : 0,
                             TrackItemIndex = crossOverItem.TrackItemId,
                             ShapeIndex = crossOverItem.ShapeId,
+                            LinkedCrossoverItem = crossOverItem.TrackNode,
                         });
                         break;
                     case RoadCarSpawnerItem carSpawner:

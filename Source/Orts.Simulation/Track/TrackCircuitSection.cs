@@ -194,6 +194,81 @@ namespace Orts.Simulation.Track
             DeadlockBoundaries = null;
         }
 
+        /// <summary>
+        /// Constructor using new immutable track database types.
+        /// </summary>
+        public TrackCircuitSection(TrackNodeBase node, TrackNodeConnectorIndex connectors, int nodeIndex)
+        {
+            ArgumentNullException.ThrowIfNull(node);
+            ArgumentNullException.ThrowIfNull(connectors);
+
+            Index = nodeIndex;
+            OriginalIndex = nodeIndex;
+
+            CircuitType = node switch
+            {
+                EndNode => TrackCircuitType.EndOfTrack,
+                JunctionNode => TrackCircuitType.Junction,
+                _ => TrackCircuitType.Normal,
+            };
+
+            // Map pin topology from connectors
+            if (!connectors.TrackNodeConnectors.IsDefaultOrEmpty)
+            {
+                int pinNo = 0;
+                int inPins = connectors.InboundCount;
+                int outPins = connectors.TrackNodeConnectors.Length - inPins;
+
+                for (int pin = 0; pin < Math.Min(inPins, EnumExtension.GetLength<SignalLocation>()); pin++)
+                {
+                    TrackNodeConnector connector = connectors.TrackNodeConnectors[pinNo];
+                    Pins[TrackDirection.Ahead, (SignalLocation)pin] = new TrackPin(connector.Link, connector.Direction);
+                    pinNo++;
+                }
+                if (pinNo < inPins)
+                    pinNo = inPins;
+                for (int pin = 0; pin < Math.Min(outPins, EnumExtension.GetLength<SignalLocation>()); pin++)
+                {
+                    TrackNodeConnector connector = connectors.TrackNodeConnectors[pinNo];
+                    Pins[TrackDirection.Reverse, (SignalLocation)pin] = new TrackPin(connector.Link, connector.Direction);
+                    pinNo++;
+                }
+            }
+
+            // Preset length from vector sections
+            if (node is VectorNode vectorNode && !vectorNode.VectorSections.IsDefaultOrEmpty)
+            {
+                foreach (VectorSectionNode section in vectorNode.VectorSections)
+                {
+                    if (RuntimeDataResolver.Instance.TrackSections.TrackSections.TryGetValue(section.NodeIndex, out FreeTrainSimulator.Models.Track.TrackSection trackSection))
+                    {
+                        Length += trackSection.Length;
+                    }
+                }
+            }
+
+            // For junction nodes, obtain default route, set switch, copy overlap
+            if (CircuitType == TrackCircuitType.Junction && node is JunctionNode jn)
+            {
+                SignalsPassingRoutes = new List<int>();
+                JunctionDefaultRoute = jn.MainRoute;
+                Overlap = jn.ClearanceDistance;
+
+                JunctionLastRoute = JunctionDefaultRoute;
+                signals.SetSwitch(OriginalIndex, JunctionLastRoute, this);
+            }
+
+            CircuitItems = new TrackCircuitItems(signals.OrtsSignalTypeCount);
+            CircuitState = new TrackCircuitState();
+
+            DeadlockTraps = new Dictionary<int, List<int>>();
+            DeadlockActives = new List<int>();
+            DeadlockAwaited = new List<int>();
+
+            DeadlockReference = -1;
+            DeadlockBoundaries = null;
+        }
+
         //================================================================================================//
         /// <summary>
         /// Constructor for empty entries

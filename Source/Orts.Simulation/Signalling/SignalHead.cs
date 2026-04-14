@@ -56,27 +56,25 @@ namespace Orts.Simulation.Signalling
         public string TextSignalAspect { get; set; } = string.Empty;
 
 
-        //================================================================================================//
         /// <summary>
-        /// Constructor for signals
+        /// Constructor for signals.
         /// </summary>
-
-        public SignalHead(Signal signal, int trackItem, int tbdRef, SignalItem signalItem)
+        public SignalHead(Signal signal, int trackItem, int tbdRef, SignalTrackItem signalItem)
         {
             MainSignal = signal ?? throw new ArgumentNullException(nameof(signal));
             TrackItemIndex = trackItem;
             TDBIndex = tbdRef;
 
-            if (signalItem?.SignalDirections?.Count > 0)
+            if (signalItem?.SignalDirection is FreeTrainSimulator.Models.Track.SignalDirection signalDirection && signalDirection.NodeIndex != 0)
             {
-                TrackJunctionNode = signalItem.SignalDirections[0].TrackNode;
-                JunctionPath = signalItem.SignalDirections[0].LinkLRPath;
+                TrackJunctionNode = signalDirection.NodeIndex;
+                JunctionPath = signalDirection.JunctionPath;
             }
         }
 
         //================================================================================================//
         /// <summary>
-        /// Constructor for speedposts
+        /// Constructor for speedposts (old types — retained for TempSpeedPostItem from runtime speed zones)
         /// </summary>
 
         public SignalHead(Signal signal, int trackItem, int tbdRef, SpeedPostItem speedItem)
@@ -109,6 +107,39 @@ namespace Orts.Simulation.Signalling
             SpeedInfoSet[SignalIndicationState] = new SpeedInfo(passSpeed, freightSpeed, false, false, speedItem is TempSpeedPostItem ? (speedMpS == 999f ? 2 : 1) : 0, speedItem.IsWarning);
         }
 
+        /// <summary>
+        /// Constructor for speedposts using new TrackDatabase types.
+        /// </summary>
+        public SignalHead(Signal signal, int trackItem, int tbdRef, SpeedpostTrackItem speedItem)
+        {
+            ArgumentNullException.ThrowIfNull(speedItem);
+
+            MainSignal = signal ?? throw new ArgumentNullException(nameof(signal));
+            TrackItemIndex = trackItem;
+            TDBIndex = tbdRef;
+            DrawState = 1;
+            SignalIndicationState = SignalAspectState.Clear2;
+            SignalType = new FreeTrainSimulator.Models.Signalling.SignalType
+            {
+                Name = "UNDEFINED",
+                FunctionType = SignalFunctionType.Speed,
+                DrawStates = new Dictionary<string, FreeTrainSimulator.Models.Signalling.SignalDrawState>(StringComparer.OrdinalIgnoreCase)
+                {
+                    { "CLEAR", new FreeTrainSimulator.Models.Signalling.SignalDrawState { Name = "CLEAR", Index = 1 } }
+                }.ToImmutableDictionary(StringComparer.OrdinalIgnoreCase),
+                SignalAspects = [new FreeTrainSimulator.Models.Signalling.SignalAspect { Aspect = SignalAspectState.Clear2, DrawStateName = "CLEAR", SpeedLimit = -1 }],
+            };
+            SignalFunction = SignalFunctionType.Speed;
+
+            double speedMpS = Speed.MeterPerSecond.ToMpS(speedItem.SpeedValue, speedItem.SpeedpostType.HasFlag(SpeedpostType.Metric));
+            if (speedItem.SpeedpostType.HasFlag(SpeedpostType.Resume))
+                speedMpS = 999.0;
+
+            float passSpeed = speedItem.SpeedpostType.HasFlag(SpeedpostType.Passenger) ? (float)speedMpS : -1;
+            float freightSpeed = speedItem.SpeedpostType.HasFlag(SpeedpostType.Freight) ? (float)speedMpS : -1;
+            SpeedInfoSet[SignalIndicationState] = new SpeedInfo(passSpeed, freightSpeed, false, false, 0, speedItem.SpeedpostType.HasFlag(SpeedpostType.Warning));
+        }
+
         internal void ResetMain(Signal signal)
         {
             MainSignal = signal;
@@ -122,9 +153,30 @@ namespace Orts.Simulation.Signalling
         {
             if (trackItems[TDBIndex] is SignalItem signalItem)
             {
+                SetSignalTypeCore(signalItem.SignalType, signalConfig);
+            }
+        }
+
+        /// <summary>
+        /// Set the signal type object using the new TrackDatabase types.
+        /// </summary>
+        internal void SetSignalType(ImmutableArray<FreeTrainSimulator.Models.Track.TrackItemBase> trackItems, SignalConfigurationModel signalConfig)
+        {
+            if (trackItems[TDBIndex] is SignalTrackItem signalItem)
+            {
+                SetSignalTypeCore(signalItem.SignalType, signalConfig);
+            }
+        }
+
+        /// <summary>
+        /// Core logic for setting signal type from a signal type name string.
+        /// </summary>
+        private void SetSignalTypeCore(string signalTypeName, SignalConfigurationModel signalConfig)
+        {
+            {
 
                 // set signal type
-                if (signalConfig.SignalTypes.TryGetValue(signalItem.SignalType, out FreeTrainSimulator.Models.Signalling.SignalType value))
+                if (signalConfig.SignalTypes.TryGetValue(signalTypeName, out FreeTrainSimulator.Models.Signalling.SignalType value))
                 {
                     // set signal type
                     SignalType = value;
@@ -170,7 +222,7 @@ namespace Orts.Simulation.Signalling
                 }
                 else
                 {
-                    Trace.TraceWarning($"SignalObject trItem={MainSignal.TrackItemIndex}, trackNode={MainSignal.TrackNode} has SignalHead with undefined SignalType {signalItem.SignalType}.");
+                    Trace.TraceWarning($"SignalObject trItem={MainSignal.TrackItemIndex}, trackNode={MainSignal.TrackNode} has SignalHead with undefined SignalType {signalTypeName}.");
                 }
             }
         }

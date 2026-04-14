@@ -257,6 +257,9 @@ namespace FreeTrainSimulator.Models.Track
         /// <summary>Index of the 3D shape used for this crossover, referencing <see cref="TrackSectionModel.TrackShapes"/>.</summary>
         public int ShapeIndex { get; init; }
 
+        /// <summary>Track item index of the paired crossover item on the other track.</summary>
+        public int LinkedCrossoverItem { get; init; }
+
         [MemoryPackConstructor]
         public CrossoverTrackItem(in WorldLocation location) : base(location)
         {
