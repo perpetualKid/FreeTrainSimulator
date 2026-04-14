@@ -5,6 +5,15 @@ using System.Collections.Immutable;
 
 namespace FreeTrainSimulator.Models.Track
 {
+    /// <summary>
+    /// A lightweight, allocation-free filtered view over an <see cref="ImmutableArray{TrackNodeBase}"/>,
+    /// exposing only nodes of a specific subtype <typeparamref name="T"/>.
+    /// </summary>
+    /// <typeparam name="T">The <see cref="TrackNodeBase"/> subtype to enumerate (e.g. <see cref="VectorNode"/>).</typeparam>
+    /// <remarks>
+    /// Uses a pre-built index array for O(1) access. Supports both <see langword="foreach"/> (non-boxing)
+    /// and LINQ via <see cref="IEnumerable{T}"/>.
+    /// </remarks>
     public readonly struct TrackNodeEnumerable<T> : IEnumerable<T>, IEquatable<TrackNodeEnumerable<T>> where T : TrackNodeBase
     {
         private readonly ImmutableArray<TrackNodeBase> nodes;
@@ -44,6 +53,10 @@ namespace FreeTrainSimulator.Models.Track
         public static bool operator !=(TrackNodeEnumerable<T> left, TrackNodeEnumerable<T> right) =>!left.Equals(right);
     }
 
+    /// <summary>
+    /// Value-type enumerator for <see cref="TrackNodeEnumerable{T}"/>.
+    /// Avoids heap allocation when used with <see langword="foreach"/>.
+    /// </summary>
     public struct TrackNodeEnumerator<T> : IEnumerator<T>, IEquatable<TrackNodeEnumerator<T>> where T : TrackNodeBase
     {
         private readonly ImmutableArray<TrackNodeBase> nodes;

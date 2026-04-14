@@ -9,6 +9,11 @@ using FreeTrainSimulator.Models.Shim;
 
 namespace FreeTrainSimulator.Models.Handler
 {
+    /// <summary>
+    /// Handler that enumerates activities across all content folders and routes,
+    /// wrapping each as a <see cref="TestActivityModel"/> for the automated test runner.
+    /// Excludes synthetic Explore/ExploreActivity entries.
+    /// </summary>
     internal sealed class TestActivityModelHandler : ContentHandlerBase<ActivityModelHeader>
     {
         public static Task<ImmutableArray<ActivityModelHeader>> GetTestActivities(ContentModel contentModel, CancellationToken cancellationToken)

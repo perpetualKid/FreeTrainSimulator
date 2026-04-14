@@ -12,6 +12,13 @@ using MemoryPack;
 
 namespace FreeTrainSimulator.Models.Handler
 {
+    /// <summary>
+    /// Generic handler for per-profile settings files (<see cref="ProfileSettingsModelBase"/>
+    /// subclasses). Reads and writes MemoryPack-serialized settings using a pooled buffer
+    /// for efficiency, producing files such as <c>.usersettings</c>, <c>.keyboardsettings</c>,
+    /// <c>.raildriversettings</c>, etc.
+    /// </summary>
+    /// <typeparam name="TSettingsModel">The concrete settings model type to serialize.</typeparam>
     internal sealed class ProfileSettingModelHandler<TSettingsModel> where TSettingsModel : ProfileSettingsModelBase
     {
         public const string SaveStateExtension = FileNameExtensions.SaveFile;

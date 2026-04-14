@@ -10,6 +10,11 @@ using FreeTrainSimulator.Models.Content;
 
 namespace FreeTrainSimulator.Models.Handler
 {
+    /// <summary>
+    /// Handler for wagon set (consist) models. Loads individual <see cref="WagonSetModel"/>
+    /// instances, enumerates all consists in a content folder, and extracts a distinct
+    /// locomotive list from the available wagon sets.
+    /// </summary>
     internal sealed class WagonSetModelHandler : ContentHandlerBase<WagonSetModel>
     {
         public static WagonSetModel Missing = new WagonSetModel()

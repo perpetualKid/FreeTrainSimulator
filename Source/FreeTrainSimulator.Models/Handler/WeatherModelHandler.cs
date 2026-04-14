@@ -9,6 +9,10 @@ using FreeTrainSimulator.Models.Content;
 
 namespace FreeTrainSimulator.Models.Handler
 {
+    /// <summary>
+    /// Handler for weather change models. Loads individual <see cref="WeatherModelHeader"/>
+    /// instances from disk and enumerates all weather-change files available for a route.
+    /// </summary>
     internal sealed class WeatherModelHandler : ContentHandlerBase<WeatherModelHeader>
     {
         public static Task<WeatherModelHeader> GetCore(WeatherModelHeader weatherModel, CancellationToken cancellationToken)

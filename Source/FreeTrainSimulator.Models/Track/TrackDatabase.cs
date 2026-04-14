@@ -4,6 +4,17 @@ using MemoryPack;
 
 namespace FreeTrainSimulator.Models.Track
 {
+    /// <summary>
+    /// Immutable, serializable representation of a track database (TDB file).
+    /// Contains all track nodes (endpoints, vectors, junctions) and track items
+    /// (signals, platforms, speedposts, crossovers, etc.) that define a route's rail or road network.
+    /// </summary>
+    /// <remarks>
+    /// <para>Abstracts the legacy MSTS <c>.tdb</c> file format into a MemoryPack-serializable model.
+    /// Individual node and item subtypes are stored in typed arrays for efficient serialization,
+    /// then reassembled into unified <see cref="TrackNodes"/> and <see cref="TrackItems"/> collections
+    /// on deserialization.</para>
+    /// </remarks>
     [MemoryPackable(GenerateType.VersionTolerant, SerializeLayout.Sequential)]
     public sealed partial record TrackDatabase
     {
@@ -50,18 +61,36 @@ namespace FreeTrainSimulator.Models.Track
         private ImmutableArray<int> junctionNodeIndices;
         #endregion
 
+        /// <summary>Indicates whether this database describes a rail or road network.</summary>
         public TrackDataBaseType TrackDataBaseType { get; init; }
+
+        /// <summary>All track nodes indexed by their <see cref="TrackNodeBase.NodeIndex"/>.
+        /// Reconstructed on deserialization from the typed node arrays.</summary>
         [MemoryPackIgnore]
         public ImmutableArray<TrackNodeBase> TrackNodes { get; init; } = ImmutableArray<TrackNodeBase>.Empty;
+
+        /// <summary>Filtered view over <see cref="TrackNodes"/> containing only <see cref="EndNode"/> entries.</summary>
         [MemoryPackIgnore]
         public TrackNodeEnumerable<EndNode> EndNodes => new TrackNodeEnumerable<EndNode>(TrackNodes, endNodeIndices);
+
+        /// <summary>Filtered view over <see cref="TrackNodes"/> containing only <see cref="VectorNode"/> entries.</summary>
         [MemoryPackIgnore]
         public TrackNodeEnumerable<VectorNode> VectorNodes => new TrackNodeEnumerable<VectorNode>(TrackNodes, vectorNodeIndices);
+
+        /// <summary>Filtered view over <see cref="TrackNodes"/> containing only <see cref="JunctionNode"/> entries.</summary>
         [MemoryPackIgnore]
         public TrackNodeEnumerable<JunctionNode> JunctionNodes => new TrackNodeEnumerable<JunctionNode>(TrackNodes, junctionNodeIndices);
 
+        /// <summary>Maps track node indices to the set of track item indices that belong to each node.
+        /// Corresponds to the <c>TrItemRefs</c> in the legacy TDB format.</summary>
         public ImmutableDictionary<int, TrackItemIndex> TrackItemSelectors { get; init; } = ImmutableDictionary<int, TrackItemIndex>.Empty;
+
+        /// <summary>Pin (connector) topology for each track node, describing how nodes link together.
+        /// Corresponds to the <c>TrPins</c> in the legacy TDB format.</summary>
         public ImmutableArray<TrackNodeConnectorIndex> TrackNodeConnectors { get; init; } = ImmutableArray<TrackNodeConnectorIndex>.Empty;
+
+        /// <summary>All track items indexed by their <see cref="TrackItemBase.TrackItemIndex"/>.
+        /// Reconstructed on deserialization from the typed item arrays.</summary>
         [MemoryPackIgnore]
         public ImmutableArray<TrackItemBase> TrackItems { get; init; } = ImmutableArray<TrackItemBase>.Empty;
 

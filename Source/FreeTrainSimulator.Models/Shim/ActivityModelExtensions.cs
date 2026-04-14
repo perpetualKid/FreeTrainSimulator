@@ -7,6 +7,10 @@ using FreeTrainSimulator.Models.Handler;
 
 namespace FreeTrainSimulator.Models.Shim
 {
+    /// <summary>
+    /// Extension methods for loading and querying activity models via a <see cref="RouteModelHeader"/>
+    /// or <see cref="ContentModel"/> context, delegating to the underlying handlers.
+    /// </summary>
     public static class ActivityModelExtensions
     {
         public static Task<ActivityModelHeader> Get(this RouteModelHeader routeModel, string activityId, CancellationToken cancellationToken) => ActivityModelHandler.GetCore(activityId, routeModel, cancellationToken);

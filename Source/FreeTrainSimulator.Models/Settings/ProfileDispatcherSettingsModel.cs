@@ -5,6 +5,11 @@ using MemoryPack;
 
 namespace FreeTrainSimulator.Models.Settings
 {
+    /// <summary>
+    /// Settings for the Dispatcher window application, including window layout, popup positions,
+    /// popup visibility, and map content-type visibility toggles. Stored as
+    /// <c>.dispatchersettings</c> files, one per profile.
+    /// </summary>
     [MemoryPackable(GenerateType.VersionTolerant, SerializeLayout.Sequential)]
     [ModelResolver(".dispatchersettings")]
     public sealed partial record ProfileDispatcherSettingsModel : ProfileSettingsModelBase

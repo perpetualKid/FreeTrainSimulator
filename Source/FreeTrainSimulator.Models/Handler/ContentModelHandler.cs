@@ -10,6 +10,11 @@ using FreeTrainSimulator.Models.Content;
 
 namespace FreeTrainSimulator.Models.Handler
 {
+    /// <summary>
+    /// Handler for the top-level <see cref="ContentModel"/>. Loads and caches the content
+    /// descriptor from disk, and supports (re-)initialization of content folder structures
+    /// via <see cref="Setup"/>.
+    /// </summary>
     internal sealed class ContentModelHandler : ContentHandlerBase<ContentModel>
     {
         private const string keyName = "content";

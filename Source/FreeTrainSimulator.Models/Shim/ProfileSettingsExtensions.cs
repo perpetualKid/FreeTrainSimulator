@@ -8,6 +8,12 @@ using FreeTrainSimulator.Models.Settings;
 
 namespace FreeTrainSimulator.Models.Shim
 {
+    /// <summary>
+    /// Extension methods for loading, updating, and persisting per-profile settings
+    /// (<see cref="ProfileSettingsModelBase"/> subclasses), and for resolving the user's
+    /// current UI selections (<see cref="ProfileSelectionsModel"/>) to their corresponding
+    /// content models (folder, route, activity, path, consist, timetable, weather).
+    /// </summary>
     public static class ProfileSettingsExtensions
     {
         #region settings

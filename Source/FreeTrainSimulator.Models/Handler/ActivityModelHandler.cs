@@ -10,6 +10,11 @@ using FreeTrainSimulator.Models.Content;
 
 namespace FreeTrainSimulator.Models.Handler
 {
+    /// <summary>
+    /// Handler for activity models. Loads individual <see cref="ActivityModelHeader"/> or
+    /// extended <see cref="ActivityModel"/> instances from disk, and enumerates all activities
+    /// available for a given route (including synthetic Explore/ExploreActivity entries).
+    /// </summary>
     internal sealed class ActivityModelHandler : ContentHandlerBase<ActivityModelHeader>
     {
         public static Task<ActivityModelHeader> GetCore(ActivityModelHeader activityModel, CancellationToken cancellationToken)

@@ -11,6 +11,11 @@ using FreeTrainSimulator.Models.Track;
 
 namespace FreeTrainSimulator.Models.Shim
 {
+    /// <summary>
+    /// Extension methods for <see cref="RouteModelHeader"/> providing access to child content
+    /// (paths, activities, timetables, weather, track data, signal configuration), save-point
+    /// name generation, and path persistence.
+    /// </summary>
     public static class RouteModelExtensions
     {
         public static ValueTask<RouteModel> GetExtended(this RouteModelHeader routeModel, CancellationToken cancellationToken) => RouteModelHandler.GetExtended(routeModel, cancellationToken);

@@ -5,8 +5,13 @@ using FreeTrainSimulator.Common;
 
 namespace FreeTrainSimulator.Models.Content
 {
+    /// <summary>
+    /// Provides well-known singleton model instances used as defaults or placeholders
+    /// throughout the application (e.g. explore mode activities, missing consist fallback).
+    /// </summary>
     public static class CommonModelInstances
     {
+        /// <summary>Default activity header for the free-roam "Explore Route" mode.</summary>
         public static readonly ActivityModelHeader ExploreMode = new ActivityModelHeader()
         {
             ActivityType = ActivityType.Explorer,
@@ -17,6 +22,7 @@ namespace FreeTrainSimulator.Models.Content
             Weather = WeatherType.Clear,
         };
 
+        /// <summary>Default activity header for the "Explore Route in Activity Mode" mode.</summary>
         public static readonly ActivityModelHeader ExploreActivityMode = new ActivityModelHeader()
         {
             ActivityType = ActivityType.ExploreActivity,
@@ -27,6 +33,7 @@ namespace FreeTrainSimulator.Models.Content
             Weather = WeatherType.Clear,
         };
 
+        /// <summary>Fallback consist used when the referenced wagon set cannot be found.</summary>
         public static readonly WagonSetModel Missing = new WagonSetModel()
         {
             Id = "<unknown>",

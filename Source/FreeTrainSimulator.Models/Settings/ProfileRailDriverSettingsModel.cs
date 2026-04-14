@@ -6,6 +6,11 @@ using MemoryPack;
 
 namespace FreeTrainSimulator.Models.Settings
 {
+    /// <summary>
+    /// Input-binding and calibration settings for the RailDriver hardware controller.
+    /// Maps each <see cref="UserCommand"/> to a RailDriver button index and stores
+    /// axis calibration values. Stored as <c>.raildriversettings</c> files, one per profile.
+    /// </summary>
     [MemoryPackable(GenerateType.VersionTolerant, SerializeLayout.Sequential)]
     [ModelResolver(".raildriversettings")]
     public sealed partial record ProfileRailDriverSettingsModel : ProfileSettingsModelBase

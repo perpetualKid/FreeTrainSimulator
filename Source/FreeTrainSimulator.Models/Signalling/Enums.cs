@@ -2,6 +2,9 @@
 
 namespace FreeTrainSimulator.Models.Signalling
 {
+    /// <summary>
+    /// Flags describing signal type options.
+    /// </summary>
     [Flags]
     public enum SignalOptions
     {
@@ -14,13 +17,22 @@ namespace FreeTrainSimulator.Models.Signalling
         Abs = 1 << 2,
     }
 
+    /// <summary>
+    /// Mode of a single light within a <see cref="SignalDrawState"/>.
+    /// </summary>
     public enum SignalDrawStateLightMode
     {
+        /// <summary>Light is off.</summary>
         Unlit,
+        /// <summary>Light is steadily on.</summary>
         Lit,
+        /// <summary>Light is flashing on and off.</summary>
         Flashing,
     }
 
+    /// <summary>
+    /// Flags describing additional behavior of a <see cref="SignalAspect"/>.
+    /// </summary>
     [Flags]
     public enum SignalAspectOptions
     {
@@ -33,6 +45,9 @@ namespace FreeTrainSimulator.Models.Signalling
         NoSpeedReduction = 1 << 2,
     }
 
+    /// <summary>
+    /// Flags describing optional behavior of a <see cref="SignalSubObject"/> within a <see cref="SignalShape"/>.
+    /// </summary>
     [Flags]
     public enum SignalSubObjectOptions
     {

@@ -10,6 +10,11 @@ using FreeTrainSimulator.Models.Content;
 
 namespace FreeTrainSimulator.Models.Handler
 {
+    /// <summary>
+    /// Handler for <see cref="FolderModel"/> instances. Expands configured content folders
+    /// into fully-resolved folder models by refreshing metadata and ensuring directory
+    /// structures exist on disk.
+    /// </summary>
     internal sealed class FolderModelHandler : ContentHandlerBase<FolderModel>
     {
         public static async Task<ImmutableArray<FolderModel>> ExpandFolderModels(ContentModel contentModel, CancellationToken cancellationToken)

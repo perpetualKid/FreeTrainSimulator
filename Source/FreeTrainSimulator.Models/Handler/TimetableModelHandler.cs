@@ -9,6 +9,10 @@ using FreeTrainSimulator.Models.Content;
 
 namespace FreeTrainSimulator.Models.Handler
 {
+    /// <summary>
+    /// Handler for timetable models. Loads individual <see cref="TimetableModel"/> instances
+    /// from disk and enumerates all timetable sets available for a route.
+    /// </summary>
     internal class TimetableModelHandler : ContentHandlerBase<TimetableModel>
     {
         public static Task<TimetableModel> GetCore(TimetableModel timetableModel, CancellationToken cancellationToken)

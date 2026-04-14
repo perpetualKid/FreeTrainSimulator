@@ -4,10 +4,15 @@ using MemoryPack;
 
 namespace FreeTrainSimulator.Models.Content
 {
+    /// <summary>
+    /// Header model containing summary information for a train path.
+    /// Abstracts data originally stored in MSTS path files (<c>.pat</c>).
+    /// </summary>
     [MemoryPackable(GenerateType.VersionTolerant, SerializeLayout.Sequential)]
     [ModelResolver("TrainPaths", ".path")]
     public partial record PathModelHeader : ModelBase
     {
+        /// <inheritdoc/>
         public override RouteModelHeader Parent => _parent as RouteModelHeader;
         /// <summary>Start location of the path</summary>
         public string Start { get; init; }

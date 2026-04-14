@@ -8,11 +8,21 @@ using FreeTrainSimulator.Models.Base;
 
 namespace FreeTrainSimulator.Models.Handler
 {
+    /// <summary>
+    /// Shared cache of <see cref="ModelResolverAttribute"/> instances, keyed by model type.
+    /// Avoids repeated reflection to resolve file-storage metadata.
+    /// </summary>
     internal static class ModelResolverCache
     {
         public static Dictionary<Type, ModelResolverAttribute> ModelResolvers { get; } = new Dictionary<Type, ModelResolverAttribute>();
     }
 
+    /// <summary>
+    /// Resolves file system paths for model persistence. Combines the model's
+    /// <see cref="ModelResolverAttribute"/> metadata (folder and extension) with the parent
+    /// hierarchy to produce deterministic file and folder paths under the user-data root.
+    /// </summary>
+    /// <typeparam name="TModel">The model type whose storage paths are resolved.</typeparam>
     public static class ModelFileResolver<TModel> where TModel : ModelBase
     {
         private static readonly string contentRoot = Path.GetFullPath(RuntimeInfo.UserDataFolder);

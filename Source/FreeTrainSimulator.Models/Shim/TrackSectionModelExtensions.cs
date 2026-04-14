@@ -8,6 +8,10 @@ using FreeTrainSimulator.Models.Track;
 
 namespace FreeTrainSimulator.Models.Shim
 {
+    /// <summary>
+    /// Extension methods for loading the <see cref="TrackSectionModel"/> (track sections, shapes,
+    /// and shape-path definitions derived from the legacy MSTS <c>tsection.dat</c>) for a given route.
+    /// </summary>
     public static class TrackSectionModelExtensions
     {
         public static async ValueTask<TrackSectionModel> Get(this RouteModelHeader routeModel, CancellationToken cancellationToken)

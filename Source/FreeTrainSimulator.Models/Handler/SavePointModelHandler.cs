@@ -7,7 +7,11 @@ using FreeTrainSimulator.Models.Settings;
 
 namespace FreeTrainSimulator.Models.Handler
 {
-    // Savepoints models are transient, not persisted
+    /// <summary>
+    /// Handler for <see cref="SavePointModel"/> instances. Save-point models are transient
+    /// metadata descriptors (not persisted through the content pipeline) that are loaded
+    /// on demand when the user browses saved games.
+    /// </summary>
     internal class SavePointModelHandler : ContentHandlerBase<SavePointModel>
     {
         public static Task<SavePointModel> GetCore(SavePointModel savePointModel, CancellationToken cancellationToken)

@@ -10,6 +10,11 @@ using FreeTrainSimulator.Models.Shim;
 
 namespace FreeTrainSimulator.Models.Handler
 {
+    /// <summary>
+    /// Handler for user profiles. Resolves the current active profile, loads individual
+    /// <see cref="ProfileModel"/> instances, enumerates available profiles by scanning
+    /// sub-directories, and supports profile creation and deletion.
+    /// </summary>
     internal sealed class ProfileModelHandler : ContentHandlerBase<ProfileModel>
     {
         private const string root = "root";

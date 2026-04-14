@@ -12,6 +12,10 @@ using FreeTrainSimulator.Models.Handler;
 
 namespace FreeTrainSimulator.Models.Shim
 {
+    /// <summary>
+    /// Extension methods for loading and initializing the top-level <see cref="ContentModel"/>,
+    /// and generic collection helpers for searching model arrays by name or identifier.
+    /// </summary>
     public static class ContentModelExtensions
     {
         #region Content Model

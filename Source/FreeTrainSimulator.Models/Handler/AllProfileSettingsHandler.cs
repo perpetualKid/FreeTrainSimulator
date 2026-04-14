@@ -6,6 +6,10 @@ using FreeTrainSimulator.Models.Settings;
 
 namespace FreeTrainSimulator.Models.Handler
 {
+    /// <summary>
+    /// Handler for the shared <see cref="AllProfileSettingsModel"/>, which stores
+    /// the currently active profile name and application-wide update mode.
+    /// </summary>
     internal class AllProfileSettingsHandler: ContentHandlerBase<AllProfileSettingsModel>
     {
         private const string root = "root";

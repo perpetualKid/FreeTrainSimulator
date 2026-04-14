@@ -7,6 +7,10 @@ using FreeTrainSimulator.Models.Handler;
 
 namespace FreeTrainSimulator.Models.Shim
 {
+    /// <summary>
+    /// Extension methods for loading path models (header and extended) associated with a
+    /// <see cref="RouteModelHeader"/>, delegating to <see cref="PathModelHandler"/>.
+    /// </summary>
     public static class PathModelExtensions
     {
         public static Task<PathModelHeader> Get(this RouteModelHeader routeModel, string pathId, CancellationToken cancellationToken) => PathModelHandler.GetCore(pathId, routeModel, cancellationToken);

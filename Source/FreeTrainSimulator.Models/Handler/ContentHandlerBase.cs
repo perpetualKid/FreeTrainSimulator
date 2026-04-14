@@ -13,6 +13,13 @@ using MemoryPack;
 
 namespace FreeTrainSimulator.Models.Handler
 {
+    /// <summary>
+    /// Abstract base class for content model handlers, providing MemoryPack-based file
+    /// serialization/deserialization, task-level caching of individual models and model
+    /// collections, and directory management. Concrete handlers derive from this to add
+    /// domain-specific loading and query logic.
+    /// </summary>
+    /// <typeparam name="TModel">The model type managed by this handler.</typeparam>
     public abstract class ContentHandlerBase<TModel> where TModel : ModelBase
     {
         public const string SaveStateExtension = FileNameExtensions.SaveFile;

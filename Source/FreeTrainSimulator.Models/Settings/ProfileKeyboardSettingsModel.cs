@@ -8,6 +8,11 @@ using Microsoft.Xna.Framework.Input;
 
 namespace FreeTrainSimulator.Models.Settings
 {
+    /// <summary>
+    /// Keyboard input-binding settings for a user profile. Maps each <see cref="UserCommand"/>
+    /// to a keyboard key/modifier combination. Stored as <c>.keyboardsettings</c> files,
+    /// one per profile. Provides convenience properties for frequently queried modifier keys.
+    /// </summary>
     [MemoryPackable(GenerateType.VersionTolerant, SerializeLayout.Sequential)]
     [ModelResolver(".keyboardsettings")]
     public sealed partial record ProfileKeyboardSettingsModel : ProfileSettingsModelBase

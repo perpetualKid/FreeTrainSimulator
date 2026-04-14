@@ -9,6 +9,11 @@ using FreeTrainSimulator.Models.Content;
 
 namespace FreeTrainSimulator.Models.Handler
 {
+    /// <summary>
+    /// Handler for path models. Loads individual <see cref="PathModelHeader"/> or extended
+    /// <see cref="PathModel"/> instances from disk, enumerates all paths for a route, and
+    /// supports saving edited path data back to the file system.
+    /// </summary>
     internal sealed class PathModelHandler : ContentHandlerBase<PathModelHeader>
     {
         public static Task<PathModelHeader> GetCore(PathModelHeader pathModel, CancellationToken cancellationToken)

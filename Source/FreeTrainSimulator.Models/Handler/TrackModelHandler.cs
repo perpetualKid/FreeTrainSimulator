@@ -7,6 +7,11 @@ using FreeTrainSimulator.Models.Track;
 
 namespace FreeTrainSimulator.Models.Handler
 {
+    /// <summary>
+    /// Handler for the <see cref="TrackModel"/>, which contains the pre-built track database
+    /// (nodes, items, and geometry) for a route (derived from the legacy MSTS <c>.tdb</c> /
+    /// <c>.rdb</c> files).
+    /// </summary>
     internal class TrackModelHandler : ContentHandlerBase<TrackModel>
     {
         public static Task<TrackModel> GetCore(RouteModelHeader routeModel, CancellationToken cancellationToken)

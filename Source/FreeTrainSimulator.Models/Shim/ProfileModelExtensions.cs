@@ -8,6 +8,10 @@ using FreeTrainSimulator.Models.Settings;
 
 namespace FreeTrainSimulator.Models.Shim
 {
+    /// <summary>
+    /// Extension methods for <see cref="ProfileModel"/> providing profile lifecycle operations:
+    /// get current, create, delete, list profiles, and manage the application update mode.
+    /// </summary>
     public static class ProfileModelExtensions
     {
         #region common for all profile models

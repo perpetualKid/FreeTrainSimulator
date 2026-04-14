@@ -8,6 +8,12 @@ using MemoryPack;
 
 namespace FreeTrainSimulator.Models.Settings
 {
+    /// <summary>
+    /// Comprehensive user settings model covering logging, general preferences, game window layout,
+    /// in-game popup positions, audio/video quality, simulation parameters, online/multiplayer,
+    /// data-logging, evaluation, profiling, and replay options. Stored as <c>.usersettings</c>
+    /// files, one per profile.
+    /// </summary>
     [MemoryPackable(GenerateType.VersionTolerant, SerializeLayout.Sequential)]
     [ModelResolver(".usersettings")]
     public sealed partial record ProfileUserSettingsModel : ProfileSettingsModelBase

@@ -8,6 +8,10 @@ using FreeTrainSimulator.Models.Handler;
 
 namespace FreeTrainSimulator.Models.Shim
 {
+    /// <summary>
+    /// Extension methods for <see cref="FolderModel"/> providing convenient access to
+    /// routes, wagon sets, locomotives, and extended model retrieval within a content folder.
+    /// </summary>
     public static class FolderModelExtensions
     {
         public static Task<ImmutableArray<RouteModelHeader>> GetRoutes(this FolderModel folderModel, CancellationToken cancellationToken) => RouteModelHandler.GetRoutes(folderModel, cancellationToken);

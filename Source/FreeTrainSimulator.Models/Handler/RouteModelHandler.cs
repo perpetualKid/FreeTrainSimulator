@@ -9,6 +9,11 @@ using FreeTrainSimulator.Models.Content;
 
 namespace FreeTrainSimulator.Models.Handler
 {
+    /// <summary>
+    /// Handler for route models. Loads individual <see cref="RouteModelHeader"/> or extended
+    /// <see cref="RouteModel"/> instances from disk and enumerates all routes available within
+    /// a content folder.
+    /// </summary>
     internal sealed class RouteModelHandler : ContentHandlerBase<RouteModelHeader>
     {
         public static Task<RouteModelHeader> GetCore(RouteModelHeader routeModel, CancellationToken cancellationToken)

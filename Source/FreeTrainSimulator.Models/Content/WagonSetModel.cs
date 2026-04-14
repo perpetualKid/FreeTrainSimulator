@@ -7,21 +7,29 @@ using MemoryPack;
 
 namespace FreeTrainSimulator.Models.Content
 {
+    /// <summary>
+    /// Represents a train consist (set of wagons and locomotives).
+    /// Abstracts data originally stored in MSTS consist files (<c>.con</c>).
+    /// </summary>
     [MemoryPackable(GenerateType.VersionTolerant, SerializeLayout.Sequential)]
     [ModelResolver("TrainSets", ".trainset")]
     public sealed partial record WagonSetModel : ModelBase
     {
+        /// <inheritdoc/>
         public override FolderModel Parent => _parent as FolderModel;
 
-        //Speed and an acceleration factor.
-        //First number is the actual max speed (in meters per second) based on TE/tonnage;
-        //Second number is some kind of multiplier that determines what speed the AI train will slow to on grades and curves.
+        /// <summary>Maximum speed of the consist in meters per second, derived from tractive effort and tonnage.</summary>
         public float MaximumSpeed { get; init; }
+        /// <summary>Multiplier that determines speed reduction on grades and curves for AI trains.</summary>
         public float AccelerationFactor { get; init; }
+        /// <summary>Durability factor affecting wear and failure probability.</summary>
         public float Durability { get; init; }
 
+        /// <summary>Ordered collection of wagon and locomotive references that compose this consist.</summary>
         public ImmutableArray<WagonReferenceModel> TrainCars { get; init; } = ImmutableArray<WagonReferenceModel>.Empty;
+        /// <summary>The primary locomotive in the consist, determined by direction (<see cref="Reverse"/>).</summary>
         public WagonReferenceModel Locomotive => Reverse ? TrainCars.Where(c => c.TrainCarType == Common.TrainCarType.Engine).LastOrDefault() : TrainCars.Where(c => c.TrainCarType == Common.TrainCarType.Engine).FirstOrDefault();
+        /// <summary>Indicates whether the consist is reversed from its defined order.</summary>
         [MemoryPackIgnore]
         public bool Reverse { get; init; }
 

@@ -11,6 +11,11 @@ using MemoryPack;
 
 namespace FreeTrainSimulator.Models.Settings
 {
+    /// <summary>
+    /// Abstract base record for all profile settings models, providing common logging
+    /// and parent-hierarchy support. Derived types store user preferences and configuration
+    /// that are serialized per-profile using MemoryPack.
+    /// </summary>
     public abstract record ProfileSettingsModelBase : ModelBase
     {
         [MemoryPackIgnore]
@@ -22,6 +27,10 @@ namespace FreeTrainSimulator.Models.Settings
         protected ProfileSettingsModelBase(string name, ProfileSettingsModelBase parent) : base(name, parent)
         { }
 
+        /// <summary>
+        /// Writes all public instance properties of this settings model to the diagnostic trace output,
+        /// masking the current user name for privacy.
+        /// </summary>
         public void Log()
         {
             string modelTypeName = GetType().Name.Replace("Model", string.Empty, StringComparison.OrdinalIgnoreCase);
