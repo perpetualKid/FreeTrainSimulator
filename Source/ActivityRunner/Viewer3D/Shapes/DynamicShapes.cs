@@ -418,12 +418,12 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
             while (idlocation < speedPostObject.TrackItemIds.TrackDbItems.Count)
             {
                 int id = speedPostObject.TrackItemIds.TrackDbItems[idlocation];
-                //                SpeedPostItem item;
-                string speed = string.Empty;
-                if (RuntimeDataResolver.Instance.TrackWorld.TrackModel.TrackDatabase.TrackItems[id] is not SpeedpostTrackItem item)
-                    throw new InvalidCastException($"TrackItem[{id}] is not SpeedpostTrackItem");  // Error to be handled in Scenery.cs
-
-                speed = item.ToString();
+                string speed = RuntimeDataResolver.Instance.TrackWorld.TrackModel.TrackDatabase.TrackItems[id] switch
+                {
+                    SpeedpostTrackItem speedpostItem => speedpostItem.ToString(),
+                    MilepostTrackItem milepostItem => milepostItem.DistanceValue.ToString().Replace(".", "", StringComparison.OrdinalIgnoreCase),
+                    _ => throw new InvalidCastException($"TrackItem[{id}] is neither SpeedpostTrackItem nor MilepostTrackItem"),
+                };
 
                 vertices = new VertexPositionNormalTexture[maxVertex];
                 triangleListIndices = new short[maxVertex / 2 * 3]; // as is NumIndices
