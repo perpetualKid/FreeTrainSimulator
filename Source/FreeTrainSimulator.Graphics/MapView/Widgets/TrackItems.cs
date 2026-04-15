@@ -85,7 +85,7 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
             return result.ToImmutableArray();
         }
 
-        public static ImmutableArray<TrackItemWidget> CreateTrackItems(TrackDatabase trackDatabase, IReadOnlyList<TrackSegmentSection> trackNodeSegments)
+        public static ImmutableArray<TrackItemWidget> CreateTrackItems(TrackDatabase trackDatabase, TrackWorld trackWorld)
         {
             List<TrackItemWidget> result = new List<TrackItemWidget>();
             if (trackDatabase?.TrackItems == null)
@@ -105,10 +105,10 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
                         result.Add(new PlatformTrackItem(platformItem, trackDatabase));
                         break;
                     case Models.Track.MilepostTrackItem milePostItem:
-                        result.Add(new MilePostTrackItem(milePostItem, trackNodeSegments[milePostItem.NodeIndex]));
+                        result.Add(new MilePostTrackItem(milePostItem, ResolveSectionGeometry(trackWorld, milePostItem)));
                         break;
                     case Models.Track.SpeedpostTrackItem speedPostItem:
-                        result.Add(new SpeedPostTrackItem(speedPostItem, trackNodeSegments[speedPostItem.NodeIndex]));
+                        result.Add(new SpeedPostTrackItem(speedPostItem, ResolveSectionGeometry(trackWorld, speedPostItem)));
                         break;
                     case Models.Track.HazardTrackItem hazardItem:
                         result.Add(new HazardTrackItem(hazardItem));
@@ -126,7 +126,7 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
                         result.Add(new SoundRegionTrackItem(soundRegionItem));
                         break;
                     case Models.Track.SignalTrackItem signalItem:
-                        result.Add(new SignalTrackItem(signalItem, trackNodeSegments[signalItem.NodeIndex], signalItem.NormalSignal));
+                        result.Add(new SignalTrackItem(signalItem, ResolveSectionGeometry(trackWorld, signalItem), signalItem.NormalSignal));
                         break;
                     case Models.Track.CrossoverTrackItem crossOverItem:
                         result.Add(new CrossOverTrackItem(crossOverItem));
@@ -143,6 +143,17 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
                 }
             }
             return result.ToImmutableArray();
+        }
+
+        private static SectionGeometry ResolveSectionGeometry(TrackWorld trackWorld, Models.Track.TrackItemBase trackItem)
+        {
+            if (trackWorld.TrackNodeByIndex(trackItem.NodeIndex) is VectorNode vectorNode)
+            {
+                VectorSectionNode section = trackWorld.SectionAt(vectorNode, trackItem.Location);
+                if (section != null && trackWorld.SectionGeometry.TryGetValue(section, out SectionGeometry geometry))
+                    return geometry;
+            }
+            return null;
         }
     }
     #endregion
@@ -291,13 +302,12 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
         private readonly float angle;
         private readonly PointD textLocation;
 
-        public SpeedPostTrackItem(Models.Track.SpeedpostTrackItem source, TrackSegmentSection segmentSection) : base(source)
+        public SpeedPostTrackItem(Models.Track.SpeedpostTrackItem source, SectionGeometry sectionGeometry) : base(source)
         {
             speed = source.ToString();
-            TrackSegmentBase segment = TrackSegmentBase.SegmentBaseAt(Location, segmentSection.SectionSegments);
-            if (segment != null)
+            if (sectionGeometry != null)
             {
-                angle = segment.DirectionAt(Location);
+                angle = sectionGeometry.DirectionAt(source.Location);
                 bool reverse = Math.Abs(angle + source.Angle) > MathHelper.PiOver2;
 
                 angle += reverse ? -MathHelper.PiOver2 : MathHelper.PiOver2;
@@ -350,14 +360,13 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
 
         private static readonly Vector2 fontScale = new Vector2(0.9f, 0.9f);
 
-        public MilePostTrackItem(Models.Track.MilepostTrackItem source, TrackSegmentSection segmentSection) : base(source)
+        public MilePostTrackItem(Models.Track.MilepostTrackItem source, SectionGeometry sectionGeometry) : base(source)
         {
             Size = 1f;
             distance = source.DistanceValue.ToString(CultureInfo.CurrentCulture);
-            TrackSegmentBase segment = TrackSegmentBase.SegmentBaseAt(Location, segmentSection.SectionSegments);
-            if (segment != null)
+            if (sectionGeometry != null)
             {
-                angle = segment.DirectionAt(Location);
+                angle = sectionGeometry.DirectionAt(source.Location);
 
                 if (Math.Abs(angle) > MathHelper.PiOver2)
                     angle -= MathHelper.Pi;
@@ -483,7 +492,7 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
 
         public ISignal Signal { get; }
 
-        public SignalTrackItem(Models.Track.SignalTrackItem source, TrackSegmentSection segments, bool normalSignal) : base(source)
+        public SignalTrackItem(Models.Track.SignalTrackItem source, SectionGeometry sectionGeometry, bool normalSignal) : base(source)
         {
             //if (source.SignalObject > -1)
             //    Signal = RuntimeData.Instance.RuntimeReferenceResolver?.SignalById(source.SignalObject);
@@ -491,8 +500,7 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
             signalType = source.SignalType;
             Size = 2f;
 
-            TrackSegmentBase segment = TrackSegmentBase.SegmentBaseAt(Location, segments.SectionSegments);
-            angle = segment?.DirectionAt(Location) + (source.Direction == TrackDirection.Reverse ? -MathHelper.PiOver2 : MathHelper.PiOver2) ?? 0;
+            angle = sectionGeometry?.DirectionAt(source.Location) + (source.Direction == TrackDirection.Reverse ? -MathHelper.PiOver2 : MathHelper.PiOver2) ?? 0;
 
             Normal = normalSignal;
             Vector3 shiftedLocation = source.Location.Location +
