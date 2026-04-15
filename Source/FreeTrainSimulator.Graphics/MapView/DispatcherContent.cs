@@ -135,21 +135,20 @@ namespace FreeTrainSimulator.Graphics.MapView
         {
             float remainingPathLength = 2000;
             PathSegments.Clear();
-            if (trackModel == null || !trackTraveller.OnTrack || trackModel.SegmentSections.Count == 0)
+            if (trackWorld == null || !trackTraveller.OnTrack)
                 return;
 
-            IReadOnlyList<TrackSegmentBase> trackSegments = trackModel.SegmentSections[trackTraveller.CurrentNode.NodeIndex]?.SectionSegments;
+            TrackSegmentBase sourceSegment = ResolveTrackSegment(trackTraveller.CurrentSection);
 
             // PathSegment startOffset is in metres for straight sections and radians for curved sections,
             // while TrackTraveller.SectionOffset is always in metres — convert curved sections here.
-            Models.Track.TrackSection section = RuntimeDataResolver.Instance.TrackSections.TrackSections.GetValueOrDefault(trackTraveller.CurrentSection.NodeIndex);
             double sectionOffset = trackTraveller.SectionOffset;
-            if (section?.Curved == true)
-                sectionOffset /= section.Radius;
+            if (trackWorld.SectionGeometry.TryGetValue(trackTraveller.CurrentSection, out SectionGeometry geometry) && geometry.Curved)
+                sectionOffset /= geometry.Radius;
 
-            if (trackSegments != null && trackTraveller.SectionIndex < trackSegments.Count)
+            if (sourceSegment != null)
             {
-                PathSegments.Add(new PathSegment(trackSegments[trackTraveller.SectionIndex], remainingPathLength, (float)sectionOffset, trackTraveller.Direction == TrackDirection.Reverse));
+                PathSegments.Add(new PathSegment(sourceSegment, remainingPathLength, (float)sectionOffset, trackTraveller.Direction == TrackDirection.Reverse));
                 remainingPathLength -= PathSegments[^1].Length;
             }
 
@@ -165,13 +164,27 @@ namespace FreeTrainSimulator.Graphics.MapView
                     break;
                 trackTraveller = next;
 
-                trackSegments = trackModel.SegmentSections[trackTraveller.TrackNodeIndex]?.SectionSegments;
-                if (trackSegments != null && trackTraveller.SectionIndex < trackSegments.Count)
+                sourceSegment = ResolveTrackSegment(trackTraveller.CurrentSection);
+                if (sourceSegment != null)
                 {
-                    PathSegments.Add(new PathSegment(trackSegments[trackTraveller.SectionIndex], remainingPathLength, 0, trackTraveller.Direction == TrackDirection.Reverse));
+                    PathSegments.Add(new PathSegment(sourceSegment, remainingPathLength, 0, trackTraveller.Direction == TrackDirection.Reverse));
                     remainingPathLength -= PathSegments[^1].Length;
                 }
             }
+        }
+
+        /// <summary>
+        /// Resolves a <see cref="TrackSegmentBase"/> for a <see cref="Models.Track.VectorSectionNode"/>
+        /// by looking up its <see cref="SectionGeometry"/> in <see cref="TrackWorld"/> and mapping back
+        /// to the corresponding 2D segment via <see cref="TrackModel.SegmentSections"/>.
+        /// </summary>
+        private static TrackSegmentBase ResolveTrackSegment(Models.Track.VectorSectionNode section)
+        {
+            if (section == null)
+                return null;
+            if (!TrackWorld.Instance.SectionGeometry.TryGetValue(section, out SectionGeometry geo))
+                return null;
+            return TrackModel.Instance?.SegmentSections[geo.Node.NodeIndex]?.SectionSegments[geo.SectionIndex];
         }
 
         public void UpdateWidgetColorSettings(EnumArray<string, ColorSetting> colorPreferences)
