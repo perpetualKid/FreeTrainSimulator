@@ -803,9 +803,9 @@ namespace FreeTrainSimulator.Runtime.Track
             if (!IsNextNodeEndOfTrack())
                 return false;
 
-            double distanceToBoundary = Direction == TrackDirection.Ahead
-                ? VectorNodeLength - VectorNodeOffset
-                : VectorNodeOffset;
+            // VectorNodeOffset is direction-aware, so VectorNodeLength - VectorNodeOffset
+            // always gives the distance to the exit boundary in the direction of travel.
+            double distanceToBoundary = VectorNodeLength - VectorNodeOffset;
 
             return distanceToBoundary < 0.1;
         }
