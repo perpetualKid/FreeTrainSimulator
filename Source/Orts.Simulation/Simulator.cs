@@ -1446,27 +1446,16 @@ namespace Orts.Simulation
                         TrainType = TrainType.Static,
                         Name = "STATIC" + "-" + activityObject.ID
                     };
-                    int consistDirection;
-                    switch (activityObject.Direction)  // TODO, we don't really understand this
+                    TrackDirection consistDirection = activityObject.Direction switch // TODO, we don't really understand this
                     {
-                        case 0:
-                            consistDirection = 0;
-                            break;  // reversed ( confirmed on L&PS route )
-                        case 18:
-                            consistDirection = 1;
-                            break;  // forward ( confirmed on ON route )
-                        case 131:
-                            consistDirection = 1;
-                            break; // forward ( confirmed on L&PS route )
-                        default:
-                            consistDirection = 1;
-                            break;  // forward ( confirmed on L&PS route )
-                    }
+                        0 => TrackDirection.Reverse,    // reversed ( confirmed on L&PS route )
+                        18 => TrackDirection.Ahead,     // forward ( confirmed on ON route )
+                        131 => TrackDirection.Ahead,    // forward ( confirmed on L&PS route )
+                        _ => TrackDirection.Ahead,      // forward ( confirmed on L&PS route )
+                    };
                     // FIXME: Where are TSectionDat and TDB from?
-                    TrackTraveller rearTraveller = TrackTraveller.InitializeTraveller(activityObject.Location, TrackDirection.Ahead)
+                    TrackTraveller rearTraveller = TrackTraveller.InitializeTraveller(activityObject.Location, consistDirection)
                         ?? throw new InvalidDataException($"{activityObject.Location} could not be found in the track database.");
-                    if (consistDirection != 1)
-                        rearTraveller = rearTraveller.Reverse();
                     train.RearTrackTraveller = rearTraveller;
                     // add wagons in reverse order - ie first wagon is at back of train
                     // static consists are listed back to front in the activities, so we have to reverse the order, and flip the cars
