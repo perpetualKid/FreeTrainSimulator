@@ -421,7 +421,7 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
                 string speed = RuntimeDataResolver.Instance.TrackWorld.TrackModel.TrackDatabase.TrackItems[id] switch
                 {
                     SpeedpostTrackItem speedpostItem => speedpostItem.ToString(),
-                    MilepostTrackItem milepostItem => milepostItem.DistanceValue.ToString().Replace(".", "", StringComparison.OrdinalIgnoreCase),
+                    MilepostTrackItem milepostItem => milepostItem.DistanceValue.ToString(System.Globalization.CultureInfo.InvariantCulture).Replace(".", "", StringComparison.OrdinalIgnoreCase),
                     _ => throw new InvalidCastException($"TrackItem[{id}] is neither SpeedpostTrackItem nor MilepostTrackItem"),
                 };
 

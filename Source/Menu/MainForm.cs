@@ -462,7 +462,7 @@ namespace FreeTrainSimulator.Menu
         {
             if (InvokeRequired)
             {
-                _ = Invoke(ShowOptionsForm, initialSetup);
+                await InvokeAsync(async (ct) => { await ShowOptionsForm(initialSetup).ConfigureAwait(false); }).ConfigureAwait(false);
                 return;
             }
             ImmutableArray<FolderModel> existingFolders = ContentModel.ContentFolders;

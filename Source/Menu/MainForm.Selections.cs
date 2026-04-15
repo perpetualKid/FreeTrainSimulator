@@ -185,7 +185,7 @@ namespace FreeTrainSimulator.Menu
         {
             if (InvokeRequired)
             {
-                await Invoke(SetupFolderFromSelection).ConfigureAwait(false);
+                await InvokeAsync(async (ct) => { await SetupFolderFromSelection().ConfigureAwait(false); }).ConfigureAwait(false);
                 return;
             }
 
@@ -217,7 +217,7 @@ namespace FreeTrainSimulator.Menu
         {
             if (InvokeRequired)
             {
-                await Invoke(SetupRouteFromSelection).ConfigureAwait(false);
+                await InvokeAsync(async (ct) => { await SetupRouteFromSelection().ConfigureAwait(false); }).ConfigureAwait(false);
                 return;
             }
 

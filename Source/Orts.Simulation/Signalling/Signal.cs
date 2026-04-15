@@ -34,7 +34,6 @@ using FreeTrainSimulator.Runtime;
 using FreeTrainSimulator.Runtime.Track;
 
 using Orts.Formats.Msts;
-using Orts.Formats.Msts.Files;
 using Orts.Formats.Msts.Models;
 using Orts.Simulation.AIs;
 using Orts.Simulation.Multiplayer;

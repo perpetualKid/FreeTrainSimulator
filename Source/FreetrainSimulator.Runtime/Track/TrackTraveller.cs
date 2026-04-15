@@ -359,13 +359,10 @@ namespace FreeTrainSimulator.Runtime.Track
         {
             TrackDatabase trackDatabase = ResolveDatabase(trackDataBaseType);
 
-            if (trackDatabase != null
-                && trackDatabase.TrackNodes[trackNodeIndex] is VectorNode node)
-            {
-                return InitializeTraveller(location, node, direction, trackDataBaseType);
-            }
-
-            return null;
+            return trackDatabase != null
+                && trackDatabase.TrackNodes[trackNodeIndex] is VectorNode node
+                ? InitializeTraveller(location, node, direction, trackDataBaseType)
+                : null;
         }
 
         /// <summary>
