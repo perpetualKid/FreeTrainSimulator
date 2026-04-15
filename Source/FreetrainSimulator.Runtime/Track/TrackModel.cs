@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Linq;
 
 using FreeTrainSimulator.Common;
@@ -205,234 +204,132 @@ namespace FreeTrainSimulator.Runtime.Track
             return index > -1 && index < railTrackItems.Count ? railTrackItems[index] : null;
         }
 
+        /// <summary>
+        /// Returns all <see cref="TrackSegmentBase"/> instances at <paramref name="location"/>:
+        /// the primary segment on the nearest track, plus segments reachable through connected junctions.
+        /// Delegates spatial lookup to <see cref="TrackWorld.SectionsAt"/>.
+        /// </summary>
         public IEnumerable<TrackSegmentBase> SegmentsAt(PointD location)
         {
-            TrackSegmentBase segment;
-
-            int tileRadius = 0;
-            // if closer to a Tile boundary we may want to check neighbour tiles as well
-            // just increase the tile radius around (9 tiles covered). If more optimization needed,
-            // could rather figure which side of a tile and increase that size only
-            if (Math.Abs(location.X) % Tile.TileSizeOver2 > 1000 || Math.Abs(location.Y) % Tile.TileSizeOver2 > 1000)
-                tileRadius = 1;
-
-            // get a first track segment at the location (within proximity)
-            if ((segment = SegmentAt(location, tileRadius)) != null)
+            WorldLocation worldLocation = PointD.ToWorldLocation(location);
+            foreach (VectorSectionNode section in RuntimeData.TrackWorld.SectionsAt(worldLocation))
             {
-                yield return segment;
-                // now we have a segment, so only need to check if we are at the start or end with a junction
-                // and return the segments from other connected nodes
-                foreach (TrackSegmentBase item in OtherSegmentsAt(location, segment))
-                    yield return item;
+                if (RuntimeData.TrackWorld.SectionGeometry.TryGetValue(section, out SectionGeometry geo))
+                    yield return SegmentSections[geo.Node.NodeIndex].SectionSegments[geo.SectionIndex];
             }
         }
 
+        /// <summary>
+        /// Returns segments from other track nodes connected via junctions at <paramref name="location"/>.
+        /// Delegates spatial lookup to <see cref="TrackWorld.OtherVectorSectionNodesAt"/>.
+        /// </summary>
         public IEnumerable<TrackSegmentBase> OtherSegmentsAt(PointD location, TrackSegmentBase source)
         {
             ArgumentNullException.ThrowIfNull(source);
 
-            VectorNode vectorNode = RuntimeData.TrackWorld.TrackModel.TrackDatabase.VectorNodes[source.TrackNodeIndex];
-            ImmutableArray<TrackNodeConnector> nodeConnectors = RuntimeData.TrackWorld.TrackModel.TrackDatabase.TrackNodeConnectors[source.TrackNodeIndex].TrackNodeConnectors;
-            foreach (TrackNodeConnector nodeConnector in nodeConnectors)
+            WorldLocation worldLocation = PointD.ToWorldLocation(location);
+            foreach (VectorSectionNode section in RuntimeData.TrackWorld.OtherVectorSectionNodesAt(worldLocation, source.TrackNodeIndex))
             {
-                if (RuntimeData.TrackWorld.TrackModel.TrackDatabase.TrackNodes[nodeConnector.Link] is JunctionNode junctionNode &&
-                    Junctions[junctionNode.NodeIndex].JunctionNodeAt(location))
-                {
-                    foreach (TrackNodeConnector pin in RuntimeData.TrackWorld.TrackModel.TrackDatabase.TrackNodeConnectors[junctionNode.NodeIndex].TrackNodeConnectors)
-                    {
-                        if (pin.Link == vectorNode.NodeIndex)
-                            continue;
-                        yield return SegmentSections[pin.Link].SectionSegments[pin.Direction == TrackDirection.Reverse ? 0 : ^1];
-                    }
-                }
+                if (RuntimeData.TrackWorld.SectionGeometry.TryGetValue(section, out SectionGeometry geo))
+                    yield return SegmentSections[geo.Node.NodeIndex].SectionSegments[geo.SectionIndex];
             }
         }
 
         /// <summary>
-        /// returns the <see cref="TrackSegmentBase" track segment at this location (within Proximity tolerance)
-        /// If no segment in this place, returns null.
+        /// Returns the <see cref="TrackSegmentBase"/> at this location (within proximity tolerance),
+        /// or <see langword="null"/> if no segment exists.
+        /// Delegates spatial lookup to <see cref="TrackWorld.SectionAt(in WorldLocation, int)"/>.
         /// </summary>
         public TrackSegmentBase SegmentAt(in PointD location, int tileRadius = 0, bool limit = false)
         {
-            Tile tile = PointD.ToTile(location);
-            double distanceSquared = double.PositiveInfinity;
-            TrackSegmentBase result = null;
-            foreach (TrackSegmentBase section in ContentByTile[MapContentType.Tracks].BoundingBox(tile, tileRadius).Cast<TrackSegmentBase>())
-            {
-                double current;
-                if ((current = section.DistanceSquared(location)) < distanceSquared)
-                {
-                    distanceSquared = current;
-                    result = section;
-                }
-            }
-            if (result != null && result.TrackSegmentAt(location))
-            {
-                return result;
-            }
-            if (!limit)
-            {
-                foreach (TrackSegmentBase section in ContentByTile[MapContentType.Tracks].Cast<TrackSegmentBase>())
-                {
-                    double current;
-                    if ((current = section.DistanceSquared(location)) < distanceSquared)
-                    {
-                        distanceSquared = current;
-                        result = section;
-                    }
-                }
-            }
-            return result != null && result.TrackSegmentAt(location) ? result : null;
-        }
-
-        /// <summary>
-        /// returns the <see cref="TrackSegmentBase" track segment at this location (within Proximity tolerance) from given track node.
-        /// If no segment in this place, returns null.
-        /// </summary>
-        public TrackSegmentBase SegmentAt(int trackNode, in PointD location)
-        {
-            foreach (TrackSegmentBase section in SegmentSections[trackNode].SectionSegments)
-            {
-                if (section.TrackSegmentAt(location))
-                    return section;
-            }
+            // When limit is true, pass tileRadius+1 to restrict search; TrackWorld.SectionAt only does
+            // full scan fallback when tileRadius==0, so passing a non-zero radius is equivalent to limit=true.
+            VectorSectionNode section = RuntimeData.TrackWorld.SectionAt(PointD.ToWorldLocation(location), limit ? Math.Max(tileRadius, 1) : tileRadius);
+            if (section == null)
+                return null;
+            if (RuntimeData.TrackWorld.SectionGeometry.TryGetValue(section, out SectionGeometry geo))
+                return SegmentSections[geo.Node.NodeIndex].SectionSegments[geo.SectionIndex];
             return null;
         }
 
         /// <summary>
-        /// returns the <see cref="JunctionNodeBase" junction at this location (within Proximity tolerance)
-        /// If no junction in this place, returns null.
+        /// Returns the <see cref="TrackSegmentBase"/> at this location within a specific track node,
+        /// or <see langword="null"/> if no segment exists.
+        /// Delegates spatial lookup to <see cref="TrackWorld.SectionAt(VectorNode, in WorldLocation)"/>.
         /// </summary>
-        public JunctionNodeBase JunctionAt(in PointD location, int tileRadius = 0)
+        public TrackSegmentBase SegmentAt(int trackNode, in PointD location)
         {
-            Tile tile = PointD.ToTile(location);
-            double distanceSquared = double.PositiveInfinity;
-            JunctionNodeBase result = null;
-            foreach (JunctionNodeBase junctionNode in ContentByTile[MapContentType.JunctionNodes].BoundingBox(tile, tileRadius).Cast<JunctionNodeBase>())
-            {
-                double current;
-                if ((current = junctionNode.DistanceSquared(location)) < distanceSquared)
-                {
-                    distanceSquared = current;
-                    result = junctionNode;
-                }
-            }
-            return result != null && result.JunctionNodeAt(location) ? result : null;
+            if (RuntimeData.TrackWorld.TrackNodeByIndex(trackNode) is not VectorNode vectorNode)
+                return null;
+            VectorSectionNode section = RuntimeData.TrackWorld.SectionAt(vectorNode, PointD.ToWorldLocation(location));
+            if (section == null)
+                return null;
+            if (RuntimeData.TrackWorld.SectionGeometry.TryGetValue(section, out SectionGeometry geo))
+                return SegmentSections[geo.Node.NodeIndex].SectionSegments[geo.SectionIndex];
+            return null;
         }
 
         /// <summary>
-        /// returns the <see cref="EndNodeBase" end node at this location (within Proximity tolerance)
-        /// If no junction in this place, returns null.
+        /// Returns the <see cref="JunctionNodeBase"/> at this location (within proximity tolerance),
+        /// or <see langword="null"/> if no junction exists.
+        /// Delegates spatial lookup to <see cref="TrackWorld.JunctionAt"/>.
+        /// </summary>
+        public JunctionNodeBase JunctionAt(in PointD location, int tileRadius = 0)
+        {
+            JunctionNode junction = RuntimeData.TrackWorld.JunctionAt(PointD.ToWorldLocation(location), tileRadius);
+            return junction != null ? Junctions[junction.NodeIndex] : null;
+        }
+
+        /// <summary>
+        /// Returns the <see cref="EndNodeBase"/> at this location (within proximity tolerance),
+        /// or <see langword="null"/> if no end node exists.
+        /// Delegates spatial lookup to <see cref="TrackWorld.EndNodeAt"/>.
         /// </summary>
         public EndNodeBase EndNodeAt(in PointD location, int tileRadius = 0)
         {
-            Tile tile = PointD.ToTile(location);
-            double distanceSquared = double.PositiveInfinity;
-            EndNodeBase result = null;
-            foreach (EndNodeBase endNode in ContentByTile[MapContentType.EndNodes].BoundingBox(tile, tileRadius).Cast<EndNodeBase>())
-            {
-                double current;
-                if ((current = endNode.DistanceSquared(location)) < distanceSquared)
-                {
-                    distanceSquared = current;
-                    result = endNode;
-                }
-            }
-            return result != null && result.EndNodeAt(location) ? result : null;
+            EndNode endNode = RuntimeData.TrackWorld.EndNodeAt(PointD.ToWorldLocation(location), tileRadius);
+            return endNode != null ? EndNodes[endNode.NodeIndex] : null;
         }
 
         public JunctionNodeBase TrackNodeJunction(int trackNodeIndex, bool end)
         {
-            ImmutableArray<TrackNodeConnector> nodeConnectors = RuntimeData.TrackWorld.TrackModel.TrackDatabase.TrackNodeConnectors[trackNodeIndex].TrackNodeConnectors;
-            return Junctions[end ? nodeConnectors[1].Link : nodeConnectors[0].Link];
+            return Junctions[RuntimeData.TrackWorld.TrackNodeJunction(trackNodeIndex, end)?.NodeIndex ?? 0];
         }
 
         public JunctionNodeBase TrackNodeJunction(int trackNodeIndex, TrackDirection trackDirection)
         {
-            ImmutableArray<TrackNodeConnector> nodeConnectors = RuntimeData.TrackWorld.TrackModel.TrackDatabase.TrackNodeConnectors[trackNodeIndex].TrackNodeConnectors;
-            return Junctions[trackDirection == TrackDirection.Reverse ? nodeConnectors[1].Link : nodeConnectors[0].Link];
+            return Junctions[RuntimeData.TrackWorld.TrackNodeJunction(trackNodeIndex, trackDirection)?.NodeIndex ?? 0];
         }
 
         public JunctionNodeBase TrackNodeJunction(in PointD location, int trackNodeIndex)
         {
-            ImmutableArray<TrackNodeConnector> nodeConnectors = RuntimeData.TrackWorld.TrackModel.TrackDatabase.TrackNodeConnectors[trackNodeIndex].TrackNodeConnectors;
-            if (SegmentSections[trackNodeIndex].Length > 2)
-            {
-                JunctionNodeBase junction;
-                if ((junction = Junctions[nodeConnectors[0].Link])?.JunctionNodeAt(location) ?? false)
-                    return junction;
-                else if ((junction = Junctions[nodeConnectors[1].Link])?.JunctionNodeAt(location) ?? false)
-                    return junction;
-            }
-            else
-            {
-                JunctionNodeBase junction;
-                double startDistance = (junction = Junctions[nodeConnectors[0].Link])?.DistanceSquared(location) ?? double.MaxValue;
-                double endDistance = Junctions[nodeConnectors[1].Link]?.DistanceSquared(location) ?? double.MaxValue;
-                if (startDistance < endDistance && startDistance < 10 && junction.JunctionNodeAt(location))
-                    return junction;
-                else if (endDistance < 10 && (junction = Junctions[nodeConnectors[1].Link]).JunctionNodeAt(location))
-                    return junction;
-            }
-            return null;
+            JunctionNode junction = RuntimeData.TrackWorld.TrackNodeJunction(PointD.ToWorldLocation(location), trackNodeIndex);
+            return junction != null ? Junctions[junction.NodeIndex] : null;
         }
 
+        /// <summary>
+        /// Finds a junction node that connects <paramref name="start"/> and <paramref name="end"/> path points
+        /// through their track nodes, where one is on the in-pin and the other on the out-pin.
+        /// Delegates to <see cref="TrackWorld.FindIntermediaryJunction"/>.
+        /// </summary>
         public TrainPathPointBase FindIntermediaryConnection(TrainPathPointBase start, TrainPathPointBase end)
         {
             ArgumentNullException.ThrowIfNull(start);
             ArgumentNullException.ThrowIfNull(end);
 
-            //for two path points, try to find if they are connected through same junction on either end of their track node
-            //but also check if they are connected across In- and Out Pin, not both on the same side
-            ImmutableArray<TrackNodeConnector> startNodeConnectors = RuntimeData.TrackWorld.TrackModel.TrackDatabase.TrackNodeConnectors[start.ConnectedSegments[0].TrackNodeIndex].TrackNodeConnectors;
-            ImmutableArray<TrackNodeConnector> endNodeConnectors = RuntimeData.TrackWorld.TrackModel.TrackDatabase.TrackNodeConnectors[end.ConnectedSegments[0].TrackNodeIndex].TrackNodeConnectors;
-
-            TrackNodeConnector[] connectors;
-            if ((connectors = startNodeConnectors.Intersect(endNodeConnectors, TrackNodeConnectorComparer.LinkOnlyComparer).ToArray()).Length > 0)
-            {
-                TrackNodeConnectorIndex junctionConnectors = RuntimeData.TrackWorld.TrackModel.TrackDatabase.TrackNodeConnectors[connectors[0].Link];
-                bool startSet = false;
-                bool endSet = false;
-                foreach (TrackNodeConnector nodeConnector in junctionConnectors.TrackNodeConnectors)
-                {
-                    if (nodeConnector.ConnectorType == ConnectorType.OutPin)
-                        continue;
-                    if (nodeConnector.Link == start.ConnectedSegments[0].TrackNodeIndex)
-                    { startSet = true; }
-                    else if (nodeConnector.Link == end.ConnectedSegments[0].TrackNodeIndex)
-                    { endSet = true; }
-                }
-                if (startSet ^ endSet)
-                    return new TrainPathPoint(Junctions[junctionConnectors.NodeIndex].Location, this);
-            }
-            return null;
+            JunctionNode junction = RuntimeData.TrackWorld.FindIntermediaryJunction(
+                start.ConnectedSegments[0].TrackNodeIndex,
+                end.ConnectedSegments[0].TrackNodeIndex);
+            return junction != null ? new TrainPathPoint(Junctions[junction.NodeIndex].Location, this) : null;
         }
 
+        /// <summary>
+        /// Resolves the <see cref="WorldLocation"/> of the end node at the given track section.
+        /// Delegates to <see cref="TrackWorld.ResolveEndNodeLocation"/>.
+        /// </summary>
         public ref readonly WorldLocation ResolveEndNodeLocation(int trackNodeIndex, int trackSectionIndex)
         {
-            VectorNode trackVectorNode = RuntimeData.TrackWorld.TrackModel.TrackDatabase.VectorNodes[trackNodeIndex];
-
-            // if this is before the end of a TrackNode, just need to use the next section on that Node
-            if (trackSectionIndex < trackVectorNode.VectorSections.Length - 1)
-            {
-                return ref trackVectorNode.VectorSections[trackSectionIndex + 1].Location;
-
-            }
-            // else need to find the junction or end node
-            else
-            {
-                ImmutableArray<TrackNodeConnector> nodeConnectors = RuntimeData.TrackWorld.TrackModel.TrackDatabase.TrackNodeConnectors[trackNodeIndex].TrackNodeConnectors;
-
-                TrackNodeConnector nodeConnector = nodeConnectors[1];
-                if (nodeConnector.Direction != TrackDirection.Reverse)
-                    nodeConnector = nodeConnectors[0];
-                int trackNode = nodeConnector.Link;
-
-                TrackNodeBase node = RuntimeData.TrackWorld.TrackModel.TrackDatabase.TrackNodes[trackNode];
-                if (node is not EndNode and not JunctionNode)
-                    throw new InvalidCastException($"Track Node {trackNodeIndex} is not a valid Track Connection Point");
-                return ref node.Location;
-            }
+            return ref RuntimeData.TrackWorld.ResolveEndNodeLocation(trackNodeIndex, trackSectionIndex);
         }
     }
 }

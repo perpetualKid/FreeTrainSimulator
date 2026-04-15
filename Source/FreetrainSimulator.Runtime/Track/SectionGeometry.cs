@@ -1,3 +1,5 @@
+using System;
+
 using FreeTrainSimulator.Common.Position;
 using FreeTrainSimulator.Models.Track;
 
@@ -99,6 +101,222 @@ namespace FreeTrainSimulator.Runtime.Track
                 WorldLocation.GetDistanceVector(ArcCenter, section.EndLocation)));
             U = Vector3.Normalize(centerToStart);
             V = Vector3.Cross(k, U);
+        }
+
+        /// <summary>
+        /// Returns the squared perpendicular distance (in metres²) from <paramref name="location"/> to this section,
+        /// or <see cref="double.NaN"/> when the point does not project onto the section (i.e. is beyond the endpoints).
+        /// Points within <see cref="WorldLocation.ProximityTolerance"/> of either endpoint are considered on-section.
+        /// </summary>
+        public double DistanceSquared(in WorldLocation location)
+        {
+            if (!HasGeometry)
+                return double.NaN;
+
+            VectorSectionNode section = Node.VectorSections[SectionIndex];
+
+            if (Curved)
+            {
+                Vector3 centerToPoint = WorldLocation.GetDistanceVector(ArcCenter, location);
+                double distFromCenter = centerToPoint.Length();
+                double radialError = distFromCenter - Radius;
+
+                // Check angular bounds: the point's angle from centre must fall within the arc span.
+                // Project onto the U/V basis to get the parametric angle.
+                double dotU = Vector3.Dot(centerToPoint, U);
+                double dotV = Vector3.Dot(centerToPoint, V);
+                double pointAngle = Math.Atan2(dotV, dotU); // angle from start direction
+
+                double absArc = Math.Abs(ArcAngle);
+                bool inArc = ArcAngle >= 0
+                    ? pointAngle >= -WorldLocation.ProximityTolerance / Radius && pointAngle <= absArc + WorldLocation.ProximityTolerance / Radius
+                    : pointAngle <= WorldLocation.ProximityTolerance / Radius && pointAngle >= -absArc - WorldLocation.ProximityTolerance / Radius;
+
+                if (inArc)
+                    return radialError * radialError;
+
+                // Outside arc span — check endpoint proximity
+                double startDist = WorldLocation.GetDistanceSquared(section.Location, location);
+                if (startDist <= WorldLocation.ProximityTolerance)
+                    return startDist;
+                double endDist = WorldLocation.GetDistanceSquared(section.EndLocation, location);
+                return endDist <= WorldLocation.ProximityTolerance ? endDist : double.NaN;
+            }
+            else
+            {
+                // Straight section: project point onto the line segment start→end
+                Vector3 segVec = WorldLocation.GetDistanceVector(section.Location, section.EndLocation);
+                Vector3 toPoint = WorldLocation.GetDistanceVector(section.Location, location);
+                double segLenSq = segVec.LengthSquared();
+
+                if (segLenSq < 1e-12)
+                    return WorldLocation.GetDistanceSquared(section.Location, location);
+
+                double t = Vector3.Dot(toPoint, segVec) / segLenSq;
+
+                if (t < 0)
+                {
+                    double d = WorldLocation.GetDistanceSquared(section.Location, location);
+                    return d <= WorldLocation.ProximityTolerance ? d : double.NaN;
+                }
+                if (t > 1)
+                {
+                    double d = WorldLocation.GetDistanceSquared(section.EndLocation, location);
+                    return d <= WorldLocation.ProximityTolerance ? d : double.NaN;
+                }
+
+                // Closest point on segment: start + t * segVec
+                Vector3 closest = new Vector3(
+                    toPoint.X - (float)(t * segVec.X),
+                    toPoint.Y - (float)(t * segVec.Y),
+                    toPoint.Z - (float)(t * segVec.Z));
+                return closest.LengthSquared();
+            }
+        }
+
+        /// <summary>
+        /// Returns <see langword="true"/> when <paramref name="location"/> is within
+        /// <see cref="WorldLocation.ProximityTolerance"/> of this section.
+        /// </summary>
+        public bool SectionAt(in WorldLocation location)
+        {
+            double d = DistanceSquared(location);
+            return !double.IsNaN(d) && d <= WorldLocation.ProximityTolerance;
+        }
+
+        /// <summary>
+        /// Projects <paramref name="location"/> onto this section, returning the nearest point on the section geometry.
+        /// Falls back to <paramref name="location"/> when the section has no geometry.
+        /// </summary>
+        public WorldLocation SnapToSection(in WorldLocation location)
+        {
+            if (!HasGeometry)
+                return location;
+
+            VectorSectionNode section = Node.VectorSections[SectionIndex];
+
+            if (Curved)
+            {
+                Vector3 centerToPoint = WorldLocation.GetDistanceVector(ArcCenter, location);
+                double dotU = Vector3.Dot(centerToPoint, U);
+                double dotV = Vector3.Dot(centerToPoint, V);
+                double pointAngle = Math.Atan2(dotV, dotU);
+
+                // Clamp to arc range
+                double absArc = Math.Abs(ArcAngle);
+                if (ArcAngle >= 0)
+                    pointAngle = Math.Clamp(pointAngle, 0, absArc);
+                else
+                    pointAngle = Math.Clamp(pointAngle, -absArc, 0);
+
+                double distance = Math.Abs(pointAngle) * Radius;
+                return WorldLocation.PointAlongArc(section.Location, section.EndLocation, ArcAngle, Radius, distance);
+            }
+            else
+            {
+                Vector3 segVec = WorldLocation.GetDistanceVector(section.Location, section.EndLocation);
+                Vector3 toPoint = WorldLocation.GetDistanceVector(section.Location, location);
+                double segLenSq = segVec.LengthSquared();
+
+                if (segLenSq < 1e-12)
+                    return section.Location;
+
+                double t = Math.Clamp(Vector3.Dot(toPoint, segVec) / segLenSq, 0, 1);
+                return WorldLocation.PointAlongDirection(section.Location, section.EndLocation, t * Length);
+            }
+        }
+
+        /// <summary>
+        /// Returns the distance in metres from the section start to the point on the section nearest
+        /// to <paramref name="location"/>. Returns <see cref="double.NaN"/> when the point is not on the section.
+        /// </summary>
+        public double DistanceOnSection(in WorldLocation location)
+        {
+            if (!HasGeometry || !SectionAt(location))
+                return double.NaN;
+
+            VectorSectionNode section = Node.VectorSections[SectionIndex];
+
+            if (Curved)
+            {
+                Vector3 centerToPoint = WorldLocation.GetDistanceVector(ArcCenter, location);
+                double dotU = Vector3.Dot(centerToPoint, U);
+                double dotV = Vector3.Dot(centerToPoint, V);
+                double pointAngle = Math.Atan2(dotV, dotU);
+                return Math.Abs(pointAngle) * Radius;
+            }
+            else
+            {
+                Vector3 segVec = WorldLocation.GetDistanceVector(section.Location, section.EndLocation);
+                Vector3 toPoint = WorldLocation.GetDistanceVector(section.Location, location);
+                double segLenSq = segVec.LengthSquared();
+                if (segLenSq < 1e-12)
+                    return 0;
+                double t = Math.Clamp(Vector3.Dot(toPoint, segVec) / segLenSq, 0, 1);
+                return t * Length;
+            }
+        }
+
+        /// <summary>
+        /// Returns the 2D heading (Y-rotation in radians, north = 0, clockwise positive) at the point on
+        /// this section nearest to <paramref name="location"/>.
+        /// </summary>
+        public float DirectionAt(in WorldLocation location)
+        {
+            if (!HasGeometry)
+                return 0;
+
+            VectorSectionNode section = Node.VectorSections[SectionIndex];
+
+            if (Curved)
+            {
+                double offset = DistanceOnSection(location);
+                if (double.IsNaN(offset))
+                    offset = 0;
+                return DirectionAt(offset);
+            }
+            else
+            {
+                return MathHelper.WrapAngle(section.Direction.Y - MathHelper.PiOver2);
+            }
+        }
+
+        /// <summary>
+        /// Returns the 2D heading (Y-rotation in radians) at <paramref name="distance"/> metres along the section.
+        /// </summary>
+        public float DirectionAt(double distance)
+        {
+            if (!HasGeometry)
+                return 0;
+
+            VectorSectionNode section = Node.VectorSections[SectionIndex];
+
+            if (Curved)
+            {
+                double angularOffset = Radius > 0 ? distance / Radius : 0;
+                float baseDirection = MathHelper.WrapAngle(section.Direction.Y - MathHelper.PiOver2);
+                return baseDirection + (float)(Math.Sign(ArcAngle) * angularOffset);
+            }
+            else
+            {
+                return MathHelper.WrapAngle(section.Direction.Y - MathHelper.PiOver2);
+            }
+        }
+
+        /// <summary>
+        /// Returns the <see cref="WorldLocation"/> at <paramref name="distance"/> metres along the section.
+        /// </summary>
+        public WorldLocation LocationAt(double distance)
+        {
+            if (!HasGeometry)
+                return Node.VectorSections[SectionIndex].Location;
+
+            VectorSectionNode section = Node.VectorSections[SectionIndex];
+            double clampedDistance = Math.Clamp(distance, 0, Length);
+
+            return Curved
+                ? WorldLocation.PointAlongArc(section.Location, section.EndLocation, ArcAngle, Radius, clampedDistance)
+                : WorldLocation.PointAlongDirection(section.Location, section.EndLocation, clampedDistance);
         }
     }
 }

@@ -397,5 +397,159 @@ namespace FreeTrainSimulator.Runtime.Track
                 }
             }
         }
+
+        #region Gap-filling: Section-level queries
+
+        /// <summary>
+        /// Returns the <see cref="VectorSectionNode"/> within <paramref name="node"/> whose geometry
+        /// contains <paramref name="location"/> (perpendicular proximity test),
+        /// or <see langword="null"/> if no section is within tolerance.
+        /// </summary>
+        public VectorSectionNode SectionAt(VectorNode node, in WorldLocation location)
+        {
+            ArgumentNullException.ThrowIfNull(node);
+
+            VectorSectionNode nearest = null;
+            double nearestDist = double.PositiveInfinity;
+
+            foreach (VectorSectionNode section in node.VectorSections)
+            {
+                if (SectionGeometry.TryGetValue(section, out SectionGeometry geo))
+                {
+                    double d = geo.DistanceSquared(location);
+                    if (!double.IsNaN(d) && d < nearestDist)
+                    {
+                        nearestDist = d;
+                        nearest = section;
+                    }
+                }
+            }
+            return nearestDist <= ProximityToleranceSquared ? nearest : null;
+        }
+
+        /// <summary>
+        /// Returns the nearest <see cref="VectorSectionNode"/> to <paramref name="location"/>
+        /// using perpendicular distance-to-segment/arc, searching tile-indexed sections.
+        /// Returns <see langword="null"/> if no section is within proximity tolerance.
+        /// </summary>
+        public VectorSectionNode SectionAt(in WorldLocation location, int tileRadius = 0)
+        {
+            VectorSectionNode nearest = null;
+            double nearestDist = double.PositiveInfinity;
+
+            foreach (VectorSectionNode section in ContentByTile[MapContentType.Tracks].BoundingBox(location.Tile, tileRadius).Cast<VectorSectionNode>())
+            {
+                if (SectionGeometry.TryGetValue(section, out SectionGeometry geo))
+                {
+                    double d = geo.DistanceSquared(location);
+                    if (!double.IsNaN(d) && d < nearestDist)
+                    {
+                        nearestDist = d;
+                        nearest = section;
+                    }
+                }
+            }
+
+            if (nearest != null && nearestDist <= ProximityToleranceSquared)
+                return nearest;
+
+            // Fallback: full scan (mirrors TrackModel.SegmentAt with limit=false)
+            if (tileRadius == 0)
+            {
+                foreach (VectorSectionNode section in ContentByTile[MapContentType.Tracks].Cast<VectorSectionNode>())
+                {
+                    if (SectionGeometry.TryGetValue(section, out SectionGeometry geo))
+                    {
+                        double d = geo.DistanceSquared(location);
+                        if (!double.IsNaN(d) && d < nearestDist)
+                        {
+                            nearestDist = d;
+                            nearest = section;
+                        }
+                    }
+                }
+                return nearestDist <= ProximityToleranceSquared ? nearest : null;
+            }
+
+            return null;
+        }
+
+        /// <summary>
+        /// Returns all <see cref="VectorSectionNode"/> instances at <paramref name="location"/>:
+        /// the primary section on the nearest track, plus any sections reachable through connected junctions.
+        /// </summary>
+        public IEnumerable<VectorSectionNode> SectionsAt(WorldLocation location)
+        {
+            int tileRadius = 0;
+            // Near tile boundaries, widen the search radius
+            if (Math.Abs(location.Location.X) > Tile.TileSizeOver2 - WorldLocation.ProximityTolerance ||
+                Math.Abs(location.Location.Z) > Tile.TileSizeOver2 - WorldLocation.ProximityTolerance)
+                tileRadius = 1;
+
+            VectorSectionNode section = SectionAt(location, tileRadius);
+            if (section == null)
+                yield break;
+
+            yield return section;
+
+            // Return junction-connected sections from other track nodes
+            int trackNodeIndex = SectionGeometry.TryGetValue(section, out SectionGeometry geo)
+                ? geo.Node.NodeIndex : 0;
+
+            if (trackNodeIndex > 0)
+            {
+                foreach (VectorSectionNode other in OtherVectorSectionNodesAt(location, trackNodeIndex))
+                    yield return other;
+            }
+        }
+
+        /// <summary>
+        /// Returns a <see cref="Models.Track.TrackItemBase"/> by its index in the track database,
+        /// or <see langword="null"/> for out-of-range indices.
+        /// </summary>
+        public Models.Track.TrackItemBase TrackItemByIndex(int index)
+        {
+            ImmutableArray<Models.Track.TrackItemBase> items = TrackModel.TrackDatabase?.TrackItems ?? ImmutableArray<Models.Track.TrackItemBase>.Empty;
+            return index > -1 && index < items.Length ? items[index] : null;
+        }
+
+        /// <summary>
+        /// Checks whether two path endpoints (given as track node indices) share a junction
+        /// through in-pin/out-pin crossing, returning the <see cref="JunctionNode"/> if found.
+        /// </summary>
+        public JunctionNode FindIntermediaryJunction(int startTrackNodeIndex, int endTrackNodeIndex)
+        {
+            TrackDatabase trackDb = TrackModel.TrackDatabase;
+            if (trackDb == null)
+                return null;
+
+            ImmutableArray<TrackNodeConnector> startConnectors = trackDb.TrackNodeConnectors[startTrackNodeIndex].TrackNodeConnectors;
+            ImmutableArray<TrackNodeConnector> endConnectors = trackDb.TrackNodeConnectors[endTrackNodeIndex].TrackNodeConnectors;
+
+            TrackNodeConnector[] shared = startConnectors.Intersect(endConnectors, TrackNodeConnectorComparer.LinkOnlyComparer).ToArray();
+            if (shared.Length == 0)
+                return null;
+
+            TrackNodeConnectorIndex junctionConnectors = trackDb.TrackNodeConnectors[shared[0].Link];
+            bool startOnIn = false;
+            bool endOnIn = false;
+
+            foreach (TrackNodeConnector connector in junctionConnectors.TrackNodeConnectors)
+            {
+                if (connector.ConnectorType == ConnectorType.OutPin)
+                    continue;
+                if (connector.Link == startTrackNodeIndex)
+                    startOnIn = true;
+                else if (connector.Link == endTrackNodeIndex)
+                    endOnIn = true;
+            }
+
+            // Valid intermediary only when exactly one of the two is on the in-pin side
+            return startOnIn ^ endOnIn
+                ? railTrackNodes[junctionConnectors.NodeIndex] as JunctionNode
+                : null;
+        }
+
+        #endregion
     }
 }
