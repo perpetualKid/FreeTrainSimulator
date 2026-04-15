@@ -50,8 +50,7 @@ namespace FreeTrainSimulator.Runtime.Track
         }
 
         /// <summary>
-        /// Builds the 3D spatial index from <paramref name="trackModel"/>'s rail track, road track, and track items.
-        /// <see cref="EmptyTrackItem"/> entries are excluded — they carry no valid world location.
+        /// Builds the 3D spatial index from <paramref name="trackSectionModel"/>'s rail track, road track, and track items.
         /// </summary>
         private void Initialize(TrackSectionModel trackSectionModel)
         {
@@ -88,6 +87,47 @@ namespace FreeTrainSimulator.Runtime.Track
             }
 
             SectionGeometry = BuildSectionGeometry(trackSectionModel);
+            InitializeTrackItems();
+        }
+
+        /// <summary>
+        /// Builds tile-indexed collections for each track item type from the rail and road <see cref="TrackDatabase"/>.
+        /// This makes track items queryable by tile through <see cref="ContentByTile"/> without
+        /// depending on the 2D rendering layer.
+        /// </summary>
+        private void InitializeTrackItems()
+        {
+            ImmutableArray<Models.Track.TrackItemBase> railItems = TrackModel.TrackDatabase?.TrackItems ?? ImmutableArray<Models.Track.TrackItemBase>.Empty;
+            ImmutableArray<Models.Track.TrackItemBase> roadItems = TrackModel.RoadDatabase?.TrackItems ?? ImmutableArray<Models.Track.TrackItemBase>.Empty;
+
+            // Combine rail and road items for types that can appear in either database
+            IEnumerable<Models.Track.TrackItemBase> allItems = railItems.Concat(roadItems).Where(i => i != null);
+
+            ContentByTile[MapContentType.Signals] = new TileIndexedList<Models.Track.SignalTrackItem>(
+                allItems.OfType<Models.Track.SignalTrackItem>().Where(s => s.NormalSignal));
+            ContentByTile[MapContentType.OtherSignals] = new TileIndexedList<Models.Track.SignalTrackItem>(
+                allItems.OfType<Models.Track.SignalTrackItem>().Where(s => !s.NormalSignal));
+            ContentByTile[MapContentType.SpeedPosts] = new TileIndexedList<Models.Track.SpeedpostTrackItem>(
+                allItems.OfType<Models.Track.SpeedpostTrackItem>());
+            ContentByTile[MapContentType.MilePosts] = new TileIndexedList<Models.Track.MilepostTrackItem>(
+                allItems.OfType<Models.Track.MilepostTrackItem>());
+            ContentByTile[MapContentType.Crossovers] = new TileIndexedList<Models.Track.CrossoverTrackItem>(
+                allItems.OfType<Models.Track.CrossoverTrackItem>());
+            ContentByTile[MapContentType.LevelCrossings] = new TileIndexedList<Models.Track.LevelCrossingTrackItem>(
+                allItems.OfType<Models.Track.LevelCrossingTrackItem>());
+            ContentByTile[MapContentType.RoadCrossings] = new TileIndexedList<Models.Track.RoadLevelCrossingTrackItem>(
+                allItems.OfType<Models.Track.RoadLevelCrossingTrackItem>());
+            ContentByTile[MapContentType.Hazards] = new TileIndexedList<Models.Track.HazardTrackItem>(
+                allItems.OfType<Models.Track.HazardTrackItem>());
+            ContentByTile[MapContentType.Pickups] = new TileIndexedList<Models.Track.PickupTrackItem>(
+                allItems.OfType<Models.Track.PickupTrackItem>());
+            ContentByTile[MapContentType.SoundRegions] = new TileIndexedList<Models.Track.SoundRegionTrackItem>(
+                allItems.OfType<Models.Track.SoundRegionTrackItem>());
+            ContentByTile[MapContentType.CarSpawners] = new TileIndexedList<Models.Track.CarSpawnerTrackItem>(
+                allItems.OfType<Models.Track.CarSpawnerTrackItem>());
+            // EmptyTrackItem instances are index-preserving placeholders with no valid location
+            // (WorldLocation.None at tile 0,0). Indexing them would create a spurious tile bucket
+            // and corrupt boundary calculations, so they are intentionally excluded.
         }
 
         private FrozenDictionary<VectorSectionNode, SectionGeometry> BuildSectionGeometry(TrackSectionModel trackSectionModel)

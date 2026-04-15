@@ -40,9 +40,10 @@ namespace FreeTrainSimulator.Runtime.Track
         }
 
 #pragma warning disable CA2214 // Do not call overridable methods in constructors
-        protected TrackSegmentPathBase(TrackModel trackModel, in PointD start, int startTrackNodeIndex, in PointD end, int endTrackNodeIndex, TrackDatabase trackDatabase) :
+        protected TrackSegmentPathBase(TrackWorld trackWorld, in PointD start, int startTrackNodeIndex, in PointD end, int endTrackNodeIndex, TrackDatabase trackDatabase) :
             base(start, end)
         {
+            ArgumentNullException.ThrowIfNull(trackWorld);
             ArgumentNullException.ThrowIfNull(trackDatabase);
 
             midPoint = Location + (Vector - Location) / 2.0;
@@ -66,7 +67,7 @@ namespace FreeTrainSimulator.Runtime.Track
 
             if (startTrackNodeIndex == endTrackNodeIndex)
             {
-                PathSections = PathSections.Add(InitializeSection(trackModel, startTrackNodeIndex, start, end));
+                PathSections = PathSections.Add(InitializeSection(trackWorld, startTrackNodeIndex, start, end));
             }
             else
             {
@@ -75,8 +76,8 @@ namespace FreeTrainSimulator.Runtime.Track
                 if (trackPins.Count() == 1)
                 {
                     PointD junctionLocation = PointD.FromWorldLocation((trackDatabase.JunctionNodes[trackPins.First().Link]).Location);
-                    PathSections = PathSections.Add(InitializeSection(trackModel, startTrackNodeIndex, start, junctionLocation));
-                    PathSections = PathSections.Add(InitializeSection(trackModel, endTrackNodeIndex, junctionLocation, end));
+                    PathSections = PathSections.Add(InitializeSection(trackWorld, startTrackNodeIndex, start, junctionLocation));
+                    PathSections = PathSections.Add(InitializeSection(trackWorld, endTrackNodeIndex, junctionLocation, end));
                 }
                 else
                 {
@@ -84,9 +85,11 @@ namespace FreeTrainSimulator.Runtime.Track
                     (int startJunction, int endJunction, int intermediaryNode)? intermediary;
                     if ((intermediary = ConnectAcrossIntermediary()) != null)
                     {
-                        PathSections = PathSections.Add(InitializeSection(trackModel, startTrackNodeIndex, start, trackModel.Junctions[intermediary.Value.startJunction].Location));
-                        PathSections = PathSections.Add(InitializeSection(trackModel, intermediary.Value.intermediaryNode));
-                        PathSections = PathSections.Add(InitializeSection(trackModel, endTrackNodeIndex, trackModel.Junctions[intermediary.Value.endJunction].Location, end));
+                        PointD startJunctionLocation = PointD.FromWorldLocation(trackDatabase.TrackNodes[intermediary.Value.startJunction].Location);
+                        PointD endJunctionLocation = PointD.FromWorldLocation(trackDatabase.TrackNodes[intermediary.Value.endJunction].Location);
+                        PathSections = PathSections.Add(InitializeSection(trackWorld, startTrackNodeIndex, start, startJunctionLocation));
+                        PathSections = PathSections.Add(InitializeSection(trackWorld, intermediary.Value.intermediaryNode));
+                        PathSections = PathSections.Add(InitializeSection(trackWorld, endTrackNodeIndex, endJunctionLocation, end));
                     }
                     else
                     {
@@ -102,8 +105,8 @@ namespace FreeTrainSimulator.Runtime.Track
 #pragma warning restore CA2214 // Do not call overridable methods in constructors
 #pragma warning disable CA1716 // Identifiers should not match keywords
         protected abstract TrackSegmentSectionBase<T> InitializeSection(in PointD start, in PointD end);
-        protected abstract TrackSegmentSectionBase<T> InitializeSection(TrackModel trackModel, int trackNodeIndex, in PointD start, in PointD end);
-        protected abstract TrackSegmentSectionBase<T> InitializeSection(TrackModel trackModel, int trackNodeIndex);
+        protected abstract TrackSegmentSectionBase<T> InitializeSection(TrackWorld trackWorld, int trackNodeIndex, in PointD start, in PointD end);
+        protected abstract TrackSegmentSectionBase<T> InitializeSection(TrackWorld trackWorld, int trackNodeIndex);
 #pragma warning restore CA1716 // Identifiers should not match keywords
         protected void AddSections(IReadOnlyCollection<TrackSegmentSectionBase<T>> sections)
         {

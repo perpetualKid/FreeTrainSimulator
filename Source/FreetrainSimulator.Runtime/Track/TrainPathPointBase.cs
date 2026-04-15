@@ -80,7 +80,7 @@ namespace FreeTrainSimulator.Runtime.Track
         private ImmutableArray<TrackSegmentBase> GetConnectedNodes(TrackModel trackModel)
         {
             ImmutableArray<TrackSegmentBase> result;
-            if (JunctionNode == null || (result = JunctionNode.ConnectedSegments(trackModel).ToImmutableArray()).IsDefaultOrEmpty)
+            if (JunctionNode == null || (result = JunctionNode.ConnectedSegments().ToImmutableArray()).IsDefaultOrEmpty)
                 result = trackModel.SegmentsAt(Location).ToImmutableArray();
             return result;
         }

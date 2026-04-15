@@ -31,13 +31,13 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
             {
             }
 
-            public TrainPathSection(TrackModel trackModel, int trackNodeIndex) :
-                base(trackModel, trackNodeIndex)
+            public TrainPathSection(TrackWorld trackWorld, int trackNodeIndex) :
+                base(trackWorld, trackNodeIndex)
             {
             }
 
-            public TrainPathSection(TrackModel trackModel, int trackNodeIndex, in PointD startLocation, in PointD endLocation) :
-                base(trackModel, trackNodeIndex, startLocation, endLocation)
+            public TrainPathSection(TrackWorld trackWorld, int trackNodeIndex, in PointD startLocation, in PointD endLocation) :
+                base(trackWorld, trackNodeIndex, startLocation, endLocation)
             {
             }
 
@@ -233,12 +233,12 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
             return new TrainPathSection(start, end);
         }
 
-        protected override TrackSegmentSectionBase<TrainPathSegmentBase> InitializeSection(TrackModel trackModel, int trackNodeIndex, in PointD start, in PointD end)
+        protected override TrackSegmentSectionBase<TrainPathSegmentBase> InitializeSection(TrackWorld trackWorld, int trackNodeIndex, in PointD start, in PointD end)
         {
-            return new TrainPathSection(trackModel, trackNodeIndex, start, end);
+            return new TrainPathSection(trackWorld, trackNodeIndex, start, end);
         }
 
-        protected override TrackSegmentSectionBase<TrainPathSegmentBase> InitializeSection(TrackModel trackModel, int trackNodeIndex)
+        protected override TrackSegmentSectionBase<TrainPathSegmentBase> InitializeSection(TrackWorld trackWorld, int trackNodeIndex)
         {
             throw new System.NotImplementedException();
         }

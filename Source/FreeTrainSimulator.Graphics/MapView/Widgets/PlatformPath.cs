@@ -37,13 +37,13 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
 
         private record PlatformSection : TrackSegmentSectionBase<PlatformSegment>, IDrawable<VectorPrimitive>
         {
-            public PlatformSection(TrackModel trackModel, int trackNodeIndex) :
-                base(trackModel, trackNodeIndex)
+            public PlatformSection(TrackWorld trackWorld, int trackNodeIndex) :
+                base(trackWorld, trackNodeIndex)
             {
             }
 
-            public PlatformSection(TrackModel trackModel, int trackNodeIndex, in PointD startLocation, in PointD endLocation) :
-                base(trackModel, trackNodeIndex, startLocation, endLocation)
+            public PlatformSection(TrackWorld trackWorld, int trackNodeIndex, in PointD startLocation, in PointD endLocation) :
+                base(trackWorld, trackNodeIndex, startLocation, endLocation)
             {
             }
 
@@ -71,8 +71,8 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
             }
         }
 
-        public PlatformPath(TrackModel trackModel, PlatformTrackItem start, PlatformTrackItem end) :
-            base(trackModel, start.Location, start.VectorNode.NodeIndex, end.Location, end.VectorNode.NodeIndex, trackModel.RuntimeData.TrackWorld.TrackModel.TrackDatabase)
+        public PlatformPath(TrackWorld trackWorld, PlatformTrackItem start, PlatformTrackItem end) :
+            base(trackWorld, start.Location, start.VectorNode.NodeIndex, end.Location, end.VectorNode.NodeIndex, trackWorld.TrackModel.TrackDatabase)
         {
             PlatformName = string.IsNullOrEmpty(start.PlatformName) ? end.PlatformName : start.PlatformName;
             StationName = (string.IsNullOrEmpty(start.StationName) ? end.StationName : start.StationName)?.Trim();
@@ -84,7 +84,7 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
                 Trace.TraceWarning($"Platform items {start.TrackItemId} and {end.TrackItemId} could not be linked on the underlying track database for track nodes {start.VectorNode.NodeIndex} and {end.VectorNode.NodeIndex}. This may indicate an error or inconsistency in the route data.");
         }
 
-        public static List<PlatformPath> CreatePlatforms(TrackModel trackModel, IEnumerable<PlatformTrackItem> platformItems)
+        public static List<PlatformPath> CreatePlatforms(TrackWorld trackWorld, IEnumerable<PlatformTrackItem> platformItems)
         {
             List<PlatformPath> result = new List<PlatformPath>();
             if (platformItems is not IList<PlatformTrackItem>)
@@ -97,7 +97,7 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
                 {
                     Trace.TraceError($"Platform Item pair not found for Source Id {start.TrackItemId} to target {start.LinkedId}");
                 }
-                result.Add(new PlatformPath(trackModel, start, end));
+                result.Add(new PlatformPath(trackWorld, start, end));
             }
             return result;
         }
@@ -129,14 +129,14 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
             throw new NotImplementedException();
         }
 
-        protected override TrackSegmentSectionBase<PlatformSegment> InitializeSection(TrackModel trackModel, int trackNodeIndex, in PointD start, in PointD end)
+        protected override TrackSegmentSectionBase<PlatformSegment> InitializeSection(TrackWorld trackWorld, int trackNodeIndex, in PointD start, in PointD end)
         {
-            return new PlatformSection(trackModel, trackNodeIndex, start, end);
+            return new PlatformSection(trackWorld, trackNodeIndex, start, end);
         }
 
-        protected override TrackSegmentSectionBase<PlatformSegment> InitializeSection(TrackModel trackModel, int trackNodeIndex)
+        protected override TrackSegmentSectionBase<PlatformSegment> InitializeSection(TrackWorld trackWorld, int trackNodeIndex)
         {
-            return new PlatformSection(trackModel, trackNodeIndex);
+            return new PlatformSection(trackWorld, trackNodeIndex);
         }
 
     }

@@ -4,6 +4,7 @@ using System.Diagnostics;
 
 using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Position;
+using FreeTrainSimulator.Models.Track;
 
 namespace FreeTrainSimulator.Runtime.Track
 {
@@ -76,12 +77,13 @@ namespace FreeTrainSimulator.Runtime.Track
             SetBounds();
         }
 
-        protected TrackSegmentSectionBase(TrackModel trackModel, int trackNodeIndex) : base()
+        protected TrackSegmentSectionBase(TrackWorld trackWorld, int trackNodeIndex) : base()
         {
-            ArgumentNullException.ThrowIfNull(trackModel);
+            ArgumentNullException.ThrowIfNull(trackWorld);
 
-            SetVector(trackModel.SegmentSections[trackNodeIndex].Location, trackModel.SegmentSections[trackNodeIndex].Vector);
-            foreach (TrackSegmentBase segment in trackModel.SegmentSections[trackNodeIndex].SectionSegments)
+            TrackSegmentSection sourceSection = TrackModel.Instance.SegmentSections[trackNodeIndex];
+            SetVector(sourceSection.Location, sourceSection.Vector);
+            foreach (TrackSegmentBase segment in sourceSection.SectionSegments)
             {
                 sectionSegments.Add(CreateItem(segment));
                 Length += SectionSegments[^1].Length;
@@ -91,18 +93,15 @@ namespace FreeTrainSimulator.Runtime.Track
             SetBounds();
         }
 
-        protected TrackSegmentSectionBase(TrackModel trackModel, int trackNodeIndex, PointD start, PointD end) : base(start, end)
+        protected TrackSegmentSectionBase(TrackWorld trackWorld, int trackNodeIndex, PointD start, PointD end) : base(start, end)
         {
-            ArgumentNullException.ThrowIfNull(trackModel);
+            ArgumentNullException.ThrowIfNull(trackWorld);
 
             midPoint = Location + (Vector - Location) / 2.0;
             TrackNodeIndex = trackNodeIndex;
 
-            TrackSegmentBase startSegment;
-            TrackSegmentBase endSegment;
-
-            startSegment = trackModel.SegmentAt(trackNodeIndex, start);
-            endSegment = trackModel.SegmentAt(trackNodeIndex, end);
+            TrackSegmentBase startSegment = ResolveSegment(trackWorld, trackNodeIndex, start);
+            TrackSegmentBase endSegment = ResolveSegment(trackWorld, trackNodeIndex, end);
 
             if (startSegment == null || endSegment == null)
             {
@@ -114,7 +113,7 @@ namespace FreeTrainSimulator.Runtime.Track
 
             IReadOnlyList<TrackSegmentBase> segments;
 
-            if ((segments = trackModel.SegmentSections[trackNodeIndex]?.SectionSegments) == null)
+            if ((segments = TrackModel.Instance.SegmentSections[trackNodeIndex]?.SectionSegments) == null)
                 throw new InvalidOperationException($"Track Segments for TrackNode {trackNodeIndex} not found");
 
             //find all vector sections in between (understanding which direction to go)
@@ -157,6 +156,23 @@ namespace FreeTrainSimulator.Runtime.Track
                 Length += item.Length;
             }
             SetBounds();
+        }
+
+        /// <summary>
+        /// Resolves the <see cref="TrackSegmentBase"/> at a specific point within a track node,
+        /// using <see cref="TrackWorld.SectionAt(VectorNode, in WorldLocation)"/> and mapping back
+        /// via <see cref="SectionGeometry"/>.
+        /// </summary>
+        private static TrackSegmentBase ResolveSegment(TrackWorld trackWorld, int trackNodeIndex, in PointD location)
+        {
+            if (trackWorld.TrackNodeByIndex(trackNodeIndex) is not VectorNode vectorNode)
+                return null;
+            VectorSectionNode section = trackWorld.SectionAt(vectorNode, PointD.ToWorldLocation(location));
+            if (section == null)
+                return null;
+            if (trackWorld.SectionGeometry.TryGetValue(section, out SectionGeometry geo))
+                return TrackModel.Instance.SegmentSections[geo.Node.NodeIndex].SectionSegments[geo.SectionIndex];
+            return null;
         }
 #pragma warning restore CA2214 // Do not call overridable methods in constructors
 

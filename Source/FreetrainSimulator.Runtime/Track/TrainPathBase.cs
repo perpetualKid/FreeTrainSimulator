@@ -20,6 +20,7 @@ namespace FreeTrainSimulator.Runtime.Track
         public List<TrainPathPointBase> PathPoints { get; } = new List<TrainPathPointBase>();
 #pragma warning restore CA1002 // Do not expose generic lists
         protected TrackModel TrackModel { get; }
+        protected TrackWorld TrackWorld { get; }
 
         protected abstract record TrainPathSectionBase : TrackSegmentSectionBase<TrainPathSegmentBase>
         {
@@ -32,13 +33,13 @@ namespace FreeTrainSimulator.Runtime.Track
             {
             }
 
-            protected TrainPathSectionBase(TrackModel trackModel, int trackNodeIndex) :
-                base(trackModel, trackNodeIndex)
+            protected TrainPathSectionBase(TrackWorld trackWorld, int trackNodeIndex) :
+                base(trackWorld, trackNodeIndex)
             {
             }
 
-            protected TrainPathSectionBase(TrackModel trackModel, int trackNodeIndex, in PointD startLocation, in PointD endLocation) :
-                base(trackModel, trackNodeIndex, startLocation, endLocation)
+            protected TrainPathSectionBase(TrackWorld trackWorld, int trackNodeIndex, in PointD startLocation, in PointD endLocation) :
+                base(trackWorld, trackNodeIndex, startLocation, endLocation)
             {
             }
         }
@@ -51,6 +52,7 @@ namespace FreeTrainSimulator.Runtime.Track
                     PointD.FromWorldLocation(pathModel.PathNodes.NodeOfType(PathNodeType.End)?.Location ?? throw new ArgumentOutOfRangeException(nameof(pathModel), "Path has no End node")))
         {
             TrackModel = TrackModel.GameInstance(game);
+            TrackWorld = TrackWorld.GameInstance(game);
             PathModel = pathModel;
         }
 
@@ -93,7 +95,7 @@ namespace FreeTrainSimulator.Runtime.Track
                         break;
                     case 1:
                         TrackSegmentBase nodeSegment = trackSegments[0];
-                        section = InitializeSection(TrackModel, nodeSegment.TrackNodeIndex, start.Location, end.Location) as TrainPathSectionBase;
+                        section = InitializeSection(TrackWorld, nodeSegment.TrackNodeIndex, start.Location, end.Location) as TrainPathSectionBase;
                         section.PathType = pathType;
                         sections.Add(section);
                         break;
@@ -108,7 +110,7 @@ namespace FreeTrainSimulator.Runtime.Track
                         }
                         else
                         {
-                            section = InitializeSection(TrackModel, nodeSegment.TrackNodeIndex, start.Location, end.Location) as TrainPathSectionBase;
+                            section = InitializeSection(TrackWorld, nodeSegment.TrackNodeIndex, start.Location, end.Location) as TrainPathSectionBase;
                             section.PathType = pathType;
                             sections.Add(section);
                         }
@@ -130,8 +132,8 @@ namespace FreeTrainSimulator.Runtime.Track
                 float distance = segment.DistanceOnSegment(pathPoint.Location);
 
                 // find the approximate Elevation by doing an linear interpolation between this section's start and end point
-                ref readonly WorldLocation segmentStart = ref (TrackModel.RuntimeData.TrackWorld.TrackModel.TrackDatabase.TrackNodes[pathPoint.ConnectedSegments[0].TrackNodeIndex] as VectorNode).VectorSections[pathPoint.ConnectedSegments[0].TrackVectorSectionIndex].Location;
-                ref readonly WorldLocation segmentEnd = ref (TrackModel.ResolveEndNodeLocation(pathPoint.ConnectedSegments[0].TrackNodeIndex, pathPoint.ConnectedSegments[0].TrackVectorSectionIndex));
+                ref readonly WorldLocation segmentStart = ref (TrackWorld.TrackModel.TrackDatabase.TrackNodes[pathPoint.ConnectedSegments[0].TrackNodeIndex] as VectorNode).VectorSections[pathPoint.ConnectedSegments[0].TrackVectorSectionIndex].Location;
+                ref readonly WorldLocation segmentEnd = ref TrackWorld.ResolveEndNodeLocation(pathPoint.ConnectedSegments[0].TrackNodeIndex, pathPoint.ConnectedSegments[0].TrackVectorSectionIndex);
                 float elevation = WorldLocation.PointAlongDirection(segmentStart, segmentEnd, distance).Location.Y;
 
                 WorldLocation location = PointD.ToWorldLocation(pathPoint.Location).SetElevation(elevation);

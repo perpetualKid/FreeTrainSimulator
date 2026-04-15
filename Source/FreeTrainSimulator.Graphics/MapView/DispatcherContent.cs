@@ -223,6 +223,7 @@ namespace FreeTrainSimulator.Graphics.MapView
 
             insetComponent?.SetTrackSegments(trackSegments);
 
+            trackWorld = RuntimeDataResolver.GameInstance(game).TrackWorld;
             trackModel = TrackModel.Reset(game, RuntimeDataResolver.GameInstance(game));
             trackModel.InitializeRailTrack(trackSegments, junctionSegments, endSegments);
 
@@ -240,10 +241,10 @@ namespace FreeTrainSimulator.Graphics.MapView
                 RuntimeDataResolver.GameInstance(game).TrackWorld.TrackModel.TrackDatabase,
                 trackModel.SegmentSections).Concat(TrackItemWidget.CreateRoadItems(RuntimeDataResolver.GameInstance(game).TrackWorld.TrackModel.RoadDatabase));
 
-            IEnumerable<PlatformPath> platforms = PlatformPath.CreatePlatforms(trackModel, trackItems.OfType<PlatformTrackItem>());
+            IEnumerable<PlatformPath> platforms = PlatformPath.CreatePlatforms(trackWorld, trackItems.OfType<PlatformTrackItem>());
             trackModel.ContentByTile[MapContentType.Platforms] = new TileIndexedList<PlatformPath>(platforms);
 
-            IEnumerable<SidingPath> sidings = SidingPath.CreateSidings(trackModel, trackItems.OfType<SidingTrackItem>());
+            IEnumerable<SidingPath> sidings = SidingPath.CreateSidings(trackWorld, trackItems.OfType<SidingTrackItem>());
             trackModel.ContentByTile[MapContentType.Sidings] = new TileIndexedList<SidingPath>(sidings);
 
             trackModel.ContentByTile[MapContentType.Signals] = new TileIndexedList<SignalTrackItem>(trackItems.OfType<SignalTrackItem>().Where(s => s.Normal));

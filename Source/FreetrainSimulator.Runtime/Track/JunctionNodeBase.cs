@@ -83,9 +83,11 @@ namespace FreeTrainSimulator.Runtime.Track
             return location.DistanceSquared(Location) <= WorldLocation.ProximityTolerance;
         }
 
-        internal IEnumerable<TrackSegmentBase> ConnectedSegments(TrackModel trackModel)
+        internal IEnumerable<TrackSegmentBase> ConnectedSegments()
         {
-            ImmutableArray<TrackNodeConnector> connectors = trackModel.RuntimeData.TrackWorld.TrackModel.TrackDatabase.TrackNodeConnectors[TrackNodeIndex].TrackNodeConnectors;
+            TrackWorld trackWorld = TrackWorld.Instance;
+            TrackModel trackModel = TrackModel.Instance;
+            ImmutableArray<TrackNodeConnector> connectors = trackWorld.TrackModel.TrackDatabase.TrackNodeConnectors[TrackNodeIndex].TrackNodeConnectors;
 
             foreach (TrackNodeConnector connector in connectors)
             {

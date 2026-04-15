@@ -299,10 +299,10 @@ namespace FreeTrainSimulator.Graphics.MapView
 
             trackModel.InitializeTrackItems(trackItems);
 
-            IEnumerable<PlatformPath> platforms = PlatformPath.CreatePlatforms(trackModel, trackItems.OfType<Widgets.PlatformTrackItem>());
+            IEnumerable<PlatformPath> platforms = PlatformPath.CreatePlatforms(trackWorld, trackItems.OfType<Widgets.PlatformTrackItem>());
             trackModel.ContentByTile[MapContentType.Platforms] = new TileIndexedList<PlatformPath>(platforms);
 
-            IEnumerable<SidingPath> sidings = SidingPath.CreateSidings(trackModel, trackItems.OfType<Widgets.SidingTrackItem>());
+            IEnumerable<SidingPath> sidings = SidingPath.CreateSidings(trackWorld, trackItems.OfType<Widgets.SidingTrackItem>());
             trackModel.ContentByTile[MapContentType.Sidings] = new TileIndexedList<SidingPath>(sidings);
 
             IEnumerable<Widgets.SignalTrackItem> signals = trackItems.OfType<Widgets.SignalTrackItem>();
