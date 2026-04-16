@@ -86,12 +86,11 @@ namespace FreeTrainSimulator.Runtime.Track
         internal IEnumerable<TrackSegmentBase> ConnectedSegments()
         {
             TrackWorld trackWorld = TrackWorld.Instance;
-            TrackModel trackModel = TrackModel.Instance;
             ImmutableArray<TrackNodeConnector> connectors = trackWorld.TrackModel.TrackDatabase.TrackNodeConnectors[TrackNodeIndex].TrackNodeConnectors;
 
             foreach (TrackNodeConnector connector in connectors)
             {
-                TrackSegmentSection segment = trackModel.SegmentSections[connector.Link];
+                TrackSegmentSection segment = trackWorld.SegmentSections[connector.Link];
                 yield return segment.SectionSegments[connector.Direction == TrackDirection.Reverse ? 0 : ^1];
             }
         }

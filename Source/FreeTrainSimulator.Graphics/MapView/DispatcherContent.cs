@@ -176,15 +176,16 @@ namespace FreeTrainSimulator.Graphics.MapView
         /// <summary>
         /// Resolves a <see cref="TrackSegmentBase"/> for a <see cref="Models.Track.VectorSectionNode"/>
         /// by looking up its <see cref="SectionGeometry"/> in <see cref="TrackWorld"/> and mapping back
-        /// to the corresponding 2D segment via <see cref="TrackModel.SegmentSections"/>.
+        /// to the corresponding 2D segment via <see cref="TrackWorld.SegmentSections"/>.
         /// </summary>
         private static TrackSegmentBase ResolveTrackSegment(Models.Track.VectorSectionNode section)
         {
             if (section == null)
                 return null;
-            if (!TrackWorld.Instance.SectionGeometry.TryGetValue(section, out SectionGeometry geo))
-                return null;
-            return TrackModel.Instance?.SegmentSections[geo.Node.NodeIndex]?.SectionSegments[geo.SectionIndex];
+            TrackWorld trackWorld = TrackWorld.Instance;
+            return !trackWorld.SectionGeometry.TryGetValue(section, out SectionGeometry sectionGeometry)
+                ? null
+                : (trackWorld.SegmentSections[sectionGeometry.Node.NodeIndex]?.SectionSegments[sectionGeometry.SectionIndex]);
         }
 
         public void UpdateWidgetColorSettings(EnumArray<string, ColorSetting> colorPreferences)
@@ -239,6 +240,7 @@ namespace FreeTrainSimulator.Graphics.MapView
             trackWorld = RuntimeDataResolver.GameInstance(game).TrackWorld;
             trackModel = TrackModel.Reset(game, RuntimeDataResolver.GameInstance(game));
             trackModel.InitializeRailTrack(trackSegments, junctionSegments, endSegments);
+            trackWorld.SetSegmentSections(trackSegments.GroupBy(t => t.TrackNodeIndex).Select(g => new TrackSegmentSection(g.Key, g)));
 
             ContentByTile[MapContentType.Tracks] = new TileIndexedList<TrackSegmentBase>(trackSegments);
             ContentByTile[MapContentType.JunctionNodes] = new TileIndexedList<JunctionNodeBase>(trackModel.Junctions);

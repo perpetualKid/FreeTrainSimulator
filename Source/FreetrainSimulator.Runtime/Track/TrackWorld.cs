@@ -22,6 +22,20 @@ namespace FreeTrainSimulator.Runtime.Track
 
         public Models.Track.TrackModel TrackModel { get; }
 
+        /// <summary>
+        /// Indexed by track node index; returns the <see cref="TrackSegmentSection"/> for rail vector nodes,
+        /// or <see langword="null"/> for non-vector node indices.
+        /// Populated by the Graphics layer via <see cref="SetSegmentSections"/>.
+        /// </summary>
+        public IReadOnlyList<TrackSegmentSection> SegmentSections { get; private set; } = Array.Empty<TrackSegmentSection>();
+
+        /// <summary>
+        /// Indexed by track node index; returns the <see cref="TrackSegmentSection"/> for road vector nodes,
+        /// or <see langword="null"/> for non-vector node indices.
+        /// Populated by the Graphics layer via <see cref="SetRoadSegmentSections"/>.
+        /// </summary>
+        public IReadOnlyList<TrackSegmentSection> RoadSegmentSections { get; private set; } = Array.Empty<TrackSegmentSection>();
+
         public EnumArray<ITileIndexedList<ITileCoordinate>, MapContentType> ContentByTile { get; } = new EnumArray<ITileIndexedList<ITileCoordinate>, MapContentType>();
 
         public Dictionary<int, int> SwitchStates { get; private set; } = new Dictionary<int, int>();
@@ -128,6 +142,42 @@ namespace FreeTrainSimulator.Runtime.Track
             // EmptyTrackItem instances are index-preserving placeholders with no valid location
             // (WorldLocation.None at tile 0,0). Indexing them would create a spurious tile bucket
             // and corrupt boundary calculations, so they are intentionally excluded.
+        }
+
+        /// <summary>
+        /// Registers rail track <see cref="TrackSegmentSection"/> instances built by the Graphics layer.
+        /// The array is indexed by track node index (sparse — non-vector indices will be <see langword="null"/>).
+        /// </summary>
+        public void SetSegmentSections(IEnumerable<TrackSegmentSection> sections)
+        {
+            ArgumentNullException.ThrowIfNull(sections);
+            SegmentSections = BuildIndexedArray(sections);
+        }
+
+        /// <summary>
+        /// Registers road track <see cref="TrackSegmentSection"/> instances built by the Graphics layer.
+        /// The array is indexed by track node index (sparse — non-vector indices will be <see langword="null"/>).
+        /// </summary>
+        public void SetRoadSegmentSections(IEnumerable<TrackSegmentSection> sections)
+        {
+            ArgumentNullException.ThrowIfNull(sections);
+            RoadSegmentSections = BuildIndexedArray(sections);
+        }
+
+        private static TrackSegmentSection[] BuildIndexedArray(IEnumerable<TrackSegmentSection> sections)
+        {
+            int maxIndex = 0;
+            foreach (TrackSegmentSection section in sections)
+            {
+                if (section.TrackNodeIndex > maxIndex)
+                    maxIndex = section.TrackNodeIndex;
+            }
+            TrackSegmentSection[] array = new TrackSegmentSection[maxIndex + 1];
+            foreach (TrackSegmentSection section in sections)
+            {
+                array[section.TrackNodeIndex] = section;
+            }
+            return array;
         }
 
         private FrozenDictionary<VectorSectionNode, SectionGeometry> BuildSectionGeometry(TrackSectionModel trackSectionModel)

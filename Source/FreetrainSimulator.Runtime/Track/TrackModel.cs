@@ -102,18 +102,14 @@ namespace FreeTrainSimulator.Runtime.Track
         public RuntimeDataResolver RuntimeData { get; }
         public IReadOnlyList<JunctionNodeBase> Junctions { get; }
         public IReadOnlyList<EndNodeBase> EndNodes { get; }
-        public IReadOnlyList<TrackSegmentSection> SegmentSections { get; }
         public IReadOnlyList<EndNodeBase> RoadEndNodes { get; }
-        public IReadOnlyList<TrackSegmentSection> RoadSegmentSections { get; }
 
         private TrackModel(RuntimeDataResolver runtimeData)
         {
             RuntimeData = runtimeData;
             Junctions = new PartialTrackElementList<JunctionNodeBase>(railTrackElements);
             EndNodes = new PartialTrackElementList<EndNodeBase>(railTrackElements);
-            SegmentSections = new PartialTrackElementList<TrackSegmentSection>(railTrackElements);
             RoadEndNodes = new PartialTrackElementList<EndNodeBase>(roadTrackElements);
-            RoadSegmentSections = new PartialTrackElementList<TrackSegmentSection>(roadTrackElements);
         }
 
         public static TrackModel Instance => GameService<TrackModel>.Instance;
@@ -135,8 +131,6 @@ namespace FreeTrainSimulator.Runtime.Track
 
             railTrackElements.AddRange(trackSegmentSections);
 
-            (SegmentSections as PartialTrackElementList<TrackSegmentSection>).AddRange(railTrackElements.Cast<TrackSegmentSection>());
-
             railTrackElements.AddRange(junctionNodes);
             railTrackElements.AddRange(endNodes);
             railTrackElements.Sort((t1, t2) => t1.Index.CompareTo(t2.Index));
@@ -154,8 +148,6 @@ namespace FreeTrainSimulator.Runtime.Track
             IEnumerable<TrackSegmentSection> trackSegmentSections = trackSegments.GroupBy(t => t.TrackNodeIndex).Select(t => new TrackSegmentSection(t.Key, t));
 
             roadTrackElements.AddRange(trackSegmentSections);
-
-            (RoadSegmentSections as PartialTrackElementList<TrackSegmentSection>).AddRange(roadTrackElements.Cast<TrackSegmentSection>());
 
             roadTrackElements.AddRange(endNodes);
             roadTrackElements.Sort((t1, t2) => t1.Index.CompareTo(t2.Index));
@@ -177,7 +169,6 @@ namespace FreeTrainSimulator.Runtime.Track
             railTrackElements.Clear();
             ((Junctions as PartialTrackElementList<JunctionNodeBase>)).Clear();
             ((EndNodes as PartialTrackElementList<EndNodeBase>)).Clear();
-            (SegmentSections as PartialTrackElementList<TrackSegmentSection>).Clear();
         }
 
         public IIndexedElement TrackNodeByIndex(int index, TrackDataBaseType trackDataBaseType = TrackDataBaseType.Rail)
@@ -206,7 +197,7 @@ namespace FreeTrainSimulator.Runtime.Track
             foreach (VectorSectionNode section in RuntimeData.TrackWorld.SectionsAt(worldLocation))
             {
                 if (RuntimeData.TrackWorld.SectionGeometry.TryGetValue(section, out SectionGeometry geo))
-                    yield return SegmentSections[geo.Node.NodeIndex].SectionSegments[geo.SectionIndex];
+                    yield return RuntimeData.TrackWorld.SegmentSections[geo.Node.NodeIndex].SectionSegments[geo.SectionIndex];
             }
         }
 
@@ -222,7 +213,7 @@ namespace FreeTrainSimulator.Runtime.Track
             foreach (VectorSectionNode section in RuntimeData.TrackWorld.OtherVectorSectionNodesAt(worldLocation, source.TrackNodeIndex))
             {
                 if (RuntimeData.TrackWorld.SectionGeometry.TryGetValue(section, out SectionGeometry geo))
-                    yield return SegmentSections[geo.Node.NodeIndex].SectionSegments[geo.SectionIndex];
+                    yield return RuntimeData.TrackWorld.SegmentSections[geo.Node.NodeIndex].SectionSegments[geo.SectionIndex];
             }
         }
 
@@ -239,7 +230,7 @@ namespace FreeTrainSimulator.Runtime.Track
             if (section == null)
                 return null;
             if (RuntimeData.TrackWorld.SectionGeometry.TryGetValue(section, out SectionGeometry geo))
-                return SegmentSections[geo.Node.NodeIndex].SectionSegments[geo.SectionIndex];
+                return RuntimeData.TrackWorld.SegmentSections[geo.Node.NodeIndex].SectionSegments[geo.SectionIndex];
             return null;
         }
 
@@ -256,7 +247,7 @@ namespace FreeTrainSimulator.Runtime.Track
             if (section == null)
                 return null;
             if (RuntimeData.TrackWorld.SectionGeometry.TryGetValue(section, out SectionGeometry geo))
-                return SegmentSections[geo.Node.NodeIndex].SectionSegments[geo.SectionIndex];
+                return RuntimeData.TrackWorld.SegmentSections[geo.Node.NodeIndex].SectionSegments[geo.SectionIndex];
             return null;
         }
 

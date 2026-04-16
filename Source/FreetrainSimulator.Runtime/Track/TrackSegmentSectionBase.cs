@@ -81,7 +81,7 @@ namespace FreeTrainSimulator.Runtime.Track
         {
             ArgumentNullException.ThrowIfNull(trackWorld);
 
-            TrackSegmentSection sourceSection = TrackModel.Instance.SegmentSections[trackNodeIndex];
+            TrackSegmentSection sourceSection = trackWorld.SegmentSections[trackNodeIndex];
             SetVector(sourceSection.Location, sourceSection.Vector);
             foreach (TrackSegmentBase segment in sourceSection.SectionSegments)
             {
@@ -113,7 +113,7 @@ namespace FreeTrainSimulator.Runtime.Track
 
             IReadOnlyList<TrackSegmentBase> segments;
 
-            if ((segments = TrackModel.Instance.SegmentSections[trackNodeIndex]?.SectionSegments) == null)
+            if ((segments = trackWorld.SegmentSections[trackNodeIndex]?.SectionSegments) == null)
                 throw new InvalidOperationException($"Track Segments for TrackNode {trackNodeIndex} not found");
 
             //find all vector sections in between (understanding which direction to go)
@@ -171,7 +171,7 @@ namespace FreeTrainSimulator.Runtime.Track
             if (section == null)
                 return null;
             if (trackWorld.SectionGeometry.TryGetValue(section, out SectionGeometry geo))
-                return TrackModel.Instance.SegmentSections[geo.Node.NodeIndex].SectionSegments[geo.SectionIndex];
+                return trackWorld.SegmentSections[geo.Node.NodeIndex].SectionSegments[geo.SectionIndex];
             return null;
         }
 #pragma warning restore CA2214 // Do not call overridable methods in constructors

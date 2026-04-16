@@ -69,11 +69,11 @@ namespace FreeTrainSimulator.Graphics.MapView
             ContentByTile[MapContentType.Paths] = new TileIndexedList<EditorTrainPath>(new List<EditorTrainPath>() { });
 
             DetailInfo["Metric Scale"] = RuntimeDataResolver.GameInstance(game).MetricUnits.ToString();
-            DetailInfo["Track Nodes"] = $"{trackModel.SegmentSections.Count}";
+            DetailInfo["Track Nodes"] = $"{trackWorld.SegmentSections.Count}";
             DetailInfo["Track Segments"] = $"{ContentByTile[MapContentType.Tracks].ItemCount}";
             DetailInfo["Track End Segments"] = $"{ContentByTile[MapContentType.EndNodes].ItemCount}";
             DetailInfo["Junction Segments"] = $"{ContentByTile[MapContentType.JunctionNodes].ItemCount}";
-            DetailInfo["Road Nodes"] = $"{trackModel.RoadSegmentSections.Count}";
+            DetailInfo["Road Nodes"] = $"{trackWorld.RoadSegmentSections.Count}";
             DetailInfo["Road Segments"] = $"{ContentByTile[MapContentType.Roads].ItemCount}";
             DetailInfo["Road End Segments"] = $"{ContentByTile[MapContentType.RoadEndNodes].ItemCount}";
             DetailInfo["Tiles"] = $"{ContentByTile[MapContentType.Grid].Count}";
@@ -189,14 +189,14 @@ namespace FreeTrainSimulator.Graphics.MapView
             {
                 if (null != nearestItems[MapContentType.Tracks])
                 {
-                    foreach (TrackSegmentBase segment in trackModel.SegmentSections[(nearestItems[MapContentType.Tracks] as TrackSegmentBase).TrackNodeIndex].SectionSegments)
+                    foreach (TrackSegmentBase segment in trackWorld.SegmentSections[(nearestItems[MapContentType.Tracks] as TrackSegmentBase).TrackNodeIndex].SectionSegments)
                     {
                         (segment as IDrawable<VectorPrimitive>).Draw(ContentArea, ColorVariation.ComplementHighlight);
                     }
                 }
                 if (null != nearestItems[MapContentType.Roads])
                 {
-                    foreach (TrackSegmentBase segment in trackModel.RoadSegmentSections[(nearestItems[MapContentType.Roads] as TrackSegmentBase).TrackNodeIndex].SectionSegments)
+                    foreach (TrackSegmentBase segment in trackWorld.RoadSegmentSections[(nearestItems[MapContentType.Roads] as TrackSegmentBase).TrackNodeIndex].SectionSegments)
                     {
                         (segment as IDrawable<VectorPrimitive>).Draw(ContentArea, ColorVariation.ComplementHighlight);
                     }
@@ -285,8 +285,10 @@ namespace FreeTrainSimulator.Graphics.MapView
             ContentByTile[MapContentType.RoadEndNodes] = new TileIndexedList<EndNodeBase>(trackModel.RoadEndNodes);
 
             trackWorld = TrackWorld.Initialize(game, runtimeData.TrackWorld.TrackModel, runtimeData.TrackSections);
+            trackWorld.SetSegmentSections(trackSegments.GroupBy(t => t.TrackNodeIndex).Select(group => new TrackSegmentSection(group.Key, group)));
+            trackWorld.SetRoadSegmentSections(roadSegments.GroupBy(t => t.TrackNodeIndex).Select(group => new TrackSegmentSection(group.Key, group)));
 
-            // identify all tiles by looking at tracks and roads and their respective end segments
+            // identify all tiles
             ContentByTile[MapContentType.Grid] = new TileIndexedList<GridTile>(
                 ContentByTile[MapContentType.Tracks].Select(d => d.Tile).Distinct()
                 .Union(ContentByTile[MapContentType.EndNodes].Select(d => d.Tile).Distinct())
