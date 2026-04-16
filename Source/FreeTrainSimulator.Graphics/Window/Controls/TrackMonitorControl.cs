@@ -17,14 +17,14 @@ namespace FreeTrainSimulator.Graphics.Window.Controls
 
         private class ItemContainer
         {
-            public List<(TrackMonitorSignalAspect, float, float)> Signals { get; } = new List<(TrackMonitorSignalAspect, float, float)>();
-            public List<(float, float)> Mileposts { get; } = new List<(float, float)>();
-            public List<(float, bool)> Switches { get; } = new List<(float, bool)>();
-            public List<(float, double, Color)> Speedposts { get; } = new List<(float, double, Color)>();
-            public List<(float, int)> Platforms { get; } = new List<(float, int)>();
-            public List<(float, bool?)> Authorities { get; } = new List<(float, bool?)>();
-            public List<(float, bool, bool)> Reversals { get; } = new List<(float, bool, bool)>();
-            public List<(float, bool)> WaitingPoints { get; } = new List<(float, bool)>();
+            public List<(TrackMonitorSignalAspect Aspect, float Distance, float SpeedLimit)> Signals { get; } = new List<(TrackMonitorSignalAspect, float, float)>();
+            public List<(float Distance, float Milepost)> Mileposts { get; } = new List<(float, float)>();
+            public List<(float Distance, bool RightHand)> Switches { get; } = new List<(float, bool)>();
+            public List<(float Distance, double Limit, Color Color)> Speedposts { get; } = new List<(float, double, Color)>();
+            public List<(float Distance, int Length)> Platforms { get; } = new List<(float, int)>();
+            public List<(float Distance, bool? OtherTrain)> Authorities { get; } = new List<(float, bool?)>();
+            public List<(float Distance, bool Valid, bool Enabled)> Reversals { get; } = new List<(float, bool, bool)>();
+            public List<(float Distance, bool Enabled)> WaitingPoints { get; } = new List<(float, bool)>();
 
             public ItemContainer(Direction direction)
             {
@@ -207,42 +207,42 @@ namespace FreeTrainSimulator.Graphics.Window.Controls
             }
         }
 
-        public void AddSignal(Direction direction, (TrackMonitorSignalAspect, float, float) item)
+        public void AddSignal(Direction direction, (TrackMonitorSignalAspect Aspect, float Distance, float SpeedLimit) item)
         {
             prepareItems[direction].Signals.Add(item);
         }
 
-        public void AddMilepost(Direction direction, (float, float) item)
+        public void AddMilepost(Direction direction, (float Distance, float Milepost) item)
         {
             prepareItems[direction].Mileposts.Add(item);
         }
 
-        public void AddSwitch(Direction direction, (float, bool) item)
+        public void AddSwitch(Direction direction, (float Distance, bool RightHand) item)
         {
             prepareItems[direction].Switches.Add(item);
         }
 
-        public void AddSpeedpost(Direction direction, (float, double, Color) item)
+        public void AddSpeedpost(Direction direction, (float Distance, double Limit, Color Color) item)
         {
             prepareItems[direction].Speedposts.Add(item);
         }
 
-        public void AddPlatform(Direction direction, (float, int) item)
+        public void AddPlatform(Direction direction, (float Distance, int Length) item)
         {
             prepareItems[direction].Platforms.Add(item);
         }
 
-        public void AddAuthority(Direction direction, (float, bool?) item)
+        public void AddAuthority(Direction direction, (float Distance, bool? OtherTrain) item)
         {
             prepareItems[direction].Authorities.Add(item);
         }
 
-        public void AddReversal(Direction direction, (float, bool, bool) item)
+        public void AddReversal(Direction direction, (float Distance, bool Valid, bool Enabled) item)
         {
             prepareItems[direction].Reversals.Add(item);
         }
 
-        public void AddWaitingPoint(Direction direction, (float, bool) item)
+        public void AddWaitingPoint(Direction direction, (float Distance, bool Enabled) item)
         {
             prepareItems[direction].WaitingPoints.Add(item);
         }

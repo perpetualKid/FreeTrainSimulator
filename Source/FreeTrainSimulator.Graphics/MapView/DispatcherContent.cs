@@ -210,13 +210,12 @@ namespace FreeTrainSimulator.Graphics.MapView
 
         private void AddTrackSegments()
         {
-            Models.Track.TrackDatabase trackDatabase = RuntimeDataResolver.GameInstance(game).TrackWorld.TrackDatabase;
+            RuntimeDataResolver runtimeData = RuntimeDataResolver.GameInstance(game);
+            Models.Track.TrackDatabase trackDatabase = runtimeData.TrackWorld.TrackDatabase;
 
             ConcurrentBag<TrackSegment> trackSegments = new ConcurrentBag<TrackSegment>();
             ConcurrentBag<EndNode> endSegments = new ConcurrentBag<Widgets.EndNode>();
             ConcurrentBag<JunctionNode> junctionSegments = new ConcurrentBag<Widgets.JunctionNode>();
-            ConcurrentBag<RoadSegment> roadSegments = new ConcurrentBag<RoadSegment>();
-            ConcurrentBag<RoadEndSegment> roadEndSegments = new ConcurrentBag<RoadEndSegment>();
 
             if (trackDatabase != null)
             {
@@ -243,7 +242,7 @@ namespace FreeTrainSimulator.Graphics.MapView
 
             insetComponent?.SetTrackSegments(trackSegments);
 
-            trackWorld = RuntimeDataResolver.GameInstance(game).TrackWorld;
+            trackWorld = runtimeData.TrackWorld;
             trackWorld.SetSegmentSections(trackSegments.GroupBy(t => t.TrackNodeIndex).Select(g => new TrackSegmentSection(g.Key, g)));
             trackWorld.SetJunctions(junctionSegments);
 
@@ -261,9 +260,10 @@ namespace FreeTrainSimulator.Graphics.MapView
 
         private void AddTrackItems()
         {
-            IEnumerable<TrackItemBase> trackItems = TrackItemWidget.CreateTrackItems(
-                RuntimeDataResolver.GameInstance(game).TrackWorld.TrackDatabase,
-                trackWorld).Concat(TrackItemWidget.CreateRoadItems(RuntimeDataResolver.GameInstance(game).TrackWorld.RoadDatabase));
+            // Materialized once to avoid repeated enumeration of the concatenated sequence (CA1851).
+            List<TrackItemWidget> trackItems = TrackItemWidget.CreateTrackItems(
+                trackWorld.TrackDatabase,
+                trackWorld).Concat(TrackItemWidget.CreateRoadItems(trackWorld.RoadDatabase)).ToList();
 
             IEnumerable<PlatformPath> platforms = PlatformPath.CreatePlatforms(trackWorld, trackItems.OfType<PlatformTrackItem>());
             ContentByTile[MapContentType.Platforms] = new TileIndexedList<PlatformPath>(platforms);
