@@ -6,6 +6,7 @@ using FreeTrainSimulator.Graphics.MapView;
 using FreeTrainSimulator.Graphics.Window;
 using FreeTrainSimulator.Graphics.Window.Controls;
 using FreeTrainSimulator.Graphics.Window.Controls.Layout;
+using FreeTrainSimulator.Models.Track;
 using FreeTrainSimulator.Runtime.Track;
 
 using GetText;
@@ -69,8 +70,8 @@ namespace FreeTrainSimulator.Toolbox.PopupWindows
         {
             if (int.TryParse((sender as TextInput).Text, out int nodeIndex))
             {
-                IIndexedElement item = TrackModel.GameInstance(Owner.Game).TrackItemByIndex(nodeIndex);
-                if (item is TrackItemBase trackItem)
+                Models.Track.TrackItemBase trackItem = TrackWorld.GameInstance(Owner.Game).TrackItemByIndex(nodeIndex);
+                if (trackItem != null)
                 {
                     //                    contentArea?.UpdateScaleToFit(segmentSection.TopLeftBound, segmentSection.BottomRightBound);
                     contentArea?.SetTrackingPosition(trackItem.Location);

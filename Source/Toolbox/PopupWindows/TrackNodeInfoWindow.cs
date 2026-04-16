@@ -77,11 +77,12 @@ namespace FreeTrainSimulator.Toolbox.PopupWindows
             {
                 if (searchTypeButtons.Selected != null)
                 {
+                    TrackWorld trackWorld = TrackWorld.GameInstance(Owner.Game);
                     switch ((SearchType)searchTypeButtons.Selected.Tag)
                     {
                         case SearchType.Track:
-                            IIndexedElement node = TrackModel.GameInstance(Owner.Game).TrackNodeByIndex(nodeIndex, Models.Track.TrackDataBaseType.Rail);
-                            if (node is TrackSegmentSection segmentSection)
+                            TrackSegmentSection segmentSection = nodeIndex > -1 && nodeIndex < trackWorld.SegmentSections.Length ? trackWorld.SegmentSections[nodeIndex] : null;
+                            if (segmentSection != null)
                             {
                                 contentArea?.UpdateScaleToFit(segmentSection.TopLeftBound, segmentSection.BottomRightBound);
                                 contentArea?.SetTrackingPosition(segmentSection.MidPoint);
@@ -89,8 +90,8 @@ namespace FreeTrainSimulator.Toolbox.PopupWindows
                             }
                             break;
                         case SearchType.Road:
-                            IIndexedElement roadNode = TrackModel.GameInstance(Owner.Game).TrackNodeByIndex(nodeIndex, Models.Track.TrackDataBaseType.Road);
-                            if (roadNode is TrackSegmentSection roadSegmentSection)
+                            TrackSegmentSection roadSegmentSection = nodeIndex > -1 && nodeIndex < trackWorld.RoadSegmentSections.Length ? trackWorld.RoadSegmentSections[nodeIndex] : null;
+                            if (roadSegmentSection != null)
                             {
                                 contentArea?.UpdateScaleToFit(roadSegmentSection.TopLeftBound, roadSegmentSection.BottomRightBound);
                                 contentArea?.SetTrackingPosition(roadSegmentSection.MidPoint);

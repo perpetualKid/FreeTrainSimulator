@@ -21,21 +21,21 @@ namespace FreeTrainSimulator.Runtime.Track
 
         public PathNodeInvalidReasons ValidationResult { get; set; }
 
-        protected TrainPathPointBase(PathNode node, TrackModel trackModel)
+        protected TrainPathPointBase(PathNode node, TrackWorld trackWorld)
         {
             ArgumentNullException.ThrowIfNull(node);
-            ArgumentNullException.ThrowIfNull(trackModel);
+            ArgumentNullException.ThrowIfNull(trackWorld);
 
             SetLocation(PointD.FromWorldLocation(node.Location));
             NodeType = node.NodeType;
             NextMainNode = node.NextMainNode;
             NextSidingNode = node.NextSidingNode;
 
-            JunctionNode = (node.NodeType & PathNodeType.Junction) == PathNodeType.Junction ? trackModel.JunctionAt(Location) : null;
+            JunctionNode = (node.NodeType & PathNodeType.Junction) == PathNodeType.Junction ? trackWorld.JunctionNodeBaseAt(Location) : null;
             if ((node.NodeType & PathNodeType.Junction) == PathNodeType.Junction && JunctionNode == null)
                 ValidationResult |= PathNodeInvalidReasons.NoJunctionNode;
 
-            ConnectedSegments = GetConnectedNodes(trackModel);
+            ConnectedSegments = GetConnectedNodes(trackWorld);
             if (!ConnectedSegments.Any())
                 ValidationResult |= PathNodeInvalidReasons.NotOnTrack;
         }
@@ -45,27 +45,27 @@ namespace FreeTrainSimulator.Runtime.Track
             NodeType = nodeType;
         }
 
-        protected TrainPathPointBase(in PointD location, TrackModel trackModel) : base(location)
+        protected TrainPathPointBase(in PointD location, TrackWorld trackWorld) : base(location)
         {
-            ArgumentNullException.ThrowIfNull(trackModel);
+            ArgumentNullException.ThrowIfNull(trackWorld);
 
-            JunctionNode = trackModel.JunctionAt(Location);
+            JunctionNode = trackWorld.JunctionNodeBaseAt(Location);
             NodeType = JunctionNode != null ? PathNodeType.Junction : PathNodeType.Intermediate;
 
-            ConnectedSegments = GetConnectedNodes(trackModel);
+            ConnectedSegments = GetConnectedNodes(trackWorld);
             if (!ConnectedSegments.Any())
                 ValidationResult |= PathNodeInvalidReasons.NotOnTrack;
         }
 
-        protected TrainPathPointBase(in PointD location, JunctionNodeBase junctionNode, TrackSegmentBase trackSegment, TrackModel trackModel) : base(location)
+        protected TrainPathPointBase(in PointD location, JunctionNodeBase junctionNode, TrackSegmentBase trackSegment, TrackWorld trackWorld) : base(location)
         {
-            ArgumentNullException.ThrowIfNull(trackModel);
+            ArgumentNullException.ThrowIfNull(trackWorld);
 
             JunctionNode = junctionNode;
             if (JunctionNode != null)
             {
                 NodeType = PathNodeType.Junction;
-                ConnectedSegments = GetConnectedNodes(trackModel);
+                ConnectedSegments = GetConnectedNodes(trackWorld);
             }
             else if (trackSegment != null)
             {
@@ -77,11 +77,11 @@ namespace FreeTrainSimulator.Runtime.Track
                 ValidationResult |= PathNodeInvalidReasons.NotOnTrack;
         }
 
-        private ImmutableArray<TrackSegmentBase> GetConnectedNodes(TrackModel trackModel)
+        private ImmutableArray<TrackSegmentBase> GetConnectedNodes(TrackWorld trackWorld)
         {
             ImmutableArray<TrackSegmentBase> result;
             if (JunctionNode == null || (result = JunctionNode.ConnectedSegments().ToImmutableArray()).IsDefaultOrEmpty)
-                result = trackModel.SegmentsAt(Location).ToImmutableArray();
+                result = trackWorld.SegmentBasesAt(Location).ToImmutableArray();
             return result;
         }
     }

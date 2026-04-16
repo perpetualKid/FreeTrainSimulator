@@ -27,16 +27,16 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
             }
         }
 
-        internal EditorPathPoint(PathNode pathNode, TrackModel trackModel) : base(pathNode, trackModel)
+        internal EditorPathPoint(PathNode pathNode, TrackWorld trackWorld) : base(pathNode, trackWorld)
         {
             textureType = TextureFromNodeType(NodeType);
         }
 
-        internal EditorPathPoint(in PointD location, TrackModel trackModel) : base(location, trackModel)
+        internal EditorPathPoint(in PointD location, TrackWorld trackWorld) : base(location, trackWorld)
         { }
 
-        internal EditorPathPoint(in PointD location, Runtime.Track.JunctionNodeBase junctionNode, TrackSegmentBase trackSegment, TrackModel trackModel) :
-            base(location, junctionNode, trackSegment, trackModel)
+        internal EditorPathPoint(in PointD location, Runtime.Track.JunctionNodeBase junctionNode, TrackSegmentBase trackSegment, TrackWorld trackWorld) :
+            base(location, junctionNode, trackSegment, trackWorld)
         {
             textureType = TextureFromNodeType(NodeType);
             Direction = trackSegment?.DirectionAt(Location) + MathHelper.PiOver2 ?? Direction;

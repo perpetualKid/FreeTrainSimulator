@@ -19,7 +19,6 @@ namespace FreeTrainSimulator.Runtime.Track
 #pragma warning disable CA1002 // Do not expose generic lists
         public List<TrainPathPointBase> PathPoints { get; } = new List<TrainPathPointBase>();
 #pragma warning restore CA1002 // Do not expose generic lists
-        protected TrackModel TrackModel { get; }
         protected TrackWorld TrackWorld { get; }
 
         protected abstract record TrainPathSectionBase : TrackSegmentSectionBase<TrainPathSegmentBase>
@@ -51,7 +50,6 @@ namespace FreeTrainSimulator.Runtime.Track
                   pathModel.PathNodes.IsDefaultOrEmpty ? PointD.None : 
                     PointD.FromWorldLocation(pathModel.PathNodes.NodeOfType(PathNodeType.End)?.Location ?? throw new ArgumentOutOfRangeException(nameof(pathModel), "Path has no End node")))
         {
-            TrackModel = TrackModel.GameInstance(game);
             TrackWorld = TrackWorld.GameInstance(game);
             PathModel = pathModel;
         }
@@ -79,7 +77,7 @@ namespace FreeTrainSimulator.Runtime.Track
                 switch (trackSegments.Count)
                 {
                     case 0:
-                        intermediary = TrackModel.FindIntermediaryConnection(start, end);
+                        intermediary = TrackWorld.FindIntermediaryConnection(start, end);
                         if (intermediary != null)
                         {
                             sections.AddRange(InitializeSections(pathType, start, intermediary).Sections);

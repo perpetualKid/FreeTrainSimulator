@@ -20,7 +20,6 @@ using FreeTrainSimulator.Graphics.Window;
 using FreeTrainSimulator.Graphics.Xna;
 using FreeTrainSimulator.Models.Settings;
 using FreeTrainSimulator.Models.Shim;
-using FreeTrainSimulator.Runtime.Track;
 
 using GetText;
 using GetText.WindowsForms;
@@ -212,8 +211,6 @@ namespace Orts.ActivityRunner.Viewer3D.Dispatcher
 
         protected override async void LoadContent()
         {
-            TrackModel.GameInstance(this)?.Reset();
-
             Simulator simulator = Simulator.Instance;
             base.LoadContent();
             bool useMetricUnits = userSettings.MeasurementUnit == MeasurementUnit.Metric || (userSettings.MeasurementUnit == MeasurementUnit.System && RegionInfo.CurrentRegion.IsMetric) ||

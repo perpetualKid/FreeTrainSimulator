@@ -19,7 +19,7 @@ namespace FreeTrainSimulator.Graphics.MapView
         private bool disposedValue;
 
         protected ToolboxContent ToolboxContent { get; }
-        protected TrackModel TrackModel { get; }
+        protected TrackWorld TrackWorld { get; }
 
         public TrainPathBase TrainPath
         {
@@ -33,7 +33,7 @@ namespace FreeTrainSimulator.Graphics.MapView
         {
             ArgumentNullException.ThrowIfNull(contentArea);
 
-            TrackModel = TrackModel.GameInstance(contentArea.Game);
+            TrackWorld = TrackWorld.GameInstance(contentArea.Game);
             ToolboxContent = contentArea?.Content as ToolboxContent ?? throw new ArgumentNullException(nameof(contentArea));
             ToolboxContent.PathEditor = this;
         }
@@ -43,7 +43,7 @@ namespace FreeTrainSimulator.Graphics.MapView
             // if a tracksegment is nearby, snap to the segment
             PointD snapLocation = nearestSegment?.SnapToSegment(location) ?? location;
             Runtime.Track.JunctionNodeBase junction;
-            if ((junction = TrackModel.JunctionAt(snapLocation)) != null) //if within junction proximity, snap to the junction
+            if ((junction = TrackWorld.JunctionNodeBaseAt(snapLocation)) != null) //if within junction proximity, snap to the junction
                 snapLocation = junction.Location;
 
             activePathPoint = trainPath.UpdatePathEndPoint(snapLocation, junction, nearestSegment);

@@ -69,11 +69,11 @@ namespace FreeTrainSimulator.Graphics.MapView
             ContentByTile[MapContentType.Paths] = new TileIndexedList<EditorTrainPath>(new List<EditorTrainPath>() { });
 
             DetailInfo["Metric Scale"] = RuntimeDataResolver.GameInstance(game).MetricUnits.ToString();
-            DetailInfo["Track Nodes"] = $"{trackWorld.SegmentSections.Count}";
+            DetailInfo["Track Nodes"] = $"{trackWorld.SegmentSections.Length}";
             DetailInfo["Track Segments"] = $"{ContentByTile[MapContentType.Tracks].ItemCount}";
             DetailInfo["Track End Segments"] = $"{ContentByTile[MapContentType.EndNodes].ItemCount}";
             DetailInfo["Junction Segments"] = $"{ContentByTile[MapContentType.JunctionNodes].ItemCount}";
-            DetailInfo["Road Nodes"] = $"{trackWorld.RoadSegmentSections.Count}";
+            DetailInfo["Road Nodes"] = $"{trackWorld.RoadSegmentSections.Length}";
             DetailInfo["Road Segments"] = $"{ContentByTile[MapContentType.Roads].ItemCount}";
             DetailInfo["Road End Segments"] = $"{ContentByTile[MapContentType.RoadEndNodes].ItemCount}";
             DetailInfo["Tiles"] = $"{ContentByTile[MapContentType.Grid].Count}";
@@ -253,12 +253,9 @@ namespace FreeTrainSimulator.Graphics.MapView
 
             insetComponent?.SetTrackSegments(trackSegments);
 
-            trackModel = Runtime.Track.TrackModel.Reset(game, runtimeData);
-            trackModel.InitializeRailTrack(trackSegments, junctionSegments, endSegments);
-
             ContentByTile[MapContentType.Tracks] = new TileIndexedList<TrackSegmentBase>(trackSegments);
-            ContentByTile[MapContentType.JunctionNodes] = new TileIndexedList<JunctionNodeBase>(trackModel.Junctions);
-            ContentByTile[MapContentType.EndNodes] = new TileIndexedList<EndNodeBase>(trackModel.EndNodes);
+            ContentByTile[MapContentType.JunctionNodes] = new TileIndexedList<JunctionNodeBase>(junctionSegments);
+            ContentByTile[MapContentType.EndNodes] = new TileIndexedList<EndNodeBase>(endSegments);
 
             if (runtimeData.TrackWorld.TrackModel.RoadDatabase != null)
             {
@@ -279,14 +276,13 @@ namespace FreeTrainSimulator.Graphics.MapView
                 });
             }
 
-            trackModel.InitializeRoadTrack(roadSegments, roadEndSegments);
-
             ContentByTile[MapContentType.Roads] = new TileIndexedList<TrackSegmentBase>(roadSegments);
-            ContentByTile[MapContentType.RoadEndNodes] = new TileIndexedList<EndNodeBase>(trackModel.RoadEndNodes);
+            ContentByTile[MapContentType.RoadEndNodes] = new TileIndexedList<EndNodeBase>(roadEndSegments);
 
             trackWorld = TrackWorld.Initialize(game, runtimeData.TrackWorld.TrackModel, runtimeData.TrackSections);
             trackWorld.SetSegmentSections(trackSegments.GroupBy(t => t.TrackNodeIndex).Select(group => new TrackSegmentSection(group.Key, group)));
             trackWorld.SetRoadSegmentSections(roadSegments.GroupBy(t => t.TrackNodeIndex).Select(group => new TrackSegmentSection(group.Key, group)));
+            trackWorld.SetJunctions(junctionSegments);
 
             // identify all tiles
             ContentByTile[MapContentType.Grid] = new TileIndexedList<GridTile>(
@@ -305,8 +301,6 @@ namespace FreeTrainSimulator.Graphics.MapView
             IEnumerable<Runtime.Track.TrackItemBase> trackItems = TrackItemWidget.CreateTrackItems(
                 RuntimeDataResolver.GameInstance(game).TrackWorld.TrackModel.TrackDatabase,
                 trackWorld).Concat(TrackItemWidget.CreateRoadItems(RuntimeDataResolver.GameInstance(game).TrackWorld.TrackModel.RoadDatabase));
-
-            trackModel.InitializeTrackItems(trackItems);
 
             IEnumerable<PlatformPath> platforms = PlatformPath.CreatePlatforms(trackWorld, trackItems.OfType<Widgets.PlatformTrackItem>());
             ContentByTile[MapContentType.Platforms] = new TileIndexedList<PlatformPath>(platforms);

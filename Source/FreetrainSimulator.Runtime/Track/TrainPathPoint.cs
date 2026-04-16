@@ -11,15 +11,15 @@ namespace FreeTrainSimulator.Runtime.Track
         {
         }
 
-        public TrainPathPoint(PathNode node, TrackModel trackModel) : base(node, trackModel)
+        public TrainPathPoint(PathNode node, TrackWorld trackWorld) : base(node, trackWorld)
         {
         }
 
-        public TrainPathPoint(in PointD location, TrackModel trackModel) : base(location, trackModel)
+        public TrainPathPoint(in PointD location, TrackWorld trackWorld) : base(location, trackWorld)
         {
         }
 
-        public TrainPathPoint(JunctionNodeBase junction, TrackModel trackModel) : base(junction?.Location ?? throw new ArgumentNullException(nameof(junction)), junction, null, trackModel)
+        public TrainPathPoint(JunctionNodeBase junction, TrackWorld trackWorld) : base(junction?.Location ?? throw new ArgumentNullException(nameof(junction)), junction, null, trackWorld)
         {
         }
     }

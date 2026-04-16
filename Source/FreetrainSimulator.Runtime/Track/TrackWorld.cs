@@ -23,18 +23,25 @@ namespace FreeTrainSimulator.Runtime.Track
         public Models.Track.TrackModel TrackModel { get; }
 
         /// <summary>
+        /// Indexed by track node index; returns the <see cref="JunctionNodeBase"/> for junction nodes,
+        /// or <see langword="null"/> for non-junction node indices.
+        /// Populated by the Graphics layer via <see cref="SetJunctions"/>.
+        /// </summary>
+        public ImmutableArray<JunctionNodeBase> Junctions { get; private set; } = ImmutableArray<JunctionNodeBase>.Empty;
+
+        /// <summary>
         /// Indexed by track node index; returns the <see cref="TrackSegmentSection"/> for rail vector nodes,
         /// or <see langword="null"/> for non-vector node indices.
         /// Populated by the Graphics layer via <see cref="SetSegmentSections"/>.
         /// </summary>
-        public IReadOnlyList<TrackSegmentSection> SegmentSections { get; private set; } = Array.Empty<TrackSegmentSection>();
+        public ImmutableArray<TrackSegmentSection> SegmentSections { get; private set; } = ImmutableArray<TrackSegmentSection>.Empty;
 
         /// <summary>
         /// Indexed by track node index; returns the <see cref="TrackSegmentSection"/> for road vector nodes,
         /// or <see langword="null"/> for non-vector node indices.
         /// Populated by the Graphics layer via <see cref="SetRoadSegmentSections"/>.
         /// </summary>
-        public IReadOnlyList<TrackSegmentSection> RoadSegmentSections { get; private set; } = Array.Empty<TrackSegmentSection>();
+        public ImmutableArray<TrackSegmentSection> RoadSegmentSections { get; private set; } = ImmutableArray<TrackSegmentSection>.Empty;
 
         public EnumArray<ITileIndexedList<ITileCoordinate>, MapContentType> ContentByTile { get; } = new EnumArray<ITileIndexedList<ITileCoordinate>, MapContentType>();
 
@@ -47,7 +54,7 @@ namespace FreeTrainSimulator.Runtime.Track
         /// </summary>
         public FrozenDictionary<VectorSectionNode, SectionGeometry> SectionGeometry { get; private set; } = FrozenDictionary<VectorSectionNode, SectionGeometry>.Empty;
 
-        private TrackWorld(Models.Track.TrackModel trackModel)
+        private TrackWorld(TrackModel trackModel)
         {
             TrackModel = trackModel;
         }
@@ -56,7 +63,7 @@ namespace FreeTrainSimulator.Runtime.Track
 
         public static TrackWorld GameInstance(Game game) => GameService<TrackWorld>.Get(game);
 
-        public static TrackWorld Initialize(Game game, Models.Track.TrackModel trackModel, TrackSectionModel trackSectionModel)
+        public static TrackWorld Initialize(Game game, TrackModel trackModel, TrackSectionModel trackSectionModel)
         {
             TrackWorld world = new TrackWorld(trackModel);
             world.Initialize(trackSectionModel);
@@ -117,28 +124,28 @@ namespace FreeTrainSimulator.Runtime.Track
             // Combine rail and road items for types that can appear in either database
             IEnumerable<Models.Track.TrackItemBase> allItems = railItems.Concat(roadItems).Where(i => i != null);
 
-            ContentByTile[MapContentType.Signals] = new TileIndexedList<Models.Track.SignalTrackItem>(
+            ContentByTile[MapContentType.Signals] = new TileIndexedList<SignalTrackItem>(
                 allItems.OfType<Models.Track.SignalTrackItem>().Where(s => s.NormalSignal));
-            ContentByTile[MapContentType.OtherSignals] = new TileIndexedList<Models.Track.SignalTrackItem>(
+            ContentByTile[MapContentType.OtherSignals] = new TileIndexedList<SignalTrackItem>(
                 allItems.OfType<Models.Track.SignalTrackItem>().Where(s => !s.NormalSignal));
-            ContentByTile[MapContentType.SpeedPosts] = new TileIndexedList<Models.Track.SpeedpostTrackItem>(
+            ContentByTile[MapContentType.SpeedPosts] = new TileIndexedList<SpeedpostTrackItem>(
                 allItems.OfType<Models.Track.SpeedpostTrackItem>());
-            ContentByTile[MapContentType.MilePosts] = new TileIndexedList<Models.Track.MilepostTrackItem>(
+            ContentByTile[MapContentType.MilePosts] = new TileIndexedList<MilepostTrackItem>(
                 allItems.OfType<Models.Track.MilepostTrackItem>());
-            ContentByTile[MapContentType.Crossovers] = new TileIndexedList<Models.Track.CrossoverTrackItem>(
+            ContentByTile[MapContentType.Crossovers] = new TileIndexedList<CrossoverTrackItem>(
                 allItems.OfType<Models.Track.CrossoverTrackItem>());
-            ContentByTile[MapContentType.LevelCrossings] = new TileIndexedList<Models.Track.LevelCrossingTrackItem>(
+            ContentByTile[MapContentType.LevelCrossings] = new TileIndexedList<LevelCrossingTrackItem>(
                 allItems.OfType<Models.Track.LevelCrossingTrackItem>());
-            ContentByTile[MapContentType.RoadCrossings] = new TileIndexedList<Models.Track.RoadLevelCrossingTrackItem>(
+            ContentByTile[MapContentType.RoadCrossings] = new TileIndexedList<RoadLevelCrossingTrackItem>(
                 allItems.OfType<Models.Track.RoadLevelCrossingTrackItem>());
-            ContentByTile[MapContentType.Hazards] = new TileIndexedList<Models.Track.HazardTrackItem>(
-                allItems.OfType<Models.Track.HazardTrackItem>());
-            ContentByTile[MapContentType.Pickups] = new TileIndexedList<Models.Track.PickupTrackItem>(
-                allItems.OfType<Models.Track.PickupTrackItem>());
-            ContentByTile[MapContentType.SoundRegions] = new TileIndexedList<Models.Track.SoundRegionTrackItem>(
-                allItems.OfType<Models.Track.SoundRegionTrackItem>());
-            ContentByTile[MapContentType.CarSpawners] = new TileIndexedList<Models.Track.CarSpawnerTrackItem>(
-                allItems.OfType<Models.Track.CarSpawnerTrackItem>());
+            ContentByTile[MapContentType.Hazards] = new TileIndexedList<HazardTrackItem>(
+                allItems.OfType<HazardTrackItem>());
+            ContentByTile[MapContentType.Pickups] = new TileIndexedList<PickupTrackItem>(
+                allItems.OfType<PickupTrackItem>());
+            ContentByTile[MapContentType.SoundRegions] = new TileIndexedList<SoundRegionTrackItem>(
+                allItems.OfType<SoundRegionTrackItem>());
+            ContentByTile[MapContentType.CarSpawners] = new TileIndexedList<CarSpawnerTrackItem>(
+                allItems.OfType<CarSpawnerTrackItem>());
             // EmptyTrackItem instances are index-preserving placeholders with no valid location
             // (WorldLocation.None at tile 0,0). Indexing them would create a spurious tile bucket
             // and corrupt boundary calculations, so they are intentionally excluded.
@@ -164,20 +171,80 @@ namespace FreeTrainSimulator.Runtime.Track
             RoadSegmentSections = BuildIndexedArray(sections);
         }
 
-        private static TrackSegmentSection[] BuildIndexedArray(IEnumerable<TrackSegmentSection> sections)
+        /// <summary>
+        /// Registers junction widget instances built by the Graphics layer.
+        /// The array is indexed by track node index (sparse — non-junction indices will be <see langword="null"/>).
+        /// </summary>
+        public void SetJunctions(IEnumerable<JunctionNodeBase> junctions)
         {
+            ArgumentNullException.ThrowIfNull(junctions);
+            List<JunctionNodeBase> items = junctions.ToList();
             int maxIndex = 0;
-            foreach (TrackSegmentSection section in sections)
+            foreach (JunctionNodeBase junction in items)
+            {
+                if (junction.TrackNodeIndex > maxIndex)
+                    maxIndex = junction.TrackNodeIndex;
+            }
+            JunctionNodeBase[] array = new JunctionNodeBase[maxIndex + 1];
+            foreach (JunctionNodeBase junction in items)
+                array[junction.TrackNodeIndex] = junction;
+            Junctions = ImmutableArray.Create(array);
+        }
+
+        /// <summary>
+        /// Returns the <see cref="JunctionNodeBase"/> widget at <paramref name="location"/>
+        /// (within proximity tolerance), or <see langword="null"/> if no junction exists.
+        /// </summary>
+        public JunctionNodeBase JunctionNodeBaseAt(in PointD location, int tileRadius = 0)
+        {
+            JunctionNode junction = JunctionAt(PointD.ToWorldLocation(location), tileRadius);
+            return junction != null ? Junctions[junction.NodeIndex] : null;
+        }
+
+        /// <summary>
+        /// Returns all <see cref="TrackSegmentBase"/> widget instances at <paramref name="location"/>:
+        /// the primary segment on the nearest track, plus segments reachable through connected junctions.
+        /// </summary>
+        public IEnumerable<TrackSegmentBase> SegmentBasesAt(PointD location)
+        {
+            WorldLocation worldLocation = PointD.ToWorldLocation(location);
+            foreach (VectorSectionNode section in SectionsAt(worldLocation))
+            {
+                if (SectionGeometry.TryGetValue(section, out SectionGeometry geo))
+                    yield return SegmentSections[geo.Node.NodeIndex].SectionSegments[geo.SectionIndex];
+            }
+        }
+
+        /// <summary>
+        /// Finds a junction node that connects <paramref name="start"/> and <paramref name="end"/> path points
+        /// through their track nodes, returning a new <see cref="TrainPathPointBase"/> at the junction if found.
+        /// </summary>
+        public TrainPathPointBase FindIntermediaryConnection(TrainPathPointBase start, TrainPathPointBase end)
+        {
+            ArgumentNullException.ThrowIfNull(start);
+            ArgumentNullException.ThrowIfNull(end);
+
+            JunctionNode junction = FindIntermediaryJunction(
+                start.ConnectedSegments[0].TrackNodeIndex,
+                end.ConnectedSegments[0].TrackNodeIndex);
+            return junction != null ? new TrainPathPoint(Junctions[junction.NodeIndex].Location, this) : null;
+        }
+
+        private static ImmutableArray<TrackSegmentSection> BuildIndexedArray(IEnumerable<TrackSegmentSection> sections)
+        {
+            List<TrackSegmentSection> items = sections.ToList();
+            int maxIndex = 0;
+            foreach (TrackSegmentSection section in items)
             {
                 if (section.TrackNodeIndex > maxIndex)
                     maxIndex = section.TrackNodeIndex;
             }
             TrackSegmentSection[] array = new TrackSegmentSection[maxIndex + 1];
-            foreach (TrackSegmentSection section in sections)
+            foreach (TrackSegmentSection section in items)
             {
                 array[section.TrackNodeIndex] = section;
             }
-            return array;
+            return ImmutableArray.Create(array);
         }
 
         private FrozenDictionary<VectorSectionNode, SectionGeometry> BuildSectionGeometry(TrackSectionModel trackSectionModel)

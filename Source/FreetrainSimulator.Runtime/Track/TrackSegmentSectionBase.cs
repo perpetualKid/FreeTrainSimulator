@@ -164,7 +164,7 @@ namespace FreeTrainSimulator.Runtime.Track
         /// </summary>
         private static TrackSegmentBase ResolveSegment(TrackWorld trackWorld, int trackNodeIndex, in PointD location)
         {
-            TrackSegmentSection segmentSection = trackNodeIndex >= 0 && trackNodeIndex < trackWorld.SegmentSections.Count
+            TrackSegmentSection segmentSection = trackNodeIndex >= 0 && trackNodeIndex < trackWorld.SegmentSections.Length
                 ? trackWorld.SegmentSections[trackNodeIndex] : null;
             if (segmentSection == null)
                 return null;

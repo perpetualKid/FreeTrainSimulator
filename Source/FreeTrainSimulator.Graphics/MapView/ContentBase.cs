@@ -22,7 +22,6 @@ namespace FreeTrainSimulator.Graphics.MapView
 
         private protected EnumArray<ITileIndexedList<ITileCoordinate>, MapContentType> ContentByTile { get; } = new EnumArray<ITileIndexedList<ITileCoordinate>, MapContentType>();
 
-        private protected TrackModel trackModel;
         private protected TrackWorld trackWorld;
 
         public bool UseMetricUnits { get; }
