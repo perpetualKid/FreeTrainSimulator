@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -72,7 +72,7 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
         }
 
         public PlatformPath(TrackWorld trackWorld, PlatformTrackItem start, PlatformTrackItem end) :
-            base(trackWorld, start.Location, start.VectorNode.NodeIndex, end.Location, end.VectorNode.NodeIndex, trackWorld.TrackModel.TrackDatabase)
+            base(trackWorld, start.Location, start.VectorNode.NodeIndex, end.Location, end.VectorNode.NodeIndex, trackWorld.TrackDatabase)
         {
             PlatformName = string.IsNullOrEmpty(start.PlatformName) ? end.PlatformName : start.PlatformName;
             StationName = (string.IsNullOrEmpty(start.StationName) ? end.StationName : start.StationName)?.Trim();

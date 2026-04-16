@@ -173,9 +173,9 @@ namespace Orts.Simulation.Activities
                 int i = actionActivityEvent.SidingId;
                 try
                 {
-                    sidingEnd1 = RuntimeDataResolver.Instance.TrackWorld.TrackModel.TrackDatabase.TrackItems[i] as SidingTrackItem;
+                    sidingEnd1 = RuntimeDataResolver.Instance.TrackWorld.TrackDatabase.TrackItems[i] as SidingTrackItem;
                     i = sidingEnd1.LinkedSidingItem;
-                    sidingEnd2 = RuntimeDataResolver.Instance.TrackWorld.TrackModel.TrackDatabase.TrackItems[i] as SidingTrackItem;
+                    sidingEnd2 = RuntimeDataResolver.Instance.TrackWorld.TrackDatabase.TrackItems[i] as SidingTrackItem;
                 }
                 catch (IndexOutOfRangeException)
                 {

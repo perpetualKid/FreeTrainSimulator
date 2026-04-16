@@ -1,4 +1,4 @@
-﻿// COPYRIGHT 2010, 2011, 2012, 2013, 2014 by the Open Rails project.
+// COPYRIGHT 2010, 2011, 2012, 2013, 2014 by the Open Rails project.
 // 
 // This file is part of Open Rails.
 // 
@@ -248,7 +248,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 SectionMap = new Dictionary<string, List<VectorSectionNode>>();
                 if (maximumCenterlineOffset > 0)
                 {
-                    foreach (VectorNode trackVectorNode in RuntimeDataResolver.Instance.TrackWorld.TrackModel.TrackDatabase.VectorNodes)
+                    foreach (VectorNode trackVectorNode in RuntimeDataResolver.Instance.TrackWorld.TrackDatabase.VectorNodes)
                     {
                         foreach (VectorSectionNode section in trackVectorNode.VectorSections)
                         {
@@ -261,7 +261,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 }
                 if (checkRoads)
                 {
-                    if (RuntimeDataResolver.Instance.TrackWorld.TrackModel.RoadDatabase is { } roadDatabase)
+                    if (RuntimeDataResolver.Instance.TrackWorld.RoadDatabase is { } roadDatabase)
                     {
                         foreach (VectorNode trackVectorNode in roadDatabase.VectorNodes)
                         {

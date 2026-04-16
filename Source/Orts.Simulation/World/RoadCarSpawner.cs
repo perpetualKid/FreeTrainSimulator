@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -47,12 +47,12 @@ namespace Orts.Simulation.World
             Debug.Assert(TrackMergeDistance >= 2 * (RampLength + TrackHalfWidth), "TrackMergeDistance is less than 2 * (RampLength + TrackHalfWidth); vertical inconsistencies will occur at close, but not merged, tracks.");
             CarSpawnerObj = carSpawnerObj;
 
-            if (RuntimeDataResolver.Instance.TrackWorld.TrackModel.RoadDatabase == null || Simulator.Instance.CarSpawnerLists == null)
+            if (RuntimeDataResolver.Instance.TrackWorld.RoadDatabase == null || Simulator.Instance.CarSpawnerLists == null)
                 throw new InvalidOperationException("RoadCarSpawner requires a RDB and CARSPAWN.DAT");
 
             int start = CarSpawnerObj.TrackItemIds.RoadDbItems.Count > 0 ? CarSpawnerObj.TrackItemIds.RoadDbItems[0] : -1;
             int end = CarSpawnerObj.TrackItemIds.RoadDbItems.Count > 1 ? CarSpawnerObj.TrackItemIds.RoadDbItems[1] : -1;
-            ImmutableArray<FreeTrainSimulator.Models.Track.TrackItemBase> trItems = RuntimeDataResolver.Instance.TrackWorld.TrackModel.RoadDatabase.TrackItems;
+            ImmutableArray<FreeTrainSimulator.Models.Track.TrackItemBase> trItems = RuntimeDataResolver.Instance.TrackWorld.RoadDatabase.TrackItems;
             ref readonly WorldLocation startLocation = ref trItems[start].Location;
             ref readonly WorldLocation endLocation = ref trItems[end].Location;
 
@@ -84,8 +84,8 @@ namespace Orts.Simulation.World
 
                 lastNodeIndex = nodeIndex;
                 // Road track has no junctions — every on-track node is a VectorNode.
-                if (RuntimeDataResolver.Instance.TrackWorld.TrackModel.RoadDatabase.TrackNodes[nodeIndex] is VectorNode &&
-                    RuntimeDataResolver.Instance.TrackWorld.TrackModel.RoadDatabase.TrackItemSelectors.TryGetValue(nodeIndex, out TrackItemIndex trackItemIndex))
+                if (RuntimeDataResolver.Instance.TrackWorld.RoadDatabase.TrackNodes[nodeIndex] is VectorNode &&
+                    RuntimeDataResolver.Instance.TrackWorld.RoadDatabase.TrackItemSelectors.TryGetValue(nodeIndex, out TrackItemIndex trackItemIndex))
                 {
                     foreach (int trItemRef in trackItemIndex.TrackItems)
                     {

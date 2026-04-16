@@ -1,4 +1,4 @@
-﻿// COPYRIGHT 2015, 2018 by the Open Rails project.
+// COPYRIGHT 2015, 2018 by the Open Rails project.
 // 
 // This file is part of Open Rails.
 // 
@@ -86,7 +86,7 @@ namespace ORTS.TrackViewer.Editing.Charts
         /// <param name="routeData">The data of the route (track database, track section information, ...)</param>
         public PathChartData()
         {
-            trackDatabase = RuntimeDataResolver.Instance.TrackWorld.TrackModel.TrackDatabase;
+            trackDatabase = RuntimeDataResolver.Instance.TrackWorld.TrackDatabase;
             trackItems = new TrackItemManager(trackDatabase);
         }
 

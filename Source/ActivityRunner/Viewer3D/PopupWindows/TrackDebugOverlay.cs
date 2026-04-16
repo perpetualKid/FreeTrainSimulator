@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -39,8 +39,8 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
         private readonly CameraViewProjectionHolder cameraViewProjection;
 
         private readonly TrackWorld trackWorld = RuntimeDataResolver.Instance.TrackWorld;
-        private readonly TrackDatabase trackDb = RuntimeDataResolver.Instance.TrackWorld.TrackModel.TrackDatabase;
-        private readonly TrackDatabase roadTrackDb = RuntimeDataResolver.Instance.TrackWorld.TrackModel.RoadDatabase;
+        private readonly TrackDatabase trackDb = RuntimeDataResolver.Instance.TrackWorld.TrackDatabase;
+        private readonly TrackDatabase roadTrackDb = RuntimeDataResolver.Instance.TrackWorld.RoadDatabase;
 
         public TrackDebugOverlay(WindowManager owner, ProfileUserSettingsModel userSettings, Viewer viewer, Catalog catalog = null) :
             base(owner, catalog ?? CatalogManager.Catalog)

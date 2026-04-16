@@ -1,4 +1,4 @@
-﻿// COPYRIGHT 2009, 2010, 2011, 2012, 2013 by the Open Rails project.
+// COPYRIGHT 2009, 2010, 2011, 2012, 2013 by the Open Rails project.
 // 
 // This file is part of Open Rails.
 // 
@@ -192,7 +192,7 @@ namespace Orts.Simulation.AIs
         {
             if (junctionIndex < 0 || vectorIndex < 0)
                 return false;
-            TrackDatabase trackDatabase = RuntimeDataResolver.Instance.TrackWorld.TrackModel.TrackDatabase;
+            TrackDatabase trackDatabase = RuntimeDataResolver.Instance.TrackWorld.TrackDatabase;
             if (trackDatabase.TrackNodes[junctionIndex] is not JunctionNode)
                 return false;
             return trackDatabase.TrackNodeConnectors[junctionIndex].TrackNodeConnectors[0].Link != vectorIndex;
@@ -359,7 +359,7 @@ namespace Orts.Simulation.AIs
             }
 
             //both this node and the next node are junctions: find the vector node connecting them.
-            TrackDatabase trackDatabase = RuntimeDataResolver.Instance.TrackWorld.TrackModel.TrackDatabase;
+            TrackDatabase trackDatabase = RuntimeDataResolver.Instance.TrackWorld.TrackDatabase;
             var iCand = -1;
             foreach (VectorNode vectorNode in trackDatabase.VectorNodes)
             {
@@ -404,7 +404,7 @@ namespace Orts.Simulation.AIs
         /// <returns>tracknode index of the closes node</returns>
         public static int FindJunctionOrEndIndex(in WorldLocation location, bool wantJunctionNode)
         {
-            TrackDatabase trackDatabase = RuntimeDataResolver.Instance.TrackWorld.TrackModel.TrackDatabase;
+            TrackDatabase trackDatabase = RuntimeDataResolver.Instance.TrackWorld.TrackDatabase;
             int bestIndex = -1;
             float bestDistance2 = 1e10f;
             for (int j = 0; j < trackDatabase.TrackNodes.Length; j++)

@@ -75,7 +75,7 @@ namespace Orts.ActivityRunner.Viewer3D.Sound
             outPrevDist = -1;
             outNextDist = -1;
 
-            var trItems = RuntimeDataResolver.Instance.TrackWorld.TrackModel.TrackDatabase.TrackItems;
+            var trItems = RuntimeDataResolver.Instance.TrackWorld.TrackDatabase.TrackItems;
 
             WorldSoundRegion prevItem = null;
             WorldSoundRegion nextItem = null;
@@ -187,7 +187,7 @@ namespace Orts.ActivityRunner.Viewer3D.Sound
         public void AddByTile(in Tile tile)
         {
             string name = Path.Combine(Simulator.Instance.RouteFolder.WorldFolder, WorldFile.WorldFileNameFromTileCoordinates(tile) + "s");
-            WorldSoundFile wf = new WorldSoundFile(name, RuntimeDataResolver.Instance.TrackWorld.TrackModel.TrackDatabase.TrackItems.Length);
+            WorldSoundFile wf = new WorldSoundFile(name, RuntimeDataResolver.Instance.TrackWorld.TrackDatabase.TrackItems.Length);
             if (wf.TrackItemSound != null)
             {
                 ImmutableArray<string> pathArray = ImmutableArray.Create(

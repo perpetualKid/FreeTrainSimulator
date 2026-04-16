@@ -37,7 +37,7 @@ namespace Orts.Simulation.World
         public FuelManager(Simulator simulator)
         {
             ArgumentNullException.ThrowIfNull(simulator);
-            TrackDatabase trackDatabase = RuntimeDataResolver.Instance?.TrackWorld?.TrackModel?.TrackDatabase;
+            TrackDatabase trackDatabase = RuntimeDataResolver.Instance?.TrackWorld?.TrackDatabase;
             FuelPickupItems = trackDatabase != null ?
                 GetFuelPickupItemsFromDB(trackDatabase) : new Dictionary<int, FuelPickupItem>();
         }

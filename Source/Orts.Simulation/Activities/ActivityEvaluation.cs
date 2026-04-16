@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
@@ -347,7 +347,7 @@ namespace Orts.Simulation.Activities
                                 {
                                     int sidingId = eventAction.Type == EventType.AssembleTrainAtLocation || eventAction.Type == EventType.DropOffWagonsAtLocation
                                         ? eventAction.SidingId : wagonItem.SidingId;
-                                    string location = RuntimeDataResolver.Instance.TrackWorld.TrackModel.TrackDatabase.TrackItems.OfType<SidingTrackItem>().Where((siding) => siding.TrackItemIndex == sidingId).FirstOrDefault()?.SidingName;
+                                    string location = RuntimeDataResolver.Instance.TrackWorld.TrackDatabase.TrackItems.OfType<SidingTrackItem>().Where((siding) => siding.TrackItemIndex == sidingId).FirstOrDefault()?.SidingName;
 
                                     if (activityEvent.ActivityLocation != location)
                                         activityEvent.ActivityLocation = location;

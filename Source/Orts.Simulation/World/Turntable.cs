@@ -1,4 +1,4 @@
-﻿// COPYRIGHT 2010, 2011, 2012, 2013, 2014, 2015, 2016 by the Open Rails project.
+// COPYRIGHT 2010, 2011, 2012, 2013, 2014, 2015, 2016 by the Open Rails project.
 // 
 // This file is part of Open Rails.
 // 
@@ -126,7 +126,7 @@ namespace Orts.Simulation.World
                 trackVectorSectionsIndex[i] = -1;
                 i++;
             }
-            foreach (VectorNode tvn in RuntimeDataResolver.Instance.TrackWorld.TrackModel.TrackDatabase.VectorNodes)
+            foreach (VectorNode tvn in RuntimeDataResolver.Instance.TrackWorld.TrackDatabase.VectorNodes)
             {
                 if (!tvn.VectorSections.IsDefaultOrEmpty)
                 {

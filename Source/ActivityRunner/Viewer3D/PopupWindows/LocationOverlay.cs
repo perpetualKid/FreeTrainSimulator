@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -162,7 +162,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
 
         private void UpdateLabelLists()
         {
-            TrackDatabase trackDatabase = RuntimeDataResolver.Instance.TrackWorld.TrackModel.TrackDatabase;
+            TrackDatabase trackDatabase = RuntimeDataResolver.Instance.TrackWorld.TrackDatabase;
             List<StationStop> stationStops = Simulator.Instance.PlayerLocomotive.Train.StationStops;
             Simulation.Activities.Activity activity = Simulator.Instance.ActivityRun;
 

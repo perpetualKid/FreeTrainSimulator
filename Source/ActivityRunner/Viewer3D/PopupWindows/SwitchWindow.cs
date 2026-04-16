@@ -119,7 +119,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
                     return;
 
                 JunctionNode switchNode = junctionResult.Value.Junction;
-                TrackDatabase trackDatabase = RuntimeDataResolver.Instance.TrackWorld.TrackModel.TrackDatabase;
+                TrackDatabase trackDatabase = RuntimeDataResolver.Instance.TrackWorld.TrackDatabase;
                 ReadOnlySpan<TrackNodeConnector> inConnectors = trackDatabase.TrackNodeConnectors[switchNode.NodeIndex].InConnectors;
                 bool switchBranchesAwayFromUs = !inConnectors.IsEmpty && inConnectors[0].Link == junctionResult.Value.ApproachNode.NodeIndex;
                 bool switchMainRouteIsLeft = switchNode.OpeningAngle > 0;  // align the switch

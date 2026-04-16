@@ -3049,7 +3049,7 @@ namespace Orts.ActivityRunner.Viewer3D
                                     trackTraveller = trackTraveller.Move(distanceToViewingPoint);
                                     // shortTrav is used to state directions, to correctly identify in which direction (left or right) to move
                                     //the camera from center of track to the platform at its side
-                                    if (RuntimeDataResolver.Instance.TrackWorld.TrackModel.TrackDatabase.TrackItems[thisPlatform.PlatformFrontUiD] is not PlatformTrackItem platformItem)
+                                    if (RuntimeDataResolver.Instance.TrackWorld.TrackDatabase.TrackItems[thisPlatform.PlatformFrontUiD] is not PlatformTrackItem platformItem)
                                         continue;
                                     TrackTraveller? shortTravInit = TrackTraveller.InitializeTraveller(platformItem.Location, TrackDirection.Ahead);
                                     if (shortTravInit is not TrackTraveller shortTrav)

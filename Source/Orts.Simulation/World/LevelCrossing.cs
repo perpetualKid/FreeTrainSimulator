@@ -1,4 +1,4 @@
-﻿// COPYRIGHT 2012, 2013 by the Open Rails project.
+// COPYRIGHT 2012, 2013 by the Open Rails project.
 // 
 // This file is part of Open Rails.
 // 
@@ -44,8 +44,8 @@ namespace Orts.Simulation.World
 
         public LevelCrossings()
         {
-            TrackDatabase trackDatabase = RuntimeDataResolver.Instance?.TrackWorld.TrackModel.TrackDatabase;
-            TrackDatabase roadDatabase = RuntimeDataResolver.Instance?.TrackWorld.TrackModel.RoadDatabase;
+            TrackDatabase trackDatabase = RuntimeDataResolver.Instance?.TrackWorld.TrackDatabase;
+            TrackDatabase roadDatabase = RuntimeDataResolver.Instance?.TrackWorld.RoadDatabase;
 
             TrackCrossingItems = trackDatabase != null
                 ? GetLevelCrossingsFromDB(trackDatabase) : FrozenDictionary<int, LevelCrossingItem>.Empty;

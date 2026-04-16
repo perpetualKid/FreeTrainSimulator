@@ -1535,7 +1535,7 @@ namespace Orts.ActivityRunner.Viewer3D
             JunctionNode bestJunction = null;
             float bestD = 10;
             // check each switch
-            foreach (JunctionNode junctionNode in RuntimeDataResolver.Instance.TrackWorld.TrackModel.TrackDatabase.JunctionNodes)
+            foreach (JunctionNode junctionNode in RuntimeDataResolver.Instance.TrackWorld.TrackDatabase.JunctionNodes)
             {
                 Vector3 xnaCenter = Camera.XnaLocation(junctionNode.Location);
                 float d = xnaCenter.LineSegmentDistanceSquare(nearPoint, farPoint);

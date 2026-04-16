@@ -1,4 +1,4 @@
-﻿// COPYRIGHT 2013 by the Open Rails project.
+// COPYRIGHT 2013 by the Open Rails project.
 // 
 // This file is part of Open Rails.
 // 
@@ -172,7 +172,7 @@ namespace Orts.Simulation.Track
             if (CircuitType == TrackCircuitType.Junction)
             {
                 SignalsPassingRoutes = new List<int>();
-                JunctionNode junctionNode = RuntimeDataResolver.Instance.TrackWorld.TrackModel.TrackDatabase.JunctionNodes[(node as TrackJunctionNode).Index];
+                JunctionNode junctionNode = RuntimeDataResolver.Instance.TrackWorld.TrackDatabase.JunctionNodes[(node as TrackJunctionNode).Index];
                 JunctionDefaultRoute = junctionNode.MainRoute;
                 Overlap = junctionNode.ClearanceDistance;
 

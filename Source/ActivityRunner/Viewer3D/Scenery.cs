@@ -322,7 +322,7 @@ namespace Orts.ActivityRunner.Viewer3D
                         var trackObj = (TrackObject)worldObject;
                         // Switch tracks need a link to the simulator engine so they can animate the points.
                         JunctionNode trJunctionNode = trackObj.WorldLocation != WorldLocation.None
-                            ? RuntimeDataResolver.Instance.TrackWorld.TrackModel.TrackDatabase.JunctionNodes
+                            ? RuntimeDataResolver.Instance.TrackWorld.TrackDatabase.JunctionNodes
                                 .FirstOrDefault(j => j.WorldId == (int)trackObj.UiD && j.Tile == tile)
                             : null;
                         // We might not have found the junction node; if so, fall back to the static track shape.

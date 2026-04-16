@@ -114,7 +114,7 @@ namespace Orts.Simulation.Signalling
             UseLocationPassingPaths = locationPassingPaths;
             Dictionary<int, int> platformList = new Dictionary<int, int>();
 
-            trackDatabase = RuntimeDataResolver.Instance.TrackWorld.TrackModel.TrackDatabase;
+            trackDatabase = RuntimeDataResolver.Instance.TrackWorld.TrackDatabase;
 
             SignalConfig = RuntimeDataResolver.Instance.SignalConfiguration;
 
@@ -748,7 +748,7 @@ namespace Orts.Simulation.Signalling
         /// </summary>
         private void AddSpeed(int trackNode, int nodeIndex, SpeedPostItem speedItem, int tdbRef)
         {
-            VectorNode vectorNode = RuntimeDataResolver.Instance.TrackWorld.TrackModel.TrackDatabase.TrackNodes[trackNode] as VectorNode;
+            VectorNode vectorNode = RuntimeDataResolver.Instance.TrackWorld.TrackDatabase.TrackNodes[trackNode] as VectorNode;
             if (vectorNode == null)
                 return;
 

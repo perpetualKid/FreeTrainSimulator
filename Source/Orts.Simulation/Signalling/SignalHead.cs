@@ -578,7 +578,7 @@ namespace Orts.Simulation.Signalling
             //added by JTang
             else if (MultiPlayerManager.IsMultiPlayer())
             {
-                TrackDatabase trackDatabase = RuntimeDataResolver.Instance.TrackWorld.TrackModel.TrackDatabase;
+                TrackDatabase trackDatabase = RuntimeDataResolver.Instance.TrackWorld.TrackDatabase;
                 TrackNodeConnectorIndex connectorIndex = trackDatabase.TrackNodeConnectors[MainSignal.TrackNode];
                 TrackNodeBase node = trackDatabase.TrackNodes[MainSignal.TrackNode];
                 if (node is not JunctionNode && !connectorIndex.TrackNodeConnectors.IsDefaultOrEmpty && (int)MainSignal.TrackCircuitDirection < connectorIndex.TrackNodeConnectors.Length)

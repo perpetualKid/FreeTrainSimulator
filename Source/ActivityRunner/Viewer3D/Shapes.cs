@@ -1,4 +1,4 @@
-﻿// COPYRIGHT 2009, 2010, 2011, 2012, 2013, 2014 by the Open Rails project.
+// COPYRIGHT 2009, 2010, 2011, 2012, 2013, 2014 by the Open Rails project.
 // 
 // This file is part of Open Rails.
 // 
@@ -277,7 +277,7 @@ namespace Orts.ActivityRunner.Viewer3D
                 var trID = trObj.TrackItemIds.TrackDbItems[i];
                 if (trID < 0)
                     break;
-                var trItem = RuntimeDataResolver.Instance.TrackWorld.TrackModel.TrackDatabase.TrackItems[trID];
+                var trItem = RuntimeDataResolver.Instance.TrackWorld.TrackDatabase.TrackItems[trID];
                 if (trItem is null)
                     continue;
                 ItemName = trItem switch

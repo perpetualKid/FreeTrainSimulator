@@ -396,8 +396,8 @@ namespace Orts.Simulation.Activities
             ScheduledDeparture = saveState.ScheduledDeparture;
             ActualArrival = saveState.ActualArrival;
             ActualDeparture = saveState.ActualDeparture;
-            PlatformEnd1 = RuntimeDataResolver.Instance.TrackWorld.TrackModel.TrackDatabase.TrackItems[saveState.PlatformEnd1] as PlatformTrackItem;
-            PlatformEnd2 = RuntimeDataResolver.Instance.TrackWorld.TrackModel.TrackDatabase.TrackItems[saveState.PlatformEnd2] as PlatformTrackItem;
+            PlatformEnd1 = RuntimeDataResolver.Instance.TrackWorld.TrackDatabase.TrackItems[saveState.PlatformEnd1] as PlatformTrackItem;
+            PlatformEnd2 = RuntimeDataResolver.Instance.TrackWorld.TrackDatabase.TrackItems[saveState.PlatformEnd2] as PlatformTrackItem;
             BoardingS = saveState.BooardingTime;
             BoardingEndS = saveState.BoardingEndTime;
             timerChk = saveState.TimerCheck;

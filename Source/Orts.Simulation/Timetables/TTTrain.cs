@@ -10578,7 +10578,7 @@ namespace Orts.Simulation.Timetables
             {
                 DetachSection = TrackCircuitSection.TrackCircuitList[DetachSection.Pins[TrackDirection.Ahead, SignalLocation.NearEnd].Link];
             }
-            VectorNode detachNode = RuntimeDataResolver.Instance.TrackWorld.TrackModel.TrackDatabase.VectorNodes[DetachSection.OriginalIndex];
+            VectorNode detachNode = RuntimeDataResolver.Instance.TrackWorld.TrackDatabase.VectorNodes[DetachSection.OriginalIndex];
 
             formedTrain.RearTrackTraveller = TrackTraveller.InitializeTraveller(detachNode.VectorSections[0].Location, DetachSection.OriginalIndex, TrackDirection.Ahead).Value;
 
@@ -10600,7 +10600,7 @@ namespace Orts.Simulation.Timetables
         {
             TTTrain formedTrain = new TTTrain(train);
             TrackCircuitSection DetachSection = TrackCircuitSection.TrackCircuitList[sectionInfo];
-            VectorNode detachNode = RuntimeDataResolver.Instance.TrackWorld.TrackModel.TrackDatabase.VectorNodes[DetachSection.OriginalIndex];
+            VectorNode detachNode = RuntimeDataResolver.Instance.TrackWorld.TrackDatabase.VectorNodes[DetachSection.OriginalIndex];
 
             formedTrain.RearTrackTraveller = TrackTraveller.InitializeTraveller(detachNode.VectorSections[0].Location, DetachSection.OriginalIndex, TrackDirection.Ahead).Value;
             formedTrain.PresentPosition[Direction.Forward].UpdateFrom(train.PresentPosition[Direction.Forward]);

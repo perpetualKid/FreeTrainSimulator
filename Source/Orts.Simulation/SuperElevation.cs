@@ -1,4 +1,4 @@
-﻿// COPYRIGHT 2013, 2014, 2015, 2016 by the Open Rails project.
+// COPYRIGHT 2013, 2014, 2015, 2016 by the Open Rails project.
 // 
 // This file is part of Open Rails.
 // 
@@ -46,7 +46,7 @@ namespace Orts.Simulation
             MaximumAllowedM = 0.07f + simulator.UserSettings.SuperElevationLevel / 100f;//max allowed elevation controlled by user setting
 
             TrackWorld trackWorld = TrackWorld.Instance;
-            TrackDatabase trackDatabase = RuntimeDataResolver.Instance.TrackWorld.TrackModel.TrackDatabase;
+            TrackDatabase trackDatabase = RuntimeDataResolver.Instance.TrackWorld.TrackDatabase;
             ImmutableDictionary<int, TrackSection> trackSections = RuntimeDataResolver.Instance.TrackSections.TrackSections;
 
             if (trackDatabase == null || trackWorld == null)

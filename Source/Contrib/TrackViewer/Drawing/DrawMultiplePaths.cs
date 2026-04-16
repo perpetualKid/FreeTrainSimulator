@@ -1,4 +1,4 @@
-﻿// COPYRIGHT 2014, 2018 by the Open Rails project.
+// COPYRIGHT 2014, 2018 by the Open Rails project.
 // 
 // This file is part of Open Rails.
 // 
@@ -56,7 +56,7 @@ namespace ORTS.TrackViewer.Drawing
         /// </summary>
         public DrawMultiplePaths (Collection<PathModelHeader> paths)
         {
-            trackDatabase = RuntimeDataResolver.Instance.TrackWorld.TrackModel.TrackDatabase;
+            trackDatabase = RuntimeDataResolver.Instance.TrackWorld.TrackDatabase;
             fullPathNames = new Dictionary<string, string>();
             loadedPaths = new Dictionary<string, Trainpath>();
             selectedTrainpaths = new List<Trainpath>();

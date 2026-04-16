@@ -1,4 +1,4 @@
-﻿// COPYRIGHT 2014, 2018 by the Open Rails project.
+// COPYRIGHT 2014, 2018 by the Open Rails project.
 // 
 // This file is part of Open Rails.
 // 
@@ -139,7 +139,7 @@ namespace ORTS.TrackViewer.Editing
         {
 
             this.drawTrackDB = drawTrackDB;
-            trackDatabase = RuntimeDataResolver.Instance.TrackWorld.TrackModel.TrackDatabase;
+            trackDatabase = RuntimeDataResolver.Instance.TrackWorld.TrackDatabase;
 
             TrackExtensions.Initialize(trackDatabase); // we might be calling this more than once, but so be it.
 

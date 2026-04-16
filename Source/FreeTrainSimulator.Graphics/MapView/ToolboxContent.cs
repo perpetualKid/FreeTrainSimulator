@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
@@ -219,7 +219,7 @@ namespace FreeTrainSimulator.Graphics.MapView
         private void AddTrackSegments()
         {
             RuntimeDataResolver runtimeData = RuntimeDataResolver.GameInstance(game);
-            TrackDatabase trackDatabase = runtimeData.TrackWorld.TrackModel.TrackDatabase;
+            TrackDatabase trackDatabase = runtimeData.TrackWorld.TrackDatabase;
             TrackSectionModel trackSections = runtimeData.TrackSections;
 
             ConcurrentBag<TrackSegment> trackSegments = new ConcurrentBag<TrackSegment>();
@@ -228,9 +228,9 @@ namespace FreeTrainSimulator.Graphics.MapView
             ConcurrentBag<RoadSegment> roadSegments = new ConcurrentBag<RoadSegment>();
             ConcurrentBag<RoadEndSegment> roadEndSegments = new ConcurrentBag<RoadEndSegment>();
 
-            if (runtimeData.TrackWorld.TrackModel.TrackDatabase != null)
+            if (runtimeData.TrackWorld.TrackDatabase != null)
             {
-                Parallel.ForEach(runtimeData.TrackWorld.TrackModel.TrackDatabase.TrackNodes, trackNode =>
+                Parallel.ForEach(runtimeData.TrackWorld.TrackDatabase.TrackNodes, trackNode =>
                 {
                     switch (trackNode)
                     {
@@ -257,9 +257,9 @@ namespace FreeTrainSimulator.Graphics.MapView
             ContentByTile[MapContentType.JunctionNodes] = new TileIndexedList<JunctionNodeBase>(junctionSegments);
             ContentByTile[MapContentType.EndNodes] = new TileIndexedList<EndNodeBase>(endSegments);
 
-            if (runtimeData.TrackWorld.TrackModel.RoadDatabase != null)
+            if (runtimeData.TrackWorld.RoadDatabase != null)
             {
-                Parallel.ForEach(runtimeData.TrackWorld.TrackModel.RoadDatabase.TrackNodes, trackNode =>
+                Parallel.ForEach(runtimeData.TrackWorld.RoadDatabase.TrackNodes, trackNode =>
                 {
                     switch (trackNode)
                     {
@@ -279,7 +279,7 @@ namespace FreeTrainSimulator.Graphics.MapView
             ContentByTile[MapContentType.Roads] = new TileIndexedList<TrackSegmentBase>(roadSegments);
             ContentByTile[MapContentType.RoadEndNodes] = new TileIndexedList<EndNodeBase>(roadEndSegments);
 
-            trackWorld = TrackWorld.Initialize(game, runtimeData.TrackWorld.TrackModel, runtimeData.TrackSections);
+            trackWorld = runtimeData.TrackWorld;
             trackWorld.SetSegmentSections(trackSegments.GroupBy(t => t.TrackNodeIndex).Select(group => new TrackSegmentSection(group.Key, group)));
             trackWorld.SetRoadSegmentSections(roadSegments.GroupBy(t => t.TrackNodeIndex).Select(group => new TrackSegmentSection(group.Key, group)));
             trackWorld.SetJunctions(junctionSegments);
@@ -299,8 +299,8 @@ namespace FreeTrainSimulator.Graphics.MapView
         private void AddTrackItems()
         {
             IEnumerable<Runtime.Track.TrackItemBase> trackItems = TrackItemWidget.CreateTrackItems(
-                RuntimeDataResolver.GameInstance(game).TrackWorld.TrackModel.TrackDatabase,
-                trackWorld).Concat(TrackItemWidget.CreateRoadItems(RuntimeDataResolver.GameInstance(game).TrackWorld.TrackModel.RoadDatabase));
+                RuntimeDataResolver.GameInstance(game).TrackWorld.TrackDatabase,
+                trackWorld).Concat(TrackItemWidget.CreateRoadItems(RuntimeDataResolver.GameInstance(game).TrackWorld.RoadDatabase));
 
             IEnumerable<PlatformPath> platforms = PlatformPath.CreatePlatforms(trackWorld, trackItems.OfType<Widgets.PlatformTrackItem>());
             ContentByTile[MapContentType.Platforms] = new TileIndexedList<PlatformPath>(platforms);

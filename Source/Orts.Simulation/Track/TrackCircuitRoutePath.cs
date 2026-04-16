@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
@@ -50,7 +50,7 @@ namespace Orts.Simulation.Track
             ActiveAlternativePath = -1;
             float offset = 0;
 
-            TrackDatabase trackDatabase = RuntimeDataResolver.Instance.TrackWorld.TrackModel.TrackDatabase;
+            TrackDatabase trackDatabase = RuntimeDataResolver.Instance.TrackWorld.TrackDatabase;
             Dictionary<int, TrackCircuitCrossReferences> nodeCrossReferences = Simulator.Instance.SignalEnvironment.NodeCrossReferences;
 
             //
@@ -898,7 +898,7 @@ namespace Orts.Simulation.Track
         private void ProcessAlternativePathPathDef(Dictionary<int, int[]> alternativeRoutes, AIPath aiPath)
         {
             int altlist = 0;
-            TrackDatabase trackDatabase = RuntimeDataResolver.Instance.TrackWorld.TrackModel.TrackDatabase;
+            TrackDatabase trackDatabase = RuntimeDataResolver.Instance.TrackWorld.TrackDatabase;
             Dictionary<int, TrackCircuitCrossReferences> nodeCrossReferences = Simulator.Instance.SignalEnvironment.NodeCrossReferences;
 
             foreach (KeyValuePair<int, int[]> alternativePath in alternativeRoutes)
@@ -1084,7 +1084,7 @@ namespace Orts.Simulation.Track
         // process alternative paths - location definition
         private void ProcessAlternativePathLocationDef(Dictionary<int, int[]> alternativeRoutes, AIPath aiPath, int trainNumber)
         {
-            TrackDatabase trackDatabase = RuntimeDataResolver.Instance.TrackWorld.TrackModel.TrackDatabase;
+            TrackDatabase trackDatabase = RuntimeDataResolver.Instance.TrackWorld.TrackDatabase;
             Dictionary<int, TrackCircuitCrossReferences> nodeCrossReferences = Simulator.Instance.SignalEnvironment.NodeCrossReferences;
 
             foreach (KeyValuePair<int, int[]> alternativePath in alternativeRoutes)
@@ -1530,7 +1530,7 @@ namespace Orts.Simulation.Track
         // Convert waiting point to section no.
         private static int ConvertWaitingPoint(AIPathNode stopPathNode)
         {
-            VectorNode waitingVectorNode = RuntimeDataResolver.Instance.TrackWorld.TrackModel.TrackDatabase.VectorNodes[stopPathNode.NextMainTVNIndex];
+            VectorNode waitingVectorNode = RuntimeDataResolver.Instance.TrackWorld.TrackDatabase.VectorNodes[stopPathNode.NextMainTVNIndex];
             TrackTraveller? tdbTraveller = TrackTraveller.InitializeTraveller(waitingVectorNode.VectorSections[0].Location, stopPathNode.NextMainTVNIndex, TrackDirection.Ahead);
             float offset = tdbTraveller?.DistanceTo(stopPathNode.Location) ?? 0;
 

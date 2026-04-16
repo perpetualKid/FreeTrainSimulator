@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -130,7 +130,7 @@ namespace FreeTrainSimulator.Runtime.Track
                 float distance = segment.DistanceOnSegment(pathPoint.Location);
 
                 // find the approximate Elevation by doing an linear interpolation between this section's start and end point
-                ref readonly WorldLocation segmentStart = ref (TrackWorld.TrackModel.TrackDatabase.TrackNodes[pathPoint.ConnectedSegments[0].TrackNodeIndex] as VectorNode).VectorSections[pathPoint.ConnectedSegments[0].TrackVectorSectionIndex].Location;
+                ref readonly WorldLocation segmentStart = ref (TrackWorld.TrackDatabase.TrackNodes[pathPoint.ConnectedSegments[0].TrackNodeIndex] as VectorNode).VectorSections[pathPoint.ConnectedSegments[0].TrackVectorSectionIndex].Location;
                 ref readonly WorldLocation segmentEnd = ref TrackWorld.ResolveEndNodeLocation(pathPoint.ConnectedSegments[0].TrackNodeIndex, pathPoint.ConnectedSegments[0].TrackVectorSectionIndex);
                 float elevation = WorldLocation.PointAlongDirection(segmentStart, segmentEnd, distance).Location.Y;
 

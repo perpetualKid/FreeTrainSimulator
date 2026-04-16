@@ -1,4 +1,4 @@
-﻿// COPYRIGHT 2014, 2015 by the Open Rails project.
+// COPYRIGHT 2014, 2015 by the Open Rails project.
 // 
 // This file is part of Open Rails.
 // 
@@ -340,7 +340,7 @@ namespace ORTS.TrackViewer.UserInterface
             if (!string.Equals(description, "platform", StringComparison.OrdinalIgnoreCase))
                 return;
 
-            if (RuntimeDataResolver.Instance.TrackWorld.TrackModel.TrackDatabase.TrackItems[index] is not FreeTrainSimulator.Models.Track.PlatformTrackItem platform)
+            if (RuntimeDataResolver.Instance.TrackWorld.TrackDatabase.TrackItems[index] is not FreeTrainSimulator.Models.Track.PlatformTrackItem platform)
                 return;
             statusAdditional.Text += string.Format(System.Globalization.CultureInfo.CurrentCulture,
                 "{0} ({1})", platform.StationName, platform.PlatformName);

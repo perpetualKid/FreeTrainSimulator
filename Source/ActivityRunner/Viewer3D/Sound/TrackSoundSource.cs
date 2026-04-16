@@ -1,4 +1,4 @@
-﻿// COPYRIGHT 2009, 2010, 2011, 2012, 2013, 2014, 2015 by the Open Rails project.
+// COPYRIGHT 2009, 2010, 2011, 2012, 2013, 2014, 2015 by the Open Rails project.
 // 
 // This file is part of Open Rails.
 // 
@@ -329,7 +329,7 @@ namespace Orts.ActivityRunner.Viewer3D.Sound
                             if (section.CircuitType == TrackCircuitType.Junction || section.CircuitType == TrackCircuitType.Crossover)
                             {
                                 // train is on a switch; let's see if car is on a switch too
-                                WorldLocation switchLocation = RuntimeDataResolver.Instance.TrackWorld.TrackModel.TrackDatabase.TrackNodes[section.OriginalIndex].Location;
+                                WorldLocation switchLocation = RuntimeDataResolver.Instance.TrackWorld.TrackDatabase.TrackNodes[section.OriginalIndex].Location;
                                 var distanceFromSwitch = WorldLocation.GetDistanceSquared(Car.WorldPosition.WorldLocation, switchLocation);
                                 if (distanceFromSwitch < Car.CarLengthM * Car.CarLengthM + Math.Min(Car.SpeedMpS * 3, 150))
                                 {

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
@@ -296,7 +296,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
                                     {
                                         int sidingId = activityEvent.Type == EventType.AssembleTrainAtLocation || activityEvent.Type == EventType.DropOffWagonsAtLocation
                                             ? activityEvent.SidingId : wagonItem.SidingId;
-                                        foreach (TrackItemBase item in RuntimeDataResolver.Instance.TrackWorld.TrackModel.TrackDatabase.TrackItems)
+                                        foreach (TrackItemBase item in RuntimeDataResolver.Instance.TrackWorld.TrackDatabase.TrackItems)
                                         {
                                             if (item is SidingTrackItem siding && siding.TrackItemIndex == sidingId)
                                             {

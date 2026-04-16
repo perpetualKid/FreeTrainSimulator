@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 
@@ -86,7 +86,7 @@ namespace FreeTrainSimulator.Runtime.Track
         internal IEnumerable<TrackSegmentBase> ConnectedSegments()
         {
             TrackWorld trackWorld = TrackWorld.Instance;
-            ImmutableArray<TrackNodeConnector> connectors = trackWorld.TrackModel.TrackDatabase.TrackNodeConnectors[TrackNodeIndex].TrackNodeConnectors;
+            ImmutableArray<TrackNodeConnector> connectors = trackWorld.TrackDatabase.TrackNodeConnectors[TrackNodeIndex].TrackNodeConnectors;
 
             foreach (TrackNodeConnector connector in connectors)
             {

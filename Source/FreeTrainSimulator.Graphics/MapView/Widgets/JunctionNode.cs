@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Globalization;
 
@@ -80,7 +80,7 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
         {
 
             Junction = RuntimeDataResolver.Instance.RuntimeReferenceResolver?.SwitchByNodeIndex(junctionNode.NodeIndex);
-            ImmutableArray<TrackNodeConnector> connectors = RuntimeDataResolver.Instance.TrackWorld.TrackModel.TrackDatabase.TrackNodeConnectors[TrackNodeIndex].TrackNodeConnectors;
+            ImmutableArray<TrackNodeConnector> connectors = RuntimeDataResolver.Instance.TrackWorld.TrackDatabase.TrackNodeConnectors[TrackNodeIndex].TrackNodeConnectors;
             trackSectionAngles = new float[connectors.Length - 1];
 
             int trial = 0;
@@ -89,7 +89,7 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
                 for (int i = 1; i < connectors.Length; i++)
                 {
                     TrackNodeConnector connector = connectors[i];
-                    VectorNode vectorNode = RuntimeDataResolver.Instance.TrackWorld.TrackModel.TrackDatabase.TrackNodes[connector.Link] as VectorNode;
+                    VectorNode vectorNode = RuntimeDataResolver.Instance.TrackWorld.TrackDatabase.TrackNodes[connector.Link] as VectorNode;
                     float direction = GetOutboundSectionDirection(vectorNode, connectors[i].Direction == TrackDirection.Reverse, trial);
                     if (float.IsNaN(direction))
                         break;

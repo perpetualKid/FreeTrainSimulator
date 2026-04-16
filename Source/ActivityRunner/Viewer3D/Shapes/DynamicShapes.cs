@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -418,7 +418,7 @@ namespace Orts.ActivityRunner.Viewer3D.Shapes
             while (idlocation < speedPostObject.TrackItemIds.TrackDbItems.Count)
             {
                 int id = speedPostObject.TrackItemIds.TrackDbItems[idlocation];
-                string speed = RuntimeDataResolver.Instance.TrackWorld.TrackModel.TrackDatabase.TrackItems[id] switch
+                string speed = RuntimeDataResolver.Instance.TrackWorld.TrackDatabase.TrackItems[id] switch
                 {
                     SpeedpostTrackItem speedpostItem => speedpostItem.ToString(),
                     MilepostTrackItem milepostItem => milepostItem.DistanceValue.ToString(System.Globalization.CultureInfo.InvariantCulture).Replace(".", "", StringComparison.OrdinalIgnoreCase),

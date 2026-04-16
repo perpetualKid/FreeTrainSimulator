@@ -471,7 +471,7 @@ namespace Orts.Simulation.Timetables
             // check if turntable track section is in path - must be in first element (path must start at turntable end)
             int vectorIndex = -1;
             TrackCircuitSection thisSection = thisPath[0].TrackCircuitSection;
-            VectorNode thisTDBsection = RuntimeDataResolver.Instance.TrackWorld.TrackModel.TrackDatabase.VectorNodes[thisSection.OriginalIndex];
+            VectorNode thisTDBsection = RuntimeDataResolver.Instance.TrackWorld.TrackDatabase.VectorNodes[thisSection.OriginalIndex];
 
             for (int iVector = 0; iVector < thisTDBsection.VectorSections.Length; iVector++)
             {
@@ -518,7 +518,7 @@ namespace Orts.Simulation.Timetables
             TrackCircuitSection thisSection = thisPath.AccessPath[0].TrackCircuitSection;
             int trackNodeIndex = thisSection.OriginalIndex;
 
-            var trackVectors = RuntimeDataResolver.Instance.TrackWorld.TrackModel.TrackDatabase.VectorNodes[trackNodeIndex].VectorSections;
+            var trackVectors = RuntimeDataResolver.Instance.TrackWorld.TrackDatabase.VectorNodes[trackNodeIndex].VectorSections;
 
             // check if path is in front or behind turntable
 
@@ -588,7 +588,7 @@ namespace Orts.Simulation.Timetables
             TrackCircuitSection thisSection = thisPath.StoragePath[0].TrackCircuitSection;
             int trackNodeIndex = thisSection.OriginalIndex;
 
-            var trackVectors = RuntimeDataResolver.Instance.TrackWorld.TrackModel.TrackDatabase.VectorNodes[trackNodeIndex].VectorSections;
+            var trackVectors = RuntimeDataResolver.Instance.TrackWorld.TrackDatabase.VectorNodes[trackNodeIndex].VectorSections;
 
             // check if path is in front or behind turntable
 
@@ -2255,7 +2255,7 @@ namespace Orts.Simulation.Timetables
 
             // get traveller at start of path tracknode
             TrackCircuitSection thisSection = parentTrain.ValidRoutes[Direction.Forward][0].TrackCircuitSection;
-            VectorNode vectorNode = RuntimeDataResolver.Instance.TrackWorld.TrackModel.TrackDatabase.VectorNodes[thisSection.OriginalIndex];
+            VectorNode vectorNode = RuntimeDataResolver.Instance.TrackWorld.TrackDatabase.VectorNodes[thisSection.OriginalIndex];
             TrackTraveller middlePosition = TrackTraveller.InitializeTraveller(vectorNode.VectorSections[0].Location, thisSection.OriginalIndex, TrackDirection.Ahead).Value;
 
 #if DEBUG_TURNTABLEINFO

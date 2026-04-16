@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
@@ -210,7 +210,7 @@ namespace FreeTrainSimulator.Graphics.MapView
 
         private void AddTrackSegments()
         {
-            Models.Track.TrackDatabase trackDatabase = RuntimeDataResolver.GameInstance(game).TrackWorld.TrackModel.TrackDatabase;
+            Models.Track.TrackDatabase trackDatabase = RuntimeDataResolver.GameInstance(game).TrackWorld.TrackDatabase;
 
             ConcurrentBag<TrackSegment> trackSegments = new ConcurrentBag<TrackSegment>();
             ConcurrentBag<EndNode> endSegments = new ConcurrentBag<Widgets.EndNode>();
@@ -262,8 +262,8 @@ namespace FreeTrainSimulator.Graphics.MapView
         private void AddTrackItems()
         {
             IEnumerable<TrackItemBase> trackItems = TrackItemWidget.CreateTrackItems(
-                RuntimeDataResolver.GameInstance(game).TrackWorld.TrackModel.TrackDatabase,
-                trackWorld).Concat(TrackItemWidget.CreateRoadItems(RuntimeDataResolver.GameInstance(game).TrackWorld.TrackModel.RoadDatabase));
+                RuntimeDataResolver.GameInstance(game).TrackWorld.TrackDatabase,
+                trackWorld).Concat(TrackItemWidget.CreateRoadItems(RuntimeDataResolver.GameInstance(game).TrackWorld.RoadDatabase));
 
             IEnumerable<PlatformPath> platforms = PlatformPath.CreatePlatforms(trackWorld, trackItems.OfType<PlatformTrackItem>());
             ContentByTile[MapContentType.Platforms] = new TileIndexedList<PlatformPath>(platforms);

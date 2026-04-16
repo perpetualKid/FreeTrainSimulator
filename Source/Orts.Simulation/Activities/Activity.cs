@@ -124,9 +124,9 @@ namespace Orts.Simulation.Activities
                     foreach (ServiceTrafficItem i in sd.PlayerTraffics)
                     {
                         PlatformTrackItem Platform;
-                        if (i.PlatformStartID < RuntimeDataResolver.Instance.TrackWorld.TrackModel.TrackDatabase.TrackItems.Length && i.PlatformStartID >= 0 &&
-                            RuntimeDataResolver.Instance.TrackWorld.TrackModel.TrackDatabase.TrackItems[i.PlatformStartID] is PlatformTrackItem)
-                            Platform = RuntimeDataResolver.Instance.TrackWorld.TrackModel.TrackDatabase.TrackItems[i.PlatformStartID] as PlatformTrackItem;
+                        if (i.PlatformStartID < RuntimeDataResolver.Instance.TrackWorld.TrackDatabase.TrackItems.Length && i.PlatformStartID >= 0 &&
+                            RuntimeDataResolver.Instance.TrackWorld.TrackDatabase.TrackItems[i.PlatformStartID] is PlatformTrackItem)
+                            Platform = RuntimeDataResolver.Instance.TrackWorld.TrackDatabase.TrackItems[i.PlatformStartID] as PlatformTrackItem;
                         else
                         {
                             Trace.TraceWarning("PlatformStartID {0} is not present in TDB file", i.PlatformStartID);
@@ -134,9 +134,9 @@ namespace Orts.Simulation.Activities
                         }
                         if (Platform != null)
                         {
-                            if (RuntimeDataResolver.Instance.TrackWorld.TrackModel.TrackDatabase.TrackItems[Platform.LinkedPlatformItem] is PlatformTrackItem)
+                            if (RuntimeDataResolver.Instance.TrackWorld.TrackDatabase.TrackItems[Platform.LinkedPlatformItem] is PlatformTrackItem)
                             {
-                                PlatformTrackItem Platform2 = RuntimeDataResolver.Instance.TrackWorld.TrackModel.TrackDatabase.TrackItems[Platform.LinkedPlatformItem] as PlatformTrackItem;
+                                PlatformTrackItem Platform2 = RuntimeDataResolver.Instance.TrackWorld.TrackDatabase.TrackItems[Platform.LinkedPlatformItem] as PlatformTrackItem;
                                 Tasks.Add(task = new ActivityTaskPassengerStopAt(task, i.ArrivalTime, i.DepartTime, Platform, Platform2));
                             }
                         }

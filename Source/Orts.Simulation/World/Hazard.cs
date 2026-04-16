@@ -43,7 +43,7 @@ namespace Orts.Simulation.World
         {
             currentHazards = new Dictionary<int, Hazard>();
             hazardFiles = new Dictionary<string, HazardFile>();
-            TrackDatabase trackDatabase = RuntimeDataResolver.Instance?.TrackWorld?.TrackModel?.TrackDatabase;
+            TrackDatabase trackDatabase = RuntimeDataResolver.Instance?.TrackWorld?.TrackDatabase;
             hazards = trackDatabase != null ? GetHazardsFromDB(trackDatabase) : new Dictionary<int, Hazard>();
         }
 

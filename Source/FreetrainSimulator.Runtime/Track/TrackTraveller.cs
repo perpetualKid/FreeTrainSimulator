@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
@@ -69,8 +69,8 @@ namespace FreeTrainSimulator.Runtime.Track
 
         private static TrackDatabase ResolveDatabase(TrackDataBaseType trackDataBaseType)
             => trackDataBaseType == TrackDataBaseType.Road
-                ? TrackWorld.Instance.TrackModel.RoadDatabase
-                : TrackWorld.Instance.TrackModel.TrackDatabase;
+                ? TrackWorld.Instance.RoadDatabase
+                : TrackWorld.Instance.TrackDatabase;
 
         /// <summary>
         /// Heading angle (Y-axis rotation in radians) at the traveller's current position in the direction of travel.

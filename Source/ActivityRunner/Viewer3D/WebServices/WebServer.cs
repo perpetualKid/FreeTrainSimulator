@@ -318,8 +318,8 @@ namespace Orts.ActivityRunner.Viewer3D.WebServices
         public static InfoApiMap GetApiMapInfo(Viewer viewer)
         {
             InfoApiMap infoApiMap = new InfoApiMap(viewer.PlayerLocomotive.PowerSupply as ILocomotivePowerSupply);
-            infoApiMap.AddTrackNodesToPointsOnApiMap(RuntimeDataResolver.Instance.TrackWorld.TrackModel.TrackDatabase);
-            infoApiMap.AddTrackItemsToPointsOnApiMap(RuntimeDataResolver.Instance.TrackWorld.TrackModel.TrackDatabase.TrackItems);
+            infoApiMap.AddTrackNodesToPointsOnApiMap(RuntimeDataResolver.Instance.TrackWorld.TrackDatabase);
+            infoApiMap.AddTrackItemsToPointsOnApiMap(RuntimeDataResolver.Instance.TrackWorld.TrackDatabase.TrackItems);
             return infoApiMap;
         }
 

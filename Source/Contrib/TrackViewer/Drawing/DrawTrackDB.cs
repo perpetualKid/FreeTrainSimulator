@@ -1,4 +1,4 @@
-﻿// COPYRIGHT 2014, 2018 by the Open Rails project.
+// COPYRIGHT 2014, 2018 by the Open Rails project.
 // 
 // This file is part of Open Rails.
 // 
@@ -220,8 +220,8 @@ namespace ORTS.TrackViewer.Drawing
         {
             trackSections = RuntimeDataResolver.Instance.TrackSections;
             trackWorld = RuntimeDataResolver.Instance.TrackWorld;
-            railTrackDatabase = trackWorld.TrackModel.TrackDatabase;
-            roadTrackDatabase = trackWorld.TrackModel.RoadDatabase;
+            railTrackDatabase = trackWorld.TrackDatabase;
+            roadTrackDatabase = trackWorld.RoadDatabase;
 
             messageDelegate(TrackViewer.catalog.GetString("Finding the angles to draw signals, endnodes, ..."));
 
