@@ -76,6 +76,9 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
 
         internal void UpdateDirectionTowards(in TrainPathPointBase nextPathPoint, bool alongTrack, bool reverse)
         {
+            if (nextPathPoint == null)
+                return;
+
             if (alongTrack && nextPathPoint.ValidationResult == PathNodeInvalidReasons.None)
             {
                 TrackSegmentBase trackSegment = ConnectedSegments.Length == 1 ? ConnectedSegments[0] :
