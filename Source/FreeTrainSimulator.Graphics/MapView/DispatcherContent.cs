@@ -183,9 +183,15 @@ namespace FreeTrainSimulator.Graphics.MapView
             if (section == null)
                 return null;
             TrackWorld trackWorld = TrackWorld.Instance;
-            return !trackWorld.SectionGeometry.TryGetValue(section, out SectionGeometry sectionGeometry)
-                ? null
-                : (trackWorld.SegmentSections[sectionGeometry.Node.NodeIndex]?.SectionSegments[sectionGeometry.SectionIndex]);
+            if (!trackWorld.SectionGeometry.TryGetValue(section, out SectionGeometry sectionGeometry))
+                return null;
+            int nodeIndex = sectionGeometry.Node.NodeIndex;
+            if (nodeIndex < 0 || nodeIndex >= trackWorld.SegmentSections.Count)
+                return null;
+            TrackSegmentSection segmentSection = trackWorld.SegmentSections[nodeIndex];
+            if (segmentSection == null || sectionGeometry.SectionIndex < 0 || sectionGeometry.SectionIndex >= segmentSection.SectionSegments.Count)
+                return null;
+            return segmentSection.SectionSegments[sectionGeometry.SectionIndex];
         }
 
         public void UpdateWidgetColorSettings(EnumArray<string, ColorSetting> colorPreferences)
