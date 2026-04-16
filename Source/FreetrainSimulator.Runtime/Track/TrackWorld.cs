@@ -235,6 +235,9 @@ namespace FreeTrainSimulator.Runtime.Track
             ArgumentNullException.ThrowIfNull(start);
             ArgumentNullException.ThrowIfNull(end);
 
+            if (start.ConnectedSegments.Length == 0 || end.ConnectedSegments.Length == 0)
+                return null;
+
             JunctionNode junction = FindIntermediaryJunction(
                 start.ConnectedSegments[0].TrackNodeIndex,
                 end.ConnectedSegments[0].TrackNodeIndex);
