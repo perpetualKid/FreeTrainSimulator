@@ -106,8 +106,6 @@ namespace FreeTrainSimulator.Runtime.Track
         public IReadOnlyList<EndNodeBase> RoadEndNodes { get; }
         public IReadOnlyList<TrackSegmentSection> RoadSegmentSections { get; }
 
-        public EnumArray<ITileIndexedList<ITileCoordinate>, MapContentType> ContentByTile { get; } = new EnumArray<ITileIndexedList<ITileCoordinate>, MapContentType>();
-
         private TrackModel(RuntimeDataResolver runtimeData)
         {
             RuntimeData = runtimeData;
@@ -146,10 +144,6 @@ namespace FreeTrainSimulator.Runtime.Track
 
             ((Junctions as PartialTrackElementList<JunctionNodeBase>)).AddRange(junctionNodes);
             ((EndNodes as PartialTrackElementList<EndNodeBase>)).AddRange(endNodes);
-
-            ContentByTile[MapContentType.Tracks] = new TileIndexedList<TrackSegmentBase>(trackSegments);
-            ContentByTile[MapContentType.JunctionNodes] = new TileIndexedList<JunctionNodeBase>(Junctions);
-            ContentByTile[MapContentType.EndNodes] = new TileIndexedList<EndNodeBase>(EndNodes);
         }
 
         public void InitializeRoadTrack(IEnumerable<TrackSegmentBase> trackSegments, IEnumerable<EndNodeBase> endNodes)
@@ -168,9 +162,6 @@ namespace FreeTrainSimulator.Runtime.Track
             roadTrackElements.Insert(0, null);
 
             ((RoadEndNodes as PartialTrackElementList<EndNodeBase>)).AddRange(endNodes);
-
-            ContentByTile[MapContentType.Roads] = new TileIndexedList<TrackSegmentBase>(trackSegments);
-            ContentByTile[MapContentType.RoadEndNodes] = new TileIndexedList<EndNodeBase>(RoadEndNodes);
         }
 
         public void InitializeTrackItems(IEnumerable<TrackItemBase> trackItems)

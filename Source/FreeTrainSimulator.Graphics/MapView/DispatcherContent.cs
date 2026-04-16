@@ -56,9 +56,9 @@ namespace FreeTrainSimulator.Graphics.MapView
         {
             foreach (MapContentType MapViewItemSettings in drawItems) // EnumExtension.GetValues<MapViewItemSettings>())
             {
-                if (viewSettings[MapViewItemSettings] && trackModel.ContentByTile[MapViewItemSettings] != null)
+                if (viewSettings[MapViewItemSettings] && ContentByTile[MapViewItemSettings] != null)
                 {
-                    foreach (ITileCoordinate item in trackModel.ContentByTile[MapViewItemSettings].BoundingBox(bottomLeft, topRight))
+                    foreach (ITileCoordinate item in ContentByTile[MapViewItemSettings].BoundingBox(bottomLeft, topRight))
                     {
                         // this could also be resolved otherwise also if rather vectorwidget & pointwidget implement InsideScreenArea() function
                         // but the performance impact/overhead seems invariant
@@ -89,13 +89,13 @@ namespace FreeTrainSimulator.Graphics.MapView
 
         internal override void UpdatePointerLocation(in PointD position, in Tile bottomLeft, in Tile topRight)
         {
-            GridTile nearestGridTile = trackModel.ContentByTile[MapContentType.Grid].FindNearest(position, bottomLeft, topRight).First() as GridTile;
+            GridTile nearestGridTile = ContentByTile[MapContentType.Grid].FindNearest(position, bottomLeft, topRight).First() as GridTile;
             if (nearestGridTile != nearestItems[MapContentType.Grid] as GridTile)
                 nearestItems[MapContentType.Grid] = nearestGridTile;
 
             double distance = 400; // max 20m (sqrt(400)
             nearestDispatchItem = null;
-            foreach (JunctionNode junction in trackModel.ContentByTile[MapContentType.JunctionNodes][nearestGridTile.Tile].Cast<JunctionNode>())
+            foreach (JunctionNode junction in ContentByTile[MapContentType.JunctionNodes][nearestGridTile.Tile].Cast<JunctionNode>())
             {
                 double itemDistance = junction.Location.DistanceSquared(position);
                 if (itemDistance < distance)
@@ -104,7 +104,7 @@ namespace FreeTrainSimulator.Graphics.MapView
                     distance = itemDistance;
                 }
             }
-            foreach (SignalTrackItem signal in trackModel.ContentByTile[MapContentType.Signals][nearestGridTile.Tile].Cast<SignalTrackItem>())
+            foreach (SignalTrackItem signal in ContentByTile[MapContentType.Signals][nearestGridTile.Tile].Cast<SignalTrackItem>())
             {
                 double itemDistance = signal.Location.DistanceSquared(position);
                 if (itemDistance < distance)
@@ -240,9 +240,13 @@ namespace FreeTrainSimulator.Graphics.MapView
             trackModel = TrackModel.Reset(game, RuntimeDataResolver.GameInstance(game));
             trackModel.InitializeRailTrack(trackSegments, junctionSegments, endSegments);
 
-            trackModel.ContentByTile[MapContentType.Grid] = new TileIndexedList<GridTile>(
-                trackModel.ContentByTile[MapContentType.Tracks].Select(d => d.Tile).Distinct()
-                .Union(trackModel.ContentByTile[MapContentType.EndNodes].Select(d => d.Tile).Distinct())
+            ContentByTile[MapContentType.Tracks] = new TileIndexedList<TrackSegmentBase>(trackSegments);
+            ContentByTile[MapContentType.JunctionNodes] = new TileIndexedList<JunctionNodeBase>(trackModel.Junctions);
+            ContentByTile[MapContentType.EndNodes] = new TileIndexedList<EndNodeBase>(trackModel.EndNodes);
+
+            ContentByTile[MapContentType.Grid] = new TileIndexedList<GridTile>(
+                ContentByTile[MapContentType.Tracks].Select(d => d.Tile).Distinct()
+                .Union(ContentByTile[MapContentType.EndNodes].Select(d => d.Tile).Distinct())
                 .Select(t => new GridTile(t)));
 
             InitializeBounds();
@@ -255,17 +259,17 @@ namespace FreeTrainSimulator.Graphics.MapView
                 trackWorld).Concat(TrackItemWidget.CreateRoadItems(RuntimeDataResolver.GameInstance(game).TrackWorld.TrackModel.RoadDatabase));
 
             IEnumerable<PlatformPath> platforms = PlatformPath.CreatePlatforms(trackWorld, trackItems.OfType<PlatformTrackItem>());
-            trackModel.ContentByTile[MapContentType.Platforms] = new TileIndexedList<PlatformPath>(platforms);
+            ContentByTile[MapContentType.Platforms] = new TileIndexedList<PlatformPath>(platforms);
 
             IEnumerable<SidingPath> sidings = SidingPath.CreateSidings(trackWorld, trackItems.OfType<SidingTrackItem>());
-            trackModel.ContentByTile[MapContentType.Sidings] = new TileIndexedList<SidingPath>(sidings);
+            ContentByTile[MapContentType.Sidings] = new TileIndexedList<SidingPath>(sidings);
 
-            trackModel.ContentByTile[MapContentType.Signals] = new TileIndexedList<SignalTrackItem>(trackItems.OfType<SignalTrackItem>().Where(s => s.Normal));
+            ContentByTile[MapContentType.Signals] = new TileIndexedList<SignalTrackItem>(trackItems.OfType<SignalTrackItem>().Where(s => s.Normal));
 
             IEnumerable<IGrouping<string, PlatformPath>> stations = platforms.GroupBy(p => p.StationName, StringComparer.OrdinalIgnoreCase);
-            trackModel.ContentByTile[MapContentType.StationNames] = new TileIndexedList<StationNameItem>(StationNameItem.CreateStationItems(stations));
-            trackModel.ContentByTile[MapContentType.PlatformNames] = new TileIndexedList<PlatformNameItem>(platforms.Select(p => new PlatformNameItem(p)));
-            trackModel.ContentByTile[MapContentType.SidingNames] = new TileIndexedList<SidingNameItem>(sidings.Select(p => new SidingNameItem(p)));
+            ContentByTile[MapContentType.StationNames] = new TileIndexedList<StationNameItem>(StationNameItem.CreateStationItems(stations));
+            ContentByTile[MapContentType.PlatformNames] = new TileIndexedList<PlatformNameItem>(platforms.Select(p => new PlatformNameItem(p)));
+            ContentByTile[MapContentType.SidingNames] = new TileIndexedList<SidingNameItem>(sidings.Select(p => new SidingNameItem(p)));
 
         }
     }

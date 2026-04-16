@@ -20,6 +20,8 @@ namespace FreeTrainSimulator.Graphics.MapView
 
         private protected readonly EnumArray<ITileCoordinate, MapContentType> nearestItems = new EnumArray<ITileCoordinate, MapContentType>();
 
+        private protected EnumArray<ITileIndexedList<ITileCoordinate>, MapContentType> ContentByTile { get; } = new EnumArray<ITileIndexedList<ITileCoordinate>, MapContentType>();
+
         private protected TrackModel trackModel;
         private protected TrackWorld trackWorld;
 
@@ -71,11 +73,11 @@ namespace FreeTrainSimulator.Graphics.MapView
             double minX = double.MaxValue, minY = double.MaxValue, maxX = double.MinValue, maxY = double.MinValue;
 
             // if there is only one tile, limit the dimensions to the extend of the track within that tile
-            if (trackModel.ContentByTile[MapContentType.Grid].Count == 1)
+            if (ContentByTile[MapContentType.Grid].Count == 1)
             {
-                if (trackModel.ContentByTile[MapContentType.EndNodes].ItemCount > 0)
+                if (ContentByTile[MapContentType.EndNodes].ItemCount > 0)
                 {
-                    foreach (EndNode endNode in trackModel.ContentByTile[MapContentType.EndNodes])
+                    foreach (EndNode endNode in ContentByTile[MapContentType.EndNodes])
                     {
                         minX = Math.Min(minX, endNode.Location.X);
                         minY = Math.Min(minY, endNode.Location.Y);
@@ -85,7 +87,7 @@ namespace FreeTrainSimulator.Graphics.MapView
                 }
                 else
                 {
-                    foreach (TrackSegment trackSegment in trackModel.ContentByTile[MapContentType.Tracks])
+                    foreach (TrackSegment trackSegment in ContentByTile[MapContentType.Tracks])
                     {
                         minX = Math.Min(minX, trackSegment.Location.X);
                         minY = Math.Min(minY, trackSegment.Location.Y);
@@ -96,9 +98,9 @@ namespace FreeTrainSimulator.Graphics.MapView
             }
             else
             {
-                minX = Math.Min(minX, (trackModel.ContentByTile[MapContentType.Grid] as TileIndexedList<GridTile>)[0][0].Tile.X);
-                maxX = Math.Max(maxX, (trackModel.ContentByTile[MapContentType.Grid] as TileIndexedList<GridTile>)[^1][0].Tile.X);
-                foreach (GridTile tile in trackModel.ContentByTile[MapContentType.Grid])
+                minX = Math.Min(minX, (ContentByTile[MapContentType.Grid] as TileIndexedList<GridTile>)[0][0].Tile.X);
+                maxX = Math.Max(maxX, (ContentByTile[MapContentType.Grid] as TileIndexedList<GridTile>)[^1][0].Tile.X);
+                foreach (GridTile tile in ContentByTile[MapContentType.Grid])
                 {
                     minY = Math.Min(minY, tile.Tile.Z);
                     maxY = Math.Max(maxY, tile.Tile.Z);
