@@ -160,18 +160,19 @@ namespace FreeTrainSimulator.Runtime.Track
 
         /// <summary>
         /// Resolves the <see cref="TrackSegmentBase"/> at a specific point within a track node,
-        /// using <see cref="TrackWorld.SectionAt(VectorNode, in WorldLocation)"/> and mapping back
-        /// via <see cref="SectionGeometry"/>.
+        /// using the 2D perpendicular distance test on each segment of the node's <see cref="TrackSegmentSection"/>.
         /// </summary>
         private static TrackSegmentBase ResolveSegment(TrackWorld trackWorld, int trackNodeIndex, in PointD location)
         {
-            if (trackWorld.TrackNodeByIndex(trackNodeIndex) is not VectorNode vectorNode)
+            TrackSegmentSection segmentSection = trackNodeIndex >= 0 && trackNodeIndex < trackWorld.SegmentSections.Count
+                ? trackWorld.SegmentSections[trackNodeIndex] : null;
+            if (segmentSection == null)
                 return null;
-            VectorSectionNode section = trackWorld.SectionAt(vectorNode, PointD.ToWorldLocation(location));
-            if (section == null)
-                return null;
-            if (trackWorld.SectionGeometry.TryGetValue(section, out SectionGeometry geo))
-                return trackWorld.SegmentSections[geo.Node.NodeIndex].SectionSegments[geo.SectionIndex];
+            foreach (TrackSegmentBase segment in segmentSection.SectionSegments)
+            {
+                if (segment.TrackSegmentAt(location))
+                    return segment;
+            }
             return null;
         }
 #pragma warning restore CA2214 // Do not call overridable methods in constructors
