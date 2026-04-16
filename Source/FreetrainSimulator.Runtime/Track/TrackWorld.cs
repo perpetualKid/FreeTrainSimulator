@@ -400,7 +400,7 @@ namespace FreeTrainSimulator.Runtime.Track
             foreach (TrackNodeConnector nodeConnector in nodeConnectors)
             {
                 if (TrackDatabase.TrackNodes[nodeConnector.Link] is JunctionNode junctionNode &&
-                    WorldLocation.GetDistanceSquared(junctionNode.Location, location) <= ProximityToleranceSquared)
+                    WorldLocation.GetDistanceSquared2D(junctionNode.Location, location) <= ProximityToleranceSquared)
                 {
                     foreach (TrackNodeConnector pin in TrackDatabase.TrackNodeConnectors[junctionNode.NodeIndex].TrackNodeConnectors)
                     {
@@ -459,8 +459,8 @@ namespace FreeTrainSimulator.Runtime.Track
             ImmutableArray<TrackNodeConnector> nodeConnectors = TrackDatabase.TrackNodeConnectors[trackNodeIndex].TrackNodeConnectors;
             JunctionNode startJunction = railTrackNodes[nodeConnectors[0].Link] as JunctionNode;
             JunctionNode endJunction = railTrackNodes[nodeConnectors[1].Link] as JunctionNode;
-            double startDistance = startJunction != null ? WorldLocation.GetDistanceSquared(startJunction.Location, location) : double.MaxValue;
-            double endDistance = endJunction != null ? WorldLocation.GetDistanceSquared(endJunction.Location, location) : double.MaxValue;
+            double startDistance = startJunction != null ? WorldLocation.GetDistanceSquared2D(startJunction.Location, location) : double.MaxValue;
+            double endDistance = endJunction != null ? WorldLocation.GetDistanceSquared2D(endJunction.Location, location) : double.MaxValue;
             return startDistance <= ProximityToleranceSquared && startDistance <= endDistance
                 ? startJunction
                 : endDistance <= ProximityToleranceSquared ? endJunction : null;
@@ -546,7 +546,7 @@ namespace FreeTrainSimulator.Runtime.Track
             double nearestDistance = ProximityToleranceSquared;
             foreach (T item in ContentByTile[contentType].BoundingBox(location.Tile, tileRadius).Cast<T>())
             {
-                double distance = WorldLocation.GetDistanceSquared(item.Location, location);
+                double distance = WorldLocation.GetDistanceSquared2D(item.Location, location);
                 if (distance <= nearestDistance)
                 {
                     nearestDistance = distance;
@@ -560,7 +560,7 @@ namespace FreeTrainSimulator.Runtime.Track
         {
             foreach (Models.Track.TrackItemBase item in ContentByTile[contentType][tile].Cast<Models.Track.TrackItemBase>())
             {
-                double distance = WorldLocation.GetDistanceSquared(item.Location, location);
+                double distance = WorldLocation.GetDistanceSquared2D(item.Location, location);
                 if (distance <= nearestDistance)
                 {
                     nearestDistance = distance;

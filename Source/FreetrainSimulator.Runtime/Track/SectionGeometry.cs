@@ -118,6 +118,7 @@ namespace FreeTrainSimulator.Runtime.Track
             if (Curved)
             {
                 Vector3 centerToPoint = WorldLocation.GetDistanceVector(ArcCenter, location);
+                centerToPoint.Y = 0; // horizontal-only: callers may pass elevation=0 (from PointD)
                 double distFromCenter = centerToPoint.Length();
                 double radialError = distFromCenter - Radius;
 
@@ -136,39 +137,41 @@ namespace FreeTrainSimulator.Runtime.Track
                     return radialError * radialError;
 
                 // Outside arc span — check endpoint proximity
-                double startDist = WorldLocation.GetDistanceSquared(section.Location, location);
+                double startDist = WorldLocation.GetDistanceSquared2D(section.Location, location);
                 if (startDist <= WorldLocation.ProximityTolerance)
                     return startDist;
-                double endDist = WorldLocation.GetDistanceSquared(section.EndLocation, location);
+                double endDist = WorldLocation.GetDistanceSquared2D(section.EndLocation, location);
                 return endDist <= WorldLocation.ProximityTolerance ? endDist : double.NaN;
             }
             else
             {
-                // Straight section: project point onto the line segment start→end
+                // Straight section: project point onto the line segment start→end (horizontal plane only)
                 Vector3 segVec = WorldLocation.GetDistanceVector(section.Location, section.EndLocation);
                 Vector3 toPoint = WorldLocation.GetDistanceVector(section.Location, location);
+                segVec.Y = 0;
+                toPoint.Y = 0;
                 double segLenSq = segVec.LengthSquared();
 
                 if (segLenSq < 1e-12)
-                    return WorldLocation.GetDistanceSquared(section.Location, location);
+                    return WorldLocation.GetDistanceSquared2D(section.Location, location);
 
                 double t = Vector3.Dot(toPoint, segVec) / segLenSq;
 
                 if (t < 0)
                 {
-                    double d = WorldLocation.GetDistanceSquared(section.Location, location);
+                    double d = WorldLocation.GetDistanceSquared2D(section.Location, location);
                     return d <= WorldLocation.ProximityTolerance ? d : double.NaN;
                 }
                 if (t > 1)
                 {
-                    double d = WorldLocation.GetDistanceSquared(section.EndLocation, location);
+                    double d = WorldLocation.GetDistanceSquared2D(section.EndLocation, location);
                     return d <= WorldLocation.ProximityTolerance ? d : double.NaN;
                 }
 
                 // Closest point on segment: start + t * segVec
                 Vector3 closest = new Vector3(
                     toPoint.X - (float)(t * segVec.X),
-                    toPoint.Y - (float)(t * segVec.Y),
+                    0,
                     toPoint.Z - (float)(t * segVec.Z));
                 return closest.LengthSquared();
             }
