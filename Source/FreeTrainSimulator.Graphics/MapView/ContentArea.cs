@@ -40,8 +40,8 @@ namespace FreeTrainSimulator.Graphics.MapView
         private PointD previousTopLeft, previousBottomRight;
 
 #pragma warning disable CA2213 // Disposable fields should be disposed
-        private MouseInputGameComponent inputComponent;
         private readonly InsetComponent insetComponent;
+        private readonly IMapHostEnvironment hostEnvironment;
 #pragma warning restore CA2213 // Disposable fields should be disposed
 
         public ContentBase Content { get; }
@@ -71,18 +71,18 @@ namespace FreeTrainSimulator.Graphics.MapView
             SpriteBatch = new SpriteBatch(GraphicsDevice);
             fontManager = FontManager.Scaled("Arial", System.Drawing.FontStyle.Regular);
             ConstantSizeFont = fontManager[25];
-            inputComponent = game.Components.OfType<MouseInputGameComponent>().Single();
-            inputComponent.AddMouseEvent(MouseMovedEventType.MouseMoved, MouseMove);
+            hostEnvironment = new XnaMapHostEnvironment(game);
+            hostEnvironment.RegisterMouseMove(MouseMove);
             insetComponent = game.Components.OfType<InsetComponent>().FirstOrDefault();
             contentText = TextShape.Instance(Game, SpriteBatch);
             BasicShapes = BasicShapes.Instance(Game);
             viewport = new MapViewportState(new MapViewportBounds(content.Bounds.Left, content.Bounds.Top, content.Bounds.Right, content.Bounds.Bottom));
-            game.Window.ClientSizeChanged += Window_ClientSizeChanged;
+            hostEnvironment.ClientSizeChanged += Window_ClientSizeChanged;
         }
 
         private void Window_ClientSizeChanged(object sender, EventArgs e)
         {
-            viewport.UpdateWindowSize(new MapViewportSize(Game.Window.ClientBounds.Size.X, Game.Window.ClientBounds.Size.Y));
+            viewport.UpdateWindowSize(new MapViewportSize(hostEnvironment.ClientSize.X, hostEnvironment.ClientSize.Y));
         }
 
         private void RefreshViewportBounds()
@@ -191,7 +191,7 @@ namespace FreeTrainSimulator.Graphics.MapView
             RefreshViewportBounds();
             viewport.ResetSize(new MapViewportSize(windowSize.X, windowSize.Y), screenDelta);
             UpdateFontSize();
-            worldPosition = ScreenToWorldCoordinates(Mouse.GetState().Position);
+            worldPosition = ScreenToWorldCoordinates(hostEnvironment.PointerPosition);
         }
 
         public void PresetPosition(in PointD centerPoint, double scale)
@@ -455,8 +455,7 @@ namespace FreeTrainSimulator.Graphics.MapView
             if (disposing)
             {
                 SpriteBatch?.Dispose();
-                inputComponent?.RemoveMouseEvent(MouseMovedEventType.MouseMoved, MouseMove);
-                inputComponent = null;
+                hostEnvironment.UnregisterMouseMove(MouseMove);
             }
             base.Dispose(disposing);
         }
