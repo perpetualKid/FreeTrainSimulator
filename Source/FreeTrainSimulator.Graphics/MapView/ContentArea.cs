@@ -45,6 +45,7 @@ namespace FreeTrainSimulator.Graphics.MapView
 #pragma warning restore CA2213 // Disposable fields should be disposed
 
         private readonly IMapRenderingResources renderingResources;
+        private readonly IMapRenderBackend renderBackend;
 
         public ContentBase Content { get; }
 
@@ -72,6 +73,7 @@ namespace FreeTrainSimulator.Graphics.MapView
             Enabled = false;
             SpriteBatch = new SpriteBatch(GraphicsDevice);
             renderingResources = new XnaMapRenderingResources(game, SpriteBatch);
+            renderBackend = new XnaMapRenderBackend(SpriteBatch, renderingResources.BasicShapes, renderingResources.TextShape);
             fontManager = FontManager.Scaled("Arial", System.Drawing.FontStyle.Regular);
             ConstantSizeFont = fontManager[25];
             hostEnvironment = new XnaMapHostEnvironment(game);
@@ -353,41 +355,41 @@ namespace FreeTrainSimulator.Graphics.MapView
 
         public override void Draw(GameTime gameTime)
         {
-            SpriteBatch.Begin(SpriteSortMode.Deferred, BlendState.NonPremultiplied);
+            renderBackend.BeginFrame();
             Content.Draw(viewport.BottomLeftTile, viewport.TopRightTile);
-            SpriteBatch.End();
+            renderBackend.EndFrame();
             base.Draw(gameTime);
             SuppressDrawing = true;
         }
 
         public void DrawLine(float width, Color color, Vector2 point, float length, double angle)
         {
-            BasicShapes.DrawLine(width, color, point, length, angle, SpriteBatch);
+            renderBackend.DrawLine(width, color, point, length, angle);
         }
 
         public void DrawLine(float width, Color color, Vector2 point1, Vector2 point2)
         {
-            BasicShapes.DrawLine(width, color, point1, point2, SpriteBatch);
+            renderBackend.DrawLine(width, color, point1, point2);
         }
 
         public void DrawDashedLine(float width, Color color, Vector2 point1, Vector2 point2)
         {
-            BasicShapes.DrawDashedLine(width, color, point1, point2, SpriteBatch);
+            renderBackend.DrawDashedLine(width, color, point1, point2);
         }
 
         public void DrawArc(float width, Color color, Vector2 point, float radius, double angle, double arcSize)
         {
-            BasicShapes.DrawArc(width, color, point, radius, angle, arcSize, SpriteBatch);
+            renderBackend.DrawArc(width, color, point, radius, angle, arcSize);
         }
 
         public void DrawTexture(BasicTextureType texture, Vector2 point, double angle, float size, bool flipHorizontal, bool flipVertical, bool highlight)
         {
-            BasicShapes.DrawTexture(texture, point, angle, size, flipHorizontal, flipVertical, highlight, SpriteBatch);
+            renderBackend.DrawTexture(texture, point, angle, size, flipHorizontal, flipVertical, highlight);
         }
 
         public void DrawTexture(BasicTextureType texture, Vector2 point, double angle, float size, Color color)
         {
-            BasicShapes.DrawTexture(texture, point, angle, size, color, SpriteBatch);
+            renderBackend.DrawTexture(texture, point, angle, size, color);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -450,7 +452,7 @@ namespace FreeTrainSimulator.Graphics.MapView
         public void DrawText(in PointD location, Color color, string text, System.Drawing.Font font, in Vector2 scale, float angle,
             HorizontalAlignment horizontalAlignment, VerticalAlignment verticalAlignment, OutlineRenderOptions outlineRenderOptions)
         {
-            contentText.DrawString(WorldToScreenCoordinates(location), color, text, font, scale, angle, horizontalAlignment, verticalAlignment, SpriteEffects.None, SpriteBatch, outlineRenderOptions);
+            renderBackend.DrawText(WorldToScreenCoordinates(location), color, text, font, scale, angle, horizontalAlignment, verticalAlignment, outlineRenderOptions);
         }
 
         protected override void Dispose(bool disposing)
