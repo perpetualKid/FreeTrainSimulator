@@ -10,13 +10,13 @@ namespace FreeTrainSimulator.Graphics.MapView
     {
         private readonly SpriteBatch spriteBatch;
         private readonly BasicShapes basicShapes;
-        private readonly DrawableComponents.TextShape textShape;
+        private readonly IMapTextRenderer textRenderer;
 
-        public XnaMapRenderBackend(SpriteBatch spriteBatch, BasicShapes basicShapes, DrawableComponents.TextShape textShape)
+        public XnaMapRenderBackend(SpriteBatch spriteBatch, BasicShapes basicShapes, IMapTextRenderer textRenderer)
         {
             this.spriteBatch = spriteBatch;
             this.basicShapes = basicShapes;
-            this.textShape = textShape;
+            this.textRenderer = textRenderer;
         }
 
         public void BeginFrame()
@@ -62,7 +62,7 @@ namespace FreeTrainSimulator.Graphics.MapView
         public void DrawText(Vector2 point, Color color, string text, System.Drawing.Font font, Vector2 scale, float angle,
             HorizontalAlignment horizontalAlignment, VerticalAlignment verticalAlignment, OutlineRenderOptions outlineRenderOptions)
         {
-            textShape.DrawString(point, color, text, font, scale, angle, horizontalAlignment, verticalAlignment, SpriteEffects.None, spriteBatch, outlineRenderOptions);
+            textRenderer.DrawString(point, color, text, font, scale, angle, horizontalAlignment, verticalAlignment, outlineRenderOptions);
         }
     }
 }

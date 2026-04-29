@@ -47,6 +47,7 @@ namespace FreeTrainSimulator.Graphics.MapView
         private readonly IMapRenderingLifetime renderingLifetime;
         private readonly IMapRenderingResources renderingResources;
         private readonly IMapRenderBackend renderBackend;
+        private readonly IMapTextRenderer textRenderer;
 
         public ContentBase Content { get; }
 
@@ -75,7 +76,8 @@ namespace FreeTrainSimulator.Graphics.MapView
             SpriteBatch = new SpriteBatch(GraphicsDevice);
             renderingLifetime = new XnaMapRenderingLifetime(game);
             renderingResources = new XnaMapRenderingResources(renderingLifetime, SpriteBatch);
-            renderBackend = new XnaMapRenderBackend(SpriteBatch, renderingResources.BasicShapes, renderingResources.TextShape);
+            textRenderer = new XnaMapTextRenderer(renderingResources.TextShape, SpriteBatch);
+            renderBackend = new XnaMapRenderBackend(SpriteBatch, renderingResources.BasicShapes, textRenderer);
             fontManager = FontManager.Scaled("Arial", System.Drawing.FontStyle.Regular);
             ConstantSizeFont = fontManager[25];
             hostEnvironment = new XnaMapHostEnvironment(game);
