@@ -1,5 +1,4 @@
-﻿
-using System;
+﻿using System;
 using System.Linq;
 
 using FreeTrainSimulator.Graphics.Xna;
@@ -35,15 +34,17 @@ namespace FreeTrainSimulator.Graphics.DrawableComponents
         /// to support redraw, compiled textures are cached for a short while <seealso cref="SweepInterval"/>
         /// Outlined text will use the color from <paramref name="outlineRenderOptions"/>, and <paramref name="color"/> is ignored
         /// </summary>
+        public Texture2D GetTextTexture(string message, System.Drawing.Font font, OutlineRenderOptions outlineRenderOptions = null)
+        {
+            int identifier = HashCode.Combine(font, message, outlineRenderOptions);
+            return Get(identifier, () => textRenderer.RenderText(message, font, outlineRenderOptions));
+        }
+
         public void DrawString(Vector2 point, Color color, string message, System.Drawing.Font font, Vector2 scale, float angle,
             HorizontalAlignment horizontalAlignment = HorizontalAlignment.Left, VerticalAlignment verticalAlignment = VerticalAlignment.Bottom,
             SpriteEffects effects = SpriteEffects.None, SpriteBatch spriteBatch = null, OutlineRenderOptions outlineRenderOptions = null)
         {
-            int identifier = HashCode.Combine(font, message, outlineRenderOptions);
-            Texture2D texture = Get(identifier, () =>
-            {
-                return textRenderer.RenderText(message, font, outlineRenderOptions);
-            });
+            Texture2D texture = GetTextTexture(message, font, outlineRenderOptions);
             Vector2 center = point;
             point -= new Vector2(texture.Width * ((int)horizontalAlignment / 2f), texture.Height * ((int)verticalAlignment / 2f));
             Vector2 vector = point - center;

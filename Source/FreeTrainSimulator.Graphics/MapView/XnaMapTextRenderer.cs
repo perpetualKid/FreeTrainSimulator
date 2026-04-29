@@ -1,3 +1,5 @@
+using System;
+
 using FreeTrainSimulator.Graphics.Xna;
 
 using Microsoft.Xna.Framework;
@@ -7,12 +9,12 @@ namespace FreeTrainSimulator.Graphics.MapView
 {
     internal sealed class XnaMapTextRenderer : IMapTextRenderer
     {
-        private readonly DrawableComponents.TextShape textShape;
+        private readonly IMapTextCache textCache;
         private readonly SpriteBatch spriteBatch;
 
-        public XnaMapTextRenderer(DrawableComponents.TextShape textShape, SpriteBatch spriteBatch)
+        public XnaMapTextRenderer(IMapTextCache textCache, SpriteBatch spriteBatch)
         {
-            this.textShape = textShape;
+            this.textCache = textCache;
             this.spriteBatch = spriteBatch;
         }
 
@@ -20,7 +22,14 @@ namespace FreeTrainSimulator.Graphics.MapView
             HorizontalAlignment horizontalAlignment = HorizontalAlignment.Left, VerticalAlignment verticalAlignment = VerticalAlignment.Bottom,
             OutlineRenderOptions outlineRenderOptions = null)
         {
-            textShape.DrawString(point, color, message, font, scale, angle, horizontalAlignment, verticalAlignment, SpriteEffects.None, spriteBatch, outlineRenderOptions);
+            Texture2D texture = textCache.GetTextTexture(message, font, outlineRenderOptions);
+            Vector2 center = point;
+            point -= new Vector2(texture.Width * ((int)horizontalAlignment / 2f), texture.Height * ((int)verticalAlignment / 2f));
+            Vector2 vector = point - center;
+            float x = (float)((Math.Cos(angle) * vector.X) - (Math.Sin(angle) * vector.Y));
+            float y = (float)((Math.Sin(angle) * vector.X) + (Math.Cos(angle) * vector.Y));
+            point = center + new Vector2(x, y);
+            spriteBatch.Draw(texture, point, null, outlineRenderOptions == null ? color : Color.White, angle, Vector2.Zero, scale, SpriteEffects.None, 0);
         }
     }
 }
