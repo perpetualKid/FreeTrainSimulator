@@ -44,6 +44,7 @@ namespace FreeTrainSimulator.Graphics.MapView
         private readonly IMapHostEnvironment hostEnvironment;
 #pragma warning restore CA2213 // Disposable fields should be disposed
 
+        private readonly IMapRenderingLifetime renderingLifetime;
         private readonly IMapRenderingResources renderingResources;
         private readonly IMapRenderBackend renderBackend;
 
@@ -72,7 +73,8 @@ namespace FreeTrainSimulator.Graphics.MapView
             Content = content ?? throw new ArgumentNullException(nameof(content));
             Enabled = false;
             SpriteBatch = new SpriteBatch(GraphicsDevice);
-            renderingResources = new XnaMapRenderingResources(game, SpriteBatch);
+            renderingLifetime = new XnaMapRenderingLifetime(game);
+            renderingResources = new XnaMapRenderingResources(renderingLifetime, SpriteBatch);
             renderBackend = new XnaMapRenderBackend(SpriteBatch, renderingResources.BasicShapes, renderingResources.TextShape);
             fontManager = FontManager.Scaled("Arial", System.Drawing.FontStyle.Regular);
             ConstantSizeFont = fontManager[25];

@@ -14,11 +14,11 @@ namespace FreeTrainSimulator.Graphics.MapView
 
         public TextShape TextShape { get; }
 
-        public XnaMapRenderingResources(Game game, SpriteBatch spriteBatch)
+        public XnaMapRenderingResources(IMapRenderingLifetime renderingLifetime, SpriteBatch spriteBatch)
         {
             SpriteBatch = spriteBatch;
-            BasicShapes = BasicShapes.Instance(game);
-            TextShape = TextShape.Instance(game, spriteBatch);
+            BasicShapes = renderingLifetime.GetBasicShapes();
+            TextShape = renderingLifetime.GetTextShape(spriteBatch);
         }
     }
 }
