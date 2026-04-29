@@ -44,6 +44,8 @@ namespace FreeTrainSimulator.Graphics.MapView
         private readonly IMapHostEnvironment hostEnvironment;
 #pragma warning restore CA2213 // Disposable fields should be disposed
 
+        private readonly IMapRenderingResources renderingResources;
+
         public ContentBase Content { get; }
 
         public double Scale => viewport.Scale;
@@ -69,13 +71,14 @@ namespace FreeTrainSimulator.Graphics.MapView
             Content = content ?? throw new ArgumentNullException(nameof(content));
             Enabled = false;
             SpriteBatch = new SpriteBatch(GraphicsDevice);
+            renderingResources = new XnaMapRenderingResources(game, SpriteBatch);
             fontManager = FontManager.Scaled("Arial", System.Drawing.FontStyle.Regular);
             ConstantSizeFont = fontManager[25];
             hostEnvironment = new XnaMapHostEnvironment(game);
             hostEnvironment.RegisterMouseMove(MouseMove);
             insetComponent = game.Components.OfType<InsetComponent>().FirstOrDefault();
-            contentText = TextShape.Instance(Game, SpriteBatch);
-            BasicShapes = BasicShapes.Instance(Game);
+            contentText = renderingResources.TextShape;
+            BasicShapes = renderingResources.BasicShapes;
             viewport = new MapViewportState(new MapViewportBounds(content.Bounds.Left, content.Bounds.Top, content.Bounds.Right, content.Bounds.Bottom));
             hostEnvironment.ClientSizeChanged += Window_ClientSizeChanged;
         }
