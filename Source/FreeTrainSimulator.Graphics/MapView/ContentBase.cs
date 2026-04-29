@@ -38,16 +38,19 @@ namespace FreeTrainSimulator.Graphics.MapView
 
         internal IMapInsetHost InsetHost { get; }
 
+        internal IMapTextureHelperHost TextureHelperHost { get; }
+
         public Rectangle Bounds { get; protected set; }
 
         public InformationDictionary DetailInfo { get; } = new InformationDictionary();
 
         public Dictionary<string, FormatOption> FormattingOptions { get; } = new Dictionary<string, FormatOption>();
 
-        protected ContentBase(Game game, IMapInsetHost insetHost = null)
+        protected ContentBase(Game game, IMapInsetHost insetHost = null, IMapTextureHelperHost textureHelperHost = null)
         {
             this.game = game ?? throw new ArgumentNullException(nameof(game));
             InsetHost = insetHost;
+            TextureHelperHost = textureHelperHost;
             if (null == RuntimeDataResolver.GameInstance(game))
                 throw new InvalidOperationException("RuntimeData not initialized!");
             ContentArea = new ContentArea(game, this);

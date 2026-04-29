@@ -183,13 +183,10 @@ namespace FreeTrainSimulator.Graphics.MapView
 
         protected override void OnEnabledChanged(object sender, EventArgs args)
         {
-            foreach (TextureContentComponent component in Game.Components.OfType<TextureContentComponent>())
-            {
-                if (Enabled)
-                    component.Enable(this);
-                else
-                    component.Disable();
-            }
+            if (Enabled)
+                Content.TextureHelperHost?.Enable(this);
+            else
+                Content.TextureHelperHost?.Disable();
             base.OnEnabledChanged(sender, args);
         }
 

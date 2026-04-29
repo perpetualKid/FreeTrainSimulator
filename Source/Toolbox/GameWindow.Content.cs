@@ -124,7 +124,10 @@ namespace FreeTrainSimulator.Toolbox
             if (ctsProfileLoading.Token.IsCancellationRequested)
                 return;
 
-            ToolboxContent content = new ToolboxContent(this, new XnaMapInsetHost(Components.OfType<InsetComponent>().FirstOrDefault()));
+            ToolboxContent content = new ToolboxContent(
+                this,
+                new XnaMapInsetHost(Components.OfType<InsetComponent>().FirstOrDefault()),
+                new XnaMapTextureHelperHost(Components.OfType<TextureContentComponent>()));
 
             await content.Initialize().ConfigureAwait(false);
             content.InitializeItemVisiblity(ToolboxSettings.ViewSettings);

@@ -36,8 +36,8 @@ namespace FreeTrainSimulator.Graphics.MapView
 
         internal List<PathSegment> PathSegments { get; } = new List<PathSegment>();
 
-        public DispatcherContent(Game game, IMapInsetHost insetHost = null) :
-            base(game, insetHost)
+        public DispatcherContent(Game game, IMapInsetHost insetHost = null, IMapTextureHelperHost textureHelperHost = null) :
+            base(game, insetHost, textureHelperHost)
         {
         }
 
