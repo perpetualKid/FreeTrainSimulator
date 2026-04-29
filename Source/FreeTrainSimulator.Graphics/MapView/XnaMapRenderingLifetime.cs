@@ -11,16 +11,18 @@ namespace FreeTrainSimulator.Graphics.MapView
     {
         private readonly Game game;
         private readonly TextTextureRenderer textTextureRenderer;
+        private readonly BasicShapes basicShapes;
 
         public XnaMapRenderingLifetime(Game game)
         {
             this.game = game;
             textTextureRenderer = TextTextureRenderer.Create(game);
+            basicShapes = BasicShapes.Create(game.GraphicsDevice);
         }
 
         public BasicShapes GetBasicShapes()
         {
-            return BasicShapes.Instance(game);
+            return basicShapes;
         }
 
         public TextShape GetTextShape(SpriteBatch spriteBatch)

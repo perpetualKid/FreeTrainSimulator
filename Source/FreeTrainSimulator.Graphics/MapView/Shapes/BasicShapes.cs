@@ -33,6 +33,15 @@ namespace FreeTrainSimulator.Graphics.MapView.Shapes
         {
         }
 
+        public static BasicShapes Create(GraphicsDevice graphicsDevice)
+        {
+            ArgumentNullException.ThrowIfNull(graphicsDevice);
+
+            BasicShapes instance = new BasicShapes();
+            instance.LoadContent(graphicsDevice);
+            return instance;
+        }
+
         public static BasicShapes Instance(Game game)
         {
             ArgumentNullException.ThrowIfNull(game);
@@ -40,8 +49,7 @@ namespace FreeTrainSimulator.Graphics.MapView.Shapes
             BasicShapes instance;
             if ((instance = game.Components.OfType<BasicShapes>().FirstOrDefault()) == null)
             {
-                instance = new BasicShapes();
-                instance.LoadContent(game.GraphicsDevice);
+                instance = Create(game.GraphicsDevice);
             }
             return instance;
         }
