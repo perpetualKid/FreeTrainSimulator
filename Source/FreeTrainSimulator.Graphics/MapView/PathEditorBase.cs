@@ -51,8 +51,8 @@ namespace FreeTrainSimulator.Graphics.MapView
 
         internal void Draw()
         {
-            trainPath?.Draw(ToolboxContent.ContentArea);
-            activePathPoint?.Draw(ToolboxContent.ContentArea);
+            trainPath?.Draw(ToolboxContent.Renderer);
+            activePathPoint?.Draw(ToolboxContent.Renderer);
         }
 
         #region additional content (Paths)

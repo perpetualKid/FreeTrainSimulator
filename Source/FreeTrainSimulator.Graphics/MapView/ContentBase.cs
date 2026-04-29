@@ -30,6 +30,8 @@ namespace FreeTrainSimulator.Graphics.MapView
 
         public ContentArea ContentArea { get; }
 
+        internal IMapRenderer Renderer => ContentArea;
+
         public Rectangle Bounds { get; protected set; }
 
         public InformationDictionary DetailInfo { get; } = new InformationDictionary();

@@ -176,10 +176,10 @@ namespace FreeTrainSimulator.Graphics.MapView
                             // this could also be resolved otherwise also if rather vectorwidget & pointwidget implement InsideScreenArea() function
                             // but the performance impact/overhead seems invariant
                             if (item is VectorPrimitive vectorPrimitive && ContentArea.InsideScreenArea(vectorPrimitive))
-                                (item as IDrawable<VectorPrimitive>).Draw(ContentArea);
+                                (item as IDrawable<VectorPrimitive>).Draw(Renderer);
                             else if (item is PointPrimitive pointPrimitive && ContentArea.InsideScreenArea(pointPrimitive))
                             {
-                                (item as IDrawable<PointPrimitive>).Draw(ContentArea);
+                                (item as IDrawable<PointPrimitive>).Draw(Renderer);
                             }
                         }
                     }
@@ -191,14 +191,14 @@ namespace FreeTrainSimulator.Graphics.MapView
                 {
                     foreach (TrackSegmentBase segment in trackWorld.SegmentSections[(nearestItems[MapContentType.Tracks] as TrackSegmentBase).TrackNodeIndex].SectionSegments)
                     {
-                        (segment as IDrawable<VectorPrimitive>).Draw(ContentArea, ColorVariation.ComplementHighlight);
+                        (segment as IDrawable<VectorPrimitive>).Draw(Renderer, ColorVariation.ComplementHighlight);
                     }
                 }
                 if (null != nearestItems[MapContentType.Roads])
                 {
                     foreach (TrackSegmentBase segment in trackWorld.RoadSegmentSections[(nearestItems[MapContentType.Roads] as TrackSegmentBase).TrackNodeIndex].SectionSegments)
                     {
-                        (segment as IDrawable<VectorPrimitive>).Draw(ContentArea, ColorVariation.ComplementHighlight);
+                        (segment as IDrawable<VectorPrimitive>).Draw(Renderer, ColorVariation.ComplementHighlight);
                     }
                 }
 
@@ -207,9 +207,9 @@ namespace FreeTrainSimulator.Graphics.MapView
                     if (viewSettings[viewItemSettings] && nearestItems[viewItemSettings] != null)
                     {
                         if (nearestItems[viewItemSettings] is VectorPrimitive vectorPrimitive && ContentArea.InsideScreenArea(vectorPrimitive))
-                            (vectorPrimitive as IDrawable<VectorPrimitive>).Draw(ContentArea, ColorVariation.Complement);
+                            (vectorPrimitive as IDrawable<VectorPrimitive>).Draw(Renderer, ColorVariation.Complement);
                         else if (nearestItems[viewItemSettings] is PointPrimitive pointPrimitive && ContentArea.InsideScreenArea(pointPrimitive))
-                            (pointPrimitive as IDrawable<PointPrimitive>).Draw(ContentArea, ColorVariation.Complement);
+                            (pointPrimitive as IDrawable<PointPrimitive>).Draw(Renderer, ColorVariation.Complement);
                     }
                 }
             }
