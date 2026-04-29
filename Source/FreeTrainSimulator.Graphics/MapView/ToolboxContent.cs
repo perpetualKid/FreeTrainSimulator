@@ -15,6 +15,7 @@ using FreeTrainSimulator.Runtime;
 using FreeTrainSimulator.Runtime.Track;
 
 using Microsoft.Xna.Framework;
+using FreeTrainSimulator.Common.Input;
 
 namespace FreeTrainSimulator.Graphics.MapView
 {
@@ -50,8 +51,8 @@ namespace FreeTrainSimulator.Graphics.MapView
             }
         }
 
-        public ToolboxContent(Game game, IMapInsetHost insetHost = null, IMapTextureHelperHost textureHelperHost = null) :
-            base(game, insetHost, textureHelperHost)
+        public ToolboxContent(Game game, MouseInputGameComponent mouseInputGameComponent, IMapInsetHost insetHost = null, IMapTextureHelperHost textureHelperHost = null) :
+            base(game, mouseInputGameComponent, insetHost, textureHelperHost)
         {
             FormattingOptions.Add("Route Information", FormatOption.Bold);
             DetailInfo.Add("Route Information", null);

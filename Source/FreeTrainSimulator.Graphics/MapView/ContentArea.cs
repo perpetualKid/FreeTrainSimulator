@@ -68,7 +68,7 @@ namespace FreeTrainSimulator.Graphics.MapView
         public System.Drawing.Font CurrentFont { get; private set; }
         public System.Drawing.Font ConstantSizeFont { get; private set; }
 
-        internal ContentArea(Game game, ContentBase content) :
+        internal ContentArea(Game game, ContentBase content, FreeTrainSimulator.Common.Input.MouseInputGameComponent mouseInputGameComponent) :
             base(game)
         {
             ArgumentNullException.ThrowIfNull(game);
@@ -84,7 +84,7 @@ namespace FreeTrainSimulator.Graphics.MapView
             renderBackend = new XnaMapRenderBackend(SpriteBatch, renderingResources.BasicShapes, textRenderer);
             fontManager = FontManager.Scaled("Arial", System.Drawing.FontStyle.Regular);
             ConstantSizeFont = fontManager[25];
-            hostEnvironment = new XnaMapHostEnvironment(game);
+            hostEnvironment = new XnaMapHostEnvironment(game, mouseInputGameComponent);
             hostEnvironment.RegisterMouseMove(MouseMove);
             contentText = renderingResources.TextShape;
             BasicShapes = renderingResources.BasicShapes;

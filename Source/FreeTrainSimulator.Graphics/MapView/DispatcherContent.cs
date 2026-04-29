@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading.Tasks;
 
 using FreeTrainSimulator.Common;
+using FreeTrainSimulator.Common.Input;
 using FreeTrainSimulator.Common.Position;
 using FreeTrainSimulator.Graphics.DrawableComponents;
 using FreeTrainSimulator.Graphics.MapView.Widgets;
@@ -36,8 +37,8 @@ namespace FreeTrainSimulator.Graphics.MapView
 
         internal List<PathSegment> PathSegments { get; } = new List<PathSegment>();
 
-        public DispatcherContent(Game game, IMapInsetHost insetHost = null, IMapTextureHelperHost textureHelperHost = null) :
-            base(game, insetHost, textureHelperHost)
+        public DispatcherContent(Game game, MouseInputGameComponent mouseInputGameComponent, IMapInsetHost insetHost = null, IMapTextureHelperHost textureHelperHost = null) :
+            base(game, mouseInputGameComponent, insetHost, textureHelperHost)
         {
         }
 

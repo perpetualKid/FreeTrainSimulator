@@ -5,6 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 
 using FreeTrainSimulator.Common;
+using FreeTrainSimulator.Common.Input;
 using FreeTrainSimulator.Graphics.DrawableComponents;
 using FreeTrainSimulator.Graphics.MapView;
 using FreeTrainSimulator.Graphics.Xna;
@@ -126,6 +127,7 @@ namespace FreeTrainSimulator.Toolbox
 
             ToolboxContent content = new ToolboxContent(
                 this,
+                Components.OfType<MouseInputGameComponent>().FirstOrDefault(),
                 new XnaMapInsetHost(Components.OfType<InsetComponent>().FirstOrDefault()),
                 new XnaMapTextureHelperHost(Components.OfType<TextureContentComponent>()));
 

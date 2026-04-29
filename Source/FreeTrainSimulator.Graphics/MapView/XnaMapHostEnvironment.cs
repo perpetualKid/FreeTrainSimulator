@@ -1,5 +1,4 @@
 using System;
-using System.Linq;
 
 using FreeTrainSimulator.Common.Input;
 
@@ -12,10 +11,10 @@ namespace FreeTrainSimulator.Graphics.MapView
         private readonly Game game;
         private readonly MouseInputGameComponent inputComponent;
 
-        public XnaMapHostEnvironment(Game game)
+        public XnaMapHostEnvironment(Game game, MouseInputGameComponent inputComponent)
         {
             this.game = game ?? throw new ArgumentNullException(nameof(game));
-            inputComponent = game.Components.OfType<MouseInputGameComponent>().Single();
+            this.inputComponent = inputComponent ?? throw new ArgumentNullException(nameof(inputComponent));
             game.Window.ClientSizeChanged += GameWindow_ClientSizeChanged;
         }
 
