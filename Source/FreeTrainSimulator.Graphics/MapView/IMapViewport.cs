@@ -3,7 +3,7 @@ using FreeTrainSimulator.Graphics.MapView.Widgets;
 
 namespace FreeTrainSimulator.Graphics.MapView
 {
-    internal interface IMapViewport
+    public interface IMapViewport
     {
         bool InsideScreenArea(PointPrimitive pointPrimitive);
 

@@ -225,42 +225,21 @@ namespace Orts.ActivityRunner.Viewer3D.Dispatcher
             content.InitializeItemVisiblity(dispatcherSettings.ContentTypeVisibility);
             content.UpdateWidgetColorSettings(colorSettings);
             contentArea = content.ContentArea;
-            contentArea.ResetSize(Window.ClientBounds.Size, 60);
+            IMapHostControl hostControl = contentArea;
+            hostControl.ResetSize(Window.ClientBounds.Size, 60);
             Components.Add(contentArea);
-            contentArea.Enabled = true;
+            hostControl.IsEnabled = true;
 
             #region usercommandcontroller
             userCommandController.AddEvent(UserCommand.ChangeScreenMode, KeyEventType.KeyPressed, () => SetScreenMode(currentScreenMode.Next()));
-            userCommandController.AddEvent(UserCommand.MoveLeft, KeyEventType.KeyDown, contentArea.MoveByKeyLeft);
-            userCommandController.AddEvent(UserCommand.MoveRight, KeyEventType.KeyDown, contentArea.MoveByKeyRight);
-            userCommandController.AddEvent(UserCommand.MoveUp, KeyEventType.KeyDown, contentArea.MoveByKeyUp);
-            userCommandController.AddEvent(UserCommand.MoveDown, KeyEventType.KeyDown, contentArea.MoveByKeyDown);
-            userCommandController.AddEvent(UserCommand.ZoomIn, KeyEventType.KeyDown, contentArea.ZoomIn);
-            userCommandController.AddEvent(UserCommand.ZoomOut, KeyEventType.KeyDown, contentArea.ZoomOut);
-            userCommandController.AddEvent(UserCommand.ResetZoomAndLocation, KeyEventType.KeyPressed, () => { contentArea.ResetZoomAndLocation(Window.ClientBounds.Size, 0); });
-            userCommandController.AddEvent(CommonUserCommand.PointerDragged, MouseDragging);
-            userCommandController.AddEvent(CommonUserCommand.VerticalScrollChanged, MouseWheel);
-            userCommandController.AddEvent(CommonUserCommand.PointerDown, MouseLeftClick);
-            userCommandController.AddEvent(CommonUserCommand.AlternatePointerDown, MouseRightClick);
-            userCommandController.AddEvent(UserCommand.FollowTrain, KeyEventType.KeyPressed, () => { followTrain = !followTrain; if (followTrain) contentArea.UpdateScaleAbsolute(1.5); });
-            userCommandController.AddEvent(UserCommand.DisplayDebugScreen, KeyEventType.KeyPressed, () => windowManager[DispatcherWindowType.DebugScreen].ToggleVisibility());
-            userCommandController.AddEvent(UserCommand.DisplaySignalStateWindow, KeyEventType.KeyPressed, () => windowManager[DispatcherWindowType.SignalState].ToggleVisibility());
-            userCommandController.AddEvent(UserCommand.DisplayHelpWindow, KeyEventType.KeyPressed, (UserCommandArgs userCommandArgs) =>
-            {
-                if (!(userCommandArgs is ModifiableKeyCommandArgs))
-                    windowManager[DispatcherWindowType.HelpWindow].ToggleVisibility();
-            });
-            userCommandController.AddEvent(UserCommand.DisplaySettingsWindow, KeyEventType.KeyPressed, (UserCommandArgs userCommandArgs) =>
-            {
-                if (!(userCommandArgs is ModifiableKeyCommandArgs))
-                    windowManager[DispatcherWindowType.Settings].ToggleVisibility();
-            });
-            userCommandController.AddEvent(UserCommand.DisplayTrainInfoWindow, KeyEventType.KeyPressed, (UserCommandArgs userCommandArgs) =>
-            {
-                if (!(userCommandArgs is ModifiableKeyCommandArgs))
-                    windowManager[DispatcherWindowType.TrainInfo].ToggleVisibility();
-            });
-            //            userCommandController.AddEvent(UserCommand.DebugStep, KeyEventType.KeyPressed, null);
+            userCommandController.AddEvent(UserCommand.MoveLeft, KeyEventType.KeyDown, hostControl.MoveByKeyLeft);
+            userCommandController.AddEvent(UserCommand.MoveRight, KeyEventType.KeyDown, hostControl.MoveByKeyRight);
+            userCommandController.AddEvent(UserCommand.MoveUp, KeyEventType.KeyDown, hostControl.MoveByKeyUp);
+            userCommandController.AddEvent(UserCommand.MoveDown, KeyEventType.KeyDown, hostControl.MoveByKeyDown);
+            userCommandController.AddEvent(UserCommand.ZoomIn, KeyEventType.KeyDown, hostControl.ZoomIn);
+            userCommandController.AddEvent(UserCommand.ZoomOut, KeyEventType.KeyDown, hostControl.ZoomOut);
+            userCommandController.AddEvent(UserCommand.ResetZoomAndLocation, KeyEventType.KeyPressed, () => { hostControl.ResetZoomAndLocation(Window.ClientBounds.Size, 0); });
+
             #endregion
 
             debugInfo = new CommonDebugInfo(contentArea);
@@ -488,16 +467,19 @@ namespace Orts.ActivityRunner.Viewer3D.Dispatcher
         #region Content area user interaction
         public void MouseWheel(UserCommandArgs userCommandArgs, KeyModifiers modifiers)
         {
-            if (followTrain)
-                contentArea.MouseWheel(userCommandArgs, modifiers);
+            if (contentArea is not IMapHostControl hostControl)
+                return;
+
+            if ((modifiers & KeyModifiers.Control) == KeyModifiers.Control)
+                hostControl.MouseWheel(userCommandArgs, modifiers);
             else
-                contentArea.MouseWheelAt(userCommandArgs, modifiers);
+                hostControl.MouseWheelAt(userCommandArgs, modifiers);
         }
 
         public void MouseDragging(UserCommandArgs userCommandArgs)
         {
-            followTrain = false;
-            contentArea.MouseDragging(userCommandArgs);
+            if (contentArea is IMapHostControl hostControl)
+                hostControl.MouseDragging(userCommandArgs);
         }
 
         public void MouseLeftClick(UserCommandArgs userCommandArgs)

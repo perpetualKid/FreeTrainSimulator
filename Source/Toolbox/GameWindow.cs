@@ -71,9 +71,10 @@ namespace FreeTrainSimulator.Toolbox
                 }
                 if (value != null)
                 {
-                    value.ResetSize(Window.ClientBounds.Size, 60);
+                    IMapHostControl hostControl = value;
+                    hostControl.ResetSize(Window.ClientBounds.Size, 60);
                     Components.Add(value);
-                    value.Enabled = true;
+                    hostControl.IsEnabled = true;
                     Window.Title = windowTitle + Catalog.GetString($" Route: {value.Content.RouteName}");
                 }
                 contentArea = value;
@@ -263,8 +264,8 @@ namespace FreeTrainSimulator.Toolbox
             }
 
             ToolboxSettings.WindowScreen = Screen.AllScreens.ToList().IndexOf(currentScreen);
-            ToolboxSettings.ContentPosition = contentArea?.CenterPoint ?? PointD.None;
-            ToolboxSettings.ContentScale = contentArea?.Scale ?? 1;
+            ToolboxSettings.ContentPosition = contentArea is IMapHostControl hostControl ? hostControl.CenterPoint : PointD.None;
+            ToolboxSettings.ContentScale = contentArea is IMapHostControl hostControl2 ? hostControl2.Scale : 1;
 
             ToolboxSettings.Folder = selectedFolder?.Id;
             ToolboxSettings.RouteId = selectedRoute?.Id;

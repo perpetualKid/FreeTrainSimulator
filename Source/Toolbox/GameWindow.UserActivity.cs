@@ -8,6 +8,7 @@ using System.Windows.Forms;
 using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Info;
 using FreeTrainSimulator.Common.Input;
+using FreeTrainSimulator.Graphics.MapView;
 using FreeTrainSimulator.Models.Content;
 using FreeTrainSimulator.Models.Shim;
 using FreeTrainSimulator.Toolbox.PopupWindows;
@@ -69,38 +70,42 @@ namespace FreeTrainSimulator.Toolbox
 
         public void MouseDragging(UserCommandArgs userCommandArgs)
         {
-            if (userCommandArgs is PointerMoveCommandArgs mouseMoveCommandArgs)
+            if (userCommandArgs is PointerMoveCommandArgs mouseMoveCommandArgs && contentArea is IMapHostControl hostControl)
             {
-                contentArea?.UpdatePosition(mouseMoveCommandArgs.Delta);
+                hostControl.UpdatePosition(mouseMoveCommandArgs.Delta);
             }
         }
 
         public void MouseWheel(UserCommandArgs userCommandArgs, KeyModifiers modifiers)
         {
-            if (userCommandArgs is ScrollCommandArgs mouseWheelCommandArgs)
+            if (userCommandArgs is ScrollCommandArgs mouseWheelCommandArgs && contentArea is IMapHostControl hostControl)
             {
-                contentArea?.UpdateScaleAt(mouseWheelCommandArgs.Position, Math.Sign(mouseWheelCommandArgs.Delta) * ZoomAmplifier(modifiers));
+                hostControl.UpdateScaleAt(mouseWheelCommandArgs.Position, Math.Sign(mouseWheelCommandArgs.Delta) * ZoomAmplifier(modifiers));
             }
         }
 
         private void MoveByKeyLeft(UserCommandArgs commandArgs)
         {
-            contentArea?.UpdatePosition(moveLeft * MovementAmplifier(commandArgs));
+            if (contentArea is IMapHostControl hostControl)
+                hostControl.UpdatePosition(moveLeft * MovementAmplifier(commandArgs));
         }
 
         private void MoveByKeyRight(UserCommandArgs commandArgs)
         {
-            contentArea?.UpdatePosition(moveRight * MovementAmplifier(commandArgs));
+            if (contentArea is IMapHostControl hostControl)
+                hostControl.UpdatePosition(moveRight * MovementAmplifier(commandArgs));
         }
 
         private void MoveByKeyUp(UserCommandArgs commandArgs)
         {
-            contentArea?.UpdatePosition(moveUp * MovementAmplifier(commandArgs));
+            if (contentArea is IMapHostControl hostControl)
+                hostControl.UpdatePosition(moveUp * MovementAmplifier(commandArgs));
         }
 
         private void MoveByKeyDown(UserCommandArgs commandArgs)
         {
-            contentArea?.UpdatePosition(moveDown * MovementAmplifier(commandArgs));
+            if (contentArea is IMapHostControl hostControl)
+                hostControl.UpdatePosition(moveDown * MovementAmplifier(commandArgs));
         }
 
         private static int MovementAmplifier(UserCommandArgs commandArgs)
@@ -144,16 +149,17 @@ namespace FreeTrainSimulator.Toolbox
         private long nextUpdate;
         private void Zoom(int steps)
         {
-            if (Environment.TickCount64 > nextUpdate)
+            if (Environment.TickCount64 > nextUpdate && contentArea is IMapHostControl hostControl)
             {
-                contentArea?.UpdateScale(steps);
+                hostControl.UpdateScale(steps);
                 nextUpdate = Environment.TickCount64 + 30;
             }
         }
 
         private void ResetZoomAndLocation()
         {
-            contentArea?.ResetSize(Window.ClientBounds.Size, 60);
+            if (contentArea is IMapHostControl hostControl)
+                hostControl.ResetSize(Window.ClientBounds.Size, 60);
         }
 
         internal void ShowAboutWindow()

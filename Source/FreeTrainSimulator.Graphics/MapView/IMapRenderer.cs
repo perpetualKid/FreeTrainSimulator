@@ -6,7 +6,7 @@ using Microsoft.Xna.Framework;
 
 namespace FreeTrainSimulator.Graphics.MapView
 {
-    internal interface IMapRenderer
+    public interface IMapRenderer
     {
         double Scale { get; }
 

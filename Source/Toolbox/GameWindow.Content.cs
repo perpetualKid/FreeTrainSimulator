@@ -19,6 +19,12 @@ namespace FreeTrainSimulator.Toolbox
     {
         public ContentArea ContentArea { get; }
 
+        public IMapRenderer Renderer => ContentArea;
+
+        public IMapViewport Viewport => ContentArea;
+
+        public IMapHostControl HostControl => ContentArea;
+
         public ContentAreaChangedEventArgs(ContentArea contentArea)
         {
             ContentArea = contentArea;

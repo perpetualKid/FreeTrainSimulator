@@ -15,7 +15,7 @@ using Microsoft.Xna.Framework.Input;
 
 namespace FreeTrainSimulator.Graphics.MapView
 {
-    public class ContentArea : DrawableGameComponent, IMapRenderer, IMapViewport
+    public class ContentArea : DrawableGameComponent, IMapRenderer, IMapViewport, IMapHostControl
     {
         private static readonly Vector2 moveLeft = new Vector2(1, 0);
         private static readonly Vector2 moveRight = new Vector2(-1, 0);
@@ -459,6 +459,12 @@ namespace FreeTrainSimulator.Graphics.MapView
                 inputComponent = null;
             }
             base.Dispose(disposing);
+        }
+
+        public bool IsEnabled
+        {
+            get => Enabled;
+            set => Enabled = value;
         }
     }
 }
