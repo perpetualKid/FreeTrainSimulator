@@ -40,9 +40,9 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
 
         public Dictionary<string, FormatOption> FormattingOptions => null;
 
-        public virtual void Draw(ContentArea contentArea, ColorVariation colorVariation = ColorVariation.None, double scaleFactor = 1)
+        public virtual void Draw(IMapRenderer renderer, ColorVariation colorVariation = ColorVariation.None, double scaleFactor = 1)
         {
-            Size = contentArea.Scale switch
+            Size = renderer.Scale switch
             {
                 double i when i < 0.5 => 30,
                 double i when i < 0.75 => 15,
@@ -57,7 +57,7 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
             scaleFactor *= WidgetDrawingOptions<JunctionNode>.ScaleFactor;
 
             Color drawColor = WidgetDrawingOptions<JunctionNode>.Colors[colorVariation];
-            contentArea.BasicShapes.DrawTexture(contentArea.Scale > 4 ? BasicTextureType.Ring : BasicTextureType.RingBold, contentArea.WorldToScreenCoordinates(in Location), Direction, contentArea.WorldToScreenSize(Size * scaleFactor), drawColor, contentArea.SpriteBatch);
+            renderer.DrawTexture(renderer.Scale > 4 ? BasicTextureType.Ring : BasicTextureType.RingBold, renderer.WorldToScreenCoordinates(in Location), Direction, renderer.WorldToScreenSize(Size * scaleFactor), drawColor);
         }
 
         public static void UpdateTrackWidthRatio(bool downscale)
@@ -107,9 +107,9 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
 
         }
 
-        public override void Draw(ContentArea contentArea, ColorVariation colorVariation = ColorVariation.None, double scaleFactor = 1)
+        public override void Draw(IMapRenderer renderer, ColorVariation colorVariation = ColorVariation.None, double scaleFactor = 1)
         {
-            Size = contentArea.Scale switch
+            Size = renderer.Scale switch
             {
                 double i when i < 0.3 => 30,
                 double i when i < 0.5 => 20,
@@ -122,7 +122,7 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
             };
 
             Color drawColor = WidgetDrawingOptions<JunctionNode>.Colors[Junction.State == SwitchState.MainRoute ? ColorVariation.Complement : ColorVariation.None];
-            contentArea.BasicShapes.DrawTexture(BasicTextureType.PathNormal, contentArea.WorldToScreenCoordinates(in Location), trackSectionAngles[(int)Junction.State], contentArea.WorldToScreenSize(Size * scaleFactor), drawColor, contentArea.SpriteBatch);
+            renderer.DrawTexture(BasicTextureType.PathNormal, renderer.WorldToScreenCoordinates(in Location), trackSectionAngles[(int)Junction.State], renderer.WorldToScreenSize(Size * scaleFactor), drawColor);
         }
 
     }

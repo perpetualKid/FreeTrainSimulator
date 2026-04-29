@@ -1,5 +1,4 @@
-﻿
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -44,7 +43,7 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
 
         public Dictionary<string, FormatOption> FormattingOptions { get; }
 
-        public abstract void Draw(ContentArea contentArea, ColorVariation colorVariation = ColorVariation.None, double scaleFactor = 1);
+        public abstract void Draw(IMapRenderer renderer, ColorVariation colorVariation = ColorVariation.None, double scaleFactor = 1);
 
         public TrackItemWidget(Models.Track.TrackItemBase source) : base(source.Location)
         {
@@ -166,12 +165,12 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
             Size = 4f;
         }
 
-        public override void Draw(ContentArea contentArea, ColorVariation colorVariation = ColorVariation.None, double scaleFactor = 1)
+        public override void Draw(IMapRenderer renderer, ColorVariation colorVariation = ColorVariation.None, double scaleFactor = 1)
         {
             Color drawColor = WidgetDrawingOptions<CrossOverTrackItem>.Colors[colorVariation];
             scaleFactor *= WidgetDrawingOptions<JunctionNode>.ScaleFactor;
 
-            contentArea.BasicShapes.DrawTexture(contentArea.Scale > 4 ? BasicTextureType.Ring : BasicTextureType.RingBold, contentArea.WorldToScreenCoordinates(in Location), 0, contentArea.WorldToScreenSize(Size * scaleFactor), drawColor, contentArea.SpriteBatch);
+            renderer.DrawTexture(renderer.Scale > 4 ? BasicTextureType.Ring : BasicTextureType.RingBold, renderer.WorldToScreenCoordinates(in Location), 0, renderer.WorldToScreenSize(Size * scaleFactor), drawColor);
         }
 
         protected override void AddInfoDetails(InformationDictionary infoHolder)
@@ -190,9 +189,9 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
             Size = 5f;
         }
 
-        public override void Draw(ContentArea contentArea, ColorVariation colorVariation = ColorVariation.None, double scaleFactor = 1)
+        public override void Draw(IMapRenderer renderer, ColorVariation colorVariation = ColorVariation.None, double scaleFactor = 1)
         {
-            contentArea.BasicShapes.DrawTexture(BasicTextureType.CarSpawner, contentArea.WorldToScreenCoordinates(in Location), 0, contentArea.WorldToScreenSize(Size * scaleFactor), false, false, colorVariation != ColorVariation.None, contentArea.SpriteBatch);
+            renderer.DrawTexture(BasicTextureType.CarSpawner, renderer.WorldToScreenCoordinates(in Location), 0, renderer.WorldToScreenSize(Size * scaleFactor), false, false, colorVariation != ColorVariation.None);
         }
         protected override void AddInfoDetails(InformationDictionary infoHolder)
         {
@@ -210,10 +209,10 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
             Size = 5f;
         }
 
-        public override void Draw(ContentArea contentArea, ColorVariation colorVariation = ColorVariation.None, double scaleFactor = 1)
+        public override void Draw(IMapRenderer renderer, ColorVariation colorVariation = ColorVariation.None, double scaleFactor = 1)
         {
             Color drawColor = Color.Red;
-            contentArea.BasicShapes.DrawTexture(BasicTextureType.RingCrossed, contentArea.WorldToScreenCoordinates(in Location), 0, contentArea.WorldToScreenSize(Size * scaleFactor), drawColor, contentArea.SpriteBatch);
+            renderer.DrawTexture(BasicTextureType.RingCrossed, renderer.WorldToScreenCoordinates(in Location), 0, renderer.WorldToScreenSize(Size * scaleFactor), drawColor);
         }
 
         protected override void AddInfoDetails(InformationDictionary infoHolder)
@@ -240,12 +239,12 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
             Size = 5f;
         }
 
-        public override void Draw(ContentArea contentArea, ColorVariation colorVariation = ColorVariation.None, double scaleFactor = 1)
+        public override void Draw(IMapRenderer renderer, ColorVariation colorVariation = ColorVariation.None, double scaleFactor = 1)
         {
             Color drawColor = WidgetDrawingOptions<SidingTrackItem>.Colors[colorVariation];
             OutlineRenderOptions outlineRenderOptions = WidgetDrawingOptions<SidingTrackItem>.OutlineRenderOptions;
-            contentArea.BasicShapes.DrawTexture(BasicTextureType.Disc, contentArea.WorldToScreenCoordinates(in Location), 0, contentArea.WorldToScreenSize(Size * scaleFactor), drawColor, contentArea.SpriteBatch);
-            contentArea.DrawText(in Location, drawColor, SidingName, font, Vector2.One, 0, HorizontalAlignment.Left, VerticalAlignment.Top, outlineRenderOptions);
+            renderer.DrawTexture(BasicTextureType.Disc, renderer.WorldToScreenCoordinates(in Location), 0, renderer.WorldToScreenSize(Size * scaleFactor), drawColor);
+            renderer.DrawText(in Location, drawColor, SidingName, font, Vector2.One, 0, HorizontalAlignment.Left, VerticalAlignment.Top, outlineRenderOptions);
         }
 
         protected override void AddInfoDetails(InformationDictionary infoHolder)
@@ -276,13 +275,13 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
             Size = 7f;
         }
 
-        public override void Draw(ContentArea contentArea, ColorVariation colorVariation = ColorVariation.None, double scaleFactor = 1)
+        public override void Draw(IMapRenderer renderer, ColorVariation colorVariation = ColorVariation.None, double scaleFactor = 1)
         {
             Color drawColor = WidgetDrawingOptions<PlatformTrackItem>.Colors[colorVariation];
             OutlineRenderOptions outlineRenderOptions = WidgetDrawingOptions<PlatformTrackItem>.OutlineRenderOptions;
-            contentArea.BasicShapes.DrawTexture(BasicTextureType.Platform, contentArea.WorldToScreenCoordinates(in Location), 0, contentArea.WorldToScreenSize(Size * scaleFactor), drawColor, contentArea.SpriteBatch);
-            contentArea.DrawText(Location, drawColor, PlatformName, font, Vector2.One, 0, HorizontalAlignment.Left, VerticalAlignment.Top, outlineRenderOptions);
-            contentArea.DrawText(Location, drawColor, StationName, font, Vector2.One, 0, HorizontalAlignment.Left, VerticalAlignment.Bottom, outlineRenderOptions);
+            renderer.DrawTexture(BasicTextureType.Platform, renderer.WorldToScreenCoordinates(in Location), 0, renderer.WorldToScreenSize(Size * scaleFactor), drawColor);
+            renderer.DrawText(Location, drawColor, PlatformName, font, Vector2.One, 0, HorizontalAlignment.Left, VerticalAlignment.Top, outlineRenderOptions);
+            renderer.DrawText(Location, drawColor, StationName, font, Vector2.One, 0, HorizontalAlignment.Left, VerticalAlignment.Bottom, outlineRenderOptions);
         }
 
         protected override void AddInfoDetails(InformationDictionary infoHolder)
@@ -315,9 +314,9 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
             textLocation = Location + (new PointD(1f* (float)Math.Cos(angle), -1*(float)Math.Sin(angle)));
         }
 
-        public override void Draw(ContentArea contentArea, ColorVariation colorVariation = ColorVariation.None, double scaleFactor = 1)
+        public override void Draw(IMapRenderer renderer, ColorVariation colorVariation = ColorVariation.None, double scaleFactor = 1)
         {
-            Size = contentArea.Scale switch
+            Size = renderer.Scale switch
             {
                 double i when i < 0.5 => 30,
                 double i when i < 0.75 => 15,
@@ -332,8 +331,8 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
 
             Color drawColor = WidgetDrawingOptions<SpeedPostTrackItem>.Colors[colorVariation];
             OutlineRenderOptions outlineRenderOptions = WidgetDrawingOptions<SpeedPostTrackItem>.OutlineRenderOptions;
-            contentArea.BasicShapes.DrawTexture(BasicTextureType.ArrowedIndicator, contentArea.WorldToScreenCoordinates(in Location), angle, contentArea.WorldToScreenSize(Size * scaleFactor), drawColor, contentArea.SpriteBatch);
-            contentArea.DrawText(textLocation, drawColor, speed, font, Vector2.One, 0, HorizontalAlignment.Center, VerticalAlignment.Center, outlineRenderOptions);
+            renderer.DrawTexture(BasicTextureType.ArrowedIndicator, renderer.WorldToScreenCoordinates(in Location), angle, renderer.WorldToScreenSize(Size * scaleFactor), drawColor);
+            renderer.DrawText(textLocation, drawColor, speed, font, Vector2.One, 0, HorizontalAlignment.Center, VerticalAlignment.Center, outlineRenderOptions);
         }
 
         protected override void AddInfoDetails(InformationDictionary infoHolder)
@@ -374,7 +373,7 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
             textLocation = Location + (new PointD(-1f * (float)Math.Cos(angle), -1 * (float)Math.Sin(angle)));
         }
 
-        public override void Draw(ContentArea contentArea, ColorVariation colorVariation = ColorVariation.None, double scaleFactor = 1)
+        public override void Draw(IMapRenderer renderer, ColorVariation colorVariation = ColorVariation.None, double scaleFactor = 1)
         {
 
             scaleFactor *= WidgetDrawingOptions<MilePostTrackItem>.ScaleFactor;
@@ -382,9 +381,9 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
             Color drawColor = WidgetDrawingOptions<MilePostTrackItem>.Colors[colorVariation];
             OutlineRenderOptions outlineRenderOptions = WidgetDrawingOptions<MilePostTrackItem>.OutlineRenderOptions;
 
-            contentArea.BasicShapes.DrawLine(4, drawColor, contentArea.WorldToScreenCoordinates(Location), contentArea.WorldToScreenSize(Size * scaleFactor), angle + MathHelper.PiOver2, contentArea.SpriteBatch);
-            contentArea.BasicShapes.DrawLine(4, drawColor, contentArea.WorldToScreenCoordinates(Location), contentArea.WorldToScreenSize(Size * scaleFactor), angle + MathHelper.PiOver2 + MathHelper.Pi, contentArea.SpriteBatch);
-            contentArea.DrawText(textLocation, drawColor, distance, font, fontScale, angle, HorizontalAlignment.Center, VerticalAlignment.Bottom, outlineRenderOptions);
+            renderer.DrawLine(4, drawColor, renderer.WorldToScreenCoordinates(Location), renderer.WorldToScreenSize(Size * scaleFactor), angle + MathHelper.PiOver2);
+            renderer.DrawLine(4, drawColor, renderer.WorldToScreenCoordinates(Location), renderer.WorldToScreenSize(Size * scaleFactor), angle + MathHelper.PiOver2 + MathHelper.Pi);
+            renderer.DrawText(textLocation, drawColor, distance, font, fontScale, angle, HorizontalAlignment.Center, VerticalAlignment.Bottom, outlineRenderOptions);
         }
 
         protected override void AddInfoDetails(InformationDictionary infoHolder)
@@ -403,9 +402,9 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
             Size = 7f;
         }
 
-        public override void Draw(ContentArea contentArea, ColorVariation colorVariation = ColorVariation.None, double scaleFactor = 1)
+        public override void Draw(IMapRenderer renderer, ColorVariation colorVariation = ColorVariation.None, double scaleFactor = 1)
         {
-            contentArea.BasicShapes.DrawTexture(BasicTextureType.Hazard, contentArea.WorldToScreenCoordinates(in Location), 0, contentArea.WorldToScreenSize(Size * scaleFactor), false, false, colorVariation != ColorVariation.None, contentArea.SpriteBatch);
+            renderer.DrawTexture(BasicTextureType.Hazard, renderer.WorldToScreenCoordinates(in Location), 0, renderer.WorldToScreenSize(Size * scaleFactor), false, false, colorVariation != ColorVariation.None);
         }
 
         protected override void AddInfoDetails(InformationDictionary infoHolder)
@@ -423,9 +422,9 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
             Size = 7f;
         }
 
-        public override void Draw(ContentArea contentArea, ColorVariation colorVariation = ColorVariation.None, double scaleFactor = 1)
+        public override void Draw(IMapRenderer renderer, ColorVariation colorVariation = ColorVariation.None, double scaleFactor = 1)
         {
-            contentArea.BasicShapes.DrawTexture(BasicTextureType.Pickup, contentArea.WorldToScreenCoordinates(in Location), 0, contentArea.WorldToScreenSize(Size * scaleFactor), false, false, colorVariation != ColorVariation.None, contentArea.SpriteBatch);
+            renderer.DrawTexture(BasicTextureType.Pickup, renderer.WorldToScreenCoordinates(in Location), 0, renderer.WorldToScreenSize(Size * scaleFactor), false, false, colorVariation != ColorVariation.None);
         }
 
         protected override void AddInfoDetails(InformationDictionary infoHolder)
@@ -451,9 +450,9 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
             Size = 5f;
         }
 
-        public override void Draw(ContentArea contentArea, ColorVariation colorVariation = ColorVariation.None, double scaleFactor = 1)
+        public override void Draw(IMapRenderer renderer, ColorVariation colorVariation = ColorVariation.None, double scaleFactor = 1)
         {
-            contentArea.BasicShapes.DrawTexture(BasicTextureType.LevelCrossing, contentArea.WorldToScreenCoordinates(in Location), 0, contentArea.WorldToScreenSize(Size * scaleFactor), false, false, colorVariation != ColorVariation.None, contentArea.SpriteBatch);
+            renderer.DrawTexture(BasicTextureType.LevelCrossing, renderer.WorldToScreenCoordinates(in Location), 0, renderer.WorldToScreenSize(Size * scaleFactor), false, false, colorVariation != ColorVariation.None);
         }
 
         protected override void AddInfoDetails(InformationDictionary infoHolder)
@@ -471,9 +470,9 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
             Size = 5f;
         }
 
-        public override void Draw(ContentArea contentArea, ColorVariation colorVariation = ColorVariation.None, double scaleFactor = 1)
+        public override void Draw(IMapRenderer renderer, ColorVariation colorVariation = ColorVariation.None, double scaleFactor = 1)
         {
-            contentArea.BasicShapes.DrawTexture(BasicTextureType.Sound, contentArea.WorldToScreenCoordinates(in Location), 0, contentArea.WorldToScreenSize(Size * scaleFactor), false, false, colorVariation != ColorVariation.None, contentArea.SpriteBatch);
+            renderer.DrawTexture(BasicTextureType.Sound, renderer.WorldToScreenCoordinates(in Location), 0, renderer.WorldToScreenSize(Size * scaleFactor), false, false, colorVariation != ColorVariation.None);
         }
 
         protected override void AddInfoDetails(InformationDictionary infoHolder)
@@ -508,10 +507,10 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
             SetLocation(new WorldLocation(source.Location.TileX, source.Location.TileZ, shiftedLocation));
         }
 
-        public override void Draw(ContentArea contentArea, ColorVariation colorVariation = ColorVariation.None, double scaleFactor = 1)
+        public override void Draw(IMapRenderer renderer, ColorVariation colorVariation = ColorVariation.None, double scaleFactor = 1)
         {
             BasicTextureType signalState =
-                contentArea.Scale switch
+                renderer.Scale switch
                 {
                     double scale when scale < 3 => Signal?.State switch
                     {
@@ -536,7 +535,7 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
                     },
                 };
 
-            Size = contentArea.Scale switch
+            Size = renderer.Scale switch
             {
                 double i when i < 0.5 => 30,
                 double i when i < 0.75 => 15,
@@ -547,7 +546,7 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
                 _ => 3,
             };
 
-            contentArea.BasicShapes.DrawTexture(signalState, contentArea.WorldToScreenCoordinates(in Location), angle, contentArea.WorldToScreenSize(Size * scaleFactor), false, false, colorVariation != ColorVariation.None, contentArea.SpriteBatch);
+            renderer.DrawTexture(signalState, renderer.WorldToScreenCoordinates(in Location), angle, renderer.WorldToScreenSize(Size * scaleFactor), false, false, colorVariation != ColorVariation.None);
         }
 
         protected override void AddInfoDetails(InformationDictionary infoHolder)

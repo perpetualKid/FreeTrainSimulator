@@ -72,19 +72,19 @@ namespace FreeTrainSimulator.Graphics.MapView
             foreach (PathSegment segment in PathSegments)
             {
                 if (ContentArea.InsideScreenArea(segment))
-                    segment.Draw(ContentArea, ColorVariation.None, 1.5);
+                    ((IDrawable<VectorPrimitive>)segment).Draw(ContentArea, ColorVariation.None, 1.5);
             }
             foreach (TrainWidget train in Trains.Values)
             {
                 if (ContentArea.InsideScreenArea(train))
                 {
-                    train.Draw(ContentArea, ColorVariation.None);
+                    ((IDrawable<VectorPrimitive>)train).Draw(ContentArea, ColorVariation.None);
                     if (viewSettings[MapContentType.TrainNames])
                         train.DrawName(ContentArea);
                 }
             }
             (nearestDispatchItem as IDrawable<PointPrimitive>)?.Draw(ContentArea, ColorVariation.Highlight, 1.5);
-            nearestTrain?.Draw(ContentArea, ColorVariation.Highlight, 1.5);
+            (nearestTrain as IDrawable<VectorPrimitive>)?.Draw(ContentArea, ColorVariation.Highlight, 1.5);
         }
 
         internal override void UpdatePointerLocation(in PointD position, in Tile bottomLeft, in Tile topRight)

@@ -43,11 +43,11 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
             {
             }
 
-            public virtual void Draw(ContentArea contentArea, ColorVariation colorVariation = ColorVariation.None, double scaleFactor = 1)
+            public virtual void Draw(IMapRenderer renderer, ColorVariation colorVariation = ColorVariation.None, double scaleFactor = 1)
             {
                 foreach (SidingSegment segment in SectionSegments)
                 {
-                    segment.Draw(contentArea, colorVariation, scaleFactor);
+                    segment.Draw(renderer, colorVariation, scaleFactor);
                 }
             }
 
@@ -93,11 +93,11 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
             return result;
         }
 
-        public virtual void Draw(ContentArea contentArea, ColorVariation colorVariation = ColorVariation.None, double scaleFactor = 1)
+        public virtual void Draw(IMapRenderer renderer, ColorVariation colorVariation = ColorVariation.None, double scaleFactor = 1)
         {
             foreach (SidingSection segmentSection in PathSections.Cast<SidingSection>())
             {
-                segmentSection.Draw(contentArea, colorVariation, scaleFactor);
+                segmentSection.Draw(renderer, colorVariation, scaleFactor);
             }
         }
 

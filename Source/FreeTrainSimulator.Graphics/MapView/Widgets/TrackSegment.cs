@@ -1,5 +1,4 @@
-﻿
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
 
@@ -45,14 +44,14 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
         {
         }
 
-        public virtual void Draw(ContentArea contentArea, ColorVariation colorVariation = ColorVariation.None, double scaleFactor = 1)
+        public virtual void Draw(IMapRenderer renderer, ColorVariation colorVariation = ColorVariation.None, double scaleFactor = 1)
         {
             Color drawColor = WidgetDrawingOptions<TrackSegment>.Colors[colorVariation];
             scaleFactor *= WidgetDrawingOptions<TrackSegment>.ScaleFactor;
             if (Curved)
-                contentArea.BasicShapes.DrawArc(contentArea.WorldToScreenSize(Size * scaleFactor), drawColor, contentArea.WorldToScreenCoordinates(in Location), contentArea.WorldToScreenSize(Radius), Direction, Angle, contentArea.SpriteBatch);
+                renderer.DrawArc(renderer.WorldToScreenSize(Size * scaleFactor), drawColor, renderer.WorldToScreenCoordinates(in Location), renderer.WorldToScreenSize(Radius), Direction, Angle);
             else
-                contentArea.BasicShapes.DrawLine(contentArea.WorldToScreenSize(Size * scaleFactor), drawColor, contentArea.WorldToScreenCoordinates(in Location), contentArea.WorldToScreenSize(Length), Direction, contentArea.SpriteBatch);
+                renderer.DrawLine(renderer.WorldToScreenSize(Size * scaleFactor), drawColor, renderer.WorldToScreenCoordinates(in Location), renderer.WorldToScreenSize(Length), Direction);
         }
 
         public static void UpdateTrackWidthRatio(bool downscale)
@@ -79,14 +78,14 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
         {
         }
 
-        public override void Draw(ContentArea contentArea, ColorVariation colorVariation = ColorVariation.None, double scaleFactor = 1)
+        public override void Draw(IMapRenderer renderer, ColorVariation colorVariation = ColorVariation.None, double scaleFactor = 1)
         {
             Color drawColor = WidgetDrawingOptions<RoadSegment>.Colors[colorVariation];
             scaleFactor *= WidgetDrawingOptions<TrackSegment>.ScaleFactor;
             if (Curved)
-                contentArea.BasicShapes.DrawArc(contentArea.WorldToScreenSize(Size * scaleFactor), drawColor, contentArea.WorldToScreenCoordinates(in Location), contentArea.WorldToScreenSize(Radius), Direction, Angle, contentArea.SpriteBatch);
+                renderer.DrawArc(renderer.WorldToScreenSize(Size * scaleFactor), drawColor, renderer.WorldToScreenCoordinates(in Location), renderer.WorldToScreenSize(Radius), Direction, Angle);
             else
-                contentArea.BasicShapes.DrawLine(contentArea.WorldToScreenSize(Size * scaleFactor), drawColor, contentArea.WorldToScreenCoordinates(in Location), contentArea.WorldToScreenSize(Length), Direction, contentArea.SpriteBatch);
+                renderer.DrawLine(renderer.WorldToScreenSize(Size * scaleFactor), drawColor, renderer.WorldToScreenCoordinates(in Location), renderer.WorldToScreenSize(Length), Direction);
         }
     }
 }

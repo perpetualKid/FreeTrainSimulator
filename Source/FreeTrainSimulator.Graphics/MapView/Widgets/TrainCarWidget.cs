@@ -45,18 +45,18 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
             ;
         }
 
-        public void Draw(ContentArea contentArea, ColorVariation colorVariation = ColorVariation.None, double scaleFactor = 1)
+        void IDrawable<VectorPrimitive>.Draw(IMapRenderer renderer, ColorVariation colorVariation, double scaleFactor)
         {
             foreach (TrainCarWidget car in Cars.Values)
             {
-                ((IDrawable<PointPrimitive>)car).Draw(contentArea, colorVariation, scaleFactor);
+                ((IDrawable<PointPrimitive>)car).Draw(renderer, colorVariation, scaleFactor);
             }
         }
 
-        internal void DrawName(ContentArea contentArea)
+        internal void DrawName(IMapRenderer renderer)
         {
             Color fontColor = Color.Red;
-            contentArea.DrawText(Location, fontColor, $"{Train.Number} - {Train.Name}", contentArea.ConstantSizeFont, Vector2.One, 0, HorizontalAlignment.Center, VerticalAlignment.Top, null);
+            renderer.DrawText(Location, fontColor, $"{Train.Number} - {Train.Name}", renderer.ConstantSizeFont, Vector2.One, 0, HorizontalAlignment.Center, VerticalAlignment.Top, null);
         }
     }
 
@@ -95,9 +95,9 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
             SetLocation(PointD.FromWorldLocation(position.WorldLocation) + new PointD(-length * Math.Cos(angle) / 2.0, length * Math.Sin(angle) / 2));
         }
 
-        void IDrawable<PointPrimitive>.Draw(ContentArea contentArea, ColorVariation colorVariation, double scaleFactor)
+        void IDrawable<PointPrimitive>.Draw(IMapRenderer renderer, ColorVariation colorVariation, double scaleFactor)
         {
-            Size = contentArea.Scale switch
+            Size = renderer.Scale switch
             {
                 double i when i < 0.5 => carSize * 10f,
                 double i when i < 0.75 => carSize * 5f,
@@ -107,8 +107,8 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
                 double i when i < 8 => carSize * 1.1f,
                 _ => carSize,
             };
-            contentArea.BasicShapes.DrawLine(contentArea.WorldToScreenSize(Size * scaleFactor), color, contentArea.WorldToScreenCoordinates(in Location),
-                contentArea.WorldToScreenSize(length), angle, contentArea.SpriteBatch);
+            renderer.DrawLine(renderer.WorldToScreenSize(Size * scaleFactor), color, renderer.WorldToScreenCoordinates(in Location),
+                renderer.WorldToScreenSize(length), angle);
         }
 
         #region math

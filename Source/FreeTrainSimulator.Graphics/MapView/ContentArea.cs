@@ -15,7 +15,7 @@ using Microsoft.Xna.Framework.Input;
 
 namespace FreeTrainSimulator.Graphics.MapView
 {
-    public class ContentArea : DrawableGameComponent
+    public class ContentArea : DrawableGameComponent, IMapRenderer
     {
         private static readonly Vector2 moveLeft = new Vector2(1, 0);
         private static readonly Vector2 moveRight = new Vector2(-1, 0);
@@ -355,6 +355,36 @@ namespace FreeTrainSimulator.Graphics.MapView
             SpriteBatch.End();
             base.Draw(gameTime);
             SuppressDrawing = true;
+        }
+
+        public void DrawLine(float width, Color color, Vector2 point, float length, double angle)
+        {
+            BasicShapes.DrawLine(width, color, point, length, angle, SpriteBatch);
+        }
+
+        public void DrawLine(float width, Color color, Vector2 point1, Vector2 point2)
+        {
+            BasicShapes.DrawLine(width, color, point1, point2, SpriteBatch);
+        }
+
+        public void DrawDashedLine(float width, Color color, Vector2 point1, Vector2 point2)
+        {
+            BasicShapes.DrawDashedLine(width, color, point1, point2, SpriteBatch);
+        }
+
+        public void DrawArc(float width, Color color, Vector2 point, float radius, double angle, double arcSize)
+        {
+            BasicShapes.DrawArc(width, color, point, radius, angle, arcSize, SpriteBatch);
+        }
+
+        public void DrawTexture(BasicTextureType texture, Vector2 point, double angle, float size, bool flipHorizontal, bool flipVertical, bool highlight)
+        {
+            BasicShapes.DrawTexture(texture, point, angle, size, flipHorizontal, flipVertical, highlight, SpriteBatch);
+        }
+
+        public void DrawTexture(BasicTextureType texture, Vector2 point, double angle, float size, Color color)
+        {
+            BasicShapes.DrawTexture(texture, point, angle, size, color, SpriteBatch);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

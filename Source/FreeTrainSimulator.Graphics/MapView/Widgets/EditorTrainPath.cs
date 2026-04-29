@@ -41,7 +41,7 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
             {
             }
 
-            public virtual void Draw(ContentArea contentArea, ColorVariation colorVariation = ColorVariation.None, double scaleFactor = 1)
+            public virtual void Draw(IMapRenderer renderer, ColorVariation colorVariation = ColorVariation.None, double scaleFactor = 1)
             {
                 colorVariation = PathType switch
                 {
@@ -50,7 +50,7 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
                 };
                 foreach (EditorTrainPathSegment segment in SectionSegments)
                 {
-                    segment.Draw(contentArea, colorVariation, PathType == PathSectionType.Invalid ? -scaleFactor : scaleFactor);
+                    segment.Draw(renderer, colorVariation, PathType == PathSectionType.Invalid ? -scaleFactor : scaleFactor);
                 }
             }
 
@@ -206,24 +206,24 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
             return double.NaN;
         }
 
-        public virtual void Draw(ContentArea contentArea, ColorVariation colorVariation = ColorVariation.None, double scaleFactor = 1)
+        public virtual void Draw(IMapRenderer renderer, ColorVariation colorVariation = ColorVariation.None, double scaleFactor = 1)
         {
             foreach (TrainPathSection pathSection in PathSections)
             {
-                pathSection.Draw(contentArea, colorVariation, scaleFactor);
+                pathSection.Draw(renderer, colorVariation, scaleFactor);
             }
             foreach (EditorPathPoint pathItem in PathPoints)
             {
-                pathItem.Draw(contentArea, colorVariation, scaleFactor);
+                pathItem.Draw(renderer, colorVariation, scaleFactor);
             }
 
             if (SelectedNodeIndex >= 0 && SelectedNodeIndex < PathPoints.Count)
             {
-                (PathPoints[SelectedNodeIndex] as EditorPathPoint)?.Draw(contentArea, ColorVariation.ComplementHighlight, 5);
+                (PathPoints[SelectedNodeIndex] as EditorPathPoint)?.Draw(renderer, ColorVariation.ComplementHighlight, 5);
 
                 foreach (TrainPathSection pathSection in pathSectionLookup[PathPoints[SelectedNodeIndex]])
                 {
-                    pathSection.Draw(contentArea, colorVariation, 3);
+                    pathSection.Draw(renderer, colorVariation, 3);
                 }
             }
         }

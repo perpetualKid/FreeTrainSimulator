@@ -53,11 +53,11 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
             Direction = (float)Math.Atan2(origin.X, origin.Y);
         }
 
-        public void Draw(ContentArea contentArea, ColorVariation colorVariation = ColorVariation.None, double scaleFactor = 1)
+        public void Draw(IMapRenderer renderer, ColorVariation colorVariation = ColorVariation.None, double scaleFactor = 1)
         {
             Debug.Assert(textureType != BasicTextureType.BlankPixel);
 
-            Size = Math.Max(1.5f, (float)(8 / contentArea.Scale));
+            Size = Math.Max(1.5f, (float)(8 / renderer.Scale));
             Color color = ValidationResult switch
             {
                 PathNodeInvalidReasons.None => Color.White,
@@ -65,7 +65,7 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
                 _ => Color.Red,
             };
 
-            contentArea.BasicShapes.DrawTexture(textureType, contentArea.WorldToScreenCoordinates(in Location), Direction, contentArea.WorldToScreenSize(Size * scaleFactor), color, contentArea.SpriteBatch);
+            renderer.DrawTexture(textureType, renderer.WorldToScreenCoordinates(in Location), Direction, renderer.WorldToScreenSize(Size * scaleFactor), color);
         }
 
         internal void UpdateDirection(in PointD nextLocation)

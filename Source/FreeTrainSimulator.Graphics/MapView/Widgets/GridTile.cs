@@ -1,5 +1,4 @@
-﻿
-using FreeTrainSimulator.Common.Position;
+﻿using FreeTrainSimulator.Common.Position;
 
 using Microsoft.Xna.Framework;
 
@@ -26,13 +25,13 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
             return new WorldLocation(tile.X, tile.Z, x, 0, z);
         }
 
-        public void Draw(ContentArea contentArea, ColorVariation colorVariation = ColorVariation.None, double scaleFactor = 1)
+        public void Draw(IMapRenderer renderer, ColorVariation colorVariation = ColorVariation.None, double scaleFactor = 1)
         {
             Color color = WidgetDrawingOptions<GridTile>.Colors[colorVariation];
-            contentArea.BasicShapes.DrawLine((float)(1 * scaleFactor), color, contentArea.WorldToScreenCoordinates(Location), contentArea.WorldToScreenCoordinates(lowerRight), contentArea.SpriteBatch);
-            contentArea.BasicShapes.DrawLine((float)(1 * scaleFactor), color, contentArea.WorldToScreenCoordinates(lowerRight), contentArea.WorldToScreenCoordinates(Vector), contentArea.SpriteBatch);
-            contentArea.BasicShapes.DrawLine((float)(1 * scaleFactor), color, contentArea.WorldToScreenCoordinates(Location), contentArea.WorldToScreenCoordinates(upperLeft), contentArea.SpriteBatch);
-            contentArea.BasicShapes.DrawLine((float)(1 * scaleFactor), color, contentArea.WorldToScreenCoordinates(upperLeft), contentArea.WorldToScreenCoordinates(Vector), contentArea.SpriteBatch);
+            renderer.DrawLine((float)(1 * scaleFactor), color, renderer.WorldToScreenCoordinates(Location), renderer.WorldToScreenCoordinates(lowerRight));
+            renderer.DrawLine((float)(1 * scaleFactor), color, renderer.WorldToScreenCoordinates(lowerRight), renderer.WorldToScreenCoordinates(Vector));
+            renderer.DrawLine((float)(1 * scaleFactor), color, renderer.WorldToScreenCoordinates(Location), renderer.WorldToScreenCoordinates(upperLeft));
+            renderer.DrawLine((float)(1 * scaleFactor), color, renderer.WorldToScreenCoordinates(upperLeft), renderer.WorldToScreenCoordinates(Vector));
         }
 
         public override double DistanceSquared(in PointD point)

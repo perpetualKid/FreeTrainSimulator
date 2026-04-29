@@ -29,7 +29,7 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
             Count = itemCount;
         }
 
-        public abstract void Draw(ContentArea contentArea, ColorVariation colorVariation = ColorVariation.None, double scaleFactor = 1);
+        public abstract void Draw(IMapRenderer renderer, ColorVariation colorVariation = ColorVariation.None, double scaleFactor = 1);
     }
 
     internal record StationNameItem : NamedTrackItem
@@ -39,12 +39,12 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
 
         }
 
-        public override void Draw(ContentArea contentArea, ColorVariation colorVariation = ColorVariation.None, double scaleFactor = 1)
+        public override void Draw(IMapRenderer renderer, ColorVariation colorVariation = ColorVariation.None, double scaleFactor = 1)
         {
             Color fontColor = WidgetDrawingOptions<StationNameItem>.Colors[colorVariation];
             OutlineRenderOptions outlineRenderOptions = WidgetDrawingOptions<StationNameItem>.OutlineRenderOptions;
-            if ((Count > 2 && contentArea.Scale < 0.3) || (Count > 1 && contentArea.Scale < 0.1) || contentArea.Scale >= 0.02)
-                contentArea.DrawText(Location, fontColor, Name, contentArea.ConstantSizeFont, Vector2.One, 0, HorizontalAlignment.Center, VerticalAlignment.Top, outlineRenderOptions);
+            if ((Count > 2 && renderer.Scale < 0.3) || (Count > 1 && renderer.Scale < 0.1) || renderer.Scale >= 0.02)
+                renderer.DrawText(Location, fontColor, Name, renderer.ConstantSizeFont, Vector2.One, 0, HorizontalAlignment.Center, VerticalAlignment.Top, outlineRenderOptions);
         }
 
         public static IEnumerable<StationNameItem> CreateStationItems(IEnumerable<IGrouping<string, PlatformPath>> stationPlatforms)
@@ -77,11 +77,11 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
                 direction -= MathHelper.Pi;
         }
 
-        public override void Draw(ContentArea contentArea, ColorVariation colorVariation = ColorVariation.None, double scaleFactor = 1)
+        public override void Draw(IMapRenderer renderer, ColorVariation colorVariation = ColorVariation.None, double scaleFactor = 1)
         {
             Color fontColor = WidgetDrawingOptions<PlatformNameItem>.Colors[ColorVariation.None];
             OutlineRenderOptions outlineRenderOptions = WidgetDrawingOptions<PlatformNameItem>.OutlineRenderOptions;
-            contentArea.DrawText(Location, fontColor, Name, contentArea.CurrentFont, Vector2.One, direction, HorizontalAlignment.Center, VerticalAlignment.Bottom, outlineRenderOptions);
+            renderer.DrawText(Location, fontColor, Name, renderer.CurrentFont, Vector2.One, direction, HorizontalAlignment.Center, VerticalAlignment.Bottom, outlineRenderOptions);
         }
     }
 
@@ -94,11 +94,11 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
                 direction -= MathHelper.Pi;
         }
 
-        public override void Draw(ContentArea contentArea, ColorVariation colorVariation = ColorVariation.None, double scaleFactor = 1)
+        public override void Draw(IMapRenderer renderer, ColorVariation colorVariation = ColorVariation.None, double scaleFactor = 1)
         {
             Color fontColor = WidgetDrawingOptions<SidingNameItem>.Colors[ColorVariation.None];
             OutlineRenderOptions outlineRenderOptions = WidgetDrawingOptions<SidingNameItem>.OutlineRenderOptions;
-            contentArea.DrawText(Location, fontColor, Name, contentArea.CurrentFont, Vector2.One, direction, HorizontalAlignment.Center, VerticalAlignment.Bottom, outlineRenderOptions);
+            renderer.DrawText(Location, fontColor, Name, renderer.CurrentFont, Vector2.One, direction, HorizontalAlignment.Center, VerticalAlignment.Bottom, outlineRenderOptions);
         }
     }
 
