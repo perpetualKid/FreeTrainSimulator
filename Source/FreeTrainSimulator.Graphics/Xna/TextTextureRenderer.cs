@@ -86,6 +86,12 @@ namespace FreeTrainSimulator.Graphics.Xna
             measureBitmap = new Bitmap(1, 1);
         }
 
+        public static TextTextureRenderer Create(Microsoft.Xna.Framework.Game game)
+        {
+            ArgumentNullException.ThrowIfNull(game);
+            return new TextTextureRenderer(game);
+        }
+
         public static TextTextureRenderer Instance(Microsoft.Xna.Framework.Game game)
         {
             ArgumentNullException.ThrowIfNull(game);

@@ -10,10 +10,12 @@ namespace FreeTrainSimulator.Graphics.MapView
     internal sealed class XnaMapRenderingLifetime : IMapRenderingLifetime
     {
         private readonly Game game;
+        private readonly TextTextureRenderer textTextureRenderer;
 
         public XnaMapRenderingLifetime(Game game)
         {
             this.game = game;
+            textTextureRenderer = TextTextureRenderer.Create(game);
         }
 
         public BasicShapes GetBasicShapes()
@@ -28,7 +30,7 @@ namespace FreeTrainSimulator.Graphics.MapView
 
         public TextTextureRenderer GetTextTextureRenderer()
         {
-            return TextTextureRenderer.Instance(game);
+            return textTextureRenderer;
         }
     }
 }
