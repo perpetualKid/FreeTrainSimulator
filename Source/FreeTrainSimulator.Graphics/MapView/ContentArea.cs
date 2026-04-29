@@ -25,19 +25,8 @@ namespace FreeTrainSimulator.Graphics.MapView
         private const int zoomAmplifier = 3;
         private const int scaleMax = 200;
 
-        private Rectangle bounds;
-        private double scaleMin;
-        private static readonly Point PointOverTwo = new Point(2, 2);
-
-        private double offsetX, offsetY;
-        internal PointD TopLeftBound { get; private set; }
-        internal PointD BottomRightBound { get; private set; }
-
-        private Tile bottomLeft;
-        private Tile topRight;
+        private readonly MapViewportState viewport;
         private PointD worldPosition;
-
-        private int screenHeightDelta;  // to account for Menubar/Statusbar height when calculating initial scale and center view
 
         internal SpriteBatch SpriteBatch { get; }
 
@@ -57,12 +46,15 @@ namespace FreeTrainSimulator.Graphics.MapView
 
         public ContentBase Content { get; }
 
-        public double Scale { get; private set; }
-        public PointD CenterPoint => new PointD(((BottomRightBound.X - TopLeftBound.X) / 2) + TopLeftBound.X, ((TopLeftBound.Y - BottomRightBound.Y) / 2) + BottomRightBound.Y);
+        public double Scale => viewport.Scale;
+        public PointD CenterPoint => viewport.CenterPoint;
 
         public bool SuppressDrawing { get; internal set; }
 
-        public Point WindowSize { get; private set; }
+        public Point WindowSize => new Point(viewport.WindowSize.Width, viewport.WindowSize.Height);
+
+        internal PointD TopLeftBound => viewport.TopLeftBound;
+        internal PointD BottomRightBound => viewport.BottomRightBound;
 
         public ref readonly PointD WorldPosition => ref worldPosition;
 
@@ -84,13 +76,18 @@ namespace FreeTrainSimulator.Graphics.MapView
             insetComponent = game.Components.OfType<InsetComponent>().FirstOrDefault();
             contentText = TextShape.Instance(Game, SpriteBatch);
             BasicShapes = BasicShapes.Instance(Game);
+            viewport = new MapViewportState(new MapViewportBounds(content.Bounds.Left, content.Bounds.Top, content.Bounds.Right, content.Bounds.Bottom));
             game.Window.ClientSizeChanged += Window_ClientSizeChanged;
         }
 
         private void Window_ClientSizeChanged(object sender, EventArgs e)
         {
-            WindowSize = Game.Window.ClientBounds.Size;
-            CenterAround(new PointD((TopLeftBound.X + BottomRightBound.X) / 2, (TopLeftBound.Y + BottomRightBound.Y) / 2));
+            viewport.UpdateWindowSize(new MapViewportSize(Game.Window.ClientBounds.Size.X, Game.Window.ClientBounds.Size.Y));
+        }
+
+        private void RefreshViewportBounds()
+        {
+            viewport.UpdateBounds(new MapViewportBounds(Content.Bounds.Left, Content.Bounds.Top, Content.Bounds.Right, Content.Bounds.Bottom));
         }
 
         public static void UpdateTrackWidthSettings(bool limitTrackWidth)
@@ -169,7 +166,7 @@ namespace FreeTrainSimulator.Graphics.MapView
 
             worldPosition = ScreenToWorldCoordinates(position);
             if (Scale > 0.2)
-                Content.UpdatePointerLocation(worldPosition, bottomLeft, topRight);
+                Content.UpdatePointerLocation(worldPosition, viewport.BottomLeftTile, viewport.TopRightTile);
         }
 
         protected override void OnEnabledChanged(object sender, EventArgs args)
@@ -186,16 +183,14 @@ namespace FreeTrainSimulator.Graphics.MapView
 
         public override void Initialize()
         {
-            bounds = Content.Bounds;
             base.Initialize();
         }
 
         public void ResetSize(in Point windowSize, int screenDelta)
         {
-            WindowSize = windowSize;
-            screenHeightDelta = screenDelta;
-            ScaleToFit();
-            CenterView();
+            RefreshViewportBounds();
+            viewport.ResetSize(new MapViewportSize(windowSize.X, windowSize.Y), screenDelta);
+            UpdateFontSize();
             worldPosition = ScreenToWorldCoordinates(Mouse.GetState().Position);
         }
 
@@ -203,83 +198,49 @@ namespace FreeTrainSimulator.Graphics.MapView
         {
             if (centerPoint != PointD.None)
             {
-                Scale = scale;
+                viewport.PresetPosition(centerPoint, scale);
                 UpdateFontSize();
-                CenterAround(centerPoint);
             }
             SuppressDrawing = false;
         }
 
         public void SetTrackingPosition(in WorldLocation location)
         {
-            CenterAround(PointD.FromWorldLocation(location));
+            viewport.SetTrackingPosition(PointD.FromWorldLocation(location));
         }
 
         public void SetTrackingPosition(in PointD location)
         {
-            CenterAround(location);
+            viewport.SetTrackingPosition(location);
         }
 
         public void UpdateScaleToFit(in PointD topLeft, in PointD bottomRight)
         {
-            double xScale = WindowSize.X / Math.Abs(bottomRight.X - topLeft.X);
-            double yScale = (WindowSize.Y - screenHeightDelta) / Math.Abs(topLeft.Y - bottomRight.Y);
-            Scale = Math.Min(xScale, yScale) * 0.95;
+            viewport.UpdateScaleToFit(topLeft, bottomRight);
             UpdateFontSize();
-            SetBounds();
         }
 
         public void UpdateScaleAt(in Point scaleAt, int steps)
         {
-            double scale = Scale * Math.Pow(steps > 0 ? 1 / 0.95 : steps < 0 ? 0.95 : 1, Math.Abs(steps));
-            if (scale < scaleMin && steps < 0 || scale > scaleMax && steps > 0)
-                return;
-            offsetX += scaleAt.X * ((scale / Scale) - 1.0) / scale;
-            offsetY += (WindowSize.Y - scaleAt.Y) * ((scale / Scale) - 1.0) / scale;
-            Scale = scale;
-
+            viewport.UpdateScaleAt(scaleAt.X, scaleAt.Y, steps, scaleMax);
             UpdateFontSize();
-            SetBounds();
         }
 
         public void UpdateScale(int steps)
         {
-            UpdateScaleAt(WindowSize / PointOverTwo, steps);
+            viewport.UpdateScale(steps, scaleMax);
+            UpdateFontSize();
         }
 
         public void UpdateScaleAbsolute(double scale)
         {
-            if (scale < scaleMin)
-                scale = scaleMin;
-            else if (scale > scaleMax)
-                scale = scaleMax;
-            Scale = scale;
-
+            viewport.UpdateScaleAbsolute(scale, scaleMax);
             UpdateFontSize();
         }
 
         public void UpdatePosition(in Vector2 delta)
         {
-            offsetX -= delta.X / Scale;
-            offsetY += delta.Y / Scale;
-
-            TopLeftBound = ScreenToWorldCoordinates(Point.Zero);
-            BottomRightBound = ScreenToWorldCoordinates(WindowSize);
-
-            if (TopLeftBound.X > bounds.Right)
-                offsetX = bounds.Right;
-            else if (BottomRightBound.X < bounds.Left)
-            {
-                offsetX = bounds.Left - (BottomRightBound.X - TopLeftBound.X);
-            }
-
-            if (BottomRightBound.Y > bounds.Bottom)
-                offsetY = bounds.Bottom;
-            else if (TopLeftBound.Y < bounds.Top)
-            {
-                offsetY = bounds.Top - (TopLeftBound.Y - BottomRightBound.Y);
-            }
-            SetBounds();
+            viewport.UpdatePosition(delta.X, delta.Y);
         }
 
         public override void Update(GameTime gameTime)
@@ -387,42 +348,10 @@ namespace FreeTrainSimulator.Graphics.MapView
         }
         #endregion
 
-        private void SetBounds()
-        {
-            TopLeftBound = ScreenToWorldCoordinates(Point.Zero);
-            BottomRightBound = ScreenToWorldCoordinates(WindowSize);
-
-            bottomLeft = Tile.TileFromAbs(TopLeftBound.X, BottomRightBound.Y);
-            topRight = Tile.TileFromAbs(BottomRightBound.X, TopLeftBound.Y);
-        }
-
-        private void CenterView()
-        {
-            offsetX = ((bounds.Left + bounds.Right) / 2) - (WindowSize.X / 2 / Scale);
-            offsetY = ((bounds.Top + bounds.Bottom) / 2) - (WindowSize.Y / 2 / Scale);
-            SetBounds();
-        }
-
-        private void CenterAround(in PointD centerPoint)
-        {
-            offsetX = centerPoint.X - (WindowSize.X / 2 / Scale);
-            offsetY = centerPoint.Y - (WindowSize.Y / 2 / Scale);
-            SetBounds();
-        }
-
-        private void ScaleToFit()
-        {
-            double xScale = (double)WindowSize.X / bounds.Width;
-            double yScale = (double)(WindowSize.Y - screenHeightDelta) / bounds.Height;
-            Scale = Math.Min(xScale, yScale);
-            scaleMin = Scale * 0.75;
-            UpdateFontSize();
-        }
-
         public override void Draw(GameTime gameTime)
         {
             SpriteBatch.Begin(SpriteSortMode.Deferred, BlendState.NonPremultiplied);
-            Content.Draw(bottomLeft, topRight);
+            Content.Draw(viewport.BottomLeftTile, viewport.TopRightTile);
             SpriteBatch.End();
             base.Draw(gameTime);
             SuppressDrawing = true;
@@ -433,43 +362,38 @@ namespace FreeTrainSimulator.Graphics.MapView
         {
             double x = (worldLocation.TileX * WorldLocation.TileSize) + worldLocation.Location.X;
             double y = (worldLocation.TileZ * WorldLocation.TileSize) + worldLocation.Location.Z;
-            return new Vector2((float)(Scale * (x - offsetX)), (float)(WindowSize.Y - (Scale * (y - offsetY))));
+            return WorldToScreenCoordinates(new PointD(x, y));
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public PointD ScreenToWorldCoordinates(in Point screenLocation)
         {
-            return new PointD(offsetX + (screenLocation.X / Scale), offsetY + ((WindowSize.Y - screenLocation.Y) / Scale));
+            return viewport.ScreenToWorldCoordinates(screenLocation.X, screenLocation.Y);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public Vector2 WorldToScreenCoordinates(in PointD location)
         {
-            return new Vector2((float)(Scale * (location.X - offsetX)),
-                               (float)(WindowSize.Y - (Scale * (location.Y - offsetY))));
+            PointD screenLocation = viewport.WorldToScreenCoordinates(location);
+            return new Vector2((float)screenLocation.X, (float)screenLocation.Y);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public float WorldToScreenSize(double worldSize, int minScreenSize = 1)
         {
-            return Math.Max((float)Math.Ceiling(worldSize * Scale), minScreenSize);
+            return viewport.WorldToScreenSize(worldSize, minScreenSize);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal bool InsideScreenArea(PointPrimitive pointPrimitive)
         {
-            ref readonly PointD location = ref pointPrimitive.Location;
-            return location.X > TopLeftBound.X && location.X < BottomRightBound.X && location.Y < TopLeftBound.Y && location.Y > BottomRightBound.Y;
+            return viewport.InsideScreenArea(pointPrimitive.Location);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal bool InsideScreenArea(VectorPrimitive vectorPrimitive)
         {
-            ref readonly PointD start = ref vectorPrimitive.Location;
-            ref readonly PointD end = ref vectorPrimitive.Vector;
-            bool outside = start.X < TopLeftBound.X && end.X < TopLeftBound.X || start.X > BottomRightBound.X && end.X > BottomRightBound.X ||
-                start.Y > TopLeftBound.Y && end.Y > TopLeftBound.Y || start.Y < BottomRightBound.Y && end.Y < BottomRightBound.Y;
-            return !outside;
+            return viewport.InsideScreenArea(vectorPrimitive.Location, vectorPrimitive.Vector);
         }
 
         private void UpdateFontSize()
