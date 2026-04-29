@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
 using FreeTrainSimulator.Common;
+using FreeTrainSimulator.Graphics.DrawableComponents;
 using FreeTrainSimulator.Graphics.MapView;
 using FreeTrainSimulator.Graphics.Xna;
 using FreeTrainSimulator.Models.Content;
@@ -122,7 +124,8 @@ namespace FreeTrainSimulator.Toolbox
             if (ctsProfileLoading.Token.IsCancellationRequested)
                 return;
 
-            ToolboxContent content = new ToolboxContent(this);
+            ToolboxContent content = new ToolboxContent(this, new XnaMapInsetHost(Components.OfType<InsetComponent>().FirstOrDefault()));
+
             await content.Initialize().ConfigureAwait(false);
             content.InitializeItemVisiblity(ToolboxSettings.ViewSettings);
             content.UpdateWidgetColorSettings(ToolboxSettings.ColorSettings, ToolboxSettings.FontOutline, ToolboxSettings.LimitTrackWidth);

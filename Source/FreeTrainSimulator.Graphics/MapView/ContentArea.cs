@@ -40,7 +40,6 @@ namespace FreeTrainSimulator.Graphics.MapView
         private PointD previousTopLeft, previousBottomRight;
 
 #pragma warning disable CA2213 // Disposable fields should be disposed
-        private readonly InsetComponent insetComponent;
         private readonly IMapHostEnvironment hostEnvironment;
 #pragma warning restore CA2213 // Disposable fields should be disposed
 
@@ -87,7 +86,6 @@ namespace FreeTrainSimulator.Graphics.MapView
             ConstantSizeFont = fontManager[25];
             hostEnvironment = new XnaMapHostEnvironment(game);
             hostEnvironment.RegisterMouseMove(MouseMove);
-            insetComponent = game.Components.OfType<InsetComponent>().FirstOrDefault();
             contentText = renderingResources.TextShape;
             BasicShapes = renderingResources.BasicShapes;
             viewport = new MapViewportState(new MapViewportBounds(content.Bounds.Left, content.Bounds.Top, content.Bounds.Right, content.Bounds.Bottom));
@@ -116,7 +114,7 @@ namespace FreeTrainSimulator.Graphics.MapView
             switch (setting)
             {
                 case ColorSetting.Background:
-                    insetComponent?.UpdateColor(color);
+                    Content.InsetHost?.UpdateColor(color);
                     break;
                 case ColorSetting.RailTrack:
                     WidgetDrawingOptions<TrackSegment>.SetColors(color);

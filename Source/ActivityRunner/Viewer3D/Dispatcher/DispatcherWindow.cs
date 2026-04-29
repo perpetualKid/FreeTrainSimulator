@@ -220,7 +220,7 @@ namespace Orts.ActivityRunner.Viewer3D.Dispatcher
             Components.Add(scaleRuler);
             Components.Add(new InsetComponent(this, Color.DarkGray, new Vector2(-10, 30)));
 
-            content = new DispatcherContent(this);
+            content = new DispatcherContent(this, new XnaMapInsetHost(Components.OfType<InsetComponent>().FirstOrDefault()));
             await content.Initialize().ConfigureAwait(true);
             content.InitializeItemVisiblity(dispatcherSettings.ContentTypeVisibility);
             content.UpdateWidgetColorSettings(colorSettings);

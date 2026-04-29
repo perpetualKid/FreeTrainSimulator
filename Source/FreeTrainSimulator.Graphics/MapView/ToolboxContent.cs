@@ -50,13 +50,12 @@ namespace FreeTrainSimulator.Graphics.MapView
             }
         }
 
-        public ToolboxContent(Game game) :
-            base(game)
+        public ToolboxContent(Game game, IMapInsetHost insetHost = null) :
+            base(game, insetHost)
         {
             FormattingOptions.Add("Route Information", FormatOption.Bold);
             DetailInfo.Add("Route Information", null);
             DetailInfo["Route Name"] = RuntimeDataResolver.GameInstance(game).RouteData.Name;
-            insetComponent = ContentArea.Game.Components.OfType<InsetComponent>().FirstOrDefault();
         }
 
         public override async Task Initialize()
@@ -251,7 +250,7 @@ namespace FreeTrainSimulator.Graphics.MapView
                 });
             }
 
-            insetComponent?.SetTrackSegments(trackSegments);
+            InsetHost?.SetTrackSegments(trackSegments);
 
             ContentByTile[MapContentType.Tracks] = new TileIndexedList<TrackSegmentBase>(trackSegments);
             ContentByTile[MapContentType.JunctionNodes] = new TileIndexedList<JunctionNodeBase>(junctionSegments);

@@ -29,8 +29,6 @@ namespace FreeTrainSimulator.Graphics.MapView
             MapContentType.PlatformNames,
             MapContentType.SidingNames};
 
-        private readonly InsetComponent insetComponent;
-
         private PointPrimitive nearestDispatchItem;
         private TrainWidget nearestTrain;
 
@@ -38,10 +36,9 @@ namespace FreeTrainSimulator.Graphics.MapView
 
         internal List<PathSegment> PathSegments { get; } = new List<PathSegment>();
 
-        public DispatcherContent(Game game) :
-            base(game)
+        public DispatcherContent(Game game, IMapInsetHost insetHost = null) :
+            base(game, insetHost)
         {
-            insetComponent = ContentArea.Game.Components.OfType<InsetComponent>().FirstOrDefault();
         }
 
         public override async Task Initialize()
@@ -240,7 +237,7 @@ namespace FreeTrainSimulator.Graphics.MapView
                 });
             }
 
-            insetComponent?.SetTrackSegments(trackSegments);
+            InsetHost?.SetTrackSegments(trackSegments);
 
             trackWorld = runtimeData.TrackWorld;
             trackWorld.SetSegmentSections(trackSegments.GroupBy(t => t.TrackNodeIndex).Select(g => new TrackSegmentSection(g.Key, g)));
