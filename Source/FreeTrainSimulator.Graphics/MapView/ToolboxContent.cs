@@ -175,9 +175,9 @@ namespace FreeTrainSimulator.Graphics.MapView
                         {
                             // this could also be resolved otherwise also if rather vectorwidget & pointwidget implement InsideScreenArea() function
                             // but the performance impact/overhead seems invariant
-                            if (item is VectorPrimitive vectorPrimitive && ContentArea.InsideScreenArea(vectorPrimitive))
+                            if (item is VectorPrimitive vectorPrimitive && Viewport.InsideScreenArea(vectorPrimitive))
                                 (item as IDrawable<VectorPrimitive>).Draw(Renderer);
-                            else if (item is PointPrimitive pointPrimitive && ContentArea.InsideScreenArea(pointPrimitive))
+                            else if (item is PointPrimitive pointPrimitive && Viewport.InsideScreenArea(pointPrimitive))
                             {
                                 (item as IDrawable<PointPrimitive>).Draw(Renderer);
                             }
@@ -206,9 +206,9 @@ namespace FreeTrainSimulator.Graphics.MapView
                 {
                     if (viewSettings[viewItemSettings] && nearestItems[viewItemSettings] != null)
                     {
-                        if (nearestItems[viewItemSettings] is VectorPrimitive vectorPrimitive && ContentArea.InsideScreenArea(vectorPrimitive))
+                        if (nearestItems[viewItemSettings] is VectorPrimitive vectorPrimitive && Viewport.InsideScreenArea(vectorPrimitive))
                             (vectorPrimitive as IDrawable<VectorPrimitive>).Draw(Renderer, ColorVariation.Complement);
-                        else if (nearestItems[viewItemSettings] is PointPrimitive pointPrimitive && ContentArea.InsideScreenArea(pointPrimitive))
+                        else if (nearestItems[viewItemSettings] is PointPrimitive pointPrimitive && Viewport.InsideScreenArea(pointPrimitive))
                             (pointPrimitive as IDrawable<PointPrimitive>).Draw(Renderer, ColorVariation.Complement);
                     }
                 }

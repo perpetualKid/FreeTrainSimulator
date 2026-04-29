@@ -62,29 +62,29 @@ namespace FreeTrainSimulator.Graphics.MapView
                     {
                         // this could also be resolved otherwise also if rather vectorwidget & pointwidget implement InsideScreenArea() function
                         // but the performance impact/overhead seems invariant
-                        if (item is VectorPrimitive vectorPrimitive && ContentArea.InsideScreenArea(vectorPrimitive))
-                            (vectorPrimitive as IDrawable<VectorPrimitive>).Draw(ContentArea);
-                        else if (item is PointPrimitive pointPrimitive && ContentArea.InsideScreenArea(pointPrimitive))
-                            (pointPrimitive as IDrawable<PointPrimitive>).Draw(ContentArea);
+                        if (item is VectorPrimitive vectorPrimitive && Viewport.InsideScreenArea(vectorPrimitive))
+                            (vectorPrimitive as IDrawable<VectorPrimitive>).Draw(Renderer);
+                        else if (item is PointPrimitive pointPrimitive && Viewport.InsideScreenArea(pointPrimitive))
+                            (pointPrimitive as IDrawable<PointPrimitive>).Draw(Renderer);
                     }
                 }
             }
             foreach (PathSegment segment in PathSegments)
             {
-                if (ContentArea.InsideScreenArea(segment))
-                    ((IDrawable<VectorPrimitive>)segment).Draw(ContentArea, ColorVariation.None, 1.5);
+                if (Viewport.InsideScreenArea(segment))
+                    ((IDrawable<VectorPrimitive>)segment).Draw(Renderer, ColorVariation.None, 1.5);
             }
             foreach (TrainWidget train in Trains.Values)
             {
-                if (ContentArea.InsideScreenArea(train))
+                if (Viewport.InsideScreenArea(train))
                 {
-                    ((IDrawable<VectorPrimitive>)train).Draw(ContentArea, ColorVariation.None);
+                    ((IDrawable<VectorPrimitive>)train).Draw(Renderer, ColorVariation.None);
                     if (viewSettings[MapContentType.TrainNames])
-                        train.DrawName(ContentArea);
+                        train.DrawName(Renderer);
                 }
             }
-            (nearestDispatchItem as IDrawable<PointPrimitive>)?.Draw(ContentArea, ColorVariation.Highlight, 1.5);
-            (nearestTrain as IDrawable<VectorPrimitive>)?.Draw(ContentArea, ColorVariation.Highlight, 1.5);
+            (nearestDispatchItem as IDrawable<PointPrimitive>)?.Draw(Renderer, ColorVariation.Highlight, 1.5);
+            (nearestTrain as IDrawable<VectorPrimitive>)?.Draw(Renderer, ColorVariation.Highlight, 1.5);
         }
 
         internal override void UpdatePointerLocation(in PointD position, in Tile bottomLeft, in Tile topRight)

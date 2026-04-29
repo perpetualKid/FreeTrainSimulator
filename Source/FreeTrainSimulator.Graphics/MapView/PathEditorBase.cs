@@ -62,8 +62,8 @@ namespace FreeTrainSimulator.Graphics.MapView
             trainPath = pathModel != null ? new EditorTrainPath(Task.Run(async () => await pathModel.GetExtended(CancellationToken.None).ConfigureAwait(false)).Result, ToolboxContent.ContentArea.Game) : null;
             if (trainPath != null && trainPath.TopLeftBound != PointD.None && trainPath.BottomRightBound != PointD.None)
             {
-                ToolboxContent.ContentArea?.UpdateScaleToFit(trainPath.TopLeftBound, trainPath.BottomRightBound);
-                ToolboxContent.ContentArea?.SetTrackingPosition(trainPath.MidPoint);
+                ToolboxContent.Viewport?.UpdateScaleToFit(trainPath.TopLeftBound, trainPath.BottomRightBound);
+                ToolboxContent.Viewport?.SetTrackingPosition(trainPath.MidPoint);
                 ToolboxContent.ContentMode = ToolboxContentMode.ViewPath;
             }
             else
@@ -120,7 +120,7 @@ namespace FreeTrainSimulator.Graphics.MapView
             trainPath.SelectedNodeIndex = index;
             TrainPathPointBase item = trainPath.SelectedNode;
             if (item != null)
-                ToolboxContent.ContentArea.SetTrackingPosition(item.Location);
+                ToolboxContent.Viewport.SetTrackingPosition(item.Location);
         }
 
         protected virtual void Dispose(bool disposing)

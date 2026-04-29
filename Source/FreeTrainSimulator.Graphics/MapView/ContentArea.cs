@@ -15,7 +15,7 @@ using Microsoft.Xna.Framework.Input;
 
 namespace FreeTrainSimulator.Graphics.MapView
 {
-    public class ContentArea : DrawableGameComponent, IMapRenderer
+    public class ContentArea : DrawableGameComponent, IMapRenderer, IMapViewport
     {
         private static readonly Vector2 moveLeft = new Vector2(1, 0);
         private static readonly Vector2 moveRight = new Vector2(-1, 0);
@@ -415,15 +415,25 @@ namespace FreeTrainSimulator.Graphics.MapView
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal bool InsideScreenArea(PointPrimitive pointPrimitive)
+        public bool InsideScreenArea(PointPrimitive pointPrimitive)
         {
             return viewport.InsideScreenArea(pointPrimitive.Location);
         }
 
+        bool IMapViewport.InsideScreenArea(PointPrimitive pointPrimitive)
+        {
+            return InsideScreenArea(pointPrimitive);
+        }
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal bool InsideScreenArea(VectorPrimitive vectorPrimitive)
+        public bool InsideScreenArea(VectorPrimitive vectorPrimitive)
         {
             return viewport.InsideScreenArea(vectorPrimitive.Location, vectorPrimitive.Vector);
+        }
+
+        bool IMapViewport.InsideScreenArea(VectorPrimitive vectorPrimitive)
+        {
+            return InsideScreenArea(vectorPrimitive);
         }
 
         private void UpdateFontSize()
