@@ -1,17 +1,17 @@
 using System;
 
-using FreeTrainSimulator.Graphics.DrawableComponents;
 using FreeTrainSimulator.Graphics.Xna;
 
 using Microsoft.Xna.Framework.Graphics;
 
 namespace FreeTrainSimulator.Graphics.MapView
 {
+    [Obsolete("Use MapTextTextureCache for the current MapView path.")]
     internal sealed class XnaMapTextCache : IMapTextCache
     {
-        private readonly TextShape textShape;
+        private readonly DrawableComponents.TextShape textShape;
 
-        public XnaMapTextCache(TextShape textShape)
+        public XnaMapTextCache(DrawableComponents.TextShape textShape)
         {
             this.textShape = textShape ?? throw new ArgumentNullException(nameof(textShape));
         }

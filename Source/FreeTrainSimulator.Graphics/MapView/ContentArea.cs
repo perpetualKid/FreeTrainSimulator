@@ -50,6 +50,8 @@ namespace FreeTrainSimulator.Graphics.MapView
         private readonly IMapTextRenderer textRenderer;
         private readonly IMapTextCache textCache;
 
+        private readonly MapTextTextureCache ownedTextCache;
+
         public ContentBase Content { get; }
 
         public double Scale => viewport.Scale;
@@ -77,7 +79,8 @@ namespace FreeTrainSimulator.Graphics.MapView
             SpriteBatch = new SpriteBatch(GraphicsDevice);
             renderingLifetime = new XnaMapRenderingLifetime(game);
             renderingResources = new XnaMapRenderingResources(renderingLifetime, SpriteBatch);
-            textCache = new XnaMapTextCache(renderingResources.TextShape);
+            ownedTextCache = new MapTextTextureCache(renderingLifetime.GetTextTextureRenderer());
+            textCache = ownedTextCache;
             textRenderer = new XnaMapTextRenderer(textCache, SpriteBatch);
             renderBackend = new XnaMapRenderBackend(SpriteBatch, renderingResources.BasicShapes, textRenderer);
             fontManager = FontManager.Scaled("Arial", System.Drawing.FontStyle.Regular);
@@ -465,6 +468,7 @@ namespace FreeTrainSimulator.Graphics.MapView
         {
             if (disposing)
             {
+                ownedTextCache?.Dispose();
                 SpriteBatch?.Dispose();
                 hostEnvironment.UnregisterMouseMove(MouseMove);
             }
