@@ -65,38 +65,36 @@ namespace FreeTrainSimulator.Graphics.DrawableComponents
         {
             if (texture == null)
                 return;
-            spriteBatch.Begin();
-            spriteBatch.Draw(texture, position, null, color);
-            DrawClippingMarker();
-            spriteBatch.End();
+            renderHelper.DrawSpriteBatch(spriteBatch =>
+            {
+                spriteBatch.Draw(texture, position, null, color);
+                DrawClippingMarker();
+            });
             base.Draw(gameTime);
         }
 
         private RenderTarget2D DrawTrackInset()
         {
             UpdateWindowSize();
-            RenderTarget2D renderTarget = new RenderTarget2D(GraphicsDevice, size.X, size.Y);
-            GraphicsDevice.SetRenderTarget(renderTarget);
-            GraphicsDevice.Clear(Color.White);
-            spriteBatch.Begin();
-            content.BasicShapes.DrawLine(borderSize, borderColor, new Vector2(borderSize, borderSize), size.X - borderSize - borderSize, 0, spriteBatch);
-            content.BasicShapes.DrawLine(borderSize, borderColor, new Vector2(borderSize, size.Y - borderSize), size.X - borderSize - borderSize, 0, spriteBatch);
-            content.BasicShapes.DrawLine(borderSize, borderColor, new Vector2(borderSize, borderSize), size.Y - borderSize - borderSize, MathHelper.ToRadians(90), spriteBatch);
-            content.BasicShapes.DrawLine(borderSize, borderColor, new Vector2(size.X - borderSize, borderSize), size.Y - borderSize - borderSize, MathHelper.ToRadians(90), spriteBatch);
-
-            if (null != trackSegments)
+            RenderTarget2D renderTarget = renderHelper.CreateRenderTarget(size.X, size.Y);
+            renderHelper.RenderToTarget(renderTarget, Color.White, spriteBatch =>
             {
-                foreach (TrackSegment segment in trackSegments)
-                {
-                    if (segment.Curved)
-                        content.BasicShapes.DrawArc(WorldToScreenSize(segment.Size), Color.Black, WorldToScreenCoordinates(in segment.Location), WorldToScreenSize(segment.Radius), segment.Direction, segment.Angle, spriteBatch);
-                    else
-                        content.BasicShapes.DrawLine(WorldToScreenSize(segment.Size), Color.Black, WorldToScreenCoordinates(in segment.Location), WorldToScreenSize(segment.Length), segment.Direction, spriteBatch);
-                }
-            }
+                content.BasicShapes.DrawLine(borderSize, borderColor, new Vector2(borderSize, borderSize), size.X - borderSize - borderSize, 0, spriteBatch);
+                content.BasicShapes.DrawLine(borderSize, borderColor, new Vector2(borderSize, size.Y - borderSize), size.X - borderSize - borderSize, 0, spriteBatch);
+                content.BasicShapes.DrawLine(borderSize, borderColor, new Vector2(borderSize, borderSize), size.Y - borderSize - borderSize, MathHelper.ToRadians(90), spriteBatch);
+                content.BasicShapes.DrawLine(borderSize, borderColor, new Vector2(size.X - borderSize, borderSize), size.Y - borderSize - borderSize, MathHelper.ToRadians(90), spriteBatch);
 
-            spriteBatch.End();
-            GraphicsDevice.SetRenderTarget(null);
+                if (null != trackSegments)
+                {
+                    foreach (TrackSegment segment in trackSegments)
+                    {
+                        if (segment.Curved)
+                            content.BasicShapes.DrawArc(WorldToScreenSize(segment.Size), Color.Black, WorldToScreenCoordinates(in segment.Location), WorldToScreenSize(segment.Radius), segment.Direction, segment.Angle, spriteBatch);
+                        else
+                            content.BasicShapes.DrawLine(WorldToScreenSize(segment.Size), Color.Black, WorldToScreenCoordinates(in segment.Location), WorldToScreenSize(segment.Length), segment.Direction, spriteBatch);
+                    }
+                }
+            });
             return renderTarget;
         }
 

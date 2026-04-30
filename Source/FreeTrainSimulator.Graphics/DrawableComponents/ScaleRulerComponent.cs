@@ -141,10 +141,10 @@ namespace FreeTrainSimulator.Graphics.DrawableComponents
         {
             if (texture == null)
                 return;
-            spriteBatch.Begin();
-            spriteBatch.Draw(texture, position, null, color, 0, Vector2.Zero, Vector2.One, SpriteEffects.None, 0);
-
-            spriteBatch.End();
+            renderHelper.DrawSpriteBatch(spriteBatch =>
+            {
+                spriteBatch.Draw(texture, position, null, color, 0, Vector2.Zero, Vector2.One, SpriteEffects.None, 0);
+            });
             base.Draw(gameTime);
         }
 
@@ -197,7 +197,7 @@ namespace FreeTrainSimulator.Graphics.DrawableComponents
                     Marshal.Copy(bmd.Scan0, bytes, 0, bytes.Length);
 
                     // copy our buffer to the texture
-                    Texture2D texture = new Texture2D(Game.GraphicsDevice, bmpSurface.Width, bmpSurface.Height, false, SurfaceFormat.Color);
+                    Texture2D texture = renderHelper.CreateTexture(bmpSurface.Width, bmpSurface.Height);
                     texture.SetData(bytes);
                     // unlock the bitmap data
                     bmpSurface.UnlockBits(bmd);

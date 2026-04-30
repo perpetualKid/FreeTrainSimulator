@@ -21,6 +21,7 @@ namespace FreeTrainSimulator.Graphics.Xna
 
         private protected readonly SpriteBatch spriteBatch;
         private protected readonly ITextureComponentHost host;
+        private protected readonly ITextureRenderHelper renderHelper;
         private protected Color color;
 
         protected TextureContentComponent(Game game, Color color, Vector2 position) :
@@ -33,6 +34,7 @@ namespace FreeTrainSimulator.Graphics.Xna
         {
             this.host = host ?? throw new ArgumentNullException(nameof(host));
             spriteBatch = host.CreateSpriteBatch();
+            renderHelper = new XnaTextureRenderHelper(this.host, spriteBatch);
             this.color = color;
             this.position = position;
             if (position.X < 0 || position.Y < 0)
