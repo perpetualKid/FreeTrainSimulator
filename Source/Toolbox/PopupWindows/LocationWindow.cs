@@ -1,5 +1,4 @@
-﻿
-using System;
+﻿using System;
 
 using FreeTrainSimulator.Common.Input;
 using FreeTrainSimulator.Common.Position;
@@ -94,7 +93,7 @@ namespace FreeTrainSimulator.Toolbox.PopupWindows
 
         protected override void Update(GameTime gameTime, bool shouldUpdate)
         {
-            ref readonly PointD worldPoint = ref (contentArea == null ? ref PointD.None : ref contentArea.WorldPosition);
+            PointD worldPoint = contentArea?.WorldPosition ?? PointD.None;
             if (previousWorldPoint != worldPoint || updateRequired)
             {
                 updateRequired = false;

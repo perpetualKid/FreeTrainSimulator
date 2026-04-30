@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Linq;
 using System.Runtime.CompilerServices;
 
 using FreeTrainSimulator.Common.Input;
@@ -11,22 +10,14 @@ using FreeTrainSimulator.Graphics.Xna;
 
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using Microsoft.Xna.Framework.Input;
 
 namespace FreeTrainSimulator.Graphics.MapView
 {
     public class ContentArea : DrawableGameComponent, IMapRenderer, IMapViewport, IMapHostControl
     {
-        private static readonly Vector2 moveLeft = new Vector2(1, 0);
-        private static readonly Vector2 moveRight = new Vector2(-1, 0);
-        private static readonly Vector2 moveUp = new Vector2(0, 1);
-        private static readonly Vector2 moveDown = new Vector2(0, -1);
-
         private const int zoomAmplifier = 3;
-        private const int scaleMax = 200;
 
         private readonly MapViewportState viewport;
-        private PointD worldPosition;
 
         internal SpriteBatch SpriteBatch { get; }
 
@@ -36,9 +27,8 @@ namespace FreeTrainSimulator.Graphics.MapView
 #pragma warning disable CA2213 // Disposable fields should be disposed
         private readonly TextShape contentText;
 #pragma warning restore CA2213 // Disposable fields should be disposed
-        private double previousScale;
-        private PointD previousTopLeft, previousBottomRight;
 
+#pragma warning disable CA1859 // Use concrete types when possible for improved performance
 #pragma warning disable CA2213 // Disposable fields should be disposed
         private readonly IMapHostEnvironment hostEnvironment;
 #pragma warning restore CA2213 // Disposable fields should be disposed
@@ -49,21 +39,24 @@ namespace FreeTrainSimulator.Graphics.MapView
         private readonly IMapTextRenderer textRenderer;
         private readonly IMapTextCache textCache;
 
+        private readonly IMapViewController controller;
+#pragma warning restore CA1859 // Use concrete types when possible for improved performance
+
         private readonly MapTextTextureCache ownedTextCache;
 
         public ContentBase Content { get; }
 
-        public double Scale => viewport.Scale;
-        public PointD CenterPoint => viewport.CenterPoint;
+        public double Scale => controller.Scale;
+        public PointD CenterPoint => controller.CenterPoint;
 
         public bool SuppressDrawing { get; internal set; }
 
-        public Point WindowSize => new Point(viewport.WindowSize.Width, viewport.WindowSize.Height);
+        public Point WindowSize => controller.WindowSize;
 
-        internal PointD TopLeftBound => viewport.TopLeftBound;
-        internal PointD BottomRightBound => viewport.BottomRightBound;
+        internal PointD TopLeftBound => controller.TopLeftBound;
+        internal PointD BottomRightBound => controller.BottomRightBound;
 
-        public ref readonly PointD WorldPosition => ref worldPosition;
+        public PointD WorldPosition => controller.WorldPosition;
 
         public System.Drawing.Font CurrentFont { get; private set; }
         public System.Drawing.Font ConstantSizeFont { get; private set; }
@@ -89,17 +82,18 @@ namespace FreeTrainSimulator.Graphics.MapView
             contentText = renderingResources.TextShape;
             BasicShapes = renderingResources.BasicShapes;
             viewport = new MapViewportState(new MapViewportBounds(content.Bounds.Left, content.Bounds.Top, content.Bounds.Right, content.Bounds.Bottom));
+            controller = new MapViewController(new MapViewportBounds(content.Bounds.Left, content.Bounds.Top, content.Bounds.Right, content.Bounds.Bottom));
             hostEnvironment.ClientSizeChanged += Window_ClientSizeChanged;
         }
 
         private void Window_ClientSizeChanged(object sender, EventArgs e)
         {
-            viewport.UpdateWindowSize(new MapViewportSize(hostEnvironment.ClientSize.X, hostEnvironment.ClientSize.Y));
+            controller.UpdateViewportWindowSize(hostEnvironment.ClientSize);
         }
 
         private void RefreshViewportBounds()
         {
-            viewport.UpdateBounds(new MapViewportBounds(Content.Bounds.Left, Content.Bounds.Top, Content.Bounds.Right, Content.Bounds.Bottom));
+            controller.UpdateViewportWindowSize(hostEnvironment.ClientSize);
         }
 
         public static void UpdateTrackWidthSettings(bool limitTrackWidth)
@@ -173,12 +167,7 @@ namespace FreeTrainSimulator.Graphics.MapView
 
         public void MouseMove(Point position, Vector2 delta, GameTime gameTime)
         {
-            if (!Enabled)
-                return;
-
-            worldPosition = ScreenToWorldCoordinates(position);
-            if (Scale > 0.2)
-                Content.UpdatePointerLocation(worldPosition, viewport.BottomLeftTile, viewport.TopRightTile);
+            controller.MouseMove(Enabled, position, Content);
         }
 
         protected override void OnEnabledChanged(object sender, EventArgs args)
@@ -198,122 +187,100 @@ namespace FreeTrainSimulator.Graphics.MapView
         public void ResetSize(in Point windowSize, int screenDelta)
         {
             RefreshViewportBounds();
-            viewport.ResetSize(new MapViewportSize(windowSize.X, windowSize.Y), screenDelta);
+            controller.ResetSize(windowSize, screenDelta, hostEnvironment.PointerPosition);
             UpdateFontSize();
-            worldPosition = ScreenToWorldCoordinates(hostEnvironment.PointerPosition);
         }
 
         public void PresetPosition(in PointD centerPoint, double scale)
         {
+            controller.PresetPosition(centerPoint, scale);
             if (centerPoint != PointD.None)
-            {
-                viewport.PresetPosition(centerPoint, scale);
                 UpdateFontSize();
-            }
             SuppressDrawing = false;
         }
 
         public void SetTrackingPosition(in WorldLocation location)
         {
-            viewport.SetTrackingPosition(PointD.FromWorldLocation(location));
+            controller.SetTrackingPosition(location);
         }
 
         public void SetTrackingPosition(in PointD location)
         {
-            viewport.SetTrackingPosition(location);
+            controller.SetTrackingPosition(location);
         }
 
         public void UpdateScaleToFit(in PointD topLeft, in PointD bottomRight)
         {
-            viewport.UpdateScaleToFit(topLeft, bottomRight);
+            controller.UpdateScaleToFit(topLeft, bottomRight);
             UpdateFontSize();
         }
 
         public void UpdateScaleAt(in Point scaleAt, int steps)
         {
-            viewport.UpdateScaleAt(scaleAt.X, scaleAt.Y, steps, scaleMax);
+            controller.UpdateScaleAt(scaleAt, steps);
             UpdateFontSize();
         }
 
         public void UpdateScale(int steps)
         {
-            viewport.UpdateScale(steps, scaleMax);
+            controller.UpdateScale(steps);
             UpdateFontSize();
         }
 
         public void UpdateScaleAbsolute(double scale)
         {
-            viewport.UpdateScaleAbsolute(scale, scaleMax);
+            controller.UpdateScaleAbsolute(scale);
             UpdateFontSize();
         }
 
         public void UpdatePosition(in Vector2 delta)
         {
-            viewport.UpdatePosition(delta.X, delta.Y);
+            controller.UpdatePosition(delta);
         }
 
         public override void Update(GameTime gameTime)
         {
-            if (Scale != previousScale || TopLeftBound != previousTopLeft || BottomRightBound != previousBottomRight)
-            {
-                previousScale = Scale;
-                previousTopLeft = TopLeftBound;
-                previousBottomRight = BottomRightBound;
+            if (controller.UpdateFrameState())
                 SuppressDrawing = false;
-            }
             base.Update(gameTime);
         }
 
         #region public control commands
         public void MouseDragging(UserCommandArgs userCommandArgs)
         {
-            if (userCommandArgs is PointerMoveCommandArgs mouseMoveCommandArgs)
-                UpdatePosition(mouseMoveCommandArgs.Delta);
+            controller.MouseDragging(userCommandArgs);
         }
 
         public void MouseWheelAt(UserCommandArgs userCommandArgs, KeyModifiers modifiers)
         {
-            if (userCommandArgs is ScrollCommandArgs mouseWheelCommandArgs)
-                UpdateScaleAt(mouseWheelCommandArgs.Position, Math.Sign(mouseWheelCommandArgs.Delta) * ZoomAmplifier(modifiers));
+            controller.MouseWheelAt(userCommandArgs, modifiers);
+            UpdateFontSize();
         }
 
         public void MouseWheel(UserCommandArgs userCommandArgs, KeyModifiers modifiers)
         {
-            if (userCommandArgs is ScrollCommandArgs mouseWheelCommandArgs)
-                UpdateScale(Math.Sign(mouseWheelCommandArgs.Delta) * ZoomAmplifier(modifiers));
+            controller.MouseWheel(userCommandArgs, modifiers);
+            UpdateFontSize();
         }
 
         public void MoveByKeyLeft(UserCommandArgs commandArgs)
         {
-            UpdatePosition(moveLeft * MovementAmplifier(commandArgs));
+            controller.MoveByKeyLeft(commandArgs);
         }
 
         public void MoveByKeyRight(UserCommandArgs commandArgs)
         {
-            UpdatePosition(moveRight * MovementAmplifier(commandArgs));
+            controller.MoveByKeyRight(commandArgs);
         }
 
         public void MoveByKeyUp(UserCommandArgs commandArgs)
         {
-            UpdatePosition(moveUp * MovementAmplifier(commandArgs));
+            controller.MoveByKeyUp(commandArgs);
         }
 
         public void MoveByKeyDown(UserCommandArgs commandArgs)
         {
-            UpdatePosition(moveDown * MovementAmplifier(commandArgs));
-        }
-
-        private static int MovementAmplifier(UserCommandArgs commandArgs)
-        {
-            int amplifier = 5;
-            if (commandArgs is ModifiableKeyCommandArgs modifiableKeyCommand)
-            {
-                if ((modifiableKeyCommand.AdditionalModifiers & KeyModifiers.Control) == KeyModifiers.Control)
-                    amplifier = 1;
-                else if ((modifiableKeyCommand.AdditionalModifiers & KeyModifiers.Shift) == KeyModifiers.Shift)
-                    amplifier = 10;
-            }
-            return amplifier;
+            controller.MoveByKeyDown(commandArgs);
         }
 
         public static int ZoomAmplifier(KeyModifiers modifiers)
@@ -333,22 +300,14 @@ namespace FreeTrainSimulator.Graphics.MapView
 
         public void ZoomIn(UserCommandArgs commandArgs)
         {
-            Zoom(ZoomAmplifier(commandArgs));
+            controller.ZoomIn(commandArgs);
+            UpdateFontSize();
         }
 
         public void ZoomOut(UserCommandArgs commandArgs)
         {
-            Zoom(-ZoomAmplifier(commandArgs));
-        }
-
-        private long nextUpdate;
-        private void Zoom(int steps)
-        {
-            if (Environment.TickCount64 > nextUpdate)
-            {
-                UpdateScale(steps);
-                nextUpdate = Environment.TickCount64 + 30;
-            }
+            controller.ZoomOut(commandArgs);
+            UpdateFontSize();
         }
 
         public void ResetZoomAndLocation(Point windowSize, int screenDelta)
@@ -360,7 +319,7 @@ namespace FreeTrainSimulator.Graphics.MapView
         public override void Draw(GameTime gameTime)
         {
             renderBackend.BeginFrame();
-            Content.Draw(viewport.BottomLeftTile, viewport.TopRightTile);
+            Content.Draw(controller.BottomLeftTile, controller.TopRightTile);
             renderBackend.EndFrame();
             base.Draw(gameTime);
             SuppressDrawing = true;
@@ -399,33 +358,31 @@ namespace FreeTrainSimulator.Graphics.MapView
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public Vector2 WorldToScreenCoordinates(in WorldLocation worldLocation)
         {
-            double x = (worldLocation.TileX * WorldLocation.TileSize) + worldLocation.Location.X;
-            double y = (worldLocation.TileZ * WorldLocation.TileSize) + worldLocation.Location.Z;
-            return WorldToScreenCoordinates(new PointD(x, y));
+            return controller.WorldToScreenCoordinates(worldLocation);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public PointD ScreenToWorldCoordinates(in Point screenLocation)
         {
-            return viewport.ScreenToWorldCoordinates(screenLocation.X, screenLocation.Y);
+            return controller.ScreenToWorldCoordinates(screenLocation);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public Vector2 WorldToScreenCoordinates(in PointD location)
         {
-            PointD screenLocation = viewport.WorldToScreenCoordinates(location);
-            return new Vector2((float)screenLocation.X, (float)screenLocation.Y);
+            return controller.WorldToScreenCoordinates(location);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public float WorldToScreenSize(double worldSize, int minScreenSize = 1)
         {
-            return viewport.WorldToScreenSize(worldSize, minScreenSize);
+            return controller.WorldToScreenSize(worldSize, minScreenSize);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool InsideScreenArea(PointPrimitive pointPrimitive)
         {
+            ArgumentNullException.ThrowIfNull(pointPrimitive, nameof(pointPrimitive));
             return viewport.InsideScreenArea(pointPrimitive.Location);
         }
 
@@ -437,6 +394,7 @@ namespace FreeTrainSimulator.Graphics.MapView
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool InsideScreenArea(VectorPrimitive vectorPrimitive)
         {
+            ArgumentNullException.ThrowIfNull(vectorPrimitive, nameof(vectorPrimitive));
             return viewport.InsideScreenArea(vectorPrimitive.Location, vectorPrimitive.Vector);
         }
 

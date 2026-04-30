@@ -31,7 +31,6 @@ namespace FreeTrainSimulator.Graphics.MapView
         private (double distance, INameValueInformationProvider statusItem) nearestSegmentForStatus;
         private (double distance, INameValueInformationProvider statusItem) nearestItemForStatus;
 
-        private readonly InsetComponent insetComponent;
         private ToolboxContentMode contentMode;
 
         internal PathEditorBase PathEditor { get; set; }
