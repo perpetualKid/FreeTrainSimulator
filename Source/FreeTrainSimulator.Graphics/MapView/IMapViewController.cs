@@ -5,7 +5,7 @@ using Microsoft.Xna.Framework;
 
 namespace FreeTrainSimulator.Graphics.MapView
 {
-    public interface IMapViewController
+    internal interface IMapViewController
     {
         double Scale { get; }
 
@@ -24,6 +24,8 @@ namespace FreeTrainSimulator.Graphics.MapView
         Tile TopRightTile { get; }
 
         bool UpdateFrameState();
+
+        void UpdateViewportBounds(in MapViewportBounds bounds);
 
         void UpdateViewportWindowSize(in Point windowSize);
 
@@ -52,6 +54,10 @@ namespace FreeTrainSimulator.Graphics.MapView
         Vector2 WorldToScreenCoordinates(in PointD location);
 
         float WorldToScreenSize(double worldSize, int minScreenSize = 1);
+
+        bool InsideScreenArea(in PointD location);
+
+        bool InsideScreenArea(in PointD start, in PointD end);
 
         void MouseMove(bool enabled, in Point position, ContentBase content);
 

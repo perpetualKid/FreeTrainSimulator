@@ -57,6 +57,11 @@ namespace FreeTrainSimulator.Graphics.MapView
             return false;
         }
 
+        public void UpdateViewportBounds(in MapViewportBounds bounds)
+        {
+            viewport.UpdateBounds(bounds);
+        }
+
         public void UpdateViewportWindowSize(in Point windowSize)
         {
             viewport.UpdateWindowSize(new MapViewportSize(windowSize.X, windowSize.Y));
@@ -130,6 +135,16 @@ namespace FreeTrainSimulator.Graphics.MapView
         public float WorldToScreenSize(double worldSize, int minScreenSize = 1)
         {
             return viewport.WorldToScreenSize(worldSize, minScreenSize);
+        }
+
+        public bool InsideScreenArea(in PointD location)
+        {
+            return viewport.InsideScreenArea(location);
+        }
+
+        public bool InsideScreenArea(in PointD start, in PointD end)
+        {
+            return viewport.InsideScreenArea(start, end);
         }
 
         public void MouseMove(bool enabled, in Point position, ContentBase content)

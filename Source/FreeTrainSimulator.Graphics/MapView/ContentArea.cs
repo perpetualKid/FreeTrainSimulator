@@ -3,7 +3,6 @@ using System.Runtime.CompilerServices;
 
 using FreeTrainSimulator.Common.Input;
 using FreeTrainSimulator.Common.Position;
-using FreeTrainSimulator.Graphics.DrawableComponents;
 using FreeTrainSimulator.Graphics.MapView.Shapes;
 using FreeTrainSimulator.Graphics.MapView.Widgets;
 using FreeTrainSimulator.Graphics.Xna;
@@ -17,17 +16,11 @@ namespace FreeTrainSimulator.Graphics.MapView
     {
         private const int zoomAmplifier = 3;
 
-        private readonly MapViewportState viewport;
-
         internal SpriteBatch SpriteBatch { get; }
 
         internal BasicShapes BasicShapes { get; }
 
         private readonly FontManagerInstance fontManager;
-#pragma warning disable CA2213 // Disposable fields should be disposed
-        private readonly TextShape contentText;
-#pragma warning restore CA2213 // Disposable fields should be disposed
-
 #pragma warning disable CA1859 // Use concrete types when possible for improved performance
 #pragma warning disable CA2213 // Disposable fields should be disposed
         private readonly IMapHostEnvironment hostEnvironment;
@@ -38,7 +31,6 @@ namespace FreeTrainSimulator.Graphics.MapView
         private readonly IMapRenderBackend renderBackend;
         private readonly IMapTextRenderer textRenderer;
         private readonly IMapTextCache textCache;
-
         private readonly IMapViewController controller;
 #pragma warning restore CA1859 // Use concrete types when possible for improved performance
 
@@ -48,20 +40,15 @@ namespace FreeTrainSimulator.Graphics.MapView
 
         public double Scale => controller.Scale;
         public PointD CenterPoint => controller.CenterPoint;
-
         public bool SuppressDrawing { get; internal set; }
-
         public Point WindowSize => controller.WindowSize;
-
         internal PointD TopLeftBound => controller.TopLeftBound;
         internal PointD BottomRightBound => controller.BottomRightBound;
-
         public PointD WorldPosition => controller.WorldPosition;
-
         public System.Drawing.Font CurrentFont { get; private set; }
         public System.Drawing.Font ConstantSizeFont { get; private set; }
 
-        internal ContentArea(Game game, ContentBase content, FreeTrainSimulator.Common.Input.MouseInputGameComponent mouseInputGameComponent) :
+        internal ContentArea(Game game, ContentBase content, MouseInputGameComponent mouseInputGameComponent) :
             base(game)
         {
             ArgumentNullException.ThrowIfNull(game);
@@ -79,21 +66,20 @@ namespace FreeTrainSimulator.Graphics.MapView
             ConstantSizeFont = fontManager[25];
             hostEnvironment = new XnaMapHostEnvironment(game, mouseInputGameComponent);
             hostEnvironment.RegisterMouseMove(MouseMove);
-            contentText = renderingResources.TextShape;
             BasicShapes = renderingResources.BasicShapes;
-            viewport = new MapViewportState(new MapViewportBounds(content.Bounds.Left, content.Bounds.Top, content.Bounds.Right, content.Bounds.Bottom));
             controller = new MapViewController(new MapViewportBounds(content.Bounds.Left, content.Bounds.Top, content.Bounds.Right, content.Bounds.Bottom));
             hostEnvironment.ClientSizeChanged += Window_ClientSizeChanged;
         }
 
         private void Window_ClientSizeChanged(object sender, EventArgs e)
         {
+            RefreshViewportBounds();
             controller.UpdateViewportWindowSize(hostEnvironment.ClientSize);
         }
 
         private void RefreshViewportBounds()
         {
-            controller.UpdateViewportWindowSize(hostEnvironment.ClientSize);
+            controller.UpdateViewportBounds(new MapViewportBounds(Content.Bounds.Left, Content.Bounds.Top, Content.Bounds.Right, Content.Bounds.Bottom));
         }
 
         public static void UpdateTrackWidthSettings(bool limitTrackWidth)
@@ -383,7 +369,7 @@ namespace FreeTrainSimulator.Graphics.MapView
         public bool InsideScreenArea(PointPrimitive pointPrimitive)
         {
             ArgumentNullException.ThrowIfNull(pointPrimitive, nameof(pointPrimitive));
-            return viewport.InsideScreenArea(pointPrimitive.Location);
+            return controller.InsideScreenArea(pointPrimitive.Location);
         }
 
         bool IMapViewport.InsideScreenArea(PointPrimitive pointPrimitive)
@@ -395,7 +381,7 @@ namespace FreeTrainSimulator.Graphics.MapView
         public bool InsideScreenArea(VectorPrimitive vectorPrimitive)
         {
             ArgumentNullException.ThrowIfNull(vectorPrimitive, nameof(vectorPrimitive));
-            return viewport.InsideScreenArea(vectorPrimitive.Location, vectorPrimitive.Vector);
+            return controller.InsideScreenArea(vectorPrimitive.Location, vectorPrimitive.Vector);
         }
 
         bool IMapViewport.InsideScreenArea(VectorPrimitive vectorPrimitive)

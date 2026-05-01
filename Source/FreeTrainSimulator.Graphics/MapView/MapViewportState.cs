@@ -52,6 +52,12 @@ namespace FreeTrainSimulator.Graphics.MapView
         public void UpdateWindowSize(in MapViewportSize windowSize)
         {
             WindowSize = windowSize;
+
+            if (Scale <= 0 || !double.IsFinite(Scale) ||
+                !double.IsFinite(TopLeftBound.X) || !double.IsFinite(TopLeftBound.Y) ||
+                !double.IsFinite(BottomRightBound.X) || !double.IsFinite(BottomRightBound.Y))
+                return;
+
             CenterAround(CenterPoint);
         }
 
