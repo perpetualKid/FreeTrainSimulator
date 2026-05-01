@@ -57,6 +57,12 @@ namespace FreeTrainSimulator.Graphics.MapView
             return false;
         }
 
+        public void SyncViewport(in MapViewportBounds bounds, in Point windowSize)
+        {
+            viewport.UpdateBounds(bounds);
+            viewport.UpdateWindowSize(new MapViewportSize(windowSize.X, windowSize.Y));
+        }
+
         public void UpdateViewportBounds(in MapViewportBounds bounds)
         {
             viewport.UpdateBounds(bounds);

@@ -60,8 +60,8 @@ namespace FreeTrainSimulator.Graphics.MapView
 
         public override async Task Initialize()
         {
-            await Task.Run(AddTrackSegments).ConfigureAwait(false);
-            await Task.Run(AddTrackItems).ConfigureAwait(false);
+            await Task.Run(AddTrackSegments).ConfigureAwait(true);
+            await Task.Run(AddTrackItems).ConfigureAwait(true);
 
             ContentArea.Initialize();
             //just put an empty list so the draw method does not skip the paths

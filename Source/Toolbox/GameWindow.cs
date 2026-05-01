@@ -498,7 +498,7 @@ namespace FreeTrainSimulator.Toolbox
             Components.Add(windowManager);
             base.Initialize();
 
-            if (!(await loadFolders.ConfigureAwait(false)))
+            if (!(await loadFolders.ConfigureAwait(true)))
             {
                 // content may need updates
                 MessageBox.Show($"In an effort to optimize content, {RuntimeInfo.ProductName} will need to analyze existing content files and folders." + Environment.NewLine + Environment.NewLine +
@@ -509,7 +509,7 @@ namespace FreeTrainSimulator.Toolbox
             {
                 try
                 {
-                    await PreSelectRoute(ToolboxSettings.Folder, ToolboxSettings.RouteId, ToolboxSettings.PathId).ConfigureAwait(false);
+                    await PreSelectRoute(ToolboxSettings.Folder, ToolboxSettings.RouteId, ToolboxSettings.PathId).ConfigureAwait(true);
                     ContentArea?.PresetPosition(ToolboxSettings.ContentPosition, ToolboxSettings.ContentScale);
                     foreach (ToolboxWindowType windowType in EnumExtension.GetValues<ToolboxWindowType>())
                     {

@@ -112,16 +112,16 @@ namespace FreeTrainSimulator.Toolbox
             _ = windowManager[ToolboxWindowType.StatusWindow].Open();
             UnloadRoute();
 
-            ctsRouteLoading = await ctsRouteLoading.ResetCancellationTokenSource(loadRouteSemaphore, true).ConfigureAwait(false);
+            ctsRouteLoading = await ctsRouteLoading.ResetCancellationTokenSource(loadRouteSemaphore, true).ConfigureAwait(true);
 
-            RouteModel routeModel = await route.GetExtended(ctsProfileLoading.Token).ConfigureAwait(false);
+            RouteModel routeModel = await route.GetExtended(ctsProfileLoading.Token).ConfigureAwait(true);
             Task<ImmutableArray<PathModelHeader>> pathTask = routeModel.GetRoutePaths(ctsProfileLoading.Token);
 
             bool useMetricUnits = ToolboxUserSettings.MeasurementUnit == MeasurementUnit.Metric || (ToolboxUserSettings.MeasurementUnit == MeasurementUnit.System && System.Globalization.RegionInfo.CurrentRegion.IsMetric);
             if (ToolboxUserSettings.MeasurementUnit == MeasurementUnit.Route)
                 useMetricUnits = routeModel.MetricUnits;
 
-            await RuntimeDataResolver.Initialize(routeModel, useMetricUnits).ConfigureAwait(false);
+            await RuntimeDataResolver.Initialize(routeModel, useMetricUnits).ConfigureAwait(true);
             if (ctsProfileLoading.Token.IsCancellationRequested)
                 return;
 
@@ -131,11 +131,11 @@ namespace FreeTrainSimulator.Toolbox
                 new XnaMapInsetHost(Components.OfType<InsetComponent>().FirstOrDefault()),
                 new XnaMapTextureHelperHost(Components.OfType<TextureContentComponent>()));
 
-            await content.Initialize().ConfigureAwait(false);
+            await content.Initialize().ConfigureAwait(true);
             content.InitializeItemVisiblity(ToolboxSettings.ViewSettings);
             content.UpdateWidgetColorSettings(ToolboxSettings.ColorSettings, ToolboxSettings.FontOutline, ToolboxSettings.LimitTrackWidth);
             ContentArea = content.ContentArea;
-            mainmenu.PopulatePaths(await pathTask.ConfigureAwait(false));
+            mainmenu.PopulatePaths(await pathTask.ConfigureAwait(true));
             _ = windowManager[ToolboxWindowType.StatusWindow].Close();
             selectedRoute = route;
         }
@@ -164,15 +164,15 @@ namespace FreeTrainSimulator.Toolbox
 
                 if (!string.IsNullOrEmpty(routeId) && ToolboxSettings.RestoreLastView)
                 {
-                    RouteModelHeader route = (routeModels.IsDefaultOrEmpty ? routeModels = await FindRoutes(folder).ConfigureAwait(false) : routeModels).GetById(routeId);
+                    RouteModelHeader route = (routeModels.IsDefaultOrEmpty ? routeModels = await FindRoutes(folder).ConfigureAwait(true) : routeModels).GetById(routeId);
                     if (null != route)
                     {
-                        await LoadRoute(route).ConfigureAwait(false);
+                        await LoadRoute(route).ConfigureAwait(true);
                         mainmenu.PreSelectRoute(route.Name);
                         if (!string.IsNullOrEmpty(pathId))
                         {
                             // only restore first path for now
-                            PathModelHeader path = (await route.GetRoutePaths(CancellationToken.None).ConfigureAwait(false)).GetById(pathId);
+                            PathModelHeader path = (await route.GetRoutePaths(CancellationToken.None).ConfigureAwait(true)).GetById(pathId);
                             if (null != path)
                             {
                                 if (LoadPath(path))

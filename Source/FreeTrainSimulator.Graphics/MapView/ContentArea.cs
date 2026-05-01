@@ -68,18 +68,18 @@ namespace FreeTrainSimulator.Graphics.MapView
             hostEnvironment.RegisterMouseMove(MouseMove);
             BasicShapes = renderingResources.BasicShapes;
             controller = new MapViewController(new MapViewportBounds(content.Bounds.Left, content.Bounds.Top, content.Bounds.Right, content.Bounds.Bottom));
+            controller.SyncViewport(new MapViewportBounds(content.Bounds.Left, content.Bounds.Top, content.Bounds.Right, content.Bounds.Bottom), hostEnvironment.ClientSize);
             hostEnvironment.ClientSizeChanged += Window_ClientSizeChanged;
         }
 
         private void Window_ClientSizeChanged(object sender, EventArgs e)
         {
-            RefreshViewportBounds();
-            controller.UpdateViewportWindowSize(hostEnvironment.ClientSize);
+            controller.SyncViewport(new MapViewportBounds(Content.Bounds.Left, Content.Bounds.Top, Content.Bounds.Right, Content.Bounds.Bottom), hostEnvironment.ClientSize);
         }
 
         private void RefreshViewportBounds()
         {
-            controller.UpdateViewportBounds(new MapViewportBounds(Content.Bounds.Left, Content.Bounds.Top, Content.Bounds.Right, Content.Bounds.Bottom));
+            controller.SyncViewport(new MapViewportBounds(Content.Bounds.Left, Content.Bounds.Top, Content.Bounds.Right, Content.Bounds.Bottom), hostEnvironment.ClientSize);
         }
 
         public static void UpdateTrackWidthSettings(bool limitTrackWidth)
