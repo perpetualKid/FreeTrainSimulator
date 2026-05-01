@@ -174,14 +174,13 @@ namespace FreeTrainSimulator.Graphics.MapView
         {
             RefreshViewportBounds();
             controller.ResetSize(windowSize, screenDelta, hostEnvironment.PointerPosition);
-            UpdateFontSize();
+            RefreshFontsFromController();
         }
 
         public void PresetPosition(in PointD centerPoint, double scale)
         {
             controller.PresetPosition(centerPoint, scale);
-            if (centerPoint != PointD.None)
-                UpdateFontSize();
+            RefreshFontsFromController();
             SuppressDrawing = false;
         }
 
@@ -198,25 +197,25 @@ namespace FreeTrainSimulator.Graphics.MapView
         public void UpdateScaleToFit(in PointD topLeft, in PointD bottomRight)
         {
             controller.UpdateScaleToFit(topLeft, bottomRight);
-            UpdateFontSize();
+            RefreshFontsFromController();
         }
 
         public void UpdateScaleAt(in Point scaleAt, int steps)
         {
             controller.UpdateScaleAt(scaleAt, steps);
-            UpdateFontSize();
+            RefreshFontsFromController();
         }
 
         public void UpdateScale(int steps)
         {
             controller.UpdateScale(steps);
-            UpdateFontSize();
+            RefreshFontsFromController();
         }
 
         public void UpdateScaleAbsolute(double scale)
         {
             controller.UpdateScaleAbsolute(scale);
-            UpdateFontSize();
+            RefreshFontsFromController();
         }
 
         public void UpdatePosition(in Vector2 delta)
@@ -240,13 +239,13 @@ namespace FreeTrainSimulator.Graphics.MapView
         public void MouseWheelAt(UserCommandArgs userCommandArgs, KeyModifiers modifiers)
         {
             controller.MouseWheelAt(userCommandArgs, modifiers);
-            UpdateFontSize();
+            RefreshFontsFromController();
         }
 
         public void MouseWheel(UserCommandArgs userCommandArgs, KeyModifiers modifiers)
         {
             controller.MouseWheel(userCommandArgs, modifiers);
-            UpdateFontSize();
+            RefreshFontsFromController();
         }
 
         public void MoveByKeyLeft(UserCommandArgs commandArgs)
@@ -287,13 +286,13 @@ namespace FreeTrainSimulator.Graphics.MapView
         public void ZoomIn(UserCommandArgs commandArgs)
         {
             controller.ZoomIn(commandArgs);
-            UpdateFontSize();
+            RefreshFontsFromController();
         }
 
         public void ZoomOut(UserCommandArgs commandArgs)
         {
             controller.ZoomOut(commandArgs);
-            UpdateFontSize();
+            RefreshFontsFromController();
         }
 
         public void ResetZoomAndLocation(Point windowSize, int screenDelta)
@@ -397,6 +396,12 @@ namespace FreeTrainSimulator.Graphics.MapView
             TrackItemWidget.SetFont(CurrentFont);
         }
 
+        private void RefreshFontsFromController()
+        {
+            if (controller.ConsumeScaleChanged())
+                UpdateFontSize();
+        }
+        
         public void DrawText(in PointD location, Color color, string text, System.Drawing.Font font, in Vector2 scale, float angle,
             HorizontalAlignment horizontalAlignment, VerticalAlignment verticalAlignment, OutlineRenderOptions outlineRenderOptions)
         {

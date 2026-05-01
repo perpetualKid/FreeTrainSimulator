@@ -23,6 +23,7 @@ namespace FreeTrainSimulator.Graphics.MapView
         private PointD previousTopLeft;
         private PointD previousBottomRight;
         private long nextUpdate;
+        private bool scaleChanged;
 
         public MapViewController(in MapViewportBounds bounds)
         {
@@ -57,6 +58,13 @@ namespace FreeTrainSimulator.Graphics.MapView
             return false;
         }
 
+        public bool ConsumeScaleChanged()
+        {
+            bool result = scaleChanged;
+            scaleChanged = false;
+            return result;
+        }
+
         public void SyncViewport(in MapViewportBounds bounds, in Point windowSize)
         {
             viewport.UpdateBounds(bounds);
@@ -77,12 +85,16 @@ namespace FreeTrainSimulator.Graphics.MapView
         {
             viewport.ResetSize(new MapViewportSize(windowSize.X, windowSize.Y), screenDelta);
             worldPosition = ScreenToWorldCoordinates(pointerPosition);
+            scaleChanged = true;
         }
 
         public void PresetPosition(in PointD centerPoint, double scale)
         {
             if (centerPoint != PointD.None)
+            {
                 viewport.PresetPosition(centerPoint, scale);
+                scaleChanged = true;
+            }
         }
 
         public void SetTrackingPosition(in WorldLocation location)
@@ -98,21 +110,28 @@ namespace FreeTrainSimulator.Graphics.MapView
         public void UpdateScaleToFit(in PointD topLeft, in PointD bottomRight)
         {
             viewport.UpdateScaleToFit(topLeft, bottomRight);
+            scaleChanged = true;
         }
 
         public void UpdateScaleAt(in Point scaleAt, int steps)
         {
+            double previous = Scale;
             viewport.UpdateScaleAt(scaleAt.X, scaleAt.Y, steps, scaleMax);
+            scaleChanged |= Scale != previous;
         }
 
         public void UpdateScale(int steps)
         {
+            double previous = Scale;
             viewport.UpdateScale(steps, scaleMax);
+            scaleChanged |= Scale != previous;
         }
 
         public void UpdateScaleAbsolute(double scale)
         {
+            double previous = Scale;
             viewport.UpdateScaleAbsolute(scale, scaleMax);
+            scaleChanged |= Scale != previous;
         }
 
         public void UpdatePosition(in Vector2 delta)
