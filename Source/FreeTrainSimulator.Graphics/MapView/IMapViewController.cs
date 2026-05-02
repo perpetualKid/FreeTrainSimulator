@@ -9,6 +9,8 @@ namespace FreeTrainSimulator.Graphics.MapView
     {
         double Scale { get; }
 
+        int DynamicFontSize { get; }
+
         PointD CenterPoint { get; }
 
         Point WindowSize { get; }

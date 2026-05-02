@@ -33,6 +33,8 @@ namespace FreeTrainSimulator.Graphics.MapView
 
         public double Scale => viewport.Scale;
 
+        public int DynamicFontSize => MathHelper.Clamp((int)(25 * Scale), 4, 20);
+
         public PointD CenterPoint => viewport.CenterPoint;
 
         public Point WindowSize => new Point(viewport.WindowSize.Width, viewport.WindowSize.Height);

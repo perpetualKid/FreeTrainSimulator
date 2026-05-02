@@ -391,7 +391,7 @@ namespace FreeTrainSimulator.Graphics.MapView
 
         private void UpdateFontSize()
         {
-            int fontsize = MathHelper.Clamp((int)(25 * Scale), 4, 20);
+            int fontsize = controller.DynamicFontSize;
             if (fontsize != (CurrentFont?.Size ?? 0))
                 CurrentFont = fontManager[fontsize];
             TrackItemWidget.SetFont(CurrentFont);
