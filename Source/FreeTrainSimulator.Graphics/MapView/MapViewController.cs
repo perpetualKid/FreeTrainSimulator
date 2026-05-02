@@ -24,6 +24,7 @@ namespace FreeTrainSimulator.Graphics.MapView
         private PointD previousBottomRight;
         private long nextUpdate;
         private bool scaleChanged;
+        private bool redrawRequested;
 
         public MapViewController(in MapViewportBounds bounds)
         {
@@ -53,6 +54,7 @@ namespace FreeTrainSimulator.Graphics.MapView
                 previousScale = Scale;
                 previousTopLeft = TopLeftBound;
                 previousBottomRight = BottomRightBound;
+                redrawRequested = true;
                 return true;
             }
             return false;
@@ -63,6 +65,18 @@ namespace FreeTrainSimulator.Graphics.MapView
             bool result = scaleChanged;
             scaleChanged = false;
             return result;
+        }
+
+        public bool ConsumeRedrawRequested()
+        {
+            bool result = redrawRequested;
+            redrawRequested = false;
+            return result;
+        }
+
+        public void NotifyFrameRendered()
+        {
+            redrawRequested = false;
         }
 
         public void SyncViewport(in MapViewportBounds bounds, in Point windowSize)
@@ -86,6 +100,7 @@ namespace FreeTrainSimulator.Graphics.MapView
             viewport.ResetSize(new MapViewportSize(windowSize.X, windowSize.Y), screenDelta);
             worldPosition = ScreenToWorldCoordinates(pointerPosition);
             scaleChanged = true;
+            redrawRequested = true;
         }
 
         public void PresetPosition(in PointD centerPoint, double scale)
@@ -94,6 +109,7 @@ namespace FreeTrainSimulator.Graphics.MapView
             {
                 viewport.PresetPosition(centerPoint, scale);
                 scaleChanged = true;
+                redrawRequested = true;
             }
         }
 
@@ -111,32 +127,42 @@ namespace FreeTrainSimulator.Graphics.MapView
         {
             viewport.UpdateScaleToFit(topLeft, bottomRight);
             scaleChanged = true;
+            redrawRequested = true;
         }
 
         public void UpdateScaleAt(in Point scaleAt, int steps)
         {
             double previous = Scale;
             viewport.UpdateScaleAt(scaleAt.X, scaleAt.Y, steps, scaleMax);
-            scaleChanged |= Scale != previous;
+            bool changed = Scale != previous;
+            scaleChanged |= changed;
+            redrawRequested |= changed;
         }
 
         public void UpdateScale(int steps)
         {
             double previous = Scale;
             viewport.UpdateScale(steps, scaleMax);
-            scaleChanged |= Scale != previous;
+            bool changed = Scale != previous;
+            scaleChanged |= changed;
+            redrawRequested |= changed;
         }
 
         public void UpdateScaleAbsolute(double scale)
         {
             double previous = Scale;
             viewport.UpdateScaleAbsolute(scale, scaleMax);
-            scaleChanged |= Scale != previous;
+            bool changed = Scale != previous;
+            scaleChanged |= changed;
+            redrawRequested |= changed;
         }
 
         public void UpdatePosition(in Vector2 delta)
         {
+            PointD previousTopLeftBound = TopLeftBound;
+            PointD previousBottomRightBound = BottomRightBound;
             viewport.UpdatePosition(delta.X, delta.Y);
+            redrawRequested |= previousTopLeftBound != TopLeftBound || previousBottomRightBound != BottomRightBound;
         }
 
         public PointD ScreenToWorldCoordinates(in Point screenLocation)

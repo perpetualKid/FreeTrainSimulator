@@ -27,6 +27,10 @@ namespace FreeTrainSimulator.Graphics.MapView
 
         bool ConsumeScaleChanged();
 
+        bool ConsumeRedrawRequested();
+
+        void NotifyFrameRendered();
+
         void SyncViewport(in MapViewportBounds bounds, in Point windowSize);
 
         void UpdateViewportBounds(in MapViewportBounds bounds);

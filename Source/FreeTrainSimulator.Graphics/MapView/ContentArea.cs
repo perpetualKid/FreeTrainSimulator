@@ -181,7 +181,7 @@ namespace FreeTrainSimulator.Graphics.MapView
         {
             controller.PresetPosition(centerPoint, scale);
             RefreshFontsFromController();
-            SuppressDrawing = false;
+            RefreshDrawingFromController();
         }
 
         public void SetTrackingPosition(in WorldLocation location)
@@ -225,8 +225,8 @@ namespace FreeTrainSimulator.Graphics.MapView
 
         public override void Update(GameTime gameTime)
         {
-            if (controller.UpdateFrameState())
-                SuppressDrawing = false;
+            controller.UpdateFrameState();
+            RefreshDrawingFromController();
             base.Update(gameTime);
         }
 
@@ -306,8 +306,9 @@ namespace FreeTrainSimulator.Graphics.MapView
             renderBackend.BeginFrame();
             Content.Draw(controller.BottomLeftTile, controller.TopRightTile);
             renderBackend.EndFrame();
-            base.Draw(gameTime);
+            controller.NotifyFrameRendered();
             SuppressDrawing = true;
+            base.Draw(gameTime);
         }
 
         public void DrawLine(float width, Color color, Vector2 point, float length, double angle)
@@ -400,6 +401,12 @@ namespace FreeTrainSimulator.Graphics.MapView
         {
             if (controller.ConsumeScaleChanged())
                 UpdateFontSize();
+        }
+
+        private void RefreshDrawingFromController()
+        {
+            if (controller.ConsumeRedrawRequested())
+                SuppressDrawing = false;
         }
         
         public void DrawText(in PointD location, Color color, string text, System.Drawing.Font font, in Vector2 scale, float angle,
