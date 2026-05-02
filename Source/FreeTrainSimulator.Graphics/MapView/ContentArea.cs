@@ -55,20 +55,21 @@ namespace FreeTrainSimulator.Graphics.MapView
 
             Content = content ?? throw new ArgumentNullException(nameof(content));
             Enabled = false;
-            SpriteBatch = new SpriteBatch(GraphicsDevice);
-            renderingLifetime = new XnaMapRenderingLifetime(game);
-            renderingResources = new XnaMapRenderingResources(renderingLifetime, SpriteBatch);
-            ownedTextCache = new MapTextTextureCache(renderingLifetime.GetTextTextureRenderer());
-            textCache = ownedTextCache;
-            textRenderer = new XnaMapTextRenderer(textCache, SpriteBatch);
-            renderBackend = new XnaMapRenderBackend(SpriteBatch, renderingResources.BasicShapes, textRenderer);
+
+            XnaMapAdapterBundle adapterBundle = new XnaMapAdapterBundle(game, content, mouseInputGameComponent);
+            SpriteBatch = adapterBundle.SpriteBatch;
+            renderingLifetime = adapterBundle.RenderingLifetime;
+            renderingResources = adapterBundle.RenderingResources;
+            ownedTextCache = adapterBundle.OwnedTextCache;
+            textCache = adapterBundle.TextCache;
+            textRenderer = adapterBundle.TextRenderer;
+            renderBackend = adapterBundle.RenderBackend;
             fontManager = FontManager.Scaled("Arial", System.Drawing.FontStyle.Regular);
             ConstantSizeFont = fontManager[25];
-            hostEnvironment = new XnaMapHostEnvironment(game, mouseInputGameComponent);
+            hostEnvironment = adapterBundle.HostEnvironment;
             hostEnvironment.RegisterMouseMove(MouseMove);
-            BasicShapes = renderingResources.BasicShapes;
-            controller = new MapViewController(new MapViewportBounds(content.Bounds.Left, content.Bounds.Top, content.Bounds.Right, content.Bounds.Bottom));
-            controller.SyncViewport(new MapViewportBounds(content.Bounds.Left, content.Bounds.Top, content.Bounds.Right, content.Bounds.Bottom), hostEnvironment.ClientSize);
+            BasicShapes = adapterBundle.BasicShapes;
+            controller = adapterBundle.Controller;
             hostEnvironment.ClientSizeChanged += Window_ClientSizeChanged;
         }
 
