@@ -90,11 +90,6 @@ namespace FreeTrainSimulator.Graphics.MapView
             base.OnEnabledChanged(sender, args);
         }
 
-        public override void Initialize()
-        {
-            base.Initialize();
-        }
-
         public void ResetSize(in Point windowSize, int screenDelta)
         {
             System.Drawing.Font currentFont = CurrentFont;
@@ -319,25 +314,6 @@ namespace FreeTrainSimulator.Graphics.MapView
         bool IMapViewport.InsideScreenArea(VectorPrimitive vectorPrimitive)
         {
             return InsideScreenArea(vectorPrimitive);
-        }
-
-        private void UpdateFontSize()
-        {
-            System.Drawing.Font currentFont = CurrentFont;
-            interactionAdapter.RefreshAfterScaleChange(ref currentFont);
-        }
-
-        private void RefreshFontsFromController()
-        {
-            System.Drawing.Font currentFont = CurrentFont;
-            interactionAdapter.RefreshAfterScaleChange(ref currentFont);
-        }
-
-        private void RefreshDrawingFromController()
-        {
-            bool suppressDrawing = SuppressDrawing;
-            renderAdapter.RefreshDrawing(ref suppressDrawing);
-            SuppressDrawing = suppressDrawing;
         }
         
         public void DrawText(in PointD location, Color color, string text, System.Drawing.Font font, in Vector2 scale, float angle,
