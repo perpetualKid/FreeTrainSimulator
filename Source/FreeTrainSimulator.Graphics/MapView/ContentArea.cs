@@ -51,12 +51,9 @@ namespace FreeTrainSimulator.Graphics.MapView
             SpriteBatch = adapterBundle.SpriteBatch;
             BasicShapes = adapterBundle.BasicShapes;
             ownedTextCache = adapterBundle.OwnedTextCache;
-            FontManagerInstance fontManager = FontManager.Scaled("Arial", System.Drawing.FontStyle.Regular);
-            System.Drawing.Font constantSizeFont = fontManager[25];
-            MapViewAdapterCore adapterCore = new MapViewAdapterCore(fontManager, adapterBundle.Controller, adapterBundle.HostEnvironment, adapterBundle.RenderBackend, constantSizeFont);
-            viewStateAdapter = adapterCore;
-            renderAdapter = adapterCore;
-            interactionAdapter = adapterCore;
+            viewStateAdapter = adapterBundle.AdapterSet.ViewStateAdapter;
+            renderAdapter = adapterBundle.AdapterSet.RenderAdapter;
+            interactionAdapter = adapterBundle.AdapterSet.InteractionAdapter;
             interactionAdapter.RegisterMouseMove(MouseMove);
             interactionAdapter.AttachClientSizeChanged(Window_ClientSizeChanged);
             Enabled = false;

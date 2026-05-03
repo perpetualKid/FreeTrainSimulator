@@ -29,6 +29,8 @@ namespace FreeTrainSimulator.Graphics.MapView
 
         public IMapViewController Controller { get; }
 
+        public MapViewAdapterSet AdapterSet { get; }
+
         public XnaMapAdapterBundle(Game game, ContentBase content, MouseInputGameComponent mouseInputGameComponent)
         {
             SpriteBatch = new SpriteBatch(game.GraphicsDevice);
@@ -42,6 +44,11 @@ namespace FreeTrainSimulator.Graphics.MapView
             BasicShapes = RenderingResources.BasicShapes;
             Controller = new MapViewController(new MapViewportBounds(content.Bounds.Left, content.Bounds.Top, content.Bounds.Right, content.Bounds.Bottom));
             Controller.SyncViewport(new MapViewportBounds(content.Bounds.Left, content.Bounds.Top, content.Bounds.Right, content.Bounds.Bottom), HostEnvironment.ClientSize);
+
+            FontManagerInstance fontManager = FontManager.Scaled("Arial", System.Drawing.FontStyle.Regular);
+            System.Drawing.Font constantSizeFont = fontManager[25];
+            MapViewAdapterCore adapterCore = new MapViewAdapterCore(fontManager, Controller, HostEnvironment, RenderBackend, constantSizeFont);
+            AdapterSet = new MapViewAdapterSet(adapterCore, adapterCore, adapterCore);
         }
     }
 }
