@@ -7,7 +7,9 @@ namespace FreeTrainSimulator.Graphics.MapView
 {
     internal interface IMapOverlayContext
     {
-        ContentBase Content { get; }
+        Rectangle ContentBounds { get; }
+
+        bool UseMetricUnits { get; }
 
         BasicShapes BasicShapes { get; }
 

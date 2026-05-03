@@ -361,7 +361,9 @@ namespace FreeTrainSimulator.Graphics.MapView
             set => Enabled = value;
         }
 
-        ContentBase IMapOverlayContext.Content => Content;
+        Rectangle IMapOverlayContext.ContentBounds => Content.Bounds;
+
+        bool IMapOverlayContext.UseMetricUnits => Content.UseMetricUnits;
 
         BasicShapes IMapOverlayContext.BasicShapes => BasicShapes;
 

@@ -100,11 +100,11 @@ namespace FreeTrainSimulator.Graphics.DrawableComponents
 
         private void UpdateWindowSize()
         {
-            double xScale = (double)size.X / content.Content.Bounds.Width;
-            double yScale = (double)size.Y / content.Content.Bounds.Height;
+            double xScale = (double)size.X / content.ContentBounds.Width;
+            double yScale = (double)size.Y / content.ContentBounds.Height;
             scale = Math.Min(xScale, yScale);
-            offsetX = ((content.Content.Bounds.Left + content.Content.Bounds.Right) / 2) - (size.X / 2 / scale);
-            offsetY = ((content.Content.Bounds.Top + content.Content.Bounds.Bottom) / 2) - (size.Y / 2 / scale);
+            offsetX = ((content.ContentBounds.Left + content.ContentBounds.Right) / 2) - (size.X / 2 / scale);
+            offsetY = ((content.ContentBounds.Top + content.ContentBounds.Bottom) / 2) - (size.Y / 2 / scale);
         }
 
         private void DrawClippingMarker()
