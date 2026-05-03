@@ -76,7 +76,7 @@ namespace FreeTrainSimulator.Graphics.DrawableComponents
             base.Update(gameTime);
         }
 
-        internal override void Enable(IMapOverlayContext content)
+        internal override void Enable(IMapBaseOverlayContext content)
         {
             Resize(TimeSpan.Zero.ToString(formatMask, CultureInfo.DefaultThreadCurrentUICulture));
             base.Enable(content);

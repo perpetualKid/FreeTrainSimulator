@@ -80,7 +80,7 @@ namespace FreeTrainSimulator.Graphics.DrawableComponents
             base.Draw(gameTime);
         }
 
-        internal override void Enable(IMapOverlayContext content)
+        internal override void Enable(IMapBaseOverlayContext content)
         {
             Resize("01234567890123456789012345");//about 25 chars needed for full lat/lon coordinates
             base.Enable(content);
