@@ -11,14 +11,14 @@ using Microsoft.Xna.Framework.Graphics;
 
 namespace FreeTrainSimulator.Graphics.MapView
 {
-    internal sealed class MapViewAdapterCore : IMapInteractionAdapter
+    internal sealed class MapInteractionAdapter : IMapInteractionAdapter
     {
         private readonly FontManagerInstance fontManager;
         private readonly IMapViewController controller;
         private readonly IMapHostEnvironment hostEnvironment;
         private readonly IMapViewFontState fontState;
 
-        public MapViewAdapterCore(FontManagerInstance fontManager, IMapViewController controller, IMapHostEnvironment hostEnvironment, IMapViewFontState fontState)
+        public MapInteractionAdapter(FontManagerInstance fontManager, IMapViewController controller, IMapHostEnvironment hostEnvironment, IMapViewFontState fontState)
         {
             this.fontManager = fontManager ?? throw new ArgumentNullException(nameof(fontManager));
             this.controller = controller ?? throw new ArgumentNullException(nameof(controller));

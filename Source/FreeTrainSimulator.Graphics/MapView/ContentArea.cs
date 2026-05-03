@@ -70,7 +70,7 @@ namespace FreeTrainSimulator.Graphics.MapView
 
         public static void UpdateTrackWidthSettings(bool limitTrackWidth)
         {
-            MapViewAdapterCore.UpdateTrackWidthSettings(limitTrackWidth);
+            MapInteractionAdapter.UpdateTrackWidthSettings(limitTrackWidth);
         }
 
         public void UpdateColor(ColorSetting setting, Color color, bool fontOutlining)
