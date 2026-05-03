@@ -11,20 +11,18 @@ using Microsoft.Xna.Framework.Graphics;
 
 namespace FreeTrainSimulator.Graphics.MapView
 {
-    internal sealed class MapViewAdapterCore : IMapRenderAdapter, IMapInteractionAdapter
+    internal sealed class MapViewAdapterCore : IMapInteractionAdapter
     {
         private readonly FontManagerInstance fontManager;
         private readonly IMapViewController controller;
         private readonly IMapHostEnvironment hostEnvironment;
-        private readonly IMapRenderBackend renderBackend;
         private readonly IMapViewFontState fontState;
 
-        public MapViewAdapterCore(FontManagerInstance fontManager, IMapViewController controller, IMapHostEnvironment hostEnvironment, IMapRenderBackend renderBackend, IMapViewFontState fontState)
+        public MapViewAdapterCore(FontManagerInstance fontManager, IMapViewController controller, IMapHostEnvironment hostEnvironment, IMapViewFontState fontState)
         {
             this.fontManager = fontManager ?? throw new ArgumentNullException(nameof(fontManager));
             this.controller = controller ?? throw new ArgumentNullException(nameof(controller));
             this.hostEnvironment = hostEnvironment ?? throw new ArgumentNullException(nameof(hostEnvironment));
-            this.renderBackend = renderBackend ?? throw new ArgumentNullException(nameof(renderBackend));
             this.fontState = fontState ?? throw new ArgumentNullException(nameof(fontState));
         }
 
@@ -135,10 +133,12 @@ namespace FreeTrainSimulator.Graphics.MapView
                 suppressDrawing = false;
         }
 
-        public void NotifyFrameRendered(ref bool suppressDrawing)
+        public void HandleEnabledChanged(bool enabled, ContentArea contentArea, IMapTextureHelperHost textureHelperHost)
         {
-            controller.NotifyFrameRendered();
-            suppressDrawing = true;
+            if (enabled)
+                textureHelperHost?.Enable(contentArea);
+            else
+                textureHelperHost?.Disable();
         }
 
         public void RefreshFonts(ref System.Drawing.Font currentFont)
@@ -151,95 +151,6 @@ namespace FreeTrainSimulator.Graphics.MapView
                 currentFont = fontManager[fontSize];
             TrackItemWidget.SetFont(currentFont);
             fontState.UpdateCurrentFont(currentFont);
-        }
-
-        public void DrawContent(ContentBase content)
-        {
-            renderBackend.BeginFrame();
-            content.Draw(controller.BottomLeftTile, controller.TopRightTile);
-            renderBackend.EndFrame();
-        }
-
-        public PointD ScreenToWorldCoordinates(in Point screenLocation)
-        {
-            return controller.ScreenToWorldCoordinates(screenLocation);
-        }
-
-        public Vector2 WorldToScreenCoordinates(in WorldLocation worldLocation)
-        {
-            return controller.WorldToScreenCoordinates(worldLocation);
-        }
-
-        public Vector2 WorldToScreenCoordinates(in PointD location)
-        {
-            return controller.WorldToScreenCoordinates(location);
-        }
-
-        public float WorldToScreenSize(double worldSize, int minScreenSize = 1)
-        {
-            return controller.WorldToScreenSize(worldSize, minScreenSize);
-        }
-
-        public bool InsideScreenArea(PointPrimitive pointPrimitive)
-        {
-            ArgumentNullException.ThrowIfNull(pointPrimitive);
-            return controller.InsideScreenArea(pointPrimitive.Location);
-        }
-
-        public bool InsideScreenArea(VectorPrimitive vectorPrimitive)
-        {
-            ArgumentNullException.ThrowIfNull(vectorPrimitive);
-            return controller.InsideScreenArea(vectorPrimitive.Location, vectorPrimitive.Vector);
-        }
-
-        public void RefreshDrawing(ref bool suppressDrawing)
-        {
-            if (controller.ConsumeRedrawRequested())
-                suppressDrawing = false;
-        }
-
-        public void DrawLine(float width, Color color, Vector2 point, float length, double angle)
-        {
-            renderBackend.DrawLine(width, color, point, length, angle);
-        }
-
-        public void DrawLine(float width, Color color, Vector2 point1, Vector2 point2)
-        {
-            renderBackend.DrawLine(width, color, point1, point2);
-        }
-
-        public void DrawDashedLine(float width, Color color, Vector2 point1, Vector2 point2)
-        {
-            renderBackend.DrawDashedLine(width, color, point1, point2);
-        }
-
-        public void DrawArc(float width, Color color, Vector2 point, float radius, double angle, double arcSize)
-        {
-            renderBackend.DrawArc(width, color, point, radius, angle, arcSize);
-        }
-
-        public void DrawTexture(BasicTextureType texture, Vector2 point, double angle, float size, bool flipHorizontal, bool flipVertical, bool highlight)
-        {
-            renderBackend.DrawTexture(texture, point, angle, size, flipHorizontal, flipVertical, highlight);
-        }
-
-        public void DrawTexture(BasicTextureType texture, Vector2 point, double angle, float size, Color color)
-        {
-            renderBackend.DrawTexture(texture, point, angle, size, color);
-        }
-
-        public void DrawText(in PointD location, Color color, string text, System.Drawing.Font font, in Vector2 scale, float angle,
-            HorizontalAlignment horizontalAlignment, VerticalAlignment verticalAlignment, OutlineRenderOptions outlineRenderOptions)
-        {
-            renderBackend.DrawText(controller.WorldToScreenCoordinates(location), color, text, font, scale, angle, horizontalAlignment, verticalAlignment, outlineRenderOptions);
-        }
-
-        public void HandleEnabledChanged(bool enabled, ContentArea contentArea, IMapTextureHelperHost textureHelperHost)
-        {
-            if (enabled)
-                textureHelperHost?.Enable(contentArea);
-            else
-                textureHelperHost?.Disable();
         }
 
         public void RefreshAfterReset(ContentBase content, in Point windowSize, int screenDelta, ref System.Drawing.Font currentFont)
@@ -257,69 +168,8 @@ namespace FreeTrainSimulator.Graphics.MapView
         public void RefreshAfterPreset(ref System.Drawing.Font currentFont, ref bool suppressDrawing)
         {
             RefreshFonts(ref currentFont);
-            RefreshDrawing(ref suppressDrawing);
-        }
-
-        public void UpdateColor(ContentBase content, ColorSetting setting, Color color, bool fontOutlining)
-        {
-            switch (setting)
-            {
-                case ColorSetting.Background:
-                    content.InsetHost?.UpdateColor(color);
-                    break;
-                case ColorSetting.RailTrack:
-                    WidgetDrawingOptions<TrackSegment>.SetColors(color);
-                    break;
-                case ColorSetting.RailTrackEnd:
-                    WidgetDrawingOptions<EndNode>.SetColors(color);
-                    break;
-                case ColorSetting.RailTrackJunction:
-                    WidgetDrawingOptions<JunctionNode>.SetColors(color);
-                    break;
-                case ColorSetting.RailTrackCrossing:
-                    WidgetDrawingOptions<CrossOverTrackItem>.SetColors(color);
-                    break;
-                case ColorSetting.RailLevelCrossing:
-                    WidgetDrawingOptions<LevelCrossingTrackItem>.SetColors(color);
-                    break;
-                case ColorSetting.RoadTrack:
-                    WidgetDrawingOptions<RoadSegment>.SetColors(color);
-                    break;
-                case ColorSetting.RoadTrackEnd:
-                    WidgetDrawingOptions<RoadEndSegment>.SetColors(color);
-                    break;
-                case ColorSetting.PathTrack:
-                    WidgetDrawingOptions<PathSegment>.SetColors(color);
-                    WidgetDrawingOptions<EditorTrainPathSegment>.SetColors(color);
-                    WidgetDrawingOptions<EditorTrainPath>.SetColors(color);
-                    break;
-                case ColorSetting.StationItem:
-                    WidgetDrawingOptions<StationNameItem>.SetColors(color);
-                    WidgetDrawingOptions<StationNameItem>.OutlineRenderOptions = fontOutlining ? new OutlineRenderOptions(3.0f, color, color.ContrastColor()) : null;
-                    break;
-                case ColorSetting.PlatformItem:
-                    WidgetDrawingOptions<PlatformNameItem>.SetColors(color);
-                    WidgetDrawingOptions<PlatformNameItem>.OutlineRenderOptions = fontOutlining ? new OutlineRenderOptions(2.0f, color, color.ContrastColor()) : null;
-                    WidgetDrawingOptions<PlatformPath>.SetColors(color);
-                    color.A = 160;
-                    WidgetDrawingOptions<PlatformSegment>.SetColors(color);
-                    break;
-                case ColorSetting.SidingItem:
-                    WidgetDrawingOptions<SidingNameItem>.SetColors(color);
-                    WidgetDrawingOptions<SidingNameItem>.OutlineRenderOptions = fontOutlining ? new OutlineRenderOptions(2.0f, color, color.ContrastColor()) : null;
-                    WidgetDrawingOptions<SidingPath>.SetColors(color);
-                    color.A = 160;
-                    WidgetDrawingOptions<SidingSegment>.SetColors(color);
-                    break;
-                case ColorSetting.SpeedPostItem:
-                    WidgetDrawingOptions<SpeedPostTrackItem>.SetColors(color);
-                    WidgetDrawingOptions<SpeedPostTrackItem>.OutlineRenderOptions = fontOutlining ? new OutlineRenderOptions(2.0f, color.ContrastColor(), color) : null;
-                    break;
-                case ColorSetting.MilePostItem:
-                    WidgetDrawingOptions<MilePostTrackItem>.SetColors(color);
-                    WidgetDrawingOptions<MilePostTrackItem>.OutlineRenderOptions = fontOutlining ? new OutlineRenderOptions(2.0f, color, color.ContrastColor()) : null;
-                    break;
-            }
+            if (controller.ConsumeRedrawRequested())
+                suppressDrawing = false;
         }
 
         public static void UpdateTrackWidthSettings(bool limitTrackWidth)
