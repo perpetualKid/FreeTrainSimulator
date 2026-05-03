@@ -7,7 +7,7 @@ using Microsoft.Xna.Framework.Graphics;
 
 namespace FreeTrainSimulator.Graphics.MapView
 {
-    internal sealed class XnaMapAdapterBundle
+    internal sealed class XnaMapAdapterBundle : IMapHostAdapterBundle
     {
         public SpriteBatch SpriteBatch { get; }
 
@@ -33,6 +33,14 @@ namespace FreeTrainSimulator.Graphics.MapView
 
         public MapViewAdapterSet AdapterSet { get; }
 
+        public IMapViewStateAdapter ViewStateAdapter => AdapterSet.ViewStateAdapter;
+
+        public IMapRenderAdapter RenderAdapter => AdapterSet.RenderAdapter;
+
+        public IMapInteractionAdapter InteractionAdapter => AdapterSet.InteractionAdapter;
+
+        public IMapHostResources HostResources { get; }
+
         public XnaMapAdapterBundle(Game game, ContentBase content, MouseInputGameComponent mouseInputGameComponent)
         {
             SpriteBatch = new SpriteBatch(game.GraphicsDevice);
@@ -54,6 +62,7 @@ namespace FreeTrainSimulator.Graphics.MapView
             MapRenderAdapter renderAdapter = new MapRenderAdapter(Controller, RenderBackend);
             MapInteractionAdapter interactionAdapter = new MapInteractionAdapter(fontManager, Controller, HostEnvironment, viewStateAdapter);
             AdapterSet = new MapViewAdapterSet(viewStateAdapter, renderAdapter, interactionAdapter);
+            HostResources = new XnaMapHostResources(SpriteBatch, OwnedTextCache);
         }
     }
 }

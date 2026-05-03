@@ -16,16 +16,15 @@ namespace FreeTrainSimulator.Graphics.MapView
     {
         private const int zoomAmplifier = 3;
 
-        internal SpriteBatch SpriteBatch { get; }
+        internal SpriteBatch SpriteBatch => hostResources.SpriteBatch;
 
 #pragma warning disable CA1859 // Use concrete types when possible for improved performance
         private readonly IMapViewStateAdapter viewStateAdapter;
         private readonly IMapRenderAdapter renderAdapter;
         private readonly IMapInteractionAdapter interactionAdapter;
         private readonly IMapOverlayShapeAdapter overlayShapeAdapter;
+        private readonly IMapHostResources hostResources;
 #pragma warning restore CA1859 // Use concrete types when possible for improved performance
-
-        private readonly MapTextTextureCache ownedTextCache;
 
         public ContentBase Content { get; }
 
@@ -46,12 +45,12 @@ namespace FreeTrainSimulator.Graphics.MapView
 
             Content = content ?? throw new ArgumentNullException(nameof(content));
 
-            XnaMapAdapterBundle adapterBundle = new XnaMapAdapterBundle(game, content, mouseInputGameComponent);
-            SpriteBatch = adapterBundle.SpriteBatch;
-            ownedTextCache = adapterBundle.OwnedTextCache;
-            viewStateAdapter = adapterBundle.AdapterSet.ViewStateAdapter;
-            renderAdapter = adapterBundle.AdapterSet.RenderAdapter;
-            interactionAdapter = adapterBundle.AdapterSet.InteractionAdapter;
+            IMapHostAdapterFactory adapterFactory = new XnaMapHostAdapterFactory();
+            IMapHostAdapterBundle adapterBundle = adapterFactory.Create(game, content, mouseInputGameComponent);
+            hostResources = adapterBundle.HostResources;
+            viewStateAdapter = adapterBundle.ViewStateAdapter;
+            renderAdapter = adapterBundle.RenderAdapter;
+            interactionAdapter = adapterBundle.InteractionAdapter;
             overlayShapeAdapter = adapterBundle.OverlayShapeAdapter;
             interactionAdapter.RegisterMouseMove(MouseMove);
             interactionAdapter.AttachClientSizeChanged(Window_ClientSizeChanged);
@@ -325,8 +324,7 @@ namespace FreeTrainSimulator.Graphics.MapView
         {
             if (disposing)
             {
-                ownedTextCache?.Dispose();
-                SpriteBatch?.Dispose();
+                hostResources?.Dispose();
                 interactionAdapter.UnregisterMouseMove(MouseMove);
             }
             base.Dispose(disposing);
