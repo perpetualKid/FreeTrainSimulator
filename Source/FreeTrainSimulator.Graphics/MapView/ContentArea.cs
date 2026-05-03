@@ -32,21 +32,22 @@ namespace FreeTrainSimulator.Graphics.MapView
         private readonly IMapTextRenderer textRenderer;
         private readonly IMapTextCache textCache;
         private readonly IMapViewController controller;
+        private readonly MapViewAdapterCore adapterCore;
 #pragma warning restore CA1859 // Use concrete types when possible for improved performance
 
         private readonly MapTextTextureCache ownedTextCache;
 
         public ContentBase Content { get; }
 
-        public double Scale => controller.Scale;
-        public PointD CenterPoint => controller.CenterPoint;
+        public double Scale => adapterCore.Scale;
+        public PointD CenterPoint => adapterCore.CenterPoint;
         public bool SuppressDrawing { get; internal set; }
-        public Point WindowSize => controller.WindowSize;
-        internal PointD TopLeftBound => controller.TopLeftBound;
-        internal PointD BottomRightBound => controller.BottomRightBound;
-        public PointD WorldPosition => controller.WorldPosition;
-        public System.Drawing.Font CurrentFont { get; private set; }
-        public System.Drawing.Font ConstantSizeFont { get; private set; }
+        public Point WindowSize => adapterCore.WindowSize;
+        internal PointD TopLeftBound => adapterCore.TopLeftBound;
+        internal PointD BottomRightBound => adapterCore.BottomRightBound;
+        public PointD WorldPosition => adapterCore.WorldPosition;
+        public System.Drawing.Font CurrentFont => adapterCore.CurrentFont;
+        public System.Drawing.Font ConstantSizeFont => adapterCore.ConstantSizeFont;
 
         internal ContentArea(Game game, ContentBase content, MouseInputGameComponent mouseInputGameComponent) :
             base(game)
@@ -54,7 +55,6 @@ namespace FreeTrainSimulator.Graphics.MapView
             ArgumentNullException.ThrowIfNull(game);
 
             Content = content ?? throw new ArgumentNullException(nameof(content));
-            Enabled = false;
 
             XnaMapAdapterBundle adapterBundle = new XnaMapAdapterBundle(game, content, mouseInputGameComponent);
             SpriteBatch = adapterBundle.SpriteBatch;
@@ -65,104 +65,44 @@ namespace FreeTrainSimulator.Graphics.MapView
             textRenderer = adapterBundle.TextRenderer;
             renderBackend = adapterBundle.RenderBackend;
             fontManager = FontManager.Scaled("Arial", System.Drawing.FontStyle.Regular);
-            ConstantSizeFont = fontManager[25];
+            System.Drawing.Font constantSizeFont = fontManager[25];
             hostEnvironment = adapterBundle.HostEnvironment;
             hostEnvironment.RegisterMouseMove(MouseMove);
             BasicShapes = adapterBundle.BasicShapes;
             controller = adapterBundle.Controller;
+            adapterCore = new MapViewAdapterCore(fontManager, controller, hostEnvironment, renderBackend, constantSizeFont);
             hostEnvironment.ClientSizeChanged += Window_ClientSizeChanged;
+            Enabled = false;
         }
 
         private void Window_ClientSizeChanged(object sender, EventArgs e)
         {
-            controller.SyncViewport(new MapViewportBounds(Content.Bounds.Left, Content.Bounds.Top, Content.Bounds.Right, Content.Bounds.Bottom), hostEnvironment.ClientSize);
+            adapterCore.SyncViewport(Content.Bounds);
         }
 
         private void RefreshViewportBounds()
         {
-            controller.SyncViewport(new MapViewportBounds(Content.Bounds.Left, Content.Bounds.Top, Content.Bounds.Right, Content.Bounds.Bottom), hostEnvironment.ClientSize);
+            adapterCore.SyncViewport(Content.Bounds);
         }
 
         public static void UpdateTrackWidthSettings(bool limitTrackWidth)
         {
-            TrackSegment.UpdateTrackWidthRatio(limitTrackWidth);
-            JunctionNode.UpdateTrackWidthRatio(limitTrackWidth);
-            SpeedPostTrackItem.UpdateTrackWidthRatio(limitTrackWidth);
+            MapViewAdapterCore.UpdateTrackWidthSettings(limitTrackWidth);
         }
 
         public void UpdateColor(ColorSetting setting, Color color, bool fontOutlining)
         {
-            switch (setting)
-            {
-                case ColorSetting.Background:
-                    Content.InsetHost?.UpdateColor(color);
-                    break;
-                case ColorSetting.RailTrack:
-                    WidgetDrawingOptions<TrackSegment>.SetColors(color);
-                    break;
-                case ColorSetting.RailTrackEnd:
-                    WidgetDrawingOptions<EndNode>.SetColors(color);
-                    break;
-                case ColorSetting.RailTrackJunction:
-                    WidgetDrawingOptions<JunctionNode>.SetColors(color);
-                    break;
-                case ColorSetting.RailTrackCrossing:
-                    WidgetDrawingOptions<CrossOverTrackItem>.SetColors(color);
-                    break;
-                case ColorSetting.RailLevelCrossing:
-                    WidgetDrawingOptions<LevelCrossingTrackItem>.SetColors(color);
-                    break;
-                case ColorSetting.RoadTrack:
-                    WidgetDrawingOptions<RoadSegment>.SetColors(color);
-                    break;
-                case ColorSetting.RoadTrackEnd:
-                    WidgetDrawingOptions<RoadEndSegment>.SetColors(color);
-                    break;
-                case ColorSetting.PathTrack:
-                    WidgetDrawingOptions<PathSegment>.SetColors(color);
-                    WidgetDrawingOptions<EditorTrainPathSegment>.SetColors(color);
-                    WidgetDrawingOptions<EditorTrainPath>.SetColors(color);
-                    break;
-                case ColorSetting.StationItem:
-                    WidgetDrawingOptions<StationNameItem>.SetColors(color);
-                    WidgetDrawingOptions<StationNameItem>.OutlineRenderOptions = fontOutlining ? new OutlineRenderOptions(3.0f, color, color.ContrastColor()) : null;
-                    break;
-                case ColorSetting.PlatformItem:
-                    WidgetDrawingOptions<PlatformNameItem>.SetColors(color);
-                    WidgetDrawingOptions<PlatformNameItem>.OutlineRenderOptions = fontOutlining ? new OutlineRenderOptions(2.0f, color, color.ContrastColor()) : null;
-                    WidgetDrawingOptions<PlatformPath>.SetColors(color);
-                    color.A = 160;
-                    WidgetDrawingOptions<PlatformSegment>.SetColors(color);
-                    break;
-                case ColorSetting.SidingItem:
-                    WidgetDrawingOptions<SidingNameItem>.SetColors(color);
-                    WidgetDrawingOptions<SidingNameItem>.OutlineRenderOptions = fontOutlining ? new OutlineRenderOptions(2.0f, color, color.ContrastColor()) : null;
-                    WidgetDrawingOptions<SidingPath>.SetColors(color);
-                    color.A = 160;
-                    WidgetDrawingOptions<SidingSegment>.SetColors(color);
-                    break;
-                case ColorSetting.SpeedPostItem:
-                    WidgetDrawingOptions<SpeedPostTrackItem>.SetColors(color);
-                    WidgetDrawingOptions<SpeedPostTrackItem>.OutlineRenderOptions = fontOutlining ? new OutlineRenderOptions(2.0f, color.ContrastColor(), color) : null;
-                    break;
-                case ColorSetting.MilePostItem:
-                    WidgetDrawingOptions<MilePostTrackItem>.SetColors(color);
-                    WidgetDrawingOptions<MilePostTrackItem>.OutlineRenderOptions = fontOutlining ? new OutlineRenderOptions(2.0f, color, color.ContrastColor()) : null;
-                    break;
-            }
+            adapterCore.UpdateColor(Content, setting, color, fontOutlining);
         }
 
         public void MouseMove(Point position, Vector2 delta, GameTime gameTime)
         {
-            controller.MouseMove(Enabled, position, Content);
+            adapterCore.MouseMove(Enabled, position, Content);
         }
 
         protected override void OnEnabledChanged(object sender, EventArgs args)
         {
-            if (Enabled)
-                Content.TextureHelperHost?.Enable(this);
-            else
-                Content.TextureHelperHost?.Disable();
+            adapterCore.HandleEnabledChanged(Enabled, this, Content.TextureHelperHost);
             base.OnEnabledChanged(sender, args);
         }
 
@@ -173,100 +113,102 @@ namespace FreeTrainSimulator.Graphics.MapView
 
         public void ResetSize(in Point windowSize, int screenDelta)
         {
-            RefreshViewportBounds();
-            controller.ResetSize(windowSize, screenDelta, hostEnvironment.PointerPosition);
-            RefreshFontsFromController();
+            System.Drawing.Font currentFont = CurrentFont;
+            adapterCore.RefreshAfterReset(Content, windowSize, screenDelta, ref currentFont);
         }
 
         public void PresetPosition(in PointD centerPoint, double scale)
         {
-            controller.PresetPosition(centerPoint, scale);
-            RefreshFontsFromController();
-            RefreshDrawingFromController();
+            adapterCore.PresetPosition(centerPoint, scale);
+            System.Drawing.Font currentFont = CurrentFont;
+            bool suppressDrawing = SuppressDrawing;
+            adapterCore.RefreshAfterPreset(ref currentFont, ref suppressDrawing);
+            SuppressDrawing = suppressDrawing;
         }
 
         public void SetTrackingPosition(in WorldLocation location)
         {
-            controller.SetTrackingPosition(location);
+            adapterCore.SetTrackingPosition(location);
         }
 
         public void SetTrackingPosition(in PointD location)
         {
-            controller.SetTrackingPosition(location);
+            adapterCore.SetTrackingPosition(location);
         }
 
         public void UpdateScaleToFit(in PointD topLeft, in PointD bottomRight)
         {
-            controller.UpdateScaleToFit(topLeft, bottomRight);
+            adapterCore.UpdateScaleToFit(topLeft, bottomRight);
             RefreshFontsFromController();
         }
 
         public void UpdateScaleAt(in Point scaleAt, int steps)
         {
-            controller.UpdateScaleAt(scaleAt, steps);
+            adapterCore.UpdateScaleAt(scaleAt, steps);
             RefreshFontsFromController();
         }
 
         public void UpdateScale(int steps)
         {
-            controller.UpdateScale(steps);
+            adapterCore.UpdateScale(steps);
             RefreshFontsFromController();
         }
 
         public void UpdateScaleAbsolute(double scale)
         {
-            controller.UpdateScaleAbsolute(scale);
+            adapterCore.UpdateScaleAbsolute(scale);
             RefreshFontsFromController();
         }
 
         public void UpdatePosition(in Vector2 delta)
         {
-            controller.UpdatePosition(delta);
+            adapterCore.UpdatePosition(delta);
         }
 
         public override void Update(GameTime gameTime)
         {
-            controller.UpdateFrameState();
-            RefreshDrawingFromController();
+            bool suppressDrawing = SuppressDrawing;
+            adapterCore.UpdateFrameState(ref suppressDrawing);
+            SuppressDrawing = suppressDrawing;
             base.Update(gameTime);
         }
 
         #region public control commands
         public void MouseDragging(UserCommandArgs userCommandArgs)
         {
-            controller.MouseDragging(userCommandArgs);
+            adapterCore.MouseDragging(userCommandArgs);
         }
 
         public void MouseWheelAt(UserCommandArgs userCommandArgs, KeyModifiers modifiers)
         {
-            controller.MouseWheelAt(userCommandArgs, modifiers);
+            adapterCore.MouseWheelAt(userCommandArgs, modifiers);
             RefreshFontsFromController();
         }
 
         public void MouseWheel(UserCommandArgs userCommandArgs, KeyModifiers modifiers)
         {
-            controller.MouseWheel(userCommandArgs, modifiers);
+            adapterCore.MouseWheel(userCommandArgs, modifiers);
             RefreshFontsFromController();
         }
 
         public void MoveByKeyLeft(UserCommandArgs commandArgs)
         {
-            controller.MoveByKeyLeft(commandArgs);
+            adapterCore.MoveByKeyLeft(commandArgs);
         }
 
         public void MoveByKeyRight(UserCommandArgs commandArgs)
         {
-            controller.MoveByKeyRight(commandArgs);
+            adapterCore.MoveByKeyRight(commandArgs);
         }
 
         public void MoveByKeyUp(UserCommandArgs commandArgs)
         {
-            controller.MoveByKeyUp(commandArgs);
+            adapterCore.MoveByKeyUp(commandArgs);
         }
 
         public void MoveByKeyDown(UserCommandArgs commandArgs)
         {
-            controller.MoveByKeyDown(commandArgs);
+            adapterCore.MoveByKeyDown(commandArgs);
         }
 
         public static int ZoomAmplifier(KeyModifiers modifiers)
@@ -286,13 +228,13 @@ namespace FreeTrainSimulator.Graphics.MapView
 
         public void ZoomIn(UserCommandArgs commandArgs)
         {
-            controller.ZoomIn(commandArgs);
+            adapterCore.ZoomIn(commandArgs);
             RefreshFontsFromController();
         }
 
         public void ZoomOut(UserCommandArgs commandArgs)
         {
-            controller.ZoomOut(commandArgs);
+            adapterCore.ZoomOut(commandArgs);
             RefreshFontsFromController();
         }
 
@@ -304,73 +246,71 @@ namespace FreeTrainSimulator.Graphics.MapView
 
         public override void Draw(GameTime gameTime)
         {
-            renderBackend.BeginFrame();
-            Content.Draw(controller.BottomLeftTile, controller.TopRightTile);
-            renderBackend.EndFrame();
-            controller.NotifyFrameRendered();
-            SuppressDrawing = true;
+            adapterCore.DrawContent(Content);
+            bool suppressDrawing = SuppressDrawing;
+            adapterCore.NotifyFrameRendered(ref suppressDrawing);
+            SuppressDrawing = suppressDrawing;
             base.Draw(gameTime);
         }
 
         public void DrawLine(float width, Color color, Vector2 point, float length, double angle)
         {
-            renderBackend.DrawLine(width, color, point, length, angle);
+            adapterCore.DrawLine(width, color, point, length, angle);
         }
 
         public void DrawLine(float width, Color color, Vector2 point1, Vector2 point2)
         {
-            renderBackend.DrawLine(width, color, point1, point2);
+            adapterCore.DrawLine(width, color, point1, point2);
         }
 
         public void DrawDashedLine(float width, Color color, Vector2 point1, Vector2 point2)
         {
-            renderBackend.DrawDashedLine(width, color, point1, point2);
+            adapterCore.DrawDashedLine(width, color, point1, point2);
         }
 
         public void DrawArc(float width, Color color, Vector2 point, float radius, double angle, double arcSize)
         {
-            renderBackend.DrawArc(width, color, point, radius, angle, arcSize);
+            adapterCore.DrawArc(width, color, point, radius, angle, arcSize);
         }
 
         public void DrawTexture(BasicTextureType texture, Vector2 point, double angle, float size, bool flipHorizontal, bool flipVertical, bool highlight)
         {
-            renderBackend.DrawTexture(texture, point, angle, size, flipHorizontal, flipVertical, highlight);
+            adapterCore.DrawTexture(texture, point, angle, size, flipHorizontal, flipVertical, highlight);
         }
 
         public void DrawTexture(BasicTextureType texture, Vector2 point, double angle, float size, Color color)
         {
-            renderBackend.DrawTexture(texture, point, angle, size, color);
+            adapterCore.DrawTexture(texture, point, angle, size, color);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public Vector2 WorldToScreenCoordinates(in WorldLocation worldLocation)
         {
-            return controller.WorldToScreenCoordinates(worldLocation);
+            return adapterCore.WorldToScreenCoordinates(worldLocation);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public PointD ScreenToWorldCoordinates(in Point screenLocation)
         {
-            return controller.ScreenToWorldCoordinates(screenLocation);
+            return adapterCore.ScreenToWorldCoordinates(screenLocation);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public Vector2 WorldToScreenCoordinates(in PointD location)
         {
-            return controller.WorldToScreenCoordinates(location);
+            return adapterCore.WorldToScreenCoordinates(location);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public float WorldToScreenSize(double worldSize, int minScreenSize = 1)
         {
-            return controller.WorldToScreenSize(worldSize, minScreenSize);
+            return adapterCore.WorldToScreenSize(worldSize, minScreenSize);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool InsideScreenArea(PointPrimitive pointPrimitive)
         {
-            ArgumentNullException.ThrowIfNull(pointPrimitive, nameof(pointPrimitive));
-            return controller.InsideScreenArea(pointPrimitive.Location);
+            return adapterCore.InsideScreenArea(pointPrimitive);
         }
 
         bool IMapViewport.InsideScreenArea(PointPrimitive pointPrimitive)
@@ -381,8 +321,7 @@ namespace FreeTrainSimulator.Graphics.MapView
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool InsideScreenArea(VectorPrimitive vectorPrimitive)
         {
-            ArgumentNullException.ThrowIfNull(vectorPrimitive, nameof(vectorPrimitive));
-            return controller.InsideScreenArea(vectorPrimitive.Location, vectorPrimitive.Vector);
+            return adapterCore.InsideScreenArea(vectorPrimitive);
         }
 
         bool IMapViewport.InsideScreenArea(VectorPrimitive vectorPrimitive)
@@ -392,28 +331,27 @@ namespace FreeTrainSimulator.Graphics.MapView
 
         private void UpdateFontSize()
         {
-            int fontsize = controller.DynamicFontSize;
-            if (fontsize != (CurrentFont?.Size ?? 0))
-                CurrentFont = fontManager[fontsize];
-            TrackItemWidget.SetFont(CurrentFont);
+            System.Drawing.Font currentFont = CurrentFont;
+            adapterCore.RefreshFonts(ref currentFont);
         }
 
         private void RefreshFontsFromController()
         {
-            if (controller.ConsumeScaleChanged())
-                UpdateFontSize();
+            System.Drawing.Font currentFont = CurrentFont;
+            adapterCore.RefreshAfterScaleChange(ref currentFont);
         }
 
         private void RefreshDrawingFromController()
         {
-            if (controller.ConsumeRedrawRequested())
-                SuppressDrawing = false;
+            bool suppressDrawing = SuppressDrawing;
+            adapterCore.RefreshDrawing(ref suppressDrawing);
+            SuppressDrawing = suppressDrawing;
         }
         
         public void DrawText(in PointD location, Color color, string text, System.Drawing.Font font, in Vector2 scale, float angle,
             HorizontalAlignment horizontalAlignment, VerticalAlignment verticalAlignment, OutlineRenderOptions outlineRenderOptions)
         {
-            renderBackend.DrawText(WorldToScreenCoordinates(location), color, text, font, scale, angle, horizontalAlignment, verticalAlignment, outlineRenderOptions);
+            adapterCore.DrawText(location, color, text, font, scale, angle, horizontalAlignment, verticalAlignment, outlineRenderOptions);
         }
 
         protected override void Dispose(bool disposing)
