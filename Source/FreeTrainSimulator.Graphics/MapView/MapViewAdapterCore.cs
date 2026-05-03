@@ -11,39 +11,22 @@ using Microsoft.Xna.Framework.Graphics;
 
 namespace FreeTrainSimulator.Graphics.MapView
 {
-    internal sealed class MapViewAdapterCore : IMapViewStateAdapter, IMapRenderAdapter, IMapInteractionAdapter
+    internal sealed class MapViewAdapterCore : IMapRenderAdapter, IMapInteractionAdapter
     {
         private readonly FontManagerInstance fontManager;
         private readonly IMapViewController controller;
         private readonly IMapHostEnvironment hostEnvironment;
         private readonly IMapRenderBackend renderBackend;
-        private System.Drawing.Font currentFont;
-        private readonly System.Drawing.Font constantSizeFont;
+        private readonly IMapViewFontState fontState;
 
-        public MapViewAdapterCore(FontManagerInstance fontManager, IMapViewController controller, IMapHostEnvironment hostEnvironment, IMapRenderBackend renderBackend, System.Drawing.Font constantSizeFont)
+        public MapViewAdapterCore(FontManagerInstance fontManager, IMapViewController controller, IMapHostEnvironment hostEnvironment, IMapRenderBackend renderBackend, IMapViewFontState fontState)
         {
             this.fontManager = fontManager ?? throw new ArgumentNullException(nameof(fontManager));
             this.controller = controller ?? throw new ArgumentNullException(nameof(controller));
             this.hostEnvironment = hostEnvironment ?? throw new ArgumentNullException(nameof(hostEnvironment));
             this.renderBackend = renderBackend ?? throw new ArgumentNullException(nameof(renderBackend));
-            this.constantSizeFont = constantSizeFont ?? throw new ArgumentNullException(nameof(constantSizeFont));
+            this.fontState = fontState ?? throw new ArgumentNullException(nameof(fontState));
         }
-
-        public double Scale => controller.Scale;
-
-        public PointD CenterPoint => controller.CenterPoint;
-
-        public Point WindowSize => controller.WindowSize;
-
-        public PointD TopLeftBound => controller.TopLeftBound;
-
-        public PointD BottomRightBound => controller.BottomRightBound;
-
-        public PointD WorldPosition => controller.WorldPosition;
-
-        public System.Drawing.Font CurrentFont => currentFont;
-
-        public System.Drawing.Font ConstantSizeFont => constantSizeFont;
 
         public void SyncViewport(in Rectangle bounds)
         {
@@ -167,7 +150,7 @@ namespace FreeTrainSimulator.Graphics.MapView
             if (fontSize != (currentFont?.Size ?? 0))
                 currentFont = fontManager[fontSize];
             TrackItemWidget.SetFont(currentFont);
-            this.currentFont = currentFont;
+            fontState.UpdateCurrentFont(currentFont);
         }
 
         public void DrawContent(ContentBase content)

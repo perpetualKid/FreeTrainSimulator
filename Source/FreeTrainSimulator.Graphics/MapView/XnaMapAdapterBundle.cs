@@ -50,8 +50,9 @@ namespace FreeTrainSimulator.Graphics.MapView
 
             FontManagerInstance fontManager = FontManager.Scaled("Arial", System.Drawing.FontStyle.Regular);
             System.Drawing.Font constantSizeFont = fontManager[25];
-            MapViewAdapterCore adapterCore = new MapViewAdapterCore(fontManager, Controller, HostEnvironment, RenderBackend, constantSizeFont);
-            AdapterSet = new MapViewAdapterSet(adapterCore, adapterCore, adapterCore);
+            MapViewStateAdapter viewStateAdapter = new MapViewStateAdapter(Controller, constantSizeFont);
+            MapViewAdapterCore adapterCore = new MapViewAdapterCore(fontManager, Controller, HostEnvironment, RenderBackend, viewStateAdapter);
+            AdapterSet = new MapViewAdapterSet(viewStateAdapter, adapterCore, adapterCore);
         }
     }
 }
