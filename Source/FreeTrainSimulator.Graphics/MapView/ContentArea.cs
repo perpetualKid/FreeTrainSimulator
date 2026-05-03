@@ -23,6 +23,8 @@ namespace FreeTrainSimulator.Graphics.MapView
 #pragma warning disable CA1859 // Use concrete types when possible for improved performance
         private readonly IMapViewAdapter adapterCore;
         private readonly IMapViewStateAdapter viewStateAdapter;
+        private readonly IMapRenderAdapter renderAdapter;
+        private readonly IMapInteractionAdapter interactionAdapter;
 #pragma warning restore CA1859 // Use concrete types when possible for improved performance
 
         private readonly MapTextTextureCache ownedTextCache;
@@ -54,14 +56,16 @@ namespace FreeTrainSimulator.Graphics.MapView
             System.Drawing.Font constantSizeFont = fontManager[25];
             adapterCore = new MapViewAdapterCore(fontManager, adapterBundle.Controller, adapterBundle.HostEnvironment, adapterBundle.RenderBackend, constantSizeFont);
             viewStateAdapter = adapterCore;
-            adapterCore.RegisterMouseMove(MouseMove);
-            adapterCore.AttachClientSizeChanged(Window_ClientSizeChanged);
+            renderAdapter = adapterCore;
+            interactionAdapter = adapterCore;
+            interactionAdapter.RegisterMouseMove(MouseMove);
+            interactionAdapter.AttachClientSizeChanged(Window_ClientSizeChanged);
             Enabled = false;
         }
 
         private void Window_ClientSizeChanged(object sender, EventArgs e)
         {
-            adapterCore.SyncViewportForContent(Content);
+            interactionAdapter.SyncViewportForContent(Content);
         }
 
         private void RefreshViewportBounds()
@@ -76,17 +80,17 @@ namespace FreeTrainSimulator.Graphics.MapView
 
         public void UpdateColor(ColorSetting setting, Color color, bool fontOutlining)
         {
-            adapterCore.UpdateColor(Content, setting, color, fontOutlining);
+            renderAdapter.UpdateColor(Content, setting, color, fontOutlining);
         }
 
         public void MouseMove(Point position, Vector2 delta, GameTime gameTime)
         {
-            adapterCore.MouseMove(Enabled, position, Content);
+            interactionAdapter.MouseMove(Enabled, position, Content);
         }
 
         protected override void OnEnabledChanged(object sender, EventArgs args)
         {
-            adapterCore.HandleEnabledChanged(Enabled, this, Content.TextureHelperHost);
+            interactionAdapter.HandleEnabledChanged(Enabled, this, Content.TextureHelperHost);
             base.OnEnabledChanged(sender, args);
         }
 
@@ -98,65 +102,65 @@ namespace FreeTrainSimulator.Graphics.MapView
         public void ResetSize(in Point windowSize, int screenDelta)
         {
             System.Drawing.Font currentFont = CurrentFont;
-            adapterCore.RefreshAfterReset(Content, windowSize, screenDelta, ref currentFont);
+            interactionAdapter.RefreshAfterReset(Content, windowSize, screenDelta, ref currentFont);
         }
 
         public void PresetPosition(in PointD centerPoint, double scale)
         {
-            adapterCore.PresetPosition(centerPoint, scale);
+            interactionAdapter.PresetPosition(centerPoint, scale);
             System.Drawing.Font currentFont = CurrentFont;
             bool suppressDrawing = SuppressDrawing;
-            adapterCore.RefreshAfterPreset(ref currentFont, ref suppressDrawing);
+            interactionAdapter.RefreshAfterPreset(ref currentFont, ref suppressDrawing);
             SuppressDrawing = suppressDrawing;
         }
 
         public void SetTrackingPosition(in WorldLocation location)
         {
-            adapterCore.SetTrackingPosition(location);
+            interactionAdapter.SetTrackingPosition(location);
         }
 
         public void SetTrackingPosition(in PointD location)
         {
-            adapterCore.SetTrackingPosition(location);
+            interactionAdapter.SetTrackingPosition(location);
         }
 
         public void UpdateScaleToFit(in PointD topLeft, in PointD bottomRight)
         {
-            adapterCore.UpdateScaleToFit(topLeft, bottomRight);
+            interactionAdapter.UpdateScaleToFit(topLeft, bottomRight);
             System.Drawing.Font currentFont = CurrentFont;
-            adapterCore.RefreshAfterScaleChange(ref currentFont);
+            interactionAdapter.RefreshAfterScaleChange(ref currentFont);
         }
 
         public void UpdateScaleAt(in Point scaleAt, int steps)
         {
-            adapterCore.UpdateScaleAt(scaleAt, steps);
+            interactionAdapter.UpdateScaleAt(scaleAt, steps);
             System.Drawing.Font currentFont = CurrentFont;
-            adapterCore.RefreshAfterScaleChange(ref currentFont);
+            interactionAdapter.RefreshAfterScaleChange(ref currentFont);
         }
 
         public void UpdateScale(int steps)
         {
-            adapterCore.UpdateScale(steps);
+            interactionAdapter.UpdateScale(steps);
             System.Drawing.Font currentFont = CurrentFont;
-            adapterCore.RefreshAfterScaleChange(ref currentFont);
+            interactionAdapter.RefreshAfterScaleChange(ref currentFont);
         }
 
         public void UpdateScaleAbsolute(double scale)
         {
-            adapterCore.UpdateScaleAbsolute(scale);
+            interactionAdapter.UpdateScaleAbsolute(scale);
             System.Drawing.Font currentFont = CurrentFont;
-            adapterCore.RefreshAfterScaleChange(ref currentFont);
+            interactionAdapter.RefreshAfterScaleChange(ref currentFont);
         }
 
         public void UpdatePosition(in Vector2 delta)
         {
-            adapterCore.UpdatePosition(delta);
+            interactionAdapter.UpdatePosition(delta);
         }
 
         public override void Update(GameTime gameTime)
         {
             bool suppressDrawing = SuppressDrawing;
-            adapterCore.UpdateFrameState(ref suppressDrawing);
+            interactionAdapter.UpdateFrameState(ref suppressDrawing);
             SuppressDrawing = suppressDrawing;
             base.Update(gameTime);
         }
@@ -164,41 +168,41 @@ namespace FreeTrainSimulator.Graphics.MapView
         #region public control commands
         public void MouseDragging(UserCommandArgs userCommandArgs)
         {
-            adapterCore.MouseDragging(userCommandArgs);
+            interactionAdapter.MouseDragging(userCommandArgs);
         }
 
         public void MouseWheelAt(UserCommandArgs userCommandArgs, KeyModifiers modifiers)
         {
-            adapterCore.MouseWheelAt(userCommandArgs, modifiers);
+            interactionAdapter.MouseWheelAt(userCommandArgs, modifiers);
             System.Drawing.Font currentFont = CurrentFont;
-            adapterCore.RefreshAfterScaleChange(ref currentFont);
+            interactionAdapter.RefreshAfterScaleChange(ref currentFont);
         }
 
         public void MouseWheel(UserCommandArgs userCommandArgs, KeyModifiers modifiers)
         {
-            adapterCore.MouseWheel(userCommandArgs, modifiers);
+            interactionAdapter.MouseWheel(userCommandArgs, modifiers);
             System.Drawing.Font currentFont = CurrentFont;
-            adapterCore.RefreshAfterScaleChange(ref currentFont);
+            interactionAdapter.RefreshAfterScaleChange(ref currentFont);
         }
 
         public void MoveByKeyLeft(UserCommandArgs commandArgs)
         {
-            adapterCore.MoveByKeyLeft(commandArgs);
+            interactionAdapter.MoveByKeyLeft(commandArgs);
         }
 
         public void MoveByKeyRight(UserCommandArgs commandArgs)
         {
-            adapterCore.MoveByKeyRight(commandArgs);
+            interactionAdapter.MoveByKeyRight(commandArgs);
         }
 
         public void MoveByKeyUp(UserCommandArgs commandArgs)
         {
-            adapterCore.MoveByKeyUp(commandArgs);
+            interactionAdapter.MoveByKeyUp(commandArgs);
         }
 
         public void MoveByKeyDown(UserCommandArgs commandArgs)
         {
-            adapterCore.MoveByKeyDown(commandArgs);
+            interactionAdapter.MoveByKeyDown(commandArgs);
         }
 
         public static int ZoomAmplifier(KeyModifiers modifiers)
@@ -218,16 +222,16 @@ namespace FreeTrainSimulator.Graphics.MapView
 
         public void ZoomIn(UserCommandArgs commandArgs)
         {
-            adapterCore.ZoomIn(commandArgs);
+            interactionAdapter.ZoomIn(commandArgs);
             System.Drawing.Font currentFont = CurrentFont;
-            adapterCore.RefreshAfterScaleChange(ref currentFont);
+            interactionAdapter.RefreshAfterScaleChange(ref currentFont);
         }
 
         public void ZoomOut(UserCommandArgs commandArgs)
         {
-            adapterCore.ZoomOut(commandArgs);
+            interactionAdapter.ZoomOut(commandArgs);
             System.Drawing.Font currentFont = CurrentFont;
-            adapterCore.RefreshAfterScaleChange(ref currentFont);
+            interactionAdapter.RefreshAfterScaleChange(ref currentFont);
         }
 
         public void ResetZoomAndLocation(Point windowSize, int screenDelta)
@@ -238,41 +242,41 @@ namespace FreeTrainSimulator.Graphics.MapView
 
         public override void Draw(GameTime gameTime)
         {
-            adapterCore.DrawContent(Content);
+            renderAdapter.DrawContent(Content);
             bool suppressDrawing = SuppressDrawing;
-            adapterCore.NotifyFrameRendered(ref suppressDrawing);
+            renderAdapter.NotifyFrameRendered(ref suppressDrawing);
             SuppressDrawing = suppressDrawing;
             base.Draw(gameTime);
         }
 
         public void DrawLine(float width, Color color, Vector2 point, float length, double angle)
         {
-            adapterCore.DrawLine(width, color, point, length, angle);
+            renderAdapter.DrawLine(width, color, point, length, angle);
         }
 
         public void DrawLine(float width, Color color, Vector2 point1, Vector2 point2)
         {
-            adapterCore.DrawLine(width, color, point1, point2);
+            renderAdapter.DrawLine(width, color, point1, point2);
         }
 
         public void DrawDashedLine(float width, Color color, Vector2 point1, Vector2 point2)
         {
-            adapterCore.DrawDashedLine(width, color, point1, point2);
+            renderAdapter.DrawDashedLine(width, color, point1, point2);
         }
 
         public void DrawArc(float width, Color color, Vector2 point, float radius, double angle, double arcSize)
         {
-            adapterCore.DrawArc(width, color, point, radius, angle, arcSize);
+            renderAdapter.DrawArc(width, color, point, radius, angle, arcSize);
         }
 
         public void DrawTexture(BasicTextureType texture, Vector2 point, double angle, float size, bool flipHorizontal, bool flipVertical, bool highlight)
         {
-            adapterCore.DrawTexture(texture, point, angle, size, flipHorizontal, flipVertical, highlight);
+            renderAdapter.DrawTexture(texture, point, angle, size, flipHorizontal, flipVertical, highlight);
         }
 
         public void DrawTexture(BasicTextureType texture, Vector2 point, double angle, float size, Color color)
         {
-            adapterCore.DrawTexture(texture, point, angle, size, color);
+            renderAdapter.DrawTexture(texture, point, angle, size, color);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -336,14 +340,14 @@ namespace FreeTrainSimulator.Graphics.MapView
         private void RefreshDrawingFromController()
         {
             bool suppressDrawing = SuppressDrawing;
-            adapterCore.RefreshDrawing(ref suppressDrawing);
+            renderAdapter.RefreshDrawing(ref suppressDrawing);
             SuppressDrawing = suppressDrawing;
         }
         
         public void DrawText(in PointD location, Color color, string text, System.Drawing.Font font, in Vector2 scale, float angle,
             HorizontalAlignment horizontalAlignment, VerticalAlignment verticalAlignment, OutlineRenderOptions outlineRenderOptions)
         {
-            adapterCore.DrawText(location, color, text, font, scale, angle, horizontalAlignment, verticalAlignment, outlineRenderOptions);
+            renderAdapter.DrawText(location, color, text, font, scale, angle, horizontalAlignment, verticalAlignment, outlineRenderOptions);
         }
 
         protected override void Dispose(bool disposing)
@@ -352,7 +356,7 @@ namespace FreeTrainSimulator.Graphics.MapView
             {
                 ownedTextCache?.Dispose();
                 SpriteBatch?.Dispose();
-                adapterCore.UnregisterMouseMove(MouseMove);
+                interactionAdapter.UnregisterMouseMove(MouseMove);
             }
             base.Dispose(disposing);
         }
