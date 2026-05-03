@@ -79,19 +79,19 @@ namespace FreeTrainSimulator.Graphics.DrawableComponents
             RenderTarget2D renderTarget = renderHelper.CreateRenderTarget(size.X, size.Y);
             renderHelper.RenderToTarget(renderTarget, Color.White, spriteBatch =>
             {
-                content.BasicShapes.DrawLine(borderSize, borderColor, new Vector2(borderSize, borderSize), size.X - borderSize - borderSize, 0, spriteBatch);
-                content.BasicShapes.DrawLine(borderSize, borderColor, new Vector2(borderSize, size.Y - borderSize), size.X - borderSize - borderSize, 0, spriteBatch);
-                content.BasicShapes.DrawLine(borderSize, borderColor, new Vector2(borderSize, borderSize), size.Y - borderSize - borderSize, MathHelper.ToRadians(90), spriteBatch);
-                content.BasicShapes.DrawLine(borderSize, borderColor, new Vector2(size.X - borderSize, borderSize), size.Y - borderSize - borderSize, MathHelper.ToRadians(90), spriteBatch);
+                content.DrawOverlayLine(borderSize, borderColor, new Vector2(borderSize, borderSize), size.X - borderSize - borderSize, 0, spriteBatch);
+                content.DrawOverlayLine(borderSize, borderColor, new Vector2(borderSize, size.Y - borderSize), size.X - borderSize - borderSize, 0, spriteBatch);
+                content.DrawOverlayLine(borderSize, borderColor, new Vector2(borderSize, borderSize), size.Y - borderSize - borderSize, MathHelper.ToRadians(90), spriteBatch);
+                content.DrawOverlayLine(borderSize, borderColor, new Vector2(size.X - borderSize, borderSize), size.Y - borderSize - borderSize, MathHelper.ToRadians(90), spriteBatch);
 
                 if (null != trackSegments)
                 {
                     foreach (TrackSegment segment in trackSegments)
                     {
                         if (segment.Curved)
-                            content.BasicShapes.DrawArc(WorldToScreenSize(segment.Size), Color.Black, WorldToScreenCoordinates(in segment.Location), WorldToScreenSize(segment.Radius), segment.Direction, segment.Angle, spriteBatch);
+                            content.DrawOverlayArc(WorldToScreenSize(segment.Size), Color.Black, WorldToScreenCoordinates(in segment.Location), WorldToScreenSize(segment.Radius), segment.Direction, segment.Angle, spriteBatch);
                         else
-                            content.BasicShapes.DrawLine(WorldToScreenSize(segment.Size), Color.Black, WorldToScreenCoordinates(in segment.Location), WorldToScreenSize(segment.Length), segment.Direction, spriteBatch);
+                            content.DrawOverlayLine(WorldToScreenSize(segment.Size), Color.Black, WorldToScreenCoordinates(in segment.Location), WorldToScreenSize(segment.Length), segment.Direction, spriteBatch);
                     }
                 }
             });
@@ -114,12 +114,12 @@ namespace FreeTrainSimulator.Graphics.DrawableComponents
             float screenWidth = WorldToScreenSize(width);
             float screenHeight = WorldToScreenSize(height);
             Vector2 clippingPosition = WorldToScreenCoordinates(content.TopLeftBound) + position;
-            content.BasicShapes.DrawLine(1f, Color.Red, clippingPosition, screenWidth, 0, spriteBatch);
-            content.BasicShapes.DrawLine(1f, Color.Red, clippingPosition + new Vector2(0, screenHeight), screenWidth, 0, spriteBatch);
-            content.BasicShapes.DrawLine(1f, Color.Red, clippingPosition, screenHeight, MathHelper.ToRadians(90), spriteBatch);
-            content.BasicShapes.DrawLine(1f, Color.Red, clippingPosition + new Vector2(screenWidth, 0), screenHeight, MathHelper.ToRadians(90), spriteBatch);
+            content.DrawOverlayLine(1f, Color.Red, clippingPosition, screenWidth, 0, spriteBatch);
+            content.DrawOverlayLine(1f, Color.Red, clippingPosition + new Vector2(0, screenHeight), screenWidth, 0, spriteBatch);
+            content.DrawOverlayLine(1f, Color.Red, clippingPosition, screenHeight, MathHelper.ToRadians(90), spriteBatch);
+            content.DrawOverlayLine(1f, Color.Red, clippingPosition + new Vector2(screenWidth, 0), screenHeight, MathHelper.ToRadians(90), spriteBatch);
             if (screenWidth < 10 || screenHeight < 10)
-                content.BasicShapes.DrawTexture(BasicTextureType.Circle, clippingPosition + (new Vector2(screenWidth, screenHeight) / 2), 0, -0.5f, Color.Red, spriteBatch);
+                content.DrawOverlayTexture(BasicTextureType.Circle, clippingPosition + (new Vector2(screenWidth, screenHeight) / 2), 0, -0.5f, Color.Red, spriteBatch);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

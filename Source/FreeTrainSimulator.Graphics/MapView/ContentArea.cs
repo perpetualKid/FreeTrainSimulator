@@ -365,10 +365,23 @@ namespace FreeTrainSimulator.Graphics.MapView
 
         bool IMapOverlayContext.UseMetricUnits => Content.UseMetricUnits;
 
-        BasicShapes IMapOverlayContext.BasicShapes => BasicShapes;
-
         PointD IMapOverlayContext.TopLeftBound => TopLeftBound;
 
         PointD IMapOverlayContext.BottomRightBound => BottomRightBound;
+
+        void IMapOverlayContext.DrawOverlayLine(float width, Color color, Vector2 point, float length, double angle, SpriteBatch spriteBatch)
+        {
+            BasicShapes.DrawLine(width, color, point, length, angle, spriteBatch);
+        }
+
+        void IMapOverlayContext.DrawOverlayArc(float width, Color color, Vector2 point, float radius, double angle, double arcSize, SpriteBatch spriteBatch)
+        {
+            BasicShapes.DrawArc(width, color, point, radius, angle, arcSize, spriteBatch);
+        }
+
+        void IMapOverlayContext.DrawOverlayTexture(BasicTextureType texture, Vector2 point, double angle, float size, Color color, SpriteBatch spriteBatch)
+        {
+            BasicShapes.DrawTexture(texture, point, angle, size, color, spriteBatch);
+        }
     }
 }
