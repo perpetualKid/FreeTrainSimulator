@@ -11,7 +11,7 @@ using Microsoft.Xna.Framework.Graphics;
 
 namespace FreeTrainSimulator.Graphics.MapView
 {
-    internal sealed class MapViewAdapterCore
+    internal sealed class MapViewAdapterCore : IMapViewAdapter
     {
         private readonly FontManagerInstance fontManager;
         private readonly IMapViewController controller;

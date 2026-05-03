@@ -21,22 +21,23 @@ namespace FreeTrainSimulator.Graphics.MapView
         internal BasicShapes BasicShapes { get; }
 
 #pragma warning disable CA1859 // Use concrete types when possible for improved performance
-        private readonly MapViewAdapterCore adapterCore;
+        private readonly IMapViewAdapter adapterCore;
+        private readonly IMapViewStateAdapter viewStateAdapter;
 #pragma warning restore CA1859 // Use concrete types when possible for improved performance
 
         private readonly MapTextTextureCache ownedTextCache;
 
         public ContentBase Content { get; }
 
-        public double Scale => adapterCore.Scale;
-        public PointD CenterPoint => adapterCore.CenterPoint;
+        public double Scale => viewStateAdapter.Scale;
+        public PointD CenterPoint => viewStateAdapter.CenterPoint;
         public bool SuppressDrawing { get; internal set; }
-        public Point WindowSize => adapterCore.WindowSize;
-        internal PointD TopLeftBound => adapterCore.TopLeftBound;
-        internal PointD BottomRightBound => adapterCore.BottomRightBound;
-        public PointD WorldPosition => adapterCore.WorldPosition;
-        public System.Drawing.Font CurrentFont => adapterCore.CurrentFont;
-        public System.Drawing.Font ConstantSizeFont => adapterCore.ConstantSizeFont;
+        public Point WindowSize => viewStateAdapter.WindowSize;
+        internal PointD TopLeftBound => viewStateAdapter.TopLeftBound;
+        internal PointD BottomRightBound => viewStateAdapter.BottomRightBound;
+        public PointD WorldPosition => viewStateAdapter.WorldPosition;
+        public System.Drawing.Font CurrentFont => viewStateAdapter.CurrentFont;
+        public System.Drawing.Font ConstantSizeFont => viewStateAdapter.ConstantSizeFont;
 
         internal ContentArea(Game game, ContentBase content, MouseInputGameComponent mouseInputGameComponent) :
             base(game)
@@ -52,6 +53,7 @@ namespace FreeTrainSimulator.Graphics.MapView
             FontManagerInstance fontManager = FontManager.Scaled("Arial", System.Drawing.FontStyle.Regular);
             System.Drawing.Font constantSizeFont = fontManager[25];
             adapterCore = new MapViewAdapterCore(fontManager, adapterBundle.Controller, adapterBundle.HostEnvironment, adapterBundle.RenderBackend, constantSizeFont);
+            viewStateAdapter = adapterCore;
             adapterCore.RegisterMouseMove(MouseMove);
             adapterCore.AttachClientSizeChanged(Window_ClientSizeChanged);
             Enabled = false;
@@ -276,31 +278,31 @@ namespace FreeTrainSimulator.Graphics.MapView
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public Vector2 WorldToScreenCoordinates(in WorldLocation worldLocation)
         {
-            return adapterCore.WorldToScreenCoordinates(worldLocation);
+            return viewStateAdapter.WorldToScreenCoordinates(worldLocation);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public PointD ScreenToWorldCoordinates(in Point screenLocation)
         {
-            return adapterCore.ScreenToWorldCoordinates(screenLocation);
+            return viewStateAdapter.ScreenToWorldCoordinates(screenLocation);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public Vector2 WorldToScreenCoordinates(in PointD location)
         {
-            return adapterCore.WorldToScreenCoordinates(location);
+            return viewStateAdapter.WorldToScreenCoordinates(location);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public float WorldToScreenSize(double worldSize, int minScreenSize = 1)
         {
-            return adapterCore.WorldToScreenSize(worldSize, minScreenSize);
+            return viewStateAdapter.WorldToScreenSize(worldSize, minScreenSize);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool InsideScreenArea(PointPrimitive pointPrimitive)
         {
-            return adapterCore.InsideScreenArea(pointPrimitive);
+            return viewStateAdapter.InsideScreenArea(pointPrimitive);
         }
 
         bool IMapViewport.InsideScreenArea(PointPrimitive pointPrimitive)
@@ -311,7 +313,7 @@ namespace FreeTrainSimulator.Graphics.MapView
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public bool InsideScreenArea(VectorPrimitive vectorPrimitive)
         {
-            return adapterCore.InsideScreenArea(vectorPrimitive);
+            return viewStateAdapter.InsideScreenArea(vectorPrimitive);
         }
 
         bool IMapViewport.InsideScreenArea(VectorPrimitive vectorPrimitive)
