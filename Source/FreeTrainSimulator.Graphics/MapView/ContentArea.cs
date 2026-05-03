@@ -21,7 +21,6 @@ namespace FreeTrainSimulator.Graphics.MapView
         internal BasicShapes BasicShapes { get; }
 
 #pragma warning disable CA1859 // Use concrete types when possible for improved performance
-        private readonly IMapViewAdapter adapterCore;
         private readonly IMapViewStateAdapter viewStateAdapter;
         private readonly IMapRenderAdapter renderAdapter;
         private readonly IMapInteractionAdapter interactionAdapter;
@@ -54,7 +53,7 @@ namespace FreeTrainSimulator.Graphics.MapView
             ownedTextCache = adapterBundle.OwnedTextCache;
             FontManagerInstance fontManager = FontManager.Scaled("Arial", System.Drawing.FontStyle.Regular);
             System.Drawing.Font constantSizeFont = fontManager[25];
-            adapterCore = new MapViewAdapterCore(fontManager, adapterBundle.Controller, adapterBundle.HostEnvironment, adapterBundle.RenderBackend, constantSizeFont);
+            MapViewAdapterCore adapterCore = new MapViewAdapterCore(fontManager, adapterBundle.Controller, adapterBundle.HostEnvironment, adapterBundle.RenderBackend, constantSizeFont);
             viewStateAdapter = adapterCore;
             renderAdapter = adapterCore;
             interactionAdapter = adapterCore;
@@ -70,7 +69,7 @@ namespace FreeTrainSimulator.Graphics.MapView
 
         private void RefreshViewportBounds()
         {
-            adapterCore.SyncViewportForContent(Content);
+            interactionAdapter.SyncViewportForContent(Content);
         }
 
         public static void UpdateTrackWidthSettings(bool limitTrackWidth)
@@ -328,13 +327,13 @@ namespace FreeTrainSimulator.Graphics.MapView
         private void UpdateFontSize()
         {
             System.Drawing.Font currentFont = CurrentFont;
-            adapterCore.RefreshFonts(ref currentFont);
+            interactionAdapter.RefreshAfterScaleChange(ref currentFont);
         }
 
         private void RefreshFontsFromController()
         {
             System.Drawing.Font currentFont = CurrentFont;
-            adapterCore.RefreshAfterScaleChange(ref currentFont);
+            interactionAdapter.RefreshAfterScaleChange(ref currentFont);
         }
 
         private void RefreshDrawingFromController()
