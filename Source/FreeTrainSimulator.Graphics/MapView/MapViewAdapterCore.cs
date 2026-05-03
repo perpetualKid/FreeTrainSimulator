@@ -345,5 +345,25 @@ namespace FreeTrainSimulator.Graphics.MapView
             JunctionNode.UpdateTrackWidthRatio(limitTrackWidth);
             SpeedPostTrackItem.UpdateTrackWidthRatio(limitTrackWidth);
         }
+
+        public void RegisterMouseMove(MouseInputGameComponent.MouseMoveEvent handler)
+        {
+            hostEnvironment.RegisterMouseMove(handler);
+        }
+
+        public void UnregisterMouseMove(MouseInputGameComponent.MouseMoveEvent handler)
+        {
+            hostEnvironment.UnregisterMouseMove(handler);
+        }
+
+        public void AttachClientSizeChanged(EventHandler handler)
+        {
+            hostEnvironment.ClientSizeChanged += handler;
+        }
+
+        public void SyncViewportForContent(ContentBase content)
+        {
+            SyncViewport(content.Bounds);
+        }
     }
 }

@@ -12,7 +12,7 @@ using Microsoft.Xna.Framework.Graphics;
 
 namespace FreeTrainSimulator.Graphics.MapView
 {
-    public class ContentArea : DrawableGameComponent, IMapRenderer, IMapViewport, IMapHostControl
+    public class ContentArea : DrawableGameComponent, IMapRenderer, IMapViewport, IMapHostControl, IMapOverlayContext
     {
         private const int zoomAmplifier = 3;
 
@@ -20,18 +20,7 @@ namespace FreeTrainSimulator.Graphics.MapView
 
         internal BasicShapes BasicShapes { get; }
 
-        private readonly FontManagerInstance fontManager;
 #pragma warning disable CA1859 // Use concrete types when possible for improved performance
-#pragma warning disable CA2213 // Disposable fields should be disposed
-        private readonly IMapHostEnvironment hostEnvironment;
-#pragma warning restore CA2213 // Disposable fields should be disposed
-
-        private readonly IMapRenderingLifetime renderingLifetime;
-        private readonly IMapRenderingResources renderingResources;
-        private readonly IMapRenderBackend renderBackend;
-        private readonly IMapTextRenderer textRenderer;
-        private readonly IMapTextCache textCache;
-        private readonly IMapViewController controller;
         private readonly MapViewAdapterCore adapterCore;
 #pragma warning restore CA1859 // Use concrete types when possible for improved performance
 
@@ -58,31 +47,24 @@ namespace FreeTrainSimulator.Graphics.MapView
 
             XnaMapAdapterBundle adapterBundle = new XnaMapAdapterBundle(game, content, mouseInputGameComponent);
             SpriteBatch = adapterBundle.SpriteBatch;
-            renderingLifetime = adapterBundle.RenderingLifetime;
-            renderingResources = adapterBundle.RenderingResources;
-            ownedTextCache = adapterBundle.OwnedTextCache;
-            textCache = adapterBundle.TextCache;
-            textRenderer = adapterBundle.TextRenderer;
-            renderBackend = adapterBundle.RenderBackend;
-            fontManager = FontManager.Scaled("Arial", System.Drawing.FontStyle.Regular);
-            System.Drawing.Font constantSizeFont = fontManager[25];
-            hostEnvironment = adapterBundle.HostEnvironment;
-            hostEnvironment.RegisterMouseMove(MouseMove);
             BasicShapes = adapterBundle.BasicShapes;
-            controller = adapterBundle.Controller;
-            adapterCore = new MapViewAdapterCore(fontManager, controller, hostEnvironment, renderBackend, constantSizeFont);
-            hostEnvironment.ClientSizeChanged += Window_ClientSizeChanged;
+            ownedTextCache = adapterBundle.OwnedTextCache;
+            FontManagerInstance fontManager = FontManager.Scaled("Arial", System.Drawing.FontStyle.Regular);
+            System.Drawing.Font constantSizeFont = fontManager[25];
+            adapterCore = new MapViewAdapterCore(fontManager, adapterBundle.Controller, adapterBundle.HostEnvironment, adapterBundle.RenderBackend, constantSizeFont);
+            adapterCore.RegisterMouseMove(MouseMove);
+            adapterCore.AttachClientSizeChanged(Window_ClientSizeChanged);
             Enabled = false;
         }
 
         private void Window_ClientSizeChanged(object sender, EventArgs e)
         {
-            adapterCore.SyncViewport(Content.Bounds);
+            adapterCore.SyncViewportForContent(Content);
         }
 
         private void RefreshViewportBounds()
         {
-            adapterCore.SyncViewport(Content.Bounds);
+            adapterCore.SyncViewportForContent(Content);
         }
 
         public static void UpdateTrackWidthSettings(bool limitTrackWidth)
@@ -139,25 +121,29 @@ namespace FreeTrainSimulator.Graphics.MapView
         public void UpdateScaleToFit(in PointD topLeft, in PointD bottomRight)
         {
             adapterCore.UpdateScaleToFit(topLeft, bottomRight);
-            RefreshFontsFromController();
+            System.Drawing.Font currentFont = CurrentFont;
+            adapterCore.RefreshAfterScaleChange(ref currentFont);
         }
 
         public void UpdateScaleAt(in Point scaleAt, int steps)
         {
             adapterCore.UpdateScaleAt(scaleAt, steps);
-            RefreshFontsFromController();
+            System.Drawing.Font currentFont = CurrentFont;
+            adapterCore.RefreshAfterScaleChange(ref currentFont);
         }
 
         public void UpdateScale(int steps)
         {
             adapterCore.UpdateScale(steps);
-            RefreshFontsFromController();
+            System.Drawing.Font currentFont = CurrentFont;
+            adapterCore.RefreshAfterScaleChange(ref currentFont);
         }
 
         public void UpdateScaleAbsolute(double scale)
         {
             adapterCore.UpdateScaleAbsolute(scale);
-            RefreshFontsFromController();
+            System.Drawing.Font currentFont = CurrentFont;
+            adapterCore.RefreshAfterScaleChange(ref currentFont);
         }
 
         public void UpdatePosition(in Vector2 delta)
@@ -182,13 +168,15 @@ namespace FreeTrainSimulator.Graphics.MapView
         public void MouseWheelAt(UserCommandArgs userCommandArgs, KeyModifiers modifiers)
         {
             adapterCore.MouseWheelAt(userCommandArgs, modifiers);
-            RefreshFontsFromController();
+            System.Drawing.Font currentFont = CurrentFont;
+            adapterCore.RefreshAfterScaleChange(ref currentFont);
         }
 
         public void MouseWheel(UserCommandArgs userCommandArgs, KeyModifiers modifiers)
         {
             adapterCore.MouseWheel(userCommandArgs, modifiers);
-            RefreshFontsFromController();
+            System.Drawing.Font currentFont = CurrentFont;
+            adapterCore.RefreshAfterScaleChange(ref currentFont);
         }
 
         public void MoveByKeyLeft(UserCommandArgs commandArgs)
@@ -229,13 +217,15 @@ namespace FreeTrainSimulator.Graphics.MapView
         public void ZoomIn(UserCommandArgs commandArgs)
         {
             adapterCore.ZoomIn(commandArgs);
-            RefreshFontsFromController();
+            System.Drawing.Font currentFont = CurrentFont;
+            adapterCore.RefreshAfterScaleChange(ref currentFont);
         }
 
         public void ZoomOut(UserCommandArgs commandArgs)
         {
             adapterCore.ZoomOut(commandArgs);
-            RefreshFontsFromController();
+            System.Drawing.Font currentFont = CurrentFont;
+            adapterCore.RefreshAfterScaleChange(ref currentFont);
         }
 
         public void ResetZoomAndLocation(Point windowSize, int screenDelta)
@@ -360,7 +350,7 @@ namespace FreeTrainSimulator.Graphics.MapView
             {
                 ownedTextCache?.Dispose();
                 SpriteBatch?.Dispose();
-                hostEnvironment.UnregisterMouseMove(MouseMove);
+                adapterCore.UnregisterMouseMove(MouseMove);
             }
             base.Dispose(disposing);
         }
@@ -370,5 +360,13 @@ namespace FreeTrainSimulator.Graphics.MapView
             get => Enabled;
             set => Enabled = value;
         }
+
+        ContentBase IMapOverlayContext.Content => Content;
+
+        BasicShapes IMapOverlayContext.BasicShapes => BasicShapes;
+
+        PointD IMapOverlayContext.TopLeftBound => TopLeftBound;
+
+        PointD IMapOverlayContext.BottomRightBound => BottomRightBound;
     }
 }

@@ -1,5 +1,4 @@
-﻿
-using System;
+﻿using System;
 using System.Linq;
 
 using FreeTrainSimulator.Common.Input;
@@ -36,7 +35,7 @@ namespace FreeTrainSimulator.Graphics.DrawableComponents
             if (mouseState != lastMouseState)
             {
                 lastMouseState = mouseState;
-                Point worldPoint = content.ScreenToWorldCoordinates(mouseState.Position);
+                PointD worldPoint = content.ScreenToWorldCoordinates(mouseState.Position);
                 WorldLocation location = PointD.ToWorldLocation(worldPoint);
                 (double latitude, double longitude) = EarthCoordinates.ConvertWTC(location);
 
@@ -80,7 +79,7 @@ namespace FreeTrainSimulator.Graphics.DrawableComponents
             base.Draw(gameTime);
         }
 
-        internal protected override void Enable(ContentArea content)
+        internal override void Enable(IMapOverlayContext content)
         {
             Resize("01234567890123456789012345");//about 25 chars needed for full lat/lon coordinates
             base.Enable(content);

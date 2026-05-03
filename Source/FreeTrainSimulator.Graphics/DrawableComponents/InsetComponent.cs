@@ -113,8 +113,6 @@ namespace FreeTrainSimulator.Graphics.DrawableComponents
             double height = content.TopLeftBound.Y - content.BottomRightBound.Y;
             float screenWidth = WorldToScreenSize(width);
             float screenHeight = WorldToScreenSize(height);
-            //if (screenHeight > size.Y * 0.95 || screenWidth > size.X * 0.95)
-            //    return;
             Vector2 clippingPosition = WorldToScreenCoordinates(content.TopLeftBound) + position;
             content.BasicShapes.DrawLine(1f, Color.Red, clippingPosition, screenWidth, 0, spriteBatch);
             content.BasicShapes.DrawLine(1f, Color.Red, clippingPosition + new Vector2(0, screenHeight), screenWidth, 0, spriteBatch);

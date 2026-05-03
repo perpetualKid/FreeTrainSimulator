@@ -15,7 +15,7 @@ namespace FreeTrainSimulator.Graphics.Xna
     public abstract class TextureContentComponent : DrawableGameComponent
     {
         private protected Texture2D texture;
-        private protected ContentArea content;
+        private protected IMapOverlayContext content;
         private protected Vector2 position;
         private protected Vector2 positionOffset;
 
@@ -48,10 +48,10 @@ namespace FreeTrainSimulator.Graphics.Xna
                 position = new Vector2(positionOffset.X > 0 ? positionOffset.X : host.ClientSize.X + positionOffset.X - texture.Width, positionOffset.Y > 0 ? positionOffset.Y : host.ClientSize.Y + positionOffset.Y - texture.Height);
         }
 
-        internal protected virtual void Enable(ContentArea content)
+        internal virtual void Enable(IMapOverlayContext content)
         {
             this.content = content;
-            DrawOrder = content?.DrawOrder + 10 ?? 99;
+            DrawOrder = content is DrawableGameComponent drawable ? drawable.DrawOrder + 10 : 99;
             Enabled = true;
             Visible = true;
         }
