@@ -18,12 +18,11 @@ namespace FreeTrainSimulator.Graphics.MapView
 
         internal SpriteBatch SpriteBatch { get; }
 
-        internal BasicShapes BasicShapes { get; }
-
 #pragma warning disable CA1859 // Use concrete types when possible for improved performance
         private readonly IMapViewStateAdapter viewStateAdapter;
         private readonly IMapRenderAdapter renderAdapter;
         private readonly IMapInteractionAdapter interactionAdapter;
+        private readonly IMapOverlayShapeAdapter overlayShapeAdapter;
 #pragma warning restore CA1859 // Use concrete types when possible for improved performance
 
         private readonly MapTextTextureCache ownedTextCache;
@@ -49,11 +48,11 @@ namespace FreeTrainSimulator.Graphics.MapView
 
             XnaMapAdapterBundle adapterBundle = new XnaMapAdapterBundle(game, content, mouseInputGameComponent);
             SpriteBatch = adapterBundle.SpriteBatch;
-            BasicShapes = adapterBundle.BasicShapes;
             ownedTextCache = adapterBundle.OwnedTextCache;
             viewStateAdapter = adapterBundle.AdapterSet.ViewStateAdapter;
             renderAdapter = adapterBundle.AdapterSet.RenderAdapter;
             interactionAdapter = adapterBundle.AdapterSet.InteractionAdapter;
+            overlayShapeAdapter = adapterBundle.OverlayShapeAdapter;
             interactionAdapter.RegisterMouseMove(MouseMove);
             interactionAdapter.AttachClientSizeChanged(Window_ClientSizeChanged);
             Enabled = false;
@@ -349,17 +348,17 @@ namespace FreeTrainSimulator.Graphics.MapView
 
         void IMapInsetOverlayContext.DrawOverlayLine(float width, Color color, Vector2 point, float length, double angle, SpriteBatch spriteBatch)
         {
-            BasicShapes.DrawLine(width, color, point, length, angle, spriteBatch);
+            overlayShapeAdapter.DrawLine(width, color, point, length, angle, spriteBatch);
         }
 
         void IMapInsetOverlayContext.DrawOverlayArc(float width, Color color, Vector2 point, float radius, double angle, double arcSize, SpriteBatch spriteBatch)
         {
-            BasicShapes.DrawArc(width, color, point, radius, angle, arcSize, spriteBatch);
+            overlayShapeAdapter.DrawArc(width, color, point, radius, angle, arcSize, spriteBatch);
         }
 
         void IMapInsetOverlayContext.DrawOverlayTexture(BasicTextureType texture, Vector2 point, double angle, float size, Color color, SpriteBatch spriteBatch)
         {
-            BasicShapes.DrawTexture(texture, point, angle, size, color, spriteBatch);
+            overlayShapeAdapter.DrawTexture(texture, point, angle, size, color, spriteBatch);
         }
     }
 }

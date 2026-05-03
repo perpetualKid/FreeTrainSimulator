@@ -27,6 +27,8 @@ namespace FreeTrainSimulator.Graphics.MapView
 
         public BasicShapes BasicShapes { get; }
 
+        public IMapOverlayShapeAdapter OverlayShapeAdapter { get; }
+
         public IMapViewController Controller { get; }
 
         public MapViewAdapterSet AdapterSet { get; }
@@ -42,6 +44,7 @@ namespace FreeTrainSimulator.Graphics.MapView
             RenderBackend = new XnaMapRenderBackend(SpriteBatch, RenderingResources.BasicShapes, TextRenderer);
             HostEnvironment = new XnaMapHostEnvironment(game, mouseInputGameComponent);
             BasicShapes = RenderingResources.BasicShapes;
+            OverlayShapeAdapter = new XnaMapOverlayShapeAdapter(BasicShapes);
             Controller = new MapViewController(new MapViewportBounds(content.Bounds.Left, content.Bounds.Top, content.Bounds.Right, content.Bounds.Bottom));
             Controller.SyncViewport(new MapViewportBounds(content.Bounds.Left, content.Bounds.Top, content.Bounds.Right, content.Bounds.Bottom), HostEnvironment.ClientSize);
 
