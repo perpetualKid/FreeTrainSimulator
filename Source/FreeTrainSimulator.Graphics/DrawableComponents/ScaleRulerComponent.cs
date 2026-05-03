@@ -4,6 +4,7 @@ using System.ComponentModel;
 using System.Runtime.InteropServices;
 
 using FreeTrainSimulator.Common;
+using FreeTrainSimulator.Graphics.MapView;
 using FreeTrainSimulator.Graphics.Xna;
 
 using Microsoft.Xna.Framework;
@@ -84,14 +85,15 @@ namespace FreeTrainSimulator.Graphics.DrawableComponents
 
         public override void Update(GameTime gameTime)
         {
-            if (!Enabled || (scale == content.Scale && texture != null))
+            IMapRulerOverlayContext rulerContext = content as IMapRulerOverlayContext;
+            if (rulerContext == null || !Enabled || (scale == rulerContext.Scale && texture != null))
             {
                 base.Update(gameTime);
                 return;
             }
-            scale = content.Scale;
+            scale = rulerContext.Scale;
 
-            Point windowSize = content.WindowSize;
+            Point windowSize = rulerContext.WindowSize;
 
             //max size (length) of the ruler. if less than 50px available, don't draw
             int maxLength = Math.Min(200, windowSize.X - Math.Abs((int)positionOffset.X * 2));
@@ -104,13 +106,13 @@ namespace FreeTrainSimulator.Graphics.DrawableComponents
             MetricRuler metricRuler = MetricRuler.m100_000;
             ImperialRuler imperialRuler = ImperialRuler.i50_000;
             int rulerLength;
-            if (content.UseMetricUnits)
+            if (rulerContext.UseMetricUnits)
             {
-                while ((int)metricRuler * content.Scale > maxLength && metricRuler != MetricRuler.m0_0)
+                while ((int)metricRuler * rulerContext.Scale > maxLength && metricRuler != MetricRuler.m0_0)
                 {
                     metricRuler = metricRuler.Previous();
                 }
-                rulerLength = (int)((int)metricRuler * content.Scale);
+                rulerLength = (int)((int)metricRuler * rulerContext.Scale);
                 string key = $"{metricRuler.GetDescription()}::{rulerLength}";
                 if (!rulerTextures.TryGetValue(key, out texture))
                 {
@@ -120,11 +122,11 @@ namespace FreeTrainSimulator.Graphics.DrawableComponents
             }
             else
             {
-                while (imperialRulerData[(int)imperialRuler] * content.Scale > maxLength && imperialRuler != ImperialRuler.i0_0)
+                while (imperialRulerData[(int)imperialRuler] * rulerContext.Scale > maxLength && imperialRuler != ImperialRuler.i0_0)
                 {
                     imperialRuler = imperialRuler.Previous();
                 }
-                rulerLength = (int)(imperialRulerData[(int)imperialRuler] * content.Scale);
+                rulerLength = (int)(imperialRulerData[(int)imperialRuler] * rulerContext.Scale);
                 string key = $"{imperialRuler.GetDescription()}::{rulerLength}";
                 if (!rulerTextures.TryGetValue(key, out texture))
                 {

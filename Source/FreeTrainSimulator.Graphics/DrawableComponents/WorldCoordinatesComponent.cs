@@ -31,11 +31,12 @@ namespace FreeTrainSimulator.Graphics.DrawableComponents
 
         public override void Update(GameTime gameTime)
         {
+            IMapCoordinateOverlayContext coordinateContext = content as IMapCoordinateOverlayContext;
             ref readonly MouseState mouseState = ref input.MouseState;
-            if (mouseState != lastMouseState)
+            if (coordinateContext != null && mouseState != lastMouseState)
             {
                 lastMouseState = mouseState;
-                PointD worldPoint = content.ScreenToWorldCoordinates(mouseState.Position);
+                PointD worldPoint = coordinateContext.ScreenToWorldCoordinates(mouseState.Position);
                 WorldLocation location = PointD.ToWorldLocation(worldPoint);
                 (double latitude, double longitude) = EarthCoordinates.ConvertWTC(location);
 

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 
 using FreeTrainSimulator.Common.Position;
+using FreeTrainSimulator.Graphics.MapView;
 using FreeTrainSimulator.Graphics.MapView.Shapes;
 using FreeTrainSimulator.Graphics.MapView.Widgets;
 using FreeTrainSimulator.Graphics.Xna;
@@ -75,51 +76,53 @@ namespace FreeTrainSimulator.Graphics.DrawableComponents
 
         private RenderTarget2D DrawTrackInset()
         {
-            UpdateWindowSize();
+            IMapInsetOverlayContext insetContext = content as IMapInsetOverlayContext;
+            UpdateWindowSize(insetContext);
             RenderTarget2D renderTarget = renderHelper.CreateRenderTarget(size.X, size.Y);
             renderHelper.RenderToTarget(renderTarget, Color.White, spriteBatch =>
             {
-                content.DrawOverlayLine(borderSize, borderColor, new Vector2(borderSize, borderSize), size.X - borderSize - borderSize, 0, spriteBatch);
-                content.DrawOverlayLine(borderSize, borderColor, new Vector2(borderSize, size.Y - borderSize), size.X - borderSize - borderSize, 0, spriteBatch);
-                content.DrawOverlayLine(borderSize, borderColor, new Vector2(borderSize, borderSize), size.Y - borderSize - borderSize, MathHelper.ToRadians(90), spriteBatch);
-                content.DrawOverlayLine(borderSize, borderColor, new Vector2(size.X - borderSize, borderSize), size.Y - borderSize - borderSize, MathHelper.ToRadians(90), spriteBatch);
+                insetContext.DrawOverlayLine(borderSize, borderColor, new Vector2(borderSize, borderSize), size.X - borderSize - borderSize, 0, spriteBatch);
+                insetContext.DrawOverlayLine(borderSize, borderColor, new Vector2(borderSize, size.Y - borderSize), size.X - borderSize - borderSize, 0, spriteBatch);
+                insetContext.DrawOverlayLine(borderSize, borderColor, new Vector2(borderSize, borderSize), size.Y - borderSize - borderSize, MathHelper.ToRadians(90), spriteBatch);
+                insetContext.DrawOverlayLine(borderSize, borderColor, new Vector2(size.X - borderSize, borderSize), size.Y - borderSize - borderSize, MathHelper.ToRadians(90), spriteBatch);
 
                 if (null != trackSegments)
                 {
                     foreach (TrackSegment segment in trackSegments)
                     {
                         if (segment.Curved)
-                            content.DrawOverlayArc(WorldToScreenSize(segment.Size), Color.Black, WorldToScreenCoordinates(in segment.Location), WorldToScreenSize(segment.Radius), segment.Direction, segment.Angle, spriteBatch);
+                            insetContext.DrawOverlayArc(WorldToScreenSize(segment.Size), Color.Black, WorldToScreenCoordinates(in segment.Location), WorldToScreenSize(segment.Radius), segment.Direction, segment.Angle, spriteBatch);
                         else
-                            content.DrawOverlayLine(WorldToScreenSize(segment.Size), Color.Black, WorldToScreenCoordinates(in segment.Location), WorldToScreenSize(segment.Length), segment.Direction, spriteBatch);
+                            insetContext.DrawOverlayLine(WorldToScreenSize(segment.Size), Color.Black, WorldToScreenCoordinates(in segment.Location), WorldToScreenSize(segment.Length), segment.Direction, spriteBatch);
                     }
                 }
             });
             return renderTarget;
         }
 
-        private void UpdateWindowSize()
+        private void UpdateWindowSize(IMapInsetOverlayContext insetContext)
         {
-            double xScale = (double)size.X / content.ContentBounds.Width;
-            double yScale = (double)size.Y / content.ContentBounds.Height;
+            double xScale = (double)size.X / insetContext.ContentBounds.Width;
+            double yScale = (double)size.Y / insetContext.ContentBounds.Height;
             scale = Math.Min(xScale, yScale);
-            offsetX = ((content.ContentBounds.Left + content.ContentBounds.Right) / 2) - (size.X / 2 / scale);
-            offsetY = ((content.ContentBounds.Top + content.ContentBounds.Bottom) / 2) - (size.Y / 2 / scale);
+            offsetX = ((insetContext.ContentBounds.Left + insetContext.ContentBounds.Right) / 2) - (size.X / 2 / scale);
+            offsetY = ((insetContext.ContentBounds.Top + insetContext.ContentBounds.Bottom) / 2) - (size.Y / 2 / scale);
         }
 
         private void DrawClippingMarker()
         {
-            double width = content.BottomRightBound.X - content.TopLeftBound.X;
-            double height = content.TopLeftBound.Y - content.BottomRightBound.Y;
+            IMapInsetOverlayContext insetContext = content as IMapInsetOverlayContext;
+            double width = insetContext.BottomRightBound.X - insetContext.TopLeftBound.X;
+            double height = insetContext.TopLeftBound.Y - insetContext.BottomRightBound.Y;
             float screenWidth = WorldToScreenSize(width);
             float screenHeight = WorldToScreenSize(height);
-            Vector2 clippingPosition = WorldToScreenCoordinates(content.TopLeftBound) + position;
-            content.DrawOverlayLine(1f, Color.Red, clippingPosition, screenWidth, 0, spriteBatch);
-            content.DrawOverlayLine(1f, Color.Red, clippingPosition + new Vector2(0, screenHeight), screenWidth, 0, spriteBatch);
-            content.DrawOverlayLine(1f, Color.Red, clippingPosition, screenHeight, MathHelper.ToRadians(90), spriteBatch);
-            content.DrawOverlayLine(1f, Color.Red, clippingPosition + new Vector2(screenWidth, 0), screenHeight, MathHelper.ToRadians(90), spriteBatch);
+            Vector2 clippingPosition = WorldToScreenCoordinates(insetContext.TopLeftBound) + position;
+            insetContext.DrawOverlayLine(1f, Color.Red, clippingPosition, screenWidth, 0, spriteBatch);
+            insetContext.DrawOverlayLine(1f, Color.Red, clippingPosition + new Vector2(0, screenHeight), screenWidth, 0, spriteBatch);
+            insetContext.DrawOverlayLine(1f, Color.Red, clippingPosition, screenHeight, MathHelper.ToRadians(90), spriteBatch);
+            insetContext.DrawOverlayLine(1f, Color.Red, clippingPosition + new Vector2(screenWidth, 0), screenHeight, MathHelper.ToRadians(90), spriteBatch);
             if (screenWidth < 10 || screenHeight < 10)
-                content.DrawOverlayTexture(BasicTextureType.Circle, clippingPosition + (new Vector2(screenWidth, screenHeight) / 2), 0, -0.5f, Color.Red, spriteBatch);
+                insetContext.DrawOverlayTexture(BasicTextureType.Circle, clippingPosition + (new Vector2(screenWidth, screenHeight) / 2), 0, -0.5f, Color.Red, spriteBatch);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
