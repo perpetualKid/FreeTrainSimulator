@@ -26,7 +26,7 @@ namespace FreeTrainSimulator.Graphics.MapView
         EditPath,
     }
 
-    public class ToolboxContent : ContentBase, IPathEditorContext, ITrackNodeInfoContext, ITrackItemInfoContext
+    public class ToolboxContent : ContentBase, IPathEditorContext, IPathEditorContextServicesAccessor, ITrackNodeInfoContext, ITrackItemInfoContext
     {
         private (double distance, INameValueInformationProvider statusItem) nearestSegmentForStatus;
         private (double distance, INameValueInformationProvider statusItem) nearestItemForStatus;
@@ -50,9 +50,12 @@ namespace FreeTrainSimulator.Graphics.MapView
             }
         }
 
+        private readonly IPathEditorServices pathEditorServices;
+
         internal ToolboxContent(Game game, MouseInputGameComponent mouseInputGameComponent, IMapSessionComposer sessionComposer, IMapInsetHost insetHost = null, IMapTextureHelperHost textureHelperHost = null) :
             base(game, mouseInputGameComponent, sessionComposer, insetHost, textureHelperHost)
         {
+            pathEditorServices = new PathEditorServices(game);
             FormattingOptions.Add("Route Information", FormatOption.Bold);
             DetailInfo.Add("Route Information", null);
             DetailInfo["Route Name"] = RuntimeDataResolver.GameInstance(game).RouteData.Name;
@@ -89,7 +92,7 @@ namespace FreeTrainSimulator.Graphics.MapView
             ContentArea.UpdateTrackWidthSettings(limitTrackWidth);
         }
 
-        Game IPathEditorContext.Game => Game;
+        IPathEditorServices IPathEditorContextServicesAccessor.Services => pathEditorServices;
 
         IMapRenderer IPathEditorContext.Renderer => Renderer;
 

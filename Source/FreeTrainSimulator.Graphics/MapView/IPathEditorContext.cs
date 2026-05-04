@@ -4,8 +4,6 @@ namespace FreeTrainSimulator.Graphics.MapView
 {
     public interface IPathEditorContext
     {
-        Game Game { get; }
-
         IMapRenderer Renderer { get; }
 
         IMapViewport Viewport { get; }

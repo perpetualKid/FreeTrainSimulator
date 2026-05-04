@@ -34,7 +34,8 @@ namespace FreeTrainSimulator.Graphics.MapView
             ArgumentNullException.ThrowIfNull(editorContext);
 
             this.editorContext = editorContext;
-            TrackWorld = TrackWorld.GameInstance(editorContext.Game);
+            IPathEditorServices services = ((IPathEditorContextServicesAccessor)editorContext).Services;
+            TrackWorld = services.TrackWorld;
             this.editorContext.PathEditor = this;
         }
 
@@ -59,7 +60,7 @@ namespace FreeTrainSimulator.Graphics.MapView
         protected void InitializePathModel(PathModelHeader pathModel)
         {
             EditMode = false;
-            trainPath = pathModel != null ? new EditorTrainPath(Task.Run(async () => await pathModel.GetExtended(CancellationToken.None).ConfigureAwait(false)).Result, editorContext.Game) : null;
+            trainPath = ((IPathEditorContextServicesAccessor)editorContext).Services.CreateEditorTrainPath(pathModel);
             if (trainPath != null && trainPath.TopLeftBound != PointD.None && trainPath.BottomRightBound != PointD.None)
             {
                 editorContext.Viewport?.UpdateScaleToFit(trainPath.TopLeftBound, trainPath.BottomRightBound);
@@ -76,7 +77,7 @@ namespace FreeTrainSimulator.Graphics.MapView
         {
             EditMode = true;
             editorContext.ContentMode = ToolboxContentMode.EditPath;
-            trainPath = new EditorTrainPath(pathModel, editorContext.Game);
+            trainPath = ((IPathEditorContextServicesAccessor)editorContext).Services.CreateEditorTrainPath(pathModel);
             activePathPoint = new EditorPathPoint(PointD.None, PointD.None, PathNodeType.Start);
         }
 
