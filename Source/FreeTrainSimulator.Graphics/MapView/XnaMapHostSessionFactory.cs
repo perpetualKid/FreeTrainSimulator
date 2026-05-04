@@ -4,7 +4,7 @@ using Microsoft.Xna.Framework;
 
 namespace FreeTrainSimulator.Graphics.MapView
 {
-    public sealed class XnaMapHostSessionFactory : IMapHostSessionFactory
+    internal sealed class XnaMapHostSessionFactory : IMapHostSessionFactory
     {
         public IMapHostSession Create(Game game, ContentBase content, MouseInputGameComponent mouseInputGameComponent)
         {

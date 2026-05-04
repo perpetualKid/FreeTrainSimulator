@@ -1,6 +1,8 @@
+using System;
+
 namespace FreeTrainSimulator.Graphics.MapView
 {
-    public interface IMapHostSession
+    internal interface IMapHostSession : IDisposable
     {
         IMapViewStateAdapter ViewStateAdapter { get; }
 
@@ -9,7 +11,5 @@ namespace FreeTrainSimulator.Graphics.MapView
         IMapInteractionAdapter InteractionAdapter { get; }
 
         IMapOverlayShapeAdapter OverlayShapeAdapter { get; }
-
-        void Dispose();
     }
 }

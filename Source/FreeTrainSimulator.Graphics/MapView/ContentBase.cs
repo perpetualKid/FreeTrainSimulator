@@ -29,13 +29,15 @@ namespace FreeTrainSimulator.Graphics.MapView
 
         public string RouteName { get; }
 
-        public ContentArea ContentArea { get; }
+        public IMapSession Session { get; }
 
-        internal IMapRenderer Renderer => ContentArea;
+        public ContentArea ContentArea => ((IContentAreaSessionAccessor)Session).ContentArea;
 
-        internal IMapViewport Viewport => ContentArea;
+        internal IMapRenderer Renderer => Session.Renderer;
 
-        internal IMapHostControl HostControl => ContentArea;
+        internal IMapViewport Viewport => Session.Viewport;
+
+        internal IMapHostControl HostControl => Session.HostControl;
 
         internal IMapInsetHost InsetHost { get; }
 
@@ -47,14 +49,14 @@ namespace FreeTrainSimulator.Graphics.MapView
 
         public Dictionary<string, FormatOption> FormattingOptions { get; } = new Dictionary<string, FormatOption>();
 
-        protected ContentBase(Game game, MouseInputGameComponent mouseInputGameComponent, IMapHostSessionFactory hostSessionFactory, IMapInsetHost insetHost = null, IMapTextureHelperHost textureHelperHost = null)
+        protected ContentBase(Game game, MouseInputGameComponent mouseInputGameComponent, IMapSessionComposer sessionComposer, IMapInsetHost insetHost = null, IMapTextureHelperHost textureHelperHost = null)
         {
             this.game = game ?? throw new ArgumentNullException(nameof(game));
             InsetHost = insetHost;
             TextureHelperHost = textureHelperHost;
             if (null == RuntimeDataResolver.GameInstance(game))
                 throw new InvalidOperationException("RuntimeData not initialized!");
-            ContentArea = new ContentArea(game, this, mouseInputGameComponent, hostSessionFactory);
+            Session = sessionComposer.Compose(new MapSessionRequest(game, mouseInputGameComponent, this, insetHost, textureHelperHost));
             RouteName = RuntimeDataResolver.GameInstance(game).RouteData.Name;
             UseMetricUnits = RuntimeDataResolver.GameInstance(game).MetricUnits;
         }

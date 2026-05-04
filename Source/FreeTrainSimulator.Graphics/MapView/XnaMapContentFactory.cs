@@ -6,26 +6,26 @@ namespace FreeTrainSimulator.Graphics.MapView
 {
     public sealed class XnaMapContentFactory : IMapContentFactory
     {
-        private readonly IMapHostSessionFactory hostSessionFactory;
+        private readonly IMapSessionComposer sessionComposer;
 
         public XnaMapContentFactory()
-            : this(new XnaMapHostSessionFactory())
+            : this(new XnaMapSessionComposer())
         {
         }
 
-        public XnaMapContentFactory(IMapHostSessionFactory hostSessionFactory)
+        public XnaMapContentFactory(IMapSessionComposer sessionComposer)
         {
-            this.hostSessionFactory = hostSessionFactory;
+            this.sessionComposer = sessionComposer;
         }
 
         public ToolboxContent CreateToolboxContent(Game game, MouseInputGameComponent mouseInputGameComponent, IMapInsetHost insetHost = null, IMapTextureHelperHost textureHelperHost = null)
         {
-            return new ToolboxContent(game, mouseInputGameComponent, hostSessionFactory, insetHost, textureHelperHost);
+            return new ToolboxContent(game, mouseInputGameComponent, sessionComposer, insetHost, textureHelperHost);
         }
 
         public DispatcherContent CreateDispatcherContent(Game game, MouseInputGameComponent mouseInputGameComponent, IMapInsetHost insetHost = null, IMapTextureHelperHost textureHelperHost = null)
         {
-            return new DispatcherContent(game, mouseInputGameComponent, hostSessionFactory, insetHost, textureHelperHost);
+            return new DispatcherContent(game, mouseInputGameComponent, sessionComposer, insetHost, textureHelperHost);
         }
     }
 }
