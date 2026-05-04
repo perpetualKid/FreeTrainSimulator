@@ -5,19 +5,18 @@ namespace FreeTrainSimulator.Graphics.MapView
     internal sealed class XnaMapHostResources : IMapHostResources
     {
         private readonly MapTextTextureCache ownedTextCache;
-
-        public SpriteBatch SpriteBatch { get; }
+        private readonly SpriteBatch spriteBatch;
 
         public XnaMapHostResources(SpriteBatch spriteBatch, MapTextTextureCache ownedTextCache)
         {
-            SpriteBatch = spriteBatch;
+            this.spriteBatch = spriteBatch;
             this.ownedTextCache = ownedTextCache;
         }
 
         public void Dispose()
         {
             ownedTextCache?.Dispose();
-            SpriteBatch?.Dispose();
+            spriteBatch?.Dispose();
         }
     }
 }

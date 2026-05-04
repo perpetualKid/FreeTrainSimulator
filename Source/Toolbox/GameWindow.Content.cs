@@ -125,10 +125,10 @@ namespace FreeTrainSimulator.Toolbox
             if (ctsProfileLoading.Token.IsCancellationRequested)
                 return;
 
-            ToolboxContent content = new ToolboxContent(
+            IMapContentFactory contentFactory = new XnaMapContentFactory();
+            ToolboxContent content = contentFactory.CreateToolboxContent(
                 this,
                 Components.OfType<MouseInputGameComponent>().FirstOrDefault(),
-                new XnaMapHostAdapterFactory(),
                 new XnaMapInsetHost(Components.OfType<InsetComponent>().FirstOrDefault()),
                 new XnaMapTextureHelperHost(Components.OfType<TextureContentComponent>()));
 

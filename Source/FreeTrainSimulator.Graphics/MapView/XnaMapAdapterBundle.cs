@@ -31,13 +31,11 @@ namespace FreeTrainSimulator.Graphics.MapView
 
         public IMapViewController Controller { get; }
 
-        public MapViewAdapterSet AdapterSet { get; }
+        public IMapViewStateAdapter ViewStateAdapter { get; }
 
-        public IMapViewStateAdapter ViewStateAdapter => AdapterSet.ViewStateAdapter;
+        public IMapRenderAdapter RenderAdapter { get; }
 
-        public IMapRenderAdapter RenderAdapter => AdapterSet.RenderAdapter;
-
-        public IMapInteractionAdapter InteractionAdapter => AdapterSet.InteractionAdapter;
+        public IMapInteractionAdapter InteractionAdapter { get; }
 
         public IMapHostResources HostResources { get; }
 
@@ -58,10 +56,9 @@ namespace FreeTrainSimulator.Graphics.MapView
 
             FontManagerInstance fontManager = FontManager.Scaled("Arial", System.Drawing.FontStyle.Regular);
             System.Drawing.Font constantSizeFont = fontManager[25];
-            MapViewStateAdapter viewStateAdapter = new MapViewStateAdapter(Controller, constantSizeFont);
-            MapRenderAdapter renderAdapter = new MapRenderAdapter(Controller, RenderBackend);
-            MapInteractionAdapter interactionAdapter = new MapInteractionAdapter(fontManager, Controller, HostEnvironment, viewStateAdapter);
-            AdapterSet = new MapViewAdapterSet(viewStateAdapter, renderAdapter, interactionAdapter);
+            ViewStateAdapter = new MapViewStateAdapter(Controller, constantSizeFont);
+            RenderAdapter = new MapRenderAdapter(Controller, RenderBackend);
+            InteractionAdapter = new MapInteractionAdapter(fontManager, Controller, HostEnvironment, (IMapViewFontState)ViewStateAdapter);
             HostResources = new XnaMapHostResources(SpriteBatch, OwnedTextCache);
         }
     }

@@ -220,10 +220,10 @@ namespace Orts.ActivityRunner.Viewer3D.Dispatcher
             Components.Add(scaleRuler);
             Components.Add(new InsetComponent(this, Color.DarkGray, new Vector2(-10, 30)));
 
-            content = new DispatcherContent(
+            IMapContentFactory contentFactory = new XnaMapContentFactory();
+            content = contentFactory.CreateDispatcherContent(
                 this,
                 Components.OfType<MouseInputGameComponent>().FirstOrDefault(),
-                new XnaMapHostAdapterFactory(),
                 new XnaMapInsetHost(Components.OfType<InsetComponent>().FirstOrDefault()),
                 new XnaMapTextureHelperHost(Components.OfType<TextureContentComponent>()));
             await content.Initialize().ConfigureAwait(true);
