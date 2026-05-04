@@ -14,11 +14,12 @@ namespace FreeTrainSimulator.Graphics.MapView
 
         public IMapHostControl HostControl => contentArea;
 
-        public DrawableGameComponent ShellComponent => contentArea;
+        public IMapShellHost ShellHost { get; }
 
         public XnaMapSession(ContentArea contentArea)
         {
             this.contentArea = contentArea ?? throw new ArgumentNullException(nameof(contentArea));
+            ShellHost = new XnaMapShellHost(contentArea);
         }
 
         public void Dispose()

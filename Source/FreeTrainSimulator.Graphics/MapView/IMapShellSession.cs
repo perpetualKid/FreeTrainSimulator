@@ -4,6 +4,6 @@ namespace FreeTrainSimulator.Graphics.MapView
 {
     public interface IMapShellSession : IMapSession
     {
-        DrawableGameComponent ShellComponent { get; }
+        IMapShellHost ShellHost { get; }
     }
 }
