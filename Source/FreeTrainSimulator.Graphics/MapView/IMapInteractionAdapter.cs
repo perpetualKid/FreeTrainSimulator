@@ -8,7 +8,7 @@ using Microsoft.Xna.Framework;
 
 namespace FreeTrainSimulator.Graphics.MapView
 {
-    internal interface IMapInteractionAdapter
+    public interface IMapInteractionAdapter
     {
         void SyncViewport(in Rectangle bounds);
 
@@ -55,6 +55,8 @@ namespace FreeTrainSimulator.Graphics.MapView
         void UpdateFrameState(ref bool suppressDrawing);
 
         void HandleEnabledChanged(bool enabled, ContentArea contentArea, IMapTextureHelperHost textureHelperHost);
+
+        void RefreshFonts(ref System.Drawing.Font currentFont);
 
         void RefreshAfterReset(ContentBase content, in Point windowSize, int screenDelta, ref System.Drawing.Font currentFont);
 

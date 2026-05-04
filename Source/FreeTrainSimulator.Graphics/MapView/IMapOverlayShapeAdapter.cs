@@ -5,7 +5,7 @@ using Microsoft.Xna.Framework.Graphics;
 
 namespace FreeTrainSimulator.Graphics.MapView
 {
-    internal interface IMapOverlayShapeAdapter
+    public interface IMapOverlayShapeAdapter
     {
         void DrawLine(float width, Color color, Vector2 point, float length, double angle, SpriteBatch spriteBatch);
 

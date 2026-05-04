@@ -2,7 +2,7 @@ using Microsoft.Xna.Framework.Graphics;
 
 namespace FreeTrainSimulator.Graphics.MapView
 {
-    internal interface IMapHostResources
+    public interface IMapHostResources
     {
         SpriteBatch SpriteBatch { get; }
 

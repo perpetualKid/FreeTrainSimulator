@@ -47,14 +47,14 @@ namespace FreeTrainSimulator.Graphics.MapView
 
         public Dictionary<string, FormatOption> FormattingOptions { get; } = new Dictionary<string, FormatOption>();
 
-        protected ContentBase(Game game, MouseInputGameComponent mouseInputGameComponent, IMapInsetHost insetHost = null, IMapTextureHelperHost textureHelperHost = null)
+        protected ContentBase(Game game, MouseInputGameComponent mouseInputGameComponent, IMapHostAdapterFactory adapterFactory, IMapInsetHost insetHost = null, IMapTextureHelperHost textureHelperHost = null)
         {
             this.game = game ?? throw new ArgumentNullException(nameof(game));
             InsetHost = insetHost;
             TextureHelperHost = textureHelperHost;
             if (null == RuntimeDataResolver.GameInstance(game))
                 throw new InvalidOperationException("RuntimeData not initialized!");
-            ContentArea = new ContentArea(game, this, mouseInputGameComponent);
+            ContentArea = new ContentArea(game, this, mouseInputGameComponent, adapterFactory);
             RouteName = RuntimeDataResolver.GameInstance(game).RouteData.Name;
             UseMetricUnits = RuntimeDataResolver.GameInstance(game).MetricUnits;
         }

@@ -223,6 +223,7 @@ namespace Orts.ActivityRunner.Viewer3D.Dispatcher
             content = new DispatcherContent(
                 this,
                 Components.OfType<MouseInputGameComponent>().FirstOrDefault(),
+                new XnaMapHostAdapterFactory(),
                 new XnaMapInsetHost(Components.OfType<InsetComponent>().FirstOrDefault()),
                 new XnaMapTextureHelperHost(Components.OfType<TextureContentComponent>()));
             await content.Initialize().ConfigureAwait(true);

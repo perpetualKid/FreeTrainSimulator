@@ -16,8 +16,6 @@ namespace FreeTrainSimulator.Graphics.MapView
     {
         private const int zoomAmplifier = 3;
 
-        internal SpriteBatch SpriteBatch => hostResources.SpriteBatch;
-
 #pragma warning disable CA1859 // Use concrete types when possible for improved performance
         private readonly IMapViewStateAdapter viewStateAdapter;
         private readonly IMapRenderAdapter renderAdapter;
@@ -38,14 +36,14 @@ namespace FreeTrainSimulator.Graphics.MapView
         public System.Drawing.Font CurrentFont => viewStateAdapter.CurrentFont;
         public System.Drawing.Font ConstantSizeFont => viewStateAdapter.ConstantSizeFont;
 
-        internal ContentArea(Game game, ContentBase content, MouseInputGameComponent mouseInputGameComponent) :
+        internal ContentArea(Game game, ContentBase content, MouseInputGameComponent mouseInputGameComponent, IMapHostAdapterFactory adapterFactory) :
             base(game)
         {
             ArgumentNullException.ThrowIfNull(game);
+            ArgumentNullException.ThrowIfNull(adapterFactory);
 
             Content = content ?? throw new ArgumentNullException(nameof(content));
 
-            IMapHostAdapterFactory adapterFactory = new XnaMapHostAdapterFactory();
             IMapHostAdapterBundle adapterBundle = adapterFactory.Create(game, content, mouseInputGameComponent);
             hostResources = adapterBundle.HostResources;
             viewStateAdapter = adapterBundle.ViewStateAdapter;

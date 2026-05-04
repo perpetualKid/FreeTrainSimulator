@@ -8,7 +8,7 @@ using Microsoft.Xna.Framework.Graphics;
 
 namespace FreeTrainSimulator.Graphics.MapView
 {
-    internal interface IMapRenderAdapter
+    public interface IMapRenderAdapter
     {
         void NotifyFrameRendered(ref bool suppressDrawing);
 

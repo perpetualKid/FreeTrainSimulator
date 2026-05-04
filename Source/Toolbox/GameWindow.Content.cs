@@ -128,6 +128,7 @@ namespace FreeTrainSimulator.Toolbox
             ToolboxContent content = new ToolboxContent(
                 this,
                 Components.OfType<MouseInputGameComponent>().FirstOrDefault(),
+                new XnaMapHostAdapterFactory(),
                 new XnaMapInsetHost(Components.OfType<InsetComponent>().FirstOrDefault()),
                 new XnaMapTextureHelperHost(Components.OfType<TextureContentComponent>()));
 

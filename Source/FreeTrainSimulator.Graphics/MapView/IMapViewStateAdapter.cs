@@ -5,7 +5,7 @@ using Microsoft.Xna.Framework;
 
 namespace FreeTrainSimulator.Graphics.MapView
 {
-    internal interface IMapViewStateAdapter
+    public interface IMapViewStateAdapter
     {
         double Scale { get; }
 
