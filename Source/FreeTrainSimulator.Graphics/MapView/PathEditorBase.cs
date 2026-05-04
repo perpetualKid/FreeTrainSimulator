@@ -29,12 +29,12 @@ namespace FreeTrainSimulator.Graphics.MapView
 
         public bool EditMode { get; private set; }
 
-        protected PathEditorBase(ContentArea contentArea)
+        protected PathEditorBase(ToolboxContent toolboxContent)
         {
-            ArgumentNullException.ThrowIfNull(contentArea);
+            ArgumentNullException.ThrowIfNull(toolboxContent);
 
-            TrackWorld = TrackWorld.GameInstance(contentArea.Game);
-            ToolboxContent = contentArea?.Content as ToolboxContent ?? throw new ArgumentNullException(nameof(contentArea));
+            TrackWorld = TrackWorld.GameInstance(toolboxContent.Game);
+            ToolboxContent = toolboxContent;
             ToolboxContent.PathEditor = this;
         }
 
@@ -59,7 +59,7 @@ namespace FreeTrainSimulator.Graphics.MapView
         protected void InitializePathModel(PathModelHeader pathModel)
         {
             EditMode = false;
-            trainPath = pathModel != null ? new EditorTrainPath(Task.Run(async () => await pathModel.GetExtended(CancellationToken.None).ConfigureAwait(false)).Result, ToolboxContent.ContentArea.Game) : null;
+            trainPath = pathModel != null ? new EditorTrainPath(Task.Run(async () => await pathModel.GetExtended(CancellationToken.None).ConfigureAwait(false)).Result, ToolboxContent.Game) : null;
             if (trainPath != null && trainPath.TopLeftBound != PointD.None && trainPath.BottomRightBound != PointD.None)
             {
                 ToolboxContent.Viewport?.UpdateScaleToFit(trainPath.TopLeftBound, trainPath.BottomRightBound);
@@ -76,7 +76,7 @@ namespace FreeTrainSimulator.Graphics.MapView
         {
             EditMode = true;
             ToolboxContent.ContentMode = ToolboxContentMode.EditPath;
-            trainPath = new EditorTrainPath(pathModel, ToolboxContent.ContentArea.Game);
+            trainPath = new EditorTrainPath(pathModel, ToolboxContent.Game);
             activePathPoint = new EditorPathPoint(PointD.None, PointD.None, PathNodeType.Start);
         }
 

@@ -35,9 +35,9 @@ namespace FreeTrainSimulator.Toolbox
         internal event EventHandler<PathEditorChangedEventArgs> OnPathUpdated;
         private readonly int doubleClickInterval = System.Windows.Forms.SystemInformation.DoubleClickTime;
 
-        public PathEditor(ContentArea contentArea) : base(contentArea) { }
+        public PathEditor(ToolboxContent toolboxContent) : base(toolboxContent) { }
 
-        public PathEditor(ContentArea contentArea, UserCommandController<UserCommand> userCommandController) : base(contentArea)
+        public PathEditor(ToolboxContent toolboxContent, UserCommandController<UserCommand> userCommandController) : base(toolboxContent)
         {
             this.userCommandController = userCommandController;
             userCommandController.AddEvent(CommonUserCommand.PointerReleased, MouseReleasedLeft);

@@ -44,14 +44,15 @@ namespace FreeTrainSimulator.Toolbox
         private CancellationTokenSource ctsProfileLoading;
         private CancellationTokenSource ctsRouteLoading;
         private PathEditor pathEditor;
+        private ToolboxContent toolboxContent;
 
         internal PathEditor PathEditor
         {
             get
             {
-                if (null == pathEditor && contentArea != null)
+                if (null == pathEditor && toolboxContent != null)
                 {
-                    pathEditor = new PathEditor(contentArea, userCommandController);
+                    pathEditor = new PathEditor(toolboxContent, userCommandController);
                     pathEditor.OnPathChanged += PathEditor_OnEditorPathChanged;
                 }
                 return pathEditor;
@@ -126,16 +127,16 @@ namespace FreeTrainSimulator.Toolbox
                 return;
 
             IMapContentFactory contentFactory = new XnaMapContentFactory();
-            ToolboxContent content = contentFactory.CreateToolboxContent(
+            toolboxContent = contentFactory.CreateToolboxContent(
                 this,
                 Components.OfType<MouseInputGameComponent>().FirstOrDefault(),
                 new XnaMapInsetHost(Components.OfType<InsetComponent>().FirstOrDefault()),
                 new XnaMapTextureHelperHost(Components.OfType<TextureContentComponent>()));
 
-            await content.Initialize().ConfigureAwait(true);
-            content.InitializeItemVisiblity(ToolboxSettings.ViewSettings);
-            content.UpdateWidgetColorSettings(ToolboxSettings.ColorSettings, ToolboxSettings.FontOutline, ToolboxSettings.LimitTrackWidth);
-            ContentArea = content.ContentArea;
+            await toolboxContent.Initialize().ConfigureAwait(true);
+            toolboxContent.InitializeItemVisiblity(ToolboxSettings.ViewSettings);
+            toolboxContent.UpdateWidgetColorSettings(ToolboxSettings.ColorSettings, ToolboxSettings.FontOutline, ToolboxSettings.LimitTrackWidth);
+            ContentArea = toolboxContent.ContentArea;
             mainmenu.PopulatePaths(await pathTask.ConfigureAwait(true));
             _ = windowManager[ToolboxWindowType.StatusWindow].Close();
             selectedRoute = route;
