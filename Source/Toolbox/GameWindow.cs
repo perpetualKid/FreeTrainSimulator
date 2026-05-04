@@ -482,7 +482,7 @@ namespace FreeTrainSimulator.Toolbox
             }));
             windowManager.SetLazyWindows(ToolboxWindowType.TrainPathWindow, new Lazy<FormBase>(() =>
             {
-                TrainPathWindow trainPathDetailWindow = new TrainPathWindow(windowManager, ToolboxSettings, ToolboxSettings.PopupLocations[ToolboxWindowType.TrainPathWindow].ToPoint());
+                TrainPathWindow trainPathDetailWindow = new TrainPathWindow(windowManager, ToolboxSettings, new TrainPathToolingContext(selectedRoute, ToolboxUserSettings.MeasurementUnit == MeasurementUnit.Route ? selectedRoute?.MetricUnits ?? true : ToolboxUserSettings.MeasurementUnit == MeasurementUnit.Metric || (ToolboxUserSettings.MeasurementUnit == MeasurementUnit.System && System.Globalization.RegionInfo.CurrentRegion.IsMetric)), ToolboxSettings.PopupLocations[ToolboxWindowType.TrainPathWindow].ToPoint());
                 OnPathEditorChanged += trainPathDetailWindow.GameWindow_OnPathEditorChanged;
                 return trainPathDetailWindow;
             }));

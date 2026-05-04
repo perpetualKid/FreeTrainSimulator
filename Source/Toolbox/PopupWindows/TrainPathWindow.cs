@@ -76,12 +76,14 @@ namespace FreeTrainSimulator.Toolbox.PopupWindows
         private NameValueTextGrid metadataGrid;
         private readonly ProfileToolboxSettingsModel toolboxSettings;
         private readonly TrainPathMetadataInformation metadataInformationProvider;
+        private readonly ITrainPathToolingContext toolingContext;
         private PathEditor pathEditor;
 
-        public TrainPathWindow(WindowManager owner, ProfileToolboxSettingsModel settings, Point relativeLocation, Catalog catalog = null) :
+        public TrainPathWindow(WindowManager owner, ProfileToolboxSettingsModel settings, ITrainPathToolingContext toolingContext, Point relativeLocation, Catalog catalog = null) :
             base(owner, (catalog ??= CatalogManager.Catalog).GetString("Train Path Details"), relativeLocation, new Point(360, 300), catalog)
         {
-            metadataInformationProvider = new TrainPathMetadataInformation(RuntimeDataResolver.GameInstance(owner.Game).MetricUnits);
+            this.toolingContext = toolingContext;
+            metadataInformationProvider = new TrainPathMetadataInformation(toolingContext?.UseMetricUnits ?? true);
             toolboxSettings = settings;
             contentUpdated = true;
             pathEditor = (Owner.Game as GameWindow)?.PathEditor;
@@ -289,7 +291,7 @@ namespace FreeTrainSimulator.Toolbox.PopupWindows
             {
                 RadioButtonGroup group = new RadioButtonGroup();
                 ControlLayoutHorizontal line;
-                ImmutableArray<PathModelHeader> trainPaths = RuntimeDataResolver.GameInstance(Owner.Game).RouteData.GetPaths();
+                ImmutableArray<PathModelHeader> trainPaths = toolingContext?.GetPaths().GetAwaiter().GetResult() ?? ImmutableArray<PathModelHeader>.Empty;
                 foreach (PathModelHeader path in trainPaths.OrderBy(p => p.Name))
                 {
                     RadioButton radioButton;
