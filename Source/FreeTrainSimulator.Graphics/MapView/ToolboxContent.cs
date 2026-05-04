@@ -26,14 +26,14 @@ namespace FreeTrainSimulator.Graphics.MapView
         EditPath,
     }
 
-    public class ToolboxContent : ContentBase
+    public class ToolboxContent : ContentBase, IPathEditorContext
     {
         private (double distance, INameValueInformationProvider statusItem) nearestSegmentForStatus;
         private (double distance, INameValueInformationProvider statusItem) nearestItemForStatus;
 
         private ToolboxContentMode contentMode;
 
-        internal PathEditorBase PathEditor { get; set; }
+        public PathEditorBase PathEditor { get; set; }
 
         public INameValueInformationProvider TrackNodeInfo { get; } = new DetailInfoProxy();
 
@@ -42,7 +42,7 @@ namespace FreeTrainSimulator.Graphics.MapView
         public ToolboxContentMode ContentMode
         {
             get => contentMode;
-            internal set
+            set
             {
                 contentMode = value;
                 if (value == ToolboxContentMode.ViewPath)
@@ -89,6 +89,23 @@ namespace FreeTrainSimulator.Graphics.MapView
             ContentArea.UpdateTrackWidthSettings(limitTrackWidth);
         }
 
+        Game IPathEditorContext.Game => Game;
+
+        IMapRenderer IPathEditorContext.Renderer => Renderer;
+
+        IMapViewport IPathEditorContext.Viewport => Viewport;
+
+        ToolboxContentMode IPathEditorContext.ContentMode
+        {
+            get => ContentMode;
+            set => ContentMode = value;
+        }
+
+        PathEditorBase IPathEditorContext.PathEditor
+        {
+            get => PathEditor;
+            set => PathEditor = value;
+        }
         internal override void UpdatePointerLocation(in PointD position, in Tile bottomLeft, in Tile topRight)
         {
             nearestSegmentForStatus = (float.MaxValue, null);

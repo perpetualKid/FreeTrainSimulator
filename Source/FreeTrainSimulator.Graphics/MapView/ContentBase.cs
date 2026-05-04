@@ -35,9 +35,9 @@ namespace FreeTrainSimulator.Graphics.MapView
 
         public ContentArea ContentArea => ((IContentAreaSessionAccessor)Session).ContentArea;
 
-        internal IMapRenderer Renderer => Session.Renderer;
+        public IMapRenderer Renderer => Session.Renderer;
 
-        internal IMapViewport Viewport => Session.Viewport;
+        public IMapViewport Viewport => Session.Viewport;
 
         internal IMapHostControl HostControl => Session.HostControl;
 

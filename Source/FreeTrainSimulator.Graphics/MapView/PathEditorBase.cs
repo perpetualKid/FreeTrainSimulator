@@ -18,7 +18,7 @@ namespace FreeTrainSimulator.Graphics.MapView
 
         private bool disposedValue;
 
-        protected ToolboxContent ToolboxContent { get; }
+        private readonly IPathEditorContext editorContext;
         protected TrackWorld TrackWorld { get; }
 
         public TrainPathBase TrainPath
@@ -29,13 +29,13 @@ namespace FreeTrainSimulator.Graphics.MapView
 
         public bool EditMode { get; private set; }
 
-        protected PathEditorBase(ToolboxContent toolboxContent)
+        protected PathEditorBase(IPathEditorContext editorContext)
         {
-            ArgumentNullException.ThrowIfNull(toolboxContent);
+            ArgumentNullException.ThrowIfNull(editorContext);
 
-            TrackWorld = TrackWorld.GameInstance(toolboxContent.Game);
-            ToolboxContent = toolboxContent;
-            ToolboxContent.PathEditor = this;
+            this.editorContext = editorContext;
+            TrackWorld = TrackWorld.GameInstance(editorContext.Game);
+            this.editorContext.PathEditor = this;
         }
 
         internal void UpdatePointerLocation(in PointD location, TrackSegmentBase nearestSegment)
@@ -51,32 +51,32 @@ namespace FreeTrainSimulator.Graphics.MapView
 
         internal void Draw()
         {
-            trainPath?.Draw(ToolboxContent.Renderer);
-            activePathPoint?.Draw(ToolboxContent.Renderer);
+            trainPath?.Draw(editorContext.Renderer);
+            activePathPoint?.Draw(editorContext.Renderer);
         }
 
         #region additional content (Paths)
         protected void InitializePathModel(PathModelHeader pathModel)
         {
             EditMode = false;
-            trainPath = pathModel != null ? new EditorTrainPath(Task.Run(async () => await pathModel.GetExtended(CancellationToken.None).ConfigureAwait(false)).Result, ToolboxContent.Game) : null;
+            trainPath = pathModel != null ? new EditorTrainPath(Task.Run(async () => await pathModel.GetExtended(CancellationToken.None).ConfigureAwait(false)).Result, editorContext.Game) : null;
             if (trainPath != null && trainPath.TopLeftBound != PointD.None && trainPath.BottomRightBound != PointD.None)
             {
-                ToolboxContent.Viewport?.UpdateScaleToFit(trainPath.TopLeftBound, trainPath.BottomRightBound);
-                ToolboxContent.Viewport?.SetTrackingPosition(trainPath.MidPoint);
-                ToolboxContent.ContentMode = ToolboxContentMode.ViewPath;
+                editorContext.Viewport?.UpdateScaleToFit(trainPath.TopLeftBound, trainPath.BottomRightBound);
+                editorContext.Viewport?.SetTrackingPosition(trainPath.MidPoint);
+                editorContext.ContentMode = ToolboxContentMode.ViewPath;
             }
             else
             {
-                ToolboxContent.ContentMode = ToolboxContentMode.ViewRoute;
+                editorContext.ContentMode = ToolboxContentMode.ViewRoute;
             }
         }
 
         protected void InitializePathEdit(PathModel pathModel)
         {
             EditMode = true;
-            ToolboxContent.ContentMode = ToolboxContentMode.EditPath;
-            trainPath = new EditorTrainPath(pathModel, ToolboxContent.Game);
+            editorContext.ContentMode = ToolboxContentMode.EditPath;
+            trainPath = new EditorTrainPath(pathModel, editorContext.Game);
             activePathPoint = new EditorPathPoint(PointD.None, PointD.None, PathNodeType.Start);
         }
 
@@ -94,7 +94,7 @@ namespace FreeTrainSimulator.Graphics.MapView
                 trainPath.PathPoints[^1] = activePathPoint with { NodeType = PathNodeType.End };
 
                 activePathPoint = null;
-                ToolboxContent.ContentMode = ToolboxContentMode.ViewPath;
+                editorContext.ContentMode = ToolboxContentMode.ViewPath;
                 EditMode = false;
 
                 return true;
@@ -120,7 +120,7 @@ namespace FreeTrainSimulator.Graphics.MapView
             trainPath.SelectedNodeIndex = index;
             TrainPathPointBase item = trainPath.SelectedNode;
             if (item != null)
-                ToolboxContent.Viewport.SetTrackingPosition(item.Location);
+                editorContext.Viewport.SetTrackingPosition(item.Location);
         }
 
         protected virtual void Dispose(bool disposing)
@@ -128,7 +128,7 @@ namespace FreeTrainSimulator.Graphics.MapView
             if (!disposedValue)
             {
                 if (disposing)
-                    ToolboxContent.PathEditor = null;
+                    editorContext.PathEditor = null;
                 disposedValue = true;
             }
         }
