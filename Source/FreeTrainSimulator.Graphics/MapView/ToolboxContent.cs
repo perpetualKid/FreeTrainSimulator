@@ -119,9 +119,13 @@ namespace FreeTrainSimulator.Graphics.MapView
 
         ToolboxContent ITrackNodeInfoContext.Content => this;
 
+        TrackWorld ITrackNodeInfoContext.TrackWorld => trackWorld;
+
         INameValueInformationProvider ITrackItemInfoContext.TrackItemInfo => TrackItemInfo;
 
         IMapViewport ITrackItemInfoContext.Viewport => Viewport;
+
+        TrackWorld ITrackItemInfoContext.TrackWorld => trackWorld;
 
         internal override void UpdatePointerLocation(in PointD position, in Tile bottomLeft, in Tile topRight)
         {

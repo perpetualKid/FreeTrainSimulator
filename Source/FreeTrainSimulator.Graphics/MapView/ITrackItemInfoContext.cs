@@ -1,4 +1,5 @@
 using FreeTrainSimulator.Common.DebugInfo;
+using FreeTrainSimulator.Runtime.Track;
 
 namespace FreeTrainSimulator.Graphics.MapView
 {
@@ -7,5 +8,7 @@ namespace FreeTrainSimulator.Graphics.MapView
         INameValueInformationProvider TrackItemInfo { get; }
 
         IMapViewport Viewport { get; }
+
+        TrackWorld TrackWorld { get; }
     }
 }

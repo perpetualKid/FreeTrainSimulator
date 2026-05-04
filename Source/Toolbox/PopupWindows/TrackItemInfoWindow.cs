@@ -70,7 +70,7 @@ namespace FreeTrainSimulator.Toolbox.PopupWindows
         {
             if (int.TryParse((sender as TextInput).Text, out int nodeIndex))
             {
-                Models.Track.TrackItemBase trackItem = TrackWorld.GameInstance(Owner.Game).TrackItemByIndex(nodeIndex);
+                Models.Track.TrackItemBase trackItem = context?.TrackWorld?.TrackItemByIndex(nodeIndex);
                 if (trackItem != null)
                 {
                     context?.Viewport?.SetTrackingPosition(trackItem.Location);
