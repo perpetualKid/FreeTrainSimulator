@@ -133,10 +133,10 @@ namespace FreeTrainSimulator.Graphics.MapView
                 suppressDrawing = false;
         }
 
-        public void HandleEnabledChanged(bool enabled, ContentArea contentArea, IMapTextureHelperHost textureHelperHost)
+        public void HandleEnabledChanged(bool enabled, ContentArea contentArea, IMapTextureHelperHost textureHelperHost, IMapBaseOverlayContext overlayContext)
         {
             if (enabled)
-                textureHelperHost?.Enable(contentArea);
+                textureHelperHost?.Enable(overlayContext);
             else
                 textureHelperHost?.Disable();
         }

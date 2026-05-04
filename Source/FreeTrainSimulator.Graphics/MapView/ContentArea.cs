@@ -12,7 +12,7 @@ using Microsoft.Xna.Framework.Graphics;
 
 namespace FreeTrainSimulator.Graphics.MapView
 {
-    public class ContentArea : DrawableGameComponent, IMapRenderer, IMapViewport, IMapHostControl, IMapBaseOverlayContext, IMapInsetOverlayContext, IMapRulerOverlayContext, IMapCoordinateOverlayContext
+    public class ContentArea : DrawableGameComponent, IMapRenderer, IMapViewport, IMapHostControl
     {
         private const int zoomAmplifier = 3;
 
@@ -20,8 +20,8 @@ namespace FreeTrainSimulator.Graphics.MapView
         private readonly IMapViewStateAdapter viewStateAdapter;
         private readonly IMapRenderAdapter renderAdapter;
         private readonly IMapInteractionAdapter interactionAdapter;
-        private readonly IMapOverlayShapeAdapter overlayShapeAdapter;
         private readonly IMapHostSession hostSession;
+        private readonly IMapBaseOverlayContext overlayBridge;
 #pragma warning restore CA1859 // Use concrete types when possible for improved performance
 
         public ContentBase Content { get; }
@@ -48,7 +48,7 @@ namespace FreeTrainSimulator.Graphics.MapView
             viewStateAdapter = hostSession.ViewStateAdapter;
             renderAdapter = hostSession.RenderAdapter;
             interactionAdapter = hostSession.InteractionAdapter;
-            overlayShapeAdapter = hostSession.OverlayShapeAdapter;
+            overlayBridge = new MapOverlayBridge(content, viewStateAdapter, hostSession.OverlayShapeAdapter);
             interactionAdapter.RegisterMouseMove(MouseMove);
             interactionAdapter.AttachClientSizeChanged(Window_ClientSizeChanged);
             Enabled = false;
@@ -81,7 +81,7 @@ namespace FreeTrainSimulator.Graphics.MapView
 
         protected override void OnEnabledChanged(object sender, EventArgs args)
         {
-            interactionAdapter.HandleEnabledChanged(Enabled, this, Content.TextureHelperHost);
+            interactionAdapter.HandleEnabledChanged(Enabled, this, Content.TextureHelperHost, overlayBridge);
             base.OnEnabledChanged(sender, args);
         }
 
@@ -331,29 +331,6 @@ namespace FreeTrainSimulator.Graphics.MapView
         {
             get => Enabled;
             set => Enabled = value;
-        }
-
-        Rectangle IMapInsetOverlayContext.ContentBounds => Content.Bounds;
-
-        bool IMapRulerOverlayContext.UseMetricUnits => Content.UseMetricUnits;
-
-        PointD IMapInsetOverlayContext.TopLeftBound => TopLeftBound;
-
-        PointD IMapInsetOverlayContext.BottomRightBound => BottomRightBound;
-
-        void IMapInsetOverlayContext.DrawOverlayLine(float width, Color color, Vector2 point, float length, double angle, SpriteBatch spriteBatch)
-        {
-            overlayShapeAdapter.DrawLine(width, color, point, length, angle, spriteBatch);
-        }
-
-        void IMapInsetOverlayContext.DrawOverlayArc(float width, Color color, Vector2 point, float radius, double angle, double arcSize, SpriteBatch spriteBatch)
-        {
-            overlayShapeAdapter.DrawArc(width, color, point, radius, angle, arcSize, spriteBatch);
-        }
-
-        void IMapInsetOverlayContext.DrawOverlayTexture(BasicTextureType texture, Vector2 point, double angle, float size, Color color, SpriteBatch spriteBatch)
-        {
-            overlayShapeAdapter.DrawTexture(texture, point, angle, size, color, spriteBatch);
         }
     }
 }

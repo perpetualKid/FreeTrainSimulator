@@ -1,6 +1,6 @@
 namespace FreeTrainSimulator.Graphics.MapView
 {
-    internal interface IMapBaseOverlayContext
+    public interface IMapBaseOverlayContext
     {
     }
 }

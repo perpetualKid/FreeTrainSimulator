@@ -54,7 +54,7 @@ namespace FreeTrainSimulator.Graphics.MapView
 
         void UpdateFrameState(ref bool suppressDrawing);
 
-        void HandleEnabledChanged(bool enabled, ContentArea contentArea, IMapTextureHelperHost textureHelperHost);
+        void HandleEnabledChanged(bool enabled, ContentArea contentArea, IMapTextureHelperHost textureHelperHost, IMapBaseOverlayContext overlayContext);
 
         void RefreshFonts(ref System.Drawing.Font currentFont);
 

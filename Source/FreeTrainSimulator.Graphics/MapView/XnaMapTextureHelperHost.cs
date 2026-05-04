@@ -16,10 +16,10 @@ namespace FreeTrainSimulator.Graphics.MapView
                 : new List<TextureContentComponent>(components ?? Array.Empty<TextureContentComponent>());
         }
 
-        public void Enable(ContentArea contentArea)
+        public void Enable(IMapBaseOverlayContext overlayContext)
         {
             foreach (TextureContentComponent component in components)
-                component.Enable(contentArea);
+                component.Enable(overlayContext);
         }
 
         public void Disable()
