@@ -483,7 +483,7 @@ namespace FreeTrainSimulator.Toolbox
             windowManager.SetLazyWindows(ToolboxWindowType.TrainPathWindow, new Lazy<FormBase>(() =>
             {
                 TrainPathWindow trainPathDetailWindow = new TrainPathWindow(windowManager, ToolboxSettings, ToolboxSettings.PopupLocations[ToolboxWindowType.TrainPathWindow].ToPoint());
-                OnContentAreaChanged += trainPathDetailWindow.GameWindow_OnContentAreaChanged;
+                OnPathEditorChanged += trainPathDetailWindow.GameWindow_OnPathEditorChanged;
                 return trainPathDetailWindow;
             }));
             windowManager.SetLazyWindows(ToolboxWindowType.TrainPathSaveWindow, new Lazy<FormBase>(() =>

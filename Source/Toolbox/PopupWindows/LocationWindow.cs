@@ -42,7 +42,7 @@ namespace FreeTrainSimulator.Toolbox.PopupWindows
 
         internal void GameWindow_OnContentAreaChanged(object sender, ContentAreaChangedEventArgs e)
         {
-            locationContext = e.ContentArea as IMapLocationContext;
+            locationContext = e.LocationContext;
         }
 
         protected override ControlLayout Layout(ControlLayout layout, float headerScaling)

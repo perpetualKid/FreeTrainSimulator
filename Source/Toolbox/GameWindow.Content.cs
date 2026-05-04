@@ -5,6 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 
 using FreeTrainSimulator.Common;
+using FreeTrainSimulator.Common.DebugInfo;
 using FreeTrainSimulator.Common.Input;
 using FreeTrainSimulator.Graphics.DrawableComponents;
 using FreeTrainSimulator.Graphics.MapView;
@@ -28,6 +29,16 @@ namespace FreeTrainSimulator.Toolbox
 
         public IMapHostControl HostControl => ContentArea;
 
+        public IMapLocationContext LocationContext => ContentArea as IMapLocationContext;
+
+        public IMapDisplaySettingsContext DisplaySettingsContext => ContentArea as IMapDisplaySettingsContext;
+
+        public ITrackNodeInfoContext TrackNodeInfoContext => ContentArea?.Content as ITrackNodeInfoContext;
+
+        public ITrackItemInfoContext TrackItemInfoContext => ContentArea?.Content as ITrackItemInfoContext;
+
+        public INameValueInformationProvider RouteInformationProvider => ContentArea?.Content;
+
         public ContentAreaChangedEventArgs(ContentArea contentArea)
         {
             ContentArea = contentArea;
@@ -46,6 +57,8 @@ namespace FreeTrainSimulator.Toolbox
         private PathEditor pathEditor;
         private ToolboxContent toolboxContent;
 
+        internal event EventHandler<PathEditorAvailabilityChangedEventArgs> OnPathEditorChanged;
+
         internal PathEditor PathEditor
         {
             get
@@ -54,6 +67,7 @@ namespace FreeTrainSimulator.Toolbox
                 {
                     pathEditor = new PathEditor(toolboxContent, userCommandController);
                     pathEditor.OnPathChanged += PathEditor_OnEditorPathChanged;
+                    OnPathEditorChanged?.Invoke(this, new PathEditorAvailabilityChangedEventArgs(pathEditor));
                 }
                 return pathEditor;
             }
@@ -191,8 +205,12 @@ namespace FreeTrainSimulator.Toolbox
             ContentArea = null;
             selectedRoute = null;
             mainmenu.ClearPathMenu();
-            pathEditor?.Dispose();
-            pathEditor = null;
+            if (pathEditor != null)
+            {
+                pathEditor.Dispose();
+                pathEditor = null;
+                OnPathEditorChanged?.Invoke(this, new PathEditorAvailabilityChangedEventArgs(null));
+            }
         }
 
         internal void UnloadPath()

@@ -1,5 +1,4 @@
-﻿
-using FreeTrainSimulator.Common;
+﻿using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.DebugInfo;
 using FreeTrainSimulator.Common.Input;
 using FreeTrainSimulator.Graphics.Window;
@@ -55,7 +54,7 @@ namespace FreeTrainSimulator.Toolbox.PopupWindows
 
         internal void GameWindow_OnContentAreaChanged(object sender, ContentAreaChangedEventArgs e)
         {
-            currentProvider[DebugScreenInformation.Route].InformationProvider = e.ContentArea?.Content;
+            currentProvider[DebugScreenInformation.Route].InformationProvider = e.RouteInformationProvider;
         }
 
         public void SetInformationProvider(DebugScreenInformation informationType, INameValueInformationProvider provider)

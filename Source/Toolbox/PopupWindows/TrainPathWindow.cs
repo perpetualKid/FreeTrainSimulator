@@ -183,11 +183,11 @@ namespace FreeTrainSimulator.Toolbox.PopupWindows
             toolboxSettings.PopupSettings[ToolboxWindowType.TrainPathWindow] = e.Tab.ToString();
         }
 
-        internal void GameWindow_OnContentAreaChanged(object sender, ContentAreaChangedEventArgs e)
+        internal void GameWindow_OnPathEditorChanged(object sender, PathEditorAvailabilityChangedEventArgs e)
         {
-            if (e.ContentArea != null)
+            pathEditor = e.PathEditor;
+            if (pathEditor != null)
             {
-                pathEditor = (Owner.Game as GameWindow)?.PathEditor;
                 pathEditor.OnPathUpdated += PathEditor_OnPathUpdated;
                 pathEditor.OnPathChanged += PathEditor_OnPathChanged;
             }

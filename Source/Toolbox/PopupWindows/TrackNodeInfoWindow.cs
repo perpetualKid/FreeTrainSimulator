@@ -125,7 +125,7 @@ namespace FreeTrainSimulator.Toolbox.PopupWindows
 
         internal void GameWindow_OnContentAreaChanged(object sender, ContentAreaChangedEventArgs e)
         {
-            context = e.ContentArea?.Content as ITrackNodeInfoContext;
+            context = e.TrackNodeInfoContext;
             trackNodeInfoGrid.InformationProvider = context?.Content?.TrackNodeInfo;
         }
     }

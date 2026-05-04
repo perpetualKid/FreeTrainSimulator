@@ -139,7 +139,7 @@ namespace FreeTrainSimulator.Toolbox.PopupWindows
 
         internal void GameWindow_OnContentAreaChanged(object sender, ContentAreaChangedEventArgs e)
         {
-            displayContext = e.ContentArea as IMapDisplaySettingsContext;
+            displayContext = e.DisplaySettingsContext;
         }
 
     }
