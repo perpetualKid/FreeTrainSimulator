@@ -1,8 +1,10 @@
 using System;
 
+using Microsoft.Xna.Framework;
+
 namespace FreeTrainSimulator.Graphics.MapView
 {
-    internal sealed class XnaMapSession : IMapSession, IContentAreaSessionAccessor
+    internal sealed class XnaMapSession : IMapShellSession
     {
         private readonly ContentArea contentArea;
 
@@ -12,7 +14,7 @@ namespace FreeTrainSimulator.Graphics.MapView
 
         public IMapHostControl HostControl => contentArea;
 
-        ContentArea IContentAreaSessionAccessor.ContentArea => contentArea;
+        public DrawableGameComponent ShellComponent => contentArea;
 
         public XnaMapSession(ContentArea contentArea)
         {

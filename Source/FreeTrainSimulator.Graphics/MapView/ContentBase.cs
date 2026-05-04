@@ -33,7 +33,9 @@ namespace FreeTrainSimulator.Graphics.MapView
 
         internal Game Game => game;
 
-        public ContentArea ContentArea => ((IContentAreaSessionAccessor)Session).ContentArea;
+        internal ContentArea ContentArea => (ContentArea)((IMapShellSession)Session).ShellComponent;
+
+        public DrawableGameComponent ShellComponent => ((IMapShellSession)Session).ShellComponent;
 
         public IMapRenderer Renderer => Session.Renderer;
 

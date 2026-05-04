@@ -150,7 +150,7 @@ namespace FreeTrainSimulator.Toolbox
             await toolboxContent.Initialize().ConfigureAwait(true);
             toolboxContent.InitializeItemVisiblity(ToolboxSettings.ViewSettings);
             toolboxContent.UpdateWidgetColorSettings(ToolboxSettings.ColorSettings, ToolboxSettings.FontOutline, ToolboxSettings.LimitTrackWidth);
-            ContentArea = toolboxContent.ContentArea;
+            ContentArea = toolboxContent.ShellComponent as ContentArea;
             mainmenu.PopulatePaths(await pathTask.ConfigureAwait(true));
             _ = windowManager[ToolboxWindowType.StatusWindow].Close();
             selectedRoute = route;
