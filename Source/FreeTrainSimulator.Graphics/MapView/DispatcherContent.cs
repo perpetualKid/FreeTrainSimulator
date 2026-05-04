@@ -47,7 +47,7 @@ namespace FreeTrainSimulator.Graphics.MapView
             await Task.Run(AddTrackSegments).ConfigureAwait(false);
             await Task.Run(AddTrackItems).ConfigureAwait(false);
 
-            ContentArea.Initialize();
+            ShellServices.Initialize();
         }
 
         internal override void Draw(in Tile bottomLeft, in Tile topRight)
@@ -126,7 +126,7 @@ namespace FreeTrainSimulator.Graphics.MapView
 
         public void UpdateTrainTrackingPoint(in WorldLocation location)
         {
-            ContentArea.SetTrackingPosition(location);
+            Viewport.SetTrackingPosition(location);
         }
 
         public void UpdateTrainPath(TrackTraveller trackTraveller)
@@ -198,7 +198,7 @@ namespace FreeTrainSimulator.Graphics.MapView
 
             foreach (ColorSetting setting in EnumExtension.GetValues<ColorSetting>())
             {
-                ContentArea.UpdateColor(setting, ColorExtension.FromName(colorPreferences[setting]), false);
+                ShellServices.UpdateColor(setting, ColorExtension.FromName(colorPreferences[setting]), false);
             }
         }
 

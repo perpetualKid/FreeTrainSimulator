@@ -69,7 +69,7 @@ namespace FreeTrainSimulator.Graphics.MapView
             await Task.Run(AddTrackSegments).ConfigureAwait(true);
             await Task.Run(AddTrackItems).ConfigureAwait(true);
 
-            ContentArea.Initialize();
+            ShellServices.Initialize();
             //just put an empty list so the draw method does not skip the paths
             ContentByTile[MapContentType.Paths] = new TileIndexedList<EditorTrainPath>(new List<EditorTrainPath>() { });
 
@@ -90,9 +90,9 @@ namespace FreeTrainSimulator.Graphics.MapView
 
             foreach (ColorSetting setting in EnumExtension.GetValues<ColorSetting>())
             {
-                ContentArea.UpdateColor(setting, ColorExtension.FromName(colorPreferences[setting]), fontOutlining);
+                ShellServices.UpdateColor(setting, ColorExtension.FromName(colorPreferences[setting]), fontOutlining);
             }
-            ContentArea.UpdateTrackWidthSettings(limitTrackWidth);
+            ShellServices.UpdateTrackWidthSettings(limitTrackWidth);
         }
 
         IPathEditorServices IPathEditorContextServicesAccessor.Services => pathEditorServices;
@@ -190,7 +190,7 @@ namespace FreeTrainSimulator.Graphics.MapView
             if (ContentMode == ToolboxContentMode.EditPath)
             {
                 PathEditor?.UpdatePointerLocation(position, nearestItems[MapContentType.Tracks] as TrackSegment);
-                ContentArea.SuppressDrawing = false;
+                ShellServices.RequestRedraw();
             }
         }
 

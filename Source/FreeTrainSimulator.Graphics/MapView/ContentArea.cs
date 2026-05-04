@@ -12,7 +12,7 @@ using Microsoft.Xna.Framework.Graphics;
 
 namespace FreeTrainSimulator.Graphics.MapView
 {
-    public class ContentArea : DrawableGameComponent, IMapRenderer, IMapViewport, IMapHostControl, IMapLocationContext, IMapDisplaySettingsContext
+    public class ContentArea : DrawableGameComponent, IMapRenderer, IMapViewport, IMapHostControl, IMapLocationContext, IMapDisplaySettingsContext, IMapContentShellServices
     {
         private const int zoomAmplifier = 3;
 
@@ -72,6 +72,16 @@ namespace FreeTrainSimulator.Graphics.MapView
         void IMapDisplaySettingsContext.UpdateTrackWidthSettings(bool limitTrackWidth)
         {
             UpdateTrackWidthSettings(limitTrackWidth);
+        }
+
+        void IMapContentShellServices.UpdateTrackWidthSettings(bool limitTrackWidth)
+        {
+            UpdateTrackWidthSettings(limitTrackWidth);
+        }
+
+        void IMapContentShellServices.RequestRedraw()
+        {
+            SuppressDrawing = false;
         }
 
         public void UpdateColor(ColorSetting setting, Color color, bool fontOutlining)
