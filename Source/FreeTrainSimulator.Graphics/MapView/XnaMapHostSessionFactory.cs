@@ -6,21 +6,9 @@ namespace FreeTrainSimulator.Graphics.MapView
 {
     public sealed class XnaMapHostSessionFactory : IMapHostSessionFactory
     {
-        private readonly IMapHostAdapterFactory adapterFactory;
-
-        public XnaMapHostSessionFactory()
-            : this(new XnaMapHostAdapterFactory())
-        {
-        }
-
-        public XnaMapHostSessionFactory(IMapHostAdapterFactory adapterFactory)
-        {
-            this.adapterFactory = adapterFactory;
-        }
-
         public IMapHostSession Create(Game game, ContentBase content, MouseInputGameComponent mouseInputGameComponent)
         {
-            return new XnaMapHostSession(adapterFactory.Create(game, content, mouseInputGameComponent));
+            return new XnaMapHostSession(new XnaMapAdapterBundle(game, content, mouseInputGameComponent));
         }
     }
 }

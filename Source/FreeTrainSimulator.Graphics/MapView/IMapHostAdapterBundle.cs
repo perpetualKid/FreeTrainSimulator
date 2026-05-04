@@ -1,6 +1,6 @@
 namespace FreeTrainSimulator.Graphics.MapView
 {
-    public interface IMapHostAdapterBundle
+    internal interface IMapHostAdapterBundle
     {
         IMapViewStateAdapter ViewStateAdapter { get; }
 
