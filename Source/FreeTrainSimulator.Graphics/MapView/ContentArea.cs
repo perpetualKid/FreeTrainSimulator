@@ -21,7 +21,7 @@ namespace FreeTrainSimulator.Graphics.MapView
         private readonly IMapRenderAdapter renderAdapter;
         private readonly IMapInteractionAdapter interactionAdapter;
         private readonly IMapOverlayShapeAdapter overlayShapeAdapter;
-        private readonly IMapHostResources hostResources;
+        private readonly IMapHostSession hostSession;
 #pragma warning restore CA1859 // Use concrete types when possible for improved performance
 
         public ContentBase Content { get; }
@@ -36,20 +36,19 @@ namespace FreeTrainSimulator.Graphics.MapView
         public System.Drawing.Font CurrentFont => viewStateAdapter.CurrentFont;
         public System.Drawing.Font ConstantSizeFont => viewStateAdapter.ConstantSizeFont;
 
-        internal ContentArea(Game game, ContentBase content, MouseInputGameComponent mouseInputGameComponent, IMapHostAdapterFactory adapterFactory) :
+        internal ContentArea(Game game, ContentBase content, MouseInputGameComponent mouseInputGameComponent, IMapHostSessionFactory hostSessionFactory) :
             base(game)
         {
             ArgumentNullException.ThrowIfNull(game);
-            ArgumentNullException.ThrowIfNull(adapterFactory);
+            ArgumentNullException.ThrowIfNull(hostSessionFactory);
 
             Content = content ?? throw new ArgumentNullException(nameof(content));
 
-            IMapHostAdapterBundle adapterBundle = adapterFactory.Create(game, content, mouseInputGameComponent);
-            hostResources = adapterBundle.HostResources;
-            viewStateAdapter = adapterBundle.ViewStateAdapter;
-            renderAdapter = adapterBundle.RenderAdapter;
-            interactionAdapter = adapterBundle.InteractionAdapter;
-            overlayShapeAdapter = adapterBundle.OverlayShapeAdapter;
+            hostSession = hostSessionFactory.Create(game, content, mouseInputGameComponent);
+            viewStateAdapter = hostSession.ViewStateAdapter;
+            renderAdapter = hostSession.RenderAdapter;
+            interactionAdapter = hostSession.InteractionAdapter;
+            overlayShapeAdapter = hostSession.OverlayShapeAdapter;
             interactionAdapter.RegisterMouseMove(MouseMove);
             interactionAdapter.AttachClientSizeChanged(Window_ClientSizeChanged);
             Enabled = false;
@@ -322,7 +321,7 @@ namespace FreeTrainSimulator.Graphics.MapView
         {
             if (disposing)
             {
-                hostResources?.Dispose();
+                hostSession?.Dispose();
                 interactionAdapter.UnregisterMouseMove(MouseMove);
             }
             base.Dispose(disposing);

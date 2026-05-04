@@ -50,8 +50,8 @@ namespace FreeTrainSimulator.Graphics.MapView
             }
         }
 
-        internal ToolboxContent(Game game, MouseInputGameComponent mouseInputGameComponent, IMapHostAdapterFactory adapterFactory, IMapInsetHost insetHost = null, IMapTextureHelperHost textureHelperHost = null) :
-            base(game, mouseInputGameComponent, adapterFactory, insetHost, textureHelperHost)
+        internal ToolboxContent(Game game, MouseInputGameComponent mouseInputGameComponent, IMapHostSessionFactory hostSessionFactory, IMapInsetHost insetHost = null, IMapTextureHelperHost textureHelperHost = null) :
+            base(game, mouseInputGameComponent, hostSessionFactory, insetHost, textureHelperHost)
         {
             FormattingOptions.Add("Route Information", FormatOption.Bold);
             DetailInfo.Add("Route Information", null);
