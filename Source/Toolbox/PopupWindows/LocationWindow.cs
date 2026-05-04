@@ -17,7 +17,7 @@ namespace FreeTrainSimulator.Toolbox.PopupWindows
 {
     public class LocationWindow : WindowBase
     {
-        private ContentArea contentArea;
+        private IMapLocationContext locationContext;
 #pragma warning disable CA2213 // Disposable fields should be disposed
         private Label locationLabel;
         private Label tileLabel;
@@ -29,10 +29,10 @@ namespace FreeTrainSimulator.Toolbox.PopupWindows
         private readonly UserCommandController<UserCommand> userCommandController;
         private readonly ProfileToolboxSettingsModel toolboxSettings;
 
-        public LocationWindow(WindowManager owner, ProfileToolboxSettingsModel settings, ContentArea contentArea, Point relativeLocation, Catalog catalog = null) :
+        public LocationWindow(WindowManager owner, ProfileToolboxSettingsModel settings, IMapLocationContext locationContext, Point relativeLocation, Catalog catalog = null) :
             base(owner, (catalog ??= CatalogManager.Catalog).GetString("World Coordinates"), relativeLocation, new Point(200, 48), catalog)
         {
-            this.contentArea = contentArea;
+            this.locationContext = locationContext;
             userCommandController = Owner.UserCommandController as UserCommandController<UserCommand>;
             toolboxSettings = settings ?? throw new ArgumentNullException(nameof(settings));
             if (!bool.TryParse(toolboxSettings.PopupSettings[ToolboxWindowType.LocationWindow], out useWorldCoordinates))
@@ -42,7 +42,7 @@ namespace FreeTrainSimulator.Toolbox.PopupWindows
 
         internal void GameWindow_OnContentAreaChanged(object sender, ContentAreaChangedEventArgs e)
         {
-            contentArea = e.ContentArea;
+            locationContext = e.ContentArea as IMapLocationContext;
         }
 
         protected override ControlLayout Layout(ControlLayout layout, float headerScaling)
@@ -93,7 +93,7 @@ namespace FreeTrainSimulator.Toolbox.PopupWindows
 
         protected override void Update(GameTime gameTime, bool shouldUpdate)
         {
-            PointD worldPoint = contentArea?.WorldPosition ?? PointD.None;
+            PointD worldPoint = locationContext?.WorldPosition ?? PointD.None;
             if (previousWorldPoint != worldPoint || updateRequired)
             {
                 updateRequired = false;

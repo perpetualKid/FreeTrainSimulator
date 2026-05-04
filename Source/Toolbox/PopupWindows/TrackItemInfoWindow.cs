@@ -17,7 +17,7 @@ namespace FreeTrainSimulator.Toolbox.PopupWindows
 {
     internal sealed class TrackItemInfoWindow : WindowBase
     {
-        private ContentArea contentArea;
+        private ITrackItemInfoContext context;
 #pragma warning disable CA2213 // Disposable fields should be disposed
         private NameValueTextGrid trackItemInfoGrid;
         private ControlLayoutHorizontal searchBoxLine;
@@ -25,10 +25,10 @@ namespace FreeTrainSimulator.Toolbox.PopupWindows
         private Label headerLabel;
 #pragma warning restore CA2213 // Disposable fields should be disposed
 
-        public TrackItemInfoWindow(WindowManager owner, ContentArea contentArea, Point relativeLocation, Catalog catalog = null) :
+        public TrackItemInfoWindow(WindowManager owner, ITrackItemInfoContext context, Point relativeLocation, Catalog catalog = null) :
             base(owner, (catalog ??= CatalogManager.Catalog).GetString("Track Item Information"), relativeLocation, new Point(240, 202), catalog)
         {
-            this.contentArea = contentArea;
+            this.context = context;
         }
 
         protected override ControlLayout Layout(ControlLayout layout, float headerScaling = 1)
@@ -53,7 +53,7 @@ namespace FreeTrainSimulator.Toolbox.PopupWindows
             columnWidth = (int)(layout.RemainingWidth / Owner.DpiScaling / 3);
             trackItemInfoGrid = new NameValueTextGrid(this, 0, 0, layout.RemainingWidth, layout.RemainingHeight)
             {
-                InformationProvider = (contentArea?.Content as ToolboxContent)?.TrackItemInfo,
+                InformationProvider = context?.TrackItemInfo,
                 ColumnWidth = new int[] { columnWidth, columnWidth * 2 },
             };
             layout.Add(trackItemInfoGrid);
@@ -62,8 +62,8 @@ namespace FreeTrainSimulator.Toolbox.PopupWindows
         }
         internal void GameWindow_OnContentAreaChanged(object sender, ContentAreaChangedEventArgs e)
         {
-            contentArea = e.ContentArea;
-            trackItemInfoGrid.InformationProvider = (contentArea?.Content as ToolboxContent)?.TrackItemInfo;
+            context = e.ContentArea?.Content as ITrackItemInfoContext;
+            trackItemInfoGrid.InformationProvider = context?.TrackItemInfo;
         }
 
         private void SearchBox_OnEnterKey(object sender, EventArgs e)
@@ -73,9 +73,7 @@ namespace FreeTrainSimulator.Toolbox.PopupWindows
                 Models.Track.TrackItemBase trackItem = TrackWorld.GameInstance(Owner.Game).TrackItemByIndex(nodeIndex);
                 if (trackItem != null)
                 {
-                    //                    contentArea?.UpdateScaleToFit(segmentSection.TopLeftBound, segmentSection.BottomRightBound);
-                    contentArea?.SetTrackingPosition(trackItem.Location);
-                    //                    contentArea.Content.HighlightItem(Common.MapViewItemSettings.Tracks, segmentSection.SectionSegments[0]);
+                    context?.Viewport?.SetTrackingPosition(trackItem.Location);
                 }
             }
             SearchBox_OnEscapeKey(sender, e);

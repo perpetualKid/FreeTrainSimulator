@@ -450,7 +450,7 @@ namespace FreeTrainSimulator.Toolbox
 
             windowManager.SetLazyWindows(ToolboxWindowType.LocationWindow, new Lazy<FormBase>(() =>
             {
-                LocationWindow locationWindow = new LocationWindow(windowManager, ToolboxSettings, contentArea, ToolboxSettings.PopupLocations[ToolboxWindowType.LocationWindow].ToPoint());
+                LocationWindow locationWindow = new LocationWindow(windowManager, ToolboxSettings, contentArea as IMapLocationContext, ToolboxSettings.PopupLocations[ToolboxWindowType.LocationWindow].ToPoint());
                 OnContentAreaChanged += locationWindow.GameWindow_OnContentAreaChanged;
                 return locationWindow;
             }));
@@ -460,19 +460,19 @@ namespace FreeTrainSimulator.Toolbox
             }));
             windowManager.SetLazyWindows(ToolboxWindowType.TrackNodeInfoWindow, new Lazy<FormBase>(() =>
             {
-                TrackNodeInfoWindow trackInfoWindow = new TrackNodeInfoWindow(windowManager, contentArea, ToolboxSettings.PopupLocations[ToolboxWindowType.TrackNodeInfoWindow].ToPoint());
+                TrackNodeInfoWindow trackInfoWindow = new TrackNodeInfoWindow(windowManager, contentArea?.Content as ITrackNodeInfoContext, ToolboxSettings.PopupLocations[ToolboxWindowType.TrackNodeInfoWindow].ToPoint());
                 OnContentAreaChanged += trackInfoWindow.GameWindow_OnContentAreaChanged;
                 return trackInfoWindow;
             }));
             windowManager.SetLazyWindows(ToolboxWindowType.TrackItemInfoWindow, new Lazy<FormBase>(() =>
             {
-                TrackItemInfoWindow trackInfoWindow = new TrackItemInfoWindow(windowManager, contentArea, ToolboxSettings.PopupLocations[ToolboxWindowType.TrackItemInfoWindow].ToPoint());
+                TrackItemInfoWindow trackInfoWindow = new TrackItemInfoWindow(windowManager, contentArea?.Content as ITrackItemInfoContext, ToolboxSettings.PopupLocations[ToolboxWindowType.TrackItemInfoWindow].ToPoint());
                 OnContentAreaChanged += trackInfoWindow.GameWindow_OnContentAreaChanged;
                 return trackInfoWindow;
             }));
             windowManager.SetLazyWindows(ToolboxWindowType.SettingsWindow, new Lazy<FormBase>(() =>
             {
-                SettingsWindow settingsWindow = new SettingsWindow(windowManager, ToolboxSettings, ToolboxUserSettings, contentArea, ToolboxSettings.PopupLocations[ToolboxWindowType.SettingsWindow].ToPoint());
+                SettingsWindow settingsWindow = new SettingsWindow(windowManager, ToolboxSettings, ToolboxUserSettings, contentArea as IMapDisplaySettingsContext, ToolboxSettings.PopupLocations[ToolboxWindowType.SettingsWindow].ToPoint());
                 OnContentAreaChanged += settingsWindow.GameWindow_OnContentAreaChanged;
                 return settingsWindow;
             }));

@@ -1,5 +1,4 @@
-﻿
-using System;
+﻿using System;
 
 using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Graphics;
@@ -23,7 +22,7 @@ namespace FreeTrainSimulator.Toolbox.PopupWindows
             Road = 2,
         }
 
-        private ContentArea contentArea;
+        private ITrackNodeInfoContext context;
 #pragma warning disable CA2213 // Disposable fields should be disposed
         private NameValueTextGrid trackNodeInfoGrid;
         private ControlLayoutHorizontal searchBoxLine;
@@ -32,10 +31,10 @@ namespace FreeTrainSimulator.Toolbox.PopupWindows
         private RadioButtonGroup searchTypeButtons;
 #pragma warning restore CA2213 // Disposable fields should be disposed
 
-        public TrackNodeInfoWindow(WindowManager owner, ContentArea contentArea, Point relativeLocation, Catalog catalog = null) :
+        public TrackNodeInfoWindow(WindowManager owner, ITrackNodeInfoContext context, Point relativeLocation, Catalog catalog = null) :
             base(owner, (catalog ??= CatalogManager.Catalog).GetString("Track Node Information"), relativeLocation, new Point(260, 204), catalog)
         {
-            this.contentArea = contentArea;
+            this.context = context;
         }
 
         protected override ControlLayout Layout(ControlLayout layout, float headerScaling = 1)
@@ -64,7 +63,7 @@ namespace FreeTrainSimulator.Toolbox.PopupWindows
             columnWidth = (int)(layout.RemainingWidth / Owner.DpiScaling / 2);
             trackNodeInfoGrid = new NameValueTextGrid(this, 0, 0, layout.RemainingWidth, layout.RemainingHeight)
             {
-                InformationProvider = (contentArea?.Content as ToolboxContent)?.TrackNodeInfo,
+                InformationProvider = context?.Content?.TrackNodeInfo,
                 ColumnWidth = new int[] { columnWidth },
             };
             layout.Add(trackNodeInfoGrid);
@@ -84,18 +83,18 @@ namespace FreeTrainSimulator.Toolbox.PopupWindows
                             TrackSegmentSection segmentSection = nodeIndex > -1 && nodeIndex < trackWorld.SegmentSections.Length ? trackWorld.SegmentSections[nodeIndex] : null;
                             if (segmentSection != null)
                             {
-                                contentArea?.UpdateScaleToFit(segmentSection.TopLeftBound, segmentSection.BottomRightBound);
-                                contentArea?.SetTrackingPosition(segmentSection.MidPoint);
-                                contentArea.Content.HighlightItem(MapContentType.Tracks, segmentSection.SectionSegments[0]);
+                                context?.Viewport?.UpdateScaleToFit(segmentSection.TopLeftBound, segmentSection.BottomRightBound);
+                                context?.Viewport?.SetTrackingPosition(segmentSection.MidPoint);
+                                context?.Content?.HighlightItem(MapContentType.Tracks, segmentSection.SectionSegments[0]);
                             }
                             break;
                         case SearchType.Road:
                             TrackSegmentSection roadSegmentSection = nodeIndex > -1 && nodeIndex < trackWorld.RoadSegmentSections.Length ? trackWorld.RoadSegmentSections[nodeIndex] : null;
                             if (roadSegmentSection != null)
                             {
-                                contentArea?.UpdateScaleToFit(roadSegmentSection.TopLeftBound, roadSegmentSection.BottomRightBound);
-                                contentArea?.SetTrackingPosition(roadSegmentSection.MidPoint);
-                                contentArea.Content.HighlightItem(MapContentType.Roads, roadSegmentSection.SectionSegments[0]);
+                                context?.Viewport?.UpdateScaleToFit(roadSegmentSection.TopLeftBound, roadSegmentSection.BottomRightBound);
+                                context?.Viewport?.SetTrackingPosition(roadSegmentSection.MidPoint);
+                                context?.Content?.HighlightItem(MapContentType.Roads, roadSegmentSection.SectionSegments[0]);
                             }
                             break;
                     }
@@ -126,8 +125,8 @@ namespace FreeTrainSimulator.Toolbox.PopupWindows
 
         internal void GameWindow_OnContentAreaChanged(object sender, ContentAreaChangedEventArgs e)
         {
-            contentArea = e.ContentArea;
-            trackNodeInfoGrid.InformationProvider = (contentArea?.Content as ToolboxContent)?.TrackNodeInfo;
+            context = e.ContentArea?.Content as ITrackNodeInfoContext;
+            trackNodeInfoGrid.InformationProvider = context?.Content?.TrackNodeInfo;
         }
     }
 }

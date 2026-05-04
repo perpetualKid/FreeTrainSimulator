@@ -1,5 +1,4 @@
-﻿
-using System.ComponentModel;
+﻿using System.ComponentModel;
 
 using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Input;
@@ -22,7 +21,7 @@ namespace FreeTrainSimulator.Toolbox.PopupWindows
     {
         private readonly ProfileToolboxSettingsModel toolboxSettings;
         private readonly ProfileUserSettingsModel userSettings;
-        private ContentArea contentArea;
+        private IMapDisplaySettingsContext displayContext;
 
         private enum TabSettings
         {
@@ -39,12 +38,12 @@ namespace FreeTrainSimulator.Toolbox.PopupWindows
 #pragma warning restore CA2213 // Disposable fields should be disposed
         private readonly UserCommandController<UserCommand> userCommandController;
 
-        public SettingsWindow(WindowManager owner, ProfileToolboxSettingsModel settings, ProfileUserSettingsModel userSettings, ContentArea contentArea, Point relativeLocation, Catalog catalog = null) :
+        public SettingsWindow(WindowManager owner, ProfileToolboxSettingsModel settings, ProfileUserSettingsModel userSettings, IMapDisplaySettingsContext displayContext, Point relativeLocation, Catalog catalog = null) :
             base(owner, (catalog ??= CatalogManager.Catalog).GetString("Settings"), relativeLocation, new Point(360, 200), catalog)
         {
             toolboxSettings = settings;
             this.userSettings = userSettings;
-            this.contentArea = contentArea;
+            this.displayContext = displayContext;
             userCommandController = Owner.UserCommandController as UserCommandController<UserCommand>;
         }
 
@@ -82,7 +81,7 @@ namespace FreeTrainSimulator.Toolbox.PopupWindows
                     toolboxSettings.FontOutline = (sender as Checkbox).State.Value;
                     foreach (ColorSetting setting in EnumExtension.GetValues<ColorSetting>())
                     {
-                        contentArea.UpdateColor(setting, ColorExtension.FromName(toolboxSettings.ColorSettings[setting]), toolboxSettings.FontOutline);
+                        displayContext?.UpdateColor(setting, ColorExtension.FromName(toolboxSettings.ColorSettings[setting]), toolboxSettings.FontOutline);
                     }
                     ((Owner as WindowManager<ToolboxWindowType>)[ToolboxWindowType.DebugScreen] as DebugScreen).UpdateBackgroundColor(ColorExtension.FromName(toolboxSettings.ColorSettings[ColorSetting.Background]));
                 };
@@ -95,7 +94,7 @@ namespace FreeTrainSimulator.Toolbox.PopupWindows
                 trackWidthRatio.OnClick += (object sender, MouseClickEventArgs e) =>
                 {
                     toolboxSettings.LimitTrackWidth = !(sender as Checkbox).State.Value;
-                    ContentArea.UpdateTrackWidthSettings(toolboxSettings.LimitTrackWidth);
+                    displayContext?.UpdateTrackWidthSettings(toolboxSettings.LimitTrackWidth);
                 };
                 trackWidthRatio.State = !toolboxSettings.LimitTrackWidth;
                 line.Add(trackWidthRatio);
@@ -140,7 +139,7 @@ namespace FreeTrainSimulator.Toolbox.PopupWindows
 
         internal void GameWindow_OnContentAreaChanged(object sender, ContentAreaChangedEventArgs e)
         {
-            contentArea = e.ContentArea;
+            displayContext = e.ContentArea as IMapDisplaySettingsContext;
         }
 
     }
