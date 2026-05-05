@@ -8,12 +8,22 @@ namespace FreeTrainSimulator.Graphics.MapView
     {
         public ToolboxContent CreateToolboxContent(Game game, MouseInputGameComponent mouseInputGameComponent, IMapInsetHost insetHost = null, IMapTextureHelperHost textureHelperHost = null)
         {
-            return new ToolboxContent(game, mouseInputGameComponent, new XnaMapSessionComposer(game, mouseInputGameComponent), insetHost, textureHelperHost);
+            MapContentContext context = new MapContentContext(
+                new MapRuntimeServices(game),
+                new XnaMapSessionComposer(game, mouseInputGameComponent),
+                insetHost,
+                textureHelperHost);
+            return new ToolboxContent(context);
         }
 
         public DispatcherContent CreateDispatcherContent(Game game, MouseInputGameComponent mouseInputGameComponent, IMapInsetHost insetHost = null, IMapTextureHelperHost textureHelperHost = null)
         {
-            return new DispatcherContent(game, mouseInputGameComponent, new XnaMapSessionComposer(game, mouseInputGameComponent), insetHost, textureHelperHost);
+            MapContentContext context = new MapContentContext(
+                new MapRuntimeServices(game),
+                new XnaMapSessionComposer(game, mouseInputGameComponent),
+                insetHost,
+                textureHelperHost);
+            return new DispatcherContent(context);
         }
     }
 }

@@ -16,7 +16,6 @@ namespace FreeTrainSimulator.Graphics.MapView
 {
     public abstract class ContentBase : INameValueInformationProvider
     {
-        private protected readonly Game game;
         private protected readonly IMapRuntimeServices runtimeServices;
         private protected EnumArray<bool, MapContentType> viewSettings = new EnumArray<bool, MapContentType>(true);
 
@@ -31,8 +30,6 @@ namespace FreeTrainSimulator.Graphics.MapView
         public string RouteName { get; }
 
         public IMapSession Session { get; }
-
-        internal Game Game => game;
 
         internal ContentArea ContentArea => (ContentArea)((IXnaMapShellSession)Session).ShellHost.Component;
 
@@ -56,15 +53,15 @@ namespace FreeTrainSimulator.Graphics.MapView
 
         public Dictionary<string, FormatOption> FormattingOptions { get; } = new Dictionary<string, FormatOption>();
 
-        protected ContentBase(Game game, MouseInputGameComponent mouseInputGameComponent, IMapSessionComposer sessionComposer, IMapInsetHost insetHost = null, IMapTextureHelperHost textureHelperHost = null)
+        internal ContentBase(MapContentContext context)
         {
-            this.game = game ?? throw new ArgumentNullException(nameof(game));
-            runtimeServices = new MapRuntimeServices(game);
-            InsetHost = insetHost;
-            TextureHelperHost = textureHelperHost;
+            ArgumentNullException.ThrowIfNull(context);
+            runtimeServices = context.RuntimeServices ?? throw new ArgumentNullException(nameof(context.RuntimeServices));
+            InsetHost = context.InsetHost;
+            TextureHelperHost = context.TextureHelperHost;
             if (runtimeServices.RuntimeData == null)
                 throw new InvalidOperationException("RuntimeData not initialized!");
-            Session = sessionComposer.Compose(new MapSessionRequest(this, insetHost, textureHelperHost));
+            Session = context.SessionComposer.Compose(new MapSessionRequest(this, context.InsetHost, context.TextureHelperHost));
             RouteName = runtimeServices.RouteName;
             UseMetricUnits = runtimeServices.UseMetricUnits;
         }
