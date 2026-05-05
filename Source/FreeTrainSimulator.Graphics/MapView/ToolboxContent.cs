@@ -61,7 +61,7 @@ namespace FreeTrainSimulator.Graphics.MapView
             pathEditorServices = new PathEditorServices(game);
             FormattingOptions.Add("Route Information", FormatOption.Bold);
             DetailInfo.Add("Route Information", null);
-            DetailInfo["Route Name"] = RuntimeDataResolver.GameInstance(game).RouteData.Name;
+            DetailInfo["Route Name"] = runtimeServices.RouteName;
         }
 
         public override async Task Initialize()
@@ -73,7 +73,7 @@ namespace FreeTrainSimulator.Graphics.MapView
             //just put an empty list so the draw method does not skip the paths
             ContentByTile[MapContentType.Paths] = new TileIndexedList<EditorTrainPath>(new List<EditorTrainPath>() { });
 
-            DetailInfo["Metric Scale"] = RuntimeDataResolver.GameInstance(game).MetricUnits.ToString();
+            DetailInfo["Metric Scale"] = runtimeServices.UseMetricUnits.ToString();
             DetailInfo["Track Nodes"] = $"{trackWorld.SegmentSections.Length}";
             DetailInfo["Track Segments"] = $"{ContentByTile[MapContentType.Tracks].ItemCount}";
             DetailInfo["Track End Segments"] = $"{ContentByTile[MapContentType.EndNodes].ItemCount}";
@@ -255,9 +255,8 @@ namespace FreeTrainSimulator.Graphics.MapView
         #region build content database
         private void AddTrackSegments()
         {
-            RuntimeDataResolver runtimeData = RuntimeDataResolver.GameInstance(game);
-            TrackDatabase trackDatabase = runtimeData.TrackWorld.TrackDatabase;
-            TrackDatabase roadDatabase = runtimeData.TrackWorld.RoadDatabase;
+            TrackDatabase trackDatabase = runtimeServices.TrackWorld.TrackDatabase;
+            TrackDatabase roadDatabase = runtimeServices.TrackWorld.RoadDatabase;
 
             ConcurrentBag<TrackSegment> trackSegments = new ConcurrentBag<TrackSegment>();
             ConcurrentBag<Widgets.EndNode> endSegments = new ConcurrentBag<Widgets.EndNode>();
@@ -316,12 +315,11 @@ namespace FreeTrainSimulator.Graphics.MapView
             ContentByTile[MapContentType.Roads] = new TileIndexedList<TrackSegmentBase>(roadSegments);
             ContentByTile[MapContentType.RoadEndNodes] = new TileIndexedList<EndNodeBase>(roadEndSegments);
 
-            trackWorld = runtimeData.TrackWorld;
+            trackWorld = runtimeServices.TrackWorld;
             trackWorld.SetSegmentSections(trackSegments.GroupBy(t => t.TrackNodeIndex).Select(group => new TrackSegmentSection(group.Key, group)));
             trackWorld.SetRoadSegmentSections(roadSegments.GroupBy(t => t.TrackNodeIndex).Select(group => new TrackSegmentSection(group.Key, group)));
             trackWorld.SetJunctions(junctionSegments);
 
-            // identify all tiles
             ContentByTile[MapContentType.Grid] = new TileIndexedList<GridTile>(
                 ContentByTile[MapContentType.Tracks].Select(d => d.Tile).Distinct()
                 .Union(ContentByTile[MapContentType.EndNodes].Select(d => d.Tile).Distinct())

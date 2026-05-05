@@ -12,26 +12,23 @@ namespace FreeTrainSimulator.Graphics.MapView
 {
     internal sealed class PathEditorServices : IPathEditorServices
     {
-        private readonly Game game;
-
         public TrackWorld TrackWorld { get; }
 
         public PathEditorServices(Game game)
         {
-            this.game = game;
             TrackWorld = TrackWorld.GameInstance(game);
         }
 
         public EditorTrainPath CreateEditorTrainPath(PathModel pathModel)
         {
-            return pathModel == null ? null : new EditorTrainPath(pathModel, game);
+            return pathModel == null ? null : new EditorTrainPath(pathModel, TrackWorld);
         }
 
         public EditorTrainPath CreateEditorTrainPath(PathModelHeader pathModelHeader)
         {
             return pathModelHeader == null
                 ? null
-                : new EditorTrainPath(Task.Run(async () => await pathModelHeader.GetExtended(CancellationToken.None).ConfigureAwait(false)).Result, game);
+                : new EditorTrainPath(Task.Run(async () => await pathModelHeader.GetExtended(CancellationToken.None).ConfigureAwait(false)).Result, TrackWorld);
         }
     }
 }

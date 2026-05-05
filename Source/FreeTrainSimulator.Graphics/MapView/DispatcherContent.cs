@@ -91,9 +91,9 @@ namespace FreeTrainSimulator.Graphics.MapView
             if (nearestGridTile != nearestItems[MapContentType.Grid] as GridTile)
                 nearestItems[MapContentType.Grid] = nearestGridTile;
 
-            double distance = 400; // max 20m (sqrt(400)
+            double distance = 400;
             nearestDispatchItem = null;
-            foreach (JunctionNode junction in ContentByTile[MapContentType.JunctionNodes][nearestGridTile.Tile].Cast<JunctionNode>())
+            foreach (Widgets.JunctionNode junction in ContentByTile[MapContentType.JunctionNodes][nearestGridTile.Tile].Cast<Widgets.JunctionNode>())
             {
                 double itemDistance = junction.Location.DistanceSquared(position);
                 if (itemDistance < distance)
@@ -102,7 +102,7 @@ namespace FreeTrainSimulator.Graphics.MapView
                     distance = itemDistance;
                 }
             }
-            foreach (SignalTrackItem signal in ContentByTile[MapContentType.Signals][nearestGridTile.Tile].Cast<SignalTrackItem>())
+            foreach (Widgets.SignalTrackItem signal in ContentByTile[MapContentType.Signals][nearestGridTile.Tile].Cast<Widgets.SignalTrackItem>())
             {
                 double itemDistance = signal.Location.DistanceSquared(position);
                 if (itemDistance < distance)
@@ -139,7 +139,7 @@ namespace FreeTrainSimulator.Graphics.MapView
             TrackSegmentBase sourceSegment = ResolveTrackSegment(trackTraveller.CurrentSection);
 
             // PathSegment startOffset is in metres for straight sections and radians for curved sections,
-            // while TrackTraveller.SectionOffset is always in metres â€” convert curved sections here.
+            // while TrackTraveller.SectionOffset is always in metres — convert curved sections here.
             double sectionOffset = trackTraveller.SectionOffset;
             if (trackWorld.SectionGeometry.TryGetValue(trackTraveller.CurrentSection, out SectionGeometry geometry) && geometry.Curved)
                 sectionOffset /= geometry.Radius;
@@ -202,18 +202,17 @@ namespace FreeTrainSimulator.Graphics.MapView
             }
         }
 
-        public ISignal SignalSelected => (nearestDispatchItem as SignalTrackItem)?.Signal;
+        public ISignal SignalSelected => (nearestDispatchItem as Widgets.SignalTrackItem)?.Signal;
         public IJunction SwitchSelected => (nearestDispatchItem as ActiveJunctionSegment)?.Junction;
         public ITrain TrainSelected => nearestTrain?.Train;
 
         private void AddTrackSegments()
         {
-            RuntimeDataResolver runtimeData = RuntimeDataResolver.GameInstance(game);
-            Models.Track.TrackDatabase trackDatabase = runtimeData.TrackWorld.TrackDatabase;
+            Models.Track.TrackDatabase trackDatabase = runtimeServices.TrackWorld.TrackDatabase;
 
-            ConcurrentBag<TrackSegment> trackSegments = new ConcurrentBag<TrackSegment>();
-            ConcurrentBag<EndNode> endSegments = new ConcurrentBag<Widgets.EndNode>();
-            ConcurrentBag<JunctionNode> junctionSegments = new ConcurrentBag<Widgets.JunctionNode>();
+            ConcurrentBag<Widgets.TrackSegment> trackSegments = new ConcurrentBag<Widgets.TrackSegment>();
+            ConcurrentBag<Widgets.EndNode> endSegments = new ConcurrentBag<Widgets.EndNode>();
+            ConcurrentBag<Widgets.JunctionNode> junctionSegments = new ConcurrentBag<Widgets.JunctionNode>();
 
             if (trackDatabase != null)
             {
@@ -222,16 +221,16 @@ namespace FreeTrainSimulator.Graphics.MapView
                     switch (trackNode)
                     {
                         case Models.Track.EndNode endNode:
-                            endSegments.Add(new EndNode(endNode));
+                            endSegments.Add(new Widgets.EndNode(endNode));
                             break;
                         case Models.Track.VectorNode trackVectorNode:
                             foreach ((Models.Track.VectorSectionNode section, int index) in trackVectorNode.VectorSections.IndexedSelect())
                             {
-                                trackSegments.Add(new TrackSegment(section, trackVectorNode.NodeIndex, index));
+                                trackSegments.Add(new Widgets.TrackSegment(section, trackVectorNode.NodeIndex, index));
                             }
                             break;
                         case Models.Track.JunctionNode trackJunctionNode:
-                            junctionSegments.Add(new ActiveJunctionSegment(trackJunctionNode, 
+                            junctionSegments.Add(new ActiveJunctionSegment(trackJunctionNode,
                                 trackDatabase.TrackNodeConnectors[trackJunctionNode.NodeIndex].OutConnectors[trackJunctionNode.MainRoute].Link));
                             break;
                     }
@@ -240,7 +239,7 @@ namespace FreeTrainSimulator.Graphics.MapView
 
             InsetHost?.SetTrackSegments(trackSegments);
 
-            trackWorld = runtimeData.TrackWorld;
+            trackWorld = runtimeServices.TrackWorld;
             trackWorld.SetSegmentSections(trackSegments.GroupBy(t => t.TrackNodeIndex).Select(g => new TrackSegmentSection(g.Key, g)));
             trackWorld.SetJunctions(junctionSegments);
 
@@ -275,7 +274,6 @@ namespace FreeTrainSimulator.Graphics.MapView
             ContentByTile[MapContentType.StationNames] = new TileIndexedList<StationNameItem>(StationNameItem.CreateStationItems(stations));
             ContentByTile[MapContentType.PlatformNames] = new TileIndexedList<PlatformNameItem>(platforms.Select(p => new PlatformNameItem(p)));
             ContentByTile[MapContentType.SidingNames] = new TileIndexedList<SidingNameItem>(sidings.Select(p => new SidingNameItem(p)));
-
         }
     }
 }

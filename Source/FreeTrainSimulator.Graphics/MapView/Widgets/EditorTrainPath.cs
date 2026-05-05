@@ -70,7 +70,7 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
             }
         }
 
-        public EditorTrainPath(PathModel pathModel, Game game) : base(pathModel, game) 
+        public EditorTrainPath(PathModel pathModel, TrackWorld trackWorld) : base(pathModel, trackWorld) 
         {
             PathPoints.AddRange(PathModel.PathNodes.Select(node => new EditorPathPoint(node, TrackWorld)));
 

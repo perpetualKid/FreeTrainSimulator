@@ -17,6 +17,7 @@ namespace FreeTrainSimulator.Graphics.MapView
     public abstract class ContentBase : INameValueInformationProvider
     {
         private protected readonly Game game;
+        private protected readonly IMapRuntimeServices runtimeServices;
         private protected EnumArray<bool, MapContentType> viewSettings = new EnumArray<bool, MapContentType>(true);
 
         private protected readonly EnumArray<ITileCoordinate, MapContentType> nearestItems = new EnumArray<ITileCoordinate, MapContentType>();
@@ -58,13 +59,14 @@ namespace FreeTrainSimulator.Graphics.MapView
         protected ContentBase(Game game, MouseInputGameComponent mouseInputGameComponent, IMapSessionComposer sessionComposer, IMapInsetHost insetHost = null, IMapTextureHelperHost textureHelperHost = null)
         {
             this.game = game ?? throw new ArgumentNullException(nameof(game));
+            runtimeServices = new MapRuntimeServices(game);
             InsetHost = insetHost;
             TextureHelperHost = textureHelperHost;
-            if (null == RuntimeDataResolver.GameInstance(game))
+            if (runtimeServices.RuntimeData == null)
                 throw new InvalidOperationException("RuntimeData not initialized!");
             Session = sessionComposer.Compose(new MapSessionRequest(this, insetHost, textureHelperHost));
-            RouteName = RuntimeDataResolver.GameInstance(game).RouteData.Name;
-            UseMetricUnits = RuntimeDataResolver.GameInstance(game).MetricUnits;
+            RouteName = runtimeServices.RouteName;
+            UseMetricUnits = runtimeServices.UseMetricUnits;
         }
 
         public abstract Task Initialize();
