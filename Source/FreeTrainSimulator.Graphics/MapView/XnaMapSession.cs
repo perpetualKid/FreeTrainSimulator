@@ -4,7 +4,7 @@ using Microsoft.Xna.Framework;
 
 namespace FreeTrainSimulator.Graphics.MapView
 {
-    internal sealed class XnaMapSession : IMapShellSession
+    internal sealed class XnaMapSession : IXnaMapShellSession
     {
         private readonly ContentArea contentArea;
 
@@ -14,7 +14,9 @@ namespace FreeTrainSimulator.Graphics.MapView
 
         public IMapHostControl HostControl => contentArea;
 
-        public IMapShellHost ShellHost { get; }
+        public IXnaMapShellHost ShellHost { get; }
+
+        IMapShellHost IMapShellSession.ShellHost => ShellHost;
 
         public XnaMapSession(ContentArea contentArea)
         {

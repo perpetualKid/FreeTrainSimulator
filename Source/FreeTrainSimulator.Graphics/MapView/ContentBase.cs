@@ -33,7 +33,7 @@ namespace FreeTrainSimulator.Graphics.MapView
 
         internal Game Game => game;
 
-        internal ContentArea ContentArea => (ContentArea)((IMapShellSession)Session).ShellHost.Component;
+        internal ContentArea ContentArea => (ContentArea)((IXnaMapShellSession)Session).ShellHost.Component;
 
         internal IMapContentShellServices ShellServices => ContentArea;
 

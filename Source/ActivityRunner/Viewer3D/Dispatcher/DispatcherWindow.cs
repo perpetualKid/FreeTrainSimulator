@@ -229,7 +229,7 @@ namespace Orts.ActivityRunner.Viewer3D.Dispatcher
             await content.Initialize().ConfigureAwait(true);
             content.InitializeItemVisiblity(dispatcherSettings.ContentTypeVisibility);
             content.UpdateWidgetColorSettings(colorSettings);
-            contentArea = content.ShellHost.Component as ContentArea;
+            contentArea = ((IXnaMapShellHost)content.ShellHost).Component as ContentArea;
             IMapHostControl hostControl = contentArea;
             hostControl.ResetSize(Window.ClientBounds.Size, 60);
             Components.Add(contentArea);
