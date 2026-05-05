@@ -58,7 +58,7 @@ namespace FreeTrainSimulator.Graphics.MapView
         internal ToolboxContent(Game game, MouseInputGameComponent mouseInputGameComponent, IMapSessionComposer sessionComposer, IMapInsetHost insetHost = null, IMapTextureHelperHost textureHelperHost = null) :
             base(game, mouseInputGameComponent, sessionComposer, insetHost, textureHelperHost)
         {
-            pathEditorServices = new PathEditorServices(game);
+            pathEditorServices = new PathEditorServices(runtimeServices.TrackWorld);
             FormattingOptions.Add("Route Information", FormatOption.Bold);
             DetailInfo.Add("Route Information", null);
             DetailInfo["Route Name"] = runtimeServices.RouteName;

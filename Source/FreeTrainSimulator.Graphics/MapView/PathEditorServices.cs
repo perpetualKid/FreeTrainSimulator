@@ -14,9 +14,9 @@ namespace FreeTrainSimulator.Graphics.MapView
     {
         public TrackWorld TrackWorld { get; }
 
-        public PathEditorServices(Game game)
+        public PathEditorServices(TrackWorld trackWorld)
         {
-            TrackWorld = TrackWorld.GameInstance(game);
+            TrackWorld = trackWorld ?? throw new System.ArgumentNullException(nameof(trackWorld));
         }
 
         public EditorTrainPath CreateEditorTrainPath(PathModel pathModel)
