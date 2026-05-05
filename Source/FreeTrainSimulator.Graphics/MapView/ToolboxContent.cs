@@ -1,24 +1,16 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
-using System.Threading;
 
 using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.DebugInfo;
 using FreeTrainSimulator.Common.Position;
-using FreeTrainSimulator.Graphics.DrawableComponents;
 using FreeTrainSimulator.Graphics.MapView.Widgets;
 using FreeTrainSimulator.Graphics.Xna;
-using FreeTrainSimulator.Models.Content;
 using FreeTrainSimulator.Models.Track;
-using FreeTrainSimulator.Runtime;
 using FreeTrainSimulator.Runtime.Track;
-
-using Microsoft.Xna.Framework;
-using FreeTrainSimulator.Common.Input;
 
 namespace FreeTrainSimulator.Graphics.MapView
 {
@@ -29,7 +21,7 @@ namespace FreeTrainSimulator.Graphics.MapView
         EditPath,
     }
 
-    public class ToolboxContent : ContentBase, IPathEditorContext, IPathEditorContextServicesAccessor, ITrackNodeInfoContext, ITrackItemInfoContext
+    public sealed class ToolboxContent : ContentBase, IPathEditorContext, IPathEditorContextServicesAccessor, ITrackNodeInfoContext, ITrackItemInfoContext
     {
         private (double distance, INameValueInformationProvider statusItem) nearestSegmentForStatus;
         private (double distance, INameValueInformationProvider statusItem) nearestItemForStatus;

@@ -56,7 +56,10 @@ namespace FreeTrainSimulator.Graphics.MapView
         internal ContentBase(MapContentContext context)
         {
             ArgumentNullException.ThrowIfNull(context);
-            runtimeServices = context.RuntimeServices ?? throw new ArgumentNullException(nameof(context.RuntimeServices));
+
+            runtimeServices = context.RuntimeServices
+                ?? throw new ArgumentException($"{nameof(context.RuntimeServices)} cannot be null.", nameof(context));
+
             InsetHost = context.InsetHost;
             TextureHelperHost = context.TextureHelperHost;
             if (runtimeServices.RuntimeData == null)
