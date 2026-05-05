@@ -62,7 +62,7 @@ namespace FreeTrainSimulator.Graphics.MapView
             TextureHelperHost = textureHelperHost;
             if (null == RuntimeDataResolver.GameInstance(game))
                 throw new InvalidOperationException("RuntimeData not initialized!");
-            Session = sessionComposer.Compose(new MapSessionRequest(game, mouseInputGameComponent, this, insetHost, textureHelperHost));
+            Session = sessionComposer.Compose(new MapSessionRequest(this, insetHost, textureHelperHost));
             RouteName = RuntimeDataResolver.GameInstance(game).RouteData.Name;
             UseMetricUnits = RuntimeDataResolver.GameInstance(game).MetricUnits;
         }
