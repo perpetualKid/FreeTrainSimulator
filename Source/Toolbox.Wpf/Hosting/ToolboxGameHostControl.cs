@@ -1,0 +1,262 @@
+using System;
+using System.Drawing;
+using System.Threading;
+using System.Windows.Forms;
+using System.Windows.Forms.Integration;
+using System.Windows.Threading;
+
+using FreeTrainSimulator.Toolbox;
+
+namespace FreeTrainSimulator.Toolbox.Wpf.Hosting
+{
+    public sealed class ToolboxGameHostControl : WindowsFormsHost, IDisposable
+    {
+        private readonly HostPanel hostPanel;
+        private readonly object syncLock = new object();
+
+        private Thread gameThread;
+        private GameWindow gameWindow;
+        private bool disposed;
+        private bool hostedWindowAttached;
+        private IntPtr hostPanelHandle;
+
+        /// <summary>
+        /// Hosted-mode menu bridge that the WPF shell binds its native menu to. Null until the hosted game
+        /// window has been created; subscribe to <see cref="HostedMenuReady"/> to be notified when it becomes
+        /// available. Raised on the WPF UI thread.
+        /// </summary>
+        internal HostedToolboxMenu HostedMenu { get; private set; }
+
+        /// <summary>
+        /// Raised on the WPF UI thread once <see cref="HostedMenu"/> becomes available.
+        /// </summary>
+        internal event EventHandler HostedMenuReady;
+        public ToolboxGameHostControl()
+        {
+            hostPanel = new HostPanel
+            {
+                Dock = DockStyle.Fill,
+                TabStop = true,
+            };
+
+            Child = hostPanel;
+            Loaded += ToolboxGameHostControl_Loaded;
+            Unloaded += ToolboxGameHostControl_Unloaded;
+            SizeChanged += ToolboxGameHostControl_SizeChanged;
+            GotFocus += ToolboxGameHostControl_GotFocus;
+
+            StartHostedGame();
+        }
+
+        private void ToolboxGameHostControl_Loaded(object sender, System.Windows.RoutedEventArgs e)
+        {
+            ApplyHostedSize();
+        }
+
+        private void ToolboxGameHostControl_Unloaded(object sender, System.Windows.RoutedEventArgs e)
+        {
+            Dispose();
+        }
+
+        private void ToolboxGameHostControl_GotFocus(object sender, System.Windows.RoutedEventArgs e)
+        {
+        }
+
+        private void ToolboxGameHostControl_SizeChanged(object sender, System.Windows.SizeChangedEventArgs e)
+        {
+            ApplyHostedSize();
+        }
+
+        private void StartHostedGame()
+        {
+            lock (syncLock)
+            {
+                if (gameThread != null)
+                    return;
+
+                gameThread = new Thread(GameThreadStart)
+                {
+                    IsBackground = true,
+                    Name = "Toolbox.Wpf.HostedGameThread",
+                };
+                gameThread.SetApartmentState(ApartmentState.STA);
+                gameThread.Start();
+            }
+        }
+
+        private void GameThreadStart()
+        {
+            try
+            {
+                using (GameWindow game = new GameWindow(hostedMode: true))
+                {
+                    gameWindow = game;
+                    game.EnableHostedMode(ReattachHostedWindow);
+
+                    Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(AttachHostedWindow));
+                    Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(PublishHostedMenu));
+
+                    game.Run();
+                    gameWindow = null;
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Trace.TraceError($"[ToolboxGameHost] Hosted game thread terminated unexpectedly: {ex}");
+            }
+        }
+
+        // Publishes the hosted menu bridge to the WPF shell once the game window has been created. Retries on
+        // the dispatcher until the game window (and therefore its menu bridge) is available.
+        private void PublishHostedMenu()
+        {
+            if (disposed)
+                return;
+
+            GameWindow game = gameWindow;
+            if (game?.HostedMenu == null)
+            {
+                Dispatcher.BeginInvoke(DispatcherPriority.Background, new Action(PublishHostedMenu));
+                return;
+            }
+
+            HostedMenu = game.HostedMenu;
+            HostedMenuReady?.Invoke(this, EventArgs.Empty);
+        }
+
+        private void AttachHostedWindow()
+        {
+            if (disposed || hostPanel.IsDisposed || hostedWindowAttached)
+                return;
+            GameWindow game = gameWindow;
+            if (game == null)
+            {
+                Dispatcher.BeginInvoke(DispatcherPriority.Background, new Action(AttachHostedWindow));
+                return;
+            }
+
+            IntPtr windowHandle = game.HostedWindowHandle;
+            if (windowHandle == IntPtr.Zero || hostPanel.Handle == IntPtr.Zero)
+            {
+                Dispatcher.BeginInvoke(DispatcherPriority.Background, new Action(AttachHostedWindow));
+                return;
+            }
+
+            // Cache the host panel handle so the game thread can reparent the child window without touching
+            // the WinForms Control across threads.
+            hostPanelHandle = hostPanel.Handle;
+
+            // SetParent is a cross-thread operation (the parent is owned by the WPF UI thread), so it must
+            // only run here, at initial attach, while the WPF thread is pumping messages. It is never called
+            // again on resize.
+            NativeMethods.SetParent(windowHandle, hostPanelHandle);
+            ConfigureChildWindow(windowHandle, hostPanel.ClientSize.Width, hostPanel.ClientSize.Height);
+
+            hostedWindowAttached = true;
+            ApplyHostedSize();
+        }
+
+        // Invoked on the game thread (the child window's owning thread) right after a hosted resize applies.
+        // Re-asserting the WS_CHILD style and size in-thread is safe because both the child window and these
+        // APIs target the game-thread-owned window. It deliberately does NOT call SetParent: ApplyChanges()
+        // only strips the window style, it does not change the parent, and calling the cross-thread SetParent
+        // here would block the game loop (freezing rendering and input) whenever the WPF thread is not pumping.
+        private void ReattachHostedWindow(IntPtr windowHandle, int width, int height)
+        {
+            if (disposed || windowHandle == IntPtr.Zero || hostPanelHandle == IntPtr.Zero)
+                return;
+
+            ConfigureChildWindow(windowHandle, width, height);
+        }
+
+        // Re-asserts the WS_CHILD style and child window size. MonoGame WindowsDX re-applies its own
+        // top-level window styles when the back buffer size changes (via graphicsDeviceManager.ApplyChanges),
+        // which strips WS_CHILD; this restores it. All calls here target the child window owned by the
+        // calling (game) thread, so no cross-thread blocking occurs. Parenting (SetParent) is established
+        // once in AttachHostedWindow and is not repeated here.
+        private void ConfigureChildWindow(IntPtr windowHandle, int width, int height)
+        {
+            long styleValue = NativeMethods.GetWindowStyle(windowHandle).ToInt64();
+            styleValue &= ~(long)(NativeMethods.WsPopup | NativeMethods.WsCaption | NativeMethods.WsThickFrame | NativeMethods.WsMinimize | NativeMethods.WsMaximize | NativeMethods.WsSysMenu);
+            styleValue |= NativeMethods.WsChild | NativeMethods.WsVisible;
+            NativeMethods.SetWindowStyle(windowHandle, new IntPtr(styleValue));
+
+            _ = NativeMethods.SetWindowPos(windowHandle, IntPtr.Zero, 0, 0, Math.Max(1, width), Math.Max(1, height),
+                NativeMethods.SwpNoZOrder | NativeMethods.SwpNoActivate | NativeMethods.SwpFrameChanged);
+        }
+
+        private void ApplyHostedSize()
+        {
+            if (!hostedWindowAttached)
+            {
+                AttachHostedWindow();
+                return;
+            }
+
+            GameWindow game = gameWindow;
+            if (game == null)
+                return;
+
+            int width = Math.Max(1, hostPanel.ClientSize.Width);
+            int height = Math.Max(1, hostPanel.ClientSize.Height);
+
+            // ApplyHostedClientSize marshals the resize to the game thread and, after ApplyChanges,
+            // reattaches the child window in-thread via ReattachHostedWindow. The WPF thread must not
+            // manipulate the game-thread-owned window itself.
+            game.ApplyHostedClientSize(new Size(width, height));
+        }
+
+        private void FocusHostedWindow()
+        {
+            gameWindow?.FocusHostedWindow();
+        }
+
+        public new void Dispose()
+        {
+            if (disposed)
+                return;
+
+            disposed = true;
+
+            try
+            {
+                GameWindow game = gameWindow;
+                if (game != null)
+                {
+                    game.Exit();
+                }
+            }
+            catch
+            {
+            }
+
+            if (gameThread != null && gameThread.IsAlive)
+            {
+                gameThread.Join(TimeSpan.FromSeconds(5));
+            }
+
+            base.Dispose();
+        }
+
+        // Host panel for the reparented MonoGame window. The MonoGame window lives on a separate STA
+        // game thread, so it is a cross-thread native child of this panel. When the user presses a mouse
+        // button over the child, Windows sends WM_PARENTNOTIFY to this panel. The default WinForms handler
+        // (WmParentNotify -> ReflectMessage) tries to read the child Control.Handle to reflect the message,
+        // but there is no managed child on this thread and accessing the foreign window throws a
+        // cross-thread InvalidOperationException inside the native WndProc callback, which the CLR escalates
+        // to a fatal 0xc000041d (STATUS_FATAL_USER_CALLBACK_EXCEPTION) and kills the process.
+        // The child has no managed sibling to reflect to, so suppressing WM_PARENTNOTIFY is safe and correct.
+        private sealed class HostPanel : Panel
+        {
+            private const int WmParentNotify = 0x0210;
+
+            protected override void WndProc(ref Message m)
+            {
+                if (m.Msg == WmParentNotify)
+                    return;
+
+                base.WndProc(ref m);
+            }
+        }
+    }
+}

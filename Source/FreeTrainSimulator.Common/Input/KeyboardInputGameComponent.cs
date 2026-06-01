@@ -42,6 +42,12 @@ namespace FreeTrainSimulator.Common.Input
 
         public KeyModifiers KeyModifiers => currentModifiers;
 
+        // When hosted (e.g. embedded as a child window under a WPF/WinForms host), the underlying form can
+        // lose top-level activation on resize/reparent and never report Game.IsActive == true again. Set this
+        // to bypass the IsActive gate so input keeps working while hosted. Default false preserves the
+        // standalone behavior.
+        public bool IgnoreActiveState { get; set; }
+
         public static int KeyEventCode(Keys key, KeyModifiers modifiers, KeyEventType keyEventType)
         {
             return keyEventType switch
@@ -60,7 +66,7 @@ namespace FreeTrainSimulator.Common.Input
 
         public override void Update(GameTime gameTime)
         {
-            if (!Game.IsActive || (inputCapture?.InputCaptured ?? false))
+            if ((!Game.IsActive && !IgnoreActiveState) || (inputCapture?.InputCaptured ?? false))
             {
                 if (!inActive)
                 {

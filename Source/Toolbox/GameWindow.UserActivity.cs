@@ -197,7 +197,7 @@ namespace FreeTrainSimulator.Toolbox
             PathModelHeader pathDetails = e.PathDetails;
             await PathEditor.SavePath(pathDetails).ConfigureAwait(false);
             Task<ImmutableArray<PathModelHeader>> pathTask = selectedRoute.GetRoutePaths(ctsProfileLoading.Token);
-            mainmenu.PopulatePaths(await pathTask.ConfigureAwait(false));
+            menu.PopulatePaths(await pathTask.ConfigureAwait(false));
         }
 
 

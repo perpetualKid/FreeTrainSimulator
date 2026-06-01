@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+	<PropertyGroup>
+		<OutputType>WinExe</OutputType>
+		<UseWPF>true</UseWPF>
+		<UseWindowsForms>true</UseWindowsForms>
+		<Description>Free Train Simulator Toolbox WPF pilot host</Description>
+		<AssemblyTitle>Free Train Simulator Toolbox WPF</AssemblyTitle>
+		<AssemblyName>FreeTrainSimulator.Toolbox.Wpf</AssemblyName>
+		<RootNamespace>FreeTrainSimulator.Toolbox.Wpf</RootNamespace>
+		<OutputPath>..\..\Program</OutputPath>
+		<ApplicationIcon>..\FTS.ico</ApplicationIcon>
+		<Configurations>Debug;Release;CodeAnalysis;UpdateContentVersion</Configurations>
+	</PropertyGroup>
+	<ItemGroup>
+		<PackageReference Include="Dirkster.AvalonDock" Version="4.74.0" />
+	</ItemGroup>
+	<ItemGroup>
+		<ProjectReference Include="..\Toolbox\Toolbox.csproj" />
+	</ItemGroup>
+</Project>

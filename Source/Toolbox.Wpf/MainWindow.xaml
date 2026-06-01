@@ -1,0 +1,80 @@
+<Window x:Class="FreeTrainSimulator.Toolbox.Wpf.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:avalonDock="clr-namespace:AvalonDock;assembly=AvalonDock"
+        xmlns:avalonLayout="clr-namespace:AvalonDock.Layout;assembly=AvalonDock"
+        xmlns:host="clr-namespace:FreeTrainSimulator.Toolbox.Wpf.Hosting"
+        mc:Ignorable="d"
+        Title="Free Train Simulator Toolbox (WPF Pilot)"
+        Width="1400"
+        Height="900"
+        MinWidth="1024"
+        MinHeight="720">
+    <DockPanel>
+        <Menu x:Name="MainMenu"
+              DockPanel.Dock="Top"
+              IsEnabled="{Binding Enabled}">
+            <MenuItem Header="_File">
+                <MenuItem x:Name="ContentFolderMenu"
+                          Header="Content _Folder"
+                          ItemsSource="{Binding ContentFolders}">
+                    <MenuItem.ItemContainerStyle>
+                        <Style TargetType="MenuItem">
+                            <Setter Property="Header" Value="{Binding Name}" />
+                            <Setter Property="Command" Value="{Binding DataContext.SelectFolderCommand, ElementName=MainMenu}" />
+                            <Setter Property="CommandParameter" Value="{Binding}" />
+                        </Style>
+                    </MenuItem.ItemContainerStyle>
+                </MenuItem>
+                <MenuItem x:Name="RoutesMenu"
+                          Header="_Routes"
+                          ItemsSource="{Binding Routes}">
+                    <MenuItem.ItemContainerStyle>
+                        <Style TargetType="MenuItem">
+                            <Setter Property="Header" Value="{Binding Name}" />
+                            <Setter Property="Command" Value="{Binding DataContext.ToggleRouteCommand, ElementName=MainMenu}" />
+                            <Setter Property="CommandParameter" Value="{Binding}" />
+                        </Style>
+                    </MenuItem.ItemContainerStyle>
+                </MenuItem>
+                <Separator />
+                <MenuItem Header="Take _Screenshot" Command="{Binding TakeScreenshotCommand}" />
+                <Separator />
+                <MenuItem Header="E_xit" Command="{Binding QuitCommand}" />
+            </MenuItem>
+            <MenuItem Header="_Paths">
+                <MenuItem x:Name="LoadPathMenu"
+                          Header="_Load Path"
+                          ItemsSource="{Binding Paths}">
+                    <MenuItem.ItemContainerStyle>
+                        <Style TargetType="MenuItem">
+                            <Setter Property="Header" Value="{Binding Name}" />
+                            <Setter Property="Command" Value="{Binding DataContext.TogglePathCommand, ElementName=MainMenu}" />
+                            <Setter Property="CommandParameter" Value="{Binding}" />
+                        </Style>
+                    </MenuItem.ItemContainerStyle>
+                </MenuItem>
+                <MenuItem Header="_New Path" Command="{Binding EditPathCommand}" />
+                <MenuItem Header="_Save Path" Command="{Binding SavePathCommand}" />
+            </MenuItem>
+            <MenuItem Header="_Help">
+                <MenuItem Header="_About" Command="{Binding ShowAboutCommand}" />
+            </MenuItem>
+        </Menu>
+        <Grid>
+            <avalonDock:DockingManager x:Name="DockingManager">
+                <avalonLayout:LayoutRoot>
+                    <avalonLayout:LayoutPanel Orientation="Horizontal">
+                        <avalonLayout:LayoutDocumentPane>
+                            <avalonLayout:LayoutDocument Title="Map View">
+                                <host:ToolboxGameHostControl x:Name="MapHost" />
+                            </avalonLayout:LayoutDocument>
+                        </avalonLayout:LayoutDocumentPane>
+                    </avalonLayout:LayoutPanel>
+                </avalonLayout:LayoutRoot>
+            </avalonDock:DockingManager>
+        </Grid>
+    </DockPanel>
+</Window>

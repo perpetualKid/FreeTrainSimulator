@@ -55,6 +55,7 @@ namespace FreeTrainSimulator.Toolbox
         private ContentArea contentArea;
         private int suppressCount;
         private bool waitOnExit;
+        private bool hostedMode;
 
         internal ContentArea ContentArea
         {
@@ -98,8 +99,16 @@ namespace FreeTrainSimulator.Toolbox
         private readonly string windowTitle;
         private UserCommandController<UserCommand> userCommandController;
 
-        public GameWindow()
+        // Abstraction over the main menu. In standalone mode this is the embedded WinForms MainMenuControl;
+        // in hosted (WPF) mode it is a bridge that forwards menu data/commands to the native WPF menu.
+        private IToolboxMenu menu;
+
+        // Non-null only in hosted mode; exposed to the WPF host so the native menu can bind to it.
+        private HostedToolboxMenu hostedMenu;
+
+        public GameWindow(bool hostedMode = false)
         {
+            this.hostedMode = hostedMode;
             ImmutableArray<string> options = Environment.GetCommandLineArgs().Where(a => a.StartsWith('-') || a.StartsWith('/')).Select(a => a[1..]).ToImmutableArray();
 
             CatalogManager.SetCatalogDomainPattern(CatalogDomainPattern.AssemblyName, null, RuntimeInfo.LocalesFolder);
@@ -119,7 +128,16 @@ namespace FreeTrainSimulator.Toolbox
             FontManager.ScalingFactor = (float)WindowManager.DisplayScalingFactor(currentScreen);
 
             ApplySettings();
-            InitializeComponent();
+            if (hostedMode)
+            {
+                hostedMenu = new HostedToolboxMenu(this);
+                menu = hostedMenu;
+            }
+            else
+            {
+                InitializeComponent();
+                menu = mainmenu;
+            }
             graphicsDeviceManager = new GraphicsDeviceManager(this);
             graphicsDeviceManager.PreparingDeviceSettings += GraphicsPreparingDeviceSettings;
             graphicsDeviceManager.PreferMultiSampling = ToolboxUserSettings.MultiSamplingCount > 0;
@@ -167,6 +185,9 @@ namespace FreeTrainSimulator.Toolbox
 
         private void WindowForm_FormClosing(object sender, FormClosingEventArgs e)
         {
+            if (hostedMode)
+                return;
+
             waitOnExit = true;
             PrepareExitApplication();
         }
@@ -176,6 +197,13 @@ namespace FreeTrainSimulator.Toolbox
         {
             if (syncing)
                 return;
+
+            if (hostedMode)
+            {
+                ApplyHostedClientSize(windowForm.ClientSize);
+                return;
+            }
+
             if (currentScreenMode == ScreenMode.Windowed)
                 windowSize = new System.Drawing.Size(Window.ClientBounds.Width, Window.ClientBounds.Height);
             //originally, following code would be in Window.LocationChanged handler, but seems to be more reliable here for MG version 3.7.1
@@ -196,7 +224,120 @@ namespace FreeTrainSimulator.Toolbox
 
         private void WindowForm_LocationChanged(object sender, EventArgs e)
         {
+            if (hostedMode)
+                return;
+
             WindowForm_ClientSizeChanged(sender, e);
+        }
+
+        internal IntPtr HostedWindowHandle
+        {
+            get
+            {
+                if (windowForm == null || windowForm.IsDisposed || windowForm.Disposing)
+                    return IntPtr.Zero;
+
+                if (windowForm.InvokeRequired)
+                {
+                    return (IntPtr)windowForm.Invoke((Func<IntPtr>)(() =>
+                        windowForm.IsHandleCreated ? windowForm.Handle : IntPtr.Zero));
+                }
+
+                return windowForm.IsHandleCreated ? windowForm.Handle : IntPtr.Zero;
+            }
+        }
+
+        // Callback supplied by the WPF host to re-parent/re-style the embedded child window. It is invoked
+        // on the game thread (the window's owning thread) right after a hosted resize applies, so the
+        // reparenting happens in-thread and never stalls the WPF UI thread during its modal resize loop.
+        private Action<IntPtr, int, int> hostedReattachCallback;
+
+        internal void EnableHostedMode(Action<IntPtr, int, int> reattachCallback)
+        {
+            // hostedMode is set in the constructor so the menu type is chosen before InitializeComponent.
+            hostedReattachCallback = reattachCallback;
+            Window.AllowUserResizing = false;
+            windowForm.FormBorderStyle = FormBorderStyle.None;
+            SetScreenMode(ScreenMode.Windowed);
+        }
+
+        /// <summary>
+        /// Hosted-mode menu bridge that the WPF shell binds its native menu to. Null in standalone mode.
+        /// </summary>
+        internal HostedToolboxMenu HostedMenu => hostedMenu;
+
+        internal void ApplyHostedClientSize(System.Drawing.Size clientSize)
+        {
+            if (!hostedMode || clientSize.Width <= 0 || clientSize.Height <= 0)
+                return;
+
+            if (windowForm.InvokeRequired)
+            {
+                windowForm.BeginInvoke((System.Windows.Forms.MethodInvoker)delegate
+                {
+                    ApplyHostedClientSize(clientSize);
+                });
+                return;
+            }
+
+            if (graphicsDeviceManager.PreferredBackBufferWidth != clientSize.Width
+                || graphicsDeviceManager.PreferredBackBufferHeight != clientSize.Height)
+            {
+                syncing = true;
+                try
+                {
+                    graphicsDeviceManager.PreferredBackBufferWidth = clientSize.Width;
+                    graphicsDeviceManager.PreferredBackBufferHeight = clientSize.Height;
+                    graphicsDeviceManager.ApplyChanges();
+                }
+                finally
+                {
+                    syncing = false;
+                }
+            }
+
+            // Always re-assert the embedded child parenting/styles/size on this (the game) thread, even when
+            // the back buffer size was unchanged. graphicsDeviceManager.ApplyChanges() resets the MonoGame
+            // window to a top-level style and detaches it from the WPF host panel; if we skipped this on a
+            // size-unchanged call, the window would remain top-level and stop receiving input after a resize.
+            // Doing this in-thread avoids cross-thread SetParent calls that would deadlock the WPF UI thread.
+            hostedReattachCallback?.Invoke(windowForm.Handle, clientSize.Width, clientSize.Height);
+        }
+
+        // Marshals a command coming from the WPF UI thread onto the game (windowForm) thread, where all
+        // MonoGame/WinForms state lives. Used by HostedToolboxMenu to forward native-menu actions safely.
+        internal void InvokeOnGameThread(Action action)
+        {
+            ArgumentNullException.ThrowIfNull(action);
+
+            if (windowForm.IsDisposed || windowForm.Disposing)
+                return;
+
+            if (windowForm.InvokeRequired)
+                _ = windowForm.BeginInvoke(action);
+            else
+                action();
+        }
+
+        internal void FocusHostedWindow()
+        {
+            if (windowForm.IsDisposed || windowForm.Disposing)
+                return;
+
+            if (windowForm.InvokeRequired)
+            {
+                windowForm.BeginInvoke((System.Windows.Forms.MethodInvoker)delegate
+                {
+                    FocusHostedWindow();
+                });
+                return;
+            }
+
+            if (!windowForm.IsHandleCreated)
+                return;
+
+            windowForm.ActiveControl = null;
+            windowForm.Select();
         }
 
         internal void UpdateColorPreference(ColorSetting setting, string colorName)
@@ -318,6 +459,21 @@ namespace FreeTrainSimulator.Toolbox
             {
                 if (graphicsDeviceManager.IsFullScreen)
                     graphicsDeviceManager.ToggleFullScreen();
+
+                if (hostedMode)
+                {
+                    windowForm.FormBorderStyle = System.Windows.Forms.FormBorderStyle.None;
+                    System.Drawing.Size clientSize = windowForm.ClientSize;
+                    if (clientSize.Width > 0 && clientSize.Height > 0)
+                    {
+                        graphicsDeviceManager.PreferredBackBufferWidth = clientSize.Width;
+                        graphicsDeviceManager.PreferredBackBufferHeight = clientSize.Height;
+                        graphicsDeviceManager.ApplyChanges();
+                    }
+                    targetMode = ScreenMode.Windowed;
+                    return;
+                }
+
                 switch (targetMode)
                 {
                     case ScreenMode.Windowed:
@@ -359,12 +515,24 @@ namespace FreeTrainSimulator.Toolbox
             spriteBatch = new SpriteBatch(GraphicsDevice);
 
             userCommandController = new UserCommandController<UserCommand>();
-            KeyboardInputGameComponent keyboardInputGameComponent = new KeyboardInputGameComponent(this);
+            KeyboardInputGameComponent keyboardInputGameComponent = new KeyboardInputGameComponent(this)
+            {
+                // When hosted as a child window, the form can lose top-level activation on resize and never
+                // report Game.IsActive again; bypass the IsActive gate so keyboard input keeps working.
+                IgnoreActiveState = hostedMode,
+            };
             Components.Add(keyboardInputGameComponent);
             KeyboardInputHandler<UserCommand> keyboardInput = new KeyboardInputHandler<UserCommand>();
             keyboardInput.Initialize(InputSettings.UserCommands, keyboardInputGameComponent, userCommandController);
 
-            MouseInputGameComponent mouseInputGameComponent = new MouseInputGameComponent(this);
+            MouseInputGameComponent mouseInputGameComponent = new MouseInputGameComponent(this)
+            {
+                DisableTouchInput = hostedMode,
+                UseWindowMouseState = !hostedMode,
+                // When hosted as a child window, the form can lose top-level activation on resize and never
+                // report Game.IsActive again; bypass the IsActive gate so mouse input keeps working.
+                IgnoreActiveState = hostedMode,
+            };
             Components.Add(mouseInputGameComponent);
             MouseInputHandler<UserCommand> mouseInput = new MouseInputHandler<UserCommand>();
             mouseInput.Initialize(mouseInputGameComponent, keyboardInputGameComponent, userCommandController);
@@ -386,7 +554,10 @@ namespace FreeTrainSimulator.Toolbox
                 if (userCommandArgs is not ModifiableKeyCommandArgs)
                     windowManager[ToolboxWindowType.DebugScreen].ToggleVisibility();
             });
-            userCommandController.AddEvent(CommonUserCommand.PointerDragged, MouseDragging);
+            userCommandController.AddEvent(CommonUserCommand.PointerDragged, (userCommandArgs) =>
+            {
+                MouseDragging(userCommandArgs);
+            });
             userCommandController.AddEvent(CommonUserCommand.VerticalScrollChanged, MouseWheel);
             userCommandController.AddEvent(UserCommand.DisplayLocationWindow, KeyEventType.KeyPressed, (UserCommandArgs userCommandArgs) =>
             {
@@ -528,8 +699,11 @@ namespace FreeTrainSimulator.Toolbox
 
         private void WindowManager_OnModalWindow(object sender, ModalWindowEventArgs e)
         {
+            if (hostedMode)
+                return;
+
             windowForm.ActiveControl = null;
-            mainmenu.Enabled = !e.ModalWindowOpen;
+            menu.Enabled = !e.ModalWindowOpen;
 
             if (null != ContentArea)
                 ContentArea.Enabled = !e.ModalWindowOpen;

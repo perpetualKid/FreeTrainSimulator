@@ -16,9 +16,23 @@ using FreeTrainSimulator.Models.Shim;
 
 namespace FreeTrainSimulator.Toolbox.WinForms.Controls
 {
-    public partial class MainMenuControl : UserControl
+    public partial class MainMenuControl : UserControl, IToolboxMenu
     {
         private readonly GameWindow parent;
+
+        void IToolboxMenu.PopulateContentFolders(ImmutableArray<FolderModel> folders) => PopulateContentFolders(folders);
+
+        void IToolboxMenu.PopulateRoutes(ImmutableArray<RouteModelHeader> routes) => PopulateRoutes(routes);
+
+        void IToolboxMenu.PopulatePaths(ImmutableArray<PathModelHeader> paths) => PopulatePaths(paths);
+
+        void IToolboxMenu.ClearPathMenu() => ClearPathMenu();
+
+        void IToolboxMenu.PreSelectRoute(string routeName) => PreSelectRoute(routeName);
+
+        void IToolboxMenu.PreSelectPath(PathModelHeader path) => PreSelectPath(path);
+
+        FolderModel IToolboxMenu.SelectContentFolder(string folderName) => SelectContentFolder(folderName);
 
         internal MainMenuControl(GameWindow game)
         {

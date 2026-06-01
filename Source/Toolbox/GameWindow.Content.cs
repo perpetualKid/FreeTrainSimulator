@@ -75,7 +75,7 @@ namespace FreeTrainSimulator.Toolbox
 
         private void PathEditor_OnEditorPathChanged(object sender, PathEditorChangedEventArgs e)
         {
-            mainmenu.PreSelectPath(e.Path?.PathModel);
+            menu.PreSelectPath(e.Path?.PathModel);
         }
 
         internal async Task<bool> LoadFolders()
@@ -89,11 +89,11 @@ namespace FreeTrainSimulator.Toolbox
                 {
                     return false;
                 }
-                mainmenu.PopulateContentFolders(contentModel.ContentFolders);
+                menu.PopulateContentFolders(contentModel.ContentFolders);
             }
             catch (TaskCanceledException)
             {
-                mainmenu.PopulateContentFolders(ImmutableArray<FolderModel>.Empty);
+                menu.PopulateContentFolders(ImmutableArray<FolderModel>.Empty);
             }
             return true;
         }
@@ -151,7 +151,7 @@ namespace FreeTrainSimulator.Toolbox
             toolboxContent.InitializeItemVisiblity(ToolboxSettings.ViewSettings);
             toolboxContent.UpdateWidgetColorSettings(ToolboxSettings.ColorSettings, ToolboxSettings.FontOutline, ToolboxSettings.LimitTrackWidth);
             ContentArea = ((IXnaMapShellHost)toolboxContent.ShellHost).Component as ContentArea;
-            mainmenu.PopulatePaths(await pathTask.ConfigureAwait(true));
+            menu.PopulatePaths(await pathTask.ConfigureAwait(true));
             _ = windowManager[ToolboxWindowType.StatusWindow].Close();
             selectedRoute = route;
         }
@@ -176,7 +176,7 @@ namespace FreeTrainSimulator.Toolbox
         {
             if (!string.IsNullOrEmpty(folderName))
             {
-                FolderModel folder = mainmenu.SelectContentFolder(folderName);
+                FolderModel folder = menu.SelectContentFolder(folderName);
 
                 if (!string.IsNullOrEmpty(routeId) && ToolboxSettings.RestoreLastView)
                 {
@@ -184,7 +184,7 @@ namespace FreeTrainSimulator.Toolbox
                     if (null != route)
                     {
                         await LoadRoute(route).ConfigureAwait(true);
-                        mainmenu.PreSelectRoute(route.Name);
+                        menu.PreSelectRoute(route.Name);
                         if (!string.IsNullOrEmpty(pathId))
                         {
                             // only restore first path for now
@@ -192,7 +192,7 @@ namespace FreeTrainSimulator.Toolbox
                             if (null != path)
                             {
                                 if (LoadPath(path))
-                                    mainmenu.PreSelectPath(path);
+                                    menu.PreSelectPath(path);
                             }
                         }
                     }
@@ -204,7 +204,7 @@ namespace FreeTrainSimulator.Toolbox
         {
             ContentArea = null;
             selectedRoute = null;
-            mainmenu.ClearPathMenu();
+            menu.ClearPathMenu();
             if (pathEditor != null)
             {
                 pathEditor.Dispose();
