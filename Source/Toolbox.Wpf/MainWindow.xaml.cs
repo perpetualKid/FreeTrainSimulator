@@ -72,29 +72,29 @@ namespace FreeTrainSimulator.Toolbox.Wpf
 
         private void MapHost_GotFocus(object sender, RoutedEventArgs e)
         {
-            UpdateHostedInputCapture(forceMapActive: true);
+            ActivateMapInput();
         }
 
         private void MapHost_GotKeyboardFocus(object sender, System.Windows.Input.KeyboardFocusChangedEventArgs e)
         {
-            UpdateHostedInputCapture(forceMapActive: true);
+            ActivateMapInput();
         }
 
         private void MapHost_MouseEnter(object sender, System.Windows.Input.MouseEventArgs e)
         {
-            UpdateHostedInputCapture(forceMapActive: true);
+            ActivateMapInput();
         }
 
         private void MapHost_PreviewMouseDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
         {
-            UpdateHostedInputCapture(forceMapActive: true);
+            ActivateMapInput();
         }
 
         private void MapHost_HostedWindowPointerDown(object sender, EventArgs e)
         {
             // Child HWND click from the hosted MonoGame surface: release capture immediately without
             // requiring an extra click on WPF chrome/titlebar.
-            UpdateHostedInputCapture(forceMapActive: true);
+            ActivateMapInput();
         }
 
         private void DockingManager_ActiveContentChanged(object sender, EventArgs e)
@@ -135,6 +135,11 @@ namespace FreeTrainSimulator.Toolbox.Wpf
                 viewModel.DebugTool.Start();
             else
                 viewModel.DebugTool.Stop();
+        }
+
+        private void ActivateMapInput()
+        {
+            UpdateHostedInputCapture(forceMapActive: true);
         }
 
         private void UpdateHostedInputCapture(bool forceMapActive = false)
