@@ -40,8 +40,7 @@ namespace FreeTrainSimulator.Toolbox.Wpf.ViewModels
 
         public void Start()
         {
-            if (disposed)
-                throw new ObjectDisposedException(nameof(LogToolWindowViewModel));
+            ObjectDisposedException.ThrowIf(disposed, nameof(LogToolWindowViewModel));
 
             toolWindow.Active = true;
             refreshTimer.Start();

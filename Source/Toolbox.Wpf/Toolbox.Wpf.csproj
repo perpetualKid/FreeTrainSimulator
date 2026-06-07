@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 	<PropertyGroup>
 		<OutputType>WinExe</OutputType>
 		<UseWPF>true</UseWPF>
@@ -15,6 +15,7 @@
 		<PackageReference Include="Dirkster.AvalonDock" Version="4.74.0" />
 	</ItemGroup>
 	<ItemGroup>
+		<ProjectReference Include="..\FreeTrainSimulator.Common\FreeTrainSimulator.Common.csproj" />
 		<ProjectReference Include="..\Toolbox\Toolbox.csproj" />
 	</ItemGroup>
 </Project>

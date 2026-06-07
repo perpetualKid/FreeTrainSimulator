@@ -35,8 +35,7 @@ namespace FreeTrainSimulator.Toolbox.Wpf.ViewModels
 
         public void Start()
         {
-            if (disposed)
-                throw new ObjectDisposedException(nameof(LocationToolWindowViewModel));
+            ObjectDisposedException.ThrowIf(disposed, nameof(DebugToolWindowViewModel));
 
             toolWindow.Active = true;
             refreshTimer.Start();

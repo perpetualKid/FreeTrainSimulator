@@ -5,18 +5,17 @@ using System.Windows.Forms;
 using System.Windows.Forms.Integration;
 using System.Windows.Threading;
 
-using FreeTrainSimulator.Toolbox;
+using FreeTrainSimulator.Common.Native;
 
 namespace FreeTrainSimulator.Toolbox.Wpf.Hosting
 {
-    public sealed class ToolboxGameHostControl : WindowsFormsHost, IDisposable
+    public sealed class ToolboxGameHostControl : WindowsFormsHost
     {
         private readonly HostPanel hostPanel;
-        private readonly object syncLock = new object();
+        private readonly Lock syncLock = new Lock();
 
         private Thread gameThread;
         private GameWindow gameWindow;
-        private bool disposed;
         private bool hostedWindowAttached;
         private IntPtr hostPanelHandle;
 
@@ -133,7 +132,7 @@ namespace FreeTrainSimulator.Toolbox.Wpf.Hosting
                     gameWindow = null;
                 }
             }
-            catch (Exception ex)
+            catch (Exception ex) when (ex is not ThreadAbortException)
             {
                 System.Diagnostics.Trace.TraceError($"[ToolboxGameHost] Hosted game thread terminated unexpectedly: {ex}");
             }
@@ -143,9 +142,6 @@ namespace FreeTrainSimulator.Toolbox.Wpf.Hosting
         // the dispatcher until the game window (and therefore its menu bridge) is available.
         private void PublishHostedBridges()
         {
-            if (disposed)
-                return;
-
             GameWindow game = gameWindow;
             if (game?.HostedMenu == null)
             {
@@ -164,7 +160,7 @@ namespace FreeTrainSimulator.Toolbox.Wpf.Hosting
 
         private void AttachHostedWindow()
         {
-            if (disposed || hostPanel.IsDisposed || hostedWindowAttached)
+            if (hostPanel.IsDisposed || hostedWindowAttached)
                 return;
             GameWindow game = gameWindow;
             if (game == null)
@@ -201,7 +197,7 @@ namespace FreeTrainSimulator.Toolbox.Wpf.Hosting
         // here would block the game loop (freezing rendering and input) whenever the WPF thread is not pumping.
         private void ReattachHostedWindow(IntPtr windowHandle, int width, int height)
         {
-            if (disposed || windowHandle == IntPtr.Zero || hostPanelHandle == IntPtr.Zero)
+            if (windowHandle == IntPtr.Zero || hostPanelHandle == IntPtr.Zero)
                 return;
 
             ConfigureChildWindow(windowHandle, width, height);
@@ -266,31 +262,21 @@ namespace FreeTrainSimulator.Toolbox.Wpf.Hosting
             HostedWindowPointerDown?.Invoke(this, EventArgs.Empty);
         }
 
-        public new void Dispose()
+        protected override void Dispose(bool disposing)
         {
-            if (disposed)
-                return;
-
-            disposed = true;
-
-            try
+            GameWindow game = gameWindow;
+            if (game != null)
             {
-                GameWindow game = gameWindow;
-                if (game != null)
-                {
-                    game.Exit();
-                }
-            }
-            catch
-            {
+                game.Exit();
+                game.Dispose();
             }
 
+            hostPanel?.Dispose();
             if (gameThread != null && gameThread.IsAlive)
             {
                 gameThread.Join(TimeSpan.FromSeconds(5));
             }
-
-            base.Dispose();
+            base.Dispose(disposing);
         }
 
         // Host panel for the reparented MonoGame window. The MonoGame window lives on a separate STA

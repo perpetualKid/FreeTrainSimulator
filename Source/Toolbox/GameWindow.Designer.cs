@@ -1,14 +1,12 @@
 ﻿using System;
 using System.Windows.Forms;
 
+using Microsoft.Xna.Framework;
+
 namespace FreeTrainSimulator.Toolbox
 {
     public partial class GameWindow
     {
-        /// <summary>
-        /// Required designer variable.
-        /// </summary>
-        private System.ComponentModel.IContainer components = null;
         /// <summary>
         /// Clean up any resources being used.
         /// </summary>
@@ -17,14 +15,13 @@ namespace FreeTrainSimulator.Toolbox
         {
             if (disposing)
             {
-                if (components != null)
+                if (Components != null)
                 {
-                    components.Dispose();
-                }
-                foreach (var item in Components)
-                {
-                    if (item is IDisposable disposable)
-                        disposable.Dispose();
+                    foreach (IGameComponent item in Components)
+                    {
+                        if (item is IDisposable disposable)
+                            disposable.Dispose();
+                    }
                 }
                 pathEditor?.Dispose();
                 ctsRouteLoading?.Dispose();
