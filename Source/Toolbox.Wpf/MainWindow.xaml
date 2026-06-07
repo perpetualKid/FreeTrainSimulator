@@ -1,4 +1,5 @@
 <Window x:Class="FreeTrainSimulator.Toolbox.Wpf.MainWindow"
+        x:Name="RootWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
@@ -6,15 +7,21 @@
         xmlns:avalonDock="clr-namespace:AvalonDock;assembly=AvalonDock"
         xmlns:avalonLayout="clr-namespace:AvalonDock.Layout;assembly=AvalonDock"
         xmlns:host="clr-namespace:FreeTrainSimulator.Toolbox.Wpf.Hosting"
+        xmlns:viewModels="clr-namespace:FreeTrainSimulator.Toolbox.Wpf.ViewModels"
         mc:Ignorable="d"
         Title="Free Train Simulator Toolbox (WPF Pilot)"
         Width="1400"
         Height="900"
         MinWidth="1024"
         MinHeight="720">
+    <Window.Resources>
+        <viewModels:DrawingColorToBrushConverter x:Key="DrawingColorToBrushConverter" />
+        <viewModels:BoolToFontWeightConverter x:Key="BoolToFontWeightConverter" />
+    </Window.Resources>
     <DockPanel>
         <Menu x:Name="MainMenu"
               DockPanel.Dock="Top"
+              DataContext="{Binding Menu}"
               IsEnabled="{Binding Enabled}">
             <MenuItem Header="_File">
                 <MenuItem x:Name="ContentFolderMenu"
@@ -59,6 +66,10 @@
                 <MenuItem Header="_New Path" Command="{Binding EditPathCommand}" />
                 <MenuItem Header="_Save Path" Command="{Binding SavePathCommand}" />
             </MenuItem>
+            <MenuItem Header="_View">
+                <MenuItem Header="_Debug Window"
+                          Command="{Binding DataContext.ToggleDebugToolCommand, ElementName=RootWindow}" />
+            </MenuItem>
             <MenuItem Header="_Help">
                 <MenuItem Header="_About" Command="{Binding ShowAboutCommand}" />
             </MenuItem>
@@ -68,10 +79,40 @@
                 <avalonLayout:LayoutRoot>
                     <avalonLayout:LayoutPanel Orientation="Horizontal">
                         <avalonLayout:LayoutDocumentPane>
-                            <avalonLayout:LayoutDocument Title="Map View">
+                            <avalonLayout:LayoutDocument Title="Map View"
+                                                        ContentId="MapViewDocument"
+                                                        CanFloat="False"
+                                                        CanClose="False">
                                 <host:ToolboxGameHostControl x:Name="MapHost" />
                             </avalonLayout:LayoutDocument>
                         </avalonLayout:LayoutDocumentPane>
+                        <avalonLayout:LayoutAnchorablePane DockWidth="340">
+                            <avalonLayout:LayoutAnchorable x:Name="DebugToolAnchorable"
+                                                          ContentId="DebugToolWindow"
+                                                          Title="Debug Information"
+                                                          CanClose="False"
+                                                          CanHide="True"
+                                                          IsVisible="False"
+                                                          IsSelected="False">
+                                <ListView Margin="6"
+                                          ItemsSource="{Binding DataContext.DebugTool.Rows, ElementName=RootWindow}">
+                                    <ListView.View>
+                                        <GridView>
+                                            <GridViewColumn Header="Name" Width="180" DisplayMemberBinding="{Binding Name}" />
+                                            <GridViewColumn Header="Value" Width="320" DisplayMemberBinding="{Binding Value}" />
+                                        </GridView>
+                                    </ListView.View>
+                                    <ListView.ItemContainerStyle>
+                                        <Style TargetType="ListViewItem">
+                                            <Setter Property="Foreground"
+                                                    Value="{Binding Color, Converter={StaticResource DrawingColorToBrushConverter}}" />
+                                            <Setter Property="FontWeight"
+                                                    Value="{Binding Bold, Converter={StaticResource BoolToFontWeightConverter}}" />
+                                        </Style>
+                                    </ListView.ItemContainerStyle>
+                                </ListView>
+                            </avalonLayout:LayoutAnchorable>
+                        </avalonLayout:LayoutAnchorablePane>
                     </avalonLayout:LayoutPanel>
                 </avalonLayout:LayoutRoot>
             </avalonDock:DockingManager>

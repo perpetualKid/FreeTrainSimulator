@@ -31,9 +31,28 @@ namespace FreeTrainSimulator.Toolbox.Wpf.Hosting
         /// Raised on the WPF UI thread once <see cref="HostedMenu"/> becomes available.
         /// </summary>
         internal event EventHandler HostedMenuReady;
+
+        /// <summary>
+        /// Hosted-mode debug tool-window bridge that the WPF shell pulls read-only snapshots from. Null until
+        /// the hosted game window has been created; subscribe to <see cref="HostedToolWindowsReady"/> to be
+        /// notified when it becomes available. Raised on the WPF UI thread.
+        /// </summary>
+        internal DebugToolWindow HostedDebugToolWindow { get; private set; }
+
+        /// <summary>
+        /// Raised on the WPF UI thread once <see cref="HostedDebugToolWindow"/> becomes available.
+        /// </summary>
+        internal event EventHandler HostedToolWindowsReady;
+
+        /// <summary>
+        /// Raised on the WPF UI thread when the hosted child window receives a mouse-down notification.
+        /// Useful for input-capture handoff back to the map view.
+        /// </summary>
+        internal event EventHandler HostedWindowPointerDown;
+
         public ToolboxGameHostControl()
         {
-            hostPanel = new HostPanel
+            hostPanel = new HostPanel(OnHostedWindowPointerDown)
             {
                 Dock = DockStyle.Fill,
                 TabStop = true,
@@ -94,7 +113,7 @@ namespace FreeTrainSimulator.Toolbox.Wpf.Hosting
                     game.EnableHostedMode(ReattachHostedWindow);
 
                     Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(AttachHostedWindow));
-                    Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(PublishHostedMenu));
+                    Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(PublishHostedBridges));
 
                     game.Run();
                     gameWindow = null;
@@ -108,7 +127,7 @@ namespace FreeTrainSimulator.Toolbox.Wpf.Hosting
 
         // Publishes the hosted menu bridge to the WPF shell once the game window has been created. Retries on
         // the dispatcher until the game window (and therefore its menu bridge) is available.
-        private void PublishHostedMenu()
+        private void PublishHostedBridges()
         {
             if (disposed)
                 return;
@@ -116,12 +135,15 @@ namespace FreeTrainSimulator.Toolbox.Wpf.Hosting
             GameWindow game = gameWindow;
             if (game?.HostedMenu == null)
             {
-                Dispatcher.BeginInvoke(DispatcherPriority.Background, new Action(PublishHostedMenu));
+                Dispatcher.BeginInvoke(DispatcherPriority.Background, new Action(PublishHostedBridges));
                 return;
             }
 
             HostedMenu = game.HostedMenu;
             HostedMenuReady?.Invoke(this, EventArgs.Empty);
+
+            HostedDebugToolWindow = game.HostedDebugToolWindow;
+            HostedToolWindowsReady?.Invoke(this, EventArgs.Empty);
         }
 
         private void AttachHostedWindow()
@@ -211,6 +233,23 @@ namespace FreeTrainSimulator.Toolbox.Wpf.Hosting
             gameWindow?.FocusHostedWindow();
         }
 
+        /// <summary>
+        /// Enables or suppresses hosted game input. True means input is suspended (captured by non-map UI).
+        /// </summary>
+        internal void SetInputCaptured(bool captured)
+        {
+            GameWindow game = gameWindow;
+            if (game == null)
+                return;
+
+            game.InvokeOnGameThread(() => game.SetHostedInputCaptured(captured));
+        }
+
+        private void OnHostedWindowPointerDown()
+        {
+            HostedWindowPointerDown?.Invoke(this, EventArgs.Empty);
+        }
+
         public new void Dispose()
         {
             if (disposed)
@@ -249,11 +288,27 @@ namespace FreeTrainSimulator.Toolbox.Wpf.Hosting
         private sealed class HostPanel : Panel
         {
             private const int WmParentNotify = 0x0210;
+            private const int WmLButtonDown = 0x0201;
+            private const int WmRButtonDown = 0x0204;
+            private const int WmMButtonDown = 0x0207;
+            private const int WmXButtonDown = 0x020B;
+
+            private readonly Action hostedWindowPointerDown;
+
+            public HostPanel(Action hostedWindowPointerDown)
+            {
+                this.hostedWindowPointerDown = hostedWindowPointerDown;
+            }
 
             protected override void WndProc(ref Message m)
             {
                 if (m.Msg == WmParentNotify)
+                {
+                    int childMessage = m.WParam.ToInt32() & 0xFFFF;
+                    if (childMessage is WmLButtonDown or WmRButtonDown or WmMButtonDown or WmXButtonDown)
+                        hostedWindowPointerDown?.Invoke();
                     return;
+                }
 
                 base.WndProc(ref m);
             }

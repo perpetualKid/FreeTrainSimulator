@@ -106,6 +106,10 @@ namespace FreeTrainSimulator.Toolbox
         // Non-null only in hosted mode; exposed to the WPF host so the native menu can bind to it.
         private HostedToolboxMenu hostedMenu;
 
+        // Non-null only in hosted mode; exposed to the WPF host so a dockable tool window can pull
+        // read-only debug/graphics information snapshots from the game thread.
+        private DebugToolWindow hostedDebugToolWindow;
+
         public GameWindow(bool hostedMode = false)
         {
             this.hostedMode = hostedMode;
@@ -175,6 +179,8 @@ namespace FreeTrainSimulator.Toolbox
             LoadLanguage();
             SystemInfo.SetGraphicAdapterInformation(graphicsDeviceManager.GraphicsDevice.Adapter.Description);
             debugInfo = new CommonDebugInfo(this);
+            if (hostedMode)
+                hostedDebugToolWindow = new DebugToolWindow(debugInfo, graphicsDebugInfo);
             windowForm.KeyPreview = true;// need to preview keys to enable Monogames TextInput handler, otherwise adding the main menu will break text input
         }
 
@@ -266,6 +272,12 @@ namespace FreeTrainSimulator.Toolbox
         /// </summary>
         internal HostedToolboxMenu HostedMenu => hostedMenu;
 
+        /// <summary>
+        /// Hosted-mode debug tool-window bridge that the WPF shell pulls read-only information snapshots
+        /// from. Null in standalone mode.
+        /// </summary>
+        internal DebugToolWindow HostedDebugToolWindow => hostedDebugToolWindow;
+
         internal void ApplyHostedClientSize(System.Drawing.Size clientSize)
         {
             if (!hostedMode || clientSize.Width <= 0 || clientSize.Height <= 0)
@@ -280,8 +292,11 @@ namespace FreeTrainSimulator.Toolbox
                 return;
             }
 
-            if (graphicsDeviceManager.PreferredBackBufferWidth != clientSize.Width
-                || graphicsDeviceManager.PreferredBackBufferHeight != clientSize.Height)
+            int previousClientWidth = graphicsDeviceManager.PreferredBackBufferWidth;
+            int previousClientHeight = graphicsDeviceManager.PreferredBackBufferHeight;
+            bool sizeChanged = previousClientWidth != clientSize.Width || previousClientHeight != clientSize.Height;
+
+            if (sizeChanged)
             {
                 syncing = true;
                 try
@@ -302,6 +317,22 @@ namespace FreeTrainSimulator.Toolbox
             // size-unchanged call, the window would remain top-level and stop receiving input after a resize.
             // Doing this in-thread avoids cross-thread SetParent calls that would deadlock the WPF UI thread.
             hostedReattachCallback?.Invoke(windowForm.Handle, clientSize.Width, clientSize.Height);
+
+            // Hosted resizes do not reliably raise MonoGame's client-size pipeline. Trigger it explicitly so
+            // map viewport bounds and drawable overlays (inset, overlays, etc.) recompute to the new size
+            // without resetting the user's zoom/position state.
+            onClientSizeChanged?.Invoke();
+
+            // Keep top-left world position anchored on hosted resize. Default viewport resize behavior centers
+            // around the current center point; here we re-apply a compensating pan so the old top-left world
+            // coordinate remains at screen origin when size changes.
+            if (sizeChanged && contentArea is IMapHostControl hostControl && previousClientWidth > 0 && previousClientHeight > 0)
+            {
+                PointD previousTopLeft = hostControl.CenterPoint + new PointD(-previousClientWidth / (2d * hostControl.Scale), previousClientHeight / (2d * hostControl.Scale));
+                PointD newTopLeft = hostControl.CenterPoint + new PointD(-clientSize.Width / (2d * hostControl.Scale), clientSize.Height / (2d * hostControl.Scale));
+                Vector2 compensate = new Vector2((float)((newTopLeft.X - previousTopLeft.X) * hostControl.Scale), (float)((previousTopLeft.Y - newTopLeft.Y) * hostControl.Scale));
+                hostControl.UpdatePosition(compensate);
+            }
         }
 
         // Marshals a command coming from the WPF UI thread onto the game (windowForm) thread, where all
@@ -338,6 +369,15 @@ namespace FreeTrainSimulator.Toolbox
 
             windowForm.ActiveControl = null;
             windowForm.Select();
+        }
+
+        /// <summary>
+        /// Updates hosted input capture state from the WPF shell. When captured is true, keyboard/mouse map
+        /// interactions are suspended on the game thread while focus is on non-map controls/documents.
+        /// </summary>
+        internal void SetHostedInputCaptured(bool captured)
+        {
+            InputCaptured = captured;
         }
 
         internal void UpdateColorPreference(ColorSetting setting, string colorName)
@@ -750,6 +790,10 @@ namespace FreeTrainSimulator.Toolbox
 
             graphicsDebugInfo.CurrentMetrics = GraphicsDevice.Metrics;
             graphicsDebugInfo.Update(gameTime);
+
+            // Rebuild the hosted debug tool-window snapshot on the game thread once the providers have been
+            // updated this frame; the call is a no-op while the WPF pane is hidden.
+            hostedDebugToolWindow?.RefreshSnapshot();
         }
 
         private sealed class CommonDebugInfo : DetailInfoBase

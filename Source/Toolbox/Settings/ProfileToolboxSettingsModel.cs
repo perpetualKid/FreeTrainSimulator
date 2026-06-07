@@ -137,6 +137,11 @@ namespace FreeTrainSimulator.Toolbox.Settings
         public string PathId { get; set; }
 
         /// <summary>
+        /// Serialized AvalonDock layout XML for the WPF toolbox shell.
+        /// </summary>
+        public string DockLayoutXml { get; set; }
+
+        /// <summary>
         /// Downscale Track width for easier overview of track schema
         /// </summary>
         public bool LimitTrackWidth { get; set; } = true;

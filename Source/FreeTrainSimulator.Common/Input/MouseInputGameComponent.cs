@@ -20,6 +20,8 @@ namespace FreeTrainSimulator.Common.Input
         private readonly EnumArray<MouseWheelEvent, MouseWheelEventType> mouseWheelEvents = new EnumArray<MouseWheelEvent, MouseWheelEventType>();
 
         private readonly bool isTouchEnabled;
+        private readonly IInputCapture inputCapture;
+        private bool inActive;
 
         public bool DisableTouchInput { get; set; }
 
@@ -33,6 +35,7 @@ namespace FreeTrainSimulator.Common.Input
 
         public MouseInputGameComponent(Game game) : base(game)
         {
+            inputCapture = game as IInputCapture;
             try
             {
                 isTouchEnabled = TouchPanel.GetCapabilities().IsConnected;
@@ -77,16 +80,28 @@ namespace FreeTrainSimulator.Common.Input
 
         public override void Update(GameTime gameTime)
         {
-            if (!Game.IsActive && !IgnoreActiveState)
+            if ((!Game.IsActive && !IgnoreActiveState) || (inputCapture?.InputCaptured ?? false))
             {
-                currentMouseState = default;
+                if (!inActive)
+                {
+                    currentMouseState = default;
+                    previousMouseState = default;
+                    inActive = true;
+                }
                 return;
             }
+
+            if (inActive)
+                inActive = false;
+
             (currentMouseState, previousMouseState) = (previousMouseState, currentMouseState);
             currentMouseState = UseWindowMouseState ? Mouse.GetState(Game.Window) : Mouse.GetState();
 
-            if (UseWindowMouseState && !Game.GraphicsDevice.PresentationParameters.Bounds.Contains(currentMouseState.Position))
+            if (!Game.GraphicsDevice.PresentationParameters.Bounds.Contains(currentMouseState.Position))
+            {
+                previousMouseState = currentMouseState;
                 return;
+            }
 
             void MouseButtonEvent(ButtonState currentButton, ButtonState previousButton, MouseButtonEventType down, MouseButtonEventType pressed, MouseButtonEventType released)
             {
