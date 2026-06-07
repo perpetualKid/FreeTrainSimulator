@@ -67,8 +67,18 @@
                 <MenuItem Header="_Save Path" Command="{Binding SavePathCommand}" />
             </MenuItem>
             <MenuItem Header="_View">
+                <MenuItem Header="_Location Window"
+                          IsCheckable="True"
+                          IsChecked="{Binding DataContext.IsLocationToolVisible, ElementName=RootWindow, Mode=OneWay}"
+                          Command="{Binding DataContext.ToggleLocationToolCommand, ElementName=RootWindow}" />
                 <MenuItem Header="_Debug Window"
+                          IsCheckable="True"
+                          IsChecked="{Binding DataContext.IsDebugToolVisible, ElementName=RootWindow, Mode=OneWay}"
                           Command="{Binding DataContext.ToggleDebugToolCommand, ElementName=RootWindow}" />
+                <MenuItem Header="Lo_g Window"
+                          IsCheckable="True"
+                          IsChecked="{Binding DataContext.IsLogToolVisible, ElementName=RootWindow, Mode=OneWay}"
+                          Command="{Binding DataContext.ToggleLogToolCommand, ElementName=RootWindow}" />
             </MenuItem>
             <MenuItem Header="_Help">
                 <MenuItem Header="_About" Command="{Binding ShowAboutCommand}" />
@@ -87,6 +97,30 @@
                             </avalonLayout:LayoutDocument>
                         </avalonLayout:LayoutDocumentPane>
                         <avalonLayout:LayoutAnchorablePane DockWidth="340">
+                            <avalonLayout:LayoutAnchorable x:Name="LocationToolAnchorable"
+                                                          ContentId="LocationToolWindow"
+                                                          Title="Location"
+                                                          CanClose="False"
+                                                          CanHide="True"
+                                                          IsSelected="False">
+                                <ListView Margin="6"
+                                          ItemsSource="{Binding DataContext.LocationTool.Rows, ElementName=RootWindow}">
+                                    <ListView.View>
+                                        <GridView>
+                                            <GridViewColumn Header="Name" Width="180" DisplayMemberBinding="{Binding Name}" />
+                                            <GridViewColumn Header="Value" Width="320" DisplayMemberBinding="{Binding Value}" />
+                                        </GridView>
+                                    </ListView.View>
+                                    <ListView.ItemContainerStyle>
+                                        <Style TargetType="ListViewItem">
+                                            <Setter Property="Foreground"
+                                                    Value="{Binding Color, Converter={StaticResource DrawingColorToBrushConverter}}" />
+                                            <Setter Property="FontWeight"
+                                                    Value="{Binding Bold, Converter={StaticResource BoolToFontWeightConverter}}" />
+                                        </Style>
+                                    </ListView.ItemContainerStyle>
+                                </ListView>
+                            </avalonLayout:LayoutAnchorable>
                             <avalonLayout:LayoutAnchorable x:Name="DebugToolAnchorable"
                                                           ContentId="DebugToolWindow"
                                                           Title="Debug Information"
@@ -111,6 +145,24 @@
                                         </Style>
                                     </ListView.ItemContainerStyle>
                                 </ListView>
+                            </avalonLayout:LayoutAnchorable>
+                            <avalonLayout:LayoutAnchorable x:Name="LogToolAnchorable"
+                                                          ContentId="LogToolWindow"
+                                                          Title="Logging"
+                                                          CanClose="False"
+                                                          CanHide="True"
+                                                          IsVisible="False"
+                                                          IsSelected="False">
+                                <TextBox x:Name="LogTextBox"
+                                         Margin="6"
+                                         Text="{Binding DataContext.LogTool.LogText, ElementName=RootWindow, Mode=OneWay}"
+                                         IsReadOnly="True"
+                                         IsReadOnlyCaretVisible="False"
+                                         FontFamily="Consolas"
+                                         TextWrapping="NoWrap"
+                                         TextChanged="LogTextBox_TextChanged"
+                                         VerticalScrollBarVisibility="Auto"
+                                         HorizontalScrollBarVisibility="Auto" />
                             </avalonLayout:LayoutAnchorable>
                         </avalonLayout:LayoutAnchorablePane>
                     </avalonLayout:LayoutPanel>

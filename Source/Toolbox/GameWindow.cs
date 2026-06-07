@@ -110,6 +110,12 @@ namespace FreeTrainSimulator.Toolbox
         // read-only debug/graphics information snapshots from the game thread.
         private DebugToolWindow hostedDebugToolWindow;
 
+        // Non-null only in hosted mode; exposed to the WPF host for read-only map location information.
+        private LocationToolWindow hostedLocationToolWindow;
+
+        // Non-null only in hosted mode; exposed to the WPF host for read-only log file content.
+        private LogToolWindow hostedLogToolWindow;
+
         public GameWindow(bool hostedMode = false)
         {
             this.hostedMode = hostedMode;
@@ -180,7 +186,12 @@ namespace FreeTrainSimulator.Toolbox
             SystemInfo.SetGraphicAdapterInformation(graphicsDeviceManager.GraphicsDevice.Adapter.Description);
             debugInfo = new CommonDebugInfo(this);
             if (hostedMode)
+            {
                 hostedDebugToolWindow = new DebugToolWindow(debugInfo, graphicsDebugInfo);
+                hostedLocationToolWindow = new LocationToolWindow(ToolboxSettings);
+                hostedLogToolWindow = new LogToolWindow(LogFileName);
+                OnContentAreaChanged += GameWindow_OnContentAreaChanged;
+            }
             windowForm.KeyPreview = true;// need to preview keys to enable Monogames TextInput handler, otherwise adding the main menu will break text input
         }
 
@@ -277,6 +288,18 @@ namespace FreeTrainSimulator.Toolbox
         /// from. Null in standalone mode.
         /// </summary>
         internal DebugToolWindow HostedDebugToolWindow => hostedDebugToolWindow;
+
+        /// <summary>
+        /// Hosted-mode location tool-window bridge that the WPF shell pulls read-only location snapshots
+        /// from. Null in standalone mode.
+        /// </summary>
+        internal LocationToolWindow HostedLocationToolWindow => hostedLocationToolWindow;
+
+        /// <summary>
+        /// Hosted-mode log tool-window bridge that the WPF shell pulls read-only log content from. Null in
+        /// standalone mode.
+        /// </summary>
+        internal LogToolWindow HostedLogToolWindow => hostedLogToolWindow;
 
         internal void ApplyHostedClientSize(System.Drawing.Size clientSize)
         {
@@ -601,6 +624,14 @@ namespace FreeTrainSimulator.Toolbox
             userCommandController.AddEvent(CommonUserCommand.VerticalScrollChanged, MouseWheel);
             userCommandController.AddEvent(UserCommand.DisplayLocationWindow, KeyEventType.KeyPressed, (UserCommandArgs userCommandArgs) =>
             {
+                if (hostedMode)
+                {
+                    if (userCommandArgs is ModifiableKeyCommandArgs keyCommandArgs && (keyCommandArgs.AdditionalModifiers & KeyModifiers.Shift) == KeyModifiers.Shift)
+                        hostedLocationToolWindow?.ToggleCoordinateMode();
+
+                    return;
+                }
+
                 if (userCommandArgs is not ModifiableKeyCommandArgs)
                     windowManager[ToolboxWindowType.LocationWindow].ToggleVisibility();
             });
@@ -626,6 +657,9 @@ namespace FreeTrainSimulator.Toolbox
             });
             userCommandController.AddEvent(UserCommand.DisplayLogWindow, KeyEventType.KeyPressed, (UserCommandArgs userCommandArgs) =>
             {
+                if (hostedMode)
+                    return;
+
                 if (userCommandArgs is not ModifiableKeyCommandArgs)
                     windowManager[ToolboxWindowType.LogWindow].ToggleVisibility();
             });
@@ -659,12 +693,15 @@ namespace FreeTrainSimulator.Toolbox
                 return debugWindow;
             }));
 
-            windowManager.SetLazyWindows(ToolboxWindowType.LocationWindow, new Lazy<FormBase>(() =>
+            if (!hostedMode)
             {
-                LocationWindow locationWindow = new LocationWindow(windowManager, ToolboxSettings, contentArea as IMapLocationContext, ToolboxSettings.PopupLocations[ToolboxWindowType.LocationWindow].ToPoint());
-                OnContentAreaChanged += locationWindow.GameWindow_OnContentAreaChanged;
-                return locationWindow;
-            }));
+                windowManager.SetLazyWindows(ToolboxWindowType.LocationWindow, new Lazy<FormBase>(() =>
+                {
+                    LocationWindow locationWindow = new LocationWindow(windowManager, ToolboxSettings, contentArea as IMapLocationContext, ToolboxSettings.PopupLocations[ToolboxWindowType.LocationWindow].ToPoint());
+                    OnContentAreaChanged += locationWindow.GameWindow_OnContentAreaChanged;
+                    return locationWindow;
+                }));
+            }
             windowManager.SetLazyWindows(ToolboxWindowType.HelpWindow, new Lazy<FormBase>(() =>
             {
                 return new HelpWindow(windowManager, ToolboxSettings.PopupLocations[ToolboxWindowType.HelpWindow].ToPoint());
@@ -687,10 +724,13 @@ namespace FreeTrainSimulator.Toolbox
                 OnContentAreaChanged += settingsWindow.GameWindow_OnContentAreaChanged;
                 return settingsWindow;
             }));
-            windowManager.SetLazyWindows(ToolboxWindowType.LogWindow, new Lazy<FormBase>(() =>
+            if (!hostedMode)
             {
-                return new LoggingWindow(windowManager, LogFileName, ToolboxSettings.PopupLocations[ToolboxWindowType.LogWindow].ToPoint());
-            }));
+                windowManager.SetLazyWindows(ToolboxWindowType.LogWindow, new Lazy<FormBase>(() =>
+                {
+                    return new LoggingWindow(windowManager, LogFileName, ToolboxSettings.PopupLocations[ToolboxWindowType.LogWindow].ToPoint());
+                }));
+            }
             windowManager.SetLazyWindows(ToolboxWindowType.TrainPathWindow, new Lazy<FormBase>(() =>
             {
                 TrainPathWindow trainPathDetailWindow = new TrainPathWindow(windowManager, ToolboxSettings, new TrainPathToolingContext(selectedRoute, ToolboxUserSettings.MeasurementUnit == MeasurementUnit.Route ? selectedRoute?.MetricUnits ?? true : ToolboxUserSettings.MeasurementUnit == MeasurementUnit.Metric || (ToolboxUserSettings.MeasurementUnit == MeasurementUnit.System && System.Globalization.RegionInfo.CurrentRegion.IsMetric)), PathEditor, ToolboxSettings.PopupLocations[ToolboxWindowType.TrainPathWindow].ToPoint());
@@ -724,6 +764,9 @@ namespace FreeTrainSimulator.Toolbox
                     ContentArea?.PresetPosition(ToolboxSettings.ContentPosition, ToolboxSettings.ContentScale);
                     foreach (ToolboxWindowType windowType in EnumExtension.GetValues<ToolboxWindowType>())
                     {
+                        if (hostedMode && (windowType == ToolboxWindowType.LocationWindow || windowType == ToolboxWindowType.LogWindow))
+                            continue;
+
                         if (ToolboxSettings.PopupStatus[windowType])
                             windowManager[windowType].Open();
                     }
@@ -782,6 +825,11 @@ namespace FreeTrainSimulator.Toolbox
 
         public bool InputCaptured { get; internal set; }
 
+        private void GameWindow_OnContentAreaChanged(object sender, ContentAreaChangedEventArgs e)
+        {
+            hostedLocationToolWindow?.UpdateLocationContext(e.LocationContext);
+        }
+
         protected override void Draw(GameTime gameTime)
         {
             debugInfo.Update(gameTime);
@@ -791,9 +839,10 @@ namespace FreeTrainSimulator.Toolbox
             graphicsDebugInfo.CurrentMetrics = GraphicsDevice.Metrics;
             graphicsDebugInfo.Update(gameTime);
 
-            // Rebuild the hosted debug tool-window snapshot on the game thread once the providers have been
-            // updated this frame; the call is a no-op while the WPF pane is hidden.
+            // Rebuild hosted tool-window snapshots on the game thread once providers have updated this frame.
             hostedDebugToolWindow?.RefreshSnapshot();
+            hostedLocationToolWindow?.RefreshSnapshot();
+            hostedLogToolWindow?.RefreshSnapshot();
         }
 
         private sealed class CommonDebugInfo : DetailInfoBase

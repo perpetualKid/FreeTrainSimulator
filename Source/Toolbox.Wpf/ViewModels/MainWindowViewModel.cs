@@ -8,7 +8,14 @@ namespace FreeTrainSimulator.Toolbox.Wpf.ViewModels
     {
         private ToolboxMenuViewModel menu;
         private DebugToolWindowViewModel debugTool;
+        private LocationToolWindowViewModel locationTool;
+        private LogToolWindowViewModel logTool;
         private RelayCommand toggleDebugToolCommand;
+        private RelayCommand toggleLocationToolCommand;
+        private RelayCommand toggleLogToolCommand;
+        private bool isDebugToolVisible;
+        private bool isLocationToolVisible;
+        private bool isLogToolVisible;
 
         public ToolboxMenuViewModel Menu
         {
@@ -22,10 +29,52 @@ namespace FreeTrainSimulator.Toolbox.Wpf.ViewModels
             set => SetProperty(ref debugTool, value);
         }
 
+        public LocationToolWindowViewModel LocationTool
+        {
+            get => locationTool;
+            set => SetProperty(ref locationTool, value);
+        }
+
+        public LogToolWindowViewModel LogTool
+        {
+            get => logTool;
+            set => SetProperty(ref logTool, value);
+        }
+
         public RelayCommand ToggleDebugToolCommand
         {
             get => toggleDebugToolCommand;
             set => SetProperty(ref toggleDebugToolCommand, value);
+        }
+
+        public RelayCommand ToggleLocationToolCommand
+        {
+            get => toggleLocationToolCommand;
+            set => SetProperty(ref toggleLocationToolCommand, value);
+        }
+
+        public RelayCommand ToggleLogToolCommand
+        {
+            get => toggleLogToolCommand;
+            set => SetProperty(ref toggleLogToolCommand, value);
+        }
+
+        public bool IsDebugToolVisible
+        {
+            get => isDebugToolVisible;
+            set => SetProperty(ref isDebugToolVisible, value);
+        }
+
+        public bool IsLocationToolVisible
+        {
+            get => isLocationToolVisible;
+            set => SetProperty(ref isLocationToolVisible, value);
+        }
+
+        public bool IsLogToolVisible
+        {
+            get => isLogToolVisible;
+            set => SetProperty(ref isLogToolVisible, value);
         }
     }
 }

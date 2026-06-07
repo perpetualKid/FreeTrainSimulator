@@ -40,6 +40,20 @@ namespace FreeTrainSimulator.Toolbox.Wpf.Hosting
         internal DebugToolWindow HostedDebugToolWindow { get; private set; }
 
         /// <summary>
+        /// Hosted-mode location tool-window bridge that the WPF shell pulls read-only snapshots from. Null
+        /// until the hosted game window has been created; subscribe to <see cref="HostedToolWindowsReady"/>
+        /// to be notified when it becomes available. Raised on the WPF UI thread.
+        /// </summary>
+        internal LocationToolWindow HostedLocationToolWindow { get; private set; }
+
+        /// <summary>
+        /// Hosted-mode log tool-window bridge that the WPF shell pulls read-only snapshots from. Null until
+        /// the hosted game window has been created; subscribe to <see cref="HostedToolWindowsReady"/> to be
+        /// notified when it becomes available. Raised on the WPF UI thread.
+        /// </summary>
+        internal LogToolWindow HostedLogToolWindow { get; private set; }
+
+        /// <summary>
         /// Raised on the WPF UI thread once <see cref="HostedDebugToolWindow"/> becomes available.
         /// </summary>
         internal event EventHandler HostedToolWindowsReady;
@@ -143,6 +157,8 @@ namespace FreeTrainSimulator.Toolbox.Wpf.Hosting
             HostedMenuReady?.Invoke(this, EventArgs.Empty);
 
             HostedDebugToolWindow = game.HostedDebugToolWindow;
+            HostedLocationToolWindow = game.HostedLocationToolWindow;
+            HostedLogToolWindow = game.HostedLogToolWindow;
             HostedToolWindowsReady?.Invoke(this, EventArgs.Empty);
         }
 
