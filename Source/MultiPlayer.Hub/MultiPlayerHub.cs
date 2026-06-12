@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.IO.Hashing;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -22,13 +23,18 @@ namespace Multiplayer.Hub
             public bool Dispatcher { get; set; }
         }
 
-        private IGroup session;
-        private IInMemoryStorage<SessionData> sessionStorage;
+        private static readonly ConcurrentDictionary<string, ConcurrentDictionary<Guid, SessionData>> Rooms = new ConcurrentDictionary<string, ConcurrentDictionary<Guid, SessionData>>();
+
+        private IGroup<IMultiplayerClient> session;
+        private ConcurrentDictionary<Guid, SessionData> sessionStorage;
         private SessionData currentSession;
+        private string sessionName;
 
         public ValueTask SendMessageAsync(MultiplayerMessage message)
         {
-            BroadcastExceptSelf(session).OnReceiveMessage(message);
+            if (session != null && currentSession != null)
+                session.Except(new[] { currentSession.SessionId }).OnReceiveMessage(message);
+
             return ValueTask.CompletedTask;
         }
 
@@ -42,8 +48,11 @@ namespace Multiplayer.Hub
                 RoomName = room,
                 TimeJoined = DateTime.UtcNow,
             };
-            string sessionName = Convert.ToBase64String(XxHash64.Hash(MemoryMarshal.AsBytes(string.Join('|', route, room).AsSpan())));
-            (session, sessionStorage) = await Group.AddAsync(sessionName, currentSession).ConfigureAwait(false);
+            sessionName = Convert.ToBase64String(XxHash64.Hash(MemoryMarshal.AsBytes(string.Join('|', route, room).AsSpan())));
+            session = await Group.AddAsync(sessionName).ConfigureAwait(false);
+            sessionStorage = Rooms.GetOrAdd(sessionName, static _ => new ConcurrentDictionary<Guid, SessionData>());
+            sessionStorage[currentSession.SessionId] = currentSession;
+
             Console.WriteLine($"{DateTime.UtcNow} Player {userName} joined room {room} for route {route}");
             AppointDispatcher(false);
         }
@@ -60,36 +69,54 @@ namespace Multiplayer.Hub
 
         protected override async ValueTask OnDisconnected()
         {
-            BroadcastExceptSelf(session).OnReceiveMessage(new MultiplayerMessage() { MessageType = MessageType.Lost, PayloadAsString = currentSession.UserName });
-            if (currentSession.Dispatcher)
+            if (session != null && currentSession != null)
             {
-                AppointDispatcher(true);
+                session.Except(new[] { currentSession.SessionId }).OnReceiveMessage(new MultiplayerMessage() { MessageType = MessageType.Lost, PayloadAsString = currentSession.UserName });
+
+                if (sessionStorage != null)
+                {
+                    _ = sessionStorage.TryRemove(currentSession.SessionId, out _);
+                    if (currentSession.Dispatcher)
+                        AppointDispatcher(true);
+
+                    if (sessionStorage.IsEmpty && !string.IsNullOrEmpty(sessionName))
+                        _ = Rooms.TryRemove(sessionName, out _);
+                }
+
+                Console.WriteLine($"{DateTime.UtcNow} Player {currentSession.UserName} left room {currentSession.RoomName} on route {currentSession.RouteName}");
             }
-            Console.WriteLine($"{DateTime.UtcNow} Player {currentSession.UserName} left room {currentSession.RoomName} on route {currentSession.RouteName}");
+
             await base.OnDisconnected().ConfigureAwait(false);
         }
 
         #region dispatcher election
         private void AppointDispatcher(bool reappoint)
         {
+            if (sessionStorage == null || currentSession == null || session == null)
+                return;
+
             SessionData dispatcher = reappoint
-                ? sessionStorage.AllValues.Where(session => session.SessionId != currentSession.SessionId).FirstOrDefault()
-                : sessionStorage.AllValues.Where(m => m.Dispatcher == true).SingleOrDefault();
+                ? sessionStorage.Values.OrderBy(sessionData => sessionData.TimeJoined).FirstOrDefault()
+                : sessionStorage.Values.SingleOrDefault(sessionData => sessionData.Dispatcher);
+
             if (dispatcher == null)
-            {
-                dispatcher = currentSession;
-                dispatcher.Dispatcher = true;
-                Console.WriteLine($"{DateTime.UtcNow} Player {dispatcher.UserName} is now dispatcher for {currentSession.RouteName}");
-            }
+                dispatcher = reappoint
+                    ? sessionStorage.Values.OrderBy(sessionData => sessionData.TimeJoined).FirstOrDefault()
+                    : currentSession;
+
+            if (dispatcher == null)
+                return;
+
+            foreach (SessionData sessionData in sessionStorage.Values)
+                sessionData.Dispatcher = sessionData.SessionId == dispatcher.SessionId;
+
+            Console.WriteLine($"{DateTime.UtcNow} Player {dispatcher.UserName} is now dispatcher for {currentSession.RouteName}");
+
+            MultiplayerMessage dispatcherMessage = new MultiplayerMessage() { MessageType = MessageType.Server, PayloadAsString = dispatcher.UserName };
             if (reappoint)
-            {
-                Console.WriteLine($"{DateTime.UtcNow} Player {dispatcher.UserName} is now dispatcher for {currentSession.RouteName}");
-                Broadcast(session).OnReceiveMessage(new MultiplayerMessage() { MessageType = MessageType.Server, PayloadAsString = dispatcher.UserName });
-            }
+                session.All.OnReceiveMessage(dispatcherMessage);
             else
-            {
-                BroadcastToSelf(session).OnReceiveMessage(new MultiplayerMessage() { MessageType = MessageType.Server, PayloadAsString = dispatcher.UserName });
-            }
+                session.Single(currentSession.SessionId).OnReceiveMessage(dispatcherMessage);
         }
         #endregion
     }
