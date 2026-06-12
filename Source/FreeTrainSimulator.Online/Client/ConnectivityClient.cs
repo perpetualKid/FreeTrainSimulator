@@ -35,8 +35,6 @@ namespace FreeTrainSimulator.Online.Client
         {
             ArgumentNullException.ThrowIfNull(channel, nameof(channel));
 
-            MagicOnionSerializerProvider.Default = MemoryPackMagicOnionSerializerProvider.Instance;
-
             client = MagicOnionClient.Create<IConnectivity>(channel).WithCancellationToken(cancellationToken);
         }
 

@@ -589,7 +589,7 @@ namespace Orts.Simulation.Signalling
                         return 0;
                     for (int pin = linkedConnectors.InboundCount; pin < linkedConnectors.TrackNodeConnectors.Length; pin++)
                     {
-                        if (linkedConnectors.TrackNodeConnectors[pin].Link == MainSignal.TrackNode && pin - linkedConnectors.InboundCount != RuntimeDataResolver.Instance.TrackWorld.SwitchStates[MainSignal.TrackNode])
+                        if (linkedConnectors.TrackNodeConnectors[pin].Link == MainSignal.TrackNode && pin - linkedConnectors.InboundCount != RuntimeDataResolver.Instance.TrackWorld.SwitchStates[linkedNodeIndex])
                         {
                             return 0;
                         }
