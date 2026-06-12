@@ -53,6 +53,27 @@ namespace FreeTrainSimulator.Toolbox.Wpf.Hosting
         internal LogToolWindow HostedLogToolWindow { get; private set; }
 
         /// <summary>
+        /// Hosted-mode track item tool-window bridge that the WPF shell pulls read-only snapshots from. Null
+        /// until the hosted game window has been created; subscribe to <see cref="HostedToolWindowsReady"/>
+        /// to be notified when it becomes available. Raised on the WPF UI thread.
+        /// </summary>
+        internal TrackItemInfoToolWindow HostedTrackItemInfoToolWindow { get; private set; }
+
+        /// <summary>
+        /// Hosted-mode track node tool-window bridge that the WPF shell pulls read-only snapshots from. Null
+        /// until the hosted game window has been created; subscribe to <see cref="HostedToolWindowsReady"/>
+        /// to be notified when it becomes available. Raised on the WPF UI thread.
+        /// </summary>
+        internal TrackNodeInfoToolWindow HostedTrackNodeInfoToolWindow { get; private set; }
+
+        /// <summary>
+        /// Hosted-mode help tool-window bridge that the WPF shell pulls read-only snapshots from. Null until
+        /// the hosted game window has been created; subscribe to <see cref="HostedToolWindowsReady"/> to be
+        /// notified when it becomes available. Raised on the WPF UI thread.
+        /// </summary>
+        internal HelpToolWindow HostedHelpToolWindow { get; private set; }
+
+        /// <summary>
         /// Raised on the WPF UI thread once <see cref="HostedDebugToolWindow"/> becomes available.
         /// </summary>
         internal event EventHandler HostedToolWindowsReady;
@@ -155,6 +176,9 @@ namespace FreeTrainSimulator.Toolbox.Wpf.Hosting
             HostedDebugToolWindow = game.HostedDebugToolWindow;
             HostedLocationToolWindow = game.HostedLocationToolWindow;
             HostedLogToolWindow = game.HostedLogToolWindow;
+            HostedTrackItemInfoToolWindow = game.HostedTrackItemInfoToolWindow;
+            HostedTrackNodeInfoToolWindow = game.HostedTrackNodeInfoToolWindow;
+            HostedHelpToolWindow = game.HostedHelpToolWindow;
             HostedToolWindowsReady?.Invoke(this, EventArgs.Empty);
         }
 
@@ -267,15 +291,23 @@ namespace FreeTrainSimulator.Toolbox.Wpf.Hosting
             GameWindow game = gameWindow;
             if (game != null)
             {
-                game.Exit();
-                game.Dispose();
+                // Signal the game loop (running on its own STA thread) to exit. Marshal Exit onto the game
+                // thread because that is where the MonoGame/WinForms state lives. Do NOT call game.Dispose()
+                // here: the game owns a separate thread that is actively running game.Run(), and the
+                // using-block in GameThreadStart disposes it on that thread once Run() returns. Disposing
+                // here races with the live loop and tears down the GraphicsDevice/Platform mid-Tick, causing
+                // a NullReferenceException inside MonoGame's Game.Tick().
+                game.InvokeOnGameThread(game.Exit);
             }
 
-            hostPanel?.Dispose();
+            // Wait for the game thread to finish its loop and dispose the GameWindow on its owning thread.
             if (gameThread != null && gameThread.IsAlive)
             {
                 gameThread.Join(TimeSpan.FromSeconds(5));
             }
+
+            // Dispose the panel only after the game thread has stopped touching the child window.
+            hostPanel?.Dispose();
             base.Dispose(disposing);
         }
 

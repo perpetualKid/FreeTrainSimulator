@@ -7,20 +7,24 @@ using FreeTrainSimulator.Toolbox;
 namespace FreeTrainSimulator.Toolbox.Wpf.ViewModels
 {
     /// <summary>
-    /// Bindable view model for the hosted location dockable tool window.
+    /// Bindable view model for the hosted track item information dockable tool window. Uses the same
+    /// pull model as <see cref="DebugToolWindowViewModel"/> for the read-only info rows, and exposes a
+    /// search box plus command that navigates the map to a track item by index.
     /// </summary>
-    internal sealed class LocationToolWindowViewModel : ObservableObject, IDisposable
+    internal sealed class TrackItemInfoToolWindowViewModel : ObservableObject, IDisposable
     {
-        private readonly LocationToolWindow toolWindow;
+        private readonly TrackItemInfoToolWindow toolWindow;
         private readonly DispatcherTimer refreshTimer;
+        private string searchText = string.Empty;
         private bool disposed;
 
-        public LocationToolWindowViewModel(LocationToolWindow toolWindow, Dispatcher dispatcher)
+        public TrackItemInfoToolWindowViewModel(TrackItemInfoToolWindow toolWindow, Dispatcher dispatcher)
         {
             ArgumentNullException.ThrowIfNull(toolWindow);
             ArgumentNullException.ThrowIfNull(dispatcher);
 
             this.toolWindow = toolWindow;
+            SearchCommand = new RelayCommand(_ => Search());
 
             refreshTimer = new DispatcherTimer(DispatcherPriority.Background, dispatcher)
             {
@@ -33,9 +37,17 @@ namespace FreeTrainSimulator.Toolbox.Wpf.ViewModels
 
         public ObservableCollection<DebugToolWindowRowViewModel> Rows { get; } = new ObservableCollection<DebugToolWindowRowViewModel>();
 
+        public RelayCommand SearchCommand { get; }
+
+        public string SearchText
+        {
+            get => searchText;
+            set => SetProperty(ref searchText, value);
+        }
+
         public void Start()
         {
-            ObjectDisposedException.ThrowIf(disposed, nameof(DebugToolWindowViewModel));
+            ObjectDisposedException.ThrowIf(disposed, nameof(TrackItemInfoToolWindowViewModel));
 
             toolWindow.Active = true;
             refreshTimer.Start();
@@ -46,6 +58,11 @@ namespace FreeTrainSimulator.Toolbox.Wpf.ViewModels
         {
             refreshTimer.Stop();
             toolWindow.Active = false;
+        }
+
+        private void Search()
+        {
+            toolWindow.SearchByIndex(SearchText);
         }
 
         private void RefreshTimer_Tick(object sender, EventArgs e)

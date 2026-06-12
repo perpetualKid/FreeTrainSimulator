@@ -116,6 +116,15 @@ namespace FreeTrainSimulator.Toolbox
         // Non-null only in hosted mode; exposed to the WPF host for read-only log file content.
         private LogToolWindow hostedLogToolWindow;
 
+        // Non-null only in hosted mode; exposed to the WPF host for read-only track item information.
+        private TrackItemInfoToolWindow hostedTrackItemInfoToolWindow;
+
+        // Non-null only in hosted mode; exposed to the WPF host for read-only track node information.
+        private TrackNodeInfoToolWindow hostedTrackNodeInfoToolWindow;
+
+        // Non-null only in hosted mode; exposed to the WPF host for read-only command/key help information.
+        private HelpToolWindow hostedHelpToolWindow;
+
         public GameWindow(bool hostedMode = false)
         {
             this.hostedMode = hostedMode;
@@ -190,6 +199,9 @@ namespace FreeTrainSimulator.Toolbox
                 hostedDebugToolWindow = new DebugToolWindow(debugInfo, graphicsDebugInfo);
                 hostedLocationToolWindow = new LocationToolWindow(ToolboxSettings);
                 hostedLogToolWindow = new LogToolWindow(LogFileName);
+                hostedTrackItemInfoToolWindow = new TrackItemInfoToolWindow(InvokeOnGameThread);
+                hostedTrackNodeInfoToolWindow = new TrackNodeInfoToolWindow(InvokeOnGameThread);
+                hostedHelpToolWindow = new HelpToolWindow();
                 OnContentAreaChanged += GameWindow_OnContentAreaChanged;
             }
             windowForm.KeyPreview = true;// need to preview keys to enable Monogames TextInput handler, otherwise adding the main menu will break text input
@@ -300,6 +312,24 @@ namespace FreeTrainSimulator.Toolbox
         /// standalone mode.
         /// </summary>
         internal LogToolWindow HostedLogToolWindow => hostedLogToolWindow;
+
+        /// <summary>
+        /// Hosted-mode track item tool-window bridge that the WPF shell pulls read-only track item snapshots
+        /// from. Null in standalone mode.
+        /// </summary>
+        internal TrackItemInfoToolWindow HostedTrackItemInfoToolWindow => hostedTrackItemInfoToolWindow;
+
+        /// <summary>
+        /// Hosted-mode track node tool-window bridge that the WPF shell pulls read-only track node snapshots
+        /// from. Null in standalone mode.
+        /// </summary>
+        internal TrackNodeInfoToolWindow HostedTrackNodeInfoToolWindow => hostedTrackNodeInfoToolWindow;
+
+        /// <summary>
+        /// Hosted-mode help tool-window bridge that the WPF shell pulls read-only command/key help snapshots
+        /// from. Null in standalone mode.
+        /// </summary>
+        internal HelpToolWindow HostedHelpToolWindow => hostedHelpToolWindow;
 
         internal void ApplyHostedClientSize(System.Drawing.Size clientSize)
         {
@@ -637,16 +667,25 @@ namespace FreeTrainSimulator.Toolbox
             });
             userCommandController.AddEvent(UserCommand.DisplayHelpWindow, KeyEventType.KeyPressed, (UserCommandArgs userCommandArgs) =>
             {
+                if (hostedMode)
+                    return;
+
                 if (userCommandArgs is not ModifiableKeyCommandArgs)
                     windowManager[ToolboxWindowType.HelpWindow].ToggleVisibility();
             });
             userCommandController.AddEvent(UserCommand.DisplayTrackNodeInfoWindow, KeyEventType.KeyPressed, (UserCommandArgs userCommandArgs) =>
             {
+                if (hostedMode)
+                    return;
+
                 if (userCommandArgs is not ModifiableKeyCommandArgs)
                     windowManager[ToolboxWindowType.TrackNodeInfoWindow].ToggleVisibility();
             });
             userCommandController.AddEvent(UserCommand.DisplayTrackItemInfoWindow, KeyEventType.KeyPressed, (UserCommandArgs userCommandArgs) =>
             {
+                if (hostedMode)
+                    return;
+
                 if (userCommandArgs is not ModifiableKeyCommandArgs)
                     windowManager[ToolboxWindowType.TrackItemInfoWindow].ToggleVisibility();
             });
@@ -702,22 +741,28 @@ namespace FreeTrainSimulator.Toolbox
                     return locationWindow;
                 }));
             }
-            windowManager.SetLazyWindows(ToolboxWindowType.HelpWindow, new Lazy<FormBase>(() =>
+            if (!hostedMode)
             {
-                return new HelpWindow(windowManager, ToolboxSettings.PopupLocations[ToolboxWindowType.HelpWindow].ToPoint());
-            }));
-            windowManager.SetLazyWindows(ToolboxWindowType.TrackNodeInfoWindow, new Lazy<FormBase>(() =>
+                windowManager.SetLazyWindows(ToolboxWindowType.HelpWindow, new Lazy<FormBase>(() =>
+                {
+                    return new HelpWindow(windowManager, ToolboxSettings.PopupLocations[ToolboxWindowType.HelpWindow].ToPoint());
+                }));
+            }
+            if (!hostedMode)
             {
-                TrackNodeInfoWindow trackInfoWindow = new TrackNodeInfoWindow(windowManager, contentArea?.Content as ITrackNodeInfoContext, ToolboxSettings.PopupLocations[ToolboxWindowType.TrackNodeInfoWindow].ToPoint());
-                OnContentAreaChanged += trackInfoWindow.GameWindow_OnContentAreaChanged;
-                return trackInfoWindow;
-            }));
-            windowManager.SetLazyWindows(ToolboxWindowType.TrackItemInfoWindow, new Lazy<FormBase>(() =>
-            {
-                TrackItemInfoWindow trackInfoWindow = new TrackItemInfoWindow(windowManager, contentArea?.Content as ITrackItemInfoContext, ToolboxSettings.PopupLocations[ToolboxWindowType.TrackItemInfoWindow].ToPoint());
-                OnContentAreaChanged += trackInfoWindow.GameWindow_OnContentAreaChanged;
-                return trackInfoWindow;
-            }));
+                windowManager.SetLazyWindows(ToolboxWindowType.TrackNodeInfoWindow, new Lazy<FormBase>(() =>
+                {
+                    TrackNodeInfoWindow trackInfoWindow = new TrackNodeInfoWindow(windowManager, contentArea?.Content as ITrackNodeInfoContext, ToolboxSettings.PopupLocations[ToolboxWindowType.TrackNodeInfoWindow].ToPoint());
+                    OnContentAreaChanged += trackInfoWindow.GameWindow_OnContentAreaChanged;
+                    return trackInfoWindow;
+                }));
+                windowManager.SetLazyWindows(ToolboxWindowType.TrackItemInfoWindow, new Lazy<FormBase>(() =>
+                {
+                    TrackItemInfoWindow trackInfoWindow = new TrackItemInfoWindow(windowManager, contentArea?.Content as ITrackItemInfoContext, ToolboxSettings.PopupLocations[ToolboxWindowType.TrackItemInfoWindow].ToPoint());
+                    OnContentAreaChanged += trackInfoWindow.GameWindow_OnContentAreaChanged;
+                    return trackInfoWindow;
+                }));
+            }
             windowManager.SetLazyWindows(ToolboxWindowType.SettingsWindow, new Lazy<FormBase>(() =>
             {
                 SettingsWindow settingsWindow = new SettingsWindow(windowManager, ToolboxSettings, ToolboxUserSettings, contentArea as IMapDisplaySettingsContext, ToolboxSettings.PopupLocations[ToolboxWindowType.SettingsWindow].ToPoint());
@@ -764,7 +809,9 @@ namespace FreeTrainSimulator.Toolbox
                     ContentArea?.PresetPosition(ToolboxSettings.ContentPosition, ToolboxSettings.ContentScale);
                     foreach (ToolboxWindowType windowType in EnumExtension.GetValues<ToolboxWindowType>())
                     {
-                        if (hostedMode && (windowType == ToolboxWindowType.LocationWindow || windowType == ToolboxWindowType.LogWindow))
+                        if (hostedMode && (windowType == ToolboxWindowType.LocationWindow || windowType == ToolboxWindowType.LogWindow
+                            || windowType == ToolboxWindowType.TrackNodeInfoWindow || windowType == ToolboxWindowType.TrackItemInfoWindow
+                            || windowType == ToolboxWindowType.HelpWindow))
                             continue;
 
                         if (ToolboxSettings.PopupStatus[windowType])
@@ -828,6 +875,8 @@ namespace FreeTrainSimulator.Toolbox
         private void GameWindow_OnContentAreaChanged(object sender, ContentAreaChangedEventArgs e)
         {
             hostedLocationToolWindow?.UpdateLocationContext(e.LocationContext);
+            hostedTrackItemInfoToolWindow?.UpdateContext(e.TrackItemInfoContext);
+            hostedTrackNodeInfoToolWindow?.UpdateContext(e.TrackNodeInfoContext);
         }
 
         protected override void Draw(GameTime gameTime)
@@ -843,6 +892,9 @@ namespace FreeTrainSimulator.Toolbox
             hostedDebugToolWindow?.RefreshSnapshot();
             hostedLocationToolWindow?.RefreshSnapshot();
             hostedLogToolWindow?.RefreshSnapshot();
+            hostedTrackItemInfoToolWindow?.RefreshSnapshot();
+            hostedTrackNodeInfoToolWindow?.RefreshSnapshot();
+            hostedHelpToolWindow?.RefreshSnapshot();
         }
 
         private sealed class CommonDebugInfo : DetailInfoBase

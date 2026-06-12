@@ -23,6 +23,9 @@ namespace FreeTrainSimulator.Toolbox.Wpf
         private const string LocationToolWindowContentId = "LocationToolWindow";
         private const string DebugToolWindowContentId = "DebugToolWindow";
         private const string LogToolWindowContentId = "LogToolWindow";
+        private const string TrackItemInfoToolWindowContentId = "TrackItemInfoToolWindow";
+        private const string TrackNodeInfoToolWindowContentId = "TrackNodeInfoToolWindow";
+        private const string HelpToolWindowContentId = "HelpToolWindow";
 
         private readonly MainWindowViewModel viewModel = new MainWindowViewModel();
         private ProfileModel currentProfile;
@@ -35,9 +38,7 @@ namespace FreeTrainSimulator.Toolbox.Wpf
             InitializeComponent();
 
             DataContext = viewModel;
-            viewModel.ToggleLocationToolCommand = new RelayCommand(_ => ToggleLocationToolWindow(), _ => viewModel.LocationTool != null);
-            viewModel.ToggleDebugToolCommand = new RelayCommand(_ => ToggleDebugToolWindow(), _ => viewModel.DebugTool != null);
-            viewModel.ToggleLogToolCommand = new RelayCommand(_ => ToggleLogToolWindow(), _ => viewModel.LogTool != null);
+            InitializeToolWindowCommands();
 
             Loaded += MainWindow_Loaded;
             Activated += MainWindow_Activated;
@@ -56,30 +57,14 @@ namespace FreeTrainSimulator.Toolbox.Wpf
         {
             await LoadDockLayoutAsync().ConfigureAwait(true);
 
-            LayoutAnchorable locationToolWindow = EnsureLocationToolWindowAnchorable();
-            if (locationToolWindow is not null)
-            {
-                locationToolWindow.PropertyChanged -= LocationToolAnchorable_PropertyChanged;
-                locationToolWindow.PropertyChanged += LocationToolAnchorable_PropertyChanged;
-            }
+            HookToolWindowAnchorable(EnsureLocationToolWindowAnchorable, LocationToolAnchorable_PropertyChanged);
+            HookToolWindowAnchorable(EnsureDebugToolWindowAnchorable, DebugToolAnchorable_PropertyChanged);
+            HookToolWindowAnchorable(EnsureLogToolWindowAnchorable, LogToolAnchorable_PropertyChanged);
+            HookToolWindowAnchorable(EnsureTrackItemInfoToolWindowAnchorable, TrackItemInfoToolAnchorable_PropertyChanged);
+            HookToolWindowAnchorable(EnsureTrackNodeInfoToolWindowAnchorable, TrackNodeInfoToolAnchorable_PropertyChanged);
+            HookToolWindowAnchorable(EnsureHelpToolWindowAnchorable, HelpToolAnchorable_PropertyChanged);
 
-            LayoutAnchorable debugToolWindow = EnsureDebugToolWindowAnchorable();
-            if (debugToolWindow is not null)
-            {
-                debugToolWindow.PropertyChanged -= DebugToolAnchorable_PropertyChanged;
-                debugToolWindow.PropertyChanged += DebugToolAnchorable_PropertyChanged;
-            }
-
-            LayoutAnchorable logToolWindow = EnsureLogToolWindowAnchorable();
-            if (logToolWindow is not null)
-            {
-                logToolWindow.PropertyChanged -= LogToolAnchorable_PropertyChanged;
-                logToolWindow.PropertyChanged += LogToolAnchorable_PropertyChanged;
-            }
-
-            UpdateLocationToolWindowLifecycle();
-            UpdateDebugToolWindowLifecycle();
-            UpdateLogToolWindowLifecycle();
+            UpdateAllToolWindowLifecycles();
             UpdateHostedInputCapture();
         }
 
@@ -87,6 +72,49 @@ namespace FreeTrainSimulator.Toolbox.Wpf
         {
             if (MapHost.HostedMenu != null)
                 viewModel.Menu = new ToolboxMenuViewModel(MapHost.HostedMenu, Dispatcher);
+        }
+
+        private void InitializeToolWindowCommands()
+        {
+            viewModel.ToggleLocationToolCommand = new RelayCommand(_ => ToggleLocationToolWindow(), _ => viewModel.LocationTool != null);
+            viewModel.ToggleDebugToolCommand = new RelayCommand(_ => ToggleDebugToolWindow(), _ => viewModel.DebugTool != null);
+            viewModel.ToggleLogToolCommand = new RelayCommand(_ => ToggleLogToolWindow(), _ => viewModel.LogTool != null);
+            viewModel.ToggleTrackItemInfoToolCommand = new RelayCommand(_ => ToggleTrackItemInfoToolWindow(), _ => viewModel.TrackItemInfoTool != null);
+            viewModel.ToggleTrackNodeInfoToolCommand = new RelayCommand(_ => ToggleTrackNodeInfoToolWindow(), _ => viewModel.TrackNodeInfoTool != null);
+            viewModel.ToggleHelpToolCommand = new RelayCommand(_ => ToggleHelpToolWindow(), _ => viewModel.HelpTool != null);
+        }
+
+        private void HookToolWindowAnchorable(Func<LayoutAnchorable> ensureAnchorable, PropertyChangedEventHandler handler)
+        {
+            ArgumentNullException.ThrowIfNull(ensureAnchorable);
+            ArgumentNullException.ThrowIfNull(handler);
+
+            LayoutAnchorable anchorable = ensureAnchorable();
+            if (anchorable is null)
+                return;
+
+            anchorable.PropertyChanged -= handler;
+            anchorable.PropertyChanged += handler;
+        }
+
+        private void RaiseToolWindowCommandCanExecuteChanged()
+        {
+            viewModel.ToggleLocationToolCommand?.RaiseCanExecuteChanged();
+            viewModel.ToggleDebugToolCommand?.RaiseCanExecuteChanged();
+            viewModel.ToggleLogToolCommand?.RaiseCanExecuteChanged();
+            viewModel.ToggleTrackItemInfoToolCommand?.RaiseCanExecuteChanged();
+            viewModel.ToggleTrackNodeInfoToolCommand?.RaiseCanExecuteChanged();
+            viewModel.ToggleHelpToolCommand?.RaiseCanExecuteChanged();
+        }
+
+        private void UpdateAllToolWindowLifecycles()
+        {
+            UpdateLocationToolWindowLifecycle();
+            UpdateDebugToolWindowLifecycle();
+            UpdateLogToolWindowLifecycle();
+            UpdateTrackItemInfoToolWindowLifecycle();
+            UpdateTrackNodeInfoToolWindowLifecycle();
+            UpdateHelpToolWindowLifecycle();
         }
 
         private void MainWindow_Activated(object sender, EventArgs e)
@@ -134,54 +162,57 @@ namespace FreeTrainSimulator.Toolbox.Wpf
 
         private void MapHost_HostedToolWindowsReady(object sender, EventArgs e)
         {
-            if (MapHost.HostedDebugToolWindow is null || MapHost.HostedLocationToolWindow is null || MapHost.HostedLogToolWindow is null)
+            if (MapHost.HostedDebugToolWindow is null || MapHost.HostedLocationToolWindow is null || MapHost.HostedLogToolWindow is null
+                || MapHost.HostedTrackItemInfoToolWindow is null || MapHost.HostedTrackNodeInfoToolWindow is null || MapHost.HostedHelpToolWindow is null)
                 return;
 
             viewModel.LocationTool = new LocationToolWindowViewModel(MapHost.HostedLocationToolWindow, Dispatcher);
             viewModel.DebugTool = new DebugToolWindowViewModel(MapHost.HostedDebugToolWindow, Dispatcher);
             viewModel.LogTool = new LogToolWindowViewModel(MapHost.HostedLogToolWindow, Dispatcher);
-            viewModel.ToggleLocationToolCommand.RaiseCanExecuteChanged();
-            viewModel.ToggleDebugToolCommand.RaiseCanExecuteChanged();
-            viewModel.ToggleLogToolCommand.RaiseCanExecuteChanged();
-            UpdateLocationToolWindowLifecycle();
-            UpdateDebugToolWindowLifecycle();
-            UpdateLogToolWindowLifecycle();
+            viewModel.TrackItemInfoTool = new TrackItemInfoToolWindowViewModel(MapHost.HostedTrackItemInfoToolWindow, Dispatcher);
+            viewModel.TrackNodeInfoTool = new TrackNodeInfoToolWindowViewModel(MapHost.HostedTrackNodeInfoToolWindow, Dispatcher);
+            viewModel.HelpTool = new HelpToolWindowViewModel(MapHost.HostedHelpToolWindow, Dispatcher);
+            RaiseToolWindowCommandCanExecuteChanged();
+            UpdateAllToolWindowLifecycles();
             UpdateHostedInputCapture();
         }
 
         private void ToggleLocationToolWindow()
         {
-            LayoutAnchorable anchorable = EnsureLocationToolWindowAnchorable();
-            if (anchorable is null)
-                return;
-
-            if (!anchorable.IsVisible)
-                anchorable.Show();
-            else
-                anchorable.Hide();
-
-            UpdateLocationToolWindowLifecycle();
-            UpdateHostedInputCapture();
+            ToggleToolWindow(EnsureLocationToolWindowAnchorable, UpdateLocationToolWindowLifecycle);
         }
 
         private void ToggleDebugToolWindow()
         {
-            LayoutAnchorable anchorable = EnsureDebugToolWindowAnchorable();
-            if (anchorable is null)
-                return;
-
-            if (!anchorable.IsVisible)
-                anchorable.Show();
-            else
-                anchorable.Hide();
-
-            UpdateDebugToolWindowLifecycle();
-            UpdateHostedInputCapture();
+            ToggleToolWindow(EnsureDebugToolWindowAnchorable, UpdateDebugToolWindowLifecycle);
         }
 
         private void ToggleLogToolWindow()
         {
-            LayoutAnchorable anchorable = EnsureLogToolWindowAnchorable();
+            ToggleToolWindow(EnsureLogToolWindowAnchorable, UpdateLogToolWindowLifecycle);
+        }
+
+        private void ToggleTrackItemInfoToolWindow()
+        {
+            ToggleToolWindow(EnsureTrackItemInfoToolWindowAnchorable, UpdateTrackItemInfoToolWindowLifecycle);
+        }
+
+        private void ToggleTrackNodeInfoToolWindow()
+        {
+            ToggleToolWindow(EnsureTrackNodeInfoToolWindowAnchorable, UpdateTrackNodeInfoToolWindowLifecycle);
+        }
+
+        private void ToggleHelpToolWindow()
+        {
+            ToggleToolWindow(EnsureHelpToolWindowAnchorable, UpdateHelpToolWindowLifecycle);
+        }
+
+        private void ToggleToolWindow(Func<LayoutAnchorable> ensureAnchorable, Action updateLifecycle)
+        {
+            ArgumentNullException.ThrowIfNull(ensureAnchorable);
+            ArgumentNullException.ThrowIfNull(updateLifecycle);
+
+            LayoutAnchorable anchorable = ensureAnchorable();
             if (anchorable is null)
                 return;
 
@@ -190,26 +221,44 @@ namespace FreeTrainSimulator.Toolbox.Wpf
             else
                 anchorable.Hide();
 
-            UpdateLogToolWindowLifecycle();
+            updateLifecycle();
             UpdateHostedInputCapture();
         }
 
         private void LocationToolAnchorable_PropertyChanged(object sender, PropertyChangedEventArgs e)
         {
-            if (e.PropertyName == nameof(LayoutAnchorable.IsVisible))
-                UpdateLocationToolWindowLifecycle();
+            HandleToolWindowAnchorablePropertyChanged(e, UpdateLocationToolWindowLifecycle);
         }
 
         private void DebugToolAnchorable_PropertyChanged(object sender, PropertyChangedEventArgs e)
         {
-            if (e.PropertyName == nameof(LayoutAnchorable.IsVisible))
-                UpdateDebugToolWindowLifecycle();
+            HandleToolWindowAnchorablePropertyChanged(e, UpdateDebugToolWindowLifecycle);
         }
 
         private void LogToolAnchorable_PropertyChanged(object sender, PropertyChangedEventArgs e)
         {
-            if (e.PropertyName == nameof(LayoutAnchorable.IsVisible))
-                UpdateLogToolWindowLifecycle();
+            HandleToolWindowAnchorablePropertyChanged(e, UpdateLogToolWindowLifecycle);
+        }
+
+        private void TrackItemInfoToolAnchorable_PropertyChanged(object sender, PropertyChangedEventArgs e)
+        {
+            HandleToolWindowAnchorablePropertyChanged(e, UpdateTrackItemInfoToolWindowLifecycle);
+        }
+
+        private void TrackNodeInfoToolAnchorable_PropertyChanged(object sender, PropertyChangedEventArgs e)
+        {
+            HandleToolWindowAnchorablePropertyChanged(e, UpdateTrackNodeInfoToolWindowLifecycle);
+        }
+
+        private void HelpToolAnchorable_PropertyChanged(object sender, PropertyChangedEventArgs e)
+        {
+            HandleToolWindowAnchorablePropertyChanged(e, UpdateHelpToolWindowLifecycle);
+        }
+
+        private static void HandleToolWindowAnchorablePropertyChanged(PropertyChangedEventArgs e, Action updateLifecycle)
+        {
+            if (e?.PropertyName == nameof(LayoutAnchorable.IsVisible))
+                updateLifecycle?.Invoke();
         }
 
         private void LogTextBox_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e)
@@ -223,6 +272,12 @@ namespace FreeTrainSimulator.Toolbox.Wpf
         private LayoutAnchorable DebugToolWindowAnchorable => FindToolWindowAnchorable(DebugToolWindowContentId);
 
         private LayoutAnchorable LogToolWindowAnchorable => FindToolWindowAnchorable(LogToolWindowContentId);
+
+        private LayoutAnchorable TrackItemInfoToolWindowAnchorable => FindToolWindowAnchorable(TrackItemInfoToolWindowContentId);
+
+        private LayoutAnchorable TrackNodeInfoToolWindowAnchorable => FindToolWindowAnchorable(TrackNodeInfoToolWindowContentId);
+
+        private LayoutAnchorable HelpToolWindowAnchorable => FindToolWindowAnchorable(HelpToolWindowContentId);
 
         private LayoutAnchorable FindToolWindowAnchorable(string contentId)
         {
@@ -266,43 +321,66 @@ namespace FreeTrainSimulator.Toolbox.Wpf
         private LayoutAnchorable EnsureLogToolWindowAnchorable() =>
             EnsureToolWindowAnchorable(LogToolAnchorable, LogToolWindowContentId, "Logging");
 
+        private LayoutAnchorable EnsureTrackItemInfoToolWindowAnchorable() =>
+            EnsureToolWindowAnchorable(TrackItemInfoToolAnchorable, TrackItemInfoToolWindowContentId, "Track Item Information");
+
+        private LayoutAnchorable EnsureTrackNodeInfoToolWindowAnchorable() =>
+            EnsureToolWindowAnchorable(TrackNodeInfoToolAnchorable, TrackNodeInfoToolWindowContentId, "Track Node Information");
+
+        private LayoutAnchorable EnsureHelpToolWindowAnchorable() =>
+            EnsureToolWindowAnchorable(HelpToolAnchorable, HelpToolWindowContentId, "Help");
+
         private void UpdateLocationToolWindowLifecycle()
         {
-            viewModel.IsLocationToolVisible = LocationToolWindowAnchorable?.IsVisible == true;
-
-            if (viewModel.LocationTool is null)
-                return;
-
-            if (viewModel.IsLocationToolVisible)
-                viewModel.LocationTool.Start();
-            else
-                viewModel.LocationTool.Stop();
+            bool isVisible = LocationToolWindowAnchorable?.IsVisible == true;
+            viewModel.IsLocationToolVisible = isVisible;
+            UpdateToolWindowLifecycle(isVisible, viewModel.LocationTool, () => viewModel.LocationTool.Start(), () => viewModel.LocationTool.Stop());
         }
 
         private void UpdateDebugToolWindowLifecycle()
         {
-            viewModel.IsDebugToolVisible = DebugToolWindowAnchorable?.IsVisible == true;
-
-            if (viewModel.DebugTool is null)
-                return;
-
-            if (viewModel.IsDebugToolVisible)
-                viewModel.DebugTool.Start();
-            else
-                viewModel.DebugTool.Stop();
+            bool isVisible = DebugToolWindowAnchorable?.IsVisible == true;
+            viewModel.IsDebugToolVisible = isVisible;
+            UpdateToolWindowLifecycle(isVisible, viewModel.DebugTool, () => viewModel.DebugTool.Start(), () => viewModel.DebugTool.Stop());
         }
 
         private void UpdateLogToolWindowLifecycle()
         {
-            viewModel.IsLogToolVisible = LogToolWindowAnchorable?.IsVisible == true;
+            bool isVisible = LogToolWindowAnchorable?.IsVisible == true;
+            viewModel.IsLogToolVisible = isVisible;
+            UpdateToolWindowLifecycle(isVisible, viewModel.LogTool, () => viewModel.LogTool.Start(), () => viewModel.LogTool.Stop());
+        }
 
-            if (viewModel.LogTool is null)
+        private void UpdateTrackItemInfoToolWindowLifecycle()
+        {
+            bool isVisible = TrackItemInfoToolWindowAnchorable?.IsVisible == true;
+            viewModel.IsTrackItemInfoToolVisible = isVisible;
+            UpdateToolWindowLifecycle(isVisible, viewModel.TrackItemInfoTool, () => viewModel.TrackItemInfoTool.Start(), () => viewModel.TrackItemInfoTool.Stop());
+        }
+
+        private void UpdateTrackNodeInfoToolWindowLifecycle()
+        {
+            bool isVisible = TrackNodeInfoToolWindowAnchorable?.IsVisible == true;
+            viewModel.IsTrackNodeInfoToolVisible = isVisible;
+            UpdateToolWindowLifecycle(isVisible, viewModel.TrackNodeInfoTool, () => viewModel.TrackNodeInfoTool.Start(), () => viewModel.TrackNodeInfoTool.Stop());
+        }
+
+        private void UpdateHelpToolWindowLifecycle()
+        {
+            bool isVisible = HelpToolWindowAnchorable?.IsVisible == true;
+            viewModel.IsHelpToolVisible = isVisible;
+            UpdateToolWindowLifecycle(isVisible, viewModel.HelpTool, () => viewModel.HelpTool.Start(), () => viewModel.HelpTool.Stop());
+        }
+
+        private static void UpdateToolWindowLifecycle(bool isVisible, object viewModelInstance, Action start, Action stop)
+        {
+            if (viewModelInstance is null)
                 return;
 
-            if (viewModel.IsLogToolVisible)
-                viewModel.LogTool.Start();
+            if (isVisible)
+                start?.Invoke();
             else
-                viewModel.LogTool.Stop();
+                stop?.Invoke();
         }
 
         private void ActivateMapInput()
@@ -431,19 +509,35 @@ namespace FreeTrainSimulator.Toolbox.Wpf
             MapHost.HostedWindowPointerDown -= MapHost_HostedWindowPointerDown;
             MapHost.HostedMenuReady -= MapHost_HostedMenuReady;
             MapHost.HostedToolWindowsReady -= MapHost_HostedToolWindowsReady;
-            if (LocationToolWindowAnchorable is not null)
-                LocationToolWindowAnchorable.PropertyChanged -= LocationToolAnchorable_PropertyChanged;
-            if (DebugToolWindowAnchorable is not null)
-                DebugToolWindowAnchorable.PropertyChanged -= DebugToolAnchorable_PropertyChanged;
-            if (LogToolWindowAnchorable is not null)
-                LogToolWindowAnchorable.PropertyChanged -= LogToolAnchorable_PropertyChanged;
+            UnhookToolWindowAnchorable(LocationToolWindowAnchorable, LocationToolAnchorable_PropertyChanged);
+            UnhookToolWindowAnchorable(DebugToolWindowAnchorable, DebugToolAnchorable_PropertyChanged);
+            UnhookToolWindowAnchorable(LogToolWindowAnchorable, LogToolAnchorable_PropertyChanged);
+            UnhookToolWindowAnchorable(TrackItemInfoToolWindowAnchorable, TrackItemInfoToolAnchorable_PropertyChanged);
+            UnhookToolWindowAnchorable(TrackNodeInfoToolWindowAnchorable, TrackNodeInfoToolAnchorable_PropertyChanged);
+            UnhookToolWindowAnchorable(HelpToolWindowAnchorable, HelpToolAnchorable_PropertyChanged);
             DockingManager.ActiveContentChanged -= DockingManager_ActiveContentChanged;
 
             await SaveDockLayoutAsync().ConfigureAwait(true);
+            DisposeToolWindowViewModels();
+            MapHost.Dispose();
+        }
+
+        private static void UnhookToolWindowAnchorable(LayoutAnchorable anchorable, PropertyChangedEventHandler handler)
+        {
+            if (anchorable is null || handler is null)
+                return;
+
+            anchorable.PropertyChanged -= handler;
+        }
+
+        private void DisposeToolWindowViewModels()
+        {
             viewModel.LocationTool?.Dispose();
             viewModel.DebugTool?.Dispose();
             viewModel.LogTool?.Dispose();
-            MapHost.Dispose();
+            viewModel.TrackItemInfoTool?.Dispose();
+            viewModel.TrackNodeInfoTool?.Dispose();
+            viewModel.HelpTool?.Dispose();
         }
 
         protected override async void OnClosing(CancelEventArgs e)

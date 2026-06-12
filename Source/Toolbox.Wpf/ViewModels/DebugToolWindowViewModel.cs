@@ -1,10 +1,8 @@
 using System;
+using System.Collections.Immutable;
 using System.Collections.ObjectModel;
-using System.ComponentModel;
 using System.Drawing;
 using System.Windows.Threading;
-
-using FreeTrainSimulator.Toolbox;
 
 namespace FreeTrainSimulator.Toolbox.Wpf.ViewModels
 {
@@ -61,10 +59,7 @@ namespace FreeTrainSimulator.Toolbox.Wpf.ViewModels
         private void RefreshRows()
         {
             ToolWindowSnapshot snapshot = toolWindow.CaptureSnapshot();
-
-            Rows.Clear();
-            foreach (ToolWindowRow row in snapshot.Rows)
-                Rows.Add(new DebugToolWindowRowViewModel(row.Name, row.Value, row.Color, row.Bold));
+            DebugToolWindowRowViewModel.Sync(Rows, snapshot.Rows);
         }
 
         public void Dispose()
@@ -81,9 +76,46 @@ namespace FreeTrainSimulator.Toolbox.Wpf.ViewModels
     /// <summary>
     /// Single render row for the debug tool-window grid.
     /// </summary>
-    internal sealed class DebugToolWindowRowViewModel
+    internal sealed class DebugToolWindowRowViewModel : ObservableObject
     {
+        private string name;
+        private string value;
+        private Color? color;
+        private bool bold;
+
         public DebugToolWindowRowViewModel(string name, string value, Color? color, bool bold)
+        {
+            this.name = name;
+            this.value = value;
+            this.color = color;
+            this.bold = bold;
+        }
+
+        public string Name
+        {
+            get => name;
+            private set => SetProperty(ref name, value);
+        }
+
+        public string Value
+        {
+            get => value;
+            private set => SetProperty(ref this.value, value);
+        }
+
+        public Color? Color
+        {
+            get => color;
+            private set => SetProperty(ref color, value);
+        }
+
+        public bool Bold
+        {
+            get => bold;
+            private set => SetProperty(ref bold, value);
+        }
+
+        public void Update(string name, string value, Color? color, bool bold)
         {
             Name = name;
             Value = value;
@@ -91,12 +123,21 @@ namespace FreeTrainSimulator.Toolbox.Wpf.ViewModels
             Bold = bold;
         }
 
-        public string Name { get; }
+        public static void Sync(ObservableCollection<DebugToolWindowRowViewModel> target, ImmutableArray<ToolWindowRow> rows)
+        {
+            ArgumentNullException.ThrowIfNull(target);
 
-        public string Value { get; }
+            for (int i = 0; i < rows.Length; i++)
+            {
+                ToolWindowRow row = rows[i];
+                if (i < target.Count)
+                    target[i].Update(row.Name, row.Value, row.Color, row.Bold);
+                else
+                    target.Add(new DebugToolWindowRowViewModel(row.Name, row.Value, row.Color, row.Bold));
+            }
 
-        public Color? Color { get; }
-
-        public bool Bold { get; }
+            for (int i = target.Count - 1; i >= rows.Length; i--)
+                target.RemoveAt(i);
+        }
     }
 }

@@ -7,15 +7,18 @@ using FreeTrainSimulator.Toolbox;
 namespace FreeTrainSimulator.Toolbox.Wpf.ViewModels
 {
     /// <summary>
-    /// Bindable view model for the hosted location dockable tool window.
+    /// Bindable view model for the hosted help dockable tool window. Exposes command/key rows and
+    /// command/key text filtering.
     /// </summary>
-    internal sealed class LocationToolWindowViewModel : ObservableObject, IDisposable
+    internal sealed class HelpToolWindowViewModel : ObservableObject, IDisposable
     {
-        private readonly LocationToolWindow toolWindow;
+        private readonly HelpToolWindow toolWindow;
         private readonly DispatcherTimer refreshTimer;
+        private string searchText = string.Empty;
+        private bool searchByKey;
         private bool disposed;
 
-        public LocationToolWindowViewModel(LocationToolWindow toolWindow, Dispatcher dispatcher)
+        public HelpToolWindowViewModel(HelpToolWindow toolWindow, Dispatcher dispatcher)
         {
             ArgumentNullException.ThrowIfNull(toolWindow);
             ArgumentNullException.ThrowIfNull(dispatcher);
@@ -33,12 +36,37 @@ namespace FreeTrainSimulator.Toolbox.Wpf.ViewModels
 
         public ObservableCollection<DebugToolWindowRowViewModel> Rows { get; } = new ObservableCollection<DebugToolWindowRowViewModel>();
 
+        public string SearchText
+        {
+            get => searchText;
+            set
+            {
+                if (!SetProperty(ref searchText, value))
+                    return;
+
+                UpdateSearch();
+            }
+        }
+
+        public bool SearchByKey
+        {
+            get => searchByKey;
+            set
+            {
+                if (!SetProperty(ref searchByKey, value))
+                    return;
+
+                UpdateSearch();
+            }
+        }
+
         public void Start()
         {
-            ObjectDisposedException.ThrowIf(disposed, nameof(DebugToolWindowViewModel));
+            ObjectDisposedException.ThrowIf(disposed, nameof(HelpToolWindowViewModel));
 
             toolWindow.Active = true;
             refreshTimer.Start();
+            UpdateSearch();
             RefreshRows();
         }
 
@@ -51,6 +79,15 @@ namespace FreeTrainSimulator.Toolbox.Wpf.ViewModels
         private void RefreshTimer_Tick(object sender, EventArgs e)
         {
             RefreshRows();
+        }
+
+        private void UpdateSearch()
+        {
+            HelpToolWindow.HelpSearchColumn searchColumn = SearchByKey
+                ? HelpToolWindow.HelpSearchColumn.Key
+                : HelpToolWindow.HelpSearchColumn.Command;
+
+            toolWindow.SetSearch(SearchText ?? string.Empty, searchColumn);
         }
 
         private void RefreshRows()

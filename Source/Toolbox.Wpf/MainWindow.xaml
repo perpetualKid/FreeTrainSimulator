@@ -79,6 +79,18 @@
                           IsCheckable="True"
                           IsChecked="{Binding DataContext.IsLogToolVisible, ElementName=RootWindow, Mode=OneWay}"
                           Command="{Binding DataContext.ToggleLogToolCommand, ElementName=RootWindow}" />
+                <MenuItem Header="Track _Item Information"
+                          IsCheckable="True"
+                          IsChecked="{Binding DataContext.IsTrackItemInfoToolVisible, ElementName=RootWindow, Mode=OneWay}"
+                          Command="{Binding DataContext.ToggleTrackItemInfoToolCommand, ElementName=RootWindow}" />
+                <MenuItem Header="Track _Node Information"
+                          IsCheckable="True"
+                          IsChecked="{Binding DataContext.IsTrackNodeInfoToolVisible, ElementName=RootWindow, Mode=OneWay}"
+                          Command="{Binding DataContext.ToggleTrackNodeInfoToolCommand, ElementName=RootWindow}" />
+                <MenuItem Header="_Help Window"
+                          IsCheckable="True"
+                          IsChecked="{Binding DataContext.IsHelpToolVisible, ElementName=RootWindow, Mode=OneWay}"
+                          Command="{Binding DataContext.ToggleHelpToolCommand, ElementName=RootWindow}" />
             </MenuItem>
             <MenuItem Header="_Help">
                 <MenuItem Header="_About" Command="{Binding ShowAboutCommand}" />
@@ -163,6 +175,134 @@
                                          TextChanged="LogTextBox_TextChanged"
                                          VerticalScrollBarVisibility="Auto"
                                          HorizontalScrollBarVisibility="Auto" />
+                            </avalonLayout:LayoutAnchorable>
+                            <avalonLayout:LayoutAnchorable x:Name="TrackItemInfoToolAnchorable"
+                                                          ContentId="TrackItemInfoToolWindow"
+                                                          Title="Track Item Information"
+                                                          CanClose="False"
+                                                          CanHide="True"
+                                                          IsVisible="False"
+                                                          IsSelected="False">
+                                <DockPanel Margin="6"
+                                           DataContext="{Binding DataContext.TrackItemInfoTool, ElementName=RootWindow}">
+                                    <DockPanel DockPanel.Dock="Top" Margin="0,0,0,6">
+                                        <Button DockPanel.Dock="Right"
+                                                Margin="6,0,0,0"
+                                                Padding="8,0"
+                                                Content="Find"
+                                                Command="{Binding SearchCommand}" />
+                                        <TextBox VerticalContentAlignment="Center"
+                                                 Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
+                                                 ToolTip="Find Track Item by Index">
+                                            <TextBox.InputBindings>
+                                                <KeyBinding Key="Return" Command="{Binding SearchCommand}" />
+                                            </TextBox.InputBindings>
+                                        </TextBox>
+                                    </DockPanel>
+                                    <ListView ItemsSource="{Binding Rows}">
+                                        <ListView.View>
+                                            <GridView>
+                                                <GridViewColumn Header="Name" Width="180" DisplayMemberBinding="{Binding Name}" />
+                                                <GridViewColumn Header="Value" Width="320" DisplayMemberBinding="{Binding Value}" />
+                                            </GridView>
+                                        </ListView.View>
+                                        <ListView.ItemContainerStyle>
+                                            <Style TargetType="ListViewItem">
+                                                <Setter Property="Foreground"
+                                                        Value="{Binding Color, Converter={StaticResource DrawingColorToBrushConverter}}" />
+                                                <Setter Property="FontWeight"
+                                                        Value="{Binding Bold, Converter={StaticResource BoolToFontWeightConverter}}" />
+                                            </Style>
+                                        </ListView.ItemContainerStyle>
+                                    </ListView>
+                                </DockPanel>
+                            </avalonLayout:LayoutAnchorable>
+                            <avalonLayout:LayoutAnchorable x:Name="TrackNodeInfoToolAnchorable"
+                                                          ContentId="TrackNodeInfoToolWindow"
+                                                          Title="Track Node Information"
+                                                          CanClose="False"
+                                                          CanHide="True"
+                                                          IsVisible="False"
+                                                          IsSelected="False">
+                                <DockPanel Margin="6"
+                                           DataContext="{Binding DataContext.TrackNodeInfoTool, ElementName=RootWindow}">
+                                    <DockPanel DockPanel.Dock="Top" Margin="0,0,0,6">
+                                        <Button DockPanel.Dock="Right"
+                                                Margin="6,0,0,0"
+                                                Padding="8,0"
+                                                Content="Find"
+                                                Command="{Binding SearchCommand}" />
+                                        <TextBox VerticalContentAlignment="Center"
+                                                 Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
+                                                 ToolTip="Find Track Node by Index">
+                                            <TextBox.InputBindings>
+                                                <KeyBinding Key="Return" Command="{Binding SearchCommand}" />
+                                            </TextBox.InputBindings>
+                                        </TextBox>
+                                    </DockPanel>
+                                    <StackPanel DockPanel.Dock="Top"
+                                                Orientation="Horizontal"
+                                                Margin="0,0,0,6">
+                                        <RadioButton GroupName="TrackNodeSearchType"
+                                                     Content="Tracks"
+                                                     IsChecked="True" />
+                                        <RadioButton GroupName="TrackNodeSearchType"
+                                                     Margin="12,0,0,0"
+                                                     Content="Roads"
+                                                     IsChecked="{Binding SearchRoads}" />
+                                    </StackPanel>
+                                    <ListView ItemsSource="{Binding Rows}">
+                                        <ListView.View>
+                                            <GridView>
+                                                <GridViewColumn Header="Name" Width="180" DisplayMemberBinding="{Binding Name}" />
+                                                <GridViewColumn Header="Value" Width="320" DisplayMemberBinding="{Binding Value}" />
+                                            </GridView>
+                                        </ListView.View>
+                                        <ListView.ItemContainerStyle>
+                                            <Style TargetType="ListViewItem">
+                                                <Setter Property="Foreground"
+                                                        Value="{Binding Color, Converter={StaticResource DrawingColorToBrushConverter}}" />
+                                                <Setter Property="FontWeight"
+                                                        Value="{Binding Bold, Converter={StaticResource BoolToFontWeightConverter}}" />
+                                            </Style>
+                                        </ListView.ItemContainerStyle>
+                                    </ListView>
+                                </DockPanel>
+                            </avalonLayout:LayoutAnchorable>
+                            <avalonLayout:LayoutAnchorable x:Name="HelpToolAnchorable"
+                                                          ContentId="HelpToolWindow"
+                                                          Title="Help"
+                                                          CanClose="False"
+                                                          CanHide="True"
+                                                          IsVisible="False"
+                                                          IsSelected="False">
+                                <DockPanel Margin="6"
+                                           DataContext="{Binding DataContext.HelpTool, ElementName=RootWindow}">
+                                    <DockPanel DockPanel.Dock="Top" Margin="0,0,0,6">
+                                        <TextBox VerticalContentAlignment="Center"
+                                                 Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
+                                                 ToolTip="Search Help" />
+                                    </DockPanel>
+                                    <StackPanel DockPanel.Dock="Top"
+                                                Orientation="Horizontal"
+                                                Margin="0,0,0,6">
+                                        <RadioButton GroupName="HelpSearchType"
+                                                     Content="Command"
+                                                     IsChecked="True" />
+                                        <RadioButton GroupName="HelpSearchType"
+                                                     Margin="12,0,0,0"
+                                                     Content="Key"
+                                                     IsChecked="{Binding SearchByKey}" />
+                                    </StackPanel>
+                                    <ListView ItemsSource="{Binding Rows}">
+                                        <ListView.View>
+                                            <GridView>
+                                                <GridViewColumn Header="Command" Width="260" DisplayMemberBinding="{Binding Name}" />
+                                                <GridViewColumn Header="Key" Width="180" DisplayMemberBinding="{Binding Value}" />
+                                            </GridView>
+                                        </ListView.View>
+                                    </ListView>
+                                </DockPanel>
                             </avalonLayout:LayoutAnchorable>
                         </avalonLayout:LayoutAnchorablePane>
                     </avalonLayout:LayoutPanel>

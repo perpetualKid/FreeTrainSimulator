@@ -1,5 +1,4 @@
 using System.Collections.Immutable;
-using System.Drawing;
 
 using FreeTrainSimulator.Common.DebugInfo;
 using FreeTrainSimulator.Toolbox.PopupWindows;
@@ -55,26 +54,7 @@ namespace FreeTrainSimulator.Toolbox
             if (!Active)
                 return;
 
-            ImmutableArray<ToolWindowRow>.Builder builder = ImmutableArray.CreateBuilder<ToolWindowRow>();
-            foreach (INameValueInformationProvider provider in providers)
-            {
-                InformationDictionary detail = provider?.DetailInfo;
-                if (detail is null)
-                    continue;
-
-                foreach (string key in detail.Keys)
-                {
-                    FormatOption format = null;
-                    _ = provider.FormattingOptions?.TryGetValue(key, out format);
-                    Color? color = format?.TextColor is { } textColor
-                        ? Color.FromArgb(textColor.A, textColor.R, textColor.G, textColor.B)
-                        : null;
-                    bool bold = format?.FontStyle.HasFlag(FontStyle.Bold) ?? false;
-                    builder.Add(new ToolWindowRow(key, detail[key], color, bold));
-                }
-            }
-
-            snapshot = new ToolWindowSnapshot(builder.ToImmutable());
+            snapshot = ToolWindowSnapshotFactory.FromProviders(providers);
         }
     }
 }
