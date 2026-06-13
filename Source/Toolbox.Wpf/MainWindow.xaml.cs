@@ -396,20 +396,38 @@ namespace FreeTrainSimulator.Toolbox.Wpf
 
         private bool IsMapInteractionActive()
         {
-            if (!IsActive)
-                return false;
-
-            // Use direct host interaction state instead of DockingManager.ActiveContent. For hosted HWND content,
-            // ActiveContent can lag or stay on the previous tool window, which leaves input captured even after
-            // the user returns to the map.
+            // Base interactivity purely on whether the pointer is over the hosted map surface (or it holds
+            // keyboard focus). Do not gate on the main window IsActive: when a tool window is floated into its
+            // own owned top-level window, that floating window holds activation and the main window reports
+            // IsActive == false, which previously captured input and froze map hover updates. A genuine switch
+            // to another application is still handled by the deactivation path (ApplyDeactivationCaptureAsync).
             return MapHost.IsMouseOver || MapHost.IsKeyboardFocusWithin;
         }
 
         private async Task ApplyDeactivationCaptureAsync(int sequence)
         {
             await Task.Delay(80).ConfigureAwait(true);
-            if (sequence == deactivationSequence && !IsActive)
+
+            // Only capture input when the application has genuinely lost activation to another app. Floating a
+            // tool window creates an owned top-level window whose activation deactivates this main window; in
+            // that case one of our own windows is still active, so we must keep map input flowing (otherwise
+            // hovering the map no longer updates tool-window content such as Track Node Information).
+            if (sequence == deactivationSequence && !IsAnyApplicationWindowActive())
                 MapHost.SetInputCaptured(true);
+        }
+
+        private static bool IsAnyApplicationWindowActive()
+        {
+            if (Application.Current is null)
+                return false;
+
+            foreach (Window window in Application.Current.Windows)
+            {
+                if (window.IsActive)
+                    return true;
+            }
+
+            return false;
         }
 
         private async Task LoadDockLayoutAsync()
