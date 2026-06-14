@@ -13,18 +13,21 @@ namespace FreeTrainSimulator.Toolbox.Wpf.ViewModels
         private TrackItemInfoToolWindowViewModel trackItemInfoTool;
         private TrackNodeInfoToolWindowViewModel trackNodeInfoTool;
         private HelpToolWindowViewModel helpTool;
+        private SettingsToolWindowViewModel settingsTool;
         private RelayCommand toggleDebugToolCommand;
         private RelayCommand toggleLocationToolCommand;
         private RelayCommand toggleLogToolCommand;
         private RelayCommand toggleTrackItemInfoToolCommand;
         private RelayCommand toggleTrackNodeInfoToolCommand;
         private RelayCommand toggleHelpToolCommand;
+        private RelayCommand toggleSettingsToolCommand;
         private bool isDebugToolVisible;
         private bool isLocationToolVisible;
         private bool isLogToolVisible;
         private bool isTrackItemInfoToolVisible;
         private bool isTrackNodeInfoToolVisible;
         private bool isHelpToolVisible;
+        private bool isSettingsToolVisible;
 
         public ToolboxMenuViewModel Menu
         {
@@ -68,6 +71,12 @@ namespace FreeTrainSimulator.Toolbox.Wpf.ViewModels
             set => SetProperty(ref helpTool, value);
         }
 
+        public SettingsToolWindowViewModel SettingsTool
+        {
+            get => settingsTool;
+            set => SetProperty(ref settingsTool, value);
+        }
+
         public RelayCommand ToggleDebugToolCommand
         {
             get => toggleDebugToolCommand;
@@ -104,6 +113,12 @@ namespace FreeTrainSimulator.Toolbox.Wpf.ViewModels
             set => SetProperty(ref toggleHelpToolCommand, value);
         }
 
+        public RelayCommand ToggleSettingsToolCommand
+        {
+            get => toggleSettingsToolCommand;
+            set => SetProperty(ref toggleSettingsToolCommand, value);
+        }
+
         public bool IsDebugToolVisible
         {
             get => isDebugToolVisible;
@@ -138,6 +153,12 @@ namespace FreeTrainSimulator.Toolbox.Wpf.ViewModels
         {
             get => isHelpToolVisible;
             set => SetProperty(ref isHelpToolVisible, value);
+        }
+
+        public bool IsSettingsToolVisible
+        {
+            get => isSettingsToolVisible;
+            set => SetProperty(ref isSettingsToolVisible, value);
         }
     }
 }

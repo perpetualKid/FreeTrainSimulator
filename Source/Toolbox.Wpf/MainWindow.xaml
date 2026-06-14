@@ -91,6 +91,10 @@
                           IsCheckable="True"
                           IsChecked="{Binding DataContext.IsHelpToolVisible, ElementName=RootWindow, Mode=OneWay}"
                           Command="{Binding DataContext.ToggleHelpToolCommand, ElementName=RootWindow}" />
+                <MenuItem Header="_Settings Window"
+                          IsCheckable="True"
+                          IsChecked="{Binding DataContext.IsSettingsToolVisible, ElementName=RootWindow, Mode=OneWay}"
+                          Command="{Binding DataContext.ToggleSettingsToolCommand, ElementName=RootWindow}" />
             </MenuItem>
             <MenuItem Header="_Help">
                 <MenuItem Header="_About" Command="{Binding ShowAboutCommand}" />
@@ -303,6 +307,37 @@
                                         </ListView.View>
                                     </ListView>
                                 </DockPanel>
+                            </avalonLayout:LayoutAnchorable>
+                            <avalonLayout:LayoutAnchorable x:Name="SettingsToolAnchorable"
+                                                          ContentId="SettingsToolWindow"
+                                                          Title="Settings"
+                                                          CanClose="False"
+                                                          CanHide="True"
+                                                          IsVisible="False"
+                                                          IsSelected="False">
+                                <StackPanel Margin="6"
+                                            DataContext="{Binding DataContext.SettingsTool, ElementName=RootWindow}">
+                                    <GroupBox Header="Common" Padding="6" Margin="0,0,0,6">
+                                        <StackPanel>
+                                            <CheckBox Content="Enable Logging"
+                                                      Margin="0,3"
+                                                      IsChecked="{Binding EnableLogging}" />
+                                            <CheckBox Content="Restore Last View on Start"
+                                                      Margin="0,3"
+                                                      IsChecked="{Binding RestoreLastView}" />
+                                        </StackPanel>
+                                    </GroupBox>
+                                    <GroupBox Header="Graphics" Padding="6">
+                                        <StackPanel>
+                                            <CheckBox Content="Use Font Outline"
+                                                      Margin="0,3"
+                                                      IsChecked="{Binding FontOutline}" />
+                                            <CheckBox Content="Use Real Track Width"
+                                                      Margin="0,3"
+                                                      IsChecked="{Binding RealTrackWidth}" />
+                                        </StackPanel>
+                                    </GroupBox>
+                                </StackPanel>
                             </avalonLayout:LayoutAnchorable>
                         </avalonLayout:LayoutAnchorablePane>
                     </avalonLayout:LayoutPanel>

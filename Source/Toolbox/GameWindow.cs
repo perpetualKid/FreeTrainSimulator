@@ -125,6 +125,9 @@ namespace FreeTrainSimulator.Toolbox
         // Non-null only in hosted mode; exposed to the WPF host for read-only command/key help information.
         private HelpToolWindow hostedHelpToolWindow;
 
+        // Non-null only in hosted mode; exposed to the WPF host for two-way settings editing.
+        private SettingsToolWindow hostedSettingsToolWindow;
+
         public GameWindow(bool hostedMode = false)
         {
             this.hostedMode = hostedMode;
@@ -202,6 +205,7 @@ namespace FreeTrainSimulator.Toolbox
                 hostedTrackItemInfoToolWindow = new TrackItemInfoToolWindow(InvokeOnGameThread);
                 hostedTrackNodeInfoToolWindow = new TrackNodeInfoToolWindow(InvokeOnGameThread);
                 hostedHelpToolWindow = new HelpToolWindow();
+                hostedSettingsToolWindow = new SettingsToolWindow(this);
                 OnContentAreaChanged += GameWindow_OnContentAreaChanged;
             }
             windowForm.KeyPreview = true;// need to preview keys to enable Monogames TextInput handler, otherwise adding the main menu will break text input
@@ -331,6 +335,12 @@ namespace FreeTrainSimulator.Toolbox
         /// </summary>
         internal HelpToolWindow HostedHelpToolWindow => hostedHelpToolWindow;
 
+        /// <summary>
+        /// Hosted-mode settings tool-window bridge that the WPF shell reads and writes settings through.
+        /// Null in standalone mode.
+        /// </summary>
+        internal SettingsToolWindow HostedSettingsToolWindow => hostedSettingsToolWindow;
+
         internal void ApplyHostedClientSize(System.Drawing.Size clientSize)
         {
             if (!hostedMode || clientSize.Width <= 0 || clientSize.Height <= 0)
@@ -447,6 +457,20 @@ namespace FreeTrainSimulator.Toolbox
         internal void UpdateItemVisibilityPreference(MapContentType setting, bool enabled)
         {
             ToolboxSettings.ViewSettings[setting] = enabled;
+        }
+
+        internal void UpdateFontOutlinePreference(bool fontOutline)
+        {
+            ToolboxSettings.FontOutline = fontOutline;
+            foreach (ColorSetting setting in EnumExtension.GetValues<ColorSetting>())
+                contentArea?.UpdateColor(setting, ColorExtension.FromName(ToolboxSettings.ColorSettings[setting]), ToolboxSettings.FontOutline);
+            (windowManager[ToolboxWindowType.DebugScreen] as DebugScreen)?.UpdateBackgroundColor(ColorExtension.FromName(ToolboxSettings.ColorSettings[ColorSetting.Background]));
+        }
+
+        internal void UpdateTrackWidthPreference(bool limitTrackWidth)
+        {
+            ToolboxSettings.LimitTrackWidth = limitTrackWidth;
+            (contentArea as IMapDisplaySettingsContext)?.UpdateTrackWidthSettings(limitTrackWidth);
         }
 
         internal void UpdateLanguagePreference(string language)
@@ -691,6 +715,9 @@ namespace FreeTrainSimulator.Toolbox
             });
             userCommandController.AddEvent(UserCommand.DisplaySettingsWindow, KeyEventType.KeyPressed, (UserCommandArgs userCommandArgs) =>
             {
+                if (hostedMode)
+                    return;
+
                 if (userCommandArgs is not ModifiableKeyCommandArgs)
                     windowManager[ToolboxWindowType.SettingsWindow].ToggleVisibility();
             });
@@ -763,12 +790,15 @@ namespace FreeTrainSimulator.Toolbox
                     return trackInfoWindow;
                 }));
             }
-            windowManager.SetLazyWindows(ToolboxWindowType.SettingsWindow, new Lazy<FormBase>(() =>
+            if (!hostedMode)
             {
-                SettingsWindow settingsWindow = new SettingsWindow(windowManager, ToolboxSettings, ToolboxUserSettings, contentArea as IMapDisplaySettingsContext, ToolboxSettings.PopupLocations[ToolboxWindowType.SettingsWindow].ToPoint());
-                OnContentAreaChanged += settingsWindow.GameWindow_OnContentAreaChanged;
-                return settingsWindow;
-            }));
+                windowManager.SetLazyWindows(ToolboxWindowType.SettingsWindow, new Lazy<FormBase>(() =>
+                {
+                    SettingsWindow settingsWindow = new SettingsWindow(windowManager, ToolboxSettings, ToolboxUserSettings, contentArea as IMapDisplaySettingsContext, ToolboxSettings.PopupLocations[ToolboxWindowType.SettingsWindow].ToPoint());
+                    OnContentAreaChanged += settingsWindow.GameWindow_OnContentAreaChanged;
+                    return settingsWindow;
+                }));
+            }
             if (!hostedMode)
             {
                 windowManager.SetLazyWindows(ToolboxWindowType.LogWindow, new Lazy<FormBase>(() =>
@@ -811,7 +841,7 @@ namespace FreeTrainSimulator.Toolbox
                     {
                         if (hostedMode && (windowType == ToolboxWindowType.LocationWindow || windowType == ToolboxWindowType.LogWindow
                             || windowType == ToolboxWindowType.TrackNodeInfoWindow || windowType == ToolboxWindowType.TrackItemInfoWindow
-                            || windowType == ToolboxWindowType.HelpWindow))
+                            || windowType == ToolboxWindowType.HelpWindow || windowType == ToolboxWindowType.SettingsWindow))
                             continue;
 
                         if (ToolboxSettings.PopupStatus[windowType])
