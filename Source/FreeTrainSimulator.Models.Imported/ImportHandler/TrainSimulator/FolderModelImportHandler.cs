@@ -30,10 +30,12 @@ namespace FreeTrainSimulator.Models.Imported.ImportHandler.TrainSimulator
                 try
                 {
                     RegistryKey key = Registry.CurrentUser.OpenSubKey(ortsFoldersKey);
-
-                    foreach (string folder in key.GetValueNames())
+                    if (key != null)
                     {
-                        folderModels.Add(new FolderModel(folder, key.GetValue(folder) as string, contentModel));
+                        foreach (string folder in key.GetValueNames())
+                        {
+                            folderModels.Add(new FolderModel(folder, key.GetValue(folder) as string, contentModel));
+                        }
                     }
                 }
                 catch (Exception ex) when (ex is SecurityException or UnauthorizedAccessException or ObjectDisposedException)
