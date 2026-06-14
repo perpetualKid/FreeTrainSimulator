@@ -6,6 +6,7 @@ using System.Windows.Forms.Integration;
 using System.Windows.Threading;
 
 using FreeTrainSimulator.Common.Native;
+using FreeTrainSimulator.Models.Content;
 
 namespace FreeTrainSimulator.Toolbox.Wpf.Hosting
 {
@@ -86,6 +87,13 @@ namespace FreeTrainSimulator.Toolbox.Wpf.Hosting
         /// subscribe to <see cref="HostedToolWindowsReady"/> to be notified. Raised on the WPF UI thread.
         /// </summary>
         internal TrainPathToolWindow HostedTrainPathToolWindow { get; private set; }
+
+        /// <summary>
+        /// Raised on the WPF UI thread when the hosted game requests a train-path save, so the shell can show
+        /// its WPF modal save dialog. Respond by collecting the path metadata and calling
+        /// <see cref="SubmitSavePath"/>.
+        /// </summary>
+        internal event EventHandler SaveTrainPathRequested;
 
         /// <summary>
         /// Raised on the WPF UI thread once <see cref="HostedDebugToolWindow"/> becomes available.
@@ -195,6 +203,8 @@ namespace FreeTrainSimulator.Toolbox.Wpf.Hosting
             HostedHelpToolWindow = game.HostedHelpToolWindow;
             HostedSettingsToolWindow = game.HostedSettingsToolWindow;
             HostedTrainPathToolWindow = game.HostedTrainPathToolWindow;
+            game.SaveTrainPathRequested -= Game_SaveTrainPathRequested;
+            game.SaveTrainPathRequested += Game_SaveTrainPathRequested;
             HostedToolWindowsReady?.Invoke(this, EventArgs.Empty);
         }
 
@@ -295,6 +305,28 @@ namespace FreeTrainSimulator.Toolbox.Wpf.Hosting
                 return;
 
             game.InvokeOnGameThread(() => game.SetHostedInputCaptured(captured));
+        }
+
+        // Game-thread event: re-raise on the WPF dispatcher so the shell can show its modal save dialog.
+        private void Game_SaveTrainPathRequested(object sender, EventArgs e)
+        {
+            Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() => SaveTrainPathRequested?.Invoke(this, EventArgs.Empty)));
+        }
+
+        /// <summary>
+        /// Submits the collected path metadata back to the hosted game (marshaled onto the game thread) to
+        /// persist the path and refresh the path list. Called by the shell after the WPF save dialog is
+        /// confirmed.
+        /// </summary>
+        internal void SubmitSavePath(PathModelHeader pathDetails)
+        {
+            ArgumentNullException.ThrowIfNull(pathDetails);
+
+            GameWindow game = gameWindow;
+            if (game == null)
+                return;
+
+            game.InvokeOnGameThread(() => game.SubmitTrainPathSave(pathDetails));
         }
 
         private void OnHostedWindowPointerDown()

@@ -179,8 +179,18 @@ namespace FreeTrainSimulator.Toolbox
             PathEditor.InitializeNewPath();            
         }
 
+        // Raised on the game thread in hosted mode when the user requests a path save, so the WPF shell can
+        // show its own modal save dialog instead of the legacy MonoGame popup.
+        internal event EventHandler SaveTrainPathRequested;
+
         internal void SavePath()
         {
+            if (hostedMode)
+            {
+                SaveTrainPathRequested?.Invoke(this, EventArgs.Empty);
+                return;
+            }
+
             windowForm.ActiveControl = null;
             _ = windowManager[ToolboxWindowType.TrainPathSaveWindow].Open();
         }

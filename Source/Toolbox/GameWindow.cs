@@ -828,12 +828,15 @@ namespace FreeTrainSimulator.Toolbox
                     return trainPathDetailWindow;
                 }));
             }
-            windowManager.SetLazyWindows(ToolboxWindowType.TrainPathSaveWindow, new Lazy<FormBase>(() =>
+            if (!hostedMode)
             {
-                TrainPathSaveWindow trainPathSaveWindow = new TrainPathSaveWindow(windowManager, ToolboxSettings.PopupLocations[ToolboxWindowType.TrainPathSaveWindow].ToPoint());
-                trainPathSaveWindow.OnSavePath += TrainPathSaveWindow_OnSavePath;
-                return trainPathSaveWindow;
-            }));
+                windowManager.SetLazyWindows(ToolboxWindowType.TrainPathSaveWindow, new Lazy<FormBase>(() =>
+                {
+                    TrainPathSaveWindow trainPathSaveWindow = new TrainPathSaveWindow(windowManager, ToolboxSettings.PopupLocations[ToolboxWindowType.TrainPathSaveWindow].ToPoint());
+                    trainPathSaveWindow.OnSavePath += TrainPathSaveWindow_OnSavePath;
+                    return trainPathSaveWindow;
+                }));
+            }
             #endregion
 
             windowManager.OnModalWindow += WindowManager_OnModalWindow;

@@ -14,6 +14,7 @@ using AvalonDock.Layout.Serialization;
 using FreeTrainSimulator.Models.Settings;
 using FreeTrainSimulator.Models.Shim;
 using FreeTrainSimulator.Toolbox.Settings;
+using FreeTrainSimulator.Toolbox.Wpf.Dialogs;
 using FreeTrainSimulator.Toolbox.Wpf.ViewModels;
 
 namespace FreeTrainSimulator.Toolbox.Wpf
@@ -52,6 +53,7 @@ namespace FreeTrainSimulator.Toolbox.Wpf
             MapHost.HostedWindowPointerDown += MapHost_HostedWindowPointerDown;
             MapHost.HostedMenuReady += MapHost_HostedMenuReady;
             MapHost.HostedToolWindowsReady += MapHost_HostedToolWindowsReady;
+            MapHost.SaveTrainPathRequested += MapHost_SaveTrainPathRequested;
             DockingManager.ActiveContentChanged += DockingManager_ActiveContentChanged;
         }
 
@@ -168,6 +170,17 @@ namespace FreeTrainSimulator.Toolbox.Wpf
         private void DockingManager_ActiveContentChanged(object sender, EventArgs e)
         {
             UpdateHostedInputCapture();
+        }
+
+        private void MapHost_SaveTrainPathRequested(object sender, EventArgs e)
+        {
+            TrainPathSaveDialog dialog = new TrainPathSaveDialog
+            {
+                Owner = this,
+            };
+
+            if (dialog.ShowDialog() == true && dialog.PathDetails != null)
+                MapHost.SubmitSavePath(dialog.PathDetails);
         }
 
         private void MapHost_HostedToolWindowsReady(object sender, EventArgs e)
@@ -584,6 +597,7 @@ namespace FreeTrainSimulator.Toolbox.Wpf
             MapHost.HostedWindowPointerDown -= MapHost_HostedWindowPointerDown;
             MapHost.HostedMenuReady -= MapHost_HostedMenuReady;
             MapHost.HostedToolWindowsReady -= MapHost_HostedToolWindowsReady;
+            MapHost.SaveTrainPathRequested -= MapHost_SaveTrainPathRequested;
             UnhookToolWindowAnchorable(LocationToolWindowAnchorable, LocationToolAnchorable_PropertyChanged);
             UnhookToolWindowAnchorable(DebugToolWindowAnchorable, DebugToolAnchorable_PropertyChanged);
             UnhookToolWindowAnchorable(LogToolWindowAnchorable, LogToolAnchorable_PropertyChanged);

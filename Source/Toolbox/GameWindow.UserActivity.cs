@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Immutable;
 using System.Globalization;
 using System.IO;
@@ -192,9 +192,15 @@ namespace FreeTrainSimulator.Toolbox
             }
         }
 
-        private async void TrainPathSaveWindow_OnSavePath(object sender, TrainPathSaveEventArgs e)
+        private void TrainPathSaveWindow_OnSavePath(object sender, TrainPathSaveEventArgs e)
         {
-            PathModelHeader pathDetails = e.PathDetails;
+            SubmitTrainPathSave(e.PathDetails);
+        }
+
+        // Persists the given path metadata through the path editor and refreshes the menu's path list. Shared
+        // by the legacy MonoGame save popup and the hosted WPF save dialog. Runs on the game thread.
+        internal async void SubmitTrainPathSave(PathModelHeader pathDetails)
+        {
             await PathEditor.SavePath(pathDetails).ConfigureAwait(false);
             Task<ImmutableArray<PathModelHeader>> pathTask = selectedRoute.GetRoutePaths(ctsProfileLoading.Token);
             menu.PopulatePaths(await pathTask.ConfigureAwait(false));
