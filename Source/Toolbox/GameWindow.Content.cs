@@ -185,14 +185,7 @@ namespace FreeTrainSimulator.Toolbox
 
         internal void SavePath()
         {
-            if (hostedMode)
-            {
-                SaveTrainPathRequested?.Invoke(this, EventArgs.Empty);
-                return;
-            }
-
-            windowForm.ActiveControl = null;
-            _ = windowManager[ToolboxWindowType.TrainPathSaveWindow].Open();
+            SaveTrainPathRequested?.Invoke(this, EventArgs.Empty);
         }
 
         internal async Task PreSelectRoute(string folderName, string routeId, string pathId)

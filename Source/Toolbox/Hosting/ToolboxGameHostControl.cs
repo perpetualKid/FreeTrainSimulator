@@ -163,7 +163,7 @@ namespace FreeTrainSimulator.Toolbox.Wpf.Hosting
         {
             try
             {
-                using (GameWindow game = new GameWindow(hostedMode: true))
+                using (GameWindow game = new GameWindow())
                 {
                     gameWindow = game;
                     game.EnableHostedMode(ReattachHostedWindow);

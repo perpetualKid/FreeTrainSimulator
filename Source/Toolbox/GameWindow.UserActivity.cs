@@ -192,11 +192,6 @@ namespace FreeTrainSimulator.Toolbox
             }
         }
 
-        private void TrainPathSaveWindow_OnSavePath(object sender, TrainPathSaveEventArgs e)
-        {
-            SubmitTrainPathSave(e.PathDetails);
-        }
-
         // Persists the given path metadata through the path editor and refreshes the menu's path list. Shared
         // by the legacy MonoGame save popup and the hosted WPF save dialog. Runs on the game thread.
         internal async void SubmitTrainPathSave(PathModelHeader pathDetails)

@@ -55,7 +55,6 @@ namespace FreeTrainSimulator.Toolbox
         private ContentArea contentArea;
         private int suppressCount;
         private bool waitOnExit;
-        private bool hostedMode;
 
         internal ContentArea ContentArea
         {
@@ -99,8 +98,7 @@ namespace FreeTrainSimulator.Toolbox
         private readonly string windowTitle;
         private UserCommandController<UserCommand> userCommandController;
 
-        // Abstraction over the main menu. In standalone mode this is the embedded WinForms MainMenuControl;
-        // in hosted (WPF) mode it is a bridge that forwards menu data/commands to the native WPF menu.
+        // Abstraction over the main menu: a hosted bridge that forwards menu data/commands to the WPF menu.
         private IToolboxMenu menu;
 
         // Non-null only in hosted mode; exposed to the WPF host so the native menu can bind to it.
@@ -131,9 +129,8 @@ namespace FreeTrainSimulator.Toolbox
         // Non-null only in hosted mode; exposed to the WPF host for train-path browsing/editing.
         private TrainPathToolWindow hostedTrainPathToolWindow;
 
-        public GameWindow(bool hostedMode = false)
+        public GameWindow()
         {
-            this.hostedMode = hostedMode;
             ImmutableArray<string> options = Environment.GetCommandLineArgs().Where(a => a.StartsWith('-') || a.StartsWith('/')).Select(a => a[1..]).ToImmutableArray();
 
             CatalogManager.SetCatalogDomainPattern(CatalogDomainPattern.AssemblyName, null, RuntimeInfo.LocalesFolder);
@@ -153,16 +150,8 @@ namespace FreeTrainSimulator.Toolbox
             FontManager.ScalingFactor = (float)WindowManager.DisplayScalingFactor(currentScreen);
 
             ApplySettings();
-            if (hostedMode)
-            {
-                hostedMenu = new HostedToolboxMenu(this);
-                menu = hostedMenu;
-            }
-            else
-            {
-                InitializeComponent();
-                menu = mainmenu;
-            }
+            hostedMenu = new HostedToolboxMenu(this);
+            menu = hostedMenu;
             graphicsDeviceManager = new GraphicsDeviceManager(this);
             graphicsDeviceManager.PreparingDeviceSettings += GraphicsPreparingDeviceSettings;
             graphicsDeviceManager.PreferMultiSampling = ToolboxUserSettings.MultiSamplingCount > 0;
@@ -200,18 +189,15 @@ namespace FreeTrainSimulator.Toolbox
             LoadLanguage();
             SystemInfo.SetGraphicAdapterInformation(graphicsDeviceManager.GraphicsDevice.Adapter.Description);
             debugInfo = new CommonDebugInfo(this);
-            if (hostedMode)
-            {
-                hostedDebugToolWindow = new DebugToolWindow(debugInfo, graphicsDebugInfo);
-                hostedLocationToolWindow = new LocationToolWindow(ToolboxSettings);
-                hostedLogToolWindow = new LogToolWindow(LogFileName);
-                hostedTrackItemInfoToolWindow = new TrackItemInfoToolWindow(InvokeOnGameThread);
-                hostedTrackNodeInfoToolWindow = new TrackNodeInfoToolWindow(InvokeOnGameThread);
-                hostedHelpToolWindow = new HelpToolWindow();
-                hostedSettingsToolWindow = new SettingsToolWindow(this);
-                hostedTrainPathToolWindow = new TrainPathToolWindow(() => HostedPathEditor, () => HostedTrainPathToolingContext, InvokeOnGameThread);
-                OnContentAreaChanged += GameWindow_OnContentAreaChanged;
-            }
+            hostedDebugToolWindow = new DebugToolWindow(debugInfo, graphicsDebugInfo);
+            hostedLocationToolWindow = new LocationToolWindow(ToolboxSettings);
+            hostedLogToolWindow = new LogToolWindow(LogFileName);
+            hostedTrackItemInfoToolWindow = new TrackItemInfoToolWindow(InvokeOnGameThread);
+            hostedTrackNodeInfoToolWindow = new TrackNodeInfoToolWindow(InvokeOnGameThread);
+            hostedHelpToolWindow = new HelpToolWindow();
+            hostedSettingsToolWindow = new SettingsToolWindow(this);
+            hostedTrainPathToolWindow = new TrainPathToolWindow(() => HostedPathEditor, () => HostedTrainPathToolingContext, InvokeOnGameThread);
+            OnContentAreaChanged += GameWindow_OnContentAreaChanged;
             windowForm.KeyPreview = true;// need to preview keys to enable Monogames TextInput handler, otherwise adding the main menu will break text input
         }
 
@@ -222,11 +208,7 @@ namespace FreeTrainSimulator.Toolbox
 
         private void WindowForm_FormClosing(object sender, FormClosingEventArgs e)
         {
-            if (hostedMode)
-                return;
-
-            waitOnExit = true;
-            PrepareExitApplication();
+            // In hosted mode the WPF shell owns application shutdown; the child game window must not drive it.
         }
 
         #region window size/position handling
@@ -235,11 +217,9 @@ namespace FreeTrainSimulator.Toolbox
             if (syncing)
                 return;
 
-            if (hostedMode)
-            {
-                ApplyHostedClientSize(windowForm.ClientSize);
-                return;
-            }
+            // The WPF host drives sizing of the embedded child window.
+            ApplyHostedClientSize(windowForm.ClientSize);
+            return;
 
             if (currentScreenMode == ScreenMode.Windowed)
                 windowSize = new System.Drawing.Size(Window.ClientBounds.Width, Window.ClientBounds.Height);
@@ -261,10 +241,7 @@ namespace FreeTrainSimulator.Toolbox
 
         private void WindowForm_LocationChanged(object sender, EventArgs e)
         {
-            if (hostedMode)
-                return;
-
-            WindowForm_ClientSizeChanged(sender, e);
+            // The WPF host owns window placement; nothing to do for the embedded child window.
         }
 
         internal IntPtr HostedWindowHandle
@@ -291,7 +268,6 @@ namespace FreeTrainSimulator.Toolbox
 
         internal void EnableHostedMode(Action<IntPtr, int, int> reattachCallback)
         {
-            // hostedMode is set in the constructor so the menu type is chosen before InitializeComponent.
             hostedReattachCallback = reattachCallback;
             Window.AllowUserResizing = false;
             windowForm.FormBorderStyle = FormBorderStyle.None;
@@ -353,7 +329,7 @@ namespace FreeTrainSimulator.Toolbox
 
         internal void ApplyHostedClientSize(System.Drawing.Size clientSize)
         {
-            if (!hostedMode || clientSize.Width <= 0 || clientSize.Height <= 0)
+            if (clientSize.Width <= 0 || clientSize.Height <= 0)
                 return;
 
             if (windowForm.InvokeRequired)
@@ -587,47 +563,15 @@ namespace FreeTrainSimulator.Toolbox
                 if (graphicsDeviceManager.IsFullScreen)
                     graphicsDeviceManager.ToggleFullScreen();
 
-                if (hostedMode)
+                windowForm.FormBorderStyle = System.Windows.Forms.FormBorderStyle.None;
+                System.Drawing.Size clientSize = windowForm.ClientSize;
+                if (clientSize.Width > 0 && clientSize.Height > 0)
                 {
-                    windowForm.FormBorderStyle = System.Windows.Forms.FormBorderStyle.None;
-                    System.Drawing.Size clientSize = windowForm.ClientSize;
-                    if (clientSize.Width > 0 && clientSize.Height > 0)
-                    {
-                        graphicsDeviceManager.PreferredBackBufferWidth = clientSize.Width;
-                        graphicsDeviceManager.PreferredBackBufferHeight = clientSize.Height;
-                        graphicsDeviceManager.ApplyChanges();
-                    }
-                    targetMode = ScreenMode.Windowed;
-                    return;
+                    graphicsDeviceManager.PreferredBackBufferWidth = clientSize.Width;
+                    graphicsDeviceManager.PreferredBackBufferHeight = clientSize.Height;
+                    graphicsDeviceManager.ApplyChanges();
                 }
-
-                switch (targetMode)
-                {
-                    case ScreenMode.Windowed:
-                        if (targetMode != currentScreenMode)
-                            Window.Position = windowPosition;
-                        windowForm.FormBorderStyle = System.Windows.Forms.FormBorderStyle.Sizable;
-                        windowForm.Size = windowSize;
-                        graphicsDeviceManager.PreferredBackBufferWidth = windowSize.Width;
-                        graphicsDeviceManager.PreferredBackBufferHeight = windowSize.Height;
-                        graphicsDeviceManager.ApplyChanges();
-                        break;
-                    case ScreenMode.WindowedFullscreen:
-                        graphicsDeviceManager.PreferredBackBufferWidth = currentScreen.WorkingArea.Width - clientRectangleOffset.X;
-                        graphicsDeviceManager.PreferredBackBufferHeight = currentScreen.WorkingArea.Height - clientRectangleOffset.Y;
-                        windowForm.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
-                        Window.Position = new Point(currentScreen.WorkingArea.Location.X, currentScreen.WorkingArea.Location.Y);
-                        graphicsDeviceManager.ApplyChanges();
-                        break;
-                    case ScreenMode.BorderlessFullscreen:
-                        graphicsDeviceManager.PreferredBackBufferWidth = currentScreen.Bounds.Width;
-                        graphicsDeviceManager.PreferredBackBufferHeight = currentScreen.Bounds.Height;
-                        graphicsDeviceManager.ApplyChanges();
-                        windowForm.FormBorderStyle = System.Windows.Forms.FormBorderStyle.None;
-                        Window.Position = new Point(currentScreen.Bounds.X, currentScreen.Bounds.Y);
-                        graphicsDeviceManager.ApplyChanges();
-                        break;
-                }
+                targetMode = ScreenMode.Windowed;
             });
             currentScreenMode = targetMode;
             onClientSizeChanged?.Invoke();
@@ -646,7 +590,7 @@ namespace FreeTrainSimulator.Toolbox
             {
                 // When hosted as a child window, the form can lose top-level activation on resize and never
                 // report Game.IsActive again; bypass the IsActive gate so keyboard input keeps working.
-                IgnoreActiveState = hostedMode,
+                IgnoreActiveState = true,
             };
             Components.Add(keyboardInputGameComponent);
             KeyboardInputHandler<UserCommand> keyboardInput = new KeyboardInputHandler<UserCommand>();
@@ -654,11 +598,11 @@ namespace FreeTrainSimulator.Toolbox
 
             MouseInputGameComponent mouseInputGameComponent = new MouseInputGameComponent(this)
             {
-                DisableTouchInput = hostedMode,
-                UseWindowMouseState = !hostedMode,
+                DisableTouchInput = true,
+                UseWindowMouseState = false,
                 // When hosted as a child window, the form can lose top-level activation on resize and never
                 // report Game.IsActive again; bypass the IsActive gate so mouse input keeps working.
-                IgnoreActiveState = hostedMode,
+                IgnoreActiveState = true,
             };
             Components.Add(mouseInputGameComponent);
             MouseInputHandler<UserCommand> mouseInput = new MouseInputHandler<UserCommand>();
@@ -688,64 +632,8 @@ namespace FreeTrainSimulator.Toolbox
             userCommandController.AddEvent(CommonUserCommand.VerticalScrollChanged, MouseWheel);
             userCommandController.AddEvent(UserCommand.DisplayLocationWindow, KeyEventType.KeyPressed, (UserCommandArgs userCommandArgs) =>
             {
-                if (hostedMode)
-                {
-                    if (userCommandArgs is ModifiableKeyCommandArgs keyCommandArgs && (keyCommandArgs.AdditionalModifiers & KeyModifiers.Shift) == KeyModifiers.Shift)
-                        hostedLocationToolWindow?.ToggleCoordinateMode();
-
-                    return;
-                }
-
-                if (userCommandArgs is not ModifiableKeyCommandArgs)
-                    windowManager[ToolboxWindowType.LocationWindow].ToggleVisibility();
-            });
-            userCommandController.AddEvent(UserCommand.DisplayHelpWindow, KeyEventType.KeyPressed, (UserCommandArgs userCommandArgs) =>
-            {
-                if (hostedMode)
-                    return;
-
-                if (userCommandArgs is not ModifiableKeyCommandArgs)
-                    windowManager[ToolboxWindowType.HelpWindow].ToggleVisibility();
-            });
-            userCommandController.AddEvent(UserCommand.DisplayTrackNodeInfoWindow, KeyEventType.KeyPressed, (UserCommandArgs userCommandArgs) =>
-            {
-                if (hostedMode)
-                    return;
-
-                if (userCommandArgs is not ModifiableKeyCommandArgs)
-                    windowManager[ToolboxWindowType.TrackNodeInfoWindow].ToggleVisibility();
-            });
-            userCommandController.AddEvent(UserCommand.DisplayTrackItemInfoWindow, KeyEventType.KeyPressed, (UserCommandArgs userCommandArgs) =>
-            {
-                if (hostedMode)
-                    return;
-
-                if (userCommandArgs is not ModifiableKeyCommandArgs)
-                    windowManager[ToolboxWindowType.TrackItemInfoWindow].ToggleVisibility();
-            });
-            userCommandController.AddEvent(UserCommand.DisplaySettingsWindow, KeyEventType.KeyPressed, (UserCommandArgs userCommandArgs) =>
-            {
-                if (hostedMode)
-                    return;
-
-                if (userCommandArgs is not ModifiableKeyCommandArgs)
-                    windowManager[ToolboxWindowType.SettingsWindow].ToggleVisibility();
-            });
-            userCommandController.AddEvent(UserCommand.DisplayLogWindow, KeyEventType.KeyPressed, (UserCommandArgs userCommandArgs) =>
-            {
-                if (hostedMode)
-                    return;
-
-                if (userCommandArgs is not ModifiableKeyCommandArgs)
-                    windowManager[ToolboxWindowType.LogWindow].ToggleVisibility();
-            });
-            userCommandController.AddEvent(UserCommand.DisplayTrainPathWindow, KeyEventType.KeyPressed, (UserCommandArgs userCommandArgs) =>
-            {
-                if (hostedMode)
-                    return;
-
-                if (userCommandArgs is not ModifiableKeyCommandArgs)
-                    windowManager[ToolboxWindowType.TrainPathWindow].ToggleVisibility();
+                if (userCommandArgs is ModifiableKeyCommandArgs keyCommandArgs && (keyCommandArgs.AdditionalModifiers & KeyModifiers.Shift) == KeyModifiers.Shift)
+                    hostedLocationToolWindow?.ToggleCoordinateMode();
             });
             #endregion
 
@@ -772,71 +660,6 @@ namespace FreeTrainSimulator.Toolbox
                 return debugWindow;
             }));
 
-            if (!hostedMode)
-            {
-                windowManager.SetLazyWindows(ToolboxWindowType.LocationWindow, new Lazy<FormBase>(() =>
-                {
-                    LocationWindow locationWindow = new LocationWindow(windowManager, ToolboxSettings, contentArea as IMapLocationContext, ToolboxSettings.PopupLocations[ToolboxWindowType.LocationWindow].ToPoint());
-                    OnContentAreaChanged += locationWindow.GameWindow_OnContentAreaChanged;
-                    return locationWindow;
-                }));
-            }
-            if (!hostedMode)
-            {
-                windowManager.SetLazyWindows(ToolboxWindowType.HelpWindow, new Lazy<FormBase>(() =>
-                {
-                    return new HelpWindow(windowManager, ToolboxSettings.PopupLocations[ToolboxWindowType.HelpWindow].ToPoint());
-                }));
-            }
-            if (!hostedMode)
-            {
-                windowManager.SetLazyWindows(ToolboxWindowType.TrackNodeInfoWindow, new Lazy<FormBase>(() =>
-                {
-                    TrackNodeInfoWindow trackInfoWindow = new TrackNodeInfoWindow(windowManager, contentArea?.Content as ITrackNodeInfoContext, ToolboxSettings.PopupLocations[ToolboxWindowType.TrackNodeInfoWindow].ToPoint());
-                    OnContentAreaChanged += trackInfoWindow.GameWindow_OnContentAreaChanged;
-                    return trackInfoWindow;
-                }));
-                windowManager.SetLazyWindows(ToolboxWindowType.TrackItemInfoWindow, new Lazy<FormBase>(() =>
-                {
-                    TrackItemInfoWindow trackInfoWindow = new TrackItemInfoWindow(windowManager, contentArea?.Content as ITrackItemInfoContext, ToolboxSettings.PopupLocations[ToolboxWindowType.TrackItemInfoWindow].ToPoint());
-                    OnContentAreaChanged += trackInfoWindow.GameWindow_OnContentAreaChanged;
-                    return trackInfoWindow;
-                }));
-            }
-            if (!hostedMode)
-            {
-                windowManager.SetLazyWindows(ToolboxWindowType.SettingsWindow, new Lazy<FormBase>(() =>
-                {
-                    SettingsWindow settingsWindow = new SettingsWindow(windowManager, ToolboxSettings, ToolboxUserSettings, contentArea as IMapDisplaySettingsContext, ToolboxSettings.PopupLocations[ToolboxWindowType.SettingsWindow].ToPoint());
-                    OnContentAreaChanged += settingsWindow.GameWindow_OnContentAreaChanged;
-                    return settingsWindow;
-                }));
-            }
-            if (!hostedMode)
-            {
-                windowManager.SetLazyWindows(ToolboxWindowType.LogWindow, new Lazy<FormBase>(() =>
-                {
-                    return new LoggingWindow(windowManager, LogFileName, ToolboxSettings.PopupLocations[ToolboxWindowType.LogWindow].ToPoint());
-                }));
-            }
-            if (!hostedMode)
-            {
-                windowManager.SetLazyWindows(ToolboxWindowType.TrainPathWindow, new Lazy<FormBase>(() =>
-                {
-                    TrainPathWindow trainPathDetailWindow = new TrainPathWindow(windowManager, ToolboxSettings, new TrainPathToolingContext(selectedRoute, ToolboxUserSettings.MeasurementUnit == MeasurementUnit.Route ? selectedRoute?.MetricUnits ?? true : ToolboxUserSettings.MeasurementUnit == MeasurementUnit.Metric || (ToolboxUserSettings.MeasurementUnit == MeasurementUnit.System && System.Globalization.RegionInfo.CurrentRegion.IsMetric)), PathEditor, ToolboxSettings.PopupLocations[ToolboxWindowType.TrainPathWindow].ToPoint());
-                    OnPathEditorChanged += trainPathDetailWindow.GameWindow_OnPathEditorChanged;
-                    return trainPathDetailWindow;
-                }));
-            }
-            if (!hostedMode)
-            {
-                windowManager.SetLazyWindows(ToolboxWindowType.TrainPathSaveWindow, new Lazy<FormBase>(() =>
-                {
-                    TrainPathSaveWindow trainPathSaveWindow = new TrainPathSaveWindow(windowManager, ToolboxSettings.PopupLocations[ToolboxWindowType.TrainPathSaveWindow].ToPoint());
-                    trainPathSaveWindow.OnSavePath += TrainPathSaveWindow_OnSavePath;
-                    return trainPathSaveWindow;
-                }));
-            }
             #endregion
 
             windowManager.OnModalWindow += WindowManager_OnModalWindow;
@@ -858,10 +681,10 @@ namespace FreeTrainSimulator.Toolbox
                     ContentArea?.PresetPosition(ToolboxSettings.ContentPosition, ToolboxSettings.ContentScale);
                     foreach (ToolboxWindowType windowType in EnumExtension.GetValues<ToolboxWindowType>())
                     {
-                        if (hostedMode && (windowType == ToolboxWindowType.LocationWindow || windowType == ToolboxWindowType.LogWindow
+                        if (windowType == ToolboxWindowType.LocationWindow || windowType == ToolboxWindowType.LogWindow
                             || windowType == ToolboxWindowType.TrackNodeInfoWindow || windowType == ToolboxWindowType.TrackItemInfoWindow
                             || windowType == ToolboxWindowType.HelpWindow || windowType == ToolboxWindowType.SettingsWindow
-                            || windowType == ToolboxWindowType.TrainPathWindow))
+                            || windowType == ToolboxWindowType.TrainPathWindow)
                             continue;
 
                         if (ToolboxSettings.PopupStatus[windowType])
@@ -879,10 +702,6 @@ namespace FreeTrainSimulator.Toolbox
 
         private void WindowManager_OnModalWindow(object sender, ModalWindowEventArgs e)
         {
-            if (hostedMode)
-                return;
-
-            windowForm.ActiveControl = null;
             menu.Enabled = !e.ModalWindowOpen;
 
             if (null != ContentArea)

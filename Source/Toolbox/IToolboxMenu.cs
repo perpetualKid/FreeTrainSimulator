@@ -6,8 +6,7 @@ namespace FreeTrainSimulator.Toolbox
 {
     /// <summary>
     /// Abstraction over the toolbox main menu surface that <see cref="GameWindow"/> drives.
-    /// Implemented by the embedded WinForms <c>MainMenuControl</c> for standalone mode and by a
-    /// hosted bridge that forwards menu data to a native WPF menu when the game is embedded.
+    /// Implemented by a hosted bridge that forwards menu data to the native WPF menu.
     /// </summary>
     internal interface IToolboxMenu
     {
