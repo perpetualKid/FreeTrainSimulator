@@ -95,6 +95,10 @@
                           IsCheckable="True"
                           IsChecked="{Binding DataContext.IsSettingsToolVisible, ElementName=RootWindow, Mode=OneWay}"
                           Command="{Binding DataContext.ToggleSettingsToolCommand, ElementName=RootWindow}" />
+                <MenuItem Header="Train _Path Details"
+                          IsCheckable="True"
+                          IsChecked="{Binding DataContext.IsTrainPathToolVisible, ElementName=RootWindow, Mode=OneWay}"
+                          Command="{Binding DataContext.ToggleTrainPathToolCommand, ElementName=RootWindow}" />
             </MenuItem>
             <MenuItem Header="_Help">
                 <MenuItem Header="_About" Command="{Binding ShowAboutCommand}" />
@@ -338,6 +342,71 @@
                                         </StackPanel>
                                     </GroupBox>
                                 </StackPanel>
+                            </avalonLayout:LayoutAnchorable>
+                            <avalonLayout:LayoutAnchorable x:Name="TrainPathToolAnchorable"
+                                                          ContentId="TrainPathToolWindow"
+                                                          Title="Train Path Details"
+                                                          CanClose="False"
+                                                          CanHide="True"
+                                                          IsVisible="False"
+                                                          IsSelected="False">
+                                <TabControl Margin="6"
+                                            DataContext="{Binding DataContext.TrainPathTool, ElementName=RootWindow}">
+                                    <TabItem Header="Path Nodes">
+                                        <ListView ItemsSource="{Binding Nodes}"
+                                                  SelectedItem="{Binding SelectedNode, Mode=TwoWay}">
+                                            <ListView.View>
+                                                <GridView>
+                                                    <GridViewColumn Header="Idx" Width="50" DisplayMemberBinding="{Binding Index}" />
+                                                    <GridViewColumn Header="Type" Width="160" DisplayMemberBinding="{Binding NodeType}" />
+                                                    <GridViewColumn Header="Valid" Width="60" DisplayMemberBinding="{Binding Valid}" />
+                                                </GridView>
+                                            </ListView.View>
+                                        </ListView>
+                                    </TabItem>
+                                    <TabItem Header="Path Data">
+                                        <ListView ItemsSource="{Binding Metadata}">
+                                            <ListView.View>
+                                                <GridView>
+                                                    <GridViewColumn Header="Setting" Width="120" DisplayMemberBinding="{Binding Name}" />
+                                                    <GridViewColumn Header="Value" Width="220" DisplayMemberBinding="{Binding Value}" />
+                                                </GridView>
+                                            </ListView.View>
+                                        </ListView>
+                                    </TabItem>
+                                    <TabItem Header="Paths">
+                                        <DockPanel>
+                                            <TextBox DockPanel.Dock="Top"
+                                                     Margin="0,0,0,6"
+                                                     VerticalContentAlignment="Center"
+                                                     Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
+                                                     ToolTip="Search Paths" />
+                                            <TextBlock DockPanel.Dock="Bottom"
+                                                       Margin="0,6,0,0"
+                                                       Foreground="OrangeRed"
+                                                       TextWrapping="Wrap"
+                                                       Text="{Binding StatusMessage}" />
+                                            <ListView ItemsSource="{Binding Paths}"
+                                                      SelectedItem="{Binding SelectedPath, Mode=TwoWay}">
+                                                <ListView.ItemContainerStyle>
+                                                    <Style TargetType="ListViewItem">
+                                                        <Setter Property="Visibility" Value="Visible" />
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding IsVisible}" Value="False">
+                                                                <Setter Property="Visibility" Value="Collapsed" />
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </ListView.ItemContainerStyle>
+                                                <ListView.View>
+                                                    <GridView>
+                                                        <GridViewColumn Header="Name" Width="320" DisplayMemberBinding="{Binding Name}" />
+                                                    </GridView>
+                                                </ListView.View>
+                                            </ListView>
+                                        </DockPanel>
+                                    </TabItem>
+                                </TabControl>
                             </avalonLayout:LayoutAnchorable>
                         </avalonLayout:LayoutAnchorablePane>
                     </avalonLayout:LayoutPanel>

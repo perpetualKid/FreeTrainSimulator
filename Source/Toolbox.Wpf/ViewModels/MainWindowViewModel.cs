@@ -14,6 +14,7 @@ namespace FreeTrainSimulator.Toolbox.Wpf.ViewModels
         private TrackNodeInfoToolWindowViewModel trackNodeInfoTool;
         private HelpToolWindowViewModel helpTool;
         private SettingsToolWindowViewModel settingsTool;
+        private TrainPathToolWindowViewModel trainPathTool;
         private RelayCommand toggleDebugToolCommand;
         private RelayCommand toggleLocationToolCommand;
         private RelayCommand toggleLogToolCommand;
@@ -21,6 +22,7 @@ namespace FreeTrainSimulator.Toolbox.Wpf.ViewModels
         private RelayCommand toggleTrackNodeInfoToolCommand;
         private RelayCommand toggleHelpToolCommand;
         private RelayCommand toggleSettingsToolCommand;
+        private RelayCommand toggleTrainPathToolCommand;
         private bool isDebugToolVisible;
         private bool isLocationToolVisible;
         private bool isLogToolVisible;
@@ -28,6 +30,7 @@ namespace FreeTrainSimulator.Toolbox.Wpf.ViewModels
         private bool isTrackNodeInfoToolVisible;
         private bool isHelpToolVisible;
         private bool isSettingsToolVisible;
+        private bool isTrainPathToolVisible;
 
         public ToolboxMenuViewModel Menu
         {
@@ -77,6 +80,12 @@ namespace FreeTrainSimulator.Toolbox.Wpf.ViewModels
             set => SetProperty(ref settingsTool, value);
         }
 
+        public TrainPathToolWindowViewModel TrainPathTool
+        {
+            get => trainPathTool;
+            set => SetProperty(ref trainPathTool, value);
+        }
+
         public RelayCommand ToggleDebugToolCommand
         {
             get => toggleDebugToolCommand;
@@ -119,6 +128,12 @@ namespace FreeTrainSimulator.Toolbox.Wpf.ViewModels
             set => SetProperty(ref toggleSettingsToolCommand, value);
         }
 
+        public RelayCommand ToggleTrainPathToolCommand
+        {
+            get => toggleTrainPathToolCommand;
+            set => SetProperty(ref toggleTrainPathToolCommand, value);
+        }
+
         public bool IsDebugToolVisible
         {
             get => isDebugToolVisible;
@@ -159,6 +174,12 @@ namespace FreeTrainSimulator.Toolbox.Wpf.ViewModels
         {
             get => isSettingsToolVisible;
             set => SetProperty(ref isSettingsToolVisible, value);
+        }
+
+        public bool IsTrainPathToolVisible
+        {
+            get => isTrainPathToolVisible;
+            set => SetProperty(ref isTrainPathToolVisible, value);
         }
     }
 }

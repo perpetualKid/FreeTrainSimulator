@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -72,6 +72,19 @@ namespace FreeTrainSimulator.Toolbox
                 return pathEditor;
             }
         }
+
+        // Returns the existing path editor without creating it (the PathEditor getter lazily creates and
+        // raises events). Used by the hosted train-path tool window so reading the snapshot never forces
+        // editor creation. Null until a path edit session exists.
+        internal PathEditor HostedPathEditor => pathEditor;
+
+        // Builds a tooling context for the hosted train-path tool window from the currently selected route
+        // and the active measurement-unit preference (mirrors the legacy popup registration). Null when no
+        // route is loaded.
+        internal ITrainPathToolingContext HostedTrainPathToolingContext =>
+            selectedRoute == null ? null : new TrainPathToolingContext(selectedRoute,
+                ToolboxUserSettings.MeasurementUnit == MeasurementUnit.Route ? selectedRoute?.MetricUnits ?? true :
+                ToolboxUserSettings.MeasurementUnit == MeasurementUnit.Metric || (ToolboxUserSettings.MeasurementUnit == MeasurementUnit.System && System.Globalization.RegionInfo.CurrentRegion.IsMetric));
 
         private void PathEditor_OnEditorPathChanged(object sender, PathEditorChangedEventArgs e)
         {

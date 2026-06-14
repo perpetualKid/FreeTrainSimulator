@@ -128,6 +128,9 @@ namespace FreeTrainSimulator.Toolbox
         // Non-null only in hosted mode; exposed to the WPF host for two-way settings editing.
         private SettingsToolWindow hostedSettingsToolWindow;
 
+        // Non-null only in hosted mode; exposed to the WPF host for train-path browsing/editing.
+        private TrainPathToolWindow hostedTrainPathToolWindow;
+
         public GameWindow(bool hostedMode = false)
         {
             this.hostedMode = hostedMode;
@@ -206,6 +209,7 @@ namespace FreeTrainSimulator.Toolbox
                 hostedTrackNodeInfoToolWindow = new TrackNodeInfoToolWindow(InvokeOnGameThread);
                 hostedHelpToolWindow = new HelpToolWindow();
                 hostedSettingsToolWindow = new SettingsToolWindow(this);
+                hostedTrainPathToolWindow = new TrainPathToolWindow(() => HostedPathEditor, () => HostedTrainPathToolingContext, InvokeOnGameThread);
                 OnContentAreaChanged += GameWindow_OnContentAreaChanged;
             }
             windowForm.KeyPreview = true;// need to preview keys to enable Monogames TextInput handler, otherwise adding the main menu will break text input
@@ -340,6 +344,12 @@ namespace FreeTrainSimulator.Toolbox
         /// Null in standalone mode.
         /// </summary>
         internal SettingsToolWindow HostedSettingsToolWindow => hostedSettingsToolWindow;
+
+        /// <summary>
+        /// Hosted-mode train-path tool-window bridge that the WPF shell reads path/node snapshots from and
+        /// drives path selection/node highlight through. Null in standalone mode.
+        /// </summary>
+        internal TrainPathToolWindow HostedTrainPathToolWindow => hostedTrainPathToolWindow;
 
         internal void ApplyHostedClientSize(System.Drawing.Size clientSize)
         {
@@ -731,6 +741,9 @@ namespace FreeTrainSimulator.Toolbox
             });
             userCommandController.AddEvent(UserCommand.DisplayTrainPathWindow, KeyEventType.KeyPressed, (UserCommandArgs userCommandArgs) =>
             {
+                if (hostedMode)
+                    return;
+
                 if (userCommandArgs is not ModifiableKeyCommandArgs)
                     windowManager[ToolboxWindowType.TrainPathWindow].ToggleVisibility();
             });
@@ -806,12 +819,15 @@ namespace FreeTrainSimulator.Toolbox
                     return new LoggingWindow(windowManager, LogFileName, ToolboxSettings.PopupLocations[ToolboxWindowType.LogWindow].ToPoint());
                 }));
             }
-            windowManager.SetLazyWindows(ToolboxWindowType.TrainPathWindow, new Lazy<FormBase>(() =>
+            if (!hostedMode)
             {
-                TrainPathWindow trainPathDetailWindow = new TrainPathWindow(windowManager, ToolboxSettings, new TrainPathToolingContext(selectedRoute, ToolboxUserSettings.MeasurementUnit == MeasurementUnit.Route ? selectedRoute?.MetricUnits ?? true : ToolboxUserSettings.MeasurementUnit == MeasurementUnit.Metric || (ToolboxUserSettings.MeasurementUnit == MeasurementUnit.System && System.Globalization.RegionInfo.CurrentRegion.IsMetric)), PathEditor, ToolboxSettings.PopupLocations[ToolboxWindowType.TrainPathWindow].ToPoint());
-                OnPathEditorChanged += trainPathDetailWindow.GameWindow_OnPathEditorChanged;
-                return trainPathDetailWindow;
-            }));
+                windowManager.SetLazyWindows(ToolboxWindowType.TrainPathWindow, new Lazy<FormBase>(() =>
+                {
+                    TrainPathWindow trainPathDetailWindow = new TrainPathWindow(windowManager, ToolboxSettings, new TrainPathToolingContext(selectedRoute, ToolboxUserSettings.MeasurementUnit == MeasurementUnit.Route ? selectedRoute?.MetricUnits ?? true : ToolboxUserSettings.MeasurementUnit == MeasurementUnit.Metric || (ToolboxUserSettings.MeasurementUnit == MeasurementUnit.System && System.Globalization.RegionInfo.CurrentRegion.IsMetric)), PathEditor, ToolboxSettings.PopupLocations[ToolboxWindowType.TrainPathWindow].ToPoint());
+                    OnPathEditorChanged += trainPathDetailWindow.GameWindow_OnPathEditorChanged;
+                    return trainPathDetailWindow;
+                }));
+            }
             windowManager.SetLazyWindows(ToolboxWindowType.TrainPathSaveWindow, new Lazy<FormBase>(() =>
             {
                 TrainPathSaveWindow trainPathSaveWindow = new TrainPathSaveWindow(windowManager, ToolboxSettings.PopupLocations[ToolboxWindowType.TrainPathSaveWindow].ToPoint());
@@ -841,7 +857,8 @@ namespace FreeTrainSimulator.Toolbox
                     {
                         if (hostedMode && (windowType == ToolboxWindowType.LocationWindow || windowType == ToolboxWindowType.LogWindow
                             || windowType == ToolboxWindowType.TrackNodeInfoWindow || windowType == ToolboxWindowType.TrackItemInfoWindow
-                            || windowType == ToolboxWindowType.HelpWindow || windowType == ToolboxWindowType.SettingsWindow))
+                            || windowType == ToolboxWindowType.HelpWindow || windowType == ToolboxWindowType.SettingsWindow
+                            || windowType == ToolboxWindowType.TrainPathWindow))
                             continue;
 
                         if (ToolboxSettings.PopupStatus[windowType])
@@ -907,6 +924,7 @@ namespace FreeTrainSimulator.Toolbox
             hostedLocationToolWindow?.UpdateLocationContext(e.LocationContext);
             hostedTrackItemInfoToolWindow?.UpdateContext(e.TrackItemInfoContext);
             hostedTrackNodeInfoToolWindow?.UpdateContext(e.TrackNodeInfoContext);
+            hostedTrainPathToolWindow?.InvalidatePaths();
         }
 
         protected override void Draw(GameTime gameTime)
@@ -925,6 +943,7 @@ namespace FreeTrainSimulator.Toolbox
             hostedTrackItemInfoToolWindow?.RefreshSnapshot();
             hostedTrackNodeInfoToolWindow?.RefreshSnapshot();
             hostedHelpToolWindow?.RefreshSnapshot();
+            hostedTrainPathToolWindow?.RefreshSnapshot();
         }
 
         private sealed class CommonDebugInfo : DetailInfoBase

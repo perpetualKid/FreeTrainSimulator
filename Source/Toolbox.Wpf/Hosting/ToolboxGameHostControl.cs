@@ -81,6 +81,13 @@ namespace FreeTrainSimulator.Toolbox.Wpf.Hosting
         internal SettingsToolWindow HostedSettingsToolWindow { get; private set; }
 
         /// <summary>
+        /// Hosted-mode train-path tool-window bridge that the WPF shell reads path/node snapshots from and
+        /// drives path selection/node highlight through. Null until the hosted game window has been created;
+        /// subscribe to <see cref="HostedToolWindowsReady"/> to be notified. Raised on the WPF UI thread.
+        /// </summary>
+        internal TrainPathToolWindow HostedTrainPathToolWindow { get; private set; }
+
+        /// <summary>
         /// Raised on the WPF UI thread once <see cref="HostedDebugToolWindow"/> becomes available.
         /// </summary>
         internal event EventHandler HostedToolWindowsReady;
@@ -187,6 +194,7 @@ namespace FreeTrainSimulator.Toolbox.Wpf.Hosting
             HostedTrackNodeInfoToolWindow = game.HostedTrackNodeInfoToolWindow;
             HostedHelpToolWindow = game.HostedHelpToolWindow;
             HostedSettingsToolWindow = game.HostedSettingsToolWindow;
+            HostedTrainPathToolWindow = game.HostedTrainPathToolWindow;
             HostedToolWindowsReady?.Invoke(this, EventArgs.Empty);
         }
 

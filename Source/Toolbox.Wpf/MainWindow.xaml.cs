@@ -27,6 +27,7 @@ namespace FreeTrainSimulator.Toolbox.Wpf
         private const string TrackNodeInfoToolWindowContentId = "TrackNodeInfoToolWindow";
         private const string HelpToolWindowContentId = "HelpToolWindow";
         private const string SettingsToolWindowContentId = "SettingsToolWindow";
+        private const string TrainPathToolWindowContentId = "TrainPathToolWindow";
 
         private readonly MainWindowViewModel viewModel = new MainWindowViewModel();
         private ProfileModel currentProfile;
@@ -65,6 +66,7 @@ namespace FreeTrainSimulator.Toolbox.Wpf
             HookToolWindowAnchorable(EnsureTrackNodeInfoToolWindowAnchorable, TrackNodeInfoToolAnchorable_PropertyChanged);
             HookToolWindowAnchorable(EnsureHelpToolWindowAnchorable, HelpToolAnchorable_PropertyChanged);
             HookToolWindowAnchorable(EnsureSettingsToolWindowAnchorable, SettingsToolAnchorable_PropertyChanged);
+            HookToolWindowAnchorable(EnsureTrainPathToolWindowAnchorable, TrainPathToolAnchorable_PropertyChanged);
 
             UpdateAllToolWindowLifecycles();
             UpdateHostedInputCapture();
@@ -85,6 +87,7 @@ namespace FreeTrainSimulator.Toolbox.Wpf
             viewModel.ToggleTrackNodeInfoToolCommand = new RelayCommand(_ => ToggleTrackNodeInfoToolWindow(), _ => viewModel.TrackNodeInfoTool != null);
             viewModel.ToggleHelpToolCommand = new RelayCommand(_ => ToggleHelpToolWindow(), _ => viewModel.HelpTool != null);
             viewModel.ToggleSettingsToolCommand = new RelayCommand(_ => ToggleSettingsToolWindow(), _ => viewModel.SettingsTool != null);
+            viewModel.ToggleTrainPathToolCommand = new RelayCommand(_ => ToggleTrainPathToolWindow(), _ => viewModel.TrainPathTool != null);
         }
 
         private void HookToolWindowAnchorable(Func<LayoutAnchorable> ensureAnchorable, PropertyChangedEventHandler handler)
@@ -109,6 +112,7 @@ namespace FreeTrainSimulator.Toolbox.Wpf
             viewModel.ToggleTrackNodeInfoToolCommand?.RaiseCanExecuteChanged();
             viewModel.ToggleHelpToolCommand?.RaiseCanExecuteChanged();
             viewModel.ToggleSettingsToolCommand?.RaiseCanExecuteChanged();
+            viewModel.ToggleTrainPathToolCommand?.RaiseCanExecuteChanged();
         }
 
         private void UpdateAllToolWindowLifecycles()
@@ -120,6 +124,7 @@ namespace FreeTrainSimulator.Toolbox.Wpf
             UpdateTrackNodeInfoToolWindowLifecycle();
             UpdateHelpToolWindowLifecycle();
             UpdateSettingsToolWindowLifecycle();
+            UpdateTrainPathToolWindowLifecycle();
         }
 
         private void MainWindow_Activated(object sender, EventArgs e)
@@ -169,7 +174,7 @@ namespace FreeTrainSimulator.Toolbox.Wpf
         {
             if (MapHost.HostedDebugToolWindow is null || MapHost.HostedLocationToolWindow is null || MapHost.HostedLogToolWindow is null
                 || MapHost.HostedTrackItemInfoToolWindow is null || MapHost.HostedTrackNodeInfoToolWindow is null || MapHost.HostedHelpToolWindow is null
-                || MapHost.HostedSettingsToolWindow is null)
+                || MapHost.HostedSettingsToolWindow is null || MapHost.HostedTrainPathToolWindow is null)
                 return;
 
             viewModel.LocationTool = new LocationToolWindowViewModel(MapHost.HostedLocationToolWindow, Dispatcher);
@@ -179,6 +184,7 @@ namespace FreeTrainSimulator.Toolbox.Wpf
             viewModel.TrackNodeInfoTool = new TrackNodeInfoToolWindowViewModel(MapHost.HostedTrackNodeInfoToolWindow, Dispatcher);
             viewModel.HelpTool = new HelpToolWindowViewModel(MapHost.HostedHelpToolWindow, Dispatcher);
             viewModel.SettingsTool = new SettingsToolWindowViewModel(MapHost.HostedSettingsToolWindow);
+            viewModel.TrainPathTool = new TrainPathToolWindowViewModel(MapHost.HostedTrainPathToolWindow, Dispatcher);
             RaiseToolWindowCommandCanExecuteChanged();
             UpdateAllToolWindowLifecycles();
             UpdateHostedInputCapture();
@@ -217,6 +223,11 @@ namespace FreeTrainSimulator.Toolbox.Wpf
         private void ToggleSettingsToolWindow()
         {
             ToggleToolWindow(EnsureSettingsToolWindowAnchorable, UpdateSettingsToolWindowLifecycle);
+        }
+
+        private void ToggleTrainPathToolWindow()
+        {
+            ToggleToolWindow(EnsureTrainPathToolWindowAnchorable, UpdateTrainPathToolWindowLifecycle);
         }
 
         private void ToggleToolWindow(Func<LayoutAnchorable> ensureAnchorable, Action updateLifecycle)
@@ -272,6 +283,11 @@ namespace FreeTrainSimulator.Toolbox.Wpf
             HandleToolWindowAnchorablePropertyChanged(e, UpdateSettingsToolWindowLifecycle);
         }
 
+        private void TrainPathToolAnchorable_PropertyChanged(object sender, PropertyChangedEventArgs e)
+        {
+            HandleToolWindowAnchorablePropertyChanged(e, UpdateTrainPathToolWindowLifecycle);
+        }
+
         private static void HandleToolWindowAnchorablePropertyChanged(PropertyChangedEventArgs e, Action updateLifecycle)
         {
             if (e?.PropertyName == nameof(LayoutAnchorable.IsVisible))
@@ -297,6 +313,8 @@ namespace FreeTrainSimulator.Toolbox.Wpf
         private LayoutAnchorable HelpToolWindowAnchorable => FindToolWindowAnchorable(HelpToolWindowContentId);
 
         private LayoutAnchorable SettingsToolWindowAnchorable => FindToolWindowAnchorable(SettingsToolWindowContentId);
+
+        private LayoutAnchorable TrainPathToolWindowAnchorable => FindToolWindowAnchorable(TrainPathToolWindowContentId);
 
         private LayoutAnchorable FindToolWindowAnchorable(string contentId)
         {
@@ -352,6 +370,9 @@ namespace FreeTrainSimulator.Toolbox.Wpf
         private LayoutAnchorable EnsureSettingsToolWindowAnchorable() =>
             EnsureToolWindowAnchorable(SettingsToolAnchorable, SettingsToolWindowContentId, "Settings");
 
+        private LayoutAnchorable EnsureTrainPathToolWindowAnchorable() =>
+            EnsureToolWindowAnchorable(TrainPathToolAnchorable, TrainPathToolWindowContentId, "Train Path Details");
+
         private void UpdateLocationToolWindowLifecycle()
         {
             bool isVisible = LocationToolWindowAnchorable?.IsVisible == true;
@@ -399,6 +420,13 @@ namespace FreeTrainSimulator.Toolbox.Wpf
             bool isVisible = SettingsToolWindowAnchorable?.IsVisible == true;
             viewModel.IsSettingsToolVisible = isVisible;
             UpdateToolWindowLifecycle(isVisible, viewModel.SettingsTool, () => viewModel.SettingsTool.Start(), () => viewModel.SettingsTool.Stop());
+        }
+
+        private void UpdateTrainPathToolWindowLifecycle()
+        {
+            bool isVisible = TrainPathToolWindowAnchorable?.IsVisible == true;
+            viewModel.IsTrainPathToolVisible = isVisible;
+            UpdateToolWindowLifecycle(isVisible, viewModel.TrainPathTool, () => viewModel.TrainPathTool.Start(), () => viewModel.TrainPathTool.Stop());
         }
 
         private static void UpdateToolWindowLifecycle(bool isVisible, object viewModelInstance, Action start, Action stop)
@@ -563,6 +591,7 @@ namespace FreeTrainSimulator.Toolbox.Wpf
             UnhookToolWindowAnchorable(TrackNodeInfoToolWindowAnchorable, TrackNodeInfoToolAnchorable_PropertyChanged);
             UnhookToolWindowAnchorable(HelpToolWindowAnchorable, HelpToolAnchorable_PropertyChanged);
             UnhookToolWindowAnchorable(SettingsToolWindowAnchorable, SettingsToolAnchorable_PropertyChanged);
+            UnhookToolWindowAnchorable(TrainPathToolWindowAnchorable, TrainPathToolAnchorable_PropertyChanged);
             DockingManager.ActiveContentChanged -= DockingManager_ActiveContentChanged;
 
             await SaveDockLayoutAsync().ConfigureAwait(true);
@@ -587,6 +616,7 @@ namespace FreeTrainSimulator.Toolbox.Wpf
             viewModel.TrackNodeInfoTool?.Dispose();
             viewModel.HelpTool?.Dispose();
             viewModel.SettingsTool?.Dispose();
+            viewModel.TrainPathTool?.Dispose();
         }
 
         protected override async void OnClosing(CancelEventArgs e)
