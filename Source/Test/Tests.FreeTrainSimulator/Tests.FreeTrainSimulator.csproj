@@ -4,6 +4,7 @@
     <Description>Free Train Simulator Unit Tests</Description>
     <AssemblyTitle>Free Train Simulator Unit Tests</AssemblyTitle>
     <Configurations>Debug;Release;CodeAnalysis;UpdateContentVersion</Configurations>
+    <UseWPF>true</UseWPF>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="MonoGame.Framework.WindowsDX" Version="3.8.4.1" />
