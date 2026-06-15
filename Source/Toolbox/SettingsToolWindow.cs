@@ -1,73 +1,70 @@
 using System;
+using System.Diagnostics;
+
+using FreeTrainSimulator.Models.Settings;
+using FreeTrainSimulator.Toolbox.Settings;
 
 namespace FreeTrainSimulator.Toolbox
 {
     /// <summary>
     /// Hosted-mode bridge between <see cref="GameWindow"/> and a dockable WPF settings tool window.
     /// <para>
-    /// Unlike the read-only snapshot tool windows, settings are interactive/two-way: the WPF view model
-    /// reads the current boolean values directly through the injected getters and forwards changes back
-    /// through the injected setters (which marshal onto the game thread so all MonoGame/WinForms state stays
-    /// single-threaded). Injecting delegates instead of the concrete <see cref="GameWindow"/> keeps this
-    /// bridge decoupled and unit-testable, mirroring <see cref="TrainPathToolWindow"/>.
+    /// Settings are interactive/two-way: the WPF view model reads the current boolean values and writes
+    /// changes back. The two plain preferences (logging, restore-last-view) are read/written directly on the
+    /// injected settings models. The two preferences with game-side side effects (font outline, real track
+    /// width) are applied through the injected callbacks, which <see cref="GameWindow"/> marshals onto the
+    /// game thread. Injecting the models/callbacks instead of the concrete <see cref="GameWindow"/> keeps this
+    /// bridge decoupled and unit-testable.
     /// </para>
     /// </summary>
     internal sealed class SettingsToolWindow
     {
-        private readonly Func<bool> enableLoggingAccessor;
-        private readonly Func<bool> restoreLastViewAccessor;
-        private readonly Func<bool> fontOutlineAccessor;
-        private readonly Func<bool> realTrackWidthAccessor;
-        private readonly Action<bool> enableLoggingSetter;
-        private readonly Action<bool> restoreLastViewSetter;
-        private readonly Action<bool> fontOutlineSetter;
-        private readonly Action<bool> realTrackWidthSetter;
+        private readonly ProfileToolboxSettingsModel toolboxSettings;
+        private readonly ProfileUserSettingsModel userSettings;
+        private readonly Action<bool> applyFontOutline;
+        private readonly Action<bool> applyRealTrackWidth;
 
         internal SettingsToolWindow(
-            Func<bool> enableLoggingAccessor,
-            Func<bool> restoreLastViewAccessor,
-            Func<bool> fontOutlineAccessor,
-            Func<bool> realTrackWidthAccessor,
-            Action<bool> enableLoggingSetter,
-            Action<bool> restoreLastViewSetter,
-            Action<bool> fontOutlineSetter,
-            Action<bool> realTrackWidthSetter)
+            ProfileToolboxSettingsModel toolboxSettings,
+            ProfileUserSettingsModel userSettings,
+            Action<bool> applyFontOutline,
+            Action<bool> applyRealTrackWidth)
         {
-            this.enableLoggingAccessor = enableLoggingAccessor ?? throw new ArgumentNullException(nameof(enableLoggingAccessor));
-            this.restoreLastViewAccessor = restoreLastViewAccessor ?? throw new ArgumentNullException(nameof(restoreLastViewAccessor));
-            this.fontOutlineAccessor = fontOutlineAccessor ?? throw new ArgumentNullException(nameof(fontOutlineAccessor));
-            this.realTrackWidthAccessor = realTrackWidthAccessor ?? throw new ArgumentNullException(nameof(realTrackWidthAccessor));
-            this.enableLoggingSetter = enableLoggingSetter ?? throw new ArgumentNullException(nameof(enableLoggingSetter));
-            this.restoreLastViewSetter = restoreLastViewSetter ?? throw new ArgumentNullException(nameof(restoreLastViewSetter));
-            this.fontOutlineSetter = fontOutlineSetter ?? throw new ArgumentNullException(nameof(fontOutlineSetter));
-            this.realTrackWidthSetter = realTrackWidthSetter ?? throw new ArgumentNullException(nameof(realTrackWidthSetter));
+            this.toolboxSettings = toolboxSettings ?? throw new ArgumentNullException(nameof(toolboxSettings));
+            this.userSettings = userSettings ?? throw new ArgumentNullException(nameof(userSettings));
+            this.applyFontOutline = applyFontOutline ?? throw new ArgumentNullException(nameof(applyFontOutline));
+            this.applyRealTrackWidth = applyRealTrackWidth ?? throw new ArgumentNullException(nameof(applyRealTrackWidth));
         }
 
         /// <summary>Display title for the dock pane.</summary>
         public string Title => "Settings";
 
-        /// <summary>Whether logging is enabled.</summary>
-        public bool EnableLogging => enableLoggingAccessor();
+        /// <summary>Whether logging is enabled (log level above <see cref="TraceEventType.Critical"/>).</summary>
+        public bool EnableLogging => userSettings.LogLevel != TraceEventType.Critical;
 
         /// <summary>Whether the last view is restored on start.</summary>
-        public bool RestoreLastView => restoreLastViewAccessor();
+        public bool RestoreLastView => toolboxSettings.RestoreLastView;
 
         /// <summary>Whether map text uses a font outline.</summary>
-        public bool FontOutline => fontOutlineAccessor();
+        public bool FontOutline => toolboxSettings.FontOutline;
 
         /// <summary>Whether the map renders real (unlimited) track width.</summary>
-        public bool RealTrackWidth => realTrackWidthAccessor();
+        public bool RealTrackWidth => !toolboxSettings.LimitTrackWidth;
 
-        /// <summary>Enables or disables logging.</summary>
-        public void SetEnableLogging(bool value) => enableLoggingSetter(value);
+        /// <summary>Enables or disables logging by switching the log level.</summary>
+        public void SetEnableLogging(bool value)
+            => userSettings.LogLevel = value ? TraceEventType.Verbose : TraceEventType.Critical;
 
         /// <summary>Sets whether the last view is restored on start.</summary>
-        public void SetRestoreLastView(bool value) => restoreLastViewSetter(value);
+        public void SetRestoreLastView(bool value)
+            => toolboxSettings.RestoreLastView = value;
 
         /// <summary>Sets the font-outline preference and re-applies the dependent colour/debug-screen state.</summary>
-        public void SetFontOutline(bool value) => fontOutlineSetter(value);
+        public void SetFontOutline(bool value)
+            => applyFontOutline(value);
 
         /// <summary>Sets the real-track-width preference and re-applies the dependent map redraw.</summary>
-        public void SetRealTrackWidth(bool value) => realTrackWidthSetter(value);
+        public void SetRealTrackWidth(bool value)
+            => applyRealTrackWidth(value);
     }
 }

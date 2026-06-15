@@ -196,12 +196,8 @@ namespace FreeTrainSimulator.Toolbox
             hostedTrackNodeInfoToolWindow = new TrackNodeInfoToolWindow(InvokeOnGameThread);
             hostedHelpToolWindow = new HelpToolWindow();
             hostedSettingsToolWindow = new SettingsToolWindow(
-                () => ToolboxUserSettings.LogLevel != TraceEventType.Critical,
-                () => ToolboxSettings.RestoreLastView,
-                () => ToolboxSettings.FontOutline,
-                () => !ToolboxSettings.LimitTrackWidth,
-                value => InvokeOnGameThread(() => ToolboxUserSettings.LogLevel = value ? TraceEventType.Verbose : TraceEventType.Critical),
-                value => InvokeOnGameThread(() => ToolboxSettings.RestoreLastView = value),
+                ToolboxSettings,
+                ToolboxUserSettings,
                 value => InvokeOnGameThread(() => UpdateFontOutlinePreference(value)),
                 value => InvokeOnGameThread(() => UpdateTrackWidthPreference(!value)));
             hostedTrainPathToolWindow = new TrainPathToolWindow(() => HostedPathEditor, () => HostedTrainPathToolingContext, InvokeOnGameThread);

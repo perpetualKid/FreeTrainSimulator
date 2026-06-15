@@ -1,4 +1,8 @@
+using System.Diagnostics;
+
+using FreeTrainSimulator.Models.Settings;
 using FreeTrainSimulator.Toolbox;
+using FreeTrainSimulator.Toolbox.Settings;
 using FreeTrainSimulator.Toolbox.Wpf.ViewModels;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -8,108 +12,93 @@ namespace Tests.FreeTrainSimulator.Toolbox
     [TestClass]
     public class SettingsToolWindowViewModelTests
     {
-        private sealed class SettingsState
-        {
-            public bool EnableLogging { get; set; }
-            public bool RestoreLastView { get; set; }
-            public bool FontOutline { get; set; }
-            public bool RealTrackWidth { get; set; }
-        }
-
-        private static SettingsToolWindow CreateBridge(SettingsState state)
+        private static SettingsToolWindow CreateBridge(ProfileToolboxSettingsModel toolboxSettings, ProfileUserSettingsModel userSettings)
         {
             return new SettingsToolWindow(
-                () => state.EnableLogging,
-                () => state.RestoreLastView,
-                () => state.FontOutline,
-                () => state.RealTrackWidth,
-                value => state.EnableLogging = value,
-                value => state.RestoreLastView = value,
-                value => state.FontOutline = value,
-                value => state.RealTrackWidth = value);
+                toolboxSettings,
+                userSettings,
+                value => toolboxSettings.FontOutline = value,
+                value => toolboxSettings.LimitTrackWidth = !value);
         }
 
         [TestMethod]
-        public void WhenEnableLoggingSetThenBridgeReceivesValue()
+        public void WhenEnableLoggingSetThenUserSettingsLogLevelChanges()
         {
-            SettingsState state = new() { EnableLogging = false };
-            SettingsToolWindowViewModel sut = new(CreateBridge(state));
+            ProfileUserSettingsModel userSettings = new() { LogLevel = TraceEventType.Critical };
+            SettingsToolWindowViewModel sut = new(CreateBridge(new ProfileToolboxSettingsModel(), userSettings));
 
             sut.EnableLogging = true;
 
-            Assert.IsTrue(state.EnableLogging);
+            Assert.AreNotEqual(TraceEventType.Critical, userSettings.LogLevel);
         }
 
         [TestMethod]
-        public void WhenRestoreLastViewSetThenBridgeReceivesValue()
+        public void WhenRestoreLastViewSetThenToolboxSettingsChange()
         {
-            SettingsState state = new() { RestoreLastView = false };
-            SettingsToolWindowViewModel sut = new(CreateBridge(state));
+            ProfileToolboxSettingsModel toolboxSettings = new() { RestoreLastView = false };
+            SettingsToolWindowViewModel sut = new(CreateBridge(toolboxSettings, new ProfileUserSettingsModel()));
 
             sut.RestoreLastView = true;
 
-            Assert.IsTrue(state.RestoreLastView);
+            Assert.IsTrue(toolboxSettings.RestoreLastView);
         }
 
         [TestMethod]
-        public void WhenFontOutlineSetThenBridgeReceivesValue()
+        public void WhenFontOutlineSetThenToolboxSettingsChange()
         {
-            SettingsState state = new() { FontOutline = false };
-            SettingsToolWindowViewModel sut = new(CreateBridge(state));
+            ProfileToolboxSettingsModel toolboxSettings = new() { FontOutline = false };
+            SettingsToolWindowViewModel sut = new(CreateBridge(toolboxSettings, new ProfileUserSettingsModel()));
 
             sut.FontOutline = true;
 
-            Assert.IsTrue(state.FontOutline);
+            Assert.IsTrue(toolboxSettings.FontOutline);
         }
 
         [TestMethod]
-        public void WhenRealTrackWidthSetThenBridgeReceivesValue()
+        public void WhenRealTrackWidthSetThenLimitTrackWidthIsInverted()
         {
-            SettingsState state = new() { RealTrackWidth = false };
-            SettingsToolWindowViewModel sut = new(CreateBridge(state));
+            ProfileToolboxSettingsModel toolboxSettings = new() { LimitTrackWidth = true };
+            SettingsToolWindowViewModel sut = new(CreateBridge(toolboxSettings, new ProfileUserSettingsModel()));
 
             sut.RealTrackWidth = true;
 
-            Assert.IsTrue(state.RealTrackWidth);
+            Assert.IsFalse(toolboxSettings.LimitTrackWidth);
         }
 
         [TestMethod]
         public void WhenSetThenOptimisticGetterReflectsValueImmediately()
         {
-            SettingsState state = new() { EnableLogging = false };
-            SettingsToolWindowViewModel sut = new(CreateBridge(state));
+            ProfileToolboxSettingsModel toolboxSettings = new() { FontOutline = false };
+            SettingsToolWindowViewModel sut = new(CreateBridge(toolboxSettings, new ProfileUserSettingsModel()));
 
-            sut.EnableLogging = true;
+            sut.FontOutline = true;
 
-            Assert.IsTrue(sut.EnableLogging);
+            Assert.IsTrue(sut.FontOutline);
         }
 
         [TestMethod]
-        public void WhenSetToSameValueThenBridgeSetterIsNotCalled()
+        public void WhenSetToSameValueThenSideEffectCallbackIsNotInvoked()
         {
             int writes = 0;
+            ProfileToolboxSettingsModel toolboxSettings = new() { FontOutline = true };
             SettingsToolWindow bridge = new(
-                () => true,
-                () => false,
-                () => false,
-                () => false,
+                toolboxSettings,
+                new ProfileUserSettingsModel(),
                 _ => writes++,
-                _ => { },
-                _ => { },
                 _ => { });
             SettingsToolWindowViewModel sut = new(bridge);
 
-            sut.EnableLogging = true;
+            sut.FontOutline = true;
 
             Assert.AreEqual(0, writes);
         }
 
         [TestMethod]
-        public void WhenStartThenGettersAreReSyncedFromBridge()
+        public void WhenStartThenGettersAreReSyncedFromModels()
         {
-            SettingsState state = new() { FontOutline = false };
-            SettingsToolWindowViewModel sut = new(CreateBridge(state));
-            state.FontOutline = true;
+            ProfileToolboxSettingsModel toolboxSettings = new() { FontOutline = false };
+            SettingsToolWindowViewModel sut = new(CreateBridge(toolboxSettings, new ProfileUserSettingsModel()));
+            toolboxSettings.FontOutline = true;
 
             sut.Start();
 
@@ -119,9 +108,9 @@ namespace Tests.FreeTrainSimulator.Toolbox
         [TestMethod]
         public void WhenStartReSyncsThenChangeNotificationIsRaised()
         {
-            SettingsState state = new() { FontOutline = false };
-            SettingsToolWindowViewModel sut = new(CreateBridge(state));
-            state.FontOutline = true;
+            ProfileToolboxSettingsModel toolboxSettings = new() { FontOutline = false };
+            SettingsToolWindowViewModel sut = new(CreateBridge(toolboxSettings, new ProfileUserSettingsModel()));
+            toolboxSettings.FontOutline = true;
             bool raised = false;
             sut.PropertyChanged += (_, e) =>
             {
