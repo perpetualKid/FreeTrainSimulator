@@ -1,6 +1,7 @@
 using System;
 using System.Drawing;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Windows.Forms.Integration;
 using System.Windows.Threading;
@@ -19,13 +20,19 @@ namespace FreeTrainSimulator.Toolbox.Wpf.Hosting
         private GameWindow gameWindow;
         private bool hostedWindowAttached;
         private IntPtr hostPanelHandle;
+        private bool disposed;
 
         /// <summary>
         /// Hosted-mode menu bridge that the WPF shell binds its native menu to. Null until the hosted game
         /// window has been created; subscribe to <see cref="HostedMenuReady"/> to be notified when it becomes
         /// available. Raised on the WPF UI thread.
         /// </summary>
-        internal HostedToolboxMenu HostedMenu { get; private set; }
+        internal HostedToolboxMenu HostedMenu => HostedServices?.Menu;
+
+        /// <summary>
+        /// Grouped hosted-mode bridge set published by the hosted game window. Null until available.
+        /// </summary>
+        internal HostedToolboxServices HostedServices { get; private set; }
 
         /// <summary>
         /// Raised on the WPF UI thread once <see cref="HostedMenu"/> becomes available.
@@ -37,56 +44,56 @@ namespace FreeTrainSimulator.Toolbox.Wpf.Hosting
         /// the hosted game window has been created; subscribe to <see cref="HostedToolWindowsReady"/> to be
         /// notified when it becomes available. Raised on the WPF UI thread.
         /// </summary>
-        internal DebugToolWindow HostedDebugToolWindow { get; private set; }
+        internal DebugToolWindow HostedDebugToolWindow => HostedServices?.DebugToolWindow;
 
         /// <summary>
         /// Hosted-mode location tool-window bridge that the WPF shell pulls read-only snapshots from. Null
         /// until the hosted game window has been created; subscribe to <see cref="HostedToolWindowsReady"/>
         /// to be notified when it becomes available. Raised on the WPF UI thread.
         /// </summary>
-        internal LocationToolWindow HostedLocationToolWindow { get; private set; }
+        internal LocationToolWindow HostedLocationToolWindow => HostedServices?.LocationToolWindow;
 
         /// <summary>
         /// Hosted-mode log tool-window bridge that the WPF shell pulls read-only snapshots from. Null until
         /// the hosted game window has been created; subscribe to <see cref="HostedToolWindowsReady"/> to be
         /// notified when it becomes available. Raised on the WPF UI thread.
         /// </summary>
-        internal LogToolWindow HostedLogToolWindow { get; private set; }
+        internal LogToolWindow HostedLogToolWindow => HostedServices?.LogToolWindow;
 
         /// <summary>
         /// Hosted-mode track item tool-window bridge that the WPF shell pulls read-only snapshots from. Null
         /// until the hosted game window has been created; subscribe to <see cref="HostedToolWindowsReady"/>
         /// to be notified when it becomes available. Raised on the WPF UI thread.
         /// </summary>
-        internal TrackItemInfoToolWindow HostedTrackItemInfoToolWindow { get; private set; }
+        internal TrackItemInfoToolWindow HostedTrackItemInfoToolWindow => HostedServices?.TrackItemInfoToolWindow;
 
         /// <summary>
         /// Hosted-mode track node tool-window bridge that the WPF shell pulls read-only snapshots from. Null
         /// until the hosted game window has been created; subscribe to <see cref="HostedToolWindowsReady"/>
         /// to be notified when it becomes available. Raised on the WPF UI thread.
         /// </summary>
-        internal TrackNodeInfoToolWindow HostedTrackNodeInfoToolWindow { get; private set; }
+        internal TrackNodeInfoToolWindow HostedTrackNodeInfoToolWindow => HostedServices?.TrackNodeInfoToolWindow;
 
         /// <summary>
         /// Hosted-mode help tool-window bridge that the WPF shell pulls read-only snapshots from. Null until
         /// the hosted game window has been created; subscribe to <see cref="HostedToolWindowsReady"/> to be
         /// notified when it becomes available. Raised on the WPF UI thread.
         /// </summary>
-        internal HelpToolWindow HostedHelpToolWindow { get; private set; }
+        internal HelpToolWindow HostedHelpToolWindow => HostedServices?.HelpToolWindow;
 
         /// <summary>
         /// Hosted-mode settings tool-window bridge that the WPF shell reads and writes settings through. Null
         /// until the hosted game window has been created; subscribe to <see cref="HostedToolWindowsReady"/> to
         /// be notified when it becomes available. Raised on the WPF UI thread.
         /// </summary>
-        internal SettingsToolWindow HostedSettingsToolWindow { get; private set; }
+        internal SettingsToolWindow HostedSettingsToolWindow => HostedServices?.SettingsToolWindow;
 
         /// <summary>
         /// Hosted-mode train-path tool-window bridge that the WPF shell reads path/node snapshots from and
         /// drives path selection/node highlight through. Null until the hosted game window has been created;
         /// subscribe to <see cref="HostedToolWindowsReady"/> to be notified. Raised on the WPF UI thread.
         /// </summary>
-        internal TrainPathToolWindow HostedTrainPathToolWindow { get; private set; }
+        internal TrainPathToolWindow HostedTrainPathToolWindow => HostedServices?.TrainPathToolWindow;
 
         /// <summary>
         /// Raised on the WPF UI thread when the hosted game requests a train-path save, so the shell can show
@@ -106,6 +113,11 @@ namespace FreeTrainSimulator.Toolbox.Wpf.Hosting
         /// </summary>
         internal event EventHandler HostedWindowPointerDown;
 
+        /// <summary>
+        /// Raised on the WPF UI thread when the hosted game requests a screenshot save location.
+        /// </summary>
+        internal event EventHandler ScreenshotRequested;
+
         public ToolboxGameHostControl()
         {
             hostPanel = new HostPanel(OnHostedWindowPointerDown)
@@ -116,9 +128,7 @@ namespace FreeTrainSimulator.Toolbox.Wpf.Hosting
 
             Child = hostPanel;
             Loaded += ToolboxGameHostControl_Loaded;
-            Unloaded += ToolboxGameHostControl_Unloaded;
             SizeChanged += ToolboxGameHostControl_SizeChanged;
-            GotFocus += ToolboxGameHostControl_GotFocus;
 
             StartHostedGame();
         }
@@ -126,15 +136,6 @@ namespace FreeTrainSimulator.Toolbox.Wpf.Hosting
         private void ToolboxGameHostControl_Loaded(object sender, System.Windows.RoutedEventArgs e)
         {
             ApplyHostedSize();
-        }
-
-        private void ToolboxGameHostControl_Unloaded(object sender, System.Windows.RoutedEventArgs e)
-        {
-            Dispose();
-        }
-
-        private void ToolboxGameHostControl_GotFocus(object sender, System.Windows.RoutedEventArgs e)
-        {
         }
 
         private void ToolboxGameHostControl_SizeChanged(object sender, System.Windows.SizeChangedEventArgs e)
@@ -146,6 +147,9 @@ namespace FreeTrainSimulator.Toolbox.Wpf.Hosting
         {
             lock (syncLock)
             {
+                if (disposed)
+                    return;
+
                 if (gameThread != null)
                     return;
 
@@ -186,25 +190,20 @@ namespace FreeTrainSimulator.Toolbox.Wpf.Hosting
         private void PublishHostedBridges()
         {
             GameWindow game = gameWindow;
-            if (game?.HostedMenu == null)
+            HostedToolboxServices services = game?.HostedServices;
+            if (services?.Menu == null)
             {
                 Dispatcher.BeginInvoke(DispatcherPriority.Background, new Action(PublishHostedBridges));
                 return;
             }
 
-            HostedMenu = game.HostedMenu;
+            HostedServices = services;
             HostedMenuReady?.Invoke(this, EventArgs.Empty);
 
-            HostedDebugToolWindow = game.HostedDebugToolWindow;
-            HostedLocationToolWindow = game.HostedLocationToolWindow;
-            HostedLogToolWindow = game.HostedLogToolWindow;
-            HostedTrackItemInfoToolWindow = game.HostedTrackItemInfoToolWindow;
-            HostedTrackNodeInfoToolWindow = game.HostedTrackNodeInfoToolWindow;
-            HostedHelpToolWindow = game.HostedHelpToolWindow;
-            HostedSettingsToolWindow = game.HostedSettingsToolWindow;
-            HostedTrainPathToolWindow = game.HostedTrainPathToolWindow;
             game.SaveTrainPathRequested -= Game_SaveTrainPathRequested;
             game.SaveTrainPathRequested += Game_SaveTrainPathRequested;
+            game.ScreenshotRequested -= Game_ScreenshotRequested;
+            game.ScreenshotRequested += Game_ScreenshotRequested;
             HostedToolWindowsReady?.Invoke(this, EventArgs.Empty);
         }
 
@@ -271,6 +270,9 @@ namespace FreeTrainSimulator.Toolbox.Wpf.Hosting
 
         private void ApplyHostedSize()
         {
+            if (disposed)
+                return;
+
             if (!hostedWindowAttached)
             {
                 AttachHostedWindow();
@@ -313,20 +315,44 @@ namespace FreeTrainSimulator.Toolbox.Wpf.Hosting
             Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() => SaveTrainPathRequested?.Invoke(this, EventArgs.Empty)));
         }
 
+        // Game-thread event: re-raise on the WPF dispatcher so the shell can show its owned save dialog.
+        private void Game_ScreenshotRequested(object sender, EventArgs e)
+        {
+            Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() => ScreenshotRequested?.Invoke(this, EventArgs.Empty)));
+        }
+
         /// <summary>
         /// Submits the collected path metadata back to the hosted game (marshaled onto the game thread) to
         /// persist the path and refresh the path list. Called by the shell after the WPF save dialog is
         /// confirmed.
         /// </summary>
-        internal void SubmitSavePath(PathModelHeader pathDetails)
+        internal Task SubmitSavePathAsync(PathModelHeader pathDetails)
         {
             ArgumentNullException.ThrowIfNull(pathDetails);
 
             GameWindow game = gameWindow;
             if (game == null)
-                return;
+                return Task.CompletedTask;
 
-            game.InvokeOnGameThread(() => game.SubmitTrainPathSave(pathDetails));
+            return game.InvokeOnGameThreadAsync(() => game.SubmitTrainPathSaveAsync(pathDetails));
+        }
+
+        /// <summary>
+        /// Persists the hosted game's live settings model together with the latest WPF dock layout.
+        /// </summary>
+        internal Task SaveHostedSettingsAsync(string dockLayoutXml)
+        {
+            GameWindow game = gameWindow;
+            return game == null ? Task.CompletedTask : game.SaveHostedSettingsAsync(dockLayoutXml);
+        }
+
+        /// <summary>
+        /// Saves the hosted game's current back buffer to the specified PNG file path on the game thread.
+        /// </summary>
+        internal Task SaveScreenshotAsync(string fileName)
+        {
+            GameWindow game = gameWindow;
+            return game == null ? Task.CompletedTask : game.InvokeOnGameThreadAsync(() => game.SaveScreenshotAsync(fileName));
         }
 
         private void OnHostedWindowPointerDown()
@@ -336,6 +362,11 @@ namespace FreeTrainSimulator.Toolbox.Wpf.Hosting
 
         protected override void Dispose(bool disposing)
         {
+            if (disposed)
+                return;
+
+            disposed = true;
+
             GameWindow game = gameWindow;
             if (game != null)
             {
@@ -353,6 +384,9 @@ namespace FreeTrainSimulator.Toolbox.Wpf.Hosting
             {
                 gameThread.Join(TimeSpan.FromSeconds(5));
             }
+
+            gameThread = null;
+            gameWindow = null;
 
             // Dispose the panel only after the game thread has stopped touching the child window.
             hostPanel?.Dispose();

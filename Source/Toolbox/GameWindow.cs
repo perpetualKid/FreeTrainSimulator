@@ -89,7 +89,7 @@ namespace FreeTrainSimulator.Toolbox
         internal ProfileToolboxSettingsModel ToolboxSettings { get; private set; }
         internal ProfileUserSettingsModel ToolboxUserSettings { get; private set; }
 
-        internal string LogFileName { get; }
+        internal string LogFileName { get; private set; }
 
         private Color backgroundColor;
 
@@ -129,6 +129,8 @@ namespace FreeTrainSimulator.Toolbox
         // Non-null only in hosted mode; exposed to the WPF host for train-path browsing/editing.
         private TrainPathToolWindow hostedTrainPathToolWindow;
 
+        private HostedToolboxServices hostedServices;
+
         public GameWindow()
         {
             ImmutableArray<string> options = Environment.GetCommandLineArgs().Where(a => a.StartsWith('-') || a.StartsWith('/')).Select(a => a[1..]).ToImmutableArray();
@@ -136,12 +138,7 @@ namespace FreeTrainSimulator.Toolbox
             CatalogManager.SetCatalogDomainPattern(CatalogDomainPattern.AssemblyName, null, RuntimeInfo.LocalesFolder);
 
             Task.Run(LoadSettings).Wait();
-            if (ToolboxUserSettings.LogLevel != TraceEventType.Critical)
-            {
-                LogFileName = RuntimeInfo.LogFile(ToolboxUserSettings.LogFilePath, ToolboxUserSettings.LogFileName);
-                LoggingUtil.InitLogging(LogFileName, TraceEventType.Error, false, false);
-                ToolboxSettings.Log();
-            }
+            InitializeLoggingFromSettings();
 
             windowForm = (Form)Control.FromHandle(Window.Handle);
             currentScreen = ToolboxSettings.WindowScreen < Screen.AllScreens.Length
@@ -176,7 +173,6 @@ namespace FreeTrainSimulator.Toolbox
 
             SetScreenMode(currentScreenMode);
 
-            windowForm.LocationChanged += WindowForm_LocationChanged;
             windowForm.ClientSizeChanged += WindowForm_ClientSizeChanged;
 
             // using reflection to be able to trigger ClientSizeChanged event manually as this is not 
@@ -184,23 +180,33 @@ namespace FreeTrainSimulator.Toolbox
             MethodInfo m = Window.GetType().GetMethod("OnClientSizeChanged", BindingFlags.NonPublic | BindingFlags.Instance);
             onClientSizeChanged = (Action)Delegate.CreateDelegate(typeof(Action), Window, m);
 
-            windowForm.FormClosing += WindowForm_FormClosing;
             Exiting += GameWindow_Exiting;
             LoadLanguage();
             SystemInfo.SetGraphicAdapterInformation(graphicsDeviceManager.GraphicsDevice.Adapter.Description);
             debugInfo = new CommonDebugInfo(this);
             hostedDebugToolWindow = new DebugToolWindow(debugInfo, graphicsDebugInfo);
             hostedLocationToolWindow = new LocationToolWindow(ToolboxSettings);
-            hostedLogToolWindow = new LogToolWindow(LogFileName);
+            hostedLogToolWindow = new LogToolWindow(() => LogFileName);
             hostedTrackItemInfoToolWindow = new TrackItemInfoToolWindow(InvokeOnGameThread);
             hostedTrackNodeInfoToolWindow = new TrackNodeInfoToolWindow(InvokeOnGameThread);
             hostedHelpToolWindow = new HelpToolWindow();
             hostedSettingsToolWindow = new SettingsToolWindow(
                 ToolboxSettings,
                 ToolboxUserSettings,
+                value => InvokeOnGameThread(() => UpdateLoggingPreference(value)),
                 value => InvokeOnGameThread(() => UpdateFontOutlinePreference(value)),
                 value => InvokeOnGameThread(() => UpdateTrackWidthPreference(!value)));
             hostedTrainPathToolWindow = new TrainPathToolWindow(() => HostedPathEditor, () => HostedTrainPathToolingContext, InvokeOnGameThread);
+            hostedServices = new HostedToolboxServices(
+                hostedMenu,
+                hostedDebugToolWindow,
+                hostedLocationToolWindow,
+                hostedLogToolWindow,
+                hostedTrackItemInfoToolWindow,
+                hostedTrackNodeInfoToolWindow,
+                hostedHelpToolWindow,
+                hostedSettingsToolWindow,
+                hostedTrainPathToolWindow);
             OnContentAreaChanged += GameWindow_OnContentAreaChanged;
             windowForm.KeyPreview = true;// need to preview keys to enable Monogames TextInput handler, otherwise adding the main menu will break text input
         }
@@ -208,11 +214,6 @@ namespace FreeTrainSimulator.Toolbox
         private void GameWindow_Exiting(object sender, ExitingEventArgs e)
         {
             e.Cancel = waitOnExit;
-        }
-
-        private void WindowForm_FormClosing(object sender, FormClosingEventArgs e)
-        {
-            // In hosted mode the WPF shell owns application shutdown; the child game window must not drive it.
         }
 
         #region window size/position handling
@@ -223,29 +224,6 @@ namespace FreeTrainSimulator.Toolbox
 
             // The WPF host drives sizing of the embedded child window.
             ApplyHostedClientSize(windowForm.ClientSize);
-            return;
-
-            if (currentScreenMode == ScreenMode.Windowed)
-                windowSize = new System.Drawing.Size(Window.ClientBounds.Width, Window.ClientBounds.Height);
-            //originally, following code would be in Window.LocationChanged handler, but seems to be more reliable here for MG version 3.7.1
-            if (currentScreenMode == ScreenMode.Windowed)
-                windowPosition = Window.Position;
-            // if (fullscreen) gameWindow is moved to different screen we may need to refit for different screen resolution
-            Screen newScreen = Screen.FromControl(windowForm);
-            (newScreen, currentScreen) = (currentScreen, newScreen);
-            if (newScreen.DeviceName != currentScreen.DeviceName && currentScreenMode != ScreenMode.Windowed)
-            {
-                SetScreenMode(currentScreenMode);
-                //reset Window position to center on new screen
-                windowPosition = new Point(
-                    currentScreen.WorkingArea.Left + ((currentScreen.WorkingArea.Size.Width - windowSize.Width) / 2),
-                    currentScreen.WorkingArea.Top + ((currentScreen.WorkingArea.Size.Height - windowSize.Height) / 2));
-            }
-        }
-
-        private void WindowForm_LocationChanged(object sender, EventArgs e)
-        {
-            // The WPF host owns window placement; nothing to do for the embedded child window.
         }
 
         internal IntPtr HostedWindowHandle
@@ -282,6 +260,11 @@ namespace FreeTrainSimulator.Toolbox
         /// Hosted-mode menu bridge that the WPF shell binds its native menu to. Null in standalone mode.
         /// </summary>
         internal HostedToolboxMenu HostedMenu => hostedMenu;
+
+        /// <summary>
+        /// Hosted-mode bridge set that the WPF shell publishes once the hosted game is initialized.
+        /// </summary>
+        internal HostedToolboxServices HostedServices => hostedServices;
 
         /// <summary>
         /// Hosted-mode debug tool-window bridge that the WPF shell pulls read-only information snapshots
@@ -403,6 +386,67 @@ namespace FreeTrainSimulator.Toolbox
                 action();
         }
 
+        internal Task InvokeOnGameThreadAsync(Func<Task> action)
+        {
+            ArgumentNullException.ThrowIfNull(action);
+
+            if (windowForm.IsDisposed || windowForm.Disposing)
+                return Task.CompletedTask;
+
+            if (!windowForm.InvokeRequired)
+                return action();
+
+            TaskCompletionSource completion = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+            try
+            {
+                windowForm.BeginInvoke((System.Windows.Forms.MethodInvoker)delegate
+                {
+                    Task task = action();
+                    _ = task.ContinueWith(CompleteInvokedTask, completion, CancellationToken.None, TaskContinuationOptions.ExecuteSynchronously, TaskScheduler.Default);
+                });
+            }
+            catch (InvalidOperationException exception)
+            {
+                completion.TrySetException(exception);
+            }
+
+            return completion.Task;
+        }
+
+        private static void CompleteInvokedTask(Task task, object state)
+        {
+            TaskCompletionSource completion = (TaskCompletionSource)state;
+            if (task.IsCanceled)
+            {
+                Trace.TraceInformation("Hosted game-thread operation was canceled.");
+                completion.TrySetCanceled();
+            }
+            else if (task.Exception != null)
+            {
+                foreach (System.Exception exception in task.Exception.InnerExceptions)
+                    Trace.TraceError($"Hosted game-thread operation failed: {exception}");
+
+                completion.TrySetException(task.Exception.InnerExceptions);
+            }
+            else
+            {
+                completion.TrySetResult();
+            }
+        }
+
+        internal Task SaveHostedSettingsAsync(string dockLayoutXml)
+        {
+            return InvokeOnGameThreadAsync(() => SaveHostedSettingsOnGameThreadAsync(dockLayoutXml));
+        }
+
+        private async Task SaveHostedSettingsOnGameThreadAsync(string dockLayoutXml)
+        {
+            if (ToolboxSettings != null)
+                ToolboxSettings.DockLayoutXml = dockLayoutXml;
+
+            await SaveSettings().ConfigureAwait(false);
+        }
+
         internal void FocusHostedWindow()
         {
             if (windowForm.IsDisposed || windowForm.Disposing)
@@ -449,6 +493,21 @@ namespace FreeTrainSimulator.Toolbox
             ToolboxSettings.ViewSettings[setting] = enabled;
         }
 
+        internal void UpdateLoggingPreference(bool enabled)
+        {
+            ToolboxUserSettings.LogLevel = enabled ? TraceEventType.Verbose : TraceEventType.Critical;
+            if (enabled)
+            {
+                LogFileName = RuntimeInfo.LogFile(ToolboxUserSettings.LogFilePath, ToolboxUserSettings.LogFileName);
+                LoggingUtil.InitLogging(LogFileName, ToolboxUserSettings.LogLevel, false, true);
+                ToolboxSettings.Log();
+            }
+            else
+            {
+                LoggingUtil.StopLogging();
+            }
+        }
+
         internal void UpdateFontOutlinePreference(bool fontOutline)
         {
             ToolboxSettings.FontOutline = fontOutline;
@@ -475,6 +534,16 @@ namespace FreeTrainSimulator.Toolbox
             currentProfile = await currentProfile.Current(ctsProfileLoading.Token).ConfigureAwait(false);
             ToolboxUserSettings = await currentProfile.LoadSettingsModel<ProfileUserSettingsModel>(ctsProfileLoading.Token).ConfigureAwait(false);
             ToolboxSettings = await currentProfile.LoadSettingsModel<ProfileToolboxSettingsModel>(ctsProfileLoading.Token).ConfigureAwait(false);
+        }
+
+        private void InitializeLoggingFromSettings()
+        {
+            if (ToolboxUserSettings.LogLevel == TraceEventType.Critical)
+                return;
+
+            LogFileName = RuntimeInfo.LogFile(ToolboxUserSettings.LogFilePath, ToolboxUserSettings.LogFileName);
+            LoggingUtil.InitLogging(LogFileName, ToolboxUserSettings.LogLevel, false, false);
+            ToolboxSettings.Log();
         }
 
         private void ApplySettings()
@@ -517,7 +586,7 @@ namespace FreeTrainSimulator.Toolbox
 
             ToolboxSettings.Folder = selectedFolder?.Id;
             ToolboxSettings.RouteId = selectedRoute?.Id;
-            ToolboxSettings.PathId = PathEditor?.PathId;
+            ToolboxSettings.PathId = pathEditor?.PathId;
 
             //            ProfileSettingModelHandler<ProfileUserSettingsModel>.SetValueByName(ToolboxUserSettings, "MultiSamplingCount", 8);
 
@@ -695,7 +764,7 @@ namespace FreeTrainSimulator.Toolbox
                             windowManager[windowType].Open();
                     }
                 }
-                catch (Exception ex) when (ex is Exception)
+                catch (Exception ex)
                 {
                     Trace.TraceError($"Error restoring last view: {ex}");
                     windowManager[ToolboxWindowType.StatusWindow].Close();

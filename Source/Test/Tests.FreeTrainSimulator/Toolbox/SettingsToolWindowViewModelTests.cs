@@ -17,6 +17,7 @@ namespace Tests.FreeTrainSimulator.Toolbox
             return new SettingsToolWindow(
                 toolboxSettings,
                 userSettings,
+                value => userSettings.LogLevel = value ? TraceEventType.Verbose : TraceEventType.Critical,
                 value => toolboxSettings.FontOutline = value,
                 value => toolboxSettings.LimitTrackWidth = !value);
         }
@@ -84,6 +85,7 @@ namespace Tests.FreeTrainSimulator.Toolbox
             SettingsToolWindow bridge = new(
                 toolboxSettings,
                 new ProfileUserSettingsModel(),
+                _ => { },
                 _ => writes++,
                 _ => { });
             SettingsToolWindowViewModel sut = new(bridge);

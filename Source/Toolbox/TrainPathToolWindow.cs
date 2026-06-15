@@ -61,6 +61,8 @@ namespace FreeTrainSimulator.Toolbox
         private bool pathsCached;
         private string lastPathId;
         private int lastNodeCount = -1;
+        private int snapshotVersion;
+        private int lastSnapshotVersion = -1;
 
         internal TrainPathToolWindow(Func<PathEditor> pathEditorAccessor, Func<ITrainPathToolingContext> toolingContextAccessor, Action<Action> gameThreadInvoker)
         {
@@ -109,10 +111,14 @@ namespace FreeTrainSimulator.Toolbox
             string selectedPathId = currentPath?.PathModel?.Id;
             int nodeCount = currentPath?.PathPoints.Count ?? 0;
 
-            // Only rebuild the heavier node/metadata content when the selected path or its node count changed.
+            int currentSnapshotVersion = snapshotVersion;
+
+            // Only rebuild the heavier node/metadata content when the selected path, node count, path list, or
+            // editor version changed.
             if (snapshot != TrainPathSnapshot.Empty
                 && string.Equals(selectedPathId, lastPathId, StringComparison.Ordinal)
                 && nodeCount == lastNodeCount
+                && currentSnapshotVersion == lastSnapshotVersion
                 && paths.SequenceEqual(snapshot.Paths))
             {
                 return;
@@ -120,6 +126,7 @@ namespace FreeTrainSimulator.Toolbox
 
             lastPathId = selectedPathId;
             lastNodeCount = nodeCount;
+            lastSnapshotVersion = currentSnapshotVersion;
 
             snapshot = new TrainPathSnapshot(paths, selectedPathId, BuildNodes(currentPath), BuildMetadata(currentPath));
         }
@@ -168,13 +175,6 @@ namespace FreeTrainSimulator.Toolbox
 
         private ImmutableArray<TrainPathListRow> BuildPaths()
         {
-            if (!pathsCached)
-            {
-                ITrainPathToolingContext context = toolingContextAccessor();
-                cachedPaths = context?.GetPaths().GetAwaiter().GetResult() ?? ImmutableArray<PathModelHeader>.Empty;
-                pathsCached = true;
-            }
-
             ImmutableArray<TrainPathListRow>.Builder builder = ImmutableArray.CreateBuilder<TrainPathListRow>();
             foreach (PathModelHeader path in cachedPaths.OrderBy(p => p.Name))
                 builder.Add(new TrainPathListRow(path.Id, path.Name));
@@ -218,6 +218,28 @@ namespace FreeTrainSimulator.Toolbox
         internal void InvalidatePaths()
         {
             pathsCached = false;
+            cachedPaths = ImmutableArray<PathModelHeader>.Empty;
+            MarkDirty();
+        }
+
+        /// <summary>
+        /// Updates the cached route path list without blocking snapshot refresh. Called on the game thread
+        /// after route path loading completes.
+        /// </summary>
+        internal void UpdatePaths(ImmutableArray<PathModelHeader> paths)
+        {
+            cachedPaths = paths.IsDefault ? ImmutableArray<PathModelHeader>.Empty : paths;
+            pathsCached = true;
+            MarkDirty();
+        }
+
+        /// <summary>
+        /// Marks the current train-path snapshot stale after editor mutations that may not change path id or
+        /// node count, such as node validity/type or metadata changes.
+        /// </summary>
+        internal void MarkDirty()
+        {
+            snapshotVersion++;
         }
 
         private void ResetCaches()
@@ -226,6 +248,7 @@ namespace FreeTrainSimulator.Toolbox
             cachedPaths = ImmutableArray<PathModelHeader>.Empty;
             lastPathId = null;
             lastNodeCount = -1;
+            lastSnapshotVersion = -1;
         }
     }
 }

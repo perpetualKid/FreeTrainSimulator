@@ -17,6 +17,12 @@
     <Window.Resources>
         <viewModels:DrawingColorToBrushConverter x:Key="DrawingColorToBrushConverter" />
         <viewModels:BoolToFontWeightConverter x:Key="BoolToFontWeightConverter" />
+        <Style x:Key="ToolWindowRowItemStyle" TargetType="ListViewItem">
+            <Setter Property="Foreground"
+                    Value="{Binding Color, Converter={StaticResource DrawingColorToBrushConverter}}" />
+            <Setter Property="FontWeight"
+                    Value="{Binding Bold, Converter={StaticResource BoolToFontWeightConverter}}" />
+        </Style>
     </Window.Resources>
     <DockPanel>
         <Menu x:Name="MainMenu"
@@ -124,21 +130,14 @@
                                                           CanHide="True"
                                                           IsSelected="False">
                                 <ListView Margin="6"
-                                          ItemsSource="{Binding DataContext.LocationTool.Rows, ElementName=RootWindow}">
+                                          ItemsSource="{Binding DataContext.LocationTool.Rows, ElementName=RootWindow}"
+                                          ItemContainerStyle="{StaticResource ToolWindowRowItemStyle}">
                                     <ListView.View>
                                         <GridView>
                                             <GridViewColumn Header="Name" Width="180" DisplayMemberBinding="{Binding Name}" />
                                             <GridViewColumn Header="Value" Width="320" DisplayMemberBinding="{Binding Value}" />
                                         </GridView>
                                     </ListView.View>
-                                    <ListView.ItemContainerStyle>
-                                        <Style TargetType="ListViewItem">
-                                            <Setter Property="Foreground"
-                                                    Value="{Binding Color, Converter={StaticResource DrawingColorToBrushConverter}}" />
-                                            <Setter Property="FontWeight"
-                                                    Value="{Binding Bold, Converter={StaticResource BoolToFontWeightConverter}}" />
-                                        </Style>
-                                    </ListView.ItemContainerStyle>
                                 </ListView>
                             </avalonLayout:LayoutAnchorable>
                             <avalonLayout:LayoutAnchorable x:Name="DebugToolAnchorable"
@@ -149,21 +148,14 @@
                                                           IsVisible="False"
                                                           IsSelected="False">
                                 <ListView Margin="6"
-                                          ItemsSource="{Binding DataContext.DebugTool.Rows, ElementName=RootWindow}">
+                                          ItemsSource="{Binding DataContext.DebugTool.Rows, ElementName=RootWindow}"
+                                          ItemContainerStyle="{StaticResource ToolWindowRowItemStyle}">
                                     <ListView.View>
                                         <GridView>
                                             <GridViewColumn Header="Name" Width="180" DisplayMemberBinding="{Binding Name}" />
                                             <GridViewColumn Header="Value" Width="320" DisplayMemberBinding="{Binding Value}" />
                                         </GridView>
                                     </ListView.View>
-                                    <ListView.ItemContainerStyle>
-                                        <Style TargetType="ListViewItem">
-                                            <Setter Property="Foreground"
-                                                    Value="{Binding Color, Converter={StaticResource DrawingColorToBrushConverter}}" />
-                                            <Setter Property="FontWeight"
-                                                    Value="{Binding Bold, Converter={StaticResource BoolToFontWeightConverter}}" />
-                                        </Style>
-                                    </ListView.ItemContainerStyle>
                                 </ListView>
                             </avalonLayout:LayoutAnchorable>
                             <avalonLayout:LayoutAnchorable x:Name="LogToolAnchorable"
@@ -207,21 +199,14 @@
                                             </TextBox.InputBindings>
                                         </TextBox>
                                     </DockPanel>
-                                    <ListView ItemsSource="{Binding Rows}">
+                                    <ListView ItemsSource="{Binding Rows}"
+                                              ItemContainerStyle="{StaticResource ToolWindowRowItemStyle}">
                                         <ListView.View>
                                             <GridView>
                                                 <GridViewColumn Header="Name" Width="180" DisplayMemberBinding="{Binding Name}" />
                                                 <GridViewColumn Header="Value" Width="320" DisplayMemberBinding="{Binding Value}" />
                                             </GridView>
                                         </ListView.View>
-                                        <ListView.ItemContainerStyle>
-                                            <Style TargetType="ListViewItem">
-                                                <Setter Property="Foreground"
-                                                        Value="{Binding Color, Converter={StaticResource DrawingColorToBrushConverter}}" />
-                                                <Setter Property="FontWeight"
-                                                        Value="{Binding Bold, Converter={StaticResource BoolToFontWeightConverter}}" />
-                                            </Style>
-                                        </ListView.ItemContainerStyle>
                                     </ListView>
                                 </DockPanel>
                             </avalonLayout:LayoutAnchorable>
@@ -259,21 +244,14 @@
                                                      Content="Roads"
                                                      IsChecked="{Binding SearchRoads}" />
                                     </StackPanel>
-                                    <ListView ItemsSource="{Binding Rows}">
+                                    <ListView ItemsSource="{Binding Rows}"
+                                              ItemContainerStyle="{StaticResource ToolWindowRowItemStyle}">
                                         <ListView.View>
                                             <GridView>
                                                 <GridViewColumn Header="Name" Width="180" DisplayMemberBinding="{Binding Name}" />
                                                 <GridViewColumn Header="Value" Width="320" DisplayMemberBinding="{Binding Value}" />
                                             </GridView>
                                         </ListView.View>
-                                        <ListView.ItemContainerStyle>
-                                            <Style TargetType="ListViewItem">
-                                                <Setter Property="Foreground"
-                                                        Value="{Binding Color, Converter={StaticResource DrawingColorToBrushConverter}}" />
-                                                <Setter Property="FontWeight"
-                                                        Value="{Binding Bold, Converter={StaticResource BoolToFontWeightConverter}}" />
-                                            </Style>
-                                        </ListView.ItemContainerStyle>
                                     </ListView>
                                 </DockPanel>
                             </avalonLayout:LayoutAnchorable>

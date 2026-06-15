@@ -11,6 +11,7 @@ using System.Xml.Linq;
 using AvalonDock.Layout;
 using AvalonDock.Layout.Serialization;
 
+using FreeTrainSimulator.Common.Info;
 using FreeTrainSimulator.Models.Settings;
 using FreeTrainSimulator.Models.Shim;
 using FreeTrainSimulator.Toolbox.Settings;
@@ -34,13 +35,16 @@ namespace FreeTrainSimulator.Toolbox.Wpf
         private ProfileModel currentProfile;
         private ProfileToolboxSettingsModel toolboxSettings;
         private bool isShuttingDown;
+        private bool shutdownCompleted;
         private int deactivationSequence;
+        private ToolWindowDescriptor[] toolWindowDescriptors;
 
         public MainWindow()
         {
             InitializeComponent();
 
             DataContext = viewModel;
+            InitializeToolWindowDescriptors();
             InitializeToolWindowCommands();
 
             Loaded += MainWindow_Loaded;
@@ -54,6 +58,7 @@ namespace FreeTrainSimulator.Toolbox.Wpf
             MapHost.HostedMenuReady += MapHost_HostedMenuReady;
             MapHost.HostedToolWindowsReady += MapHost_HostedToolWindowsReady;
             MapHost.SaveTrainPathRequested += MapHost_SaveTrainPathRequested;
+            MapHost.ScreenshotRequested += MapHost_ScreenshotRequested;
             DockingManager.ActiveContentChanged += DockingManager_ActiveContentChanged;
         }
 
@@ -61,14 +66,7 @@ namespace FreeTrainSimulator.Toolbox.Wpf
         {
             await LoadDockLayoutAsync().ConfigureAwait(true);
 
-            HookToolWindowAnchorable(EnsureLocationToolWindowAnchorable, LocationToolAnchorable_PropertyChanged);
-            HookToolWindowAnchorable(EnsureDebugToolWindowAnchorable, DebugToolAnchorable_PropertyChanged);
-            HookToolWindowAnchorable(EnsureLogToolWindowAnchorable, LogToolAnchorable_PropertyChanged);
-            HookToolWindowAnchorable(EnsureTrackItemInfoToolWindowAnchorable, TrackItemInfoToolAnchorable_PropertyChanged);
-            HookToolWindowAnchorable(EnsureTrackNodeInfoToolWindowAnchorable, TrackNodeInfoToolAnchorable_PropertyChanged);
-            HookToolWindowAnchorable(EnsureHelpToolWindowAnchorable, HelpToolAnchorable_PropertyChanged);
-            HookToolWindowAnchorable(EnsureSettingsToolWindowAnchorable, SettingsToolAnchorable_PropertyChanged);
-            HookToolWindowAnchorable(EnsureTrainPathToolWindowAnchorable, TrainPathToolAnchorable_PropertyChanged);
+            HookToolWindowAnchorables();
 
             UpdateAllToolWindowLifecycles();
             UpdateHostedInputCapture();
@@ -82,14 +80,35 @@ namespace FreeTrainSimulator.Toolbox.Wpf
 
         private void InitializeToolWindowCommands()
         {
-            viewModel.ToggleLocationToolCommand = new RelayCommand(_ => ToggleLocationToolWindow(), _ => viewModel.LocationTool != null);
-            viewModel.ToggleDebugToolCommand = new RelayCommand(_ => ToggleDebugToolWindow(), _ => viewModel.DebugTool != null);
-            viewModel.ToggleLogToolCommand = new RelayCommand(_ => ToggleLogToolWindow(), _ => viewModel.LogTool != null);
-            viewModel.ToggleTrackItemInfoToolCommand = new RelayCommand(_ => ToggleTrackItemInfoToolWindow(), _ => viewModel.TrackItemInfoTool != null);
-            viewModel.ToggleTrackNodeInfoToolCommand = new RelayCommand(_ => ToggleTrackNodeInfoToolWindow(), _ => viewModel.TrackNodeInfoTool != null);
-            viewModel.ToggleHelpToolCommand = new RelayCommand(_ => ToggleHelpToolWindow(), _ => viewModel.HelpTool != null);
-            viewModel.ToggleSettingsToolCommand = new RelayCommand(_ => ToggleSettingsToolWindow(), _ => viewModel.SettingsTool != null);
-            viewModel.ToggleTrainPathToolCommand = new RelayCommand(_ => ToggleTrainPathToolWindow(), _ => viewModel.TrainPathTool != null);
+            viewModel.ToggleLocationToolCommand = new RelayCommand(_ => ToggleToolWindow(LocationToolWindowContentId), _ => viewModel.LocationTool != null);
+            viewModel.ToggleDebugToolCommand = new RelayCommand(_ => ToggleToolWindow(DebugToolWindowContentId), _ => viewModel.DebugTool != null);
+            viewModel.ToggleLogToolCommand = new RelayCommand(_ => ToggleToolWindow(LogToolWindowContentId), _ => viewModel.LogTool != null);
+            viewModel.ToggleTrackItemInfoToolCommand = new RelayCommand(_ => ToggleToolWindow(TrackItemInfoToolWindowContentId), _ => viewModel.TrackItemInfoTool != null);
+            viewModel.ToggleTrackNodeInfoToolCommand = new RelayCommand(_ => ToggleToolWindow(TrackNodeInfoToolWindowContentId), _ => viewModel.TrackNodeInfoTool != null);
+            viewModel.ToggleHelpToolCommand = new RelayCommand(_ => ToggleToolWindow(HelpToolWindowContentId), _ => viewModel.HelpTool != null);
+            viewModel.ToggleSettingsToolCommand = new RelayCommand(_ => ToggleToolWindow(SettingsToolWindowContentId), _ => viewModel.SettingsTool != null);
+            viewModel.ToggleTrainPathToolCommand = new RelayCommand(_ => ToggleToolWindow(TrainPathToolWindowContentId), _ => viewModel.TrainPathTool != null);
+        }
+
+        private void InitializeToolWindowDescriptors()
+        {
+            toolWindowDescriptors = new[]
+            {
+                new ToolWindowDescriptor(LocationToolWindowContentId, EnsureLocationToolWindowAnchorable, UpdateLocationToolWindowLifecycle),
+                new ToolWindowDescriptor(DebugToolWindowContentId, EnsureDebugToolWindowAnchorable, UpdateDebugToolWindowLifecycle),
+                new ToolWindowDescriptor(LogToolWindowContentId, EnsureLogToolWindowAnchorable, UpdateLogToolWindowLifecycle),
+                new ToolWindowDescriptor(TrackItemInfoToolWindowContentId, EnsureTrackItemInfoToolWindowAnchorable, UpdateTrackItemInfoToolWindowLifecycle),
+                new ToolWindowDescriptor(TrackNodeInfoToolWindowContentId, EnsureTrackNodeInfoToolWindowAnchorable, UpdateTrackNodeInfoToolWindowLifecycle),
+                new ToolWindowDescriptor(HelpToolWindowContentId, EnsureHelpToolWindowAnchorable, UpdateHelpToolWindowLifecycle),
+                new ToolWindowDescriptor(SettingsToolWindowContentId, EnsureSettingsToolWindowAnchorable, UpdateSettingsToolWindowLifecycle),
+                new ToolWindowDescriptor(TrainPathToolWindowContentId, EnsureTrainPathToolWindowAnchorable, UpdateTrainPathToolWindowLifecycle),
+            };
+        }
+
+        private void HookToolWindowAnchorables()
+        {
+            foreach (ToolWindowDescriptor descriptor in toolWindowDescriptors)
+                HookToolWindowAnchorable(descriptor.EnsureAnchorable, ToolWindowAnchorable_PropertyChanged);
         }
 
         private void HookToolWindowAnchorable(Func<LayoutAnchorable> ensureAnchorable, PropertyChangedEventHandler handler)
@@ -119,14 +138,8 @@ namespace FreeTrainSimulator.Toolbox.Wpf
 
         private void UpdateAllToolWindowLifecycles()
         {
-            UpdateLocationToolWindowLifecycle();
-            UpdateDebugToolWindowLifecycle();
-            UpdateLogToolWindowLifecycle();
-            UpdateTrackItemInfoToolWindowLifecycle();
-            UpdateTrackNodeInfoToolWindowLifecycle();
-            UpdateHelpToolWindowLifecycle();
-            UpdateSettingsToolWindowLifecycle();
-            UpdateTrainPathToolWindowLifecycle();
+            foreach (ToolWindowDescriptor descriptor in toolWindowDescriptors)
+                descriptor.UpdateLifecycle();
         }
 
         private void MainWindow_Activated(object sender, EventArgs e)
@@ -172,15 +185,69 @@ namespace FreeTrainSimulator.Toolbox.Wpf
             UpdateHostedInputCapture();
         }
 
-        private void MapHost_SaveTrainPathRequested(object sender, EventArgs e)
+        private async void MapHost_SaveTrainPathRequested(object sender, EventArgs e)
         {
             TrainPathSaveDialog dialog = new TrainPathSaveDialog
             {
                 Owner = this,
             };
 
-            if (dialog.ShowDialog() == true && dialog.PathDetails != null)
-                MapHost.SubmitSavePath(dialog.PathDetails);
+            if (dialog.ShowDialog() != true || dialog.PathDetails == null)
+                return;
+
+            try
+            {
+                await MapHost.SubmitSavePathAsync(dialog.PathDetails).ConfigureAwait(true);
+            }
+            catch (OperationCanceledException ex)
+            {
+                Trace.TraceInformation($"Train path save was canceled: {ex.Message}");
+            }
+            catch (InvalidOperationException ex)
+            {
+                Trace.TraceError($"Failed to save train path: {ex}");
+            }
+            catch (IOException ex)
+            {
+                Trace.TraceError($"Failed to save train path: {ex}");
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                Trace.TraceError($"Failed to save train path: {ex}");
+            }
+        }
+
+        private async void MapHost_ScreenshotRequested(object sender, EventArgs e)
+        {
+            Microsoft.Win32.SaveFileDialog dialog = new Microsoft.Win32.SaveFileDialog
+            {
+                AddExtension = true,
+                DefaultExt = ".png",
+                FileName = $"{RuntimeInfo.ApplicationName} {DateTime.Now.ToString("yyyy-MM-dd hh-mm-ss", System.Globalization.CultureInfo.CurrentCulture)}",
+                Filter = "Image files (*.png)|*.png",
+                InitialDirectory = Environment.GetFolderPath(Environment.SpecialFolder.MyPictures),
+                OverwritePrompt = true,
+            };
+
+            if (dialog.ShowDialog(this) != true)
+                return;
+
+            try
+            {
+                await MapHost.SaveScreenshotAsync(dialog.FileName).ConfigureAwait(true);
+            }
+            catch (InvalidOperationException ex)
+            {
+                Trace.TraceError($"Failed to save screenshot: {ex}");
+            }
+            catch (IOException ex)
+            {
+                Trace.TraceError($"Failed to save screenshot: {ex}");
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                Trace.TraceError($"Failed to save screenshot: {ex}");
+            }
         }
 
         private void MapHost_HostedToolWindowsReady(object sender, EventArgs e)
@@ -203,44 +270,13 @@ namespace FreeTrainSimulator.Toolbox.Wpf
             UpdateHostedInputCapture();
         }
 
-        private void ToggleLocationToolWindow()
+        private void ToggleToolWindow(string contentId)
         {
-            ToggleToolWindow(EnsureLocationToolWindowAnchorable, UpdateLocationToolWindowLifecycle);
-        }
+            ToolWindowDescriptor descriptor = FindToolWindowDescriptor(contentId);
+            if (descriptor is null)
+                return;
 
-        private void ToggleDebugToolWindow()
-        {
-            ToggleToolWindow(EnsureDebugToolWindowAnchorable, UpdateDebugToolWindowLifecycle);
-        }
-
-        private void ToggleLogToolWindow()
-        {
-            ToggleToolWindow(EnsureLogToolWindowAnchorable, UpdateLogToolWindowLifecycle);
-        }
-
-        private void ToggleTrackItemInfoToolWindow()
-        {
-            ToggleToolWindow(EnsureTrackItemInfoToolWindowAnchorable, UpdateTrackItemInfoToolWindowLifecycle);
-        }
-
-        private void ToggleTrackNodeInfoToolWindow()
-        {
-            ToggleToolWindow(EnsureTrackNodeInfoToolWindowAnchorable, UpdateTrackNodeInfoToolWindowLifecycle);
-        }
-
-        private void ToggleHelpToolWindow()
-        {
-            ToggleToolWindow(EnsureHelpToolWindowAnchorable, UpdateHelpToolWindowLifecycle);
-        }
-
-        private void ToggleSettingsToolWindow()
-        {
-            ToggleToolWindow(EnsureSettingsToolWindowAnchorable, UpdateSettingsToolWindowLifecycle);
-        }
-
-        private void ToggleTrainPathToolWindow()
-        {
-            ToggleToolWindow(EnsureTrainPathToolWindowAnchorable, UpdateTrainPathToolWindowLifecycle);
+            ToggleToolWindow(descriptor.EnsureAnchorable, descriptor.UpdateLifecycle);
         }
 
         private void ToggleToolWindow(Func<LayoutAnchorable> ensureAnchorable, Action updateLifecycle)
@@ -261,50 +297,17 @@ namespace FreeTrainSimulator.Toolbox.Wpf
             UpdateHostedInputCapture();
         }
 
-        private void LocationToolAnchorable_PropertyChanged(object sender, PropertyChangedEventArgs e)
+        private void ToolWindowAnchorable_PropertyChanged(object sender, PropertyChangedEventArgs e)
         {
-            HandleToolWindowAnchorablePropertyChanged(e, UpdateLocationToolWindowLifecycle);
+            if (e?.PropertyName != nameof(LayoutAnchorable.IsVisible) || sender is not LayoutAnchorable anchorable)
+                return;
+
+            FindToolWindowDescriptor(anchorable.ContentId)?.UpdateLifecycle();
         }
 
-        private void DebugToolAnchorable_PropertyChanged(object sender, PropertyChangedEventArgs e)
+        private ToolWindowDescriptor FindToolWindowDescriptor(string contentId)
         {
-            HandleToolWindowAnchorablePropertyChanged(e, UpdateDebugToolWindowLifecycle);
-        }
-
-        private void LogToolAnchorable_PropertyChanged(object sender, PropertyChangedEventArgs e)
-        {
-            HandleToolWindowAnchorablePropertyChanged(e, UpdateLogToolWindowLifecycle);
-        }
-
-        private void TrackItemInfoToolAnchorable_PropertyChanged(object sender, PropertyChangedEventArgs e)
-        {
-            HandleToolWindowAnchorablePropertyChanged(e, UpdateTrackItemInfoToolWindowLifecycle);
-        }
-
-        private void TrackNodeInfoToolAnchorable_PropertyChanged(object sender, PropertyChangedEventArgs e)
-        {
-            HandleToolWindowAnchorablePropertyChanged(e, UpdateTrackNodeInfoToolWindowLifecycle);
-        }
-
-        private void HelpToolAnchorable_PropertyChanged(object sender, PropertyChangedEventArgs e)
-        {
-            HandleToolWindowAnchorablePropertyChanged(e, UpdateHelpToolWindowLifecycle);
-        }
-
-        private void SettingsToolAnchorable_PropertyChanged(object sender, PropertyChangedEventArgs e)
-        {
-            HandleToolWindowAnchorablePropertyChanged(e, UpdateSettingsToolWindowLifecycle);
-        }
-
-        private void TrainPathToolAnchorable_PropertyChanged(object sender, PropertyChangedEventArgs e)
-        {
-            HandleToolWindowAnchorablePropertyChanged(e, UpdateTrainPathToolWindowLifecycle);
-        }
-
-        private static void HandleToolWindowAnchorablePropertyChanged(PropertyChangedEventArgs e, Action updateLifecycle)
-        {
-            if (e?.PropertyName == nameof(LayoutAnchorable.IsVisible))
-                updateLifecycle?.Invoke();
+            return toolWindowDescriptors.FirstOrDefault(descriptor => string.Equals(descriptor.ContentId, contentId, StringComparison.Ordinal));
         }
 
         private void LogTextBox_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e)
@@ -532,15 +535,16 @@ namespace FreeTrainSimulator.Toolbox.Wpf
         {
             try
             {
-                if (toolboxSettings is null || currentProfile is null)
+                if (toolboxSettings is null)
                     return;
 
                 XmlLayoutSerializer serializer = new(DockingManager);
                 using StringWriter stringWriter = new();
                 serializer.Serialize(stringWriter);
 
-                toolboxSettings.DockLayoutXml = stringWriter.ToString();
-                toolboxSettings = await currentProfile.UpdateSettingsModel(toolboxSettings, CancellationToken.None).ConfigureAwait(true);
+                string dockLayoutXml = stringWriter.ToString();
+                toolboxSettings.DockLayoutXml = dockLayoutXml;
+                await MapHost.SaveHostedSettingsAsync(dockLayoutXml).ConfigureAwait(true);
             }
             catch (Exception ex)
             {
@@ -598,14 +602,8 @@ namespace FreeTrainSimulator.Toolbox.Wpf
             MapHost.HostedMenuReady -= MapHost_HostedMenuReady;
             MapHost.HostedToolWindowsReady -= MapHost_HostedToolWindowsReady;
             MapHost.SaveTrainPathRequested -= MapHost_SaveTrainPathRequested;
-            UnhookToolWindowAnchorable(LocationToolWindowAnchorable, LocationToolAnchorable_PropertyChanged);
-            UnhookToolWindowAnchorable(DebugToolWindowAnchorable, DebugToolAnchorable_PropertyChanged);
-            UnhookToolWindowAnchorable(LogToolWindowAnchorable, LogToolAnchorable_PropertyChanged);
-            UnhookToolWindowAnchorable(TrackItemInfoToolWindowAnchorable, TrackItemInfoToolAnchorable_PropertyChanged);
-            UnhookToolWindowAnchorable(TrackNodeInfoToolWindowAnchorable, TrackNodeInfoToolAnchorable_PropertyChanged);
-            UnhookToolWindowAnchorable(HelpToolWindowAnchorable, HelpToolAnchorable_PropertyChanged);
-            UnhookToolWindowAnchorable(SettingsToolWindowAnchorable, SettingsToolAnchorable_PropertyChanged);
-            UnhookToolWindowAnchorable(TrainPathToolWindowAnchorable, TrainPathToolAnchorable_PropertyChanged);
+            MapHost.ScreenshotRequested -= MapHost_ScreenshotRequested;
+            UnhookToolWindowAnchorables();
             DockingManager.ActiveContentChanged -= DockingManager_ActiveContentChanged;
 
             await SaveDockLayoutAsync().ConfigureAwait(true);
@@ -619,6 +617,12 @@ namespace FreeTrainSimulator.Toolbox.Wpf
                 return;
 
             anchorable.PropertyChanged -= handler;
+        }
+
+        private void UnhookToolWindowAnchorables()
+        {
+            foreach (ToolWindowDescriptor descriptor in toolWindowDescriptors)
+                UnhookToolWindowAnchorable(FindToolWindowAnchorable(descriptor.ContentId), ToolWindowAnchorable_PropertyChanged);
         }
 
         private void DisposeToolWindowViewModels()
@@ -635,13 +639,53 @@ namespace FreeTrainSimulator.Toolbox.Wpf
 
         protected override async void OnClosing(CancelEventArgs e)
         {
-            await ShutdownAsync().ConfigureAwait(true);
-            base.OnClosing(e);
+            if (shutdownCompleted)
+            {
+                base.OnClosing(e);
+                return;
+            }
+
+            e.Cancel = true;
+            if (isShuttingDown)
+                return;
+
+            await CompleteShutdownAndCloseAsync().ConfigureAwait(true);
+        }
+
+        private async Task CompleteShutdownAndCloseAsync()
+        {
+            try
+            {
+                await ShutdownAsync().ConfigureAwait(true);
+            }
+            catch (InvalidOperationException ex)
+            {
+                Trace.TraceError($"Failed to shut down Toolbox window cleanly: {ex}");
+            }
+
+            shutdownCompleted = true;
+            Close();
         }
 
         protected override void OnClosed(EventArgs e)
         {
             base.OnClosed(e);
+        }
+
+        private sealed class ToolWindowDescriptor
+        {
+            public ToolWindowDescriptor(string contentId, Func<LayoutAnchorable> ensureAnchorable, Action updateLifecycle)
+            {
+                ContentId = contentId ?? throw new ArgumentNullException(nameof(contentId));
+                EnsureAnchorable = ensureAnchorable ?? throw new ArgumentNullException(nameof(ensureAnchorable));
+                UpdateLifecycle = updateLifecycle ?? throw new ArgumentNullException(nameof(updateLifecycle));
+            }
+
+            public string ContentId { get; }
+
+            public Func<LayoutAnchorable> EnsureAnchorable { get; }
+
+            public Action UpdateLifecycle { get; }
         }
     }
 }

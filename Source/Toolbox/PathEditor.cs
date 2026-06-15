@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Threading.Tasks;
 
 using FreeTrainSimulator.Common.Input;
@@ -63,8 +64,9 @@ namespace FreeTrainSimulator.Toolbox
                 OnPathChanged?.Invoke(this, new PathEditorChangedEventArgs(TrainPath));
                 return true;
             }
-            catch (Exception ex) when (ex is Exception)
+            catch (Exception ex)
             {
+                Trace.TraceWarning($"Failed to initialize path editor: {ex.Message}");
                 return false;
             }
         }

@@ -1,5 +1,9 @@
 using System;
 using System.Collections.Immutable;
+using System.Diagnostics;
+using System.IO;
+using System.Threading;
+using System.Threading.Tasks;
 
 using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Graphics;
@@ -137,7 +141,8 @@ namespace FreeTrainSimulator.Toolbox
         public void SelectFolder(FolderModel folder)
         {
             ArgumentNullException.ThrowIfNull(folder);
-            game.InvokeOnGameThread(async () =>
+
+            InvokeOnGameThreadAsync($"Select content folder '{folder.Name}'", async () =>
             {
                 game.UnloadRoute();
                 ((IToolboxMenu)this).PopulateRoutes(await game.FindRoutes(folder).ConfigureAwait(true));
@@ -148,7 +153,8 @@ namespace FreeTrainSimulator.Toolbox
         public void ToggleRoute(RouteModelHeader route)
         {
             ArgumentNullException.ThrowIfNull(route);
-            game.InvokeOnGameThread(async () =>
+
+            InvokeOnGameThreadAsync($"Toggle route '{route.Name}'", async () =>
             {
                 if (string.Equals(SelectedRouteName, route.Name, StringComparison.Ordinal))
                 {
@@ -207,6 +213,32 @@ namespace FreeTrainSimulator.Toolbox
         /// <summary>Updates the language preference.</summary>
         public void UpdateLanguagePreference(string language)
             => game.InvokeOnGameThread(() => game.UpdateLanguagePreference(language));
+
+        private void InvokeOnGameThreadAsync(string operationName, Func<Task> action)
+        {
+            _ = game.InvokeOnGameThreadAsync(async () =>
+            {
+                try
+                {
+                    await action().ConfigureAwait(true);
+                }
+                catch (OperationCanceledException ex)
+                {
+                    Trace.TraceInformation($"Hosted menu operation canceled: {operationName}. {ex.Message}");
+                    throw;
+                }
+                catch (InvalidOperationException ex)
+                {
+                    Trace.TraceError($"Hosted menu operation failed: {operationName}. {ex}");
+                    throw;
+                }
+                catch (IOException ex)
+                {
+                    Trace.TraceError($"Hosted menu operation failed: {operationName}. {ex}");
+                    throw;
+                }
+            });
+        }
 
         #endregion
     }

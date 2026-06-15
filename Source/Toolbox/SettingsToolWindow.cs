@@ -10,9 +10,9 @@ namespace FreeTrainSimulator.Toolbox
     /// Hosted-mode bridge between <see cref="GameWindow"/> and a dockable WPF settings tool window.
     /// <para>
     /// Settings are interactive/two-way: the WPF view model reads the current boolean values and writes
-    /// changes back. The two plain preferences (logging, restore-last-view) are read/written directly on the
-    /// injected settings models. The two preferences with game-side side effects (font outline, real track
-    /// width) are applied through the injected callbacks, which <see cref="GameWindow"/> marshals onto the
+    /// changes back. The restore-last-view preference is read/written directly on the injected settings model.
+    /// The preferences with game-side side effects (logging, font outline, real track width) are applied through
+    /// the injected callbacks, which <see cref="GameWindow"/> marshals onto the
     /// game thread. Injecting the models/callbacks instead of the concrete <see cref="GameWindow"/> keeps this
     /// bridge decoupled and unit-testable.
     /// </para>
@@ -21,17 +21,20 @@ namespace FreeTrainSimulator.Toolbox
     {
         private readonly ProfileToolboxSettingsModel toolboxSettings;
         private readonly ProfileUserSettingsModel userSettings;
+        private readonly Action<bool> applyEnableLogging;
         private readonly Action<bool> applyFontOutline;
         private readonly Action<bool> applyRealTrackWidth;
 
         internal SettingsToolWindow(
             ProfileToolboxSettingsModel toolboxSettings,
             ProfileUserSettingsModel userSettings,
+            Action<bool> applyEnableLogging,
             Action<bool> applyFontOutline,
             Action<bool> applyRealTrackWidth)
         {
             this.toolboxSettings = toolboxSettings ?? throw new ArgumentNullException(nameof(toolboxSettings));
             this.userSettings = userSettings ?? throw new ArgumentNullException(nameof(userSettings));
+            this.applyEnableLogging = applyEnableLogging ?? throw new ArgumentNullException(nameof(applyEnableLogging));
             this.applyFontOutline = applyFontOutline ?? throw new ArgumentNullException(nameof(applyFontOutline));
             this.applyRealTrackWidth = applyRealTrackWidth ?? throw new ArgumentNullException(nameof(applyRealTrackWidth));
         }
@@ -53,7 +56,7 @@ namespace FreeTrainSimulator.Toolbox
 
         /// <summary>Enables or disables logging by switching the log level.</summary>
         public void SetEnableLogging(bool value)
-            => userSettings.LogLevel = value ? TraceEventType.Verbose : TraceEventType.Critical;
+            => applyEnableLogging(value);
 
         /// <summary>Sets whether the last view is restored on start.</summary>
         public void SetRestoreLastView(bool value)

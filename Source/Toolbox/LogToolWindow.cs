@@ -12,14 +12,19 @@ namespace FreeTrainSimulator.Toolbox
     /// </summary>
     internal sealed class LogToolWindow : IToolboxToolWindow
     {
-        private readonly string logFilePath;
+        private readonly Func<string> logFilePathAccessor;
         private volatile ToolWindowSnapshot snapshot = ToolWindowSnapshot.Empty;
         private volatile bool active;
         private string previousContent = string.Empty;
 
         internal LogToolWindow(string logFilePath)
+            : this(() => logFilePath)
         {
-            this.logFilePath = logFilePath;
+        }
+
+        internal LogToolWindow(Func<string> logFilePathAccessor)
+        {
+            this.logFilePathAccessor = logFilePathAccessor ?? throw new ArgumentNullException(nameof(logFilePathAccessor));
         }
 
         public ToolboxWindowType WindowType => ToolboxWindowType.LogWindow;
@@ -51,6 +56,7 @@ namespace FreeTrainSimulator.Toolbox
 
         private string ReadLogContent()
         {
+            string logFilePath = logFilePathAccessor();
             if (string.IsNullOrWhiteSpace(logFilePath) || !File.Exists(logFilePath))
                 return string.Empty;
 

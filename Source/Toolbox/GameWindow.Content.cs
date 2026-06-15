@@ -67,6 +67,7 @@ namespace FreeTrainSimulator.Toolbox
                 {
                     pathEditor = new PathEditor(toolboxContent, userCommandController);
                     pathEditor.OnPathChanged += PathEditor_OnEditorPathChanged;
+                    pathEditor.OnPathUpdated += PathEditor_OnEditorPathUpdated;
                     OnPathEditorChanged?.Invoke(this, new PathEditorAvailabilityChangedEventArgs(pathEditor));
                 }
                 return pathEditor;
@@ -88,7 +89,13 @@ namespace FreeTrainSimulator.Toolbox
 
         private void PathEditor_OnEditorPathChanged(object sender, PathEditorChangedEventArgs e)
         {
+            hostedTrainPathToolWindow?.MarkDirty();
             menu.PreSelectPath(e.Path?.PathModel);
+        }
+
+        private void PathEditor_OnEditorPathUpdated(object sender, PathEditorChangedEventArgs e)
+        {
+            hostedTrainPathToolWindow?.MarkDirty();
         }
 
         internal async Task<bool> LoadFolders()
@@ -164,7 +171,9 @@ namespace FreeTrainSimulator.Toolbox
             toolboxContent.InitializeItemVisiblity(ToolboxSettings.ViewSettings);
             toolboxContent.UpdateWidgetColorSettings(ToolboxSettings.ColorSettings, ToolboxSettings.FontOutline, ToolboxSettings.LimitTrackWidth);
             ContentArea = ((IXnaMapShellHost)toolboxContent.ShellHost).Component as ContentArea;
-            menu.PopulatePaths(await pathTask.ConfigureAwait(true));
+            ImmutableArray<PathModelHeader> paths = await pathTask.ConfigureAwait(true);
+            menu.PopulatePaths(paths);
+            hostedTrainPathToolWindow?.UpdatePaths(paths);
             _ = windowManager[ToolboxWindowType.StatusWindow].Close();
             selectedRoute = route;
         }
@@ -223,6 +232,8 @@ namespace FreeTrainSimulator.Toolbox
             menu.ClearPathMenu();
             if (pathEditor != null)
             {
+                pathEditor.OnPathChanged -= PathEditor_OnEditorPathChanged;
+                pathEditor.OnPathUpdated -= PathEditor_OnEditorPathUpdated;
                 pathEditor.Dispose();
                 pathEditor = null;
                 OnPathEditorChanged?.Invoke(this, new PathEditorAvailabilityChangedEventArgs(null));
