@@ -64,9 +64,9 @@ namespace FreeTrainSimulator.Toolbox
                 OnPathChanged?.Invoke(this, new PathEditorChangedEventArgs(TrainPath));
                 return true;
             }
-            catch (Exception ex)
+            catch (Exception ex) when (ex is InvalidOperationException || ex is ArgumentException)
             {
-                Trace.TraceWarning($"Failed to initialize path editor: {ex.Message}");
+                Trace.TraceError($"Failed to initialize path editor: {ex.Message}");
                 return false;
             }
         }

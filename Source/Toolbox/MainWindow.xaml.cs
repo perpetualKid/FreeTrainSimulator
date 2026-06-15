@@ -6,6 +6,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Xaml;
 using System.Xml.Linq;
 
 using AvalonDock.Layout;
@@ -111,7 +112,7 @@ namespace FreeTrainSimulator.Toolbox.Wpf
                 HookToolWindowAnchorable(descriptor.EnsureAnchorable, ToolWindowAnchorable_PropertyChanged);
         }
 
-        private void HookToolWindowAnchorable(Func<LayoutAnchorable> ensureAnchorable, PropertyChangedEventHandler handler)
+        private static void HookToolWindowAnchorable(Func<LayoutAnchorable> ensureAnchorable, PropertyChangedEventHandler handler)
         {
             ArgumentNullException.ThrowIfNull(ensureAnchorable);
             ArgumentNullException.ThrowIfNull(handler);
@@ -525,9 +526,9 @@ namespace FreeTrainSimulator.Toolbox.Wpf
                 using StringReader stringReader = new(toolboxSettings.DockLayoutXml);
                 serializer.Deserialize(stringReader);
             }
-            catch (Exception ex)
+            catch (Exception ex) when (ex is IOException || ex is InvalidOperationException || ex is XamlParseException)
             {
-                Trace.TraceWarning($"Failed to load dock layout: {ex.Message}");
+                Trace.TraceError($"Failed to load dock layout: {ex.Message}");
             }
         }
 
@@ -546,9 +547,9 @@ namespace FreeTrainSimulator.Toolbox.Wpf
                 toolboxSettings.DockLayoutXml = dockLayoutXml;
                 await MapHost.SaveHostedSettingsAsync(dockLayoutXml).ConfigureAwait(true);
             }
-            catch (Exception ex)
+            catch (Exception ex) when (ex is not ObjectDisposedException)
             {
-                Trace.TraceWarning($"Failed to save dock layout: {ex.Message}");
+            Trace.TraceWarning($"Failed to save dock layout: {ex.Message}");
             }
         }
 
@@ -578,8 +579,9 @@ namespace FreeTrainSimulator.Toolbox.Wpf
                 // Missing map document in persisted layout is treated as invalid.
                 return true;
             }
-            catch
+            catch (Exception ex) when (ex is not System.Xml.XmlException)
             {
+                Trace.TraceError($"Failed to parse dock layout XML: {ex.Message}");
                 return true;
             }
         }
@@ -645,7 +647,7 @@ namespace FreeTrainSimulator.Toolbox.Wpf
                 return;
             }
 
-            e.Cancel = true;
+            e?.Cancel = true;
             if (isShuttingDown)
                 return;
 

@@ -257,7 +257,7 @@ namespace FreeTrainSimulator.Toolbox.Wpf.Hosting
         // which strips WS_CHILD; this restores it. All calls here target the child window owned by the
         // calling (game) thread, so no cross-thread blocking occurs. Parenting (SetParent) is established
         // once in AttachHostedWindow and is not repeated here.
-        private void ConfigureChildWindow(IntPtr windowHandle, int width, int height)
+        private static void ConfigureChildWindow(IntPtr windowHandle, int width, int height)
         {
             long styleValue = NativeMethods.GetWindowStyle(windowHandle).ToInt64();
             styleValue &= ~(long)(NativeMethods.WsPopup | NativeMethods.WsCaption | NativeMethods.WsThickFrame | NativeMethods.WsMinimize | NativeMethods.WsMaximize | NativeMethods.WsSysMenu);
@@ -386,6 +386,7 @@ namespace FreeTrainSimulator.Toolbox.Wpf.Hosting
             }
 
             gameThread = null;
+            gameWindow?.Dispose();
             gameWindow = null;
 
             // Dispose the panel only after the game thread has stopped touching the child window.

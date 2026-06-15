@@ -71,10 +71,10 @@ namespace FreeTrainSimulator.Toolbox
                 }
                 if (value != null)
                 {
-                    IMapHostControl hostControl = value;
-                    hostControl.ResetSize(Window.ClientBounds.Size, 60);
+                    ContentArea contentArea = value;
+                    contentArea.ResetSize(Window.ClientBounds.Size, 60);
                     Components.Add(value);
-                    hostControl.IsEnabled = true;
+                    contentArea.IsEnabled = true;
                     Window.Title = windowTitle + Catalog.GetString($" Route: {value.Content.RouteName}");
                 }
                 contentArea = value;
@@ -764,7 +764,7 @@ namespace FreeTrainSimulator.Toolbox
                             windowManager[windowType].Open();
                     }
                 }
-                catch (Exception ex)
+                catch (Exception ex) when (ex is not OperationCanceledException)
                 {
                     Trace.TraceError($"Error restoring last view: {ex}");
                     windowManager[ToolboxWindowType.StatusWindow].Close();

@@ -26,55 +26,60 @@ namespace Tests.FreeTrainSimulator.Toolbox
         public void WhenEnableLoggingSetThenUserSettingsLogLevelChanges()
         {
             ProfileUserSettingsModel userSettings = new() { LogLevel = TraceEventType.Critical };
-            SettingsToolWindowViewModel sut = new(CreateBridge(new ProfileToolboxSettingsModel(), userSettings));
+            using (SettingsToolWindowViewModel sut = new SettingsToolWindowViewModel(CreateBridge(new ProfileToolboxSettingsModel(), userSettings)))
+            {
+                sut.EnableLogging = true;
 
-            sut.EnableLogging = true;
-
-            Assert.AreNotEqual(TraceEventType.Critical, userSettings.LogLevel);
+                Assert.AreNotEqual(TraceEventType.Critical, userSettings.LogLevel);
+            }
         }
 
         [TestMethod]
         public void WhenRestoreLastViewSetThenToolboxSettingsChange()
         {
             ProfileToolboxSettingsModel toolboxSettings = new() { RestoreLastView = false };
-            SettingsToolWindowViewModel sut = new(CreateBridge(toolboxSettings, new ProfileUserSettingsModel()));
+            using (SettingsToolWindowViewModel sut = new SettingsToolWindowViewModel(CreateBridge(toolboxSettings, new ProfileUserSettingsModel())))
+            {
+                sut.RestoreLastView = true;
 
-            sut.RestoreLastView = true;
-
-            Assert.IsTrue(toolboxSettings.RestoreLastView);
+                Assert.IsTrue(toolboxSettings.RestoreLastView);
+            }
         }
 
         [TestMethod]
         public void WhenFontOutlineSetThenToolboxSettingsChange()
         {
             ProfileToolboxSettingsModel toolboxSettings = new() { FontOutline = false };
-            SettingsToolWindowViewModel sut = new(CreateBridge(toolboxSettings, new ProfileUserSettingsModel()));
+            using (SettingsToolWindowViewModel sut = new SettingsToolWindowViewModel(CreateBridge(toolboxSettings, new ProfileUserSettingsModel())))
+            {
+                sut.FontOutline = true;
 
-            sut.FontOutline = true;
-
-            Assert.IsTrue(toolboxSettings.FontOutline);
+                Assert.IsTrue(toolboxSettings.FontOutline);
+            }
         }
 
         [TestMethod]
         public void WhenRealTrackWidthSetThenLimitTrackWidthIsInverted()
         {
             ProfileToolboxSettingsModel toolboxSettings = new() { LimitTrackWidth = true };
-            SettingsToolWindowViewModel sut = new(CreateBridge(toolboxSettings, new ProfileUserSettingsModel()));
+            using (SettingsToolWindowViewModel sut = new SettingsToolWindowViewModel(CreateBridge(toolboxSettings, new ProfileUserSettingsModel())))
+            {
+                sut.RealTrackWidth = true;
 
-            sut.RealTrackWidth = true;
-
-            Assert.IsFalse(toolboxSettings.LimitTrackWidth);
+                Assert.IsFalse(toolboxSettings.LimitTrackWidth);
+            }
         }
 
         [TestMethod]
         public void WhenSetThenOptimisticGetterReflectsValueImmediately()
         {
             ProfileToolboxSettingsModel toolboxSettings = new() { FontOutline = false };
-            SettingsToolWindowViewModel sut = new(CreateBridge(toolboxSettings, new ProfileUserSettingsModel()));
+            using (SettingsToolWindowViewModel sut = new SettingsToolWindowViewModel(CreateBridge(toolboxSettings, new ProfileUserSettingsModel())))
+            {
+                sut.FontOutline = true;
 
-            sut.FontOutline = true;
-
-            Assert.IsTrue(sut.FontOutline);
+                Assert.IsTrue(sut.FontOutline);
+            }
         }
 
         [TestMethod]
@@ -88,41 +93,46 @@ namespace Tests.FreeTrainSimulator.Toolbox
                 _ => { },
                 _ => writes++,
                 _ => { });
-            SettingsToolWindowViewModel sut = new(bridge);
+            using (SettingsToolWindowViewModel sut = new SettingsToolWindowViewModel(bridge))
+            {
+                sut.FontOutline = true;
 
-            sut.FontOutline = true;
-
-            Assert.AreEqual(0, writes);
+                Assert.AreEqual(0, writes);
+            }
         }
 
         [TestMethod]
         public void WhenStartThenGettersAreReSyncedFromModels()
         {
             ProfileToolboxSettingsModel toolboxSettings = new() { FontOutline = false };
-            SettingsToolWindowViewModel sut = new(CreateBridge(toolboxSettings, new ProfileUserSettingsModel()));
-            toolboxSettings.FontOutline = true;
+            using (SettingsToolWindowViewModel sut = new SettingsToolWindowViewModel(CreateBridge(toolboxSettings, new ProfileUserSettingsModel())))
+            {
+                toolboxSettings.FontOutline = true;
 
-            sut.Start();
+                sut.Start();
 
-            Assert.IsTrue(sut.FontOutline);
+                Assert.IsTrue(sut.FontOutline);
+            }
         }
 
         [TestMethod]
         public void WhenStartReSyncsThenChangeNotificationIsRaised()
         {
             ProfileToolboxSettingsModel toolboxSettings = new() { FontOutline = false };
-            SettingsToolWindowViewModel sut = new(CreateBridge(toolboxSettings, new ProfileUserSettingsModel()));
-            toolboxSettings.FontOutline = true;
-            bool raised = false;
-            sut.PropertyChanged += (_, e) =>
+            using (SettingsToolWindowViewModel sut = new SettingsToolWindowViewModel(CreateBridge(toolboxSettings, new ProfileUserSettingsModel())))
+            {
+                toolboxSettings.FontOutline = true;
+                bool raised = false;
+                sut.PropertyChanged += (_, e) =>
             {
                 if (e.PropertyName == nameof(SettingsToolWindowViewModel.FontOutline))
                     raised = true;
             };
 
-            sut.Start();
+                sut.Start();
 
-            Assert.IsTrue(raised);
+                Assert.IsTrue(raised);
+            }
         }
     }
 }

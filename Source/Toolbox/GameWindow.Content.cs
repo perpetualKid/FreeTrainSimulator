@@ -74,6 +74,18 @@ namespace FreeTrainSimulator.Toolbox
             }
         }
 
+        protected override void Dispose(bool disposing)
+        {
+            loadRouteSemaphore?.Release();
+            loadRouteSemaphore?.Dispose();
+            pathEditor?.Dispose();
+            windowManager?.Dispose();
+            spriteBatch?.Dispose();
+            graphicsDeviceManager?.Dispose();
+            windowForm?.Dispose();
+            base.Dispose(disposing);
+        }
+
         // Returns the existing path editor without creating it (the PathEditor getter lazily creates and
         // raises events). Used by the hosted train-path tool window so reading the snapshot never forces
         // editor creation. Null until a path edit session exists.
@@ -84,7 +96,7 @@ namespace FreeTrainSimulator.Toolbox
         // route is loaded.
         internal ITrainPathToolingContext HostedTrainPathToolingContext =>
             selectedRoute == null ? null : new TrainPathToolingContext(selectedRoute,
-                ToolboxUserSettings.MeasurementUnit == MeasurementUnit.Route ? selectedRoute?.MetricUnits ?? true :
+                ToolboxUserSettings.MeasurementUnit == MeasurementUnit.Route ? selectedRoute.MetricUnits :
                 ToolboxUserSettings.MeasurementUnit == MeasurementUnit.Metric || (ToolboxUserSettings.MeasurementUnit == MeasurementUnit.System && System.Globalization.RegionInfo.CurrentRegion.IsMetric));
 
         private void PathEditor_OnEditorPathChanged(object sender, PathEditorChangedEventArgs e)
@@ -160,7 +172,7 @@ namespace FreeTrainSimulator.Toolbox
             if (ctsProfileLoading.Token.IsCancellationRequested)
                 return;
 
-            IMapContentFactory contentFactory = new XnaMapContentFactory();
+            XnaMapContentFactory contentFactory = new XnaMapContentFactory();
             toolboxContent = contentFactory.CreateToolboxContent(
                 this,
                 Components.OfType<MouseInputGameComponent>().FirstOrDefault(),
