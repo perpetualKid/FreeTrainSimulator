@@ -1,6 +1,6 @@
 using System;
 
-using FreeTrainSimulator.Toolbox;
+using FreeTrainSimulator.Toolbox.ToolWindows;
 
 namespace FreeTrainSimulator.Toolbox.Wpf.ViewModels
 {

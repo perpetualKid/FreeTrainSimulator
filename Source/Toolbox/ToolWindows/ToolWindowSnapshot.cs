@@ -1,7 +1,7 @@
 using System.Collections.Immutable;
 using System.Drawing;
 
-namespace FreeTrainSimulator.Toolbox
+namespace FreeTrainSimulator.Toolbox.ToolWindows
 {
     /// <summary>
     /// A single name/value row in a tool-window snapshot, with the formatting needed to render it.

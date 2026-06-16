@@ -1,6 +1,7 @@
+using FreeTrainSimulator.Toolbox;
 using FreeTrainSimulator.Toolbox.PopupWindows;
 
-namespace FreeTrainSimulator.Toolbox
+namespace FreeTrainSimulator.Toolbox.ToolWindows
 {
     /// <summary>
     /// Abstraction over a hosted, read-only toolbox tool window that the WPF shell binds to. Mirrors

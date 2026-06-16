@@ -4,6 +4,8 @@ using System.Collections.ObjectModel;
 using System.Drawing;
 using System.Windows.Threading;
 
+using FreeTrainSimulator.Toolbox.ToolWindows;
+
 namespace FreeTrainSimulator.Toolbox.Wpf.ViewModels
 {
     /// <summary>

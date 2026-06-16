@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using FreeTrainSimulator.Common.DebugInfo;
 using FreeTrainSimulator.Graphics.MapView;
 using FreeTrainSimulator.Runtime.Track;
-using FreeTrainSimulator.Toolbox;
+using FreeTrainSimulator.Toolbox.ToolWindows;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 

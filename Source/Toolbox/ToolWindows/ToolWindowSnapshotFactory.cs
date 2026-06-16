@@ -5,7 +5,7 @@ using System.Drawing;
 using FreeTrainSimulator.Common.DebugInfo;
 using FreeTrainSimulator.Toolbox.PopupWindows;
 
-namespace FreeTrainSimulator.Toolbox
+namespace FreeTrainSimulator.Toolbox.ToolWindows
 {
     /// <summary>
     /// Builds immutable <see cref="ToolWindowSnapshot"/> instances from MonoGame-side

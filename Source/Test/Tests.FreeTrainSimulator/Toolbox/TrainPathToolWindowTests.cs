@@ -2,7 +2,7 @@ using System.Collections.Immutable;
 using System.Threading.Tasks;
 
 using FreeTrainSimulator.Models.Content;
-using FreeTrainSimulator.Toolbox;
+using FreeTrainSimulator.Toolbox.ToolWindows;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 

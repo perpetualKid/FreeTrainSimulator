@@ -4,7 +4,7 @@ using System.Diagnostics;
 using FreeTrainSimulator.Models.Settings;
 using FreeTrainSimulator.Toolbox.Settings;
 
-namespace FreeTrainSimulator.Toolbox
+namespace FreeTrainSimulator.Toolbox.ToolWindows
 {
     /// <summary>
     /// Hosted-mode bridge between <see cref="GameWindow"/> and a dockable WPF settings tool window.

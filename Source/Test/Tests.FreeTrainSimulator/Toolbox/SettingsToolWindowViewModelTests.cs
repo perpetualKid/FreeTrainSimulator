@@ -3,6 +3,7 @@ using System.Diagnostics;
 using FreeTrainSimulator.Models.Settings;
 using FreeTrainSimulator.Toolbox;
 using FreeTrainSimulator.Toolbox.Settings;
+using FreeTrainSimulator.Toolbox.ToolWindows;
 using FreeTrainSimulator.Toolbox.Wpf.ViewModels;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;

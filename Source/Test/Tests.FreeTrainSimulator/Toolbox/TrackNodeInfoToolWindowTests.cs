@@ -1,4 +1,4 @@
-using FreeTrainSimulator.Toolbox;
+using FreeTrainSimulator.Toolbox.ToolWindows;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 

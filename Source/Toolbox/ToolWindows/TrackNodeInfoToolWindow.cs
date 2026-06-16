@@ -5,7 +5,7 @@ using FreeTrainSimulator.Graphics.MapView;
 using FreeTrainSimulator.Runtime.Track;
 using FreeTrainSimulator.Toolbox.PopupWindows;
 
-namespace FreeTrainSimulator.Toolbox
+namespace FreeTrainSimulator.Toolbox.ToolWindows
 {
     /// <summary>
     /// Hosted-mode bridge exposing the read-only track node information provider as a dockable WPF tool

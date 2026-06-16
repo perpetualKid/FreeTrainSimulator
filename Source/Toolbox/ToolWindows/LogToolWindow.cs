@@ -5,7 +5,7 @@ using System.IO;
 
 using FreeTrainSimulator.Toolbox.PopupWindows;
 
-namespace FreeTrainSimulator.Toolbox
+namespace FreeTrainSimulator.Toolbox.ToolWindows
 {
     /// <summary>
     /// Hosted-mode bridge exposing read-only log file content for a dockable WPF log window.

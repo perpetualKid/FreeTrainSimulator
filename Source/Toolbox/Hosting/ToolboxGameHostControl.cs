@@ -8,6 +8,7 @@ using System.Windows.Threading;
 
 using FreeTrainSimulator.Common.Native;
 using FreeTrainSimulator.Models.Content;
+using FreeTrainSimulator.Toolbox.ToolWindows;
 
 namespace FreeTrainSimulator.Toolbox.Wpf.Hosting
 {

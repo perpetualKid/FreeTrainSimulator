@@ -7,7 +7,7 @@ using FreeTrainSimulator.Graphics.MapView;
 using FreeTrainSimulator.Toolbox.PopupWindows;
 using FreeTrainSimulator.Toolbox.Settings;
 
-namespace FreeTrainSimulator.Toolbox
+namespace FreeTrainSimulator.Toolbox.ToolWindows
 {
     /// <summary>
     /// Hosted-mode bridge exposing read-only map location data for a dockable WPF location window.

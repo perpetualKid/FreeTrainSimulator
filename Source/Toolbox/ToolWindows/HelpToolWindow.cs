@@ -5,7 +5,7 @@ using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Toolbox.PopupWindows;
 using FreeTrainSimulator.Toolbox.Settings;
 
-namespace FreeTrainSimulator.Toolbox
+namespace FreeTrainSimulator.Toolbox.ToolWindows
 {
     /// <summary>
     /// Hosted-mode bridge exposing read-only help command/key bindings for a dockable WPF help tool window.

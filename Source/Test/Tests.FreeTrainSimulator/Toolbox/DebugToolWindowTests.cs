@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.Drawing;
 
 using FreeTrainSimulator.Common.DebugInfo;
-using FreeTrainSimulator.Toolbox;
+using FreeTrainSimulator.Toolbox.ToolWindows;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 

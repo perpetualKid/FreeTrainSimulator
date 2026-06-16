@@ -3,7 +3,7 @@ using System.Collections.Immutable;
 using FreeTrainSimulator.Common.DebugInfo;
 using FreeTrainSimulator.Toolbox.PopupWindows;
 
-namespace FreeTrainSimulator.Toolbox
+namespace FreeTrainSimulator.Toolbox.ToolWindows
 {
     /// <summary>
     /// Hosted-mode bridge that surfaces the read-only debug/graphics information providers as a dockable
