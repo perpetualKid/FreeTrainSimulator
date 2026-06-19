@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Graphics;
 
-namespace FreeTrainSimulator.Toolbox.Wpf.ViewModels
+namespace FreeTrainSimulator.Toolbox.ViewModels
 {
     /// <summary>
     /// Bindable item for a single map content-type visibility toggle in the settings tool window. Uses an

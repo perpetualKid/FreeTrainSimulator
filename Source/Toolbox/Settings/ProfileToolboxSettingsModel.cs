@@ -28,17 +28,17 @@ namespace FreeTrainSimulator.Toolbox.Settings
         /// Window Screen to be used
         /// </summary>
         public int WindowScreen { get; set; }
-        
+
         /// <summary>
         /// Last used center point of most recent route
         /// </summary>
         public PointD ContentPosition { get; set; }
-        
+
         /// <summary>
         /// Most recent scale factor
         /// </summary>
         public double ContentScale { get; set; }
-        
+
         /// <summary>
         /// Track Item Color settings
         /// </summary>
@@ -129,7 +129,7 @@ namespace FreeTrainSimulator.Toolbox.Settings
         public bool FontOutline { get; set; } = true;
 
         // Route selections
-        
+
         public string Folder { get; set; }
 
         public string RouteId { get; set; }

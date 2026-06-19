@@ -6,7 +6,7 @@ using System.Windows.Threading;
 
 using FreeTrainSimulator.Toolbox.ToolWindows;
 
-namespace FreeTrainSimulator.Toolbox.Wpf.ViewModels
+namespace FreeTrainSimulator.Toolbox.ViewModels
 {
     /// <summary>
     /// Bindable view model for the hosted debug dockable tool window. Uses a pull model: a dispatcher timer

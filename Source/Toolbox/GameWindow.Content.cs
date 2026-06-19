@@ -197,7 +197,7 @@ namespace FreeTrainSimulator.Toolbox
 
         internal void EditPath()
         {
-            PathEditor.InitializeNewPath();            
+            PathEditor.InitializeNewPath();
         }
 
         // Raised on the game thread in hosted mode when the user requests a path save, so the WPF shell can

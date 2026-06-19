@@ -10,7 +10,7 @@ using FreeTrainSimulator.Common.Native;
 using FreeTrainSimulator.Models.Content;
 using FreeTrainSimulator.Toolbox.ToolWindows;
 
-namespace FreeTrainSimulator.Toolbox.Wpf.Hosting
+namespace FreeTrainSimulator.Toolbox.Hosting
 {
     public sealed class ToolboxGameHostControl : WindowsFormsHost
     {

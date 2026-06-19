@@ -1,7 +1,7 @@
 using System;
 using System.Windows.Input;
 
-namespace FreeTrainSimulator.Toolbox.Wpf.ViewModels
+namespace FreeTrainSimulator.Toolbox.ViewModels
 {
     /// <summary>
     /// Minimal <see cref="ICommand"/> implementation that forwards execution to a delegate.

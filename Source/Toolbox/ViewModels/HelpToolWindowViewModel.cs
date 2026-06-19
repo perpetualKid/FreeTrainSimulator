@@ -4,7 +4,7 @@ using System.Windows.Threading;
 
 using FreeTrainSimulator.Toolbox.ToolWindows;
 
-namespace FreeTrainSimulator.Toolbox.Wpf.ViewModels
+namespace FreeTrainSimulator.Toolbox.ViewModels
 {
     /// <summary>
     /// Bindable view model for the hosted help dockable tool window. Exposes command/key rows and

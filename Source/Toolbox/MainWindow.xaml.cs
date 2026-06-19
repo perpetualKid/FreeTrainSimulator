@@ -15,11 +15,11 @@ using AvalonDock.Layout.Serialization;
 using FreeTrainSimulator.Common.Info;
 using FreeTrainSimulator.Models.Settings;
 using FreeTrainSimulator.Models.Shim;
+using FreeTrainSimulator.Toolbox.Dialogs;
 using FreeTrainSimulator.Toolbox.Settings;
-using FreeTrainSimulator.Toolbox.Wpf.Dialogs;
-using FreeTrainSimulator.Toolbox.Wpf.ViewModels;
+using FreeTrainSimulator.Toolbox.ViewModels;
 
-namespace FreeTrainSimulator.Toolbox.Wpf
+namespace FreeTrainSimulator.Toolbox
 {
     public partial class MainWindow : Window
     {
@@ -36,6 +36,7 @@ namespace FreeTrainSimulator.Toolbox.Wpf
         private readonly MainWindowViewModel viewModel = new MainWindowViewModel();
         private ProfileModel currentProfile;
         private ProfileToolboxSettingsModel toolboxSettings;
+        private string defaultDockLayoutXml;
         private bool isShuttingDown;
         private bool shutdownCompleted;
         private int deactivationSequence;
@@ -95,6 +96,7 @@ namespace FreeTrainSimulator.Toolbox.Wpf
             viewModel.ToggleHelpToolCommand = new RelayCommand(_ => ToggleToolWindow(HelpToolWindowContentId), _ => viewModel.HelpTool != null);
             viewModel.ToggleSettingsToolCommand = new RelayCommand(_ => ToggleToolWindow(SettingsToolWindowContentId), _ => viewModel.SettingsTool != null);
             viewModel.ToggleTrainPathToolCommand = new RelayCommand(_ => ToggleToolWindow(TrainPathToolWindowContentId), _ => viewModel.TrainPathTool != null);
+            viewModel.ResetSettingsCommand = new RelayCommand(_ => ResetToDefaults(), _ => viewModel.SettingsTool != null);
         }
 
         private void InitializeToolWindowDescriptors()
@@ -144,6 +146,7 @@ namespace FreeTrainSimulator.Toolbox.Wpf
             viewModel.ToggleHelpToolCommand?.RaiseCanExecuteChanged();
             viewModel.ToggleSettingsToolCommand?.RaiseCanExecuteChanged();
             viewModel.ToggleTrainPathToolCommand?.RaiseCanExecuteChanged();
+            viewModel.ResetSettingsCommand?.RaiseCanExecuteChanged();
         }
 
         private void UpdateAllToolWindowLifecycles()
@@ -547,6 +550,10 @@ namespace FreeTrainSimulator.Toolbox.Wpf
 
         private async Task LoadDockLayoutAsync()
         {
+            // Capture the XAML-defined layout before any persisted layout is applied so it can be restored by
+            // the settings "Reset to Defaults" action.
+            CaptureDefaultDockLayout();
+
             try
             {
                 currentProfile = await currentProfile.Current(CancellationToken.None).ConfigureAwait(true);
@@ -563,14 +570,42 @@ namespace FreeTrainSimulator.Toolbox.Wpf
                     return;
                 }
 
-                XmlLayoutSerializer serializer = new(DockingManager);
-                using StringReader stringReader = new(toolboxSettings.DockLayoutXml);
-                serializer.Deserialize(stringReader);
+                DeserializeDockLayout(toolboxSettings.DockLayoutXml);
             }
             catch (Exception ex) when (ex is IOException || ex is InvalidOperationException || ex is XamlParseException)
             {
                 Trace.TraceError($"Failed to load dock layout: {ex.Message}");
             }
+        }
+
+        private void CaptureDefaultDockLayout()
+        {
+            if (defaultDockLayoutXml is not null)
+                return;
+
+            try
+            {
+                defaultDockLayoutXml = SerializeDockLayout();
+            }
+            catch (Exception ex) when (ex is IOException || ex is InvalidOperationException)
+            {
+                Trace.TraceWarning($"Failed to capture default dock layout: {ex.Message}");
+            }
+        }
+
+        private string SerializeDockLayout()
+        {
+            XmlLayoutSerializer serializer = new(DockingManager);
+            using StringWriter stringWriter = new();
+            serializer.Serialize(stringWriter);
+            return stringWriter.ToString();
+        }
+
+        private void DeserializeDockLayout(string layoutXml)
+        {
+            XmlLayoutSerializer serializer = new(DockingManager);
+            using StringReader stringReader = new(layoutXml);
+            serializer.Deserialize(stringReader);
         }
 
         private async Task SaveDockLayoutAsync()
@@ -580,17 +615,66 @@ namespace FreeTrainSimulator.Toolbox.Wpf
                 if (toolboxSettings is null)
                     return;
 
-                XmlLayoutSerializer serializer = new(DockingManager);
-                using StringWriter stringWriter = new();
-                serializer.Serialize(stringWriter);
-
-                string dockLayoutXml = stringWriter.ToString();
+                string dockLayoutXml = SerializeDockLayout();
                 toolboxSettings.DockLayoutXml = dockLayoutXml;
                 await MapHost.SaveHostedSettingsAsync(dockLayoutXml).ConfigureAwait(true);
             }
             catch (Exception ex) when (ex is not ObjectDisposedException)
             {
-            Trace.TraceWarning($"Failed to save dock layout: {ex.Message}");
+                Trace.TraceWarning($"Failed to save dock layout: {ex.Message}");
+            }
+        }
+
+        // Command handler for the settings "Reset to Defaults" button. Confirms with the user, then resets the
+        // appearance preferences (colors, item visibility, font outline, real track width, restore-last-view)
+        // and the dock layout to their defaults, applying live and persisting immediately. Logging is left
+        // unchanged.
+        private async void ResetToDefaults()
+        {
+            try
+            {
+                if (viewModel.SettingsTool is null)
+                    return;
+
+                MessageBoxResult result = MessageBox.Show(
+                    this,
+                    "Reset the window layout, colors, item visibility, and appearance options to their defaults?"
+                        + Environment.NewLine + Environment.NewLine + "This cannot be undone.",
+                    "Reset to Defaults",
+                    MessageBoxButton.YesNo,
+                    MessageBoxImage.Warning);
+
+                if (result != MessageBoxResult.Yes)
+                    return;
+
+                viewModel.SettingsTool.ResetToDefaults();
+                ResetDockLayoutToDefault();
+                await SaveDockLayoutAsync().ConfigureAwait(true);
+            }
+            catch (InvalidOperationException ex)
+            {
+                Trace.TraceError($"Failed to reset settings to defaults: {ex}");
+            }
+        }
+
+        // Restores the XAML-defined default dock layout captured at startup, re-hooking the tool-window
+        // anchorables and re-syncing their visibility flags/lifecycles.
+        private void ResetDockLayoutToDefault()
+        {
+            if (string.IsNullOrWhiteSpace(defaultDockLayoutXml))
+                return;
+
+            try
+            {
+                UnhookToolWindowAnchorables();
+                DeserializeDockLayout(defaultDockLayoutXml);
+                HookToolWindowAnchorables();
+                UpdateAllToolWindowLifecycles();
+                UpdateHostedInputCapture();
+            }
+            catch (Exception ex) when (ex is IOException || ex is InvalidOperationException || ex is XamlParseException)
+            {
+                Trace.TraceError($"Failed to reset dock layout: {ex.Message}");
             }
         }
 

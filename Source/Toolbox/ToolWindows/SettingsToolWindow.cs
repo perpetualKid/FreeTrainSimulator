@@ -15,22 +15,18 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
     /// Hosted-mode bridge between <see cref="GameWindow"/> and a dockable WPF settings tool window.
     /// <para>
     /// Settings are interactive/two-way: the WPF view model reads the current boolean values and writes
-    /// changes back. The restore-last-view preference is read/written directly on the injected settings model.
-    /// The preferences with game-side side effects (logging, font outline, real track width, item visibility,
-    /// item colors) are applied through the injected callbacks, which <see cref="GameWindow"/> marshals onto the
-    /// game thread. Injecting the models/callbacks instead of the concrete <see cref="GameWindow"/> keeps this
-    /// bridge decoupled and unit-testable.
+    /// changes back. Preferences that are plain model writes (restore-last-view, item visibility) are applied
+    /// directly on the injected settings model. Preferences with live game-side side effects (logging, font
+    /// outline, real track width, item colors) are applied through the injected <see cref="ISettingsApplier"/>,
+    /// which marshals them onto the game thread. Injecting the model/applier instead of the concrete
+    /// <see cref="GameWindow"/> keeps this bridge decoupled and unit-testable.
     /// </para>
     /// </summary>
     internal sealed class SettingsToolWindow
     {
         private readonly ProfileToolboxSettingsModel toolboxSettings;
         private readonly ProfileUserSettingsModel userSettings;
-        private readonly Action<bool> applyEnableLogging;
-        private readonly Action<bool> applyFontOutline;
-        private readonly Action<bool> applyRealTrackWidth;
-        private readonly Action<MapContentType, bool> applyItemVisibility;
-        private readonly Action<ColorSetting, string> applyColorPreference;
+        private readonly ISettingsApplier applier;
 
         private static readonly IReadOnlyList<string> availableColorNames =
             ColorExtension.ColorCodes
@@ -41,19 +37,11 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
         internal SettingsToolWindow(
             ProfileToolboxSettingsModel toolboxSettings,
             ProfileUserSettingsModel userSettings,
-            Action<bool> applyEnableLogging,
-            Action<bool> applyFontOutline,
-            Action<bool> applyRealTrackWidth,
-            Action<MapContentType, bool> applyItemVisibility,
-            Action<ColorSetting, string> applyColorPreference)
+            ISettingsApplier applier)
         {
             this.toolboxSettings = toolboxSettings ?? throw new ArgumentNullException(nameof(toolboxSettings));
             this.userSettings = userSettings ?? throw new ArgumentNullException(nameof(userSettings));
-            this.applyEnableLogging = applyEnableLogging ?? throw new ArgumentNullException(nameof(applyEnableLogging));
-            this.applyFontOutline = applyFontOutline ?? throw new ArgumentNullException(nameof(applyFontOutline));
-            this.applyRealTrackWidth = applyRealTrackWidth ?? throw new ArgumentNullException(nameof(applyRealTrackWidth));
-            this.applyItemVisibility = applyItemVisibility ?? throw new ArgumentNullException(nameof(applyItemVisibility));
-            this.applyColorPreference = applyColorPreference ?? throw new ArgumentNullException(nameof(applyColorPreference));
+            this.applier = applier ?? throw new ArgumentNullException(nameof(applier));
         }
 
         /// <summary>Display title for the dock pane.</summary>
@@ -73,7 +61,7 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
 
         /// <summary>Enables or disables logging by switching the log level.</summary>
         public void SetEnableLogging(bool value)
-            => applyEnableLogging(value);
+            => applier.ApplyEnableLogging(value);
 
         /// <summary>Sets whether the last view is restored on start.</summary>
         public void SetRestoreLastView(bool value)
@@ -81,11 +69,11 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
 
         /// <summary>Sets the font-outline preference and re-applies the dependent colour/debug-screen state.</summary>
         public void SetFontOutline(bool value)
-            => applyFontOutline(value);
+            => applier.ApplyFontOutline(value);
 
         /// <summary>Sets the real-track-width preference and re-applies the dependent map redraw.</summary>
         public void SetRealTrackWidth(bool value)
-            => applyRealTrackWidth(value);
+            => applier.ApplyRealTrackWidth(value);
 
         /// <summary>The list of selectable color names, sorted for display.</summary>
         public IReadOnlyList<string> AvailableColorNames => availableColorNames;
@@ -94,9 +82,12 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
         public bool GetItemVisibility(MapContentType setting)
             => toolboxSettings.ViewSettings[setting];
 
-        /// <summary>Sets the visibility for a map content type and applies it to the live map.</summary>
+        /// <summary>
+        /// Sets the visibility for a map content type. This is a plain model write; the live map reads the
+        /// visibility flags during draw, so no game-side re-apply is needed.
+        /// </summary>
         public void SetItemVisibility(MapContentType setting, bool value)
-            => applyItemVisibility(setting, value);
+            => toolboxSettings.ViewSettings[setting] = value;
 
         /// <summary>Reads the current color name for a color setting.</summary>
         public string GetColorPreference(ColorSetting setting)
@@ -104,6 +95,29 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
 
         /// <summary>Sets the color for a color setting and applies it to the live map.</summary>
         public void SetColorPreference(ColorSetting setting, string colorName)
-            => applyColorPreference(setting, colorName);
+            => applier.ApplyColorPreference(setting, colorName);
+
+        /// <summary>
+        /// Resets the appearance-related preferences (item colors, item visibility, font outline, real track
+        /// width, and restore-last-view) to their model defaults, then re-applies them to the live map through
+        /// the injected applier. Logging is intentionally left unchanged. The window layout is reset separately
+        /// by the WPF shell.
+        /// </summary>
+        public void ResetToDefaults()
+        {
+            ProfileToolboxSettingsModel defaults = new ProfileToolboxSettingsModel();
+
+            foreach (ColorSetting setting in EnumExtension.GetValues<ColorSetting>())
+                toolboxSettings.ColorSettings[setting] = defaults.ColorSettings[setting];
+
+            foreach (MapContentType setting in EnumExtension.GetValues<MapContentType>())
+                toolboxSettings.ViewSettings[setting] = defaults.ViewSettings[setting];
+
+            toolboxSettings.FontOutline = defaults.FontOutline;
+            toolboxSettings.LimitTrackWidth = defaults.LimitTrackWidth;
+            toolboxSettings.RestoreLastView = defaults.RestoreLastView;
+
+            applier.ReapplyAppearance();
+        }
     }
 }

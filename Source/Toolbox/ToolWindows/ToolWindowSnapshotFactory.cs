@@ -3,7 +3,6 @@ using System.Collections.Immutable;
 using System.Drawing;
 
 using FreeTrainSimulator.Common.DebugInfo;
-using FreeTrainSimulator.Toolbox.PopupWindows;
 
 namespace FreeTrainSimulator.Toolbox.ToolWindows
 {

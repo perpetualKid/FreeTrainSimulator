@@ -6,7 +6,7 @@ using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Graphics;
 using FreeTrainSimulator.Toolbox.ToolWindows;
 
-namespace FreeTrainSimulator.Toolbox.Wpf.ViewModels
+namespace FreeTrainSimulator.Toolbox.ViewModels
 {
     /// <summary>
     /// Bindable view model for the hosted settings dockable tool window. Unlike the read-only snapshot tool
@@ -161,6 +161,35 @@ namespace FreeTrainSimulator.Toolbox.Wpf.ViewModels
             // hidden, so the checkboxes reflect the live state when shown. SetProperty only raises a change
             // notification when the value actually differs.
             SetProperty(ref enableLogging, toolWindow.EnableLogging, nameof(EnableLogging));
+            RefreshAppearanceFromBridge();
+        }
+
+        public void Stop()
+        {
+        }
+
+        /// <summary>
+        /// Resets the appearance preferences (colors, item visibility, font outline, real track width, and
+        /// restore-last-view) to their defaults through the bridge and re-syncs every bound field so the UI
+        /// reflects the new state. The logging preference is intentionally left unchanged.
+        /// </summary>
+        public void ResetToDefaults()
+        {
+            ObjectDisposedException.ThrowIf(disposed, nameof(SettingsToolWindowViewModel));
+
+            toolWindow.ResetToDefaults();
+            RefreshAppearanceFromBridge();
+        }
+
+        public void Dispose()
+        {
+            disposed = true;
+        }
+
+        // Re-syncs the appearance-related bound fields and item collections from the bridge. Logging is
+        // excluded so it can be refreshed separately (and so reset can skip it).
+        private void RefreshAppearanceFromBridge()
+        {
             SetProperty(ref restoreLastView, toolWindow.RestoreLastView, nameof(RestoreLastView));
             SetProperty(ref fontOutline, toolWindow.FontOutline, nameof(FontOutline));
             SetProperty(ref realTrackWidth, toolWindow.RealTrackWidth, nameof(RealTrackWidth));
@@ -171,15 +200,6 @@ namespace FreeTrainSimulator.Toolbox.Wpf.ViewModels
             RefreshVisibilityItems(OtherVisibilityItems);
             foreach (ColorItemViewModel item in ColorItems)
                 item.Refresh(toolWindow.GetColorPreference(item.Setting));
-        }
-
-        public void Stop()
-        {
-        }
-
-        public void Dispose()
-        {
-            disposed = true;
         }
 
         private ReadOnlyCollection<VisibilityItemViewModel> CreateVisibilityItems((string Label, MapContentType Setting)[] source)

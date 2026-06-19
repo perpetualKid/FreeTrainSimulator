@@ -1,6 +1,4 @@
-using System;
-
-namespace FreeTrainSimulator.Toolbox.Wpf.ViewModels
+namespace FreeTrainSimulator.Toolbox.ViewModels
 {
     /// <summary>
     /// View model for the WPF train-path save dialog. Collects the five path-metadata fields (Path Name,

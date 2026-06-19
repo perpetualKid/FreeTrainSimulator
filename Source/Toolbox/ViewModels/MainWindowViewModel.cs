@@ -1,4 +1,4 @@
-namespace FreeTrainSimulator.Toolbox.Wpf.ViewModels
+namespace FreeTrainSimulator.Toolbox.ViewModels
 {
     /// <summary>
     /// Root view model for the WPF shell. Holds the hosted menu and dockable tool-window view models plus
@@ -25,6 +25,7 @@ namespace FreeTrainSimulator.Toolbox.Wpf.ViewModels
         private RelayCommand toggleTrainPathToolCommand;
         private RelayCommand toggleRouteToolCommand;
         private RelayCommand showRouteToolCommand;
+        private RelayCommand resetSettingsCommand;
         private bool isDebugToolVisible;
         private bool isLocationToolVisible;
         private bool isLogToolVisible;
@@ -147,6 +148,12 @@ namespace FreeTrainSimulator.Toolbox.Wpf.ViewModels
         {
             get => showRouteToolCommand;
             set => SetProperty(ref showRouteToolCommand, value);
+        }
+
+        public RelayCommand ResetSettingsCommand
+        {
+            get => resetSettingsCommand;
+            set => SetProperty(ref resetSettingsCommand, value);
         }
 
         public bool IsDebugToolVisible

@@ -1,4 +1,3 @@
-using FreeTrainSimulator.Toolbox;
 using FreeTrainSimulator.Toolbox.PopupWindows;
 
 namespace FreeTrainSimulator.Toolbox.ToolWindows

@@ -1,5 +1,3 @@
-using FreeTrainSimulator.Toolbox;
-
 namespace FreeTrainSimulator.Toolbox.ToolWindows
 {
     /// <summary>

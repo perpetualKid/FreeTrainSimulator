@@ -6,7 +6,7 @@ using System.Windows.Threading;
 
 using FreeTrainSimulator.Toolbox.ToolWindows;
 
-namespace FreeTrainSimulator.Toolbox.Wpf.ViewModels
+namespace FreeTrainSimulator.Toolbox.ViewModels
 {
     /// <summary>
     /// Bindable view model for the hosted train-path dockable tool window. Pulls an immutable

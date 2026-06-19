@@ -6,7 +6,7 @@ using System.Windows.Threading;
 using FreeTrainSimulator.Models.Base;
 using FreeTrainSimulator.Models.Content;
 
-namespace FreeTrainSimulator.Toolbox.Wpf.ViewModels
+namespace FreeTrainSimulator.Toolbox.ViewModels
 {
     /// <summary>
     /// Bindable view model for the native WPF main menu. Wraps the hosted <see cref="HostedToolboxMenu"/>

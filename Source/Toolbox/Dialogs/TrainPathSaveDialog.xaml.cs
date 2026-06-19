@@ -1,9 +1,9 @@
 using System.Windows;
 
 using FreeTrainSimulator.Models.Content;
-using FreeTrainSimulator.Toolbox.Wpf.ViewModels;
+using FreeTrainSimulator.Toolbox.ViewModels;
 
-namespace FreeTrainSimulator.Toolbox.Wpf.Dialogs
+namespace FreeTrainSimulator.Toolbox.Dialogs
 {
     /// <summary>
     /// WPF modal dialog that collects train-path metadata, replacing the legacy MonoGame

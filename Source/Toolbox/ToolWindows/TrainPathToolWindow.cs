@@ -5,7 +5,6 @@ using System.Linq;
 using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Models.Content;
 using FreeTrainSimulator.Runtime.Track;
-using FreeTrainSimulator.Toolbox;
 using FreeTrainSimulator.Toolbox.PopupWindows;
 
 namespace FreeTrainSimulator.Toolbox.ToolWindows

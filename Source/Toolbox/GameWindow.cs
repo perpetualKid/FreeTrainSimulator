@@ -34,7 +34,7 @@ using Microsoft.Xna.Framework.Graphics;
 
 namespace FreeTrainSimulator.Toolbox
 {
-    public partial class GameWindow : Game, IInputCapture
+    public partial class GameWindow : Game, IInputCapture, ISettingsApplier
     {
         private readonly GraphicsDeviceManager graphicsDeviceManager;
         private readonly Form windowForm;
@@ -191,14 +191,7 @@ namespace FreeTrainSimulator.Toolbox
             hostedTrackItemInfoToolWindow = new TrackItemInfoToolWindow(InvokeOnGameThread);
             hostedTrackNodeInfoToolWindow = new TrackNodeInfoToolWindow(InvokeOnGameThread);
             hostedHelpToolWindow = new HelpToolWindow();
-            hostedSettingsToolWindow = new SettingsToolWindow(
-                ToolboxSettings,
-                ToolboxUserSettings,
-                value => InvokeOnGameThread(() => UpdateLoggingPreference(value)),
-                value => InvokeOnGameThread(() => UpdateFontOutlinePreference(value)),
-                value => InvokeOnGameThread(() => UpdateTrackWidthPreference(!value)),
-                (setting, visible) => InvokeOnGameThread(() => UpdateItemVisibilityPreference(setting, visible)),
-                (setting, colorName) => InvokeOnGameThread(() => UpdateColorPreference(setting, colorName)));
+            hostedSettingsToolWindow = new SettingsToolWindow(ToolboxSettings, ToolboxUserSettings, this);
             hostedTrainPathToolWindow = new TrainPathToolWindow(() => HostedPathEditor, () => HostedTrainPathToolingContext, InvokeOnGameThread);
             hostedServices = new HostedToolboxServices(
                 hostedMenu,
@@ -524,6 +517,39 @@ namespace FreeTrainSimulator.Toolbox
             ToolboxSettings.LimitTrackWidth = limitTrackWidth;
             (contentArea as IMapDisplaySettingsContext)?.UpdateTrackWidthSettings(limitTrackWidth);
         }
+
+        // Re-applies the current appearance model values (colors, background, track width) to the live map.
+        // Used after the settings tool window resets these preferences to their defaults so the map reflects
+        // the change immediately. Item visibility is read live during draw, so resetting the model is enough.
+        internal void ReapplyAppearancePreferences()
+        {
+            foreach (ColorSetting setting in EnumExtension.GetValues<ColorSetting>())
+                contentArea?.UpdateColor(setting, ColorExtension.FromName(ToolboxSettings.ColorSettings[setting]), ToolboxSettings.FontOutline);
+
+            backgroundColor = ColorExtension.FromName(ToolboxSettings.ColorSettings[ColorSetting.Background]);
+            (windowManager[ToolboxWindowType.DebugScreen] as DebugScreen)?.UpdateBackgroundColor(backgroundColor);
+            (contentArea as IMapDisplaySettingsContext)?.UpdateTrackWidthSettings(ToolboxSettings.LimitTrackWidth);
+        }
+
+        #region ISettingsApplier
+        // The settings tool window calls these on the WPF UI thread; each marshals onto the game thread where
+        // the MonoGame map state lives, then delegates to the corresponding worker. Explicit implementation
+        // keeps this surface scoped to the settings bridge rather than the broader GameWindow API.
+        void ISettingsApplier.ApplyEnableLogging(bool value)
+            => InvokeOnGameThread(() => UpdateLoggingPreference(value));
+
+        void ISettingsApplier.ApplyFontOutline(bool value)
+            => InvokeOnGameThread(() => UpdateFontOutlinePreference(value));
+
+        void ISettingsApplier.ApplyRealTrackWidth(bool value)
+            => InvokeOnGameThread(() => UpdateTrackWidthPreference(!value));
+
+        void ISettingsApplier.ApplyColorPreference(ColorSetting setting, string colorName)
+            => InvokeOnGameThread(() => UpdateColorPreference(setting, colorName));
+
+        void ISettingsApplier.ReapplyAppearance()
+            => InvokeOnGameThread(ReapplyAppearancePreferences);
+        #endregion
 
         internal void UpdateLanguagePreference(string language)
         {
