@@ -23,6 +23,7 @@ namespace FreeTrainSimulator.Toolbox.Wpf
 {
     public partial class MainWindow : Window
     {
+        private const string RouteToolWindowContentId = "RouteToolWindow";
         private const string LocationToolWindowContentId = "LocationToolWindow";
         private const string DebugToolWindowContentId = "DebugToolWindow";
         private const string LogToolWindowContentId = "LogToolWindow";
@@ -77,10 +78,15 @@ namespace FreeTrainSimulator.Toolbox.Wpf
         {
             if (MapHost.HostedMenu != null)
                 viewModel.Menu = new ToolboxMenuViewModel(MapHost.HostedMenu, Dispatcher);
+
+            viewModel.ToggleRouteToolCommand?.RaiseCanExecuteChanged();
+            viewModel.ShowRouteToolCommand?.RaiseCanExecuteChanged();
         }
 
         private void InitializeToolWindowCommands()
         {
+            viewModel.ToggleRouteToolCommand = new RelayCommand(_ => ToggleToolWindow(RouteToolWindowContentId), _ => viewModel.Menu != null);
+            viewModel.ShowRouteToolCommand = new RelayCommand(_ => ShowToolWindow(RouteToolWindowContentId), _ => viewModel.Menu != null);
             viewModel.ToggleLocationToolCommand = new RelayCommand(_ => ToggleToolWindow(LocationToolWindowContentId), _ => viewModel.LocationTool != null);
             viewModel.ToggleDebugToolCommand = new RelayCommand(_ => ToggleToolWindow(DebugToolWindowContentId), _ => viewModel.DebugTool != null);
             viewModel.ToggleLogToolCommand = new RelayCommand(_ => ToggleToolWindow(LogToolWindowContentId), _ => viewModel.LogTool != null);
@@ -95,6 +101,7 @@ namespace FreeTrainSimulator.Toolbox.Wpf
         {
             toolWindowDescriptors = new[]
             {
+                new ToolWindowDescriptor(RouteToolWindowContentId, EnsureRouteToolWindowAnchorable, UpdateRouteToolWindowLifecycle),
                 new ToolWindowDescriptor(LocationToolWindowContentId, EnsureLocationToolWindowAnchorable, UpdateLocationToolWindowLifecycle),
                 new ToolWindowDescriptor(DebugToolWindowContentId, EnsureDebugToolWindowAnchorable, UpdateDebugToolWindowLifecycle),
                 new ToolWindowDescriptor(LogToolWindowContentId, EnsureLogToolWindowAnchorable, UpdateLogToolWindowLifecycle),
@@ -127,6 +134,8 @@ namespace FreeTrainSimulator.Toolbox.Wpf
 
         private void RaiseToolWindowCommandCanExecuteChanged()
         {
+            viewModel.ToggleRouteToolCommand?.RaiseCanExecuteChanged();
+            viewModel.ShowRouteToolCommand?.RaiseCanExecuteChanged();
             viewModel.ToggleLocationToolCommand?.RaiseCanExecuteChanged();
             viewModel.ToggleDebugToolCommand?.RaiseCanExecuteChanged();
             viewModel.ToggleLogToolCommand?.RaiseCanExecuteChanged();
@@ -298,6 +307,26 @@ namespace FreeTrainSimulator.Toolbox.Wpf
             UpdateHostedInputCapture();
         }
 
+        // Shows (rather than toggles) a tool window and brings it to the front. Used by the File-menu
+        // "Open Route" shim, whose counterpart in the View menu is the checkable "Routes" toggle.
+        private void ShowToolWindow(string contentId)
+        {
+            ToolWindowDescriptor descriptor = FindToolWindowDescriptor(contentId);
+            if (descriptor is null)
+                return;
+
+            LayoutAnchorable anchorable = descriptor.EnsureAnchorable();
+            if (anchorable is null)
+                return;
+
+            if (!anchorable.IsVisible)
+                anchorable.Show();
+
+            anchorable.IsActive = true;
+            descriptor.UpdateLifecycle();
+            UpdateHostedInputCapture();
+        }
+
         private void ToolWindowAnchorable_PropertyChanged(object sender, PropertyChangedEventArgs e)
         {
             if (e?.PropertyName != nameof(LayoutAnchorable.IsVisible) || sender is not LayoutAnchorable anchorable)
@@ -316,6 +345,8 @@ namespace FreeTrainSimulator.Toolbox.Wpf
             if (sender is System.Windows.Controls.TextBox textBox)
                 textBox.ScrollToEnd();
         }
+
+        private LayoutAnchorable RouteToolWindowAnchorable => FindToolWindowAnchorable(RouteToolWindowContentId);
 
         private LayoutAnchorable LocationToolWindowAnchorable => FindToolWindowAnchorable(LocationToolWindowContentId);
 
@@ -366,6 +397,9 @@ namespace FreeTrainSimulator.Toolbox.Wpf
             return template;
         }
 
+        private LayoutAnchorable EnsureRouteToolWindowAnchorable() =>
+            EnsureToolWindowAnchorable(RouteToolAnchorable, RouteToolWindowContentId, "Routes");
+
         private LayoutAnchorable EnsureLocationToolWindowAnchorable() =>
             EnsureToolWindowAnchorable(LocationToolAnchorable, LocationToolWindowContentId, "Location");
 
@@ -389,6 +423,13 @@ namespace FreeTrainSimulator.Toolbox.Wpf
 
         private LayoutAnchorable EnsureTrainPathToolWindowAnchorable() =>
             EnsureToolWindowAnchorable(TrainPathToolAnchorable, TrainPathToolWindowContentId, "Train Path Details");
+
+        private void UpdateRouteToolWindowLifecycle()
+        {
+            // The Routes pane binds directly to the shared menu view model and has no snapshot timer, so it
+            // only needs its visibility flag synced for the View-menu checkmark.
+            viewModel.IsRouteToolVisible = RouteToolWindowAnchorable?.IsVisible == true;
+        }
 
         private void UpdateLocationToolWindowLifecycle()
         {

@@ -46,6 +46,9 @@ namespace FreeTrainSimulator.Toolbox
         /// <summary>Paths available for the currently loaded route.</summary>
         public ImmutableArray<PathModelHeader> Paths { get; private set; } = ImmutableArray<PathModelHeader>.Empty;
 
+        /// <summary>The currently selected content folder, or null when none is selected.</summary>
+        public FolderModel SelectedFolder { get; private set; }
+
         /// <summary>Name of the currently selected route, or null when none is selected.</summary>
         public string SelectedRouteName { get; private set; }
 
@@ -60,6 +63,9 @@ namespace FreeTrainSimulator.Toolbox
 
         /// <summary>Raised whenever <see cref="Paths"/> changes.</summary>
         public event EventHandler PathsChanged;
+
+        /// <summary>Raised whenever <see cref="SelectedFolder"/> changes.</summary>
+        public event EventHandler SelectedFolderChanged;
 
         /// <summary>Raised whenever <see cref="SelectedRouteName"/> changes.</summary>
         public event EventHandler SelectedRouteChanged;
@@ -141,6 +147,9 @@ namespace FreeTrainSimulator.Toolbox
         public void SelectFolder(FolderModel folder)
         {
             ArgumentNullException.ThrowIfNull(folder);
+
+            SelectedFolder = folder;
+            SelectedFolderChanged?.Invoke(this, EventArgs.Empty);
 
             InvokeOnGameThreadAsync($"Select content folder '{folder.Name}'", async () =>
             {

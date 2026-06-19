@@ -23,6 +23,8 @@ namespace FreeTrainSimulator.Toolbox.Wpf.ViewModels
         private RelayCommand toggleHelpToolCommand;
         private RelayCommand toggleSettingsToolCommand;
         private RelayCommand toggleTrainPathToolCommand;
+        private RelayCommand toggleRouteToolCommand;
+        private RelayCommand showRouteToolCommand;
         private bool isDebugToolVisible;
         private bool isLocationToolVisible;
         private bool isLogToolVisible;
@@ -31,6 +33,7 @@ namespace FreeTrainSimulator.Toolbox.Wpf.ViewModels
         private bool isHelpToolVisible;
         private bool isSettingsToolVisible;
         private bool isTrainPathToolVisible;
+        private bool isRouteToolVisible;
 
         public ToolboxMenuViewModel Menu
         {
@@ -134,6 +137,18 @@ namespace FreeTrainSimulator.Toolbox.Wpf.ViewModels
             set => SetProperty(ref toggleTrainPathToolCommand, value);
         }
 
+        public RelayCommand ToggleRouteToolCommand
+        {
+            get => toggleRouteToolCommand;
+            set => SetProperty(ref toggleRouteToolCommand, value);
+        }
+
+        public RelayCommand ShowRouteToolCommand
+        {
+            get => showRouteToolCommand;
+            set => SetProperty(ref showRouteToolCommand, value);
+        }
+
         public bool IsDebugToolVisible
         {
             get => isDebugToolVisible;
@@ -180,6 +195,12 @@ namespace FreeTrainSimulator.Toolbox.Wpf.ViewModels
         {
             get => isTrainPathToolVisible;
             set => SetProperty(ref isTrainPathToolVisible, value);
+        }
+
+        public bool IsRouteToolVisible
+        {
+            get => isRouteToolVisible;
+            set => SetProperty(ref isRouteToolVisible, value);
         }
     }
 }

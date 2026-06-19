@@ -30,28 +30,8 @@
               DataContext="{Binding Menu}"
               IsEnabled="{Binding Enabled}">
             <MenuItem Header="_File">
-                <MenuItem x:Name="ContentFolderMenu"
-                          Header="Content _Folder"
-                          ItemsSource="{Binding ContentFolders}">
-                    <MenuItem.ItemContainerStyle>
-                        <Style TargetType="MenuItem">
-                            <Setter Property="Header" Value="{Binding Name}" />
-                            <Setter Property="Command" Value="{Binding DataContext.SelectFolderCommand, ElementName=MainMenu}" />
-                            <Setter Property="CommandParameter" Value="{Binding}" />
-                        </Style>
-                    </MenuItem.ItemContainerStyle>
-                </MenuItem>
-                <MenuItem x:Name="RoutesMenu"
-                          Header="_Routes"
-                          ItemsSource="{Binding Routes}">
-                    <MenuItem.ItemContainerStyle>
-                        <Style TargetType="MenuItem">
-                            <Setter Property="Header" Value="{Binding Name}" />
-                            <Setter Property="Command" Value="{Binding DataContext.ToggleRouteCommand, ElementName=MainMenu}" />
-                            <Setter Property="CommandParameter" Value="{Binding}" />
-                        </Style>
-                    </MenuItem.ItemContainerStyle>
-                </MenuItem>
+                <MenuItem Header="_Open Route"
+                          Command="{Binding DataContext.ShowRouteToolCommand, ElementName=RootWindow}" />
                 <Separator />
                 <MenuItem Header="Take _Screenshot" Command="{Binding TakeScreenshotCommand}" />
                 <Separator />
@@ -73,6 +53,10 @@
                 <MenuItem Header="_Save Path" Command="{Binding SavePathCommand}" />
             </MenuItem>
             <MenuItem Header="_View">
+                <MenuItem Header="_Routes"
+                          IsCheckable="True"
+                          IsChecked="{Binding DataContext.IsRouteToolVisible, ElementName=RootWindow, Mode=OneWay}"
+                          Command="{Binding DataContext.ToggleRouteToolCommand, ElementName=RootWindow}" />
                 <MenuItem Header="_Location Window"
                           IsCheckable="True"
                           IsChecked="{Binding DataContext.IsLocationToolVisible, ElementName=RootWindow, Mode=OneWay}"
@@ -123,6 +107,30 @@
                             </avalonLayout:LayoutDocument>
                         </avalonLayout:LayoutDocumentPane>
                         <avalonLayout:LayoutAnchorablePane DockWidth="340">
+                            <avalonLayout:LayoutAnchorable x:Name="RouteToolAnchorable"
+                                                          ContentId="RouteToolWindow"
+                                                          Title="Routes"
+                                                          CanClose="False"
+                                                          CanHide="True"
+                                                          IsSelected="True">
+                                <StackPanel Margin="6"
+                                            DataContext="{Binding DataContext.Menu, ElementName=RootWindow}"
+                                            IsEnabled="{Binding Enabled}">
+                                    <TextBlock Text="Content Folder"
+                                               Margin="0,0,0,3" />
+                                    <ComboBox Margin="0,0,0,9"
+                                              ItemsSource="{Binding ContentFolders}"
+                                              SelectedItem="{Binding SelectedFolder, Mode=TwoWay}"
+                                              DisplayMemberPath="Name"
+                                              ToolTip="Select the content folder to load routes from" />
+                                    <TextBlock Text="Route"
+                                               Margin="0,0,0,3" />
+                                    <ComboBox ItemsSource="{Binding Routes}"
+                                              SelectedItem="{Binding SelectedRoute, Mode=TwoWay}"
+                                              DisplayMemberPath="Name"
+                                              ToolTip="Select a route to open" />
+                                </StackPanel>
+                            </avalonLayout:LayoutAnchorable>
                             <avalonLayout:LayoutAnchorable x:Name="LocationToolAnchorable"
                                                           ContentId="LocationToolWindow"
                                                           Title="Location"
