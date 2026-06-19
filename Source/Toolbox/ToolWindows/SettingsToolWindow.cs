@@ -1,6 +1,11 @@
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 
+using FreeTrainSimulator.Common;
+using FreeTrainSimulator.Graphics;
+using FreeTrainSimulator.Graphics.Xna;
 using FreeTrainSimulator.Models.Settings;
 using FreeTrainSimulator.Toolbox.Settings;
 
@@ -11,8 +16,8 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
     /// <para>
     /// Settings are interactive/two-way: the WPF view model reads the current boolean values and writes
     /// changes back. The restore-last-view preference is read/written directly on the injected settings model.
-    /// The preferences with game-side side effects (logging, font outline, real track width) are applied through
-    /// the injected callbacks, which <see cref="GameWindow"/> marshals onto the
+    /// The preferences with game-side side effects (logging, font outline, real track width, item visibility,
+    /// item colors) are applied through the injected callbacks, which <see cref="GameWindow"/> marshals onto the
     /// game thread. Injecting the models/callbacks instead of the concrete <see cref="GameWindow"/> keeps this
     /// bridge decoupled and unit-testable.
     /// </para>
@@ -24,19 +29,31 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
         private readonly Action<bool> applyEnableLogging;
         private readonly Action<bool> applyFontOutline;
         private readonly Action<bool> applyRealTrackWidth;
+        private readonly Action<MapContentType, bool> applyItemVisibility;
+        private readonly Action<ColorSetting, string> applyColorPreference;
+
+        private static readonly IReadOnlyList<string> availableColorNames =
+            ColorExtension.ColorCodes
+                .OrderByDescending(kvp => (kvp.Value.R << 16) + (kvp.Value.G << 8) + kvp.Value.B)
+                .Select(kvp => kvp.Key)
+                .ToList();
 
         internal SettingsToolWindow(
             ProfileToolboxSettingsModel toolboxSettings,
             ProfileUserSettingsModel userSettings,
             Action<bool> applyEnableLogging,
             Action<bool> applyFontOutline,
-            Action<bool> applyRealTrackWidth)
+            Action<bool> applyRealTrackWidth,
+            Action<MapContentType, bool> applyItemVisibility,
+            Action<ColorSetting, string> applyColorPreference)
         {
             this.toolboxSettings = toolboxSettings ?? throw new ArgumentNullException(nameof(toolboxSettings));
             this.userSettings = userSettings ?? throw new ArgumentNullException(nameof(userSettings));
             this.applyEnableLogging = applyEnableLogging ?? throw new ArgumentNullException(nameof(applyEnableLogging));
             this.applyFontOutline = applyFontOutline ?? throw new ArgumentNullException(nameof(applyFontOutline));
             this.applyRealTrackWidth = applyRealTrackWidth ?? throw new ArgumentNullException(nameof(applyRealTrackWidth));
+            this.applyItemVisibility = applyItemVisibility ?? throw new ArgumentNullException(nameof(applyItemVisibility));
+            this.applyColorPreference = applyColorPreference ?? throw new ArgumentNullException(nameof(applyColorPreference));
         }
 
         /// <summary>Display title for the dock pane.</summary>
@@ -69,5 +86,24 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
         /// <summary>Sets the real-track-width preference and re-applies the dependent map redraw.</summary>
         public void SetRealTrackWidth(bool value)
             => applyRealTrackWidth(value);
+
+        /// <summary>The list of selectable color names, sorted for display.</summary>
+        public IReadOnlyList<string> AvailableColorNames => availableColorNames;
+
+        /// <summary>Reads the current visibility state for a map content type.</summary>
+        public bool GetItemVisibility(MapContentType setting)
+            => toolboxSettings.ViewSettings[setting];
+
+        /// <summary>Sets the visibility for a map content type and applies it to the live map.</summary>
+        public void SetItemVisibility(MapContentType setting, bool value)
+            => applyItemVisibility(setting, value);
+
+        /// <summary>Reads the current color name for a color setting.</summary>
+        public string GetColorPreference(ColorSetting setting)
+            => toolboxSettings.ColorSettings[setting];
+
+        /// <summary>Sets the color for a color setting and applies it to the live map.</summary>
+        public void SetColorPreference(ColorSetting setting, string colorName)
+            => applyColorPreference(setting, colorName);
     }
 }

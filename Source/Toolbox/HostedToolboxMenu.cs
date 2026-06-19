@@ -148,11 +148,15 @@ namespace FreeTrainSimulator.Toolbox
         {
             ArgumentNullException.ThrowIfNull(folder);
 
-            SelectedFolder = folder;
-            SelectedFolderChanged?.Invoke(this, EventArgs.Empty);
-
+            // Raise the change notification asynchronously on the game thread, symmetric with the route path
+            // (PopulateRoutes/PreSelectRoute). Raising it synchronously here re-enters the WPF ComboBox while
+            // it is still committing the user's pick, which makes the Selector revert the selection (the
+            // folder dropdown appears to ignore the choice).
             InvokeOnGameThreadAsync($"Select content folder '{folder.Name}'", async () =>
             {
+                SelectedFolder = folder;
+                SelectedFolderChanged?.Invoke(this, EventArgs.Empty);
+
                 game.UnloadRoute();
                 ((IToolboxMenu)this).PopulateRoutes(await game.FindRoutes(folder).ConfigureAwait(true));
             });

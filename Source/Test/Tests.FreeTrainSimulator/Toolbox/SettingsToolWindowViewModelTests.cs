@@ -1,5 +1,8 @@
 using System.Diagnostics;
+using System.Linq;
 
+using FreeTrainSimulator.Common;
+using FreeTrainSimulator.Graphics;
 using FreeTrainSimulator.Models.Settings;
 using FreeTrainSimulator.Toolbox;
 using FreeTrainSimulator.Toolbox.Settings;
@@ -20,7 +23,9 @@ namespace Tests.FreeTrainSimulator.Toolbox
                 userSettings,
                 value => userSettings.LogLevel = value ? TraceEventType.Verbose : TraceEventType.Critical,
                 value => toolboxSettings.FontOutline = value,
-                value => toolboxSettings.LimitTrackWidth = !value);
+                value => toolboxSettings.LimitTrackWidth = !value,
+                (setting, visible) => toolboxSettings.ViewSettings[setting] = visible,
+                (setting, colorName) => toolboxSettings.ColorSettings[setting] = colorName);
         }
 
         [TestMethod]
@@ -93,7 +98,9 @@ namespace Tests.FreeTrainSimulator.Toolbox
                 new ProfileUserSettingsModel(),
                 _ => { },
                 _ => writes++,
-                _ => { });
+                _ => { },
+                (_, _) => { },
+                (_, _) => { });
             using (SettingsToolWindowViewModel sut = new SettingsToolWindowViewModel(bridge))
             {
                 sut.FontOutline = true;
@@ -133,6 +140,64 @@ namespace Tests.FreeTrainSimulator.Toolbox
                 sut.Start();
 
                 Assert.IsTrue(raised);
+            }
+        }
+
+        [TestMethod]
+        public void WhenVisibilityItemUncheckedThenViewSettingChanges()
+        {
+            ProfileToolboxSettingsModel toolboxSettings = new();
+            toolboxSettings.ViewSettings[MapContentType.Tracks] = true;
+            using (SettingsToolWindowViewModel sut = new SettingsToolWindowViewModel(CreateBridge(toolboxSettings, new ProfileUserSettingsModel())))
+            {
+                VisibilityItemViewModel item = sut.TrackVisibilityItems.Single(i => i.Setting == MapContentType.Tracks);
+
+                item.IsVisible = false;
+
+                Assert.IsFalse(toolboxSettings.ViewSettings[MapContentType.Tracks]);
+            }
+        }
+
+        [TestMethod]
+        public void WhenColorItemChangedThenColorSettingChanges()
+        {
+            ProfileToolboxSettingsModel toolboxSettings = new();
+            using (SettingsToolWindowViewModel sut = new SettingsToolWindowViewModel(CreateBridge(toolboxSettings, new ProfileUserSettingsModel())))
+            {
+                ColorItemViewModel item = sut.ColorItems.Single(i => i.Setting == ColorSetting.RailTrack);
+
+                item.SelectedColorName = nameof(Microsoft.Xna.Framework.Color.Red);
+
+                Assert.AreEqual(nameof(Microsoft.Xna.Framework.Color.Red), toolboxSettings.ColorSettings[ColorSetting.RailTrack]);
+            }
+        }
+
+        [TestMethod]
+        public void WhenStartThenVisibilityItemsAreReSyncedFromModel()
+        {
+            ProfileToolboxSettingsModel toolboxSettings = new();
+            toolboxSettings.ViewSettings[MapContentType.Tracks] = true;
+            using (SettingsToolWindowViewModel sut = new SettingsToolWindowViewModel(CreateBridge(toolboxSettings, new ProfileUserSettingsModel())))
+            {
+                toolboxSettings.ViewSettings[MapContentType.Tracks] = false;
+
+                sut.Start();
+
+                Assert.IsFalse(sut.TrackVisibilityItems.Single(i => i.Setting == MapContentType.Tracks).IsVisible);
+            }
+        }
+
+        [TestMethod]
+        public void WhenStartThenColorItemsAreReSyncedFromModel()
+        {
+            ProfileToolboxSettingsModel toolboxSettings = new();
+            using (SettingsToolWindowViewModel sut = new SettingsToolWindowViewModel(CreateBridge(toolboxSettings, new ProfileUserSettingsModel())))
+            {
+                toolboxSettings.ColorSettings[ColorSetting.RailTrack] = nameof(Microsoft.Xna.Framework.Color.Red);
+
+                sut.Start();
+
+                Assert.AreEqual(nameof(Microsoft.Xna.Framework.Color.Red), sut.ColorItems.Single(i => i.Setting == ColorSetting.RailTrack).SelectedColorName);
             }
         }
     }

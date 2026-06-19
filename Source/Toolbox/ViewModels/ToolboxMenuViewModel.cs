@@ -1,7 +1,9 @@
 using System;
 using System.Collections.ObjectModel;
+using System.Linq;
 using System.Windows.Threading;
 
+using FreeTrainSimulator.Models.Base;
 using FreeTrainSimulator.Models.Content;
 
 namespace FreeTrainSimulator.Toolbox.Wpf.ViewModels
@@ -194,10 +196,10 @@ namespace FreeTrainSimulator.Toolbox.Wpf.ViewModels
                 dispatcher.BeginInvoke(action);
         }
 
-        private static void ReplaceContent<T>(ObservableCollection<T> target, System.Collections.Immutable.ImmutableArray<T> source)
+        private static void ReplaceContent<T>(ObservableCollection<T> target, System.Collections.Immutable.ImmutableArray<T> source) where T : ModelBase
         {
             target.Clear();
-            foreach (T item in source)
+            foreach (T item in source.OrderBy(item => item.Name, StringComparer.CurrentCultureIgnoreCase))
                 target.Add(item);
         }
 

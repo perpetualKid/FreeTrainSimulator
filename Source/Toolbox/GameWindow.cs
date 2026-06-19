@@ -196,7 +196,9 @@ namespace FreeTrainSimulator.Toolbox
                 ToolboxUserSettings,
                 value => InvokeOnGameThread(() => UpdateLoggingPreference(value)),
                 value => InvokeOnGameThread(() => UpdateFontOutlinePreference(value)),
-                value => InvokeOnGameThread(() => UpdateTrackWidthPreference(!value)));
+                value => InvokeOnGameThread(() => UpdateTrackWidthPreference(!value)),
+                (setting, visible) => InvokeOnGameThread(() => UpdateItemVisibilityPreference(setting, visible)),
+                (setting, colorName) => InvokeOnGameThread(() => UpdateColorPreference(setting, colorName)));
             hostedTrainPathToolWindow = new TrainPathToolWindow(() => HostedPathEditor, () => HostedTrainPathToolingContext, InvokeOnGameThread);
             hostedServices = new HostedToolboxServices(
                 hostedMenu,

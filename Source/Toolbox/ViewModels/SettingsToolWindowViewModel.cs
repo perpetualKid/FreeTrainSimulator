@@ -1,5 +1,9 @@
 using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
 
+using FreeTrainSimulator.Common;
+using FreeTrainSimulator.Graphics;
 using FreeTrainSimulator.Toolbox.ToolWindows;
 
 namespace FreeTrainSimulator.Toolbox.Wpf.ViewModels
@@ -14,6 +18,65 @@ namespace FreeTrainSimulator.Toolbox.Wpf.ViewModels
     /// </summary>
     internal sealed class SettingsToolWindowViewModel : ObservableObject, IDisposable
     {
+        // Visibility groups and labels mirror the pre-migration WinForms menu structure.
+        private static readonly (string Label, MapContentType Setting)[] trackVisibilityItems =
+        {
+            ("Track Segments", MapContentType.Tracks),
+            ("End Nodes", MapContentType.EndNodes),
+            ("Junction Nodes", MapContentType.JunctionNodes),
+            ("Crossover Nodes", MapContentType.Crossovers),
+            ("Level Crossings", MapContentType.LevelCrossings),
+        };
+
+        private static readonly (string Label, MapContentType Setting)[] roadVisibilityItems =
+        {
+            ("Road Segments", MapContentType.Roads),
+            ("Road End Nodes", MapContentType.RoadEndNodes),
+            ("Level Crossings", MapContentType.RoadCrossings),
+            ("Car Spawners", MapContentType.CarSpawners),
+        };
+
+        private static readonly (string Label, MapContentType Setting)[] interactiveVisibilityItems =
+        {
+            ("Main Signals", MapContentType.Signals),
+            ("Other Signals", MapContentType.OtherSignals),
+            ("Platforms", MapContentType.Platforms),
+            ("Platform Names", MapContentType.PlatformNames),
+            ("Station Names", MapContentType.StationNames),
+            ("Sidings", MapContentType.Sidings),
+            ("Siding Names", MapContentType.SidingNames),
+            ("Speed Limits", MapContentType.SpeedPosts),
+            ("Mileposts", MapContentType.MilePosts),
+            ("Hazards", MapContentType.Hazards),
+            ("Pickup Points (Fuel, Cargo)", MapContentType.Pickups),
+            ("Sound Regions", MapContentType.SoundRegions),
+        };
+
+        private static readonly (string Label, MapContentType Setting)[] otherVisibilityItems =
+        {
+            ("Tile Grid", MapContentType.Grid),
+            ("Show Path", MapContentType.Paths),
+        };
+
+        // Color settings and labels mirror the subset that had color pickers in the pre-migration menu.
+        private static readonly (string Label, ColorSetting Setting)[] colorItems =
+        {
+            ("Background Color", ColorSetting.Background),
+            ("Track Color", ColorSetting.RailTrack),
+            ("Track End Node Color", ColorSetting.RailTrackEnd),
+            ("Track Junction Node Color", ColorSetting.RailTrackJunction),
+            ("Track Crossing Color", ColorSetting.RailTrackCrossing),
+            ("Track Level Crossing Color", ColorSetting.RailLevelCrossing),
+            ("Road Color", ColorSetting.RoadTrack),
+            ("Road End Node Color", ColorSetting.RoadTrackEnd),
+            ("Path Color", ColorSetting.PathTrack),
+            ("Station Color", ColorSetting.StationItem),
+            ("Platform Color", ColorSetting.PlatformItem),
+            ("Siding Color", ColorSetting.SidingItem),
+            ("SpeedPost Color", ColorSetting.SpeedPostItem),
+            ("Mile Post Color", ColorSetting.MilePostItem),
+        };
+
         private readonly SettingsToolWindow toolWindow;
         private bool enableLogging;
         private bool restoreLastView;
@@ -30,9 +93,25 @@ namespace FreeTrainSimulator.Toolbox.Wpf.ViewModels
             restoreLastView = toolWindow.RestoreLastView;
             fontOutline = toolWindow.FontOutline;
             realTrackWidth = toolWindow.RealTrackWidth;
+
+            TrackVisibilityItems = CreateVisibilityItems(trackVisibilityItems);
+            RoadVisibilityItems = CreateVisibilityItems(roadVisibilityItems);
+            InteractiveVisibilityItems = CreateVisibilityItems(interactiveVisibilityItems);
+            OtherVisibilityItems = CreateVisibilityItems(otherVisibilityItems);
+            ColorItems = CreateColorItems();
         }
 
         public string Title => toolWindow.Title;
+
+        public ReadOnlyCollection<VisibilityItemViewModel> TrackVisibilityItems { get; }
+
+        public ReadOnlyCollection<VisibilityItemViewModel> RoadVisibilityItems { get; }
+
+        public ReadOnlyCollection<VisibilityItemViewModel> InteractiveVisibilityItems { get; }
+
+        public ReadOnlyCollection<VisibilityItemViewModel> OtherVisibilityItems { get; }
+
+        public ReadOnlyCollection<ColorItemViewModel> ColorItems { get; }
 
         public bool EnableLogging
         {
@@ -85,6 +164,13 @@ namespace FreeTrainSimulator.Toolbox.Wpf.ViewModels
             SetProperty(ref restoreLastView, toolWindow.RestoreLastView, nameof(RestoreLastView));
             SetProperty(ref fontOutline, toolWindow.FontOutline, nameof(FontOutline));
             SetProperty(ref realTrackWidth, toolWindow.RealTrackWidth, nameof(RealTrackWidth));
+
+            RefreshVisibilityItems(TrackVisibilityItems);
+            RefreshVisibilityItems(RoadVisibilityItems);
+            RefreshVisibilityItems(InteractiveVisibilityItems);
+            RefreshVisibilityItems(OtherVisibilityItems);
+            foreach (ColorItemViewModel item in ColorItems)
+                item.Refresh(toolWindow.GetColorPreference(item.Setting));
         }
 
         public void Stop()
@@ -94,6 +180,28 @@ namespace FreeTrainSimulator.Toolbox.Wpf.ViewModels
         public void Dispose()
         {
             disposed = true;
+        }
+
+        private ReadOnlyCollection<VisibilityItemViewModel> CreateVisibilityItems((string Label, MapContentType Setting)[] source)
+        {
+            List<VisibilityItemViewModel> items = new List<VisibilityItemViewModel>(source.Length);
+            foreach ((string label, MapContentType setting) in source)
+                items.Add(new VisibilityItemViewModel(label, setting, toolWindow.GetItemVisibility(setting), toolWindow.SetItemVisibility));
+            return items.AsReadOnly();
+        }
+
+        private ReadOnlyCollection<ColorItemViewModel> CreateColorItems()
+        {
+            List<ColorItemViewModel> items = new List<ColorItemViewModel>(colorItems.Length);
+            foreach ((string label, ColorSetting setting) in colorItems)
+                items.Add(new ColorItemViewModel(label, setting, toolWindow.GetColorPreference(setting), toolWindow.AvailableColorNames, toolWindow.SetColorPreference));
+            return items.AsReadOnly();
+        }
+
+        private void RefreshVisibilityItems(ReadOnlyCollection<VisibilityItemViewModel> items)
+        {
+            foreach (VisibilityItemViewModel item in items)
+                item.Refresh(toolWindow.GetItemVisibility(item.Setting));
         }
     }
 }

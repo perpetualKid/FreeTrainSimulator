@@ -17,6 +17,7 @@
     <Window.Resources>
         <viewModels:DrawingColorToBrushConverter x:Key="DrawingColorToBrushConverter" />
         <viewModels:BoolToFontWeightConverter x:Key="BoolToFontWeightConverter" />
+        <viewModels:ColorNameToBrushConverter x:Key="ColorNameToBrushConverter" />
         <Style x:Key="ToolWindowRowItemStyle" TargetType="ListViewItem">
             <Setter Property="Foreground"
                     Value="{Binding Color, Converter={StaticResource DrawingColorToBrushConverter}}" />
@@ -305,29 +306,123 @@
                                                           CanHide="True"
                                                           IsVisible="False"
                                                           IsSelected="False">
-                                <StackPanel Margin="6"
+                                <TabControl Margin="6"
                                             DataContext="{Binding DataContext.SettingsTool, ElementName=RootWindow}">
-                                    <GroupBox Header="Common" Padding="6" Margin="0,0,0,6">
-                                        <StackPanel>
-                                            <CheckBox Content="Enable Logging"
-                                                      Margin="0,3"
-                                                      IsChecked="{Binding EnableLogging}" />
-                                            <CheckBox Content="Restore Last View on Start"
-                                                      Margin="0,3"
-                                                      IsChecked="{Binding RestoreLastView}" />
-                                        </StackPanel>
-                                    </GroupBox>
-                                    <GroupBox Header="Graphics" Padding="6">
-                                        <StackPanel>
-                                            <CheckBox Content="Use Font Outline"
-                                                      Margin="0,3"
-                                                      IsChecked="{Binding FontOutline}" />
-                                            <CheckBox Content="Use Real Track Width"
-                                                      Margin="0,3"
-                                                      IsChecked="{Binding RealTrackWidth}" />
-                                        </StackPanel>
-                                    </GroupBox>
-                                </StackPanel>
+                                    <TabItem Header="General">
+                                        <ScrollViewer VerticalScrollBarVisibility="Auto"
+                                                      HorizontalScrollBarVisibility="Disabled">
+                                            <StackPanel Margin="6">
+                                                <GroupBox Header="Common" Padding="6" Margin="0,0,0,6">
+                                                    <StackPanel>
+                                                        <CheckBox Content="Enable Logging"
+                                                                  Margin="0,3"
+                                                                  IsChecked="{Binding EnableLogging}" />
+                                                        <CheckBox Content="Restore Last View on Start"
+                                                                  Margin="0,3"
+                                                                  IsChecked="{Binding RestoreLastView}" />
+                                                    </StackPanel>
+                                                </GroupBox>
+                                                <GroupBox Header="Graphics" Padding="6">
+                                                    <StackPanel>
+                                                        <CheckBox Content="Use Font Outline"
+                                                                  Margin="0,3"
+                                                                  IsChecked="{Binding FontOutline}" />
+                                                        <CheckBox Content="Use Real Track Width"
+                                                                  Margin="0,3"
+                                                                  IsChecked="{Binding RealTrackWidth}" />
+                                                    </StackPanel>
+                                                </GroupBox>
+                                            </StackPanel>
+                                        </ScrollViewer>
+                                    </TabItem>
+                                    <TabItem Header="Colors">
+                                        <ScrollViewer VerticalScrollBarVisibility="Auto"
+                                                      HorizontalScrollBarVisibility="Disabled">
+                                            <ItemsControl ItemsSource="{Binding ColorItems}" Margin="6">
+                                                <ItemsControl.ItemTemplate>
+                                                    <DataTemplate>
+                                                        <Grid Margin="0,3">
+                                                            <Grid.ColumnDefinitions>
+                                                                <ColumnDefinition Width="*" />
+                                                                <ColumnDefinition Width="140" />
+                                                            </Grid.ColumnDefinitions>
+                                                            <TextBlock Grid.Column="0"
+                                                                       Text="{Binding Label}"
+                                                                       VerticalAlignment="Center" />
+                                                            <ComboBox Grid.Column="1"
+                                                                      ItemsSource="{Binding AvailableColorNames}"
+                                                                      SelectedItem="{Binding SelectedColorName}">
+                                                                <ComboBox.ItemTemplate>
+                                                                    <DataTemplate>
+                                                                        <StackPanel Orientation="Horizontal">
+                                                                            <Rectangle Width="14"
+                                                                                       Height="14"
+                                                                                       Margin="0,0,6,0"
+                                                                                       Stroke="Gray"
+                                                                                       StrokeThickness="1"
+                                                                                       Fill="{Binding Converter={StaticResource ColorNameToBrushConverter}}" />
+                                                                            <TextBlock Text="{Binding}"
+                                                                                       VerticalAlignment="Center" />
+                                                                        </StackPanel>
+                                                                    </DataTemplate>
+                                                                </ComboBox.ItemTemplate>
+                                                            </ComboBox>
+                                                        </Grid>
+                                                    </DataTemplate>
+                                                </ItemsControl.ItemTemplate>
+                                            </ItemsControl>
+                                        </ScrollViewer>
+                                    </TabItem>
+                                    <TabItem Header="Item Visibility">
+                                        <ScrollViewer VerticalScrollBarVisibility="Auto"
+                                                      HorizontalScrollBarVisibility="Disabled">
+                                            <StackPanel Margin="6">
+                                                <Expander Header="Track Items" IsExpanded="True" Margin="0,2">
+                                                    <ItemsControl ItemsSource="{Binding TrackVisibilityItems}" Margin="12,3,0,0">
+                                                        <ItemsControl.ItemTemplate>
+                                                            <DataTemplate>
+                                                                <CheckBox Content="{Binding Label}"
+                                                                          Margin="0,2"
+                                                                          IsChecked="{Binding IsVisible}" />
+                                                            </DataTemplate>
+                                                        </ItemsControl.ItemTemplate>
+                                                    </ItemsControl>
+                                                </Expander>
+                                                <Expander Header="Road Items" IsExpanded="True" Margin="0,2">
+                                                    <ItemsControl ItemsSource="{Binding RoadVisibilityItems}" Margin="12,3,0,0">
+                                                        <ItemsControl.ItemTemplate>
+                                                            <DataTemplate>
+                                                                <CheckBox Content="{Binding Label}"
+                                                                          Margin="0,2"
+                                                                          IsChecked="{Binding IsVisible}" />
+                                                            </DataTemplate>
+                                                        </ItemsControl.ItemTemplate>
+                                                    </ItemsControl>
+                                                </Expander>
+                                                <Expander Header="Interactives" IsExpanded="True" Margin="0,2">
+                                                    <ItemsControl ItemsSource="{Binding InteractiveVisibilityItems}" Margin="12,3,0,0">
+                                                        <ItemsControl.ItemTemplate>
+                                                            <DataTemplate>
+                                                                <CheckBox Content="{Binding Label}"
+                                                                          Margin="0,2"
+                                                                          IsChecked="{Binding IsVisible}" />
+                                                            </DataTemplate>
+                                                        </ItemsControl.ItemTemplate>
+                                                    </ItemsControl>
+                                                </Expander>
+                                                <ItemsControl ItemsSource="{Binding OtherVisibilityItems}" Margin="0,3,0,0">
+                                                    <ItemsControl.ItemTemplate>
+                                                        <DataTemplate>
+                                                            <CheckBox Content="{Binding Label}"
+                                                                      Margin="0,2"
+                                                                      IsChecked="{Binding IsVisible}" />
+                                                        </DataTemplate>
+                                                    </ItemsControl.ItemTemplate>
+                                                </ItemsControl>
+                                            </StackPanel>
+                                        </ScrollViewer>
+                                    </TabItem>
+                                </TabControl>
                             </avalonLayout:LayoutAnchorable>
                             <avalonLayout:LayoutAnchorable x:Name="TrainPathToolAnchorable"
                                                           ContentId="TrainPathToolWindow"
