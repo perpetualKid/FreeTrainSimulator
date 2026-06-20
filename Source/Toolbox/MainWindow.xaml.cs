@@ -21,7 +21,7 @@ using FreeTrainSimulator.Toolbox.ViewModels;
 
 namespace FreeTrainSimulator.Toolbox
 {
-    public partial class MainWindow : Window
+    public partial class MainWindow : Window, IDisposable
     {
         private const string RouteToolWindowContentId = "RouteToolWindow";
         private const string LocationToolWindowContentId = "LocationToolWindow";
@@ -39,6 +39,7 @@ namespace FreeTrainSimulator.Toolbox
         private string defaultDockLayoutXml;
         private bool isShuttingDown;
         private bool shutdownCompleted;
+        private bool disposed;
         private int deactivationSequence;
         private ToolWindowDescriptor[] toolWindowDescriptors;
         private ToolWindowRefreshScheduler refreshScheduler;
@@ -772,7 +773,6 @@ namespace FreeTrainSimulator.Toolbox
             viewModel.SettingsTool?.Dispose();
             viewModel.TrainPathTool?.Dispose();
             viewModel.StatusBar?.Dispose();
-            refreshScheduler?.Dispose();
         }
 
         protected override async void OnClosing(CancelEventArgs e)
@@ -808,6 +808,26 @@ namespace FreeTrainSimulator.Toolbox
         protected override void OnClosed(EventArgs e)
         {
             base.OnClosed(e);
+            Dispose();
+        }
+
+        public void Dispose()
+        {
+            Dispose(disposing: true);
+            GC.SuppressFinalize(this);
+        }
+
+        // Releases the shell-owned refresh scheduler. WPF never calls Dispose on a Window, so this runs from
+        // OnClosed once the asynchronous shutdown sequence has completed.
+        protected virtual void Dispose(bool disposing)
+        {
+            if (disposed)
+                return;
+
+            if (disposing)
+                refreshScheduler?.Dispose();
+
+            disposed = true;
         }
 
         private sealed class ToolWindowDescriptor

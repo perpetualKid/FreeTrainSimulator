@@ -4,6 +4,7 @@ using System.Collections.ObjectModel;
 
 using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Graphics;
+using FreeTrainSimulator.Graphics.Xna;
 using FreeTrainSimulator.Toolbox.ToolWindows;
 
 namespace FreeTrainSimulator.Toolbox.ViewModels
@@ -214,7 +215,7 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
         {
             List<ColorItemViewModel> items = new List<ColorItemViewModel>(colorItems.Length);
             foreach ((string label, ColorSetting setting) in colorItems)
-                items.Add(new ColorItemViewModel(label, setting, toolWindow.GetColorPreference(setting), toolWindow.AvailableColorNames, toolWindow.SetColorPreference));
+                items.Add(new ColorItemViewModel(label, setting, toolWindow.GetColorPreference(setting), ColorExtension.SortedColorNames, toolWindow.SetColorPreference));
             return items.AsReadOnly();
         }
 

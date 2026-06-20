@@ -1,11 +1,8 @@
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 
 using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Graphics;
-using FreeTrainSimulator.Graphics.Xna;
 using FreeTrainSimulator.Models.Settings;
 using FreeTrainSimulator.Toolbox.Settings;
 
@@ -27,12 +24,6 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
         private readonly ProfileToolboxSettingsModel toolboxSettings;
         private readonly ProfileUserSettingsModel userSettings;
         private readonly ISettingsApplier applier;
-
-        private static readonly IReadOnlyList<string> availableColorNames =
-            ColorExtension.ColorCodes
-                .OrderByDescending(kvp => (kvp.Value.R << 16) + (kvp.Value.G << 8) + kvp.Value.B)
-                .Select(kvp => kvp.Key)
-                .ToList();
 
         internal SettingsToolWindow(
             ProfileToolboxSettingsModel toolboxSettings,
@@ -74,9 +65,6 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
         /// <summary>Sets the real-track-width preference and re-applies the dependent map redraw.</summary>
         public void SetRealTrackWidth(bool value)
             => applier.ApplyRealTrackWidth(value);
-
-        /// <summary>The list of selectable color names, sorted for display.</summary>
-        public IReadOnlyList<string> AvailableColorNames => availableColorNames;
 
         /// <summary>Reads the current visibility state for a map content type.</summary>
         public bool GetItemVisibility(MapContentType setting)

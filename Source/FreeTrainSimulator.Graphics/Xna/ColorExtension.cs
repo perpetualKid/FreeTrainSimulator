@@ -1,5 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
+using System.Collections.Frozen;
+using System.Collections.Immutable;
 using System.Linq;
 
 using Microsoft.Xna.Framework;
@@ -8,11 +9,18 @@ namespace FreeTrainSimulator.Graphics.Xna
 {
     public static class ColorExtension
     {
-        private static readonly Dictionary<string, Color> colorCodes =
-            typeof(Color).GetProperties()
-            .Where(prop => prop.PropertyType == typeof(Color)).ToDictionary(c => c.Name, c => (Color)c.GetValue(null, null), StringComparer.OrdinalIgnoreCase);
+        public static FrozenDictionary<string, Color> ColorCodes { get; } = typeof(Color).GetProperties()
+            .Where(prop => prop.PropertyType == typeof(Color))
+            .ToFrozenDictionary(c => c.Name, c => (Color)c.GetValue(null, null), StringComparer.OrdinalIgnoreCase);
 
-        public static Dictionary<string, Color> ColorCodes => colorCodes;
+        /// <summary>
+        /// All known color names ordered by their packed RGB value (descending), so brighter/red-weighted
+        /// colors sort first. Materialized once for stable display in color pickers.
+        /// </summary>
+        public static ImmutableArray<string> SortedColorNames { get; } = ColorCodes
+            .OrderByDescending(kvp => (kvp.Value.R << 16) + (kvp.Value.G << 8) + kvp.Value.B)
+            .Select(kvp => kvp.Key)
+            .ToImmutableArray();
 
         public static Color HighlightColor(in this Color color, double range)
         {
@@ -50,7 +58,7 @@ namespace FreeTrainSimulator.Graphics.Xna
 
         public static Color FromName(string name)
         {
-            return string.IsNullOrEmpty(name) || !colorCodes.TryGetValue(name, out Color color) ? Color.Transparent : color;
+            return string.IsNullOrEmpty(name) || !ColorCodes.TryGetValue(name, out Color color) ? Color.Transparent : color;
         }
 
         /// <summary>
