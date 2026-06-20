@@ -41,6 +41,7 @@ namespace FreeTrainSimulator.Toolbox
         private bool shutdownCompleted;
         private int deactivationSequence;
         private ToolWindowDescriptor[] toolWindowDescriptors;
+        private ToolWindowRefreshScheduler refreshScheduler;
 
         public MainWindow()
         {
@@ -270,18 +271,20 @@ namespace FreeTrainSimulator.Toolbox
                 || MapHost.HostedSettingsToolWindow is null || MapHost.HostedTrainPathToolWindow is null || MapHost.HostedStatusBarToolWindow is null)
                 return;
 
-            viewModel.LocationTool = new LocationToolWindowViewModel(MapHost.HostedLocationToolWindow, Dispatcher);
-            viewModel.DebugTool = new DebugToolWindowViewModel(MapHost.HostedDebugToolWindow, Dispatcher);
-            viewModel.LogTool = new LogToolWindowViewModel(MapHost.HostedLogToolWindow, Dispatcher);
-            viewModel.TrackItemInfoTool = new TrackItemInfoToolWindowViewModel(MapHost.HostedTrackItemInfoToolWindow, Dispatcher);
-            viewModel.TrackNodeInfoTool = new TrackNodeInfoToolWindowViewModel(MapHost.HostedTrackNodeInfoToolWindow, Dispatcher);
-            viewModel.HelpTool = new HelpToolWindowViewModel(MapHost.HostedHelpToolWindow, Dispatcher);
+            refreshScheduler = new ToolWindowRefreshScheduler(Dispatcher);
+
+            viewModel.LocationTool = new LocationToolWindowViewModel(MapHost.HostedLocationToolWindow, refreshScheduler);
+            viewModel.DebugTool = new DebugToolWindowViewModel(MapHost.HostedDebugToolWindow, refreshScheduler);
+            viewModel.LogTool = new LogToolWindowViewModel(MapHost.HostedLogToolWindow, refreshScheduler);
+            viewModel.TrackItemInfoTool = new TrackItemInfoToolWindowViewModel(MapHost.HostedTrackItemInfoToolWindow, refreshScheduler);
+            viewModel.TrackNodeInfoTool = new TrackNodeInfoToolWindowViewModel(MapHost.HostedTrackNodeInfoToolWindow, refreshScheduler);
+            viewModel.HelpTool = new HelpToolWindowViewModel(MapHost.HostedHelpToolWindow, refreshScheduler);
             viewModel.SettingsTool = new SettingsToolWindowViewModel(MapHost.HostedSettingsToolWindow);
-            viewModel.TrainPathTool = new TrainPathToolWindowViewModel(MapHost.HostedTrainPathToolWindow, Dispatcher);
+            viewModel.TrainPathTool = new TrainPathToolWindowViewModel(MapHost.HostedTrainPathToolWindow, refreshScheduler);
 
             // The status bar is always visible (not a dockable pane), so it starts pulling snapshots as soon
             // as the hosted bridge is available.
-            viewModel.StatusBar = new StatusBarViewModel(MapHost.HostedStatusBarToolWindow, Dispatcher);
+            viewModel.StatusBar = new StatusBarViewModel(MapHost.HostedStatusBarToolWindow, refreshScheduler);
             viewModel.StatusBar.Start();
 
             RaiseToolWindowCommandCanExecuteChanged();
@@ -769,6 +772,7 @@ namespace FreeTrainSimulator.Toolbox
             viewModel.SettingsTool?.Dispose();
             viewModel.TrainPathTool?.Dispose();
             viewModel.StatusBar?.Dispose();
+            refreshScheduler?.Dispose();
         }
 
         protected override async void OnClosing(CancelEventArgs e)

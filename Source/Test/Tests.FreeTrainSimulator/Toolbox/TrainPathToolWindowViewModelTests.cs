@@ -21,7 +21,7 @@ namespace Tests.FreeTrainSimulator.Toolbox
         {
             int invocations = 0;
             TrainPathToolWindow bridge = CreateBridge(_ => invocations++);
-            TrainPathToolWindowViewModel trainPathToolWindowViewModel = new TrainPathToolWindowViewModel(bridge, Dispatcher.CurrentDispatcher)
+            TrainPathToolWindowViewModel trainPathToolWindowViewModel = new TrainPathToolWindowViewModel(bridge, new ToolWindowRefreshScheduler(Dispatcher.CurrentDispatcher))
             {
                 SelectedPath = new TrainPathListItemViewModel("path-1", "First Path")
             };
@@ -34,7 +34,7 @@ namespace Tests.FreeTrainSimulator.Toolbox
         {
             int invocations = 0;
             TrainPathToolWindow bridge = CreateBridge(_ => invocations++);
-            TrainPathToolWindowViewModel trainPathToolWindowViewModel = new TrainPathToolWindowViewModel(bridge, Dispatcher.CurrentDispatcher)
+            TrainPathToolWindowViewModel trainPathToolWindowViewModel = new TrainPathToolWindowViewModel(bridge, new ToolWindowRefreshScheduler(Dispatcher.CurrentDispatcher))
             {
                 SelectedPath = new TrainPathListItemViewModel("path-1", "First Path")
             };
@@ -50,7 +50,7 @@ namespace Tests.FreeTrainSimulator.Toolbox
             int invocations = 0;
             TrainPathToolWindow bridge = CreateBridge(_ => invocations++);
             TrainPathListItemViewModel path = new TrainPathListItemViewModel("path-1", "First Path");
-            TrainPathToolWindowViewModel trainPathToolWindowViewModel = new TrainPathToolWindowViewModel(bridge, Dispatcher.CurrentDispatcher)
+            TrainPathToolWindowViewModel trainPathToolWindowViewModel = new TrainPathToolWindowViewModel(bridge, new ToolWindowRefreshScheduler(Dispatcher.CurrentDispatcher))
             {
                 SelectedPath = path
             };
@@ -64,7 +64,7 @@ namespace Tests.FreeTrainSimulator.Toolbox
         public void WhenSelectedPathSetThenStatusMessageIsCleared()
         {
             TrainPathToolWindow bridge = CreateBridge(action => action());
-            TrainPathToolWindowViewModel trainPathToolWindowViewModel = new TrainPathToolWindowViewModel(bridge, Dispatcher.CurrentDispatcher)
+            TrainPathToolWindowViewModel trainPathToolWindowViewModel = new TrainPathToolWindowViewModel(bridge, new ToolWindowRefreshScheduler(Dispatcher.CurrentDispatcher))
             {
                 SelectedPath = new TrainPathListItemViewModel("path-1", "First Path")
             };
@@ -77,7 +77,7 @@ namespace Tests.FreeTrainSimulator.Toolbox
         {
             int invocations = 0;
             TrainPathToolWindow bridge = CreateBridge(_ => invocations++);
-            TrainPathToolWindowViewModel trainPathToolWindowViewModel = new TrainPathToolWindowViewModel(bridge, Dispatcher.CurrentDispatcher)
+            TrainPathToolWindowViewModel trainPathToolWindowViewModel = new TrainPathToolWindowViewModel(bridge, new ToolWindowRefreshScheduler(Dispatcher.CurrentDispatcher))
             {
                 SelectedNode = new TrainPathNodeItemViewModel(2, "Junction", true)
             };
@@ -90,7 +90,7 @@ namespace Tests.FreeTrainSimulator.Toolbox
         {
             int invocations = 0;
             TrainPathToolWindow bridge = CreateBridge(_ => invocations++);
-            TrainPathToolWindowViewModel trainPathToolWindowViewModel = new TrainPathToolWindowViewModel(bridge, Dispatcher.CurrentDispatcher)
+            TrainPathToolWindowViewModel trainPathToolWindowViewModel = new TrainPathToolWindowViewModel(bridge, new ToolWindowRefreshScheduler(Dispatcher.CurrentDispatcher))
             {
                 SelectedNode = new TrainPathNodeItemViewModel(2, "Junction", true)
             };
@@ -104,7 +104,7 @@ namespace Tests.FreeTrainSimulator.Toolbox
         public void WhenSearchTextMatchesPathThenPathRemainsVisible()
         {
             TrainPathToolWindow bridge = CreateBridge(action => action());
-            TrainPathToolWindowViewModel trainPathToolWindowViewModel = new TrainPathToolWindowViewModel(bridge, Dispatcher.CurrentDispatcher);
+            TrainPathToolWindowViewModel trainPathToolWindowViewModel = new TrainPathToolWindowViewModel(bridge, new ToolWindowRefreshScheduler(Dispatcher.CurrentDispatcher));
             TrainPathListItemViewModel match = new TrainPathListItemViewModel("p1", "Northbound");
             trainPathToolWindowViewModel.Paths.Add(match);
 
@@ -117,7 +117,7 @@ namespace Tests.FreeTrainSimulator.Toolbox
         public void WhenSearchTextDoesNotMatchPathThenPathIsHidden()
         {
             TrainPathToolWindow bridge = CreateBridge(action => action());
-            TrainPathToolWindowViewModel trainPathToolWindowViewModel = new TrainPathToolWindowViewModel(bridge, Dispatcher.CurrentDispatcher);
+            TrainPathToolWindowViewModel trainPathToolWindowViewModel = new TrainPathToolWindowViewModel(bridge, new ToolWindowRefreshScheduler(Dispatcher.CurrentDispatcher));
             TrainPathListItemViewModel other = new TrainPathListItemViewModel("p2", "Southbound");
             trainPathToolWindowViewModel.Paths.Add(other);
 

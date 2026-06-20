@@ -2,76 +2,41 @@ using System;
 using System.Collections.Immutable;
 using System.Collections.ObjectModel;
 using System.Drawing;
-using System.Windows.Threading;
 
 using FreeTrainSimulator.Toolbox.ToolWindows;
 
 namespace FreeTrainSimulator.Toolbox.ViewModels
 {
     /// <summary>
-    /// Bindable view model for the hosted debug dockable tool window. Uses a pull model: a dispatcher timer
-    /// periodically captures immutable snapshots from <see cref="DebugToolWindow"/> and updates the bound rows
-    /// on the WPF UI thread.
+    /// Bindable view model for the hosted debug dockable tool window. Uses a pull model driven by the shared
+    /// <see cref="ToolWindowRefreshScheduler"/>: it periodically captures immutable snapshots from
+    /// <see cref="DebugToolWindow"/> and updates the bound rows on the WPF UI thread.
     /// </summary>
-    internal sealed class DebugToolWindowViewModel : ObservableObject, IDisposable
+    internal sealed class DebugToolWindowViewModel : PollingToolWindowViewModel
     {
         private readonly DebugToolWindow toolWindow;
-        private readonly DispatcherTimer refreshTimer;
-        private bool disposed;
 
-        public DebugToolWindowViewModel(DebugToolWindow toolWindow, Dispatcher dispatcher)
+        public DebugToolWindowViewModel(DebugToolWindow toolWindow, ToolWindowRefreshScheduler scheduler)
+            : base(scheduler, TimeSpan.FromMilliseconds(250))
         {
             ArgumentNullException.ThrowIfNull(toolWindow);
-            ArgumentNullException.ThrowIfNull(dispatcher);
 
             this.toolWindow = toolWindow;
             Title = toolWindow.Title;
-
-            refreshTimer = new DispatcherTimer(DispatcherPriority.Background, dispatcher)
-            {
-                Interval = TimeSpan.FromMilliseconds(250),
-            };
-            refreshTimer.Tick += RefreshTimer_Tick;
         }
 
         public string Title { get; }
 
         public ObservableCollection<DebugToolWindowRowViewModel> Rows { get; } = new ObservableCollection<DebugToolWindowRowViewModel>();
 
-        public void Start()
-        {
-            ObjectDisposedException.ThrowIf(disposed, nameof(DebugToolWindowViewModel));
+        protected override void OnStarted() => toolWindow.Active = true;
 
-            toolWindow.Active = true;
-            refreshTimer.Start();
-            RefreshRows();
-        }
+        protected override void OnStopped() => toolWindow.Active = false;
 
-        public void Stop()
-        {
-            refreshTimer.Stop();
-            toolWindow.Active = false;
-        }
-
-        private void RefreshTimer_Tick(object sender, EventArgs e)
-        {
-            RefreshRows();
-        }
-
-        private void RefreshRows()
+        protected override void Refresh()
         {
             ToolWindowSnapshot snapshot = toolWindow.CaptureSnapshot();
             DebugToolWindowRowViewModel.Sync(Rows, snapshot.Rows);
-        }
-
-        public void Dispose()
-        {
-            if (disposed)
-                return;
-
-            disposed = true;
-            Stop();
-            refreshTimer.Tick -= RefreshTimer_Tick;
         }
     }
 

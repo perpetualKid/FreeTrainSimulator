@@ -1,6 +1,5 @@
 using System;
 using System.Collections.ObjectModel;
-using System.Windows.Threading;
 
 using FreeTrainSimulator.Toolbox.ToolWindows;
 
@@ -11,26 +10,18 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
     /// pull model as <see cref="DebugToolWindowViewModel"/> for the read-only info rows, and exposes a
     /// search box plus command that navigates the map to a track item by index.
     /// </summary>
-    internal sealed class TrackItemInfoToolWindowViewModel : ObservableObject, IDisposable
+    internal sealed class TrackItemInfoToolWindowViewModel : PollingToolWindowViewModel
     {
         private readonly TrackItemInfoToolWindow toolWindow;
-        private readonly DispatcherTimer refreshTimer;
         private string searchText = string.Empty;
-        private bool disposed;
 
-        public TrackItemInfoToolWindowViewModel(TrackItemInfoToolWindow toolWindow, Dispatcher dispatcher)
+        public TrackItemInfoToolWindowViewModel(TrackItemInfoToolWindow toolWindow, ToolWindowRefreshScheduler scheduler)
+            : base(scheduler, TimeSpan.FromMilliseconds(250))
         {
             ArgumentNullException.ThrowIfNull(toolWindow);
-            ArgumentNullException.ThrowIfNull(dispatcher);
 
             this.toolWindow = toolWindow;
             SearchCommand = new RelayCommand(_ => Search());
-
-            refreshTimer = new DispatcherTimer(DispatcherPriority.Background, dispatcher)
-            {
-                Interval = TimeSpan.FromMilliseconds(250),
-            };
-            refreshTimer.Tick += RefreshTimer_Tick;
         }
 
         public string Title => toolWindow.Title;
@@ -45,45 +36,19 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
             set => SetProperty(ref searchText, value);
         }
 
-        public void Start()
-        {
-            ObjectDisposedException.ThrowIf(disposed, nameof(TrackItemInfoToolWindowViewModel));
+        protected override void OnStarted() => toolWindow.Active = true;
 
-            toolWindow.Active = true;
-            refreshTimer.Start();
-            RefreshRows();
-        }
-
-        public void Stop()
-        {
-            refreshTimer.Stop();
-            toolWindow.Active = false;
-        }
+        protected override void OnStopped() => toolWindow.Active = false;
 
         private void Search()
         {
             toolWindow.SearchByIndex(SearchText);
         }
 
-        private void RefreshTimer_Tick(object sender, EventArgs e)
-        {
-            RefreshRows();
-        }
-
-        private void RefreshRows()
+        protected override void Refresh()
         {
             ToolWindowSnapshot snapshot = toolWindow.CaptureSnapshot();
             DebugToolWindowRowViewModel.Sync(Rows, snapshot.Rows);
-        }
-
-        public void Dispose()
-        {
-            if (disposed)
-                return;
-
-            disposed = true;
-            Stop();
-            refreshTimer.Tick -= RefreshTimer_Tick;
         }
     }
 }

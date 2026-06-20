@@ -1,6 +1,5 @@
 using System;
 using System.Collections.ObjectModel;
-using System.Windows.Threading;
 
 using FreeTrainSimulator.Toolbox.ToolWindows;
 
@@ -10,26 +9,18 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
     /// Bindable view model for the hosted help dockable tool window. Exposes command/key rows and
     /// command/key text filtering.
     /// </summary>
-    internal sealed class HelpToolWindowViewModel : ObservableObject, IDisposable
+    internal sealed class HelpToolWindowViewModel : PollingToolWindowViewModel
     {
         private readonly HelpToolWindow toolWindow;
-        private readonly DispatcherTimer refreshTimer;
         private string searchText = string.Empty;
         private bool searchByKey;
-        private bool disposed;
 
-        public HelpToolWindowViewModel(HelpToolWindow toolWindow, Dispatcher dispatcher)
+        public HelpToolWindowViewModel(HelpToolWindow toolWindow, ToolWindowRefreshScheduler scheduler)
+            : base(scheduler, TimeSpan.FromMilliseconds(250))
         {
             ArgumentNullException.ThrowIfNull(toolWindow);
-            ArgumentNullException.ThrowIfNull(dispatcher);
 
             this.toolWindow = toolWindow;
-
-            refreshTimer = new DispatcherTimer(DispatcherPriority.Background, dispatcher)
-            {
-                Interval = TimeSpan.FromMilliseconds(250),
-            };
-            refreshTimer.Tick += RefreshTimer_Tick;
         }
 
         public string Title => toolWindow.Title;
@@ -60,26 +51,13 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
             }
         }
 
-        public void Start()
+        protected override void OnStarted()
         {
-            ObjectDisposedException.ThrowIf(disposed, nameof(HelpToolWindowViewModel));
-
             toolWindow.Active = true;
-            refreshTimer.Start();
             UpdateSearch();
-            RefreshRows();
         }
 
-        public void Stop()
-        {
-            refreshTimer.Stop();
-            toolWindow.Active = false;
-        }
-
-        private void RefreshTimer_Tick(object sender, EventArgs e)
-        {
-            RefreshRows();
-        }
+        protected override void OnStopped() => toolWindow.Active = false;
 
         private void UpdateSearch()
         {
@@ -90,20 +68,10 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
             toolWindow.SetSearch(SearchText ?? string.Empty, searchColumn);
         }
 
-        private void RefreshRows()
+        protected override void Refresh()
         {
             ToolWindowSnapshot snapshot = toolWindow.CaptureSnapshot();
             DebugToolWindowRowViewModel.Sync(Rows, snapshot.Rows);
-        }
-
-        public void Dispose()
-        {
-            if (disposed)
-                return;
-
-            disposed = true;
-            Stop();
-            refreshTimer.Tick -= RefreshTimer_Tick;
         }
     }
 }

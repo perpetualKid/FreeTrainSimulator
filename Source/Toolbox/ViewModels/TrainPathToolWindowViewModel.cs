@@ -2,7 +2,6 @@ using System;
 using System.Collections.Immutable;
 using System.Collections.ObjectModel;
 using System.Linq;
-using System.Windows.Threading;
 
 using FreeTrainSimulator.Toolbox.ToolWindows;
 
@@ -10,34 +9,27 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
 {
     /// <summary>
     /// Bindable view model for the hosted train-path dockable tool window. Pulls an immutable
-    /// <see cref="TrainPathSnapshot"/> from the <see cref="TrainPathToolWindow"/> bridge on a dispatcher timer
-    /// and exposes three views (available paths, the selected path's nodes, and its metadata). Path selection
-    /// and node highlight are forwarded back to the bridge (which marshals them onto the game thread).
+    /// <see cref="TrainPathSnapshot"/> from the <see cref="TrainPathToolWindow"/> bridge on the shared
+    /// <see cref="ToolWindowRefreshScheduler"/> and exposes three views (available paths, the selected path's
+    /// nodes, and its metadata). Path selection and node highlight are forwarded back to the bridge (which
+    /// marshals them onto the game thread).
     /// </summary>
-    internal sealed class TrainPathToolWindowViewModel : ObservableObject, IDisposable
+    internal sealed class TrainPathToolWindowViewModel : PollingToolWindowViewModel
     {
         private readonly TrainPathToolWindow toolWindow;
-        private readonly DispatcherTimer refreshTimer;
         private string searchText = string.Empty;
         private string statusMessage = string.Empty;
         private TrainPathListItemViewModel selectedPath;
         private TrainPathNodeItemViewModel selectedNode;
         private string snapshotSelectedPathId;
         private bool suppressSelectionCommand;
-        private bool disposed;
 
-        public TrainPathToolWindowViewModel(TrainPathToolWindow toolWindow, Dispatcher dispatcher)
+        public TrainPathToolWindowViewModel(TrainPathToolWindow toolWindow, ToolWindowRefreshScheduler scheduler)
+            : base(scheduler, TimeSpan.FromMilliseconds(250))
         {
             ArgumentNullException.ThrowIfNull(toolWindow);
-            ArgumentNullException.ThrowIfNull(dispatcher);
 
             this.toolWindow = toolWindow;
-
-            refreshTimer = new DispatcherTimer(DispatcherPriority.Background, dispatcher)
-            {
-                Interval = TimeSpan.FromMilliseconds(250),
-            };
-            refreshTimer.Tick += RefreshTimer_Tick;
         }
 
         public string Title => toolWindow.Title;
@@ -95,27 +87,11 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
             }
         }
 
-        public void Start()
-        {
-            ObjectDisposedException.ThrowIf(disposed, nameof(TrainPathToolWindowViewModel));
+        protected override void OnStarted() => toolWindow.Active = true;
 
-            toolWindow.Active = true;
-            refreshTimer.Start();
-            Refresh();
-        }
+        protected override void OnStopped() => toolWindow.Active = false;
 
-        public void Stop()
-        {
-            refreshTimer.Stop();
-            toolWindow.Active = false;
-        }
-
-        private void RefreshTimer_Tick(object sender, EventArgs e)
-        {
-            Refresh();
-        }
-
-        private void Refresh()
+        protected override void Refresh()
         {
             TrainPathSnapshot snapshot = toolWindow.CaptureTrainPathSnapshot();
 
@@ -220,18 +196,9 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
             }
         }
 
-        public void Dispose()
-        {
-            if (disposed)
-                return;
-
-            disposed = true;
-            Stop();
-            refreshTimer.Tick -= RefreshTimer_Tick;
         }
-    }
 
-    /// <summary>Bindable row for the available-paths list. Observable so it can be updated in place.</summary>
+        /// <summary>Bindable row for the available-paths list. Observable so it can be updated in place.</summary>
     internal sealed class TrainPathListItemViewModel : ObservableObject
     {
         private string id;

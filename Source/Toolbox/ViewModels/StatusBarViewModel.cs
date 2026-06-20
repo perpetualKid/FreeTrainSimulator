@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Immutable;
 using System.Collections.ObjectModel;
-using System.Windows.Threading;
 
 using FreeTrainSimulator.Toolbox.ToolWindows;
 
@@ -9,65 +8,29 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
 {
     /// <summary>
     /// Bindable view model for the main-window status bar. Uses the same pull model as
-    /// <see cref="DebugToolWindowViewModel"/>: a dispatcher timer periodically captures an immutable
-    /// <see cref="StatusBarSnapshot"/> from the hosted <see cref="StatusBarToolWindow"/> bridge and syncs the
-    /// bound field collection on the WPF UI thread. The fields are rendered generically, so new status-bar
-    /// content added on the game side flows through without changes here.
+    /// <see cref="DebugToolWindowViewModel"/>: the shared <see cref="ToolWindowRefreshScheduler"/> periodically
+    /// captures an immutable <see cref="StatusBarSnapshot"/> from the hosted <see cref="StatusBarToolWindow"/>
+    /// bridge and syncs the bound field collection on the WPF UI thread. The fields are rendered generically, so
+    /// new status-bar content added on the game side flows through without changes here.
     /// </summary>
-    internal sealed class StatusBarViewModel : ObservableObject, IDisposable
+    internal sealed class StatusBarViewModel : PollingToolWindowViewModel
     {
         private readonly StatusBarToolWindow toolWindow;
-        private readonly DispatcherTimer refreshTimer;
-        private bool disposed;
 
-        public StatusBarViewModel(StatusBarToolWindow toolWindow, Dispatcher dispatcher)
+        public StatusBarViewModel(StatusBarToolWindow toolWindow, ToolWindowRefreshScheduler scheduler)
+            : base(scheduler, TimeSpan.FromMilliseconds(100))
         {
             ArgumentNullException.ThrowIfNull(toolWindow);
-            ArgumentNullException.ThrowIfNull(dispatcher);
 
             this.toolWindow = toolWindow;
-
-            refreshTimer = new DispatcherTimer(DispatcherPriority.Background, dispatcher)
-            {
-                Interval = TimeSpan.FromMilliseconds(100),
-            };
-            refreshTimer.Tick += RefreshTimer_Tick;
         }
 
         public ObservableCollection<StatusBarFieldViewModel> Fields { get; } = new ObservableCollection<StatusBarFieldViewModel>();
 
-        public void Start()
-        {
-            ObjectDisposedException.ThrowIf(disposed, nameof(StatusBarViewModel));
-
-            refreshTimer.Start();
-            RefreshFields();
-        }
-
-        public void Stop()
-        {
-            refreshTimer.Stop();
-        }
-
-        private void RefreshTimer_Tick(object sender, EventArgs e)
-        {
-            RefreshFields();
-        }
-
-        private void RefreshFields()
+        protected override void Refresh()
         {
             StatusBarSnapshot snapshot = toolWindow.CaptureSnapshot();
             StatusBarFieldViewModel.Sync(Fields, snapshot.Fields);
-        }
-
-        public void Dispose()
-        {
-            if (disposed)
-                return;
-
-            disposed = true;
-            Stop();
-            refreshTimer.Tick -= RefreshTimer_Tick;
         }
     }
 
