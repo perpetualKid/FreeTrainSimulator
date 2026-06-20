@@ -15,6 +15,7 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
         private HelpToolWindowViewModel helpTool;
         private SettingsToolWindowViewModel settingsTool;
         private TrainPathToolWindowViewModel trainPathTool;
+        private StatusBarViewModel statusBar;
         private RelayCommand toggleDebugToolCommand;
         private RelayCommand toggleLocationToolCommand;
         private RelayCommand toggleLogToolCommand;
@@ -88,6 +89,12 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
         {
             get => trainPathTool;
             set => SetProperty(ref trainPathTool, value);
+        }
+
+        public StatusBarViewModel StatusBar
+        {
+            get => statusBar;
+            set => SetProperty(ref statusBar, value);
         }
 
         public RelayCommand ToggleDebugToolCommand

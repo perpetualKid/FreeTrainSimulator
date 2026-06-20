@@ -12,5 +12,6 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
         TrackNodeInfoToolWindow TrackNodeInfoToolWindow,
         HelpToolWindow HelpToolWindow,
         SettingsToolWindow SettingsToolWindow,
-        TrainPathToolWindow TrainPathToolWindow);
+        TrainPathToolWindow TrainPathToolWindow,
+        StatusBarToolWindow StatusBarToolWindow);
 }

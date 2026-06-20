@@ -130,6 +130,10 @@ namespace FreeTrainSimulator.Toolbox
         // Non-null only in hosted mode; exposed to the WPF host for train-path browsing/editing.
         private TrainPathToolWindow hostedTrainPathToolWindow;
 
+        // Non-null only in hosted mode; exposed to the WPF host for the bottom status bar (mouse-driven
+        // tile/location coordinates and nearest track node/item).
+        private StatusBarToolWindow hostedStatusBarToolWindow;
+
         private HostedToolboxServices hostedServices;
 
         public GameWindow()
@@ -193,6 +197,7 @@ namespace FreeTrainSimulator.Toolbox
             hostedHelpToolWindow = new HelpToolWindow();
             hostedSettingsToolWindow = new SettingsToolWindow(ToolboxSettings, ToolboxUserSettings, this);
             hostedTrainPathToolWindow = new TrainPathToolWindow(() => HostedPathEditor, () => HostedTrainPathToolingContext, InvokeOnGameThread);
+            hostedStatusBarToolWindow = new StatusBarToolWindow();
             hostedServices = new HostedToolboxServices(
                 hostedMenu,
                 hostedDebugToolWindow,
@@ -202,7 +207,8 @@ namespace FreeTrainSimulator.Toolbox
                 hostedTrackNodeInfoToolWindow,
                 hostedHelpToolWindow,
                 hostedSettingsToolWindow,
-                hostedTrainPathToolWindow);
+                hostedTrainPathToolWindow,
+                hostedStatusBarToolWindow);
             OnContentAreaChanged += GameWindow_OnContentAreaChanged;
             windowForm.KeyPreview = true;// need to preview keys to enable Monogames TextInput handler, otherwise adding the main menu will break text input
         }
@@ -309,6 +315,12 @@ namespace FreeTrainSimulator.Toolbox
         /// drives path selection/node highlight through. Null in standalone mode.
         /// </summary>
         internal TrainPathToolWindow HostedTrainPathToolWindow => hostedTrainPathToolWindow;
+
+        /// <summary>
+        /// Hosted-mode status-bar bridge that the WPF shell pulls mouse-driven tile/location and nearest
+        /// track node/item snapshots from. Null in standalone mode.
+        /// </summary>
+        internal StatusBarToolWindow HostedStatusBarToolWindow => hostedStatusBarToolWindow;
 
         internal void ApplyHostedClientSize(System.Drawing.Size clientSize)
         {
@@ -849,6 +861,7 @@ namespace FreeTrainSimulator.Toolbox
             hostedTrackItemInfoToolWindow?.UpdateContext(e.TrackItemInfoContext);
             hostedTrackNodeInfoToolWindow?.UpdateContext(e.TrackNodeInfoContext);
             hostedTrainPathToolWindow?.InvalidatePaths();
+            hostedStatusBarToolWindow?.UpdateContexts(e.LocationContext, e.TrackNodeInfoContext, e.TrackItemInfoContext);
         }
 
         protected override void Draw(GameTime gameTime)
@@ -868,6 +881,7 @@ namespace FreeTrainSimulator.Toolbox
             hostedTrackNodeInfoToolWindow?.RefreshSnapshot();
             hostedHelpToolWindow?.RefreshSnapshot();
             hostedTrainPathToolWindow?.RefreshSnapshot();
+            hostedStatusBarToolWindow?.RefreshSnapshot();
         }
 
         private sealed class CommonDebugInfo : DetailInfoBase

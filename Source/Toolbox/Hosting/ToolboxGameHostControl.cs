@@ -97,6 +97,13 @@ namespace FreeTrainSimulator.Toolbox.Hosting
         internal TrainPathToolWindow HostedTrainPathToolWindow => HostedServices?.TrainPathToolWindow;
 
         /// <summary>
+        /// Hosted-mode status-bar bridge that the WPF shell pulls mouse-driven tile/location and nearest
+        /// track node/item snapshots from. Null until the hosted game window has been created; subscribe to
+        /// <see cref="HostedToolWindowsReady"/> to be notified. Raised on the WPF UI thread.
+        /// </summary>
+        internal StatusBarToolWindow HostedStatusBarToolWindow => HostedServices?.StatusBarToolWindow;
+
+        /// <summary>
         /// Raised on the WPF UI thread when the hosted game requests a train-path save, so the shell can show
         /// its WPF modal save dialog. Respond by collecting the path metadata and calling
         /// <see cref="SubmitSavePath"/>.
