@@ -39,21 +39,6 @@
                 <Separator />
                 <MenuItem Header="E_xit" Command="{Binding QuitCommand}" />
             </MenuItem>
-            <MenuItem Header="_Paths">
-                <MenuItem x:Name="LoadPathMenu"
-                          Header="_Load Path"
-                          ItemsSource="{Binding Paths}">
-                    <MenuItem.ItemContainerStyle>
-                        <Style TargetType="MenuItem">
-                            <Setter Property="Header" Value="{Binding Name}" />
-                            <Setter Property="Command" Value="{Binding DataContext.TogglePathCommand, ElementName=MainMenu}" />
-                            <Setter Property="CommandParameter" Value="{Binding}" />
-                        </Style>
-                    </MenuItem.ItemContainerStyle>
-                </MenuItem>
-                <MenuItem Header="_New Path" Command="{Binding EditPathCommand}" />
-                <MenuItem Header="_Save Path" Command="{Binding SavePathCommand}" />
-            </MenuItem>
             <MenuItem Header="_View">
                 <MenuItem Header="_Routes"
                           IsCheckable="True"
@@ -145,23 +130,52 @@
                                                           FloatingWidth="360"
                                                           FloatingHeight="420"
                                                           IsSelected="True">
-                                <StackPanel Margin="6"
+                                <TabControl Margin="6"
                                             DataContext="{Binding DataContext.Menu, ElementName=RootWindow}"
                                             IsEnabled="{Binding Enabled}">
-                                    <TextBlock Text="Content Folder"
-                                               Margin="0,0,0,3" />
-                                    <ComboBox Margin="0,0,0,9"
-                                              ItemsSource="{Binding ContentFolders}"
-                                              SelectedItem="{Binding SelectedFolder, Mode=TwoWay}"
-                                              DisplayMemberPath="Name"
-                                              ToolTip="Select the content folder to load routes from" />
-                                    <TextBlock Text="Route"
-                                               Margin="0,0,0,3" />
-                                    <ComboBox ItemsSource="{Binding Routes}"
-                                              SelectedItem="{Binding SelectedRoute, Mode=TwoWay}"
-                                              DisplayMemberPath="Name"
-                                              ToolTip="Select a route to open" />
-                                </StackPanel>
+                                    <TabItem Header="Route">
+                                        <StackPanel Margin="6">
+                                            <TextBlock Text="Content Folder"
+                                                       Margin="0,0,0,3" />
+                                            <ComboBox Margin="0,0,0,9"
+                                                      ItemsSource="{Binding ContentFolders}"
+                                                      SelectedItem="{Binding SelectedFolder, Mode=TwoWay}"
+                                                      DisplayMemberPath="Name"
+                                                      ToolTip="Select the content folder to load routes from" />
+                                            <TextBlock Text="Route"
+                                                       Margin="0,0,0,3" />
+                                            <ComboBox ItemsSource="{Binding Routes}"
+                                                      SelectedItem="{Binding SelectedRoute, Mode=TwoWay}"
+                                                      DisplayMemberPath="Name"
+                                                      ToolTip="Select a route to open" />
+                                        </StackPanel>
+                                    </TabItem>
+                                    <TabItem Header="Path">
+                                        <DockPanel Margin="6">
+                                            <TextBlock DockPanel.Dock="Top"
+                                                       Margin="0,0,0,3"
+                                                       Text="Path" />
+                                            <StackPanel DockPanel.Dock="Bottom"
+                                                        Orientation="Horizontal"
+                                                        HorizontalAlignment="Right"
+                                                        Margin="0,6,0,0">
+                                                <Button Padding="10,3"
+                                                        Content="New Path"
+                                                        ToolTip="Start editing a new path for the current route"
+                                                        Command="{Binding EditPathCommand}" />
+                                                <Button Margin="6,0,0,0"
+                                                        Padding="10,3"
+                                                        Content="Save Path"
+                                                        ToolTip="Save the currently edited path"
+                                                        Command="{Binding SavePathCommand}" />
+                                            </StackPanel>
+                                            <ListBox ItemsSource="{Binding Paths}"
+                                                     SelectedItem="{Binding SelectedPath, Mode=TwoWay}"
+                                                     DisplayMemberPath="Name"
+                                                     ToolTip="Select a path to load for the current route" />
+                                        </DockPanel>
+                                    </TabItem>
+                                </TabControl>
                             </avalonLayout:LayoutAnchorable>
                             <avalonLayout:LayoutAnchorable x:Name="LocationToolAnchorable"
                                                           ContentId="LocationToolWindow"

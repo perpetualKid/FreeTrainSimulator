@@ -37,7 +37,6 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
             this.menu = menu;
             this.dispatcher = dispatcher;
 
-            TogglePathCommand = new RelayCommand(parameter => OnTogglePath(parameter as PathModelHeader), _ => Enabled);
             EditPathCommand = new RelayCommand(_ => menu.EditPath(), _ => Enabled);
             SavePathCommand = new RelayCommand(_ => menu.SavePath(), _ => Enabled);
             TakeScreenshotCommand = new RelayCommand(_ => menu.TakeScreenshot(), _ => Enabled);
@@ -58,7 +57,7 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
             ReplaceContent(Paths, menu.Paths);
             enabled = menu.Enabled;
             selectedRouteName = menu.SelectedRouteName;
-            selectedPath = menu.SelectedPath;
+            selectedPath = FindPathById(menu.SelectedPath?.Id);
             selectedFolder = FindFolderByName(menu.SelectedFolder?.Name);
             selectedRoute = FindRouteByName(menu.SelectedRouteName);
         }
@@ -88,7 +87,12 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
         public PathModelHeader SelectedPath
         {
             get => selectedPath;
-            private set => SetProperty(ref selectedPath, value);
+            set
+            {
+                if (!SetProperty(ref selectedPath, value) || synchronizingSelection)
+                    return;
+                OnTogglePath(value);
+            }
         }
 
         /// <summary>
@@ -120,8 +124,6 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
                 OnToggleRoute(value);
             }
         }
-
-        public RelayCommand TogglePathCommand { get; }
 
         public RelayCommand EditPathCommand { get; }
 
@@ -170,7 +172,13 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
             });
 
         private void Menu_PathsChanged(object sender, EventArgs e)
-            => RunOnDispatcher(() => ReplaceContent(Paths, menu.Paths));
+            => RunOnDispatcher(() =>
+            {
+                ReplaceContent(Paths, menu.Paths);
+                // The path instances were replaced, so re-resolve the selection against the new collection
+                // to keep the Routes tool-window path list in sync without re-triggering a load.
+                SyncSelectedPathFromBridge();
+            });
 
         private void Menu_SelectedFolderChanged(object sender, EventArgs e)
             => RunOnDispatcher(SyncSelectedFolderFromBridge);
@@ -183,7 +191,7 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
             });
 
         private void Menu_SelectedPathChanged(object sender, EventArgs e)
-            => RunOnDispatcher(() => SelectedPath = menu.SelectedPath);
+            => RunOnDispatcher(SyncSelectedPathFromBridge);
 
         private void Menu_EnabledChanged(object sender, EventArgs e)
             => RunOnDispatcher(() => Enabled = menu.Enabled);
@@ -233,6 +241,21 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
             }
         }
 
+        // Re-resolves SelectedPath from the bridge's selected path against the current Paths collection.
+        // Guarded so the assignment reflects bridge state without forwarding back into a load.
+        private void SyncSelectedPathFromBridge()
+        {
+            synchronizingSelection = true;
+            try
+            {
+                SelectedPath = FindPathById(menu.SelectedPath?.Id);
+            }
+            finally
+            {
+                synchronizingSelection = false;
+            }
+        }
+
         private FolderModel FindFolderByName(string folderName)
         {
             if (string.IsNullOrEmpty(folderName))
@@ -259,9 +282,21 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
             return null;
         }
 
+        private PathModelHeader FindPathById(string pathId)
+        {
+            if (string.IsNullOrEmpty(pathId))
+                return null;
+
+            foreach (PathModelHeader path in Paths)
+            {
+                if (string.Equals(path.Id, pathId, StringComparison.OrdinalIgnoreCase))
+                    return path;
+            }
+            return null;
+        }
+
         private void RaiseCommandsCanExecuteChanged()
         {
-            TogglePathCommand.RaiseCanExecuteChanged();
             EditPathCommand.RaiseCanExecuteChanged();
             SavePathCommand.RaiseCanExecuteChanged();
             TakeScreenshotCommand.RaiseCanExecuteChanged();
