@@ -126,6 +126,16 @@ namespace FreeTrainSimulator.Toolbox.Hosting
         /// </summary>
         internal event EventHandler ScreenshotRequested;
 
+        /// <summary>
+        /// Raised on the WPF UI thread when the hosted game requests the About dialog.
+        /// </summary>
+        internal event EventHandler AboutRequested;
+
+        /// <summary>
+        /// Raised on the WPF UI thread when the hosted game requests application exit.
+        /// </summary>
+        internal event EventHandler ExitRequested;
+
         public ToolboxGameHostControl()
         {
             hostPanel = new HostPanel(OnHostedWindowPointerDown)
@@ -212,6 +222,10 @@ namespace FreeTrainSimulator.Toolbox.Hosting
             game.SaveTrainPathRequested += Game_SaveTrainPathRequested;
             game.ScreenshotRequested -= Game_ScreenshotRequested;
             game.ScreenshotRequested += Game_ScreenshotRequested;
+            game.AboutRequested -= Game_AboutRequested;
+            game.AboutRequested += Game_AboutRequested;
+            game.ExitRequested -= Game_ExitRequested;
+            game.ExitRequested += Game_ExitRequested;
             HostedToolWindowsReady?.Invoke(this, EventArgs.Empty);
         }
 
@@ -327,6 +341,18 @@ namespace FreeTrainSimulator.Toolbox.Hosting
         private void Game_ScreenshotRequested(object sender, EventArgs e)
         {
             Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() => ScreenshotRequested?.Invoke(this, EventArgs.Empty)));
+        }
+
+        // Game-thread event: re-raise on the WPF dispatcher so the shell can show its modal About dialog.
+        private void Game_AboutRequested(object sender, EventArgs e)
+        {
+            Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() => AboutRequested?.Invoke(this, EventArgs.Empty)));
+        }
+
+        // Game-thread event: re-raise on the WPF dispatcher so the shell can confirm and drive window close.
+        private void Game_ExitRequested(object sender, EventArgs e)
+        {
+            Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() => ExitRequested?.Invoke(this, EventArgs.Empty)));
         }
 
         /// <summary>

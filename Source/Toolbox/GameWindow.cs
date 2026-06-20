@@ -55,7 +55,6 @@ namespace FreeTrainSimulator.Toolbox
         private WindowManager<ToolboxWindowType> windowManager;
         private ContentArea contentArea;
         private int suppressCount;
-        private bool waitOnExit;
 
         internal ContentArea ContentArea
         {
@@ -215,7 +214,17 @@ namespace FreeTrainSimulator.Toolbox
 
         private void GameWindow_Exiting(object sender, ExitingEventArgs e)
         {
-            e.Cancel = waitOnExit;
+            // Cancel any in-flight route/profile load when the game loop is exiting (the WPF shell drives the
+            // shutdown). Runs on the game thread, the owner of these token sources.
+            try
+            {
+                if (ctsRouteLoading?.IsCancellationRequested == false)
+                    ctsRouteLoading.Cancel();
+            }
+            catch (ObjectDisposedException)
+            {
+                // The token source may already have been disposed by a concurrent reset; nothing to cancel.
+            }
         }
 
         #region window size/position handling
@@ -730,7 +739,6 @@ namespace FreeTrainSimulator.Toolbox
             userCommandController.AddEvent(UserCommand.MoveRight, KeyEventType.KeyDown, MoveByKeyRight);
             userCommandController.AddEvent(UserCommand.MoveUp, KeyEventType.KeyDown, MoveByKeyUp);
             userCommandController.AddEvent(UserCommand.MoveDown, KeyEventType.KeyDown, MoveByKeyDown);
-            userCommandController.AddEvent(UserCommand.NewInstance, KeyEventType.KeyPressed, () => new Thread(GameWindowThread).Start());
             userCommandController.AddEvent(UserCommand.ZoomIn, KeyEventType.KeyDown, ZoomIn);
             userCommandController.AddEvent(UserCommand.ZoomOut, KeyEventType.KeyDown, ZoomOut);
             userCommandController.AddEvent(UserCommand.ResetZoomAndLocation, KeyEventType.KeyPressed, ResetZoomAndLocation);
@@ -754,15 +762,6 @@ namespace FreeTrainSimulator.Toolbox
             #region popup windows
             windowManager = WindowManager.Initialize<UserCommand, ToolboxWindowType>(this, userCommandController.AddTopLayerController());
             windowManager[ToolboxWindowType.StatusWindow] = new StatusTextWindow(windowManager, ToolboxSettings.PopupLocations[ToolboxWindowType.StatusWindow].ToPoint());
-            windowManager[ToolboxWindowType.AboutWindow] = new AboutWindow(windowManager, ToolboxSettings.PopupLocations[ToolboxWindowType.AboutWindow].ToPoint());
-            windowManager.SetLazyWindows(ToolboxWindowType.QuitWindow, new Lazy<FormBase>(() =>
-            {
-                QuitWindow quitWindow = new QuitWindow(windowManager, ToolboxSettings.PopupLocations[ToolboxWindowType.QuitWindow].ToPoint());
-                quitWindow.OnQuitGame += QuitWindow_OnQuitGame;
-                quitWindow.OnWindowClosed += QuitWindow_OnWindowClosed;
-                quitWindow.OnPrintScreen += QuitWindow_OnPrintScreen;
-                return quitWindow;
-            }));
 
             windowManager.SetLazyWindows(ToolboxWindowType.DebugScreen, new Lazy<FormBase>(() =>
             {
@@ -820,14 +819,6 @@ namespace FreeTrainSimulator.Toolbox
 
             if (null != ContentArea)
                 ContentArea.Enabled = !e.ModalWindowOpen;
-        }
-
-        private static void GameWindowThread(object data)
-        {
-            using (GameWindow game = new GameWindow())
-            {
-                game.Run();
-            }
         }
 
         protected override void LoadContent()

@@ -49,25 +49,9 @@ namespace FreeTrainSimulator.Toolbox
 
         internal void PrepareExitApplication()
         {
-            windowManager[ToolboxWindowType.QuitWindow].Open();
-        }
-
-        private void QuitWindow_OnPrintScreen(object sender, EventArgs e)
-        {
-            PrintScreen();
-        }
-
-        private void QuitWindow_OnWindowClosed(object sender, EventArgs e)
-        {
-        }
-
-        private async void QuitWindow_OnQuitGame(object sender, EventArgs e)
-        {
-            if (null != ctsRouteLoading && !ctsRouteLoading.IsCancellationRequested)
-                ctsRouteLoading.Cancel();
-            await SaveSettings().ConfigureAwait(false);
-            waitOnExit = false;
-            Exit();
+            // The WPF shell owns the exit confirmation dialog; raise an event so it can prompt and then close
+            // the window.
+            ExitRequested?.Invoke(this, EventArgs.Empty);
         }
 
         public void MouseDragging(UserCommandArgs userCommandArgs)
@@ -166,8 +150,17 @@ namespace FreeTrainSimulator.Toolbox
 
         internal void ShowAboutWindow()
         {
-            windowManager[ToolboxWindowType.AboutWindow].Open();
+            // The WPF shell shows its own About dialog; raise an event for it.
+            AboutRequested?.Invoke(this, EventArgs.Empty);
         }
+
+        // Raised on the game thread in hosted mode when the user requests the About dialog, so the WPF shell
+        // can show its own modal dialog instead of the legacy MonoGame popup.
+        internal event EventHandler AboutRequested;
+
+        // Raised on the game thread in hosted mode when the user requests application exit (menu or quit
+        // command), so the WPF shell can show its own confirmation and drive window close.
+        internal event EventHandler ExitRequested;
 
         // Raised on the game thread in hosted mode when the user requests a screenshot, so the WPF shell can
         // show an owned save dialog and submit the chosen file path back to the game thread for capture.

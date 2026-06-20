@@ -64,6 +64,8 @@ namespace FreeTrainSimulator.Toolbox
             MapHost.HostedToolWindowsReady += MapHost_HostedToolWindowsReady;
             MapHost.SaveTrainPathRequested += MapHost_SaveTrainPathRequested;
             MapHost.ScreenshotRequested += MapHost_ScreenshotRequested;
+            MapHost.AboutRequested += MapHost_AboutRequested;
+            MapHost.ExitRequested += MapHost_ExitRequested;
             DockingManager.ActiveContentChanged += DockingManager_ActiveContentChanged;
         }
 
@@ -263,6 +265,25 @@ namespace FreeTrainSimulator.Toolbox
             {
                 Trace.TraceError($"Failed to save screenshot: {ex}");
             }
+        }
+
+        // Shows the WPF About dialog in response to the hosted game's About request (Help > About).
+        private void MapHost_AboutRequested(object sender, EventArgs e)
+        {
+            AboutDialog dialog = new AboutDialog
+            {
+                Owner = this,
+            };
+
+            dialog.ShowDialog();
+        }
+
+        // Drives window close in response to the hosted game's exit request (Exit menu / quit command). The
+        // confirmation prompt lives in OnClosing, so both this path and the top-right X button funnel through
+        // the same gate.
+        private void MapHost_ExitRequested(object sender, EventArgs e)
+        {
+            Close();
         }
 
         private void MapHost_HostedToolWindowsReady(object sender, EventArgs e)
@@ -740,6 +761,8 @@ namespace FreeTrainSimulator.Toolbox
             MapHost.HostedToolWindowsReady -= MapHost_HostedToolWindowsReady;
             MapHost.SaveTrainPathRequested -= MapHost_SaveTrainPathRequested;
             MapHost.ScreenshotRequested -= MapHost_ScreenshotRequested;
+            MapHost.AboutRequested -= MapHost_AboutRequested;
+            MapHost.ExitRequested -= MapHost_ExitRequested;
             UnhookToolWindowAnchorables();
             DockingManager.ActiveContentChanged -= DockingManager_ActiveContentChanged;
 
@@ -787,7 +810,25 @@ namespace FreeTrainSimulator.Toolbox
             if (isShuttingDown)
                 return;
 
+            // Confirm before exiting. This runs for every close path - the top-right X button, the File >
+            // Exit menu (via MapHost_ExitRequested), and Alt+F4 - so the user always gets a chance to cancel.
+            if (!ConfirmExit())
+                return;
+
             await CompleteShutdownAndCloseAsync().ConfigureAwait(true);
+        }
+
+        // Shows the WPF exit confirmation, replacing the legacy MonoGame quit popup. Returns true when the
+        // user chooses to exit. Uses an owned WPF dialog so it centers on this window (CenterOwner) rather
+        // than the screen, which a Win32 MessageBox does not do reliably under per-monitor DPI.
+        private bool ConfirmExit()
+        {
+            QuitDialog dialog = new QuitDialog
+            {
+                Owner = this,
+            };
+
+            return dialog.ShowDialog() == true;
         }
 
         private async Task CompleteShutdownAndCloseAsync()

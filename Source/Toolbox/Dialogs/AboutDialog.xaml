@@ -1,0 +1,35 @@
+<Window x:Class="FreeTrainSimulator.Toolbox.Dialogs.AboutDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="About"
+        SizeToContent="WidthAndHeight"
+        MinWidth="300"
+        WindowStartupLocation="CenterOwner"
+        ShowInTaskbar="False"
+        ResizeMode="NoResize">
+    <Grid Margin="16">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <TextBlock Grid.Row="0"
+                   HorizontalAlignment="Center"
+                   FontSize="16"
+                   FontWeight="SemiBold"
+                   Text="{Binding ApplicationName}" />
+        <TextBlock Grid.Row="1"
+                   Margin="0,6,0,0"
+                   HorizontalAlignment="Center"
+                   Text="{Binding Version}" />
+        <Button Grid.Row="2"
+                Margin="0,16,0,0"
+                Width="90"
+                HorizontalAlignment="Center"
+                Content="OK"
+                IsDefault="True"
+                IsCancel="True"
+                Click="OkButton_Click" />
+    </Grid>
+</Window>
