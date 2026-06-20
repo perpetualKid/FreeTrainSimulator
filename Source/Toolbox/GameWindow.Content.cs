@@ -76,8 +76,9 @@ namespace FreeTrainSimulator.Toolbox
 
         protected override void Dispose(bool disposing)
         {
-            loadRouteSemaphore?.Release();
             loadRouteSemaphore?.Dispose();
+            ctsProfileLoading?.Dispose();
+            ctsRouteLoading?.Dispose();
             pathEditor?.Dispose();
             windowManager?.Dispose();
             spriteBatch?.Dispose();

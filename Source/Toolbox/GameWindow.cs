@@ -141,7 +141,7 @@ namespace FreeTrainSimulator.Toolbox
 
             CatalogManager.SetCatalogDomainPattern(CatalogDomainPattern.AssemblyName, null, RuntimeInfo.LocalesFolder);
 
-            Task.Run(LoadSettings).Wait();
+            LoadSettingsSynchronously();
             InitializeLoggingFromSettings();
 
             windowForm = (Form)Control.FromHandle(Window.Handle);
@@ -584,6 +584,11 @@ namespace FreeTrainSimulator.Toolbox
             currentProfile = await currentProfile.Current(ctsProfileLoading.Token).ConfigureAwait(false);
             ToolboxUserSettings = await currentProfile.LoadSettingsModel<ProfileUserSettingsModel>(ctsProfileLoading.Token).ConfigureAwait(false);
             ToolboxSettings = await currentProfile.LoadSettingsModel<ProfileToolboxSettingsModel>(ctsProfileLoading.Token).ConfigureAwait(false);
+        }
+
+        private void LoadSettingsSynchronously()
+        {
+            LoadSettings().ConfigureAwait(false).GetAwaiter().GetResult();
         }
 
         private void InitializeLoggingFromSettings()

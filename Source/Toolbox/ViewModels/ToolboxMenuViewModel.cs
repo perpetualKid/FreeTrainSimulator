@@ -18,7 +18,7 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
     /// WPF dispatcher so the bound UI is always touched on the UI thread.
     /// </para>
     /// </summary>
-    internal sealed class ToolboxMenuViewModel : ObservableObject
+    internal sealed class ToolboxMenuViewModel : ObservableObject, IDisposable
     {
         private readonly HostedToolboxMenu menu;
         private readonly Dispatcher dispatcher;
@@ -29,6 +29,7 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
         private FolderModel selectedFolder;
         private RouteModelHeader selectedRoute;
         private bool synchronizingSelection;
+        private bool disposed;
 
         public ToolboxMenuViewModel(HostedToolboxMenu menu, Dispatcher dispatcher)
         {
@@ -198,10 +199,17 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
 
         private void RunOnDispatcher(Action action)
         {
+            if (disposed)
+                return;
+
             if (dispatcher.CheckAccess())
                 action();
             else
-                dispatcher.BeginInvoke(action);
+                dispatcher.BeginInvoke(new Action(() =>
+                {
+                    if (!disposed)
+                        action();
+                }));
         }
 
         private static void ReplaceContent<T>(ObservableCollection<T> target, System.Collections.Immutable.ImmutableArray<T> source) where T : ModelBase
@@ -301,6 +309,21 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
             SavePathCommand.RaiseCanExecuteChanged();
             TakeScreenshotCommand.RaiseCanExecuteChanged();
             ShowAboutCommand.RaiseCanExecuteChanged();
+        }
+
+        public void Dispose()
+        {
+            if (disposed)
+                return;
+
+            disposed = true;
+            menu.ContentFoldersChanged -= Menu_ContentFoldersChanged;
+            menu.RoutesChanged -= Menu_RoutesChanged;
+            menu.PathsChanged -= Menu_PathsChanged;
+            menu.SelectedFolderChanged -= Menu_SelectedFolderChanged;
+            menu.SelectedRouteChanged -= Menu_SelectedRouteChanged;
+            menu.SelectedPathChanged -= Menu_SelectedPathChanged;
+            menu.EnabledChanged -= Menu_EnabledChanged;
         }
     }
 }

@@ -24,84 +24,14 @@ namespace FreeTrainSimulator.Toolbox.Hosting
         private bool disposed;
 
         /// <summary>
-        /// Hosted-mode menu bridge that the WPF shell binds its native menu to. Null until the hosted game
-        /// window has been created; subscribe to <see cref="HostedMenuReady"/> to be notified when it becomes
-        /// available. Raised on the WPF UI thread.
-        /// </summary>
-        internal HostedToolboxMenu HostedMenu => HostedServices?.Menu;
-
-        /// <summary>
         /// Grouped hosted-mode bridge set published by the hosted game window. Null until available.
         /// </summary>
         internal HostedToolboxServices HostedServices { get; private set; }
 
         /// <summary>
-        /// Raised on the WPF UI thread once <see cref="HostedMenu"/> becomes available.
+        /// Raised on the WPF UI thread once <see cref="HostedToolboxServices.Menu"/> becomes available.
         /// </summary>
         internal event EventHandler HostedMenuReady;
-
-        /// <summary>
-        /// Hosted-mode debug tool-window bridge that the WPF shell pulls read-only snapshots from. Null until
-        /// the hosted game window has been created; subscribe to <see cref="HostedToolWindowsReady"/> to be
-        /// notified when it becomes available. Raised on the WPF UI thread.
-        /// </summary>
-        internal DebugToolWindow HostedDebugToolWindow => HostedServices?.DebugToolWindow;
-
-        /// <summary>
-        /// Hosted-mode location tool-window bridge that the WPF shell pulls read-only snapshots from. Null
-        /// until the hosted game window has been created; subscribe to <see cref="HostedToolWindowsReady"/>
-        /// to be notified when it becomes available. Raised on the WPF UI thread.
-        /// </summary>
-        internal LocationToolWindow HostedLocationToolWindow => HostedServices?.LocationToolWindow;
-
-        /// <summary>
-        /// Hosted-mode log tool-window bridge that the WPF shell pulls read-only snapshots from. Null until
-        /// the hosted game window has been created; subscribe to <see cref="HostedToolWindowsReady"/> to be
-        /// notified when it becomes available. Raised on the WPF UI thread.
-        /// </summary>
-        internal LogToolWindow HostedLogToolWindow => HostedServices?.LogToolWindow;
-
-        /// <summary>
-        /// Hosted-mode track item tool-window bridge that the WPF shell pulls read-only snapshots from. Null
-        /// until the hosted game window has been created; subscribe to <see cref="HostedToolWindowsReady"/>
-        /// to be notified when it becomes available. Raised on the WPF UI thread.
-        /// </summary>
-        internal TrackItemInfoToolWindow HostedTrackItemInfoToolWindow => HostedServices?.TrackItemInfoToolWindow;
-
-        /// <summary>
-        /// Hosted-mode track node tool-window bridge that the WPF shell pulls read-only snapshots from. Null
-        /// until the hosted game window has been created; subscribe to <see cref="HostedToolWindowsReady"/>
-        /// to be notified when it becomes available. Raised on the WPF UI thread.
-        /// </summary>
-        internal TrackNodeInfoToolWindow HostedTrackNodeInfoToolWindow => HostedServices?.TrackNodeInfoToolWindow;
-
-        /// <summary>
-        /// Hosted-mode help tool-window bridge that the WPF shell pulls read-only snapshots from. Null until
-        /// the hosted game window has been created; subscribe to <see cref="HostedToolWindowsReady"/> to be
-        /// notified when it becomes available. Raised on the WPF UI thread.
-        /// </summary>
-        internal HelpToolWindow HostedHelpToolWindow => HostedServices?.HelpToolWindow;
-
-        /// <summary>
-        /// Hosted-mode settings tool-window bridge that the WPF shell reads and writes settings through. Null
-        /// until the hosted game window has been created; subscribe to <see cref="HostedToolWindowsReady"/> to
-        /// be notified when it becomes available. Raised on the WPF UI thread.
-        /// </summary>
-        internal SettingsToolWindow HostedSettingsToolWindow => HostedServices?.SettingsToolWindow;
-
-        /// <summary>
-        /// Hosted-mode train-path tool-window bridge that the WPF shell reads path/node snapshots from and
-        /// drives path selection/node highlight through. Null until the hosted game window has been created;
-        /// subscribe to <see cref="HostedToolWindowsReady"/> to be notified. Raised on the WPF UI thread.
-        /// </summary>
-        internal TrainPathToolWindow HostedTrainPathToolWindow => HostedServices?.TrainPathToolWindow;
-
-        /// <summary>
-        /// Hosted-mode status-bar bridge that the WPF shell pulls mouse-driven tile/location and nearest
-        /// track node/item snapshots from. Null until the hosted game window has been created; subscribe to
-        /// <see cref="HostedToolWindowsReady"/> to be notified. Raised on the WPF UI thread.
-        /// </summary>
-        internal StatusBarToolWindow HostedStatusBarToolWindow => HostedServices?.StatusBarToolWindow;
 
         /// <summary>
         /// Raised on the WPF UI thread when the hosted game requests a train-path save, so the shell can show
@@ -111,7 +41,7 @@ namespace FreeTrainSimulator.Toolbox.Hosting
         internal event EventHandler SaveTrainPathRequested;
 
         /// <summary>
-        /// Raised on the WPF UI thread once <see cref="HostedDebugToolWindow"/> becomes available.
+        /// Raised on the WPF UI thread once hosted tool-window bridges become available.
         /// </summary>
         internal event EventHandler HostedToolWindowsReady;
 
