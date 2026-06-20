@@ -595,16 +595,16 @@ namespace FreeTrainSimulator.Toolbox
 
         private string SerializeDockLayout()
         {
-            XmlLayoutSerializer serializer = new(DockingManager);
-            using StringWriter stringWriter = new();
+            XmlLayoutSerializer serializer = new XmlLayoutSerializer(DockingManager);
+            using StringWriter stringWriter = new StringWriter();
             serializer.Serialize(stringWriter);
             return stringWriter.ToString();
         }
 
         private void DeserializeDockLayout(string layoutXml)
         {
-            XmlLayoutSerializer serializer = new(DockingManager);
-            using StringReader stringReader = new(layoutXml);
+            XmlLayoutSerializer serializer = new XmlLayoutSerializer(DockingManager);
+            using StringReader stringReader = new StringReader(layoutXml);
             serializer.Deserialize(stringReader);
         }
 

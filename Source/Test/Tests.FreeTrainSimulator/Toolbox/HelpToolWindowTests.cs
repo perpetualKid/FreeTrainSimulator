@@ -20,7 +20,7 @@ namespace Tests.FreeTrainSimulator.Toolbox
 
             helpToolWindow.RefreshSnapshot();
 
-            Assert.AreEqual(0, helpToolWindow.CaptureSnapshot().Rows.Length);
+            Assert.IsEmpty(helpToolWindow.CaptureSnapshot().Rows);
         }
 
         [TestMethod]
@@ -33,7 +33,7 @@ namespace Tests.FreeTrainSimulator.Toolbox
 
             helpToolWindow.RefreshSnapshot();
 
-            Assert.AreEqual(EnumExtension.GetValues<UserCommand>().Length, helpToolWindow.CaptureSnapshot().Rows.Length);
+            Assert.HasCount(EnumExtension.GetValues<UserCommand>().Length, helpToolWindow.CaptureSnapshot().Rows);
         }
 
         [TestMethod]
@@ -47,7 +47,7 @@ namespace Tests.FreeTrainSimulator.Toolbox
 
             helpToolWindow.RefreshSnapshot();
 
-            Assert.AreEqual(1, helpToolWindow.CaptureSnapshot().Rows.Length);
+            Assert.HasCount(1, helpToolWindow.CaptureSnapshot().Rows);
         }
 
         [TestMethod]
@@ -75,7 +75,7 @@ namespace Tests.FreeTrainSimulator.Toolbox
 
             helpToolWindow.RefreshSnapshot();
 
-            Assert.AreEqual(1, helpToolWindow.CaptureSnapshot().Rows.Length);
+            Assert.HasCount(1, helpToolWindow.CaptureSnapshot().Rows);
         }
 
         [TestMethod]
@@ -89,7 +89,7 @@ namespace Tests.FreeTrainSimulator.Toolbox
 
             helpToolWindow.RefreshSnapshot();
 
-            Assert.AreEqual(EnumExtension.GetValues<UserCommand>().Length, helpToolWindow.CaptureSnapshot().Rows.Length);
+            Assert.HasCount(EnumExtension.GetValues<UserCommand>().Length, helpToolWindow.CaptureSnapshot().Rows);
         }
     }
 }

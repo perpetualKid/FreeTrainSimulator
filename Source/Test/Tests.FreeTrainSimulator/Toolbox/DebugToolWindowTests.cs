@@ -24,7 +24,7 @@ namespace Tests.FreeTrainSimulator.Toolbox
 
             sut.RefreshSnapshot();
 
-            Assert.AreEqual(0, sut.CaptureSnapshot().Rows.Length);
+            Assert.IsEmpty(sut.CaptureSnapshot().Rows);
         }
 
         [TestMethod]
@@ -40,7 +40,7 @@ namespace Tests.FreeTrainSimulator.Toolbox
 
             sut.RefreshSnapshot();
 
-            Assert.AreEqual(1, sut.CaptureSnapshot().Rows.Length);
+            Assert.HasCount(1, sut.CaptureSnapshot().Rows);
         }
 
         [TestMethod]
@@ -87,7 +87,7 @@ namespace Tests.FreeTrainSimulator.Toolbox
 
             sut.RefreshSnapshot();
 
-            Assert.AreEqual(0, sut.CaptureSnapshot().Rows.Length);
+            Assert.IsEmpty(sut.CaptureSnapshot().Rows);
         }
 
         private sealed class TestInformationProvider : INameValueInformationProvider

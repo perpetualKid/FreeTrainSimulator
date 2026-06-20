@@ -17,6 +17,6 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
     internal sealed record ToolWindowSnapshot(ImmutableArray<ToolWindowRow> Rows)
     {
         /// <summary>An empty snapshot used before any content is available.</summary>
-        public static ToolWindowSnapshot Empty { get; } = new(ImmutableArray<ToolWindowRow>.Empty);
+        public static ToolWindowSnapshot Empty { get; } = new ToolWindowSnapshot(ImmutableArray<ToolWindowRow>.Empty);
     }
 }

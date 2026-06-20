@@ -82,7 +82,7 @@ namespace Orts.ActivityRunner.Viewer3D.PopupWindows
 
                     Color segmentColor = roadTracks ? Color.LightSalmon : Color.LightBlue;
                     LabelType labelType = roadTracks ? LabelType.RoadTrackDebug : LabelType.TrackDebug;
-                    HashSet<int> processedNodeIndices = new();
+                    HashSet<int> processedNodeIndices = new HashSet<int>();
 
                     foreach (VectorSectionNode section in tileIndex.BoundingBox(cameraTile, 1).Cast<VectorSectionNode>())
                     {

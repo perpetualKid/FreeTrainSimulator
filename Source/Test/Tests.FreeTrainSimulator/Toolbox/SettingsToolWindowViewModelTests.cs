@@ -62,9 +62,9 @@ namespace Tests.FreeTrainSimulator.Toolbox
             {
                 LogLevel = TraceEventType.Critical
             };
-            using (SettingsToolWindowViewModel sut = new SettingsToolWindowViewModel(CreateBridge(new ProfileToolboxSettingsModel(), userSettings)))
+            using (SettingsToolWindowViewModel settingsToolWindowViewModel = new SettingsToolWindowViewModel(CreateBridge(new ProfileToolboxSettingsModel(), userSettings)))
             {
-                sut.EnableLogging = true;
+                settingsToolWindowViewModel.EnableLogging = true;
 
                 Assert.AreNotEqual(TraceEventType.Critical, userSettings.LogLevel);
             }
@@ -73,10 +73,10 @@ namespace Tests.FreeTrainSimulator.Toolbox
         [TestMethod]
         public void WhenRestoreLastViewSetThenToolboxSettingsChange()
         {
-            ProfileToolboxSettingsModel toolboxSettings = new() { RestoreLastView = false };
-            using (SettingsToolWindowViewModel sut = new SettingsToolWindowViewModel(CreateBridge(toolboxSettings, new ProfileUserSettingsModel())))
+            ProfileToolboxSettingsModel toolboxSettings = new ProfileToolboxSettingsModel() { RestoreLastView = false };
+            using (SettingsToolWindowViewModel settingsToolWindowViewModel = new SettingsToolWindowViewModel(CreateBridge(toolboxSettings, new ProfileUserSettingsModel())))
             {
-                sut.RestoreLastView = true;
+                settingsToolWindowViewModel.RestoreLastView = true;
 
                 Assert.IsTrue(toolboxSettings.RestoreLastView);
             }
@@ -85,10 +85,10 @@ namespace Tests.FreeTrainSimulator.Toolbox
         [TestMethod]
         public void WhenFontOutlineSetThenToolboxSettingsChange()
         {
-            ProfileToolboxSettingsModel toolboxSettings = new() { FontOutline = false };
-            using (SettingsToolWindowViewModel sut = new SettingsToolWindowViewModel(CreateBridge(toolboxSettings, new ProfileUserSettingsModel())))
+            ProfileToolboxSettingsModel toolboxSettings = new ProfileToolboxSettingsModel() { FontOutline = false };
+            using (SettingsToolWindowViewModel settingsToolWindowViewModel = new SettingsToolWindowViewModel(CreateBridge(toolboxSettings, new ProfileUserSettingsModel())))
             {
-                sut.FontOutline = true;
+                settingsToolWindowViewModel.FontOutline = true;
 
                 Assert.IsTrue(toolboxSettings.FontOutline);
             }
@@ -97,10 +97,10 @@ namespace Tests.FreeTrainSimulator.Toolbox
         [TestMethod]
         public void WhenRealTrackWidthSetThenLimitTrackWidthIsInverted()
         {
-            ProfileToolboxSettingsModel toolboxSettings = new() { LimitTrackWidth = true };
-            using (SettingsToolWindowViewModel sut = new SettingsToolWindowViewModel(CreateBridge(toolboxSettings, new ProfileUserSettingsModel())))
+            ProfileToolboxSettingsModel toolboxSettings = new ProfileToolboxSettingsModel() { LimitTrackWidth = true };
+            using (SettingsToolWindowViewModel settingsToolWindowViewModel = new SettingsToolWindowViewModel(CreateBridge(toolboxSettings, new ProfileUserSettingsModel())))
             {
-                sut.RealTrackWidth = true;
+                settingsToolWindowViewModel.RealTrackWidth = true;
 
                 Assert.IsFalse(toolboxSettings.LimitTrackWidth);
             }
@@ -110,11 +110,11 @@ namespace Tests.FreeTrainSimulator.Toolbox
         public void WhenSetThenOptimisticGetterReflectsValueImmediately()
         {
             ProfileToolboxSettingsModel toolboxSettings = new ProfileToolboxSettingsModel() { FontOutline = false };
-            using (SettingsToolWindowViewModel sut = new SettingsToolWindowViewModel(CreateBridge(toolboxSettings, new ProfileUserSettingsModel())))
+            using (SettingsToolWindowViewModel settingsToolWindowViewModel = new SettingsToolWindowViewModel(CreateBridge(toolboxSettings, new ProfileUserSettingsModel())))
             {
-                sut.FontOutline = true;
+                settingsToolWindowViewModel.FontOutline = true;
 
-                Assert.IsTrue(sut.FontOutline);
+                Assert.IsTrue(settingsToolWindowViewModel.FontOutline);
             }
         }
 
@@ -124,9 +124,9 @@ namespace Tests.FreeTrainSimulator.Toolbox
             ProfileToolboxSettingsModel toolboxSettings = new ProfileToolboxSettingsModel() { FontOutline = true };
             FakeSettingsApplier applier = new FakeSettingsApplier(toolboxSettings, new ProfileUserSettingsModel());
             SettingsToolWindow bridge = new SettingsToolWindow(toolboxSettings, new ProfileUserSettingsModel(), applier);
-            using (SettingsToolWindowViewModel sut = new SettingsToolWindowViewModel(bridge))
+            using (SettingsToolWindowViewModel settingsToolWindowViewModel = new SettingsToolWindowViewModel(bridge))
             {
-                sut.FontOutline = true;
+                settingsToolWindowViewModel.FontOutline = true;
 
                 Assert.AreEqual(0, applier.FontOutlineWrites);
             }
@@ -136,13 +136,13 @@ namespace Tests.FreeTrainSimulator.Toolbox
         public void WhenStartThenGettersAreReSyncedFromModels()
         {
             ProfileToolboxSettingsModel toolboxSettings = new ProfileToolboxSettingsModel() { FontOutline = false };
-            using (SettingsToolWindowViewModel sut = new SettingsToolWindowViewModel(CreateBridge(toolboxSettings, new ProfileUserSettingsModel())))
+            using (SettingsToolWindowViewModel settingsToolWindowViewModel = new SettingsToolWindowViewModel(CreateBridge(toolboxSettings, new ProfileUserSettingsModel())))
             {
                 toolboxSettings.FontOutline = true;
 
-                sut.Start();
+                settingsToolWindowViewModel.Start();
 
-                Assert.IsTrue(sut.FontOutline);
+                Assert.IsTrue(settingsToolWindowViewModel.FontOutline);
             }
         }
 
@@ -150,17 +150,17 @@ namespace Tests.FreeTrainSimulator.Toolbox
         public void WhenStartReSyncsThenChangeNotificationIsRaised()
         {
             ProfileToolboxSettingsModel toolboxSettings = new ProfileToolboxSettingsModel() { FontOutline = false };
-            using (SettingsToolWindowViewModel sut = new SettingsToolWindowViewModel(CreateBridge(toolboxSettings, new ProfileUserSettingsModel())))
+            using (SettingsToolWindowViewModel settingsToolWindowViewModel = new SettingsToolWindowViewModel(CreateBridge(toolboxSettings, new ProfileUserSettingsModel())))
             {
                 toolboxSettings.FontOutline = true;
                 bool raised = false;
-                sut.PropertyChanged += (_, e) =>
+                settingsToolWindowViewModel.PropertyChanged += (_, e) =>
             {
                 if (e.PropertyName == nameof(SettingsToolWindowViewModel.FontOutline))
                     raised = true;
             };
 
-                sut.Start();
+                settingsToolWindowViewModel.Start();
 
                 Assert.IsTrue(raised);
             }
@@ -171,9 +171,9 @@ namespace Tests.FreeTrainSimulator.Toolbox
         {
             ProfileToolboxSettingsModel toolboxSettings = new ProfileToolboxSettingsModel();
             toolboxSettings.ViewSettings[MapContentType.Tracks] = true;
-            using (SettingsToolWindowViewModel sut = new SettingsToolWindowViewModel(CreateBridge(toolboxSettings, new ProfileUserSettingsModel())))
+            using (SettingsToolWindowViewModel settingsToolWindowViewModel = new SettingsToolWindowViewModel(CreateBridge(toolboxSettings, new ProfileUserSettingsModel())))
             {
-                VisibilityItemViewModel item = sut.TrackVisibilityItems.Single(i => i.Setting == MapContentType.Tracks);
+                VisibilityItemViewModel item = settingsToolWindowViewModel.TrackVisibilityItems.Single(i => i.Setting == MapContentType.Tracks);
 
                 item.IsVisible = false;
 
@@ -185,9 +185,9 @@ namespace Tests.FreeTrainSimulator.Toolbox
         public void WhenColorItemChangedThenColorSettingChanges()
         {
             ProfileToolboxSettingsModel toolboxSettings = new ProfileToolboxSettingsModel();
-            using (SettingsToolWindowViewModel sut = new SettingsToolWindowViewModel(CreateBridge(toolboxSettings, new ProfileUserSettingsModel())))
+            using (SettingsToolWindowViewModel settingsToolWindowViewModel = new SettingsToolWindowViewModel(CreateBridge(toolboxSettings, new ProfileUserSettingsModel())))
             {
-                ColorItemViewModel item = sut.ColorItems.Single(i => i.Setting == ColorSetting.RailTrack);
+                ColorItemViewModel item = settingsToolWindowViewModel.ColorItems.Single(i => i.Setting == ColorSetting.RailTrack);
 
                 item.SelectedColorName = nameof(Microsoft.Xna.Framework.Color.Red);
 
@@ -200,13 +200,13 @@ namespace Tests.FreeTrainSimulator.Toolbox
         {
             ProfileToolboxSettingsModel toolboxSettings = new ProfileToolboxSettingsModel();
             toolboxSettings.ViewSettings[MapContentType.Tracks] = true;
-            using (SettingsToolWindowViewModel sut = new SettingsToolWindowViewModel(CreateBridge(toolboxSettings, new ProfileUserSettingsModel())))
+            using (SettingsToolWindowViewModel settingsToolWindowViewModel = new SettingsToolWindowViewModel(CreateBridge(toolboxSettings, new ProfileUserSettingsModel())))
             {
                 toolboxSettings.ViewSettings[MapContentType.Tracks] = false;
 
-                sut.Start();
+                settingsToolWindowViewModel.Start();
 
-                Assert.IsFalse(sut.TrackVisibilityItems.Single(i => i.Setting == MapContentType.Tracks).IsVisible);
+                Assert.IsFalse(settingsToolWindowViewModel.TrackVisibilityItems.Single(i => i.Setting == MapContentType.Tracks).IsVisible);
             }
         }
 
@@ -214,13 +214,13 @@ namespace Tests.FreeTrainSimulator.Toolbox
         public void WhenStartThenColorItemsAreReSyncedFromModel()
         {
             ProfileToolboxSettingsModel toolboxSettings = new ProfileToolboxSettingsModel();
-            using (SettingsToolWindowViewModel sut = new SettingsToolWindowViewModel(CreateBridge(toolboxSettings, new ProfileUserSettingsModel())))
+            using (SettingsToolWindowViewModel settingsToolWindowViewModel = new SettingsToolWindowViewModel(CreateBridge(toolboxSettings, new ProfileUserSettingsModel())))
             {
                 toolboxSettings.ColorSettings[ColorSetting.RailTrack] = nameof(Microsoft.Xna.Framework.Color.Red);
 
-                sut.Start();
+                settingsToolWindowViewModel.Start();
 
-                Assert.AreEqual(nameof(Microsoft.Xna.Framework.Color.Red), sut.ColorItems.Single(i => i.Setting == ColorSetting.RailTrack).SelectedColorName);
+                Assert.AreEqual(nameof(Microsoft.Xna.Framework.Color.Red), settingsToolWindowViewModel.ColorItems.Single(i => i.Setting == ColorSetting.RailTrack).SelectedColorName);
             }
         }
 
@@ -230,11 +230,11 @@ namespace Tests.FreeTrainSimulator.Toolbox
             string defaultColor = new ProfileToolboxSettingsModel().ColorSettings[ColorSetting.RailTrack];
             ProfileToolboxSettingsModel toolboxSettings = new ProfileToolboxSettingsModel();
             toolboxSettings.ColorSettings[ColorSetting.RailTrack] = nameof(Microsoft.Xna.Framework.Color.Red);
-            using (SettingsToolWindowViewModel sut = new SettingsToolWindowViewModel(CreateBridge(toolboxSettings, new ProfileUserSettingsModel())))
+            using (SettingsToolWindowViewModel settingsToolWindowViewModel = new SettingsToolWindowViewModel(CreateBridge(toolboxSettings, new ProfileUserSettingsModel())))
             {
-                sut.ResetToDefaults();
+                settingsToolWindowViewModel.ResetToDefaults();
 
-                Assert.AreEqual(defaultColor, sut.ColorItems.Single(i => i.Setting == ColorSetting.RailTrack).SelectedColorName);
+                Assert.AreEqual(defaultColor, settingsToolWindowViewModel.ColorItems.Single(i => i.Setting == ColorSetting.RailTrack).SelectedColorName);
             }
         }
 
@@ -243,11 +243,11 @@ namespace Tests.FreeTrainSimulator.Toolbox
         {
             ProfileToolboxSettingsModel toolboxSettings = new ProfileToolboxSettingsModel();
             toolboxSettings.ViewSettings[MapContentType.Tracks] = false;
-            using (SettingsToolWindowViewModel sut = new SettingsToolWindowViewModel(CreateBridge(toolboxSettings, new ProfileUserSettingsModel())))
+            using (SettingsToolWindowViewModel settingsToolWindowViewModel = new SettingsToolWindowViewModel(CreateBridge(toolboxSettings, new ProfileUserSettingsModel())))
             {
-                sut.ResetToDefaults();
+                settingsToolWindowViewModel.ResetToDefaults();
 
-                Assert.IsTrue(sut.TrackVisibilityItems.Single(i => i.Setting == MapContentType.Tracks).IsVisible);
+                Assert.IsTrue(settingsToolWindowViewModel.TrackVisibilityItems.Single(i => i.Setting == MapContentType.Tracks).IsVisible);
             }
         }
 
@@ -255,11 +255,11 @@ namespace Tests.FreeTrainSimulator.Toolbox
         public void WhenResetToDefaultsThenFontOutlineRevertsToDefault()
         {
             ProfileToolboxSettingsModel toolboxSettings = new ProfileToolboxSettingsModel() { FontOutline = false };
-            using (SettingsToolWindowViewModel sut = new SettingsToolWindowViewModel(CreateBridge(toolboxSettings, new ProfileUserSettingsModel())))
+            using (SettingsToolWindowViewModel settingsToolWindowViewModel = new SettingsToolWindowViewModel(CreateBridge(toolboxSettings, new ProfileUserSettingsModel())))
             {
-                sut.ResetToDefaults();
+                settingsToolWindowViewModel.ResetToDefaults();
 
-                Assert.IsTrue(sut.FontOutline);
+                Assert.IsTrue(settingsToolWindowViewModel.FontOutline);
             }
         }
 
@@ -267,11 +267,11 @@ namespace Tests.FreeTrainSimulator.Toolbox
         public void WhenResetToDefaultsThenRealTrackWidthRevertsToDefault()
         {
             ProfileToolboxSettingsModel toolboxSettings = new ProfileToolboxSettingsModel() { LimitTrackWidth = false };
-            using (SettingsToolWindowViewModel sut = new SettingsToolWindowViewModel(CreateBridge(toolboxSettings, new ProfileUserSettingsModel())))
+            using (SettingsToolWindowViewModel settingsToolWindowViewModel = new SettingsToolWindowViewModel(CreateBridge(toolboxSettings, new ProfileUserSettingsModel())))
             {
-                sut.ResetToDefaults();
+                settingsToolWindowViewModel.ResetToDefaults();
 
-                Assert.IsFalse(sut.RealTrackWidth);
+                Assert.IsFalse(settingsToolWindowViewModel.RealTrackWidth);
             }
         }
 
@@ -279,12 +279,12 @@ namespace Tests.FreeTrainSimulator.Toolbox
         public void WhenResetToDefaultsThenLoggingIsUnchanged()
         {
             ProfileUserSettingsModel userSettings = new ProfileUserSettingsModel() { LogLevel = TraceEventType.Verbose };
-            using (SettingsToolWindowViewModel sut = new SettingsToolWindowViewModel(CreateBridge(new ProfileToolboxSettingsModel(), userSettings)))
+            using (SettingsToolWindowViewModel settingsToolWindowViewModel = new SettingsToolWindowViewModel(CreateBridge(new ProfileToolboxSettingsModel(), userSettings)))
             {
-                sut.ResetToDefaults();
+                settingsToolWindowViewModel.ResetToDefaults();
 
                 Assert.AreEqual(TraceEventType.Verbose, userSettings.LogLevel);
-                Assert.IsTrue(sut.EnableLogging);
+                Assert.IsTrue(settingsToolWindowViewModel.EnableLogging);
             }
         }
 
@@ -294,9 +294,9 @@ namespace Tests.FreeTrainSimulator.Toolbox
             ProfileToolboxSettingsModel toolboxSettings = new ProfileToolboxSettingsModel();
             FakeSettingsApplier applier = new FakeSettingsApplier(toolboxSettings, new ProfileUserSettingsModel());
             SettingsToolWindow bridge = new SettingsToolWindow(toolboxSettings, new ProfileUserSettingsModel(), applier);
-            using (SettingsToolWindowViewModel sut = new SettingsToolWindowViewModel(bridge))
+            using (SettingsToolWindowViewModel settingsToolWindowViewModel = new SettingsToolWindowViewModel(bridge))
             {
-                sut.ResetToDefaults();
+                settingsToolWindowViewModel.ResetToDefaults();
 
                 Assert.AreEqual(1, applier.ReapplyCount);
             }

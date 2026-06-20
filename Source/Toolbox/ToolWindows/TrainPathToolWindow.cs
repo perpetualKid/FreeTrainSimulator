@@ -24,17 +24,12 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
     /// lock-free by the WPF view model. Combines the available paths, the selected path id, the current
     /// path's node rows, and its metadata name/value rows.
     /// </summary>
-    internal sealed record TrainPathSnapshot(
-        ImmutableArray<TrainPathListRow> Paths,
-        string SelectedPathId,
-        ImmutableArray<TrainPathNodeRow> Nodes,
-        ImmutableArray<ToolWindowRow> Metadata)
+    internal sealed record TrainPathSnapshot(ImmutableArray<TrainPathListRow> Paths,
+        string SelectedPathId, ImmutableArray<TrainPathNodeRow> Nodes, ImmutableArray<ToolWindowRow> Metadata)
     {
-        public static TrainPathSnapshot Empty { get; } = new(
-            ImmutableArray<TrainPathListRow>.Empty,
-            null,
-            ImmutableArray<TrainPathNodeRow>.Empty,
-            ImmutableArray<ToolWindowRow>.Empty);
+        public static TrainPathSnapshot Empty { get; } = 
+            new TrainPathSnapshot(ImmutableArray<TrainPathListRow>.Empty, null,
+            ImmutableArray<TrainPathNodeRow>.Empty, ImmutableArray<ToolWindowRow>.Empty);
     }
 
     /// <summary>
@@ -58,7 +53,6 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
         private volatile bool active;
 
         private ImmutableArray<PathModelHeader> cachedPaths = ImmutableArray<PathModelHeader>.Empty;
-        private bool pathsCached;
         private string lastPathId;
         private int lastNodeCount = -1;
         private int snapshotVersion;
@@ -217,7 +211,6 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
         /// </summary>
         internal void InvalidatePaths()
         {
-            pathsCached = false;
             cachedPaths = ImmutableArray<PathModelHeader>.Empty;
             MarkDirty();
         }
@@ -229,7 +222,6 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
         internal void UpdatePaths(ImmutableArray<PathModelHeader> paths)
         {
             cachedPaths = paths.IsDefault ? ImmutableArray<PathModelHeader>.Empty : paths;
-            pathsCached = true;
             MarkDirty();
         }
 
@@ -244,7 +236,6 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
 
         private void ResetCaches()
         {
-            pathsCached = false;
             cachedPaths = ImmutableArray<PathModelHeader>.Empty;
             lastPathId = null;
             lastNodeCount = -1;

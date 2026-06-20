@@ -17,7 +17,7 @@ namespace Tests.FreeTrainSimulator.Toolbox
 
             trackNodeInfoToolWindow.RefreshSnapshot();
 
-            Assert.AreEqual(0, trackNodeInfoToolWindow.CaptureSnapshot().Rows.Length);
+            Assert.IsEmpty(trackNodeInfoToolWindow.CaptureSnapshot().Rows);
         }
 
         [TestMethod]
@@ -30,7 +30,7 @@ namespace Tests.FreeTrainSimulator.Toolbox
 
             trackNodeInfoToolWindow.RefreshSnapshot();
 
-            Assert.AreEqual(0, trackNodeInfoToolWindow.CaptureSnapshot().Rows.Length);
+            Assert.IsEmpty(trackNodeInfoToolWindow.CaptureSnapshot().Rows);
         }
 
         [TestMethod]

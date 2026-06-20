@@ -1,6 +1,6 @@
 using System.Windows;
 
-namespace FreeTrainSimulator.Toolbox.Wpf
+namespace FreeTrainSimulator.Toolbox
 {
     public partial class App : Application
     {

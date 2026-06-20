@@ -1,7 +1,6 @@
 using System;
 using System.Windows.Threading;
 
-using FreeTrainSimulator.Toolbox;
 using FreeTrainSimulator.Toolbox.ToolWindows;
 using FreeTrainSimulator.Toolbox.ViewModels;
 
@@ -22,9 +21,10 @@ namespace Tests.FreeTrainSimulator.Toolbox
         {
             int invocations = 0;
             TrainPathToolWindow bridge = CreateBridge(_ => invocations++);
-            TrainPathToolWindowViewModel sut = new(bridge, Dispatcher.CurrentDispatcher);
-
-            sut.SelectedPath = new TrainPathListItemViewModel("path-1", "First Path");
+            TrainPathToolWindowViewModel trainPathToolWindowViewModel = new TrainPathToolWindowViewModel(bridge, Dispatcher.CurrentDispatcher)
+            {
+                SelectedPath = new TrainPathListItemViewModel("path-1", "First Path")
+            };
 
             Assert.AreEqual(1, invocations);
         }
@@ -34,10 +34,12 @@ namespace Tests.FreeTrainSimulator.Toolbox
         {
             int invocations = 0;
             TrainPathToolWindow bridge = CreateBridge(_ => invocations++);
-            TrainPathToolWindowViewModel sut = new(bridge, Dispatcher.CurrentDispatcher);
-            sut.SelectedPath = new TrainPathListItemViewModel("path-1", "First Path");
+            TrainPathToolWindowViewModel trainPathToolWindowViewModel = new TrainPathToolWindowViewModel(bridge, Dispatcher.CurrentDispatcher)
+            {
+                SelectedPath = new TrainPathListItemViewModel("path-1", "First Path")
+            };
 
-            sut.SelectedPath = null;
+            trainPathToolWindowViewModel.SelectedPath = null;
 
             Assert.AreEqual(2, invocations);
         }
@@ -47,11 +49,13 @@ namespace Tests.FreeTrainSimulator.Toolbox
         {
             int invocations = 0;
             TrainPathToolWindow bridge = CreateBridge(_ => invocations++);
-            TrainPathToolWindowViewModel sut = new(bridge, Dispatcher.CurrentDispatcher);
-            TrainPathListItemViewModel path = new("path-1", "First Path");
-            sut.SelectedPath = path;
+            TrainPathListItemViewModel path = new TrainPathListItemViewModel("path-1", "First Path");
+            TrainPathToolWindowViewModel trainPathToolWindowViewModel = new TrainPathToolWindowViewModel(bridge, Dispatcher.CurrentDispatcher)
+            {
+                SelectedPath = path
+            };
 
-            sut.SelectedPath = path;
+            trainPathToolWindowViewModel.SelectedPath = path;
 
             Assert.AreEqual(1, invocations);
         }
@@ -60,11 +64,12 @@ namespace Tests.FreeTrainSimulator.Toolbox
         public void WhenSelectedPathSetThenStatusMessageIsCleared()
         {
             TrainPathToolWindow bridge = CreateBridge(action => action());
-            TrainPathToolWindowViewModel sut = new(bridge, Dispatcher.CurrentDispatcher);
+            TrainPathToolWindowViewModel trainPathToolWindowViewModel = new TrainPathToolWindowViewModel(bridge, Dispatcher.CurrentDispatcher)
+            {
+                SelectedPath = new TrainPathListItemViewModel("path-1", "First Path")
+            };
 
-            sut.SelectedPath = new TrainPathListItemViewModel("path-1", "First Path");
-
-            Assert.AreEqual(string.Empty, sut.StatusMessage);
+            Assert.AreEqual(string.Empty, trainPathToolWindowViewModel.StatusMessage);
         }
 
         [TestMethod]
@@ -72,9 +77,10 @@ namespace Tests.FreeTrainSimulator.Toolbox
         {
             int invocations = 0;
             TrainPathToolWindow bridge = CreateBridge(_ => invocations++);
-            TrainPathToolWindowViewModel sut = new(bridge, Dispatcher.CurrentDispatcher);
-
-            sut.SelectedNode = new TrainPathNodeItemViewModel(2, "Junction", true);
+            TrainPathToolWindowViewModel trainPathToolWindowViewModel = new TrainPathToolWindowViewModel(bridge, Dispatcher.CurrentDispatcher)
+            {
+                SelectedNode = new TrainPathNodeItemViewModel(2, "Junction", true)
+            };
 
             Assert.AreEqual(1, invocations);
         }
@@ -84,10 +90,12 @@ namespace Tests.FreeTrainSimulator.Toolbox
         {
             int invocations = 0;
             TrainPathToolWindow bridge = CreateBridge(_ => invocations++);
-            TrainPathToolWindowViewModel sut = new(bridge, Dispatcher.CurrentDispatcher);
-            sut.SelectedNode = new TrainPathNodeItemViewModel(2, "Junction", true);
+            TrainPathToolWindowViewModel trainPathToolWindowViewModel = new TrainPathToolWindowViewModel(bridge, Dispatcher.CurrentDispatcher)
+            {
+                SelectedNode = new TrainPathNodeItemViewModel(2, "Junction", true)
+            };
 
-            sut.SelectedNode = null;
+            trainPathToolWindowViewModel.SelectedNode = null;
 
             Assert.AreEqual(2, invocations);
         }
@@ -96,11 +104,11 @@ namespace Tests.FreeTrainSimulator.Toolbox
         public void WhenSearchTextMatchesPathThenPathRemainsVisible()
         {
             TrainPathToolWindow bridge = CreateBridge(action => action());
-            TrainPathToolWindowViewModel sut = new(bridge, Dispatcher.CurrentDispatcher);
-            TrainPathListItemViewModel match = new("p1", "Northbound");
-            sut.Paths.Add(match);
+            TrainPathToolWindowViewModel trainPathToolWindowViewModel = new TrainPathToolWindowViewModel(bridge, Dispatcher.CurrentDispatcher);
+            TrainPathListItemViewModel match = new TrainPathListItemViewModel("p1", "Northbound");
+            trainPathToolWindowViewModel.Paths.Add(match);
 
-            sut.SearchText = "north";
+            trainPathToolWindowViewModel.SearchText = "north";
 
             Assert.IsTrue(match.IsVisible);
         }
@@ -109,11 +117,11 @@ namespace Tests.FreeTrainSimulator.Toolbox
         public void WhenSearchTextDoesNotMatchPathThenPathIsHidden()
         {
             TrainPathToolWindow bridge = CreateBridge(action => action());
-            TrainPathToolWindowViewModel sut = new(bridge, Dispatcher.CurrentDispatcher);
-            TrainPathListItemViewModel other = new("p2", "Southbound");
-            sut.Paths.Add(other);
+            TrainPathToolWindowViewModel trainPathToolWindowViewModel = new TrainPathToolWindowViewModel(bridge, Dispatcher.CurrentDispatcher);
+            TrainPathListItemViewModel other = new TrainPathListItemViewModel("p2", "Southbound");
+            trainPathToolWindowViewModel.Paths.Add(other);
 
-            sut.SearchText = "north";
+            trainPathToolWindowViewModel.SearchText = "north";
 
             Assert.IsFalse(other.IsVisible);
         }

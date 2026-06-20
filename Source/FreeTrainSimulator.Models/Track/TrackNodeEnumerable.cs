@@ -38,7 +38,7 @@ namespace FreeTrainSimulator.Models.Track
         //        public T this[int i] => (T)nodes[indices[i]];
 
         /// <summary>Duck-typed overload: used by <see langword="foreach"/> — returns the struct enumerator directly, avoiding boxing.</summary>
-        public TrackNodeEnumerator<T> GetEnumerator() => new(nodes, indices);
+        public TrackNodeEnumerator<T> GetEnumerator() => new TrackNodeEnumerator<T>(nodes, indices);
         /// <summary>Interface implementation: boxes the struct enumerator for LINQ and other <see cref="IEnumerable{T}"/> consumers.</summary>
         IEnumerator<T> IEnumerable<T>.GetEnumerator() => new TrackNodeEnumerator<T>(nodes, indices);
         IEnumerator IEnumerable.GetEnumerator() => new TrackNodeEnumerator<T>(nodes, indices);

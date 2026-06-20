@@ -157,7 +157,7 @@ namespace FreeTrainSimulator.Toolbox.Hosting
                 gameThread = new Thread(GameThreadStart)
                 {
                     IsBackground = true,
-                    Name = "Toolbox.Wpf.HostedGameThread",
+                    Name = "Toolbox.HostedGameThread",
                 };
                 gameThread.SetApartmentState(ApartmentState.STA);
                 gameThread.Start();

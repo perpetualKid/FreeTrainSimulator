@@ -75,10 +75,7 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
 
         private bool MatchesFilter(HelpRow row)
         {
-            if (string.IsNullOrWhiteSpace(searchText))
-                return true;
-
-            return searchColumn switch
+            return string.IsNullOrWhiteSpace(searchText) || searchColumn switch
             {
                 HelpSearchColumn.Command => row.Command?.Contains(searchText, StringComparison.OrdinalIgnoreCase) ?? false,
                 HelpSearchColumn.Key => row.Key?.Contains(searchText, StringComparison.OrdinalIgnoreCase) ?? false,

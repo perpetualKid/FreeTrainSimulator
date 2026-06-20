@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 
 using FreeTrainSimulator.Common.DebugInfo;
@@ -16,7 +15,7 @@ namespace Tests.FreeTrainSimulator.Toolbox
         [TestMethod]
         public void WhenInactiveRefreshSnapshotThenRowsRemainEmpty()
         {
-            TestInformationProvider provider = new();
+            TestInformationProvider provider = new TestInformationProvider();
             provider.DetailInfo["Index"] = "7";
             TrackItemInfoToolWindow trackItemInfoToolWindow = new TrackItemInfoToolWindow(_ => { })
             {
@@ -26,13 +25,13 @@ namespace Tests.FreeTrainSimulator.Toolbox
 
             trackItemInfoToolWindow.RefreshSnapshot();
 
-            Assert.AreEqual(0, trackItemInfoToolWindow.CaptureSnapshot().Rows.Length);
+            Assert.IsEmpty(trackItemInfoToolWindow.CaptureSnapshot().Rows);
         }
 
         [TestMethod]
         public void WhenActiveRefreshSnapshotThenRowsArePublished()
         {
-            TestInformationProvider provider = new();
+            TestInformationProvider provider = new TestInformationProvider();
             provider.DetailInfo["Index"] = "7";
             TrackItemInfoToolWindow trackItemInfoToolWindow = new TrackItemInfoToolWindow(_ => { })
             {
@@ -42,7 +41,7 @@ namespace Tests.FreeTrainSimulator.Toolbox
 
             trackItemInfoToolWindow.RefreshSnapshot();
 
-            Assert.AreEqual(1, trackItemInfoToolWindow.CaptureSnapshot().Rows.Length);
+            Assert.HasCount(1, trackItemInfoToolWindow.CaptureSnapshot().Rows);
         }
 
         [TestMethod]
@@ -56,7 +55,7 @@ namespace Tests.FreeTrainSimulator.Toolbox
 
             trackItemInfoToolWindow.RefreshSnapshot();
 
-            Assert.AreEqual(0, trackItemInfoToolWindow.CaptureSnapshot().Rows.Length);
+            Assert.IsEmpty(trackItemInfoToolWindow.CaptureSnapshot().Rows);
         }
 
         [TestMethod]
@@ -102,9 +101,9 @@ namespace Tests.FreeTrainSimulator.Toolbox
 
         private sealed class TestInformationProvider : INameValueInformationProvider
         {
-            public InformationDictionary DetailInfo { get; } = new();
+            public InformationDictionary DetailInfo { get; } = new InformationDictionary();
 
-            public Dictionary<string, FormatOption> FormattingOptions { get; } = new();
+            public Dictionary<string, FormatOption> FormattingOptions { get; } = new Dictionary<string, FormatOption>();
         }
     }
 }
