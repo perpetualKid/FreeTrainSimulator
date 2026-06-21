@@ -39,18 +39,16 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
 
         internal bool UseWorldCoordinates
         {
-            get
-            {
-                if (!bool.TryParse(toolboxSettings.PopupSettings[ToolboxWindowType.LocationWindow], out bool useWorldCoordinates))
-                    useWorldCoordinates = true;
-                return useWorldCoordinates;
-            }
+            get => toolboxSettings.ToolWindowSettings.LocationToolSettings.UseWorldCoordinates;
             set
             {
                 if (value == UseWorldCoordinates)
                     return;
 
-                toolboxSettings.PopupSettings[ToolboxWindowType.LocationWindow] = value.ToString();
+                toolboxSettings.ToolWindowSettings = toolboxSettings.ToolWindowSettings with
+                {
+                    LocationToolSettings = toolboxSettings.ToolWindowSettings.LocationToolSettings with { UseWorldCoordinates = value }
+                };
                 updateRequired = true;
             }
         }

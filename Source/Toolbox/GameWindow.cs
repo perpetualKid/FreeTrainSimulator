@@ -24,7 +24,6 @@ using FreeTrainSimulator.Models.Settings;
 using FreeTrainSimulator.Models.Shim;
 using FreeTrainSimulator.Toolbox.PopupWindows;
 using FreeTrainSimulator.Toolbox.Settings;
-using FreeTrainSimulator.Toolbox.Settings;
 using FreeTrainSimulator.Toolbox.ToolWindows;
 
 using GetText;
@@ -632,19 +631,6 @@ namespace FreeTrainSimulator.Toolbox
                 (int)Math.Max(0, Math.Round(100f * (windowPosition.X - currentScreen.Bounds.Left) / (currentScreen.WorkingArea.Width - windowSize.Width))),
                 (int)Math.Max(0, Math.Round(100.0 * (windowPosition.Y - currentScreen.Bounds.Top) / (currentScreen.WorkingArea.Height - windowSize.Height))));
 
-            foreach (ToolboxWindowType windowType in EnumExtension.GetValues<ToolboxWindowType>())
-            {
-                if (windowManager.WindowInitialized(windowType))
-                {
-                    ToolboxSettings.PopupLocations[windowType] = windowManager[windowType].RelativeLocation.FromPoint();
-                    ToolboxSettings.PopupStatus[windowType] = windowManager.WindowOpened(windowType) && !windowManager.WindowModal(windowType);
-                }
-                else
-                {
-                    ToolboxSettings.PopupStatus[windowType] = false;
-                }
-            }
-
             ToolboxSettings.WindowScreen = Screen.AllScreens.ToList().IndexOf(currentScreen);
             ToolboxSettings.ContentPosition = contentArea is IMapHostControl hostControl ? hostControl.CenterPoint : PointD.None;
             ToolboxSettings.ContentScale = contentArea is IMapHostControl hostControl2 ? hostControl2.Scale : 1;
@@ -781,7 +767,7 @@ namespace FreeTrainSimulator.Toolbox
 
             #region popup windows
             windowManager = WindowManager.Initialize<UserCommand, ToolboxWindowType>(this, userCommandController.AddTopLayerController());
-            windowManager[ToolboxWindowType.StatusWindow] = new StatusTextWindow(windowManager, ToolboxSettings.PopupLocations[ToolboxWindowType.StatusWindow].ToPoint());
+            windowManager[ToolboxWindowType.StatusWindow] = new StatusTextWindow(windowManager);
 
             windowManager.SetLazyWindows(ToolboxWindowType.DebugScreen, new Lazy<FormBase>(() =>
             {
@@ -812,17 +798,6 @@ namespace FreeTrainSimulator.Toolbox
                 {
                     await PreSelectRoute(ToolboxSettings.Folder, ToolboxSettings.RouteId, ToolboxSettings.PathId).ConfigureAwait(true);
                     ContentArea?.PresetPosition(ToolboxSettings.ContentPosition, ToolboxSettings.ContentScale);
-                    foreach (ToolboxWindowType windowType in EnumExtension.GetValues<ToolboxWindowType>())
-                    {
-                        if (windowType == ToolboxWindowType.LocationWindow || windowType == ToolboxWindowType.LogWindow
-                            || windowType == ToolboxWindowType.TrackNodeInfoWindow || windowType == ToolboxWindowType.TrackItemInfoWindow
-                            || windowType == ToolboxWindowType.HelpWindow || windowType == ToolboxWindowType.SettingsWindow
-                            || windowType == ToolboxWindowType.TrainPathWindow)
-                            continue;
-
-                        if (ToolboxSettings.PopupStatus[windowType])
-                            windowManager[windowType].Open();
-                    }
                 }
                 catch (Exception ex) when (ex is not OperationCanceledException)
                 {

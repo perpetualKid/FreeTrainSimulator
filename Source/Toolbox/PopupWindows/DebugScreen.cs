@@ -38,7 +38,8 @@ namespace FreeTrainSimulator.Toolbox.PopupWindows
             currentProvider[DebugScreenInformation.Graphics] = new NameValueTextGrid(this, (int)(10 * Owner.DpiScaling), (int)(150 * Owner.DpiScaling)) { Visible = false };
             currentProvider[DebugScreenInformation.Route] = new NameValueTextGrid(this, (int)(10 * Owner.DpiScaling), (int)(150 * Owner.DpiScaling)) { Visible = false, ColumnWidth = new int[] { 150, -1 } };
             UpdateBackgroundColor(backgroundColor);
-            _ = EnumExtension.GetValue(toolboxSettings.PopupSettings[ToolboxWindowType.DebugScreen], out currentDebugScreen);
+            string currentPanel = toolboxSettings.ToolWindowSettings.DebugOverlaySettings.CurrentPanel;
+            _ = EnumExtension.GetValue(currentPanel, out currentDebugScreen);
             currentProvider[currentDebugScreen].Visible = true;
         }
 
@@ -94,7 +95,10 @@ namespace FreeTrainSimulator.Toolbox.PopupWindows
                     currentProvider[currentDebugScreen].Visible = false;
                 currentDebugScreen = currentDebugScreen.Next();
                 currentProvider[currentDebugScreen].Visible = true;
-                toolboxSettings.PopupSettings[ToolboxWindowType.DebugScreen] = currentDebugScreen.ToString();
+                toolboxSettings.ToolWindowSettings = toolboxSettings.ToolWindowSettings with
+                {
+                    DebugOverlaySettings = toolboxSettings.ToolWindowSettings.DebugOverlaySettings with { CurrentPanel = currentDebugScreen.ToString() }
+                };
             }
         }
 
