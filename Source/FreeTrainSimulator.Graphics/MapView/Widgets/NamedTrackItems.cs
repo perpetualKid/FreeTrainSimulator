@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 
 using FreeTrainSimulator.Common.Position;
@@ -34,9 +35,17 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
 
     internal record StationNameItem : NamedTrackItem
     {
-        public StationNameItem(in PointD location, string name, int count = 1) : base(location, name, count)
-        {
+        /// <summary>Top-left corner of the station extent: the union of all its platforms' bounds.</summary>
+        public PointD TopLeftBound { get; }
 
+        /// <summary>Bottom-right corner of the station extent: the union of all its platforms' bounds.</summary>
+        public PointD BottomRightBound { get; }
+
+        public StationNameItem(string name, int count, in PointD topLeftBound, in PointD bottomRightBound)
+            : base(topLeftBound + (bottomRightBound - topLeftBound) / 2.0, name, count)
+        {
+            TopLeftBound = topLeftBound;
+            BottomRightBound = bottomRightBound;
         }
 
         public override void Draw(IMapRenderer renderer, ColorVariation colorVariation = ColorVariation.None, double scaleFactor = 1)
@@ -52,18 +61,20 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
             foreach (IGrouping<string, PlatformPath> item in stationPlatforms)
             {
                 int count = 0;
-                double x = 0, y = 0;
+                // Accumulate the union of all platform bounds: the station covers the full extent of its
+                // platforms, and its center (label/navigation point) is derived from those bounds in the
+                // constructor. PointD Y increases upward, so the top-left corner uses the max Y.
+                double minX = double.MaxValue, minY = double.MaxValue, maxX = double.MinValue, maxY = double.MinValue;
                 foreach (PlatformPath platform in item)
                 {
-                    x += platform.MidPoint.X;
-                    y += platform.MidPoint.Y;
                     count++;
+                    minX = Math.Min(minX, platform.TopLeftBound.X);
+                    maxY = Math.Max(maxY, platform.TopLeftBound.Y);
+                    maxX = Math.Max(maxX, platform.BottomRightBound.X);
+                    minY = Math.Min(minY, platform.BottomRightBound.Y);
                 }
-                x /= count;
-                y /= count;
-                PointD location = new PointD(x, y);
 
-                yield return new StationNameItem(location, item.Key, count);
+                yield return new StationNameItem(item.Key, count, new PointD(minX, maxY), new PointD(maxX, minY));
             }
         }
     }

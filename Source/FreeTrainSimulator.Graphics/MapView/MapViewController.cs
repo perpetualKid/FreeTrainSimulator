@@ -127,7 +127,7 @@ namespace FreeTrainSimulator.Graphics.MapView
 
         public void UpdateScaleToFit(in PointD topLeft, in PointD bottomRight)
         {
-            viewport.UpdateScaleToFit(topLeft, bottomRight);
+            viewport.UpdateScaleToFit(topLeft, bottomRight, scaleMax);
             scaleChanged = true;
             redrawRequested = true;
         }

@@ -142,9 +142,13 @@ namespace FreeTrainSimulator.Toolbox
                     try
                     {
                         routeModels = await contentFolder.GetRoutes(ctsProfileLoading.Token).ConfigureAwait(false);
+                        // Only commit the folder as selected once its routes have actually loaded. Committing
+                        // after a cancelled fetch would leave selectedFolder pointing at a folder whose routes
+                        // were never populated, so re-selecting it later would be skipped by this guard and the
+                        // folder change would silently do nothing.
+                        selectedFolder = contentFolder;
                     }
                     catch (TaskCanceledException) { }
-                    selectedFolder = contentFolder;
                 }
             }
             finally

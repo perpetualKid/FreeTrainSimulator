@@ -44,14 +44,10 @@
                           IsCheckable="True"
                           IsChecked="{Binding DataContext.IsLogToolVisible, ElementName=RootWindow, Mode=OneWay}"
                           Command="{Binding DataContext.ToggleLogToolCommand, ElementName=RootWindow}" />
-                <MenuItem Header="Track _Item Information"
+                <MenuItem Header="Route Na_vigation"
                           IsCheckable="True"
-                          IsChecked="{Binding DataContext.IsTrackItemInfoToolVisible, ElementName=RootWindow, Mode=OneWay}"
-                          Command="{Binding DataContext.ToggleTrackItemInfoToolCommand, ElementName=RootWindow}" />
-                <MenuItem Header="Track _Node Information"
-                          IsCheckable="True"
-                          IsChecked="{Binding DataContext.IsTrackNodeInfoToolVisible, ElementName=RootWindow, Mode=OneWay}"
-                          Command="{Binding DataContext.ToggleTrackNodeInfoToolCommand, ElementName=RootWindow}" />
+                          IsChecked="{Binding DataContext.IsRouteNavigationToolVisible, ElementName=RootWindow, Mode=OneWay}"
+                          Command="{Binding DataContext.ToggleRouteNavigationToolCommand, ElementName=RootWindow}" />
                 <MenuItem Header="_Help Window"
                           IsCheckable="True"
                           IsChecked="{Binding DataContext.IsHelpToolVisible, ElementName=RootWindow, Mode=OneWay}"
@@ -143,23 +139,14 @@
                                                               IsSelected="True">
                                     <views:LocationToolView DataContext="{Binding DataContext.LocationTool, ElementName=RootWindow}" />
                                 </avalonLayout:LayoutAnchorable>
-                                <avalonLayout:LayoutAnchorable x:Name="TrackItemInfoToolAnchorable"
-                                                              ContentId="TrackItemInfoToolWindow"
-                                                              Title="Track Item Information"
+                                <avalonLayout:LayoutAnchorable x:Name="RouteNavigationToolAnchorable"
+                                                              ContentId="RouteNavigationToolWindow"
+                                                              Title="Route Navigation"
                                                               CanClose="False"
                                                               CanHide="True"
                                                               IsVisible="False"
                                                               IsSelected="False">
-                                    <views:TrackItemInfoToolView DataContext="{Binding DataContext.TrackItemInfoTool, ElementName=RootWindow}" />
-                                </avalonLayout:LayoutAnchorable>
-                                <avalonLayout:LayoutAnchorable x:Name="TrackNodeInfoToolAnchorable"
-                                                              ContentId="TrackNodeInfoToolWindow"
-                                                              Title="Track Node Information"
-                                                              CanClose="False"
-                                                              CanHide="True"
-                                                              IsVisible="False"
-                                                              IsSelected="False">
-                                    <views:TrackNodeInfoToolView DataContext="{Binding DataContext.TrackNodeInfoTool, ElementName=RootWindow}" />
+                                    <views:RouteNavigationToolView DataContext="{Binding DataContext.RouteNavigationTool, ElementName=RootWindow}" />
                                 </avalonLayout:LayoutAnchorable>
                                 <avalonLayout:LayoutAnchorable x:Name="SettingsToolAnchorable"
                                                               ContentId="SettingsToolWindow"

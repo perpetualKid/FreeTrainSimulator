@@ -117,12 +117,6 @@ namespace FreeTrainSimulator.Toolbox
         // Non-null only in hosted mode; exposed to the WPF host for read-only log file content.
         private LogToolWindow hostedLogToolWindow;
 
-        // Non-null only in hosted mode; exposed to the WPF host for read-only track item information.
-        private TrackItemInfoToolWindow hostedTrackItemInfoToolWindow;
-
-        // Non-null only in hosted mode; exposed to the WPF host for read-only track node information.
-        private TrackNodeInfoToolWindow hostedTrackNodeInfoToolWindow;
-
         // Non-null only in hosted mode; exposed to the WPF host for read-only command/key help information.
         private HelpToolWindow hostedHelpToolWindow;
 
@@ -135,6 +129,10 @@ namespace FreeTrainSimulator.Toolbox
         // Non-null only in hosted mode; exposed to the WPF host for the bottom status bar (mouse-driven
         // tile/location coordinates and nearest track node/item).
         private StatusBarToolWindow hostedStatusBarToolWindow;
+
+        // Non-null only in hosted mode; exposed to the WPF host for combined route navigation
+        // (station/platform/siding centering plus by-id track item/node lookups).
+        private RouteNavigationToolWindow hostedRouteNavigationToolWindow;
 
         private HostedToolboxServices hostedServices;
 
@@ -194,23 +192,21 @@ namespace FreeTrainSimulator.Toolbox
             hostedDebugToolWindow = new DebugToolWindow(debugInfo, graphicsDebugInfo);
             hostedLocationToolWindow = new LocationToolWindow(ToolboxSettings);
             hostedLogToolWindow = new LogToolWindow(() => LogFileName);
-            hostedTrackItemInfoToolWindow = new TrackItemInfoToolWindow(InvokeOnGameThread);
-            hostedTrackNodeInfoToolWindow = new TrackNodeInfoToolWindow(InvokeOnGameThread);
             hostedHelpToolWindow = new HelpToolWindow();
             hostedSettingsToolWindow = new SettingsToolWindow(ToolboxSettings, ToolboxUserSettings, this);
             hostedTrainPathToolWindow = new TrainPathToolWindow(() => HostedPathEditor, () => HostedTrainPathToolingContext, InvokeOnGameThread);
             hostedStatusBarToolWindow = new StatusBarToolWindow();
+            hostedRouteNavigationToolWindow = new RouteNavigationToolWindow(InvokeOnGameThread);
             hostedServices = new HostedToolboxServices(
                 hostedMenu,
                 hostedDebugToolWindow,
                 hostedLocationToolWindow,
                 hostedLogToolWindow,
-                hostedTrackItemInfoToolWindow,
-                hostedTrackNodeInfoToolWindow,
                 hostedHelpToolWindow,
                 hostedSettingsToolWindow,
                 hostedTrainPathToolWindow,
-                hostedStatusBarToolWindow);
+                hostedStatusBarToolWindow,
+                hostedRouteNavigationToolWindow);
             OnContentAreaChanged += GameWindow_OnContentAreaChanged;
             windowForm.KeyPreview = true;// need to preview keys to enable Monogames TextInput handler, otherwise adding the main menu will break text input
         }
@@ -299,18 +295,6 @@ namespace FreeTrainSimulator.Toolbox
         internal LogToolWindow HostedLogToolWindow => hostedLogToolWindow;
 
         /// <summary>
-        /// Hosted-mode track item tool-window bridge that the WPF shell pulls read-only track item snapshots
-        /// from. Null in standalone mode.
-        /// </summary>
-        internal TrackItemInfoToolWindow HostedTrackItemInfoToolWindow => hostedTrackItemInfoToolWindow;
-
-        /// <summary>
-        /// Hosted-mode track node tool-window bridge that the WPF shell pulls read-only track node snapshots
-        /// from. Null in standalone mode.
-        /// </summary>
-        internal TrackNodeInfoToolWindow HostedTrackNodeInfoToolWindow => hostedTrackNodeInfoToolWindow;
-
-        /// <summary>
         /// Hosted-mode help tool-window bridge that the WPF shell pulls read-only command/key help snapshots
         /// from. Null in standalone mode.
         /// </summary>
@@ -333,6 +317,12 @@ namespace FreeTrainSimulator.Toolbox
         /// track node/item snapshots from. Null in standalone mode.
         /// </summary>
         internal StatusBarToolWindow HostedStatusBarToolWindow => hostedStatusBarToolWindow;
+
+        /// <summary>
+        /// Hosted-mode route-navigation bridge that the WPF shell pulls station/platform/siding lists from and
+        /// drives map centering/highlighting through. Null in standalone mode.
+        /// </summary>
+        internal RouteNavigationToolWindow HostedRouteNavigationToolWindow => hostedRouteNavigationToolWindow;
 
         internal void ApplyHostedClientSize(System.Drawing.Size clientSize)
         {
@@ -844,10 +834,9 @@ namespace FreeTrainSimulator.Toolbox
         private void GameWindow_OnContentAreaChanged(object sender, ContentAreaChangedEventArgs e)
         {
             hostedLocationToolWindow?.UpdateLocationContext(e.LocationContext);
-            hostedTrackItemInfoToolWindow?.UpdateContext(e.TrackItemInfoContext);
-            hostedTrackNodeInfoToolWindow?.UpdateContext(e.TrackNodeInfoContext);
             hostedTrainPathToolWindow?.InvalidatePaths();
             hostedStatusBarToolWindow?.UpdateContexts(e.LocationContext, e.TrackNodeInfoContext, e.TrackItemInfoContext);
+            hostedRouteNavigationToolWindow?.UpdateContext(e.TrackNodeInfoContext);
         }
 
         protected override void Draw(GameTime gameTime)
@@ -863,11 +852,10 @@ namespace FreeTrainSimulator.Toolbox
             hostedDebugToolWindow?.RefreshSnapshot();
             hostedLocationToolWindow?.RefreshSnapshot();
             hostedLogToolWindow?.RefreshSnapshot();
-            hostedTrackItemInfoToolWindow?.RefreshSnapshot();
-            hostedTrackNodeInfoToolWindow?.RefreshSnapshot();
             hostedHelpToolWindow?.RefreshSnapshot();
             hostedTrainPathToolWindow?.RefreshSnapshot();
             hostedStatusBarToolWindow?.RefreshSnapshot();
+            hostedRouteNavigationToolWindow?.RefreshSnapshot();
         }
 
         private sealed class CommonDebugInfo : DetailInfoBase

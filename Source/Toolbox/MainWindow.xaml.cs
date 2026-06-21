@@ -28,8 +28,7 @@ namespace FreeTrainSimulator.Toolbox
         private const string LocationToolWindowContentId = "LocationToolWindow";
         private const string DebugToolWindowContentId = "DebugToolWindow";
         private const string LogToolWindowContentId = "LogToolWindow";
-        private const string TrackItemInfoToolWindowContentId = "TrackItemInfoToolWindow";
-        private const string TrackNodeInfoToolWindowContentId = "TrackNodeInfoToolWindow";
+        private const string RouteNavigationToolWindowContentId = "RouteNavigationToolWindow";
         private const string HelpToolWindowContentId = "HelpToolWindow";
         private const string SettingsToolWindowContentId = "SettingsToolWindow";
         private const string TrainPathToolWindowContentId = "TrainPathToolWindow";
@@ -111,8 +110,7 @@ namespace FreeTrainSimulator.Toolbox
             viewModel.ToggleLocationToolCommand = new RelayCommand(_ => ToggleToolWindow(LocationToolWindowContentId), _ => viewModel.LocationTool != null);
             viewModel.ToggleDebugToolCommand = new RelayCommand(_ => ToggleToolWindow(DebugToolWindowContentId), _ => viewModel.DebugTool != null);
             viewModel.ToggleLogToolCommand = new RelayCommand(_ => ToggleToolWindow(LogToolWindowContentId), _ => viewModel.LogTool != null);
-            viewModel.ToggleTrackItemInfoToolCommand = new RelayCommand(_ => ToggleToolWindow(TrackItemInfoToolWindowContentId), _ => viewModel.TrackItemInfoTool != null);
-            viewModel.ToggleTrackNodeInfoToolCommand = new RelayCommand(_ => ToggleToolWindow(TrackNodeInfoToolWindowContentId), _ => viewModel.TrackNodeInfoTool != null);
+            viewModel.ToggleRouteNavigationToolCommand = new RelayCommand(_ => ToggleToolWindow(RouteNavigationToolWindowContentId), _ => viewModel.RouteNavigationTool != null);
             viewModel.ToggleHelpToolCommand = new RelayCommand(_ => ToggleToolWindow(HelpToolWindowContentId), _ => viewModel.HelpTool != null);
             viewModel.ToggleSettingsToolCommand = new RelayCommand(_ => ToggleToolWindow(SettingsToolWindowContentId), _ => viewModel.SettingsTool != null);
             viewModel.ToggleTrainPathToolCommand = new RelayCommand(_ => ToggleToolWindow(TrainPathToolWindowContentId), _ => viewModel.TrainPathTool != null);
@@ -130,10 +128,8 @@ namespace FreeTrainSimulator.Toolbox
                     () => viewModel.DebugTool, () => viewModel.DebugTool.Start(), () => viewModel.DebugTool.Stop()),
                 new ToolWindowDescriptor(LogToolWindowContentId, "Logging", () => LogToolAnchorable, value => viewModel.IsLogToolVisible = value,
                     () => viewModel.LogTool, () => viewModel.LogTool.Start(), () => viewModel.LogTool.Stop()),
-                new ToolWindowDescriptor(TrackItemInfoToolWindowContentId, "Track Item Information", () => TrackItemInfoToolAnchorable, value => viewModel.IsTrackItemInfoToolVisible = value,
-                    () => viewModel.TrackItemInfoTool, () => viewModel.TrackItemInfoTool.Start(), () => viewModel.TrackItemInfoTool.Stop()),
-                new ToolWindowDescriptor(TrackNodeInfoToolWindowContentId, "Track Node Information", () => TrackNodeInfoToolAnchorable, value => viewModel.IsTrackNodeInfoToolVisible = value,
-                    () => viewModel.TrackNodeInfoTool, () => viewModel.TrackNodeInfoTool.Start(), () => viewModel.TrackNodeInfoTool.Stop()),
+                new ToolWindowDescriptor(RouteNavigationToolWindowContentId, "Route Navigation", () => RouteNavigationToolAnchorable, value => viewModel.IsRouteNavigationToolVisible = value,
+                    () => viewModel.RouteNavigationTool, () => viewModel.RouteNavigationTool.Start(), () => viewModel.RouteNavigationTool.Stop()),
                 new ToolWindowDescriptor(HelpToolWindowContentId, "Help", () => HelpToolAnchorable, value => viewModel.IsHelpToolVisible = value,
                     () => viewModel.HelpTool, () => viewModel.HelpTool.Start(), () => viewModel.HelpTool.Stop()),
                 new ToolWindowDescriptor(SettingsToolWindowContentId, "Settings", () => SettingsToolAnchorable, value => viewModel.IsSettingsToolVisible = value,
@@ -192,8 +188,7 @@ namespace FreeTrainSimulator.Toolbox
             viewModel.ToggleLocationToolCommand?.RaiseCanExecuteChanged();
             viewModel.ToggleDebugToolCommand?.RaiseCanExecuteChanged();
             viewModel.ToggleLogToolCommand?.RaiseCanExecuteChanged();
-            viewModel.ToggleTrackItemInfoToolCommand?.RaiseCanExecuteChanged();
-            viewModel.ToggleTrackNodeInfoToolCommand?.RaiseCanExecuteChanged();
+            viewModel.ToggleRouteNavigationToolCommand?.RaiseCanExecuteChanged();
             viewModel.ToggleHelpToolCommand?.RaiseCanExecuteChanged();
             viewModel.ToggleSettingsToolCommand?.RaiseCanExecuteChanged();
             viewModel.ToggleTrainPathToolCommand?.RaiseCanExecuteChanged();
@@ -340,8 +335,9 @@ namespace FreeTrainSimulator.Toolbox
         {
             HostedToolboxServices services = MapHost.HostedServices;
             if (services is null || services.DebugToolWindow is null || services.LocationToolWindow is null || services.LogToolWindow is null
-                || services.TrackItemInfoToolWindow is null || services.TrackNodeInfoToolWindow is null || services.HelpToolWindow is null
-                || services.SettingsToolWindow is null || services.TrainPathToolWindow is null || services.StatusBarToolWindow is null)
+                || services.HelpToolWindow is null
+                || services.SettingsToolWindow is null || services.TrainPathToolWindow is null || services.StatusBarToolWindow is null
+                || services.RouteNavigationToolWindow is null)
                 return;
 
             refreshScheduler = new ToolWindowRefreshScheduler(Dispatcher);
@@ -349,8 +345,7 @@ namespace FreeTrainSimulator.Toolbox
             viewModel.LocationTool = new LocationToolWindowViewModel(services.LocationToolWindow, refreshScheduler);
             viewModel.DebugTool = new DebugToolWindowViewModel(services.DebugToolWindow, refreshScheduler);
             viewModel.LogTool = new LogToolWindowViewModel(services.LogToolWindow, refreshScheduler);
-            viewModel.TrackItemInfoTool = new TrackItemInfoToolWindowViewModel(services.TrackItemInfoToolWindow, refreshScheduler);
-            viewModel.TrackNodeInfoTool = new TrackNodeInfoToolWindowViewModel(services.TrackNodeInfoToolWindow, refreshScheduler);
+            viewModel.RouteNavigationTool = new RouteNavigationToolWindowViewModel(services.RouteNavigationToolWindow, refreshScheduler);
             viewModel.HelpTool = new HelpToolWindowViewModel(services.HelpToolWindow, refreshScheduler);
             viewModel.SettingsTool = new SettingsToolWindowViewModel(services.SettingsToolWindow);
             viewModel.SettingsTool.ResetCommand = viewModel.ResetSettingsCommand;
@@ -738,8 +733,7 @@ namespace FreeTrainSimulator.Toolbox
             viewModel.LocationTool?.Dispose();
             viewModel.DebugTool?.Dispose();
             viewModel.LogTool?.Dispose();
-            viewModel.TrackItemInfoTool?.Dispose();
-            viewModel.TrackNodeInfoTool?.Dispose();
+            viewModel.RouteNavigationTool?.Dispose();
             viewModel.HelpTool?.Dispose();
             viewModel.SettingsTool?.Dispose();
             viewModel.TrainPathTool?.Dispose();

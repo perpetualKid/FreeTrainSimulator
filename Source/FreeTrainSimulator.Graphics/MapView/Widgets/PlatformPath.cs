@@ -82,6 +82,7 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
 
             if (PathSections.Length == 0)
                 Trace.TraceWarning($"Platform items {start.TrackItemId} and {end.TrackItemId} could not be linked on the underlying track database for track nodes {start.VectorNode.NodeIndex} and {end.VectorNode.NodeIndex}. This may indicate an error or inconsistency in the route data.");
+            SetBounds();
         }
 
         public static List<PlatformPath> CreatePlatforms(TrackWorld trackWorld, IEnumerable<PlatformTrackItem> platformItems)
@@ -90,12 +91,21 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
             if (platformItems is not IList<PlatformTrackItem>)
                 platformItems = platformItems.ToList();
             Dictionary<int, PlatformTrackItem> platformItemMappings = platformItems.ToDictionary(p => p.TrackItemId);
+            HashSet<int> processedItems = new HashSet<int>();
 
             foreach (PlatformTrackItem start in platformItems)
             {
+                // A platform is defined by a pair of linked items (start/end); emit a single path per pair by
+                // skipping an item once it has already been consumed as the partner of an earlier one.
+                if (!processedItems.Add(start.TrackItemId))
+                    continue;
                 if (!platformItemMappings.TryGetValue(start.LinkedId, out PlatformTrackItem end))
                 {
                     Trace.TraceError($"Platform Item pair not found for Source Id {start.TrackItemId} to target {start.LinkedId}");
+                }
+                else
+                {
+                    processedItems.Add(end.TrackItemId);
                 }
                 result.Add(new PlatformPath(trackWorld, start, end));
             }

@@ -80,11 +80,26 @@ namespace FreeTrainSimulator.Graphics.MapView
             CenterAround(location);
         }
 
-        public void UpdateScaleToFit(in PointD topLeft, in PointD bottomRight)
+        public void UpdateScaleToFit(in PointD topLeft, in PointD bottomRight, double scaleMax)
         {
-            double xScale = WindowSize.Width / Math.Abs(bottomRight.X - topLeft.X);
-            double yScale = (WindowSize.Height - screenHeightDelta) / Math.Abs(topLeft.Y - bottomRight.Y);
-            Scale = Math.Min(xScale, yScale) * 0.95;
+            double width = Math.Abs(bottomRight.X - topLeft.X);
+            double height = Math.Abs(topLeft.Y - bottomRight.Y);
+
+            // Guard against a zero-extent (point-sized) target: dividing by it would yield an infinite scale
+            // and corrupt the viewport. Fall back to centering without rescaling, matching the behavior for an
+            // entity that has no meaningful bounds.
+            if (width <= 0 || height <= 0)
+            {
+                CenterAround(new PointD(((topLeft.X + bottomRight.X) / 2), ((topLeft.Y + bottomRight.Y) / 2)));
+                return;
+            }
+
+            double xScale = WindowSize.Width / width;
+            double yScale = (WindowSize.Height - screenHeightDelta) / height;
+
+            // Honor the same maximum zoom the mouse/keyboard controls enforce: a very short platform/siding
+            // would otherwise fit to a scale far beyond what the user can reach (and undo) with the wheel.
+            Scale = Math.Min(Math.Min(xScale, yScale) * 0.95, scaleMax);
             SetBounds();
         }
 

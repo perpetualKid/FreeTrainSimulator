@@ -10,8 +10,7 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
         private DebugToolWindowViewModel debugTool;
         private LocationToolWindowViewModel locationTool;
         private LogToolWindowViewModel logTool;
-        private TrackItemInfoToolWindowViewModel trackItemInfoTool;
-        private TrackNodeInfoToolWindowViewModel trackNodeInfoTool;
+        private RouteNavigationToolWindowViewModel routeNavigationTool;
         private HelpToolWindowViewModel helpTool;
         private SettingsToolWindowViewModel settingsTool;
         private TrainPathToolWindowViewModel trainPathTool;
@@ -19,8 +18,7 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
         private RelayCommand toggleDebugToolCommand;
         private RelayCommand toggleLocationToolCommand;
         private RelayCommand toggleLogToolCommand;
-        private RelayCommand toggleTrackItemInfoToolCommand;
-        private RelayCommand toggleTrackNodeInfoToolCommand;
+        private RelayCommand toggleRouteNavigationToolCommand;
         private RelayCommand toggleHelpToolCommand;
         private RelayCommand toggleSettingsToolCommand;
         private RelayCommand toggleTrainPathToolCommand;
@@ -30,8 +28,7 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
         private bool isDebugToolVisible;
         private bool isLocationToolVisible;
         private bool isLogToolVisible;
-        private bool isTrackItemInfoToolVisible;
-        private bool isTrackNodeInfoToolVisible;
+        private bool isRouteNavigationToolVisible;
         private bool isHelpToolVisible;
         private bool isSettingsToolVisible;
         private bool isTrainPathToolVisible;
@@ -61,16 +58,10 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
             set => SetProperty(ref logTool, value);
         }
 
-        public TrackItemInfoToolWindowViewModel TrackItemInfoTool
+        public RouteNavigationToolWindowViewModel RouteNavigationTool
         {
-            get => trackItemInfoTool;
-            set => SetProperty(ref trackItemInfoTool, value);
-        }
-
-        public TrackNodeInfoToolWindowViewModel TrackNodeInfoTool
-        {
-            get => trackNodeInfoTool;
-            set => SetProperty(ref trackNodeInfoTool, value);
+            get => routeNavigationTool;
+            set => SetProperty(ref routeNavigationTool, value);
         }
 
         public HelpToolWindowViewModel HelpTool
@@ -115,16 +106,10 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
             set => SetProperty(ref toggleLogToolCommand, value);
         }
 
-        public RelayCommand ToggleTrackItemInfoToolCommand
+        public RelayCommand ToggleRouteNavigationToolCommand
         {
-            get => toggleTrackItemInfoToolCommand;
-            set => SetProperty(ref toggleTrackItemInfoToolCommand, value);
-        }
-
-        public RelayCommand ToggleTrackNodeInfoToolCommand
-        {
-            get => toggleTrackNodeInfoToolCommand;
-            set => SetProperty(ref toggleTrackNodeInfoToolCommand, value);
+            get => toggleRouteNavigationToolCommand;
+            set => SetProperty(ref toggleRouteNavigationToolCommand, value);
         }
 
         public RelayCommand ToggleHelpToolCommand
@@ -181,16 +166,10 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
             set => SetProperty(ref isLogToolVisible, value);
         }
 
-        public bool IsTrackItemInfoToolVisible
+        public bool IsRouteNavigationToolVisible
         {
-            get => isTrackItemInfoToolVisible;
-            set => SetProperty(ref isTrackItemInfoToolVisible, value);
-        }
-
-        public bool IsTrackNodeInfoToolVisible
-        {
-            get => isTrackNodeInfoToolVisible;
-            set => SetProperty(ref isTrackNodeInfoToolVisible, value);
+            get => isRouteNavigationToolVisible;
+            set => SetProperty(ref isRouteNavigationToolVisible, value);
         }
 
         public bool IsHelpToolVisible

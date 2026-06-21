@@ -8,11 +8,10 @@
         DebugScreen,
         LocationWindow,
         HelpWindow,
-        TrackNodeInfoWindow,
-        TrackItemInfoWindow,
         SettingsWindow,
         LogWindow,
         TrainPathWindow,
         TrainPathSaveWindow,
+        RouteNavigationWindow,
     }
 }

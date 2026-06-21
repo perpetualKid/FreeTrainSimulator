@@ -8,10 +8,9 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
         DebugToolWindow DebugToolWindow,
         LocationToolWindow LocationToolWindow,
         LogToolWindow LogToolWindow,
-        TrackItemInfoToolWindow TrackItemInfoToolWindow,
-        TrackNodeInfoToolWindow TrackNodeInfoToolWindow,
         HelpToolWindow HelpToolWindow,
         SettingsToolWindow SettingsToolWindow,
         TrainPathToolWindow TrainPathToolWindow,
-        StatusBarToolWindow StatusBarToolWindow);
+        StatusBarToolWindow StatusBarToolWindow,
+        RouteNavigationToolWindow RouteNavigationToolWindow);
 }
