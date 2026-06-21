@@ -78,6 +78,8 @@ namespace FreeTrainSimulator.Toolbox
             {
                 await LoadDockLayoutAsync().ConfigureAwait(true);
 
+                RestoreWindowPlacement();
+
                 HookToolWindowAnchorables();
 
                 UpdateAllToolWindowLifecycles();
@@ -542,6 +544,17 @@ namespace FreeTrainSimulator.Toolbox
             }
         }
 
+        // Restores the shell window's saved placement (position, size, and maximized state). AvalonDock only
+        // persists the docked layout inside the window, so the window's own bounds are restored separately here,
+        // after the settings model has loaded and the native handle exists (this runs from the Loaded handler).
+        private void RestoreWindowPlacement()
+        {
+            if (toolboxSettings is null)
+                return;
+
+            WindowBoundsManager.RestoreWindowBounds(this, toolboxSettings);
+        }
+
         private void CaptureDefaultDockLayout()
         {
             if (defaultDockLayoutXml is not null)
@@ -581,7 +594,8 @@ namespace FreeTrainSimulator.Toolbox
 
                 string dockLayoutXml = SerializeDockLayout();
                 toolboxSettings.DockLayoutXml = dockLayoutXml;
-                await MapHost.SaveHostedSettingsAsync(dockLayoutXml).ConfigureAwait(true);
+                WindowBoundsManager.SaveBoundsToSettings(this, toolboxSettings);
+                await MapHost.SaveHostedSettingsAsync(dockLayoutXml, toolboxSettings.WindowPlacements).ConfigureAwait(true);
             }
             catch (Exception ex) when (ex is not ObjectDisposedException)
             {

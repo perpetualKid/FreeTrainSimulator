@@ -145,5 +145,11 @@ namespace FreeTrainSimulator.Toolbox.Settings
         /// Downscale Track width for easier overview of track schema
         /// </summary>
         public bool LimitTrackWidth { get; set; } = true;
+
+        /// <summary>
+        /// Durable placement (restored bounds and maximized state) of the WPF toolbox shell window. Null when no
+        /// placement has been saved yet, in which case the shell uses its default size and location.
+        /// </summary>
+        public WindowPlacementSettings WindowPlacements { get; set; }
     }
 }

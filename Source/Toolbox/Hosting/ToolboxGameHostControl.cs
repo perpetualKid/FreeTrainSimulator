@@ -8,6 +8,7 @@ using System.Windows.Threading;
 
 using FreeTrainSimulator.Common.Native;
 using FreeTrainSimulator.Models.Content;
+using FreeTrainSimulator.Toolbox.Settings;
 using FreeTrainSimulator.Toolbox.ToolWindows;
 
 namespace FreeTrainSimulator.Toolbox.Hosting
@@ -327,12 +328,13 @@ namespace FreeTrainSimulator.Toolbox.Hosting
         }
 
         /// <summary>
-        /// Persists the hosted game's live settings model together with the latest WPF dock layout.
+        /// Persists the hosted game's live settings model together with the latest WPF dock layout and shell
+        /// window placement.
         /// </summary>
-        internal Task SaveHostedSettingsAsync(string dockLayoutXml)
+        internal Task SaveHostedSettingsAsync(string dockLayoutXml, WindowPlacementSettings windowPlacement)
         {
             GameWindow game = gameWindow;
-            return game == null ? Task.CompletedTask : game.SaveHostedSettingsAsync(dockLayoutXml);
+            return game == null ? Task.CompletedTask : game.SaveHostedSettingsAsync(dockLayoutXml, windowPlacement);
         }
 
         /// <summary>

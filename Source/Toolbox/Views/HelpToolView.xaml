@@ -6,6 +6,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="clr-namespace:FreeTrainSimulator.Toolbox.ViewModels"
              xmlns:views="clr-namespace:FreeTrainSimulator.Toolbox.Views"
+             xmlns:behaviors="clr-namespace:FreeTrainSimulator.Toolbox.Behaviors"
              mc:Ignorable="d"
              d:DataContext="{d:DesignInstance Type=vm:HelpToolWindowViewModel, IsDesignTimeCreatable=False}"
              views:ToolWindow.DefaultFloatingSize="480,520"
@@ -28,11 +29,13 @@
                          Content="Key"
                          IsChecked="{Binding SearchByKey}" />
         </StackPanel>
-        <ListView ItemsSource="{Binding Rows}">
+        <ListView ItemsSource="{Binding Rows}"
+                  behaviors:GridViewColumnBehavior.StretchListView="True">
             <ListView.View>
                 <GridView>
                     <GridViewColumn Header="Command" Width="260" DisplayMemberBinding="{Binding Name}" />
-                    <GridViewColumn Header="Key" Width="180" DisplayMemberBinding="{Binding Value}" />
+                    <GridViewColumn Header="Key" Width="180" DisplayMemberBinding="{Binding Value}"
+                                    behaviors:GridViewColumnBehavior.StretchColumn="True" />
                 </GridView>
             </ListView.View>
         </ListView>

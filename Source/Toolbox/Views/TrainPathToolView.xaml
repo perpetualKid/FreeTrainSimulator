@@ -6,6 +6,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="clr-namespace:FreeTrainSimulator.Toolbox.ViewModels"
              xmlns:views="clr-namespace:FreeTrainSimulator.Toolbox.Views"
+             xmlns:behaviors="clr-namespace:FreeTrainSimulator.Toolbox.Behaviors"
              mc:Ignorable="d"
              d:DataContext="{d:DesignInstance Type=vm:TrainPathToolWindowViewModel, IsDesignTimeCreatable=False}"
              views:ToolWindow.DefaultFloatingSize="520,520"
@@ -14,22 +15,26 @@
     <TabControl Margin="6">
         <TabItem Header="Path Nodes">
             <ListView ItemsSource="{Binding Nodes}"
-                      SelectedItem="{Binding SelectedNode, Mode=TwoWay}">
+                      SelectedItem="{Binding SelectedNode, Mode=TwoWay}"
+                      behaviors:GridViewColumnBehavior.StretchListView="True">
                 <ListView.View>
                     <GridView>
                         <GridViewColumn Header="Idx" Width="50" DisplayMemberBinding="{Binding Index}" />
-                        <GridViewColumn Header="Type" Width="160" DisplayMemberBinding="{Binding NodeType}" />
+                        <GridViewColumn Header="Type" Width="160" DisplayMemberBinding="{Binding NodeType}"
+                                        behaviors:GridViewColumnBehavior.StretchColumn="True" />
                         <GridViewColumn Header="Valid" Width="60" DisplayMemberBinding="{Binding Valid}" />
                     </GridView>
                 </ListView.View>
             </ListView>
         </TabItem>
         <TabItem Header="Path Data">
-            <ListView ItemsSource="{Binding Metadata}">
+            <ListView ItemsSource="{Binding Metadata}"
+                      behaviors:GridViewColumnBehavior.StretchListView="True">
                 <ListView.View>
                     <GridView>
                         <GridViewColumn Header="Setting" Width="120" DisplayMemberBinding="{Binding Name}" />
-                        <GridViewColumn Header="Value" Width="220" DisplayMemberBinding="{Binding Value}" />
+                        <GridViewColumn Header="Value" Width="220" DisplayMemberBinding="{Binding Value}"
+                                        behaviors:GridViewColumnBehavior.StretchColumn="True" />
                     </GridView>
                 </ListView.View>
             </ListView>
@@ -47,7 +52,8 @@
                            TextWrapping="Wrap"
                            Text="{Binding StatusMessage}" />
                 <ListView ItemsSource="{Binding Paths}"
-                          SelectedItem="{Binding SelectedPath, Mode=TwoWay}">
+                          SelectedItem="{Binding SelectedPath, Mode=TwoWay}"
+                          behaviors:GridViewColumnBehavior.StretchListView="True">
                     <ListView.ItemContainerStyle>
                         <Style TargetType="ListViewItem">
                             <Setter Property="Visibility" Value="Visible" />
@@ -60,7 +66,8 @@
                     </ListView.ItemContainerStyle>
                     <ListView.View>
                         <GridView>
-                            <GridViewColumn Header="Name" Width="320" DisplayMemberBinding="{Binding Name}" />
+                            <GridViewColumn Header="Name" Width="320" DisplayMemberBinding="{Binding Name}"
+                                            behaviors:GridViewColumnBehavior.StretchColumn="True" />
                         </GridView>
                     </ListView.View>
                 </ListView>

@@ -24,6 +24,7 @@ using FreeTrainSimulator.Models.Settings;
 using FreeTrainSimulator.Models.Shim;
 using FreeTrainSimulator.Toolbox.PopupWindows;
 using FreeTrainSimulator.Toolbox.Settings;
+using FreeTrainSimulator.Toolbox.Settings;
 using FreeTrainSimulator.Toolbox.ToolWindows;
 
 using GetText;
@@ -454,15 +455,18 @@ namespace FreeTrainSimulator.Toolbox
             }
         }
 
-        internal Task SaveHostedSettingsAsync(string dockLayoutXml)
+        internal Task SaveHostedSettingsAsync(string dockLayoutXml, WindowPlacementSettings windowPlacement)
         {
-            return InvokeOnGameThreadAsync(() => SaveHostedSettingsOnGameThreadAsync(dockLayoutXml));
+            return InvokeOnGameThreadAsync(() => SaveHostedSettingsOnGameThreadAsync(dockLayoutXml, windowPlacement));
         }
 
-        private async Task SaveHostedSettingsOnGameThreadAsync(string dockLayoutXml)
+        private async Task SaveHostedSettingsOnGameThreadAsync(string dockLayoutXml, WindowPlacementSettings windowPlacement)
         {
             if (ToolboxSettings != null)
+            {
                 ToolboxSettings.DockLayoutXml = dockLayoutXml;
+                ToolboxSettings.WindowPlacements = windowPlacement;
+            }
 
             await SaveSettings().ConfigureAwait(false);
         }
