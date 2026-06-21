@@ -7,25 +7,13 @@
         xmlns:avalonDock="clr-namespace:AvalonDock;assembly=AvalonDock"
         xmlns:avalonLayout="clr-namespace:AvalonDock.Layout;assembly=AvalonDock"
         xmlns:host="clr-namespace:FreeTrainSimulator.Toolbox.Hosting"
-        xmlns:viewModels="clr-namespace:FreeTrainSimulator.Toolbox.ViewModels"
+        xmlns:views="clr-namespace:FreeTrainSimulator.Toolbox.Views"
         mc:Ignorable="d"
         Title="Free Train Simulator Toolbox"
         Width="1400"
         Height="900"
         MinWidth="1024"
         MinHeight="720">
-    <Window.Resources>
-        <viewModels:DrawingColorToBrushConverter x:Key="DrawingColorToBrushConverter" />
-        <viewModels:BoolToFontWeightConverter x:Key="BoolToFontWeightConverter" />
-        <viewModels:ColorNameToBrushConverter x:Key="ColorNameToBrushConverter" />
-        <viewModels:StringToVisibilityConverter x:Key="StringToVisibilityConverter" />
-        <Style x:Key="ToolWindowRowItemStyle" TargetType="ListViewItem">
-            <Setter Property="Foreground"
-                    Value="{Binding Color, Converter={StaticResource DrawingColorToBrushConverter}}" />
-            <Setter Property="FontWeight"
-                    Value="{Binding Bold, Converter={StaticResource BoolToFontWeightConverter}}" />
-        </Style>
-    </Window.Resources>
     <DockPanel>
         <Menu x:Name="MainMenu"
               DockPanel.Dock="Top"
@@ -127,452 +115,79 @@
                                                           Title="Routes"
                                                           CanClose="False"
                                                           CanHide="True"
-                                                          FloatingWidth="360"
-                                                          FloatingHeight="420"
                                                           IsSelected="True">
-                                <TabControl Margin="6"
-                                            DataContext="{Binding DataContext.Menu, ElementName=RootWindow}"
-                                            IsEnabled="{Binding Enabled}">
-                                    <TabItem Header="Route">
-                                        <StackPanel Margin="6">
-                                            <TextBlock Text="Content Folder"
-                                                       Margin="0,0,0,3" />
-                                            <ComboBox Margin="0,0,0,9"
-                                                      ItemsSource="{Binding ContentFolders}"
-                                                      SelectedItem="{Binding SelectedFolder, Mode=TwoWay}"
-                                                      DisplayMemberPath="Name"
-                                                      ToolTip="Select the content folder to load routes from" />
-                                            <TextBlock Text="Route"
-                                                       Margin="0,0,0,3" />
-                                            <ComboBox ItemsSource="{Binding Routes}"
-                                                      SelectedItem="{Binding SelectedRoute, Mode=TwoWay}"
-                                                      DisplayMemberPath="Name"
-                                                      ToolTip="Select a route to open" />
-                                        </StackPanel>
-                                    </TabItem>
-                                    <TabItem Header="Path">
-                                        <DockPanel Margin="6">
-                                            <TextBlock DockPanel.Dock="Top"
-                                                       Margin="0,0,0,3"
-                                                       Text="Path" />
-                                            <StackPanel DockPanel.Dock="Bottom"
-                                                        Orientation="Horizontal"
-                                                        HorizontalAlignment="Right"
-                                                        Margin="0,6,0,0">
-                                                <Button Padding="10,3"
-                                                        Content="New Path"
-                                                        ToolTip="Start editing a new path for the current route"
-                                                        Command="{Binding EditPathCommand}" />
-                                                <Button Margin="6,0,0,0"
-                                                        Padding="10,3"
-                                                        Content="Save Path"
-                                                        ToolTip="Save the currently edited path"
-                                                        Command="{Binding SavePathCommand}" />
-                                            </StackPanel>
-                                            <ListBox ItemsSource="{Binding Paths}"
-                                                     SelectedItem="{Binding SelectedPath, Mode=TwoWay}"
-                                                     DisplayMemberPath="Name"
-                                                     ToolTip="Select a path to load for the current route" />
-                                        </DockPanel>
-                                    </TabItem>
-                                </TabControl>
+                                <views:RouteToolView DataContext="{Binding DataContext.Menu, ElementName=RootWindow}" />
                             </avalonLayout:LayoutAnchorable>
                             <avalonLayout:LayoutAnchorable x:Name="LocationToolAnchorable"
                                                           ContentId="LocationToolWindow"
                                                           Title="Location"
                                                           CanClose="False"
                                                           CanHide="True"
-                                                          FloatingWidth="520"
-                                                          FloatingHeight="440"
                                                           IsSelected="False">
-                                <ListView Margin="6"
-                                          ItemsSource="{Binding DataContext.LocationTool.Rows, ElementName=RootWindow}"
-                                          ItemContainerStyle="{StaticResource ToolWindowRowItemStyle}">
-                                    <ListView.View>
-                                        <GridView>
-                                            <GridViewColumn Header="Name" Width="180" DisplayMemberBinding="{Binding Name}" />
-                                            <GridViewColumn Header="Value" Width="320" DisplayMemberBinding="{Binding Value}" />
-                                        </GridView>
-                                    </ListView.View>
-                                </ListView>
+                                <views:LocationToolView DataContext="{Binding DataContext.LocationTool, ElementName=RootWindow}" />
                             </avalonLayout:LayoutAnchorable>
                             <avalonLayout:LayoutAnchorable x:Name="DebugToolAnchorable"
                                                           ContentId="DebugToolWindow"
                                                           Title="Debug Information"
                                                           CanClose="False"
                                                           CanHide="True"
-                                                          FloatingWidth="520"
-                                                          FloatingHeight="480"
                                                           IsVisible="False"
                                                           IsSelected="False">
-                                <ListView Margin="6"
-                                          ItemsSource="{Binding DataContext.DebugTool.Rows, ElementName=RootWindow}"
-                                          ItemContainerStyle="{StaticResource ToolWindowRowItemStyle}">
-                                    <ListView.View>
-                                        <GridView>
-                                            <GridViewColumn Header="Name" Width="180" DisplayMemberBinding="{Binding Name}" />
-                                            <GridViewColumn Header="Value" Width="320" DisplayMemberBinding="{Binding Value}" />
-                                        </GridView>
-                                    </ListView.View>
-                                </ListView>
+                                <views:DebugToolView DataContext="{Binding DataContext.DebugTool, ElementName=RootWindow}" />
                             </avalonLayout:LayoutAnchorable>
                             <avalonLayout:LayoutAnchorable x:Name="LogToolAnchorable"
                                                           ContentId="LogToolWindow"
                                                           Title="Logging"
                                                           CanClose="False"
                                                           CanHide="True"
-                                                          FloatingWidth="720"
-                                                          FloatingHeight="440"
                                                           IsVisible="False"
                                                           IsSelected="False">
-                                <TextBox x:Name="LogTextBox"
-                                         Margin="6"
-                                         Text="{Binding DataContext.LogTool.LogText, ElementName=RootWindow, Mode=OneWay}"
-                                         IsReadOnly="True"
-                                         IsReadOnlyCaretVisible="False"
-                                         FontFamily="Consolas"
-                                         TextWrapping="NoWrap"
-                                         TextChanged="LogTextBox_TextChanged"
-                                         VerticalScrollBarVisibility="Auto"
-                                         HorizontalScrollBarVisibility="Auto" />
+                                <views:LogToolView DataContext="{Binding DataContext.LogTool, ElementName=RootWindow}" />
                             </avalonLayout:LayoutAnchorable>
                             <avalonLayout:LayoutAnchorable x:Name="TrackItemInfoToolAnchorable"
                                                           ContentId="TrackItemInfoToolWindow"
                                                           Title="Track Item Information"
                                                           CanClose="False"
                                                           CanHide="True"
-                                                          FloatingWidth="520"
-                                                          FloatingHeight="480"
                                                           IsVisible="False"
                                                           IsSelected="False">
-                                <DockPanel Margin="6"
-                                           DataContext="{Binding DataContext.TrackItemInfoTool, ElementName=RootWindow}">
-                                    <DockPanel DockPanel.Dock="Top" Margin="0,0,0,6">
-                                        <Button DockPanel.Dock="Right"
-                                                Margin="6,0,0,0"
-                                                Padding="8,0"
-                                                Content="Find"
-                                                Command="{Binding SearchCommand}" />
-                                        <TextBox VerticalContentAlignment="Center"
-                                                 Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
-                                                 ToolTip="Find Track Item by Index">
-                                            <TextBox.InputBindings>
-                                                <KeyBinding Key="Return" Command="{Binding SearchCommand}" />
-                                            </TextBox.InputBindings>
-                                        </TextBox>
-                                    </DockPanel>
-                                    <ListView ItemsSource="{Binding Rows}"
-                                              ItemContainerStyle="{StaticResource ToolWindowRowItemStyle}">
-                                        <ListView.View>
-                                            <GridView>
-                                                <GridViewColumn Header="Name" Width="180" DisplayMemberBinding="{Binding Name}" />
-                                                <GridViewColumn Header="Value" Width="320" DisplayMemberBinding="{Binding Value}" />
-                                            </GridView>
-                                        </ListView.View>
-                                    </ListView>
-                                </DockPanel>
+                                <views:TrackItemInfoToolView DataContext="{Binding DataContext.TrackItemInfoTool, ElementName=RootWindow}" />
                             </avalonLayout:LayoutAnchorable>
                             <avalonLayout:LayoutAnchorable x:Name="TrackNodeInfoToolAnchorable"
                                                           ContentId="TrackNodeInfoToolWindow"
                                                           Title="Track Node Information"
                                                           CanClose="False"
                                                           CanHide="True"
-                                                          FloatingWidth="520"
-                                                          FloatingHeight="520"
                                                           IsVisible="False"
                                                           IsSelected="False">
-                                <DockPanel Margin="6"
-                                           DataContext="{Binding DataContext.TrackNodeInfoTool, ElementName=RootWindow}">
-                                    <DockPanel DockPanel.Dock="Top" Margin="0,0,0,6">
-                                        <Button DockPanel.Dock="Right"
-                                                Margin="6,0,0,0"
-                                                Padding="8,0"
-                                                Content="Find"
-                                                Command="{Binding SearchCommand}" />
-                                        <TextBox VerticalContentAlignment="Center"
-                                                 Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
-                                                 ToolTip="Find Track Node by Index">
-                                            <TextBox.InputBindings>
-                                                <KeyBinding Key="Return" Command="{Binding SearchCommand}" />
-                                            </TextBox.InputBindings>
-                                        </TextBox>
-                                    </DockPanel>
-                                    <StackPanel DockPanel.Dock="Top"
-                                                Orientation="Horizontal"
-                                                Margin="0,0,0,6">
-                                        <RadioButton GroupName="TrackNodeSearchType"
-                                                     Content="Tracks"
-                                                     IsChecked="True" />
-                                        <RadioButton GroupName="TrackNodeSearchType"
-                                                     Margin="12,0,0,0"
-                                                     Content="Roads"
-                                                     IsChecked="{Binding SearchRoads}" />
-                                    </StackPanel>
-                                    <ListView ItemsSource="{Binding Rows}"
-                                              ItemContainerStyle="{StaticResource ToolWindowRowItemStyle}">
-                                        <ListView.View>
-                                            <GridView>
-                                                <GridViewColumn Header="Name" Width="180" DisplayMemberBinding="{Binding Name}" />
-                                                <GridViewColumn Header="Value" Width="320" DisplayMemberBinding="{Binding Value}" />
-                                            </GridView>
-                                        </ListView.View>
-                                    </ListView>
-                                </DockPanel>
+                                <views:TrackNodeInfoToolView DataContext="{Binding DataContext.TrackNodeInfoTool, ElementName=RootWindow}" />
                             </avalonLayout:LayoutAnchorable>
                             <avalonLayout:LayoutAnchorable x:Name="HelpToolAnchorable"
                                                           ContentId="HelpToolWindow"
                                                           Title="Help"
                                                           CanClose="False"
                                                           CanHide="True"
-                                                          FloatingWidth="480"
-                                                          FloatingHeight="520"
                                                           IsVisible="False"
                                                           IsSelected="False">
-                                <DockPanel Margin="6"
-                                           DataContext="{Binding DataContext.HelpTool, ElementName=RootWindow}">
-                                    <DockPanel DockPanel.Dock="Top" Margin="0,0,0,6">
-                                        <TextBox VerticalContentAlignment="Center"
-                                                 Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
-                                                 ToolTip="Search Help" />
-                                    </DockPanel>
-                                    <StackPanel DockPanel.Dock="Top"
-                                                Orientation="Horizontal"
-                                                Margin="0,0,0,6">
-                                        <RadioButton GroupName="HelpSearchType"
-                                                     Content="Command"
-                                                     IsChecked="True" />
-                                        <RadioButton GroupName="HelpSearchType"
-                                                     Margin="12,0,0,0"
-                                                     Content="Key"
-                                                     IsChecked="{Binding SearchByKey}" />
-                                    </StackPanel>
-                                    <ListView ItemsSource="{Binding Rows}">
-                                        <ListView.View>
-                                            <GridView>
-                                                <GridViewColumn Header="Command" Width="260" DisplayMemberBinding="{Binding Name}" />
-                                                <GridViewColumn Header="Key" Width="180" DisplayMemberBinding="{Binding Value}" />
-                                            </GridView>
-                                        </ListView.View>
-                                    </ListView>
-                                </DockPanel>
+                                <views:HelpToolView DataContext="{Binding DataContext.HelpTool, ElementName=RootWindow}" />
                             </avalonLayout:LayoutAnchorable>
                             <avalonLayout:LayoutAnchorable x:Name="SettingsToolAnchorable"
                                                           ContentId="SettingsToolWindow"
                                                           Title="Settings"
                                                           CanClose="False"
                                                           CanHide="True"
-                                                          FloatingWidth="480"
-                                                          FloatingHeight="560"
                                                           IsVisible="False"
                                                           IsSelected="False">
-                                <DockPanel Margin="6"
-                                           DataContext="{Binding DataContext.SettingsTool, ElementName=RootWindow}">
-                                    <Border DockPanel.Dock="Bottom" Margin="0,6,0,0">
-                                        <Button HorizontalAlignment="Right"
-                                                Padding="10,3"
-                                                Content="Reset to Defaults"
-                                                ToolTip="Reset window layout, colors, item visibility, and appearance options to their defaults"
-                                                Command="{Binding DataContext.ResetSettingsCommand, ElementName=RootWindow}" />
-                                    </Border>
-                                    <TabControl>
-                                        <TabItem Header="General">
-                                        <ScrollViewer VerticalScrollBarVisibility="Auto"
-                                                      HorizontalScrollBarVisibility="Disabled">
-                                            <StackPanel Margin="6">
-                                                <GroupBox Header="Common" Padding="6" Margin="0,0,0,6">
-                                                    <StackPanel>
-                                                        <CheckBox Content="Enable Logging"
-                                                                  Margin="0,3"
-                                                                  IsChecked="{Binding EnableLogging}" />
-                                                        <CheckBox Content="Restore Last View on Start"
-                                                                  Margin="0,3"
-                                                                  IsChecked="{Binding RestoreLastView}" />
-                                                        <Grid Margin="0,3">
-                                                            <Grid.ColumnDefinitions>
-                                                                <ColumnDefinition Width="Auto" />
-                                                                <ColumnDefinition Width="*" />
-                                                            </Grid.ColumnDefinitions>
-                                                            <TextBlock Grid.Column="0"
-                                                                       Text="Language"
-                                                                       VerticalAlignment="Center"
-                                                                       Margin="0,0,8,0" />
-                                                            <ComboBox Grid.Column="1"
-                                                                      ItemsSource="{Binding AvailableLanguages}"
-                                                                      SelectedItem="{Binding SelectedLanguage}"
-                                                                      DisplayMemberPath="DisplayName"
-                                                                      ToolTip="Select the user interface language" />
-                                                        </Grid>
-                                                    </StackPanel>
-                                                </GroupBox>
-                                                <GroupBox Header="Graphics" Padding="6">
-                                                    <StackPanel>
-                                                        <CheckBox Content="Use Font Outline"
-                                                                  Margin="0,3"
-                                                                  IsChecked="{Binding FontOutline}" />
-                                                        <CheckBox Content="Use Real Track Width"
-                                                                  Margin="0,3"
-                                                                  IsChecked="{Binding RealTrackWidth}" />
-                                                    </StackPanel>
-                                                </GroupBox>
-                                            </StackPanel>
-                                        </ScrollViewer>
-                                    </TabItem>
-                                    <TabItem Header="Colors">
-                                        <ScrollViewer VerticalScrollBarVisibility="Auto"
-                                                      HorizontalScrollBarVisibility="Disabled">
-                                            <ItemsControl ItemsSource="{Binding ColorItems}" Margin="6">
-                                                <ItemsControl.ItemTemplate>
-                                                    <DataTemplate>
-                                                        <Grid Margin="0,3">
-                                                            <Grid.ColumnDefinitions>
-                                                                <ColumnDefinition Width="*" />
-                                                                <ColumnDefinition Width="140" />
-                                                            </Grid.ColumnDefinitions>
-                                                            <TextBlock Grid.Column="0"
-                                                                       Text="{Binding Label}"
-                                                                       VerticalAlignment="Center" />
-                                                            <ComboBox Grid.Column="1"
-                                                                      ItemsSource="{Binding AvailableColorNames}"
-                                                                      SelectedItem="{Binding SelectedColorName}">
-                                                                <ComboBox.ItemTemplate>
-                                                                    <DataTemplate>
-                                                                        <StackPanel Orientation="Horizontal">
-                                                                            <Rectangle Width="14"
-                                                                                       Height="14"
-                                                                                       Margin="0,0,6,0"
-                                                                                       Stroke="Gray"
-                                                                                       StrokeThickness="1"
-                                                                                       Fill="{Binding Converter={StaticResource ColorNameToBrushConverter}}" />
-                                                                            <TextBlock Text="{Binding}"
-                                                                                       VerticalAlignment="Center" />
-                                                                        </StackPanel>
-                                                                    </DataTemplate>
-                                                                </ComboBox.ItemTemplate>
-                                                            </ComboBox>
-                                                        </Grid>
-                                                    </DataTemplate>
-                                                </ItemsControl.ItemTemplate>
-                                            </ItemsControl>
-                                        </ScrollViewer>
-                                    </TabItem>
-                                    <TabItem Header="Item Visibility">
-                                        <ScrollViewer VerticalScrollBarVisibility="Auto"
-                                                      HorizontalScrollBarVisibility="Disabled">
-                                            <StackPanel Margin="6">
-                                                <Expander Header="Track Items" IsExpanded="True" Margin="0,2">
-                                                    <ItemsControl ItemsSource="{Binding TrackVisibilityItems}" Margin="12,3,0,0">
-                                                        <ItemsControl.ItemTemplate>
-                                                            <DataTemplate>
-                                                                <CheckBox Content="{Binding Label}"
-                                                                          Margin="0,2"
-                                                                          IsChecked="{Binding IsVisible}" />
-                                                            </DataTemplate>
-                                                        </ItemsControl.ItemTemplate>
-                                                    </ItemsControl>
-                                                </Expander>
-                                                <Expander Header="Road Items" IsExpanded="True" Margin="0,2">
-                                                    <ItemsControl ItemsSource="{Binding RoadVisibilityItems}" Margin="12,3,0,0">
-                                                        <ItemsControl.ItemTemplate>
-                                                            <DataTemplate>
-                                                                <CheckBox Content="{Binding Label}"
-                                                                          Margin="0,2"
-                                                                          IsChecked="{Binding IsVisible}" />
-                                                            </DataTemplate>
-                                                        </ItemsControl.ItemTemplate>
-                                                    </ItemsControl>
-                                                </Expander>
-                                                <Expander Header="Interactives" IsExpanded="True" Margin="0,2">
-                                                    <ItemsControl ItemsSource="{Binding InteractiveVisibilityItems}" Margin="12,3,0,0">
-                                                        <ItemsControl.ItemTemplate>
-                                                            <DataTemplate>
-                                                                <CheckBox Content="{Binding Label}"
-                                                                          Margin="0,2"
-                                                                          IsChecked="{Binding IsVisible}" />
-                                                            </DataTemplate>
-                                                        </ItemsControl.ItemTemplate>
-                                                    </ItemsControl>
-                                                </Expander>
-                                                <ItemsControl ItemsSource="{Binding OtherVisibilityItems}" Margin="0,3,0,0">
-                                                    <ItemsControl.ItemTemplate>
-                                                        <DataTemplate>
-                                                            <CheckBox Content="{Binding Label}"
-                                                                      Margin="0,2"
-                                                                      IsChecked="{Binding IsVisible}" />
-                                                        </DataTemplate>
-                                                    </ItemsControl.ItemTemplate>
-                                                </ItemsControl>
-                                            </StackPanel>
-                                        </ScrollViewer>
-                                    </TabItem>
-                                    </TabControl>
-                                </DockPanel>
+                                <views:SettingsToolView DataContext="{Binding DataContext.SettingsTool, ElementName=RootWindow}" />
                             </avalonLayout:LayoutAnchorable>
                             <avalonLayout:LayoutAnchorable x:Name="TrainPathToolAnchorable"
                                                           ContentId="TrainPathToolWindow"
                                                           Title="Train Path Details"
                                                           CanClose="False"
                                                           CanHide="True"
-                                                          FloatingWidth="520"
-                                                          FloatingHeight="520"
                                                           IsVisible="False"
                                                           IsSelected="False">
-                                <TabControl Margin="6"
-                                            DataContext="{Binding DataContext.TrainPathTool, ElementName=RootWindow}">
-                                    <TabItem Header="Path Nodes">
-                                        <ListView ItemsSource="{Binding Nodes}"
-                                                  SelectedItem="{Binding SelectedNode, Mode=TwoWay}">
-                                            <ListView.View>
-                                                <GridView>
-                                                    <GridViewColumn Header="Idx" Width="50" DisplayMemberBinding="{Binding Index}" />
-                                                    <GridViewColumn Header="Type" Width="160" DisplayMemberBinding="{Binding NodeType}" />
-                                                    <GridViewColumn Header="Valid" Width="60" DisplayMemberBinding="{Binding Valid}" />
-                                                </GridView>
-                                            </ListView.View>
-                                        </ListView>
-                                    </TabItem>
-                                    <TabItem Header="Path Data">
-                                        <ListView ItemsSource="{Binding Metadata}">
-                                            <ListView.View>
-                                                <GridView>
-                                                    <GridViewColumn Header="Setting" Width="120" DisplayMemberBinding="{Binding Name}" />
-                                                    <GridViewColumn Header="Value" Width="220" DisplayMemberBinding="{Binding Value}" />
-                                                </GridView>
-                                            </ListView.View>
-                                        </ListView>
-                                    </TabItem>
-                                    <TabItem Header="Paths">
-                                        <DockPanel>
-                                            <TextBox DockPanel.Dock="Top"
-                                                     Margin="0,0,0,6"
-                                                     VerticalContentAlignment="Center"
-                                                     Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
-                                                     ToolTip="Search Paths" />
-                                            <TextBlock DockPanel.Dock="Bottom"
-                                                       Margin="0,6,0,0"
-                                                       Foreground="OrangeRed"
-                                                       TextWrapping="Wrap"
-                                                       Text="{Binding StatusMessage}" />
-                                            <ListView ItemsSource="{Binding Paths}"
-                                                      SelectedItem="{Binding SelectedPath, Mode=TwoWay}">
-                                                <ListView.ItemContainerStyle>
-                                                    <Style TargetType="ListViewItem">
-                                                        <Setter Property="Visibility" Value="Visible" />
-                                                        <Style.Triggers>
-                                                            <DataTrigger Binding="{Binding IsVisible}" Value="False">
-                                                                <Setter Property="Visibility" Value="Collapsed" />
-                                                            </DataTrigger>
-                                                        </Style.Triggers>
-                                                    </Style>
-                                                </ListView.ItemContainerStyle>
-                                                <ListView.View>
-                                                    <GridView>
-                                                        <GridViewColumn Header="Name" Width="320" DisplayMemberBinding="{Binding Name}" />
-                                                    </GridView>
-                                                </ListView.View>
-                                            </ListView>
-                                        </DockPanel>
-                                    </TabItem>
-                                </TabControl>
+                                <views:TrainPathToolView DataContext="{Binding DataContext.TrainPathTool, ElementName=RootWindow}" />
                             </avalonLayout:LayoutAnchorable>
                         </avalonLayout:LayoutAnchorablePane>
                     </avalonLayout:LayoutPanel>

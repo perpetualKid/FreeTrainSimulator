@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Collections.ObjectModel;
+using System.Windows.Input;
 
 using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Graphics;
@@ -85,6 +86,7 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
         private bool fontOutline;
         private bool realTrackWidth;
         private LanguageOption selectedLanguage;
+        private ICommand resetCommand;
         private bool disposed;
 
         public SettingsToolWindowViewModel(SettingsToolWindow toolWindow)
@@ -108,6 +110,17 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
         }
 
         public string Title => toolWindow.Title;
+
+        /// <summary>
+        /// Command invoked by the Settings view's "Reset to Defaults" button. The shell owns the reset flow
+        /// (confirmation prompt, dock-layout reset, persistence) and assigns it here, so the button works
+        /// whether the Settings pane is docked or floating in its own window.
+        /// </summary>
+        public ICommand ResetCommand
+        {
+            get => resetCommand;
+            set => SetProperty(ref resetCommand, value);
+        }
 
         /// <summary>UI languages available for selection (system default plus installed locales).</summary>
         public ImmutableArray<LanguageOption> AvailableLanguages { get; }

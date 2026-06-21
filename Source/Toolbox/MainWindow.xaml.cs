@@ -52,6 +52,7 @@ namespace FreeTrainSimulator.Toolbox
             DataContext = viewModel;
             InitializeToolWindowDescriptors();
             InitializeToolWindowCommands();
+            ApplyDefaultFloatingSizes();
 
             Loaded += MainWindow_Loaded;
             Activated += MainWindow_Activated;
@@ -138,6 +139,29 @@ namespace FreeTrainSimulator.Toolbox
                 new ToolWindowDescriptor(TrainPathToolWindowContentId, "Train Path Details", () => TrainPathToolAnchorable, value => viewModel.IsTrainPathToolVisible = value,
                     () => viewModel.TrainPathTool, () => viewModel.TrainPathTool.Start(), () => viewModel.TrainPathTool.Stop()),
             };
+        }
+
+        // Stamps each anchorable's default floating (undocked) size from the size its hosted view declares via
+        // Views.ToolWindow.DefaultFloatingSize. Runs before the default dock layout is captured so the values
+        // flow into both the initial layout and the reset-to-default baseline. Keeping the size on the view
+        // means it lives next to that view's d:DesignWidth/Height instead of being hard-coded on the shell.
+        private void ApplyDefaultFloatingSizes()
+        {
+            foreach (ToolWindowDescriptor descriptor in toolWindowDescriptors)
+                ApplyDefaultFloatingSize(descriptor.TemplateAnchorable());
+        }
+
+        private static void ApplyDefaultFloatingSize(LayoutAnchorable anchorable)
+        {
+            if (anchorable?.Content is not FrameworkElement view)
+                return;
+
+            Size size = Views.ToolWindow.GetDefaultFloatingSize(view);
+            if (size.IsEmpty || size.Width <= 0 || size.Height <= 0)
+                return;
+
+            anchorable.FloatingWidth = size.Width;
+            anchorable.FloatingHeight = size.Height;
         }
 
         private void HookToolWindowAnchorables()
@@ -327,6 +351,7 @@ namespace FreeTrainSimulator.Toolbox
             viewModel.TrackNodeInfoTool = new TrackNodeInfoToolWindowViewModel(services.TrackNodeInfoToolWindow, refreshScheduler);
             viewModel.HelpTool = new HelpToolWindowViewModel(services.HelpToolWindow, refreshScheduler);
             viewModel.SettingsTool = new SettingsToolWindowViewModel(services.SettingsToolWindow);
+            viewModel.SettingsTool.ResetCommand = viewModel.ResetSettingsCommand;
             viewModel.TrainPathTool = new TrainPathToolWindowViewModel(services.TrainPathToolWindow, refreshScheduler);
 
             // The status bar is always visible (not a dockable pane), so it starts pulling snapshots as soon
@@ -399,12 +424,6 @@ namespace FreeTrainSimulator.Toolbox
             return toolWindowDescriptors.FirstOrDefault(descriptor => string.Equals(descriptor.ContentId, contentId, StringComparison.Ordinal));
         }
 
-        private void LogTextBox_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e)
-        {
-            if (sender is System.Windows.Controls.TextBox textBox)
-                textBox.ScrollToEnd();
-        }
-
         private LayoutAnchorable FindToolWindowAnchorable(string contentId)
         {
             if (DockingManager.Layout is null)
@@ -435,6 +454,7 @@ namespace FreeTrainSimulator.Toolbox
             template.CanClose = false;
             template.CanHide = true;
             template.Title = descriptor.Title;
+            ApplyDefaultFloatingSize(template);
 
             return template;
         }

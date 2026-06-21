@@ -1,0 +1,59 @@
+<UserControl x:Class="FreeTrainSimulator.Toolbox.Views.RouteToolView"
+             x:ClassModifier="internal"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:FreeTrainSimulator.Toolbox.ViewModels"
+             xmlns:views="clr-namespace:FreeTrainSimulator.Toolbox.Views"
+             mc:Ignorable="d"
+             d:DataContext="{d:DesignInstance Type=vm:ToolboxMenuViewModel, IsDesignTimeCreatable=False}"
+             views:ToolWindow.DefaultFloatingSize="360,420"
+             d:DesignWidth="360"
+             d:DesignHeight="420">
+    <TabControl Margin="6"
+                IsEnabled="{Binding Enabled}">
+        <TabItem Header="Route">
+            <StackPanel Margin="6">
+                <TextBlock Text="Content Folder"
+                           Margin="0,0,0,3" />
+                <ComboBox Margin="0,0,0,9"
+                          ItemsSource="{Binding ContentFolders}"
+                          SelectedItem="{Binding SelectedFolder, Mode=TwoWay}"
+                          DisplayMemberPath="Name"
+                          ToolTip="Select the content folder to load routes from" />
+                <TextBlock Text="Route"
+                           Margin="0,0,0,3" />
+                <ComboBox ItemsSource="{Binding Routes}"
+                          SelectedItem="{Binding SelectedRoute, Mode=TwoWay}"
+                          DisplayMemberPath="Name"
+                          ToolTip="Select a route to open" />
+            </StackPanel>
+        </TabItem>
+        <TabItem Header="Path">
+            <DockPanel Margin="6">
+                <TextBlock DockPanel.Dock="Top"
+                           Margin="0,0,0,3"
+                           Text="Path" />
+                <StackPanel DockPanel.Dock="Bottom"
+                            Orientation="Horizontal"
+                            HorizontalAlignment="Right"
+                            Margin="0,6,0,0">
+                    <Button Padding="10,3"
+                            Content="New Path"
+                            ToolTip="Start editing a new path for the current route"
+                            Command="{Binding EditPathCommand}" />
+                    <Button Margin="6,0,0,0"
+                            Padding="10,3"
+                            Content="Save Path"
+                            ToolTip="Save the currently edited path"
+                            Command="{Binding SavePathCommand}" />
+                </StackPanel>
+                <ListBox ItemsSource="{Binding Paths}"
+                         SelectedItem="{Binding SelectedPath, Mode=TwoWay}"
+                         DisplayMemberPath="Name"
+                         ToolTip="Select a path to load for the current route" />
+            </DockPanel>
+        </TabItem>
+    </TabControl>
+</UserControl>
