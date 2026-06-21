@@ -2,6 +2,8 @@ using System.Windows;
 
 using FreeTrainSimulator.Common.Info;
 
+using GetText;
+
 namespace FreeTrainSimulator.Toolbox.Dialogs
 {
     /// <summary>
@@ -17,8 +19,15 @@ namespace FreeTrainSimulator.Toolbox.Dialogs
             DataContext = this;
         }
 
-        /// <summary>Confirmation prompt shown to the user.</summary>
-        public static string Message => $"Exit {RuntimeInfo.ApplicationName}?";
+        /// <summary>
+        /// Confirmation prompt shown to the user. Built from the shared gettext catalog so the message is
+        /// localized; the binding is data-bound, so the WPF Localizer skips it and the catalog lookup here is
+        /// the single localization point.
+        /// </summary>
+        public static string Message
+            => string.Format(
+                CatalogManager.Catalog.GetString("Exit {0}?"),
+                RuntimeInfo.ApplicationName);
 
         private void ExitButton_Click(object sender, RoutedEventArgs e)
         {

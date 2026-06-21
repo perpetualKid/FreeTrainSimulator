@@ -387,6 +387,21 @@
                                                         <CheckBox Content="Restore Last View on Start"
                                                                   Margin="0,3"
                                                                   IsChecked="{Binding RestoreLastView}" />
+                                                        <Grid Margin="0,3">
+                                                            <Grid.ColumnDefinitions>
+                                                                <ColumnDefinition Width="Auto" />
+                                                                <ColumnDefinition Width="*" />
+                                                            </Grid.ColumnDefinitions>
+                                                            <TextBlock Grid.Column="0"
+                                                                       Text="Language"
+                                                                       VerticalAlignment="Center"
+                                                                       Margin="0,0,8,0" />
+                                                            <ComboBox Grid.Column="1"
+                                                                      ItemsSource="{Binding AvailableLanguages}"
+                                                                      SelectedItem="{Binding SelectedLanguage}"
+                                                                      DisplayMemberPath="DisplayName"
+                                                                      ToolTip="Select the user interface language" />
+                                                        </Grid>
                                                     </StackPanel>
                                                 </GroupBox>
                                                 <GroupBox Header="Graphics" Padding="6">

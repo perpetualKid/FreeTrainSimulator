@@ -66,6 +66,19 @@ namespace FreeTrainSimulator.Toolbox.Hosting
         /// </summary>
         internal event EventHandler ExitRequested;
 
+        /// <summary>
+        /// Raised on the WPF UI thread when the hosted game's active language/catalog changes, so the shell
+        /// can re-localize its own chrome and dialogs against the shared gettext catalog.
+        /// </summary>
+        internal event EventHandler LanguageChanged;
+
+        /// <summary>
+        /// Name of the UI culture the hosted game's active catalog was resolved for, or null until the hosted
+        /// game is available. The shell uses this to set the same culture on its UI thread before pulling the
+        /// shared catalog.
+        /// </summary>
+        internal string CurrentLanguage => gameWindow?.CurrentLanguage;
+
         public ToolboxGameHostControl()
         {
             hostPanel = new HostPanel(OnHostedWindowPointerDown)
@@ -156,7 +169,13 @@ namespace FreeTrainSimulator.Toolbox.Hosting
             game.AboutRequested += Game_AboutRequested;
             game.ExitRequested -= Game_ExitRequested;
             game.ExitRequested += Game_ExitRequested;
+            game.LanguageChanged -= Game_LanguageChanged;
+            game.LanguageChanged += Game_LanguageChanged;
             HostedToolWindowsReady?.Invoke(this, EventArgs.Empty);
+
+            // The hosted game already loaded its language during construction (before the shell subscribed), so
+            // raise an initial notification here to drive the shell's first localization pass.
+            LanguageChanged?.Invoke(this, EventArgs.Empty);
         }
 
         private void AttachHostedWindow()
@@ -283,6 +302,12 @@ namespace FreeTrainSimulator.Toolbox.Hosting
         private void Game_ExitRequested(object sender, EventArgs e)
         {
             Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() => ExitRequested?.Invoke(this, EventArgs.Empty)));
+        }
+
+        // Game-thread event: re-raise on the WPF dispatcher so the shell can re-localize its chrome/dialogs.
+        private void Game_LanguageChanged(object sender, EventArgs e)
+        {
+            Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() => LanguageChanged?.Invoke(this, EventArgs.Empty)));
         }
 
         /// <summary>

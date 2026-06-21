@@ -67,6 +67,7 @@ namespace FreeTrainSimulator.Toolbox
             MapHost.ScreenshotRequested += MapHost_ScreenshotRequested;
             MapHost.AboutRequested += MapHost_AboutRequested;
             MapHost.ExitRequested += MapHost_ExitRequested;
+            MapHost.LanguageChanged += MapHost_LanguageChanged;
             DockingManager.ActiveContentChanged += DockingManager_ActiveContentChanged;
         }
 
@@ -776,7 +777,10 @@ namespace FreeTrainSimulator.Toolbox
                 return;
 
             if (disposing)
+            {
+                MapHost.LanguageChanged -= MapHost_LanguageChanged;
                 refreshScheduler?.Dispose();
+            }
 
             disposed = true;
         }

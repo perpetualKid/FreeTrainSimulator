@@ -12,8 +12,8 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Dirkster.AvalonDock" Version="4.74.0" />
-    <PackageReference Include="GetText.NET" Version="10.0.1" />
-    <PackageReference Include="GetText.NET.WindowsForms" Version="10.0.1" />
+    <PackageReference Include="GetText.NET" Version="11.0.10-preview.1" />
+    <PackageReference Include="GetText.NET.Wpf" Version="11.0.10-preview.1" />
     <PackageReference Include="MonoGame.Framework.WindowsDX" Version="3.8.4.1" />
   </ItemGroup>
   <ItemGroup>

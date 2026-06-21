@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Collections.ObjectModel;
 
 using FreeTrainSimulator.Common;
@@ -83,6 +84,7 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
         private bool restoreLastView;
         private bool fontOutline;
         private bool realTrackWidth;
+        private LanguageOption selectedLanguage;
         private bool disposed;
 
         public SettingsToolWindowViewModel(SettingsToolWindow toolWindow)
@@ -95,6 +97,9 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
             fontOutline = toolWindow.FontOutline;
             realTrackWidth = toolWindow.RealTrackWidth;
 
+            AvailableLanguages = toolWindow.AvailableLanguages;
+            selectedLanguage = FindLanguage(toolWindow.Language);
+
             TrackVisibilityItems = CreateVisibilityItems(trackVisibilityItems);
             RoadVisibilityItems = CreateVisibilityItems(roadVisibilityItems);
             InteractiveVisibilityItems = CreateVisibilityItems(interactiveVisibilityItems);
@@ -103,6 +108,9 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
         }
 
         public string Title => toolWindow.Title;
+
+        /// <summary>UI languages available for selection (system default plus installed locales).</summary>
+        public ImmutableArray<LanguageOption> AvailableLanguages { get; }
 
         public ReadOnlyCollection<VisibilityItemViewModel> TrackVisibilityItems { get; }
 
@@ -154,6 +162,20 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
             }
         }
 
+        /// <summary>
+        /// Currently selected UI language. Setting it forwards the chosen culture code to the bridge, which
+        /// reloads the gettext catalog and (in hosted mode) drives the WPF shell's re-localization.
+        /// </summary>
+        public LanguageOption SelectedLanguage
+        {
+            get => selectedLanguage;
+            set
+            {
+                if (SetProperty(ref selectedLanguage, value) && value != null)
+                    toolWindow.SetLanguage(value.Code);
+            }
+        }
+
         public void Start()
         {
             ObjectDisposedException.ThrowIf(disposed, nameof(SettingsToolWindowViewModel));
@@ -194,6 +216,7 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
             SetProperty(ref restoreLastView, toolWindow.RestoreLastView, nameof(RestoreLastView));
             SetProperty(ref fontOutline, toolWindow.FontOutline, nameof(FontOutline));
             SetProperty(ref realTrackWidth, toolWindow.RealTrackWidth, nameof(RealTrackWidth));
+            SetProperty(ref selectedLanguage, FindLanguage(toolWindow.Language), nameof(SelectedLanguage));
 
             RefreshVisibilityItems(TrackVisibilityItems);
             RefreshVisibilityItems(RoadVisibilityItems);
@@ -223,6 +246,19 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
         {
             foreach (VisibilityItemViewModel item in items)
                 item.Refresh(toolWindow.GetItemVisibility(item.Setting));
+        }
+
+        // Resolves the persisted language code to its matching option (falling back to the system default) so
+        // the picker shows the active language by reference equality with an item in AvailableLanguages.
+        private LanguageOption FindLanguage(string code)
+        {
+            foreach (LanguageOption option in AvailableLanguages)
+            {
+                if (string.Equals(option.Code, code, StringComparison.OrdinalIgnoreCase))
+                    return option;
+            }
+
+            return AvailableLanguages.IsDefaultOrEmpty ? null : AvailableLanguages[0];
         }
     }
 }

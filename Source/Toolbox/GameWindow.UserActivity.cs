@@ -166,6 +166,13 @@ namespace FreeTrainSimulator.Toolbox
         // show an owned save dialog and submit the chosen file path back to the game thread for capture.
         internal event EventHandler ScreenshotRequested;
 
+        // Raised on the game thread whenever the active language/catalog changes (initial load and any later
+        // language switch), so the WPF shell can re-localize its own chrome and dialogs against the same
+        // gettext catalog.
+        internal event EventHandler LanguageChanged;
+
+        internal void RaiseLanguageChanged() => LanguageChanged?.Invoke(this, EventArgs.Empty);
+
         internal void PrintScreen()
         {
             if (hostedReattachCallback != null)

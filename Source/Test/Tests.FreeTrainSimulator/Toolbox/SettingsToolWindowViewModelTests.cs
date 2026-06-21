@@ -50,6 +50,9 @@ namespace Tests.FreeTrainSimulator.Toolbox
 
             public void ReapplyAppearance()
                 => ReapplyCount++;
+
+            public void ApplyLanguage(string language)
+                => userSettings.Language = language;
         }
 
         private static SettingsToolWindow CreateBridge(ProfileToolboxSettingsModel toolboxSettings, ProfileUserSettingsModel userSettings)
@@ -299,6 +302,41 @@ namespace Tests.FreeTrainSimulator.Toolbox
                 settingsToolWindowViewModel.ResetToDefaults();
 
                 Assert.AreEqual(1, applier.ReapplyCount);
+            }
+        }
+
+        [TestMethod]
+        public void WhenCreatedThenAvailableLanguagesIncludeSystemDefault()
+        {
+            using (SettingsToolWindowViewModel settingsToolWindowViewModel = new SettingsToolWindowViewModel(CreateBridge(new ProfileToolboxSettingsModel(), new ProfileUserSettingsModel())))
+            {
+                Assert.IsTrue(settingsToolWindowViewModel.AvailableLanguages.Any(option => option.Code.Length == 0));
+            }
+        }
+
+        [TestMethod]
+        public void WhenLanguageIsEmptyThenSelectedLanguageIsSystemDefault()
+        {
+            ProfileUserSettingsModel userSettings = new ProfileUserSettingsModel() { Language = string.Empty };
+            using (SettingsToolWindowViewModel settingsToolWindowViewModel = new SettingsToolWindowViewModel(CreateBridge(new ProfileToolboxSettingsModel(), userSettings)))
+            {
+                Assert.AreEqual(string.Empty, settingsToolWindowViewModel.SelectedLanguage.Code);
+            }
+        }
+
+        [TestMethod]
+        public void WhenSelectedLanguageChangedThenUserSettingsLanguageChanges()
+        {
+            ProfileUserSettingsModel userSettings = new ProfileUserSettingsModel() { Language = string.Empty };
+            using (SettingsToolWindowViewModel settingsToolWindowViewModel = new SettingsToolWindowViewModel(CreateBridge(new ProfileToolboxSettingsModel(), userSettings)))
+            {
+                settingsToolWindowViewModel.SelectedLanguage = new LanguageOption()
+                {
+                    Code = "de",
+                    DisplayName = "Deutsch"
+                };
+
+                Assert.AreEqual("de", userSettings.Language);
             }
         }
     }

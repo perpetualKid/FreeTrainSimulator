@@ -27,7 +27,6 @@ using FreeTrainSimulator.Toolbox.Settings;
 using FreeTrainSimulator.Toolbox.ToolWindows;
 
 using GetText;
-using GetText.WindowsForms;
 
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -94,7 +93,11 @@ namespace FreeTrainSimulator.Toolbox
         private Color backgroundColor;
 
         internal Catalog Catalog { get; private set; }
-        private readonly ObjectPropertiesStore store = new ObjectPropertiesStore();
+
+        // Name of the UI culture the active catalog was resolved for; consumed by the WPF shell so it can set
+        // the same culture on its UI thread before pulling the shared catalog.
+        internal string CurrentLanguage { get; private set; }
+
         private readonly string windowTitle;
         private UserCommandController<UserCommand> userCommandController;
 
@@ -570,6 +573,9 @@ namespace FreeTrainSimulator.Toolbox
 
         void ISettingsApplier.ReapplyAppearance()
             => InvokeOnGameThread(ReapplyAppearancePreferences);
+
+        void ISettingsApplier.ApplyLanguage(string language)
+            => InvokeOnGameThread(() => UpdateLanguagePreference(language));
         #endregion
 
         internal void UpdateLanguagePreference(string language)
@@ -653,7 +659,6 @@ namespace FreeTrainSimulator.Toolbox
 
         private void LoadLanguage()
         {
-            Localizer.Revert(windowForm, store);
             CatalogManager.Reset();
 
             if (!string.IsNullOrEmpty(ToolboxUserSettings.Language))
@@ -671,8 +676,14 @@ namespace FreeTrainSimulator.Toolbox
             {
                 CultureInfo.DefaultThreadCurrentUICulture = CultureInfo.InstalledUICulture;
             }
+            CurrentLanguage = (CultureInfo.DefaultThreadCurrentUICulture ?? CultureInfo.InstalledUICulture).Name;
             Catalog = CatalogManager.Catalog;
-            Localizer.Localize(windowForm, Catalog, store);
+
+            // Notify the WPF shell (hosted mode) so it can re-localize its own chrome/dialogs against the same
+            // catalog. Raised for the initial load and every later language switch. The hosted MonoGame host
+            // form has no localizable WinForms controls (the menu lives in WPF), so no WinForms localization
+            // pass is needed here; in-game popups read the catalog directly.
+            RaiseLanguageChanged();
         }
 
         private void GraphicsPreparingDeviceSettings(object sender, PreparingDeviceSettingsEventArgs e)

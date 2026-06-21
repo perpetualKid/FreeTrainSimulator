@@ -1,7 +1,13 @@
 using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Globalization;
+using System.IO;
+using System.Linq;
 
 using FreeTrainSimulator.Common;
+using FreeTrainSimulator.Common.Info;
 using FreeTrainSimulator.Graphics;
 using FreeTrainSimulator.Models.Settings;
 using FreeTrainSimulator.Toolbox.Settings;
@@ -49,6 +55,20 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
 
         /// <summary>Whether the map renders real (unlimited) track width.</summary>
         public bool RealTrackWidth => !toolboxSettings.LimitTrackWidth;
+
+        /// <summary>
+        /// UI languages available for selection: the system default (empty code) plus every locale under
+        /// <see cref="RuntimeInfo.LocalesFolder"/> that ships compiled <c>.mo</c> catalogs. Built once because
+        /// the installed locale set does not change at runtime.
+        /// </summary>
+        public ImmutableArray<LanguageOption> AvailableLanguages { get; } = BuildAvailableLanguages();
+
+        /// <summary>The currently selected UI language code, or an empty string for the system default.</summary>
+        public string Language => userSettings.Language ?? string.Empty;
+
+        /// <summary>Sets the UI language preference and reloads the gettext catalog through the applier.</summary>
+        public void SetLanguage(string language)
+            => applier.ApplyLanguage(language ?? string.Empty);
 
         /// <summary>Enables or disables logging by switching the log level.</summary>
         public void SetEnableLogging(bool value)
@@ -106,6 +126,47 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
             toolboxSettings.RestoreLastView = defaults.RestoreLastView;
 
             applier.ReapplyAppearance();
+        }
+
+        // Enumerates the installed UI languages: the system default (empty code) plus every locale folder that
+        // ships compiled .mo catalogs and resolves to a valid culture. Mirrors the legacy Menu/Options locale
+        // discovery so the Toolbox picker offers the same set.
+        private static ImmutableArray<LanguageOption> BuildAvailableLanguages()
+        {
+            List<string> languageCodes = new List<string>();
+
+            if (Directory.Exists(RuntimeInfo.LocalesFolder))
+            {
+                foreach (string path in Directory.EnumerateDirectories(RuntimeInfo.LocalesFolder))
+                {
+                    if (!Directory.EnumerateFiles(path, "*.mo").Any())
+                        continue;
+
+                    string languageCode = Path.GetFileName(path);
+                    try
+                    {
+                        _ = CultureInfo.GetCultureInfo(languageCode);
+                        languageCodes.Add(languageCode);
+                    }
+                    catch (CultureNotFoundException)
+                    {
+                        // Folder name is not a valid culture; skip it.
+                    }
+                }
+            }
+
+            ImmutableArray<LanguageOption>.Builder builder = ImmutableArray.CreateBuilder<LanguageOption>(languageCodes.Count + 1);
+
+            // System default first, then localized native names sorted alphabetically.
+            builder.Add(LanguageOption.SystemDefault);
+            foreach (string languageCode in languageCodes.OrderBy(code => CultureInfo.GetCultureInfo(code).NativeName, StringComparer.CurrentCultureIgnoreCase))
+                builder.Add(new LanguageOption()
+                {
+                    Code = languageCode,
+                    DisplayName = CultureInfo.GetCultureInfo(languageCode).NativeName
+                });
+
+            return builder.ToImmutable();
         }
     }
 }

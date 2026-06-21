@@ -24,5 +24,8 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
 
         /// <summary>Re-applies the current appearance model values to the live map (used after a reset).</summary>
         void ReapplyAppearance();
+
+        /// <summary>Applies the UI language preference and reloads the gettext catalog.</summary>
+        void ApplyLanguage(string language);
     }
 }
