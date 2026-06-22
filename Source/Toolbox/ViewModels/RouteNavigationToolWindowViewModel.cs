@@ -28,7 +28,7 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
         private bool suppressSelectionCommand;
 
         public RouteNavigationToolWindowViewModel(RouteNavigationToolWindow toolWindow, ToolWindowRefreshScheduler scheduler)
-            : base(scheduler, TimeSpan.FromMilliseconds(250))
+            : base(scheduler, ToolWindowRefreshScheduler.BaseInterval)
         {
             ArgumentNullException.ThrowIfNull(toolWindow);
 

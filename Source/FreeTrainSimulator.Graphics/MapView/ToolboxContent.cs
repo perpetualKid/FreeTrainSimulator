@@ -74,7 +74,7 @@ namespace FreeTrainSimulator.Graphics.MapView
                     Viewport?.UpdateScaleToFit(station.TopLeftBound, station.BottomRightBound);
                     Viewport?.SetTrackingPosition(station.Location);
                     HighlightItem(MapContentType.StationNames, station);
-                    pinnedNavigationInfo.Set(BuildStationDetails(station));
+                    Pin(BuildStationDetails(station));
                     break;
 
                 case RouteNavigationKind.Platform when index >= 0 && index < navigationPlatforms.Length:
@@ -82,7 +82,7 @@ namespace FreeTrainSimulator.Graphics.MapView
                     Viewport?.UpdateScaleToFit(platform.TopLeftBound, platform.BottomRightBound);
                     Viewport?.SetTrackingPosition(platform.MidPoint);
                     HighlightItem(MapContentType.Platforms, platform);
-                    pinnedNavigationInfo.Set(BuildPlatformDetails(platform));
+                    Pin(BuildPlatformDetails(platform));
                     break;
 
                 case RouteNavigationKind.Siding when index >= 0 && index < navigationSidings.Length:
@@ -90,7 +90,7 @@ namespace FreeTrainSimulator.Graphics.MapView
                     Viewport?.UpdateScaleToFit(siding.TopLeftBound, siding.BottomRightBound);
                     Viewport?.SetTrackingPosition(siding.MidPoint);
                     HighlightItem(MapContentType.Sidings, siding);
-                    pinnedNavigationInfo.Set(BuildSidingDetails(siding));
+                    Pin(BuildSidingDetails(siding));
                     break;
             }
         }
@@ -106,7 +106,7 @@ namespace FreeTrainSimulator.Graphics.MapView
                 return;
 
             Viewport?.SetTrackingPosition(trackItem.Location);
-            pinnedNavigationInfo.Set(BuildTrackItemDetails(index, trackItem));
+            Pin(BuildTrackItemDetails(index, trackItem));
         }
 
         /// <summary>
@@ -130,7 +130,16 @@ namespace FreeTrainSimulator.Graphics.MapView
             Viewport?.UpdateScaleToFit(section.TopLeftBound, section.BottomRightBound);
             Viewport?.SetTrackingPosition(section.MidPoint);
             HighlightItem(searchRoads ? MapContentType.Roads : MapContentType.Tracks, section.SectionSegments[0]);
-            pinnedNavigationInfo.Set(BuildTrackNodeDetails(index, searchRoads, section));
+            Pin(BuildTrackNodeDetails(index, searchRoads, section));
+        }
+
+        // Stores the pinned selection detail and clears the sticky hover providers, so the selection becomes
+        // the active detail until the cursor next moves onto a map item (which repopulates the hover providers).
+        private void Pin(InformationDictionary details)
+        {
+            pinnedNavigationInfo.Set(details);
+            (TrackNodeInfo as DetailInfoProxy).Source = null;
+            (TrackItemInfo as DetailInfoProxy).Source = null;
         }
 
         public ToolboxContentMode ContentMode

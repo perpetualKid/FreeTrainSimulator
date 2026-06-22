@@ -166,9 +166,9 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
             snapshot = new RouteNavigationSnapshot(stationRows, platformRows, sidingRows, detailRows);
         }
 
-        // Picks the detail source for the lower pane: the hovered track node/item provider when it currently has
-        // rows, otherwise the pinned selection. Hover is transient (cleared when the cursor leaves an item), so
-        // the pinned selection is the stable baseline.
+        // Picks the detail source for the lower pane: the hovered track node/item provider when the cursor is
+        // over a map item, otherwise the pinned selection. Selecting a search item clears the hover providers,
+        // so the selection shows immediately and survives switching between the map and the search pane.
         private static ImmutableArray<ToolWindowRow> BuildDetailRows(ToolboxContent content)
         {
             ToolWindowSnapshot hover = ToolWindowSnapshotFactory.FromProviders(new[] { content.TrackNodeInfo, content.TrackItemInfo });

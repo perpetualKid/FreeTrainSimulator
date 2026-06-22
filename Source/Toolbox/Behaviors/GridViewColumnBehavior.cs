@@ -140,8 +140,19 @@ namespace FreeTrainSimulator.Toolbox.Behaviors
 
                     // Fit within the viewport when the content fits (no scrollbar); otherwise extend to the
                     // content width, capped, so a horizontal scrollbar reveals the text instead of clipping it.
-                    double maxWidth = fillWidth * maxOverflowFactor;
-                    stretchColumn.Width = contentWidth <= fillWidth ? fillWidth : Math.Min(contentWidth, maxWidth);
+                    // Toggle the scrollbar visibility explicitly per mode rather than relying on the exact width:
+                    // in fill mode Disabled guarantees no scrollbar even if the fitted width overshoots by a
+                    // sub-pixel from layout rounding; in extend mode Auto shows it only when actually needed.
+                    if (contentWidth <= fillWidth)
+                    {
+                        ScrollViewer.SetHorizontalScrollBarVisibility(listView, ScrollBarVisibility.Disabled);
+                        stretchColumn.Width = fillWidth;
+                    }
+                    else
+                    {
+                        ScrollViewer.SetHorizontalScrollBarVisibility(listView, ScrollBarVisibility.Auto);
+                        stretchColumn.Width = Math.Min(contentWidth, fillWidth * maxOverflowFactor);
+                    }
                 }
                 finally
                 {

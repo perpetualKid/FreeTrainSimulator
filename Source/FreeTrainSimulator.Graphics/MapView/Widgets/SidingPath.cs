@@ -24,6 +24,7 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
                 if (hash != debugInfoHash)
                 {
                     debugInformation["Name"] = SidingName;
+                    debugInformation["Length"] = $"{Length:F1}m";
                     debugInfoHash = hash;
                 }
                 return debugInformation;
