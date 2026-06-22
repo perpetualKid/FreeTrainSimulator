@@ -21,12 +21,16 @@ namespace Tests.FreeTrainSimulator.Toolbox
         {
             int invocations = 0;
             TrainPathToolWindow bridge = CreateBridge(_ => invocations++);
-            TrainPathToolWindowViewModel trainPathToolWindowViewModel = new TrainPathToolWindowViewModel(bridge, new ToolWindowRefreshScheduler(Dispatcher.CurrentDispatcher))
+            using (ToolWindowRefreshScheduler refreshScheduler = new ToolWindowRefreshScheduler(Dispatcher.CurrentDispatcher))
             {
-                SelectedPath = new TrainPathListItemViewModel("path-1", "First Path")
-            };
-
-            Assert.AreEqual(1, invocations);
+                using (TrainPathToolWindowViewModel trainPathToolWindowViewModel = new TrainPathToolWindowViewModel(bridge, refreshScheduler)
+                {
+                    SelectedPath = new TrainPathListItemViewModel("path-1", "First Path")
+                })
+                {
+                    Assert.AreEqual(1, invocations);
+                }
+            }
         }
 
         [TestMethod]
@@ -34,12 +38,16 @@ namespace Tests.FreeTrainSimulator.Toolbox
         {
             int invocations = 0;
             TrainPathToolWindow bridge = CreateBridge(_ => invocations++);
-            TrainPathToolWindowViewModel trainPathToolWindowViewModel = new TrainPathToolWindowViewModel(bridge, new ToolWindowRefreshScheduler(Dispatcher.CurrentDispatcher))
+            using (ToolWindowRefreshScheduler refreshScheduler = new ToolWindowRefreshScheduler(Dispatcher.CurrentDispatcher))
             {
-                SelectedPath = new TrainPathListItemViewModel("path-1", "First Path")
-            };
-
-            trainPathToolWindowViewModel.SelectedPath = null;
+                using (TrainPathToolWindowViewModel trainPathToolWindowViewModel = new TrainPathToolWindowViewModel(bridge, refreshScheduler)
+                {
+                    SelectedPath = new TrainPathListItemViewModel("path-1", "First Path")
+                })
+                {
+                    trainPathToolWindowViewModel.SelectedPath = null;
+                }
+            }
 
             Assert.AreEqual(2, invocations);
         }
@@ -50,13 +58,16 @@ namespace Tests.FreeTrainSimulator.Toolbox
             int invocations = 0;
             TrainPathToolWindow bridge = CreateBridge(_ => invocations++);
             TrainPathListItemViewModel path = new TrainPathListItemViewModel("path-1", "First Path");
-            TrainPathToolWindowViewModel trainPathToolWindowViewModel = new TrainPathToolWindowViewModel(bridge, new ToolWindowRefreshScheduler(Dispatcher.CurrentDispatcher))
+            using (ToolWindowRefreshScheduler refreshScheduler = new ToolWindowRefreshScheduler(Dispatcher.CurrentDispatcher))
             {
-                SelectedPath = path
-            };
-
-            trainPathToolWindowViewModel.SelectedPath = path;
-
+                using (TrainPathToolWindowViewModel trainPathToolWindowViewModel = new TrainPathToolWindowViewModel(bridge, refreshScheduler)
+                {
+                    SelectedPath = path
+                })
+                {
+                    trainPathToolWindowViewModel.SelectedPath = path;
+                }
+            }
             Assert.AreEqual(1, invocations);
         }
 
@@ -64,12 +75,16 @@ namespace Tests.FreeTrainSimulator.Toolbox
         public void WhenSelectedPathSetThenStatusMessageIsCleared()
         {
             TrainPathToolWindow bridge = CreateBridge(action => action());
-            TrainPathToolWindowViewModel trainPathToolWindowViewModel = new TrainPathToolWindowViewModel(bridge, new ToolWindowRefreshScheduler(Dispatcher.CurrentDispatcher))
+            using (ToolWindowRefreshScheduler refreshScheduler = new ToolWindowRefreshScheduler(Dispatcher.CurrentDispatcher))
             {
-                SelectedPath = new TrainPathListItemViewModel("path-1", "First Path")
-            };
-
-            Assert.AreEqual(string.Empty, trainPathToolWindowViewModel.StatusMessage);
+                using (TrainPathToolWindowViewModel trainPathToolWindowViewModel = new TrainPathToolWindowViewModel(bridge, refreshScheduler)
+                {
+                    SelectedPath = new TrainPathListItemViewModel("path-1", "First Path")
+                })
+                {
+                    Assert.AreEqual(string.Empty, trainPathToolWindowViewModel.StatusMessage);
+                }
+            }
         }
 
         [TestMethod]
@@ -77,12 +92,16 @@ namespace Tests.FreeTrainSimulator.Toolbox
         {
             int invocations = 0;
             TrainPathToolWindow bridge = CreateBridge(_ => invocations++);
-            TrainPathToolWindowViewModel trainPathToolWindowViewModel = new TrainPathToolWindowViewModel(bridge, new ToolWindowRefreshScheduler(Dispatcher.CurrentDispatcher))
+            using (ToolWindowRefreshScheduler refreshScheduler = new ToolWindowRefreshScheduler(Dispatcher.CurrentDispatcher))
             {
-                SelectedNode = new TrainPathNodeItemViewModel(2, "Junction", true)
-            };
-
-            Assert.AreEqual(1, invocations);
+                using (TrainPathToolWindowViewModel trainPathToolWindowViewModel = new TrainPathToolWindowViewModel(bridge, refreshScheduler)
+                {
+                    SelectedNode = new TrainPathNodeItemViewModel(2, "Junction", true)
+                })
+                {
+                    Assert.AreEqual(1, invocations);
+                }
+            }
         }
 
         [TestMethod]
@@ -90,12 +109,16 @@ namespace Tests.FreeTrainSimulator.Toolbox
         {
             int invocations = 0;
             TrainPathToolWindow bridge = CreateBridge(_ => invocations++);
-            TrainPathToolWindowViewModel trainPathToolWindowViewModel = new TrainPathToolWindowViewModel(bridge, new ToolWindowRefreshScheduler(Dispatcher.CurrentDispatcher))
+            using (ToolWindowRefreshScheduler refreshScheduler = new ToolWindowRefreshScheduler(Dispatcher.CurrentDispatcher))
             {
-                SelectedNode = new TrainPathNodeItemViewModel(2, "Junction", true)
-            };
-
-            trainPathToolWindowViewModel.SelectedNode = null;
+                using (TrainPathToolWindowViewModel trainPathToolWindowViewModel = new TrainPathToolWindowViewModel(bridge, refreshScheduler)
+                {
+                    SelectedNode = new TrainPathNodeItemViewModel(2, "Junction", true)
+                })
+                {
+                    trainPathToolWindowViewModel.SelectedNode = null;
+                }
+            }
 
             Assert.AreEqual(2, invocations);
         }
@@ -104,26 +127,36 @@ namespace Tests.FreeTrainSimulator.Toolbox
         public void WhenSearchTextMatchesPathThenPathRemainsVisible()
         {
             TrainPathToolWindow bridge = CreateBridge(action => action());
-            TrainPathToolWindowViewModel trainPathToolWindowViewModel = new TrainPathToolWindowViewModel(bridge, new ToolWindowRefreshScheduler(Dispatcher.CurrentDispatcher));
-            TrainPathListItemViewModel match = new TrainPathListItemViewModel("p1", "Northbound");
-            trainPathToolWindowViewModel.Paths.Add(match);
+            using (ToolWindowRefreshScheduler refreshScheduler = new ToolWindowRefreshScheduler(Dispatcher.CurrentDispatcher))
+            {
+                using (TrainPathToolWindowViewModel trainPathToolWindowViewModel = new TrainPathToolWindowViewModel(bridge, refreshScheduler))
+                {
+                    TrainPathListItemViewModel match = new TrainPathListItemViewModel("p1", "Northbound");
+                    trainPathToolWindowViewModel.Paths.Add(match);
 
-            trainPathToolWindowViewModel.SearchText = "north";
+                    trainPathToolWindowViewModel.SearchText = "north";
 
-            Assert.IsTrue(match.IsVisible);
+                    Assert.IsTrue(match.IsVisible);
+                }
+            }
         }
 
         [TestMethod]
         public void WhenSearchTextDoesNotMatchPathThenPathIsHidden()
         {
             TrainPathToolWindow bridge = CreateBridge(action => action());
-            TrainPathToolWindowViewModel trainPathToolWindowViewModel = new TrainPathToolWindowViewModel(bridge, new ToolWindowRefreshScheduler(Dispatcher.CurrentDispatcher));
-            TrainPathListItemViewModel other = new TrainPathListItemViewModel("p2", "Southbound");
-            trainPathToolWindowViewModel.Paths.Add(other);
+            using (ToolWindowRefreshScheduler refreshScheduler = new ToolWindowRefreshScheduler(Dispatcher.CurrentDispatcher))
+            {
+                using (TrainPathToolWindowViewModel trainPathToolWindowViewModel = new TrainPathToolWindowViewModel(bridge, refreshScheduler))
+                {
+                    TrainPathListItemViewModel other = new TrainPathListItemViewModel("p2", "Southbound");
+                    trainPathToolWindowViewModel.Paths.Add(other);
 
-            trainPathToolWindowViewModel.SearchText = "north";
+                    trainPathToolWindowViewModel.SearchText = "north";
 
-            Assert.IsFalse(other.IsVisible);
+                    Assert.IsFalse(other.IsVisible);
+                }
+            }
         }
     }
 }
