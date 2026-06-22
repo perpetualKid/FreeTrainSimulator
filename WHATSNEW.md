@@ -3,6 +3,13 @@
 ## Features
 
 - Importing Track Sections (tsection.dat) and Track Database (*.tdb and *.rdb). Used in Toolbox, other applications will follow
+- Toolbox has been reworked into a modern, dockable IDE-style desktop application, with movable, floating, auto-hiding, and tabbed tool windows arranged around the central map view:
+  - Tool windows for Routes, Settings, Route Navigation, Train Path details, Location, Logging, Help, and Debug information
+  - Settings tool window with separate tabs for general options, item colors, and item visibility, plus a "Reset to Defaults" action
+  - Route Navigation to center the map on stations, platforms, and sidings by name, or to locate track items and track nodes by index
+  - Always-on status bar showing tile, track, and item information under the mouse pointer
+  - Window layout, undocked tool window sizes, and main window placement are remembered between sessions and can be reset to a clean default
+  - User interface language can be switched at runtime
 - Toolbox Path Editor allows to create and save new train paths. This is still work in progres.
 - Game will be started based on profile-selections, not passing commandline arguments (still possible though for debugging purposes)
 - Multiple configuration profiles, available through Menu application, allow to have all settings profile-dependent

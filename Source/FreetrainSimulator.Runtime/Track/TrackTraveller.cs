@@ -270,7 +270,7 @@ namespace FreeTrainSimulator.Runtime.Track
         /// <returns>An ordered list of candidates (closest first), possibly empty.</returns>
         private static IReadOnlyList<TrackTraveller> FindAllCandidates(in WorldLocation location, TrackDirection direction, TrackDataBaseType trackDataBaseType = TrackDataBaseType.Rail)
         {
-            Dictionary<VectorNode, (SectionGeometry geometry, WorldLocation snapped, double offset, double distSq)> bestPerNode = new(ReferenceEqualityComparer.Instance);
+            Dictionary<VectorNode, (SectionGeometry geometry, WorldLocation snapped, double offset, double distSq)> bestPerNode = new Dictionary<VectorNode, (SectionGeometry geometry, WorldLocation snapped, double offset, double distSq)>(ReferenceEqualityComparer.Instance);
             double maxDistSq = WorldLocation.ProximityTolerance * WorldLocation.ProximityTolerance;
 
             TrackWorld world = TrackWorld.Instance;

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -67,15 +67,48 @@ namespace FreeTrainSimulator.Toolbox
                 {
                     pathEditor = new PathEditor(toolboxContent, userCommandController);
                     pathEditor.OnPathChanged += PathEditor_OnEditorPathChanged;
+                    pathEditor.OnPathUpdated += PathEditor_OnEditorPathUpdated;
                     OnPathEditorChanged?.Invoke(this, new PathEditorAvailabilityChangedEventArgs(pathEditor));
                 }
                 return pathEditor;
             }
         }
 
+        protected override void Dispose(bool disposing)
+        {
+            loadRouteSemaphore?.Dispose();
+            ctsProfileLoading?.Dispose();
+            ctsRouteLoading?.Dispose();
+            pathEditor?.Dispose();
+            windowManager?.Dispose();
+            spriteBatch?.Dispose();
+            graphicsDeviceManager?.Dispose();
+            windowForm?.Dispose();
+            base.Dispose(disposing);
+        }
+
+        // Returns the existing path editor without creating it (the PathEditor getter lazily creates and
+        // raises events). Used by the hosted train-path tool window so reading the snapshot never forces
+        // editor creation. Null until a path edit session exists.
+        internal PathEditor HostedPathEditor => pathEditor;
+
+        // Builds a tooling context for the hosted train-path tool window from the currently selected route
+        // and the active measurement-unit preference (mirrors the legacy popup registration). Null when no
+        // route is loaded.
+        internal ITrainPathToolingContext HostedTrainPathToolingContext =>
+            selectedRoute == null ? null : new TrainPathToolingContext(selectedRoute,
+                ToolboxUserSettings.MeasurementUnit == MeasurementUnit.Route ? selectedRoute.MetricUnits :
+                ToolboxUserSettings.MeasurementUnit == MeasurementUnit.Metric || (ToolboxUserSettings.MeasurementUnit == MeasurementUnit.System && System.Globalization.RegionInfo.CurrentRegion.IsMetric));
+
         private void PathEditor_OnEditorPathChanged(object sender, PathEditorChangedEventArgs e)
         {
-            mainmenu.PreSelectPath(e.Path?.PathModel);
+            hostedTrainPathToolWindow?.MarkDirty();
+            menu.PreSelectPath(e.Path?.PathModel);
+        }
+
+        private void PathEditor_OnEditorPathUpdated(object sender, PathEditorChangedEventArgs e)
+        {
+            hostedTrainPathToolWindow?.MarkDirty();
         }
 
         internal async Task<bool> LoadFolders()
@@ -89,11 +122,11 @@ namespace FreeTrainSimulator.Toolbox
                 {
                     return false;
                 }
-                mainmenu.PopulateContentFolders(contentModel.ContentFolders);
+                menu.PopulateContentFolders(contentModel.ContentFolders);
             }
             catch (TaskCanceledException)
             {
-                mainmenu.PopulateContentFolders(ImmutableArray<FolderModel>.Empty);
+                menu.PopulateContentFolders(ImmutableArray<FolderModel>.Empty);
             }
             return true;
         }
@@ -109,9 +142,13 @@ namespace FreeTrainSimulator.Toolbox
                     try
                     {
                         routeModels = await contentFolder.GetRoutes(ctsProfileLoading.Token).ConfigureAwait(false);
+                        // Only commit the folder as selected once its routes have actually loaded. Committing
+                        // after a cancelled fetch would leave selectedFolder pointing at a folder whose routes
+                        // were never populated, so re-selecting it later would be skipped by this guard and the
+                        // folder change would silently do nothing.
+                        selectedFolder = contentFolder;
                     }
                     catch (TaskCanceledException) { }
-                    selectedFolder = contentFolder;
                 }
             }
             finally
@@ -140,7 +177,7 @@ namespace FreeTrainSimulator.Toolbox
             if (ctsProfileLoading.Token.IsCancellationRequested)
                 return;
 
-            IMapContentFactory contentFactory = new XnaMapContentFactory();
+            XnaMapContentFactory contentFactory = new XnaMapContentFactory();
             toolboxContent = contentFactory.CreateToolboxContent(
                 this,
                 Components.OfType<MouseInputGameComponent>().FirstOrDefault(),
@@ -151,7 +188,9 @@ namespace FreeTrainSimulator.Toolbox
             toolboxContent.InitializeItemVisiblity(ToolboxSettings.ViewSettings);
             toolboxContent.UpdateWidgetColorSettings(ToolboxSettings.ColorSettings, ToolboxSettings.FontOutline, ToolboxSettings.LimitTrackWidth);
             ContentArea = ((IXnaMapShellHost)toolboxContent.ShellHost).Component as ContentArea;
-            mainmenu.PopulatePaths(await pathTask.ConfigureAwait(true));
+            ImmutableArray<PathModelHeader> paths = await pathTask.ConfigureAwait(true);
+            menu.PopulatePaths(paths);
+            hostedTrainPathToolWindow?.UpdatePaths(paths);
             _ = windowManager[ToolboxWindowType.StatusWindow].Close();
             selectedRoute = route;
         }
@@ -163,20 +202,23 @@ namespace FreeTrainSimulator.Toolbox
 
         internal void EditPath()
         {
-            PathEditor.InitializeNewPath();            
+            PathEditor.InitializeNewPath();
         }
+
+        // Raised on the game thread in hosted mode when the user requests a path save, so the WPF shell can
+        // show its own modal save dialog instead of the legacy MonoGame popup.
+        internal event EventHandler SaveTrainPathRequested;
 
         internal void SavePath()
         {
-            windowForm.ActiveControl = null;
-            _ = windowManager[ToolboxWindowType.TrainPathSaveWindow].Open();
+            SaveTrainPathRequested?.Invoke(this, EventArgs.Empty);
         }
 
         internal async Task PreSelectRoute(string folderName, string routeId, string pathId)
         {
             if (!string.IsNullOrEmpty(folderName))
             {
-                FolderModel folder = mainmenu.SelectContentFolder(folderName);
+                FolderModel folder = menu.SelectContentFolder(folderName);
 
                 if (!string.IsNullOrEmpty(routeId) && ToolboxSettings.RestoreLastView)
                 {
@@ -184,7 +226,7 @@ namespace FreeTrainSimulator.Toolbox
                     if (null != route)
                     {
                         await LoadRoute(route).ConfigureAwait(true);
-                        mainmenu.PreSelectRoute(route.Name);
+                        menu.PreSelectRoute(route.Name);
                         if (!string.IsNullOrEmpty(pathId))
                         {
                             // only restore first path for now
@@ -192,7 +234,7 @@ namespace FreeTrainSimulator.Toolbox
                             if (null != path)
                             {
                                 if (LoadPath(path))
-                                    mainmenu.PreSelectPath(path);
+                                    menu.PreSelectPath(path);
                             }
                         }
                     }
@@ -204,9 +246,11 @@ namespace FreeTrainSimulator.Toolbox
         {
             ContentArea = null;
             selectedRoute = null;
-            mainmenu.ClearPathMenu();
+            menu.ClearPathMenu();
             if (pathEditor != null)
             {
+                pathEditor.OnPathChanged -= PathEditor_OnEditorPathChanged;
+                pathEditor.OnPathUpdated -= PathEditor_OnEditorPathUpdated;
                 pathEditor.Dispose();
                 pathEditor = null;
                 OnPathEditorChanged?.Invoke(this, new PathEditorAvailabilityChangedEventArgs(null));

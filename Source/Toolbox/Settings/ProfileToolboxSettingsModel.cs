@@ -28,17 +28,17 @@ namespace FreeTrainSimulator.Toolbox.Settings
         /// Window Screen to be used
         /// </summary>
         public int WindowScreen { get; set; }
-        
+
         /// <summary>
         /// Last used center point of most recent route
         /// </summary>
         public PointD ContentPosition { get; set; }
-        
+
         /// <summary>
         /// Most recent scale factor
         /// </summary>
         public double ContentScale { get; set; }
-        
+
         /// <summary>
         /// Track Item Color settings
         /// </summary>
@@ -74,49 +74,9 @@ namespace FreeTrainSimulator.Toolbox.Settings
         public EnumArray<bool, MapContentType> ViewSettings { get; private set; } = new EnumArray<bool, MapContentType>(true);
 
         /// <summary>
-        /// Locations (in Window %) of popup windows
+        /// Persisted settings for the individual toolbox tool windows.
         /// </summary>
-        public EnumArray<(int X, int Y), ToolboxWindowType> PopupLocations { get; private set; } = new EnumArray<(int X, int Y), ToolboxWindowType>((ToolboxWindowType toolboxWindowType) => toolboxWindowType switch
-        {
-            ToolboxWindowType.QuitWindow => (50, 50),
-            ToolboxWindowType.AboutWindow => (50, 50),
-            ToolboxWindowType.StatusWindow => (50, 50),
-            ToolboxWindowType.DebugScreen => (0, 0),
-            ToolboxWindowType.LocationWindow => (100, 100),
-            ToolboxWindowType.HelpWindow => (10, 10),
-            ToolboxWindowType.TrackNodeInfoWindow => (10, 10),
-            ToolboxWindowType.TrackItemInfoWindow => (30, 30),
-            ToolboxWindowType.SettingsWindow => (70, 70),
-            ToolboxWindowType.LogWindow => (30, 30),
-            ToolboxWindowType.TrainPathWindow => (10, 10),
-            ToolboxWindowType.TrainPathSaveWindow => (50, 50),
-            _ => throw new System.NotImplementedException(),
-        });
-
-        /// <summary>
-        /// Status (Visibility) of popup windows
-        /// </summary>
-        public EnumArray<bool, ToolboxWindowType> PopupStatus { get; private set; } = new EnumArray<bool, ToolboxWindowType>((ToolboxWindowType toolboxWindowType) => toolboxWindowType switch
-        {
-            ToolboxWindowType.QuitWindow => false,
-            ToolboxWindowType.AboutWindow => false,
-            ToolboxWindowType.StatusWindow => false,
-            ToolboxWindowType.DebugScreen => false,
-            ToolboxWindowType.LocationWindow => true,
-            ToolboxWindowType.HelpWindow => true,
-            ToolboxWindowType.TrackNodeInfoWindow => false,
-            ToolboxWindowType.TrackItemInfoWindow => false,
-            ToolboxWindowType.SettingsWindow => true,
-            ToolboxWindowType.LogWindow => false,
-            ToolboxWindowType.TrainPathWindow => false,
-            ToolboxWindowType.TrainPathSaveWindow => false,
-            _ => throw new System.NotImplementedException(),
-        });
-
-        /// <summary>
-        /// Arbitrary settings for each popup window, managed by the popup window, stored/serialized as string
-        /// </summary>
-        public EnumArray<string, ToolboxWindowType> PopupSettings { get; private set; } = new EnumArray<string, ToolboxWindowType>();
+        public ToolWindowSettingsStore ToolWindowSettings { get; set; } = new ToolWindowSettingsStore();
 
         /// <summary>
         /// Re-open to last view
@@ -129,7 +89,7 @@ namespace FreeTrainSimulator.Toolbox.Settings
         public bool FontOutline { get; set; } = true;
 
         // Route selections
-        
+
         public string Folder { get; set; }
 
         public string RouteId { get; set; }
@@ -137,8 +97,19 @@ namespace FreeTrainSimulator.Toolbox.Settings
         public string PathId { get; set; }
 
         /// <summary>
+        /// Serialized AvalonDock layout XML for the WPF toolbox shell.
+        /// </summary>
+        public string DockLayoutXml { get; set; }
+
+        /// <summary>
         /// Downscale Track width for easier overview of track schema
         /// </summary>
         public bool LimitTrackWidth { get; set; } = true;
+
+        /// <summary>
+        /// Durable placement (restored bounds and maximized state) of the WPF toolbox shell window. Null when no
+        /// placement has been saved yet, in which case the shell uses its default size and location.
+        /// </summary>
+        public WindowPlacementSettings WindowPlacements { get; set; }
     }
 }

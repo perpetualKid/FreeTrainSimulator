@@ -1,7 +1,9 @@
-﻿using System;
+using System;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Globalization;
 using System.IO;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
@@ -47,25 +49,9 @@ namespace FreeTrainSimulator.Toolbox
 
         internal void PrepareExitApplication()
         {
-            windowManager[ToolboxWindowType.QuitWindow].Open();
-        }
-
-        private void QuitWindow_OnPrintScreen(object sender, EventArgs e)
-        {
-            PrintScreen();
-        }
-
-        private void QuitWindow_OnWindowClosed(object sender, EventArgs e)
-        {
-        }
-
-        private async void QuitWindow_OnQuitGame(object sender, EventArgs e)
-        {
-            if (null != ctsRouteLoading && !ctsRouteLoading.IsCancellationRequested)
-                ctsRouteLoading.Cancel();
-            await SaveSettings().ConfigureAwait(false);
-            waitOnExit = false;
-            Exit();
+            // The WPF shell owns the exit confirmation dialog; raise an event so it can prompt and then close
+            // the window.
+            ExitRequested?.Invoke(this, EventArgs.Empty);
         }
 
         public void MouseDragging(UserCommandArgs userCommandArgs)
@@ -164,11 +150,37 @@ namespace FreeTrainSimulator.Toolbox
 
         internal void ShowAboutWindow()
         {
-            windowManager[ToolboxWindowType.AboutWindow].Open();
+            // The WPF shell shows its own About dialog; raise an event for it.
+            AboutRequested?.Invoke(this, EventArgs.Empty);
         }
+
+        // Raised on the game thread in hosted mode when the user requests the About dialog, so the WPF shell
+        // can show its own modal dialog instead of the legacy MonoGame popup.
+        internal event EventHandler AboutRequested;
+
+        // Raised on the game thread in hosted mode when the user requests application exit (menu or quit
+        // command), so the WPF shell can show its own confirmation and drive window close.
+        internal event EventHandler ExitRequested;
+
+        // Raised on the game thread in hosted mode when the user requests a screenshot, so the WPF shell can
+        // show an owned save dialog and submit the chosen file path back to the game thread for capture.
+        internal event EventHandler ScreenshotRequested;
+
+        // Raised on the game thread whenever the active language/catalog changes (initial load and any later
+        // language switch), so the WPF shell can re-localize its own chrome and dialogs against the same
+        // gettext catalog.
+        internal event EventHandler LanguageChanged;
+
+        internal void RaiseLanguageChanged() => LanguageChanged?.Invoke(this, EventArgs.Empty);
 
         internal void PrintScreen()
         {
+            if (hostedReattachCallback != null)
+            {
+                ScreenshotRequested?.Invoke(this, EventArgs.Empty);
+                return;
+            }
+
             using (SaveFileDialog dialog = new SaveFileDialog())
             {
                 dialog.DefaultExt = "png";
@@ -177,27 +189,79 @@ namespace FreeTrainSimulator.Toolbox
                 dialog.Filter = $"{Catalog.GetString("Image files (*.png)")}|*.png";
                 if (dialog.ShowDialog() == DialogResult.OK)
                 {
-                    byte[] backBuffer = new byte[graphicsDeviceManager.PreferredBackBufferWidth * graphicsDeviceManager.PreferredBackBufferHeight * 4];
-                    GraphicsDevice graphicsDevice = graphicsDeviceManager.GraphicsDevice;
-                    using (RenderTarget2D screenshot = new RenderTarget2D(graphicsDevice, graphicsDeviceManager.PreferredBackBufferWidth, graphicsDeviceManager.PreferredBackBufferHeight, false, graphicsDevice.PresentationParameters.BackBufferFormat, DepthFormat.None))
-                    {
-                        graphicsDevice.GetBackBufferData(backBuffer);
-                        screenshot.SetData(backBuffer);
-                        using (FileStream stream = File.OpenWrite(dialog.FileName))
-                        {
-                            screenshot.SaveAsPng(stream, graphicsDeviceManager.PreferredBackBufferWidth, graphicsDeviceManager.PreferredBackBufferHeight);
-                        }
-                    }
+                    SaveScreenshot(dialog.FileName);
                 }
             }
         }
 
-        private async void TrainPathSaveWindow_OnSavePath(object sender, TrainPathSaveEventArgs e)
+        internal Task SaveScreenshotAsync(string fileName)
         {
-            PathModelHeader pathDetails = e.PathDetails;
-            await PathEditor.SavePath(pathDetails).ConfigureAwait(false);
-            Task<ImmutableArray<PathModelHeader>> pathTask = selectedRoute.GetRoutePaths(ctsProfileLoading.Token);
-            mainmenu.PopulatePaths(await pathTask.ConfigureAwait(false));
+            if (string.IsNullOrWhiteSpace(fileName))
+                throw new ArgumentException("Screenshot file name must not be empty.", nameof(fileName));
+
+            SaveScreenshot(fileName);
+            return Task.CompletedTask;
+        }
+
+        private void SaveScreenshot(string fileName)
+        {
+            byte[] backBuffer = new byte[graphicsDeviceManager.PreferredBackBufferWidth * graphicsDeviceManager.PreferredBackBufferHeight * 4];
+            GraphicsDevice graphicsDevice = graphicsDeviceManager.GraphicsDevice;
+            using (RenderTarget2D screenshot = new RenderTarget2D(graphicsDevice, graphicsDeviceManager.PreferredBackBufferWidth, graphicsDeviceManager.PreferredBackBufferHeight, false, graphicsDevice.PresentationParameters.BackBufferFormat, DepthFormat.None))
+            {
+                graphicsDevice.GetBackBufferData(backBuffer);
+                screenshot.SetData(backBuffer);
+                using (FileStream stream = File.OpenWrite(fileName))
+                {
+                    screenshot.SaveAsPng(stream, graphicsDeviceManager.PreferredBackBufferWidth, graphicsDeviceManager.PreferredBackBufferHeight);
+                }
+            }
+        }
+
+        // Persists the given path metadata through the path editor and refreshes the menu's path list. Runs on
+        // the game thread; callers can await completion and observe traced failures instead of relying on
+        // async-void exception dispatch.
+        internal async Task SubmitTrainPathSaveAsync(PathModelHeader pathDetails)
+        {
+            ArgumentNullException.ThrowIfNull(pathDetails);
+
+            PathEditor editor = pathEditor;
+            if (editor == null)
+            {
+                Trace.TraceWarning("Cannot save train path because no path editor is active.");
+                return;
+            }
+
+            RouteModelHeader route = selectedRoute;
+            if (route == null)
+            {
+                Trace.TraceWarning("Cannot save train path because no route is selected.");
+                return;
+            }
+
+            try
+            {
+                await editor.SavePath(pathDetails).ConfigureAwait(true);
+                ImmutableArray<PathModelHeader> paths = await route.GetRoutePaths(ctsProfileLoading?.Token ?? CancellationToken.None).ConfigureAwait(true);
+                menu.PopulatePaths(paths);
+                hostedTrainPathToolWindow?.UpdatePaths(paths);
+            }
+            catch (OperationCanceledException ex)
+            {
+                Trace.TraceInformation($"Train path save was canceled: {ex.Message}");
+            }
+            catch (InvalidOperationException ex)
+            {
+                Trace.TraceError($"Failed to save train path: {ex}");
+            }
+            catch (IOException ex)
+            {
+                Trace.TraceError($"Failed to save train path: {ex}");
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                Trace.TraceError($"Failed to save train path: {ex}");
+            }
         }
 
 

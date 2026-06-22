@@ -2,7 +2,6 @@
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Threading.Tasks;
 
 using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Graphics.Xna;
@@ -259,11 +258,13 @@ namespace FreeTrainSimulator.Graphics.MapView.Shapes
         private void LoadTexturesFromResources(GraphicsDevice graphicsDevice)
         {
             Assembly assembly = Assembly.GetExecutingAssembly();
-            Parallel.ForEach(assembly.GetManifestResourceNames(), new ParallelOptions() { MaxDegreeOfParallelism = Environment.ProcessorCount }, resourceName =>
+            // GraphicsDevice (and the underlying D3D11 immediate context) is not thread-safe.
+            // Texture creation/upload/readback must run on a single thread, so process resources sequentially.
+            foreach (string resourceName in assembly.GetManifestResourceNames())
             {
                 string textureName = resourceName.Split('.').Reverse().Skip(1).Take(1).FirstOrDefault();
                 if (!EnumExtension.GetValue(textureName, out BasicTextureType textureValue))
-                    return;
+                    continue;
                 using (Stream stream = assembly.GetManifestResourceStream(resourceName))
                 {
                     Texture2D texture = Texture2D.FromStream(graphicsDevice, stream);
@@ -272,7 +273,6 @@ namespace FreeTrainSimulator.Graphics.MapView.Shapes
                     textureOffsets[textureValue] = new Vector2(texture.Width / 2, texture.Height / 2);
                 }
             }
-            );
         }
 
         private static Texture2D PrepareColorScaledTexture(GraphicsDevice graphicsDevice, Texture2D texture, double range = 1)

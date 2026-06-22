@@ -1,0 +1,16 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:viewModels="clr-namespace:FreeTrainSimulator.Toolbox.ViewModels">
+    <!-- Shared converters and styles used by the dockable tool-window views. Lives in application scope
+         (merged via App.xaml) so each view defined in its own UserControl can resolve them as a StaticResource. -->
+    <viewModels:DrawingColorToBrushConverter x:Key="DrawingColorToBrushConverter" />
+    <viewModels:BoolToFontWeightConverter x:Key="BoolToFontWeightConverter" />
+    <viewModels:ColorNameToBrushConverter x:Key="ColorNameToBrushConverter" />
+    <viewModels:StringToVisibilityConverter x:Key="StringToVisibilityConverter" />
+    <Style x:Key="ToolWindowRowItemStyle" TargetType="ListViewItem">
+        <Setter Property="Foreground"
+                Value="{Binding Color, Converter={StaticResource DrawingColorToBrushConverter}}" />
+        <Setter Property="FontWeight"
+                Value="{Binding Bold, Converter={StaticResource BoolToFontWeightConverter}}" />
+    </Style>
+</ResourceDictionary>

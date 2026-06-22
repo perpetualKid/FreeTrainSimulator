@@ -20,6 +20,6 @@
 		<ProjectReference Include="..\FreeTrainSimulator.Online\FreeTrainSimulator.Online.csproj" />
 		<ProjectReference Include="..\FreetrainSimulator.Runtime\FreetrainSimulator.Runtime.csproj" />
 		<ProjectReference Include="..\Orts.Scripting.Api\Orts.Scripting.Api.csproj" />
-		<PackageReference Include="GetText.NET" Version="10.0.1" />
+		<PackageReference Include="GetText.NET" Version="11.0.10-preview.1" />
 	</ItemGroup>
 </Project>

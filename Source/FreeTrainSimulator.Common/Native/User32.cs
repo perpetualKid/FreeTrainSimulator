@@ -7,6 +7,7 @@ namespace FreeTrainSimulator.Common.Native
     public partial class NativeMethods
     {
 #pragma warning disable CA1711 // Identifiers should not have incorrect suffix
+#pragma warning disable SYSLIB1054 // Use 'LibraryImportAttribute' instead of 'DllImportAttribute' to generate P/Invoke marshalling code at compile time
         /// <summary>
         /// Lock or relase a window for updating.
         /// </summary>
@@ -101,7 +102,6 @@ namespace FreeTrainSimulator.Common.Native
         [DllImport("user32.dll", EntryPoint = "CallNextHookEx", CharSet = CharSet.Unicode, SetLastError = true)]
         [DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
         private static extern IntPtr CallNextHookExNative(IntPtr hhk, int nCode, IntPtr wParam, IntPtr lParam);
-#pragma warning restore CA1711 // Identifiers should not have incorrect suffix
 
         public static uint GetDpiForWindow([In] IntPtr hwnd)
         { return GetDpiForWindowNative(hwnd); }
@@ -109,5 +109,126 @@ namespace FreeTrainSimulator.Common.Native
         [DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
         private static extern uint GetDpiForWindowNative([In] IntPtr hwnd);
 
+        public const int GwlStyle = -16;
+        public const uint WsVisible = 0x10000000;
+        public const uint WsChild = 0x40000000;
+        public const uint WsPopup = 0x80000000;
+        public const uint WsCaption = 0x00C00000;
+        public const uint WsThickFrame = 0x00040000;
+        public const uint WsMinimize = 0x20000000;
+        public const uint WsMaximize = 0x01000000;
+        public const uint WsSysMenu = 0x00080000;
+
+        public const uint SwpNoZOrder = 0x0004;
+        public const uint SwpNoActivate = 0x0010;
+        public const uint SwpFrameChanged = 0x0020;
+
+        public static IntPtr SetParent(IntPtr hWndChild, IntPtr hWndNewParent)
+        { return SetParentNative(hWndChild, hWndNewParent); }
+        [DllImport("user32.dll", EntryPoint = "SetParent", CharSet = CharSet.Unicode, SetLastError = true)]
+        [DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
+        private static extern IntPtr SetParentNative(IntPtr hWndChild, IntPtr hWndNewParent);
+
+        public static int GetWindowLong32(IntPtr hWnd, int nIndex)
+        { return GetWindowLong32Native(hWnd, nIndex); }
+        [DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
+        [DllImport("user32.dll", EntryPoint = "GetWindowLong", SetLastError = true)]
+        private static extern int GetWindowLong32Native(IntPtr hWnd, int nIndex);
+
+        public static IntPtr GetWindowLongPtr64(IntPtr hWnd, int nIndex)
+        { return GetWindowLongPtr64Native(hWnd, nIndex); }
+        [DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
+        [DllImport("user32.dll", EntryPoint = "GetWindowLongPtr", SetLastError = true)]
+        private static extern IntPtr GetWindowLongPtr64Native(IntPtr hWnd, int nIndex);
+
+        public static int SetWindowLong32(IntPtr hWnd, int nIndex, int dwNewLong)
+        { return SetWindowLong32Native(hWnd, nIndex, dwNewLong); }
+        [DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
+        [DllImport("user32.dll", EntryPoint = "SetWindowLong", SetLastError = true)]
+        private static extern int SetWindowLong32Native(IntPtr hWnd, int nIndex, int dwNewLong);
+
+        public static IntPtr SetWindowLongPtr64(IntPtr hWnd, int nIndex, IntPtr dwNewLong)
+        { return SetWindowLongPtr64Native(hWnd, nIndex, dwNewLong); }
+        [DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
+        [DllImport("user32.dll", EntryPoint = "SetWindowLongPtr", SetLastError = true)]
+        private static extern IntPtr SetWindowLongPtr64Native(IntPtr hWnd, int nIndex, IntPtr dwNewLong);
+
+        public static bool MoveWindow(IntPtr hWnd, int x, int y, int nWidth, int nHeight, bool bRepaint)
+        { return MoveWindowNative(hWnd, x, y, nWidth, nHeight, bRepaint); }
+        [DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
+        [DllImport("user32.dll", EntryPoint = "MoveWindow", SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        private static extern bool MoveWindowNative(IntPtr hWnd, int x, int y, int nWidth, int nHeight, bool bRepaint);
+
+        public static bool SetWindowPos(IntPtr hWnd, IntPtr hWndInsertAfter, int x, int y, int cx, int cy, uint uFlags)
+        { return SetWindowPosNative(hWnd, hWndInsertAfter, x, y, cx, cy, uFlags); }
+        [DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
+        [DllImport("user32.dll", EntryPoint = "SetWindowPos", SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        private static extern bool SetWindowPosNative(IntPtr hWnd, IntPtr hWndInsertAfter, int x, int y, int cx, int cy, uint uFlags);
+
+        public static IntPtr GetWindowStyle(IntPtr handle)
+        {
+            return IntPtr.Size == 8
+                ? GetWindowLongPtr64(handle, GwlStyle)
+                : new IntPtr(GetWindowLong32(handle, GwlStyle));
+        }
+
+        public static void SetWindowStyle(IntPtr handle, IntPtr style)
+        {
+            _ = IntPtr.Size == 8 ? SetWindowLongPtr64(handle, GwlStyle, style) : SetWindowLong32(handle, GwlStyle, style.ToInt32());
+        }
+
+        public const int SwShowNormal = 1;
+        public const int SwShowMinimized = 2;
+        public const int SwShowMaximized = 3;
+
+        /// <summary>
+        /// Managed projection of the native WINDOWPLACEMENT structure. The POINT and RECT members are flattened
+        /// into individual integer fields so the layout matches the native structure exactly without depending
+        /// on any external point/rectangle type, which also keeps it trivially serializable.
+        /// </summary>
+        [StructLayout(LayoutKind.Sequential)]
+#pragma warning disable CA1034 // Nested types should not be visible
+#pragma warning disable CA1815 // Override equals and operator equals on value types
+        public struct WindowPlacement
+#pragma warning restore CA1815 // Override equals and operator equals on value types
+#pragma warning restore CA1034 // Nested types should not be visible
+        {
+            public int Length;
+            public int Flags;
+            public int ShowCommand;
+            public int MinPositionX;
+            public int MinPositionY;
+            public int MaxPositionX;
+            public int MaxPositionY;
+            public int NormalPositionLeft;
+            public int NormalPositionTop;
+            public int NormalPositionRight;
+            public int NormalPositionBottom;
+        }
+
+        public static bool SetWindowPlacement(IntPtr hWnd, ref WindowPlacement placement)
+        {
+            placement.Length = Marshal.SizeOf<WindowPlacement>();
+            return SetWindowPlacementNative(hWnd, ref placement);
+        }
+        [DllImport("user32.dll", EntryPoint = "SetWindowPlacement", SetLastError = true)]
+        [DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        private static extern bool SetWindowPlacementNative(IntPtr hWnd, [In] ref WindowPlacement lpwndpl);
+
+        public static bool GetWindowPlacement(IntPtr hWnd, out WindowPlacement placement)
+        {
+            placement = default;
+            placement.Length = Marshal.SizeOf<WindowPlacement>();
+            return GetWindowPlacementNative(hWnd, ref placement);
+        }
+        [DllImport("user32.dll", EntryPoint = "GetWindowPlacement", SetLastError = true)]
+        [DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        private static extern bool GetWindowPlacementNative(IntPtr hWnd, ref WindowPlacement lpwndpl);
+#pragma warning restore SYSLIB1054 // Use 'LibraryImportAttribute' instead of 'DllImportAttribute' to generate P/Invoke marshalling code at compile time
+#pragma warning restore CA1711 // Identifiers should not have incorrect suffix
     }
 }

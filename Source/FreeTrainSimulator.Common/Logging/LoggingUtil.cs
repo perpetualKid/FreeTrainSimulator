@@ -56,16 +56,7 @@ namespace FreeTrainSimulator.Common.Logging
             if (string.IsNullOrEmpty(logFileName))
                 return;
 
-            for (int i = Trace.Listeners.Count -1; i >= 0; i--)
-            {
-                if (Trace.Listeners[i] is LoggingTraceListener loggingTraceListener)
-                {
-                    Trace.Listeners.RemoveAt(i);
-                    loggingTraceListener.Flush();
-                    loggingTraceListener.Close();
-                    loggingTraceListener.Dispose();
-                }
-            }
+            StopLogging();
 
             try
             {
@@ -83,7 +74,7 @@ namespace FreeTrainSimulator.Common.Logging
                     AutoFlush = true
                 };
                 // Captures Trace.Trace* calls and others and formats.
-                LoggingTraceListener traceListener = new LoggingTraceListener(writer, TraceEventType.Information);
+                LoggingTraceListener traceListener = new LoggingTraceListener(writer, eventType);
                 Trace.Listeners.Add(traceListener);
             }
             catch (Exception ex) when (ex is UnauthorizedAccessException || ex is ArgumentException || ex is IOException)
@@ -115,6 +106,20 @@ namespace FreeTrainSimulator.Common.Logging
                 foreach (string arg in Environment.GetCommandLineArgs())
                     Trace.WriteLine($"{"Argument",-12}= {arg.Replace(Environment.UserName, "********", StringComparison.OrdinalIgnoreCase)}");
                 Trace.WriteLine(SeparatorLine);
+            }
+        }
+
+        public static void StopLogging()
+        {
+            for (int i = Trace.Listeners.Count -1; i >= 0; i--)
+            {
+                if (Trace.Listeners[i] is LoggingTraceListener loggingTraceListener)
+                {
+                    Trace.Listeners.RemoveAt(i);
+                    loggingTraceListener.Flush();
+                    loggingTraceListener.Close();
+                    loggingTraceListener.Dispose();
+                }
             }
         }
     }

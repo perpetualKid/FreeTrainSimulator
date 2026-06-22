@@ -17,8 +17,8 @@ namespace FreeTrainSimulator.Toolbox.PopupWindows
 
         public string RouteName { get => routeLabel?.Text; set => routeLabel.Text = value; }
 
-        public StatusTextWindow(WindowManager owner, Point relativeLocation, Catalog catalog = null) :
-            base(owner, (catalog ??= CatalogManager.Catalog).GetString("Loading Route"), relativeLocation, new Point(300, 70), catalog)
+        public StatusTextWindow(WindowManager owner, Catalog catalog = null) :
+            base(owner, (catalog ??= CatalogManager.Catalog).GetString("Loading Route"), new Point(50, 50), new Point(300, 70), catalog)
         {
             Interactive = false;
             CloseButton = false;

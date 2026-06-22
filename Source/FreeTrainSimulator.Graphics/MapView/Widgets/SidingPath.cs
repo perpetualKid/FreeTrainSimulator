@@ -24,6 +24,7 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
                 if (hash != debugInfoHash)
                 {
                     debugInformation["Name"] = SidingName;
+                    debugInformation["Length"] = $"{Length:F1}m";
                     debugInfoHash = hash;
                 }
                 return debugInformation;
@@ -73,6 +74,7 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
             SidingName = string.IsNullOrEmpty(start.SidingName) ? end.SidingName : start.SidingName;
             if (PathSections.Length == 0)
                 Trace.TraceWarning($"Siding items {start.TrackItemId} and {end.TrackItemId} could not be linked on the underlying track database for track nodes {start.VectorNode.NodeIndex} and {end.VectorNode.NodeIndex}. This may indicate an error or inconsistency in the route data.");
+            SetBounds();
         }
 
         public static List<SidingPath> CreateSidings(TrackWorld trackWorld, IEnumerable<SidingTrackItem> sidingItems)
@@ -81,12 +83,21 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
             if (sidingItems is not IList<SidingTrackItem>)
                 sidingItems = sidingItems.ToList();
             Dictionary<int, SidingTrackItem> sidingItemMappings = sidingItems.ToDictionary(p => p.TrackItemId);
+            HashSet<int> processedItems = new HashSet<int>();
 
             foreach (SidingTrackItem start in sidingItems)
             {
+                // A siding is defined by a pair of linked items (start/end); emit a single path per pair by
+                // skipping an item once it has already been consumed as the partner of an earlier one.
+                if (!processedItems.Add(start.TrackItemId))
+                    continue;
                 if (!sidingItemMappings.TryGetValue(start.LinkedId, out SidingTrackItem end))
                 {
                     Trace.TraceError($"Siding Item pair not found for Source Id {start.TrackItemId} to target {start.LinkedId}");
+                }
+                else
+                {
+                    processedItems.Add(end.TrackItemId);
                 }
                 result.Add(new SidingPath(trackWorld, start, end));
             }

@@ -20,9 +20,22 @@ namespace FreeTrainSimulator.Common.Input
         private readonly EnumArray<MouseWheelEvent, MouseWheelEventType> mouseWheelEvents = new EnumArray<MouseWheelEvent, MouseWheelEventType>();
 
         private readonly bool isTouchEnabled;
+        private readonly IInputCapture inputCapture;
+        private bool inActive;
+
+        public bool DisableTouchInput { get; set; }
+
+        public bool UseWindowMouseState { get; set; } = true;
+
+        // When hosted (e.g. embedded as a child window under a WPF/WinForms host), the underlying form can
+        // lose top-level activation on resize/reparent and never report Game.IsActive == true again. Set this
+        // to bypass the IsActive gate so input keeps working while hosted. Default false preserves the
+        // standalone behavior.
+        public bool IgnoreActiveState { get; set; }
 
         public MouseInputGameComponent(Game game) : base(game)
         {
+            inputCapture = game as IInputCapture;
             try
             {
                 isTouchEnabled = TouchPanel.GetCapabilities().IsConnected;
@@ -67,17 +80,28 @@ namespace FreeTrainSimulator.Common.Input
 
         public override void Update(GameTime gameTime)
         {
-            if (!Game.IsActive)
+            if ((!Game.IsActive && !IgnoreActiveState) || (inputCapture?.InputCaptured ?? false))
             {
-                currentMouseState = default;
+                if (!inActive)
+                {
+                    currentMouseState = default;
+                    previousMouseState = default;
+                    inActive = true;
+                }
                 return;
             }
+
+            if (inActive)
+                inActive = false;
+
             (currentMouseState, previousMouseState) = (previousMouseState, currentMouseState);
-            currentMouseState = Mouse.GetState(Game.Window);
-            MouseState otherMouseState = Mouse.GetState();
+            currentMouseState = UseWindowMouseState ? Mouse.GetState(Game.Window) : Mouse.GetState();
 
             if (!Game.GraphicsDevice.PresentationParameters.Bounds.Contains(currentMouseState.Position))
+            {
+                previousMouseState = currentMouseState;
                 return;
+            }
 
             void MouseButtonEvent(ButtonState currentButton, ButtonState previousButton, MouseButtonEventType down, MouseButtonEventType pressed, MouseButtonEventType released)
             {
@@ -99,7 +123,7 @@ namespace FreeTrainSimulator.Common.Input
             if (currentMouseState != previousMouseState && previousMouseState != default)
             {
                 TouchCollection touchState;
-                if (isTouchEnabled && (touchState = TouchPanel.GetState(Game.Window).GetState()).Count > 0 && touchState[0].State != TouchLocationState.Released)
+                if (!DisableTouchInput && isTouchEnabled && (touchState = TouchPanel.GetState(Game.Window).GetState()).Count > 0 && touchState[0].State != TouchLocationState.Released)
                 {
                     if (touchState[0].TryGetPreviousLocation(out TouchLocation previousTouchState))
                         mouseMoveEvents[MouseMovedEventType.MouseMovedLeftButtonDown]?.Invoke(currentMouseState.Position, touchState[0].Position - previousTouchState.Position, gameTime);

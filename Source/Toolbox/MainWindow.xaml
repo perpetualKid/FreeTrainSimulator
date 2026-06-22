@@ -1,0 +1,195 @@
+<Window x:Class="FreeTrainSimulator.Toolbox.MainWindow"
+        x:Name="RootWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:avalonDock="clr-namespace:AvalonDock;assembly=AvalonDock"
+        xmlns:avalonLayout="clr-namespace:AvalonDock.Layout;assembly=AvalonDock"
+        xmlns:host="clr-namespace:FreeTrainSimulator.Toolbox.Hosting"
+        xmlns:views="clr-namespace:FreeTrainSimulator.Toolbox.Views"
+        mc:Ignorable="d"
+        Title="Free Train Simulator Toolbox"
+        Width="1400"
+        Height="900"
+        MinWidth="1024"
+        MinHeight="720">
+    <DockPanel>
+        <Menu x:Name="MainMenu"
+              DockPanel.Dock="Top"
+              DataContext="{Binding Menu}"
+              IsEnabled="{Binding Enabled}">
+            <MenuItem Header="_File">
+                <MenuItem Header="_Open Route"
+                          Command="{Binding DataContext.ShowRouteToolCommand, ElementName=RootWindow}" />
+                <Separator />
+                <MenuItem Header="Take _Screenshot" Command="{Binding TakeScreenshotCommand}" />
+                <Separator />
+                <MenuItem Header="E_xit" Command="{Binding QuitCommand}" />
+            </MenuItem>
+            <MenuItem Header="_View">
+                <MenuItem Header="_Routes"
+                          IsCheckable="True"
+                          IsChecked="{Binding DataContext.IsRouteToolVisible, ElementName=RootWindow, Mode=OneWay}"
+                          Command="{Binding DataContext.ToggleRouteToolCommand, ElementName=RootWindow}" />
+                <MenuItem Header="_Location Window"
+                          IsCheckable="True"
+                          IsChecked="{Binding DataContext.IsLocationToolVisible, ElementName=RootWindow, Mode=OneWay}"
+                          Command="{Binding DataContext.ToggleLocationToolCommand, ElementName=RootWindow}" />
+                <MenuItem Header="_Debug Window"
+                          IsCheckable="True"
+                          IsChecked="{Binding DataContext.IsDebugToolVisible, ElementName=RootWindow, Mode=OneWay}"
+                          Command="{Binding DataContext.ToggleDebugToolCommand, ElementName=RootWindow}" />
+                <MenuItem Header="Lo_g Window"
+                          IsCheckable="True"
+                          IsChecked="{Binding DataContext.IsLogToolVisible, ElementName=RootWindow, Mode=OneWay}"
+                          Command="{Binding DataContext.ToggleLogToolCommand, ElementName=RootWindow}" />
+                <MenuItem Header="Route Na_vigation"
+                          IsCheckable="True"
+                          IsChecked="{Binding DataContext.IsRouteNavigationToolVisible, ElementName=RootWindow, Mode=OneWay}"
+                          Command="{Binding DataContext.ToggleRouteNavigationToolCommand, ElementName=RootWindow}" />
+                <MenuItem Header="_Help Window"
+                          IsCheckable="True"
+                          IsChecked="{Binding DataContext.IsHelpToolVisible, ElementName=RootWindow, Mode=OneWay}"
+                          Command="{Binding DataContext.ToggleHelpToolCommand, ElementName=RootWindow}" />
+                <MenuItem Header="_Settings Window"
+                          IsCheckable="True"
+                          IsChecked="{Binding DataContext.IsSettingsToolVisible, ElementName=RootWindow, Mode=OneWay}"
+                          Command="{Binding DataContext.ToggleSettingsToolCommand, ElementName=RootWindow}" />
+                <MenuItem Header="Train _Path Details"
+                          IsCheckable="True"
+                          IsChecked="{Binding DataContext.IsTrainPathToolVisible, ElementName=RootWindow, Mode=OneWay}"
+                          Command="{Binding DataContext.ToggleTrainPathToolCommand, ElementName=RootWindow}" />
+            </MenuItem>
+            <MenuItem Header="_Help">
+                <MenuItem Header="_About" Command="{Binding ShowAboutCommand}" />
+            </MenuItem>
+        </Menu>
+        <StatusBar x:Name="MainStatusBar"
+                   DockPanel.Dock="Bottom"
+                   DataContext="{Binding StatusBar}">
+            <ItemsControl ItemsSource="{Binding Fields}">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <StackPanel Orientation="Horizontal" />
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <StackPanel Orientation="Horizontal">
+                            <Border Width="1"
+                                    Margin="6,2"
+                                    Background="Gray" />
+                            <TextBlock Margin="2,0,4,0"
+                                       Foreground="Gray"
+                                       VerticalAlignment="Center"
+                                       Text="{Binding Label}"
+                                       Visibility="{Binding Label, Converter={StaticResource StringToVisibilityConverter}}" />
+                            <TextBlock Margin="0,0,2,0"
+                                       VerticalAlignment="Center"
+                                       Text="{Binding Value}" />
+                        </StackPanel>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </StatusBar>
+        <Grid>
+            <avalonDock:DockingManager x:Name="DockingManager">
+                <avalonLayout:LayoutRoot>
+                    <avalonLayout:LayoutPanel Orientation="Horizontal">
+                        <avalonLayout:LayoutPanel Orientation="Vertical">
+                            <avalonLayout:LayoutPanel Orientation="Horizontal">
+                                <avalonLayout:LayoutAnchorablePane DockWidth="300">
+                                    <avalonLayout:LayoutAnchorable x:Name="RouteToolAnchorable"
+                                                                  ContentId="RouteToolWindow"
+                                                                  Title="Routes"
+                                                                  CanClose="False"
+                                                                  CanHide="True"
+                                                                  IsSelected="True">
+                                        <views:RouteToolView DataContext="{Binding DataContext.Menu, ElementName=RootWindow}" />
+                                    </avalonLayout:LayoutAnchorable>
+                                </avalonLayout:LayoutAnchorablePane>
+                                <avalonLayout:LayoutDocumentPane>
+                                    <avalonLayout:LayoutDocument Title="Map View"
+                                                                 ContentId="MapViewDocument"
+                                                                 CanFloat="False"
+                                                                 CanClose="False">
+                                        <host:ToolboxGameHostControl x:Name="MapHost" />
+                                    </avalonLayout:LayoutDocument>
+                                </avalonLayout:LayoutDocumentPane>
+                            </avalonLayout:LayoutPanel>
+                            <avalonLayout:LayoutAnchorablePane DockHeight="160">
+                                <avalonLayout:LayoutAnchorable x:Name="LogToolAnchorable"
+                                                              ContentId="LogToolWindow"
+                                                              Title="Logging"
+                                                              CanClose="False"
+                                                              CanHide="True"
+                                                              IsSelected="True">
+                                    <views:LogToolView DataContext="{Binding DataContext.LogTool, ElementName=RootWindow}" />
+                                </avalonLayout:LayoutAnchorable>
+                            </avalonLayout:LayoutAnchorablePane>
+                        </avalonLayout:LayoutPanel>
+                        <avalonLayout:LayoutAnchorablePaneGroup Orientation="Vertical" DockWidth="340">
+                            <avalonLayout:LayoutAnchorablePane DockHeight="3*">
+                                <avalonLayout:LayoutAnchorable x:Name="LocationToolAnchorable"
+                                                              ContentId="LocationToolWindow"
+                                                              Title="Location"
+                                                              CanClose="False"
+                                                              CanHide="True"
+                                                              IsSelected="True">
+                                    <views:LocationToolView DataContext="{Binding DataContext.LocationTool, ElementName=RootWindow}" />
+                                </avalonLayout:LayoutAnchorable>
+                                <avalonLayout:LayoutAnchorable x:Name="RouteNavigationToolAnchorable"
+                                                              ContentId="RouteNavigationToolWindow"
+                                                              Title="Route Navigation"
+                                                              CanClose="False"
+                                                              CanHide="True"
+                                                              IsVisible="False"
+                                                              IsSelected="False">
+                                    <views:RouteNavigationToolView DataContext="{Binding DataContext.RouteNavigationTool, ElementName=RootWindow}" />
+                                </avalonLayout:LayoutAnchorable>
+                                <avalonLayout:LayoutAnchorable x:Name="SettingsToolAnchorable"
+                                                              ContentId="SettingsToolWindow"
+                                                              Title="Settings"
+                                                              CanClose="False"
+                                                              CanHide="True"
+                                                              IsVisible="False"
+                                                              IsSelected="False">
+                                    <views:SettingsToolView DataContext="{Binding DataContext.SettingsTool, ElementName=RootWindow}" />
+                                </avalonLayout:LayoutAnchorable>
+                                <avalonLayout:LayoutAnchorable x:Name="TrainPathToolAnchorable"
+                                                              ContentId="TrainPathToolWindow"
+                                                              Title="Train Path Details"
+                                                              CanClose="False"
+                                                              CanHide="True"
+                                                              IsVisible="False"
+                                                              IsSelected="False">
+                                    <views:TrainPathToolView DataContext="{Binding DataContext.TrainPathTool, ElementName=RootWindow}" />
+                                </avalonLayout:LayoutAnchorable>
+                            </avalonLayout:LayoutAnchorablePane>
+                            <avalonLayout:LayoutAnchorablePane DockHeight="2*">
+                                <avalonLayout:LayoutAnchorable x:Name="HelpToolAnchorable"
+                                                              ContentId="HelpToolWindow"
+                                                              Title="Help"
+                                                              CanClose="False"
+                                                              CanHide="True"
+                                                              IsSelected="True">
+                                    <views:HelpToolView DataContext="{Binding DataContext.HelpTool, ElementName=RootWindow}" />
+                                </avalonLayout:LayoutAnchorable>
+                                <avalonLayout:LayoutAnchorable x:Name="DebugToolAnchorable"
+                                                              ContentId="DebugToolWindow"
+                                                              Title="Debug Information"
+                                                              CanClose="False"
+                                                              CanHide="True"
+                                                              IsVisible="False"
+                                                              IsSelected="False">
+                                    <views:DebugToolView DataContext="{Binding DataContext.DebugTool, ElementName=RootWindow}" />
+                                </avalonLayout:LayoutAnchorable>
+                            </avalonLayout:LayoutAnchorablePane>
+                        </avalonLayout:LayoutAnchorablePaneGroup>
+                    </avalonLayout:LayoutPanel>
+                </avalonLayout:LayoutRoot>
+            </avalonDock:DockingManager>
+        </Grid>
+    </DockPanel>
+</Window>

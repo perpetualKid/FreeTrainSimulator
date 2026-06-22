@@ -4,6 +4,7 @@
     <Description>Free Train Simulator Unit Tests</Description>
     <AssemblyTitle>Free Train Simulator Unit Tests</AssemblyTitle>
     <Configurations>Debug;Release;CodeAnalysis;UpdateContentVersion</Configurations>
+    <UseWPF>true</UseWPF>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="MonoGame.Framework.WindowsDX" Version="3.8.4.1" />
@@ -16,12 +17,13 @@
     </PackageReference>
     <PackageReference Include="NuGet.Versioning" Version="7.6.0" />
   </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\..\FreeTrainSimulator.Models.Imported\FreeTrainSimulator.Models.Imported.csproj" />
-    <ProjectReference Include="..\..\FreeTrainSimulator.Models\FreeTrainSimulator.Models.csproj" />
-    <ProjectReference Include="..\..\FreeTrainSimulator.Updater\FreeTrainSimulator.Updater.csproj" />
-    <ProjectReference Include="..\..\FreeTrainSimulator.Graphics\FreeTrainSimulator.Graphics.csproj" />
-    <ProjectReference Include="..\..\Orts.Simulation\Orts.Simulation.csproj" />
+	<ItemGroup>
+		<ProjectReference Include="..\..\FreeTrainSimulator.Models.Imported\FreeTrainSimulator.Models.Imported.csproj" />
+		<ProjectReference Include="..\..\FreeTrainSimulator.Models\FreeTrainSimulator.Models.csproj" />
+		<ProjectReference Include="..\..\FreeTrainSimulator.Updater\FreeTrainSimulator.Updater.csproj" />
+		<ProjectReference Include="..\..\FreeTrainSimulator.Graphics\FreeTrainSimulator.Graphics.csproj" />
+		<ProjectReference Include="..\..\Orts.Simulation\Orts.Simulation.csproj" />
 		<ProjectReference Include="..\..\FreeTrainSimulator.Common\FreeTrainSimulator.Common.csproj" />
+		<ProjectReference Include="..\..\Toolbox\Toolbox.csproj" />
 	</ItemGroup>
 </Project>	

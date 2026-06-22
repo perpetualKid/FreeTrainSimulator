@@ -12,8 +12,8 @@
 		<ForceDesignerDpiUnaware>true</ForceDesignerDpiUnaware>
 	</PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="GetText.NET" Version="10.0.1" />
-    <PackageReference Include="GetText.NET.WindowsForms" Version="10.0.1" />
+    <PackageReference Include="GetText.NET" Version="11.0.10-preview.1" />
+    <PackageReference Include="GetText.NET.WindowsForms" Version="11.0.10-preview.1" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\FreeTrainSimulator.Updater\FreeTrainSimulator.Updater.csproj" />

@@ -1,0 +1,170 @@
+<UserControl x:Class="FreeTrainSimulator.Toolbox.Views.RouteNavigationToolView"
+             x:ClassModifier="internal"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:FreeTrainSimulator.Toolbox.ViewModels"
+             xmlns:views="clr-namespace:FreeTrainSimulator.Toolbox.Views"
+             xmlns:behaviors="clr-namespace:FreeTrainSimulator.Toolbox.Behaviors"
+             mc:Ignorable="d"
+             d:DataContext="{d:DesignInstance Type=vm:RouteNavigationToolWindowViewModel, IsDesignTimeCreatable=False}"
+             views:ToolWindow.DefaultFloatingSize="520,560"
+             d:DesignWidth="520"
+             d:DesignHeight="560">
+    <UserControl.Resources>
+        <Style x:Key="RouteNavigationRowStyle" TargetType="ListViewItem">
+            <Setter Property="Visibility" Value="Visible" />
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding IsVisible}" Value="False">
+                    <Setter Property="Visibility" Value="Collapsed" />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+    </UserControl.Resources>
+    <Grid Margin="6">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="2*" MinHeight="120" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" MinHeight="80" />
+        </Grid.RowDefinitions>
+        <TabControl Grid.Row="0">
+        <TabItem Header="Stations">
+            <DockPanel>
+                <TextBox DockPanel.Dock="Top"
+                         Margin="0,0,0,6"
+                         VerticalContentAlignment="Center"
+                         Text="{Binding StationFilter, UpdateSourceTrigger=PropertyChanged}"
+                         ToolTip="Filter stations by name" />
+                <ListView ItemsSource="{Binding Stations}"
+                          SelectedItem="{Binding SelectedStation, Mode=TwoWay}"
+                          ItemContainerStyle="{StaticResource RouteNavigationRowStyle}"
+                          behaviors:GridViewColumnBehavior.StretchListView="True">
+                    <ListView.View>
+                        <GridView>
+                            <GridViewColumn Header="Station" Width="460" DisplayMemberBinding="{Binding Name}"
+                                            behaviors:GridViewColumnBehavior.StretchColumn="True" />
+                        </GridView>
+                    </ListView.View>
+                </ListView>
+            </DockPanel>
+        </TabItem>
+        <TabItem Header="Platforms">
+            <DockPanel>
+                <TextBox DockPanel.Dock="Top"
+                         Margin="0,0,0,6"
+                         VerticalContentAlignment="Center"
+                         Text="{Binding PlatformFilter, UpdateSourceTrigger=PropertyChanged}"
+                         ToolTip="Filter platforms by name or station" />
+                <ListView ItemsSource="{Binding Platforms}"
+                          SelectedItem="{Binding SelectedPlatform, Mode=TwoWay}"
+                          ItemContainerStyle="{StaticResource RouteNavigationRowStyle}"
+                          behaviors:GridViewColumnBehavior.StretchListView="True">
+                    <ListView.View>
+                        <GridView>
+                            <GridViewColumn Header="Station" Width="Auto" DisplayMemberBinding="{Binding GroupName}" />
+                            <GridViewColumn Header="Platform" DisplayMemberBinding="{Binding Name}"
+                                            behaviors:GridViewColumnBehavior.StretchColumn="True" />
+                        </GridView>
+                    </ListView.View>
+                </ListView>
+            </DockPanel>
+        </TabItem>
+        <TabItem Header="Sidings">
+            <DockPanel>
+                <TextBox DockPanel.Dock="Top"
+                         Margin="0,0,0,6"
+                         VerticalContentAlignment="Center"
+                         Text="{Binding SidingFilter, UpdateSourceTrigger=PropertyChanged}"
+                         ToolTip="Filter sidings by name or nearest station" />
+                <ListView ItemsSource="{Binding Sidings}"
+                          SelectedItem="{Binding SelectedSiding, Mode=TwoWay}"
+                          ItemContainerStyle="{StaticResource RouteNavigationRowStyle}"
+                          behaviors:GridViewColumnBehavior.StretchListView="True">
+                    <ListView.View>
+                        <GridView>
+                            <GridViewColumn Header="Nearest Station" Width="Auto" DisplayMemberBinding="{Binding GroupName}" />
+                            <GridViewColumn Header="Siding" DisplayMemberBinding="{Binding Name}"
+                                            behaviors:GridViewColumnBehavior.StretchColumn="True" />
+                        </GridView>
+                    </ListView.View>
+                </ListView>
+            </DockPanel>
+        </TabItem>
+        <TabItem Header="Track Item">
+            <DockPanel>
+                <DockPanel DockPanel.Dock="Top" Margin="0,0,0,6">
+                    <Button DockPanel.Dock="Right"
+                            Margin="6,0,0,0"
+                            Padding="8,0"
+                            Content="Find"
+                            Command="{Binding TrackItemSearchCommand}" />
+                    <TextBox VerticalContentAlignment="Center"
+                             Text="{Binding TrackItemSearchText, UpdateSourceTrigger=PropertyChanged}"
+                             ToolTip="Find Track Item by Index">
+                        <TextBox.InputBindings>
+                            <KeyBinding Key="Return" Command="{Binding TrackItemSearchCommand}" />
+                        </TextBox.InputBindings>
+                    </TextBox>
+                </DockPanel>
+                <TextBlock TextWrapping="Wrap"
+                           Text="Enter a track item index to center the map on it." />
+            </DockPanel>
+        </TabItem>
+        <TabItem Header="Track Node">
+            <DockPanel>
+                <DockPanel DockPanel.Dock="Top" Margin="0,0,0,6">
+                    <Button DockPanel.Dock="Right"
+                            Margin="6,0,0,0"
+                            Padding="8,0"
+                            Content="Find"
+                            Command="{Binding TrackNodeSearchCommand}" />
+                    <TextBox VerticalContentAlignment="Center"
+                             Text="{Binding TrackNodeSearchText, UpdateSourceTrigger=PropertyChanged}"
+                             ToolTip="Find Track Node by Index">
+                        <TextBox.InputBindings>
+                            <KeyBinding Key="Return" Command="{Binding TrackNodeSearchCommand}" />
+                        </TextBox.InputBindings>
+                    </TextBox>
+                </DockPanel>
+                <StackPanel DockPanel.Dock="Top"
+                            Orientation="Horizontal"
+                            Margin="0,0,0,6">
+                    <RadioButton GroupName="RouteNavigationNodeSearchType"
+                                 Content="Tracks"
+                                 IsChecked="True" />
+                    <RadioButton GroupName="RouteNavigationNodeSearchType"
+                                 Margin="12,0,0,0"
+                                 Content="Roads"
+                                 IsChecked="{Binding SearchRoads}" />
+                </StackPanel>
+                <TextBlock TextWrapping="Wrap"
+                           Text="Enter a track node index to center and highlight it on the map." />
+            </DockPanel>
+        </TabItem>
+        </TabControl>
+        <GridSplitter Grid.Row="1"
+                      Height="4"
+                      HorizontalAlignment="Stretch"
+                      VerticalAlignment="Center"
+                      ResizeBehavior="PreviousAndNext"
+                      ResizeDirection="Rows" />
+        <DockPanel Grid.Row="2">
+            <TextBlock DockPanel.Dock="Top"
+                       Margin="0,2,0,4"
+                       FontWeight="Bold"
+                       Text="Details" />
+            <ListView ItemsSource="{Binding DetailRows}"
+                      ItemContainerStyle="{StaticResource ToolWindowRowItemStyle}"
+                      behaviors:GridViewColumnBehavior.StretchListView="True">
+                <ListView.View>
+                    <GridView>
+                        <GridViewColumn Header="Name" Width="180" DisplayMemberBinding="{Binding Name}" />
+                        <GridViewColumn Header="Value" Width="320" DisplayMemberBinding="{Binding Value}"
+                                        behaviors:GridViewColumnBehavior.StretchColumn="True" />
+                    </GridView>
+                </ListView.View>
+            </ListView>
+        </DockPanel>
+    </Grid>
+</UserControl>

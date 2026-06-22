@@ -33,9 +33,9 @@ namespace FreeTrainSimulator.Models.Signalling
 
         private SignalTypeRegistry()
         {
-            mutableFunctionLookup = new(StringComparer.OrdinalIgnoreCase);
-            mutableSubTypeLookup = new(StringComparer.OrdinalIgnoreCase);
-            mutableSubObjectTypeLookup = new(StringComparer.OrdinalIgnoreCase);
+            mutableFunctionLookup = new Dictionary<string, SignalFunctionType>(StringComparer.OrdinalIgnoreCase);
+            mutableSubTypeLookup = new Dictionary<string, SignalNormalSubType>(StringComparer.OrdinalIgnoreCase);
+            mutableSubObjectTypeLookup = new Dictionary<string, SignalSubObjectType>(StringComparer.OrdinalIgnoreCase);
 
             functionLookup = mutableFunctionLookup;
             subTypeLookup = mutableSubTypeLookup;
@@ -128,7 +128,7 @@ namespace FreeTrainSimulator.Models.Signalling
             if (mutableSubTypeLookup.TryGetValue(name, out SignalNormalSubType existing))
                 return existing;
 
-            SignalNormalSubType id = new(mutableSubTypeLookup.Count);
+            SignalNormalSubType id = new SignalNormalSubType(mutableSubTypeLookup.Count);
             mutableSubTypeLookup[name] = id;
             return id;
         }
@@ -143,7 +143,7 @@ namespace FreeTrainSimulator.Models.Signalling
             if (mutableSubObjectTypeLookup.TryGetValue(name, out SignalSubObjectType existing))
                 return existing;
 
-            SignalSubObjectType id = new(mutableSubObjectTypeLookup.Count);
+            SignalSubObjectType id = new SignalSubObjectType(mutableSubObjectTypeLookup.Count);
             mutableSubObjectTypeLookup[name] = id;
             return id;
         }

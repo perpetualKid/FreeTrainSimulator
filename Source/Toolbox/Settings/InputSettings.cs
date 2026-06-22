@@ -31,8 +31,6 @@ namespace FreeTrainSimulator.Toolbox.Settings
                 UserCommand.DisplayDebugScreen => new UserCommandModifiableKeyInput(Keys.F5, windowTab),
                 UserCommand.DisplayLocationWindow => new UserCommandModifiableKeyInput(Keys.F12, windowTab),
                 UserCommand.DisplayHelpWindow => new UserCommandModifiableKeyInput(Keys.F1, windowTab),
-                UserCommand.DisplayTrackNodeInfoWindow => new UserCommandModifiableKeyInput(Keys.F4, windowTab),
-                UserCommand.DisplayTrackItemInfoWindow => new UserCommandModifiableKeyInput(Keys.F3, windowTab),
                 UserCommand.DisplaySettingsWindow => new UserCommandModifiableKeyInput(Keys.F10, windowTab),
                 UserCommand.DisplayLogWindow => new UserCommandModifiableKeyInput(Keys.F11, windowTab),
                 UserCommand.DisplayTrainPathWindow => new UserCommandModifiableKeyInput(Keys.F8, windowTab),
