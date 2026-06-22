@@ -202,6 +202,7 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
 
         public void Stop()
         {
+            _ = this;
         }
 
         /// <summary>

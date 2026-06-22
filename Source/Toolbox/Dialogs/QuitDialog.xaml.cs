@@ -24,10 +24,7 @@ namespace FreeTrainSimulator.Toolbox.Dialogs
         /// localized; the binding is data-bound, so the WPF Localizer skips it and the catalog lookup here is
         /// the single localization point.
         /// </summary>
-        public static string Message
-            => string.Format(
-                CatalogManager.Catalog.GetString("Exit {0}?"),
-                RuntimeInfo.ApplicationName);
+        public static string Message => CatalogManager.Catalog.GetString($"Exit {RuntimeInfo.ApplicationName}?");
 
         private void ExitButton_Click(object sender, RoutedEventArgs e)
         {
