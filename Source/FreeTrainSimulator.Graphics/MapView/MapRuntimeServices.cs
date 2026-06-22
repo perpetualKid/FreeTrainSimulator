@@ -1,3 +1,5 @@
+using System;
+
 using FreeTrainSimulator.Runtime;
 using FreeTrainSimulator.Runtime.Track;
 
@@ -17,8 +19,10 @@ namespace FreeTrainSimulator.Graphics.MapView
 
         public MapRuntimeServices(Game game)
         {
-            RuntimeData = RuntimeDataResolver.GameInstance(game);
-            TrackWorld = RuntimeData?.TrackWorld;
+            ArgumentNullException.ThrowIfNull(game);
+
+            RuntimeData = RuntimeDataResolver.GameInstance(game) ?? throw new InvalidOperationException("Runtime data is not initialized.");
+            TrackWorld = RuntimeData.TrackWorld;
         }
     }
 }

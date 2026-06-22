@@ -1,7 +1,8 @@
+using System;
+
 namespace FreeTrainSimulator.Graphics.MapView
 {
-    public interface IMapHostResources
+    internal interface IMapHostResources : IDisposable
     {
-        void Dispose();
     }
 }

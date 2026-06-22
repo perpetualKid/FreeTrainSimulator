@@ -14,7 +14,8 @@ namespace FreeTrainSimulator.Graphics.Xna
     /// </summary>
     public abstract class TextureContentComponent : DrawableGameComponent
     {
-        private protected Texture2D texture;
+        private Texture2D texture;
+        private bool ownsTexture;
         private protected IMapBaseOverlayContext content;
         private protected Vector2 position;
         private protected Vector2 positionOffset;
@@ -23,6 +24,8 @@ namespace FreeTrainSimulator.Graphics.Xna
         private protected readonly ITextureComponentHost host;
         private protected readonly ITextureRenderHelper renderHelper;
         private protected Color color;
+
+        private protected Texture2D Texture => texture;
 
         protected TextureContentComponent(Game game, Color color, Vector2 position) :
             this(game, new XnaTextureComponentHost(game), color, position)
@@ -61,7 +64,7 @@ namespace FreeTrainSimulator.Graphics.Xna
             Enabled = false;
             Visible = false;
             content = null;
-            texture = null;
+            ClearTexture(true);
         }
 
         protected override void Dispose(bool disposing)
@@ -69,10 +72,33 @@ namespace FreeTrainSimulator.Graphics.Xna
             if (disposing)
             {
                 spriteBatch?.Dispose();
-                texture?.Dispose();
+                ClearTexture(true);
                 host.ClientSizeChanged -= Window_ClientSizeChanged;
             }
             base.Dispose(disposing);
+        }
+
+        private protected void SetTexture(Texture2D texture, bool ownsTexture = true)
+        {
+            if (ReferenceEquals(this.texture, texture))
+            {
+                this.ownsTexture = texture != null && ownsTexture;
+                return;
+            }
+
+            ClearTexture(true);
+            this.texture = texture;
+            this.ownsTexture = texture != null && ownsTexture;
+        }
+
+        private protected void ClearTexture(bool dispose)
+        {
+            if (dispose && ownsTexture && texture != null)
+            {
+                texture.Dispose();
+            }
+            texture = null;
+            ownsTexture = false;
         }
 
         public virtual void UpdateColor(Color color)

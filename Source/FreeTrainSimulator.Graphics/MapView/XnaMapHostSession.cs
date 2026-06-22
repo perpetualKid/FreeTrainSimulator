@@ -1,3 +1,5 @@
+using System;
+
 namespace FreeTrainSimulator.Graphics.MapView
 {
     internal sealed class XnaMapHostSession : IMapHostSession
@@ -14,6 +16,8 @@ namespace FreeTrainSimulator.Graphics.MapView
 
         public XnaMapHostSession(IMapHostAdapterBundle adapterBundle)
         {
+            ArgumentNullException.ThrowIfNull(adapterBundle);
+
             hostResources = adapterBundle.HostResources;
             ViewStateAdapter = adapterBundle.ViewStateAdapter;
             RenderAdapter = adapterBundle.RenderAdapter;

@@ -37,11 +37,9 @@ namespace FreeTrainSimulator.Graphics.DrawableComponents
         {
             size = new Point(Game.Window.ClientBounds.Size.X / 15, Game.Window.ClientBounds.Size.Y / 15);
             Enabled = Visible = size.X > 10 && size.Y > 10 && content != null;
-            if (texture != null && (size.X != texture.Width || size.Y != texture.Width))
+            if (Texture != null && (size.X != Texture.Width || size.Y != Texture.Height))
             {
-                Texture2D current = texture;
-                texture = null;
-                current.Dispose();
+                ClearTexture(true);
             }
             if (positionOffset.X < 0 || positionOffset.Y < 0)
                 position = new Vector2(positionOffset.X > 0 ? positionOffset.X : Game.Window.ClientBounds.Width + positionOffset.X - size.X, positionOffset.Y > 0 ? positionOffset.Y : Game.Window.ClientBounds.Height + positionOffset.Y - size.Y);
@@ -57,18 +55,18 @@ namespace FreeTrainSimulator.Graphics.DrawableComponents
 
         public override void Update(GameTime gameTime)
         {
-            if (Enabled && texture == null)
-                texture = DrawTrackInset();
+            if (Enabled && Texture == null)
+                SetTexture(DrawTrackInset());
             base.Update(gameTime);
         }
 
         public override void Draw(GameTime gameTime)
         {
-            if (texture == null)
+            if (Texture == null)
                 return;
             renderHelper.DrawSpriteBatch(spriteBatch =>
             {
-                spriteBatch.Draw(texture, position, null, color);
+                spriteBatch.Draw(Texture, position, null, color);
                 DrawClippingMarker();
             });
             base.Draw(gameTime);

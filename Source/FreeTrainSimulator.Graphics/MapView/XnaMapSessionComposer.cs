@@ -20,8 +20,8 @@ namespace FreeTrainSimulator.Graphics.MapView
         internal XnaMapSessionComposer(Game game, MouseInputGameComponent mouseInputGameComponent, IMapHostSessionFactory hostSessionFactory)
         {
             this.game = game ?? throw new ArgumentNullException(nameof(game));
-            this.mouseInputGameComponent = mouseInputGameComponent;
-            this.hostSessionFactory = hostSessionFactory;
+            this.mouseInputGameComponent = mouseInputGameComponent ?? throw new ArgumentNullException(nameof(mouseInputGameComponent));
+            this.hostSessionFactory = hostSessionFactory ?? throw new ArgumentNullException(nameof(hostSessionFactory));
         }
 
         public IMapSession Compose(MapSessionRequest request)

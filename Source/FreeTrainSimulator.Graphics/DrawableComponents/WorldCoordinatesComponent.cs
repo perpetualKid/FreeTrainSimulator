@@ -71,10 +71,10 @@ namespace FreeTrainSimulator.Graphics.DrawableComponents
 
         public override void Draw(GameTime gameTime)
         {
-            if (texture == null)
+            if (Texture == null)
                 return;
             spriteBatch.Begin();
-            spriteBatch.Draw(texture, position, null, color, 0, Vector2.Zero, Vector2.One, SpriteEffects.None, 0);
+            spriteBatch.Draw(Texture, position, null, color, 0, Vector2.Zero, Vector2.One, SpriteEffects.None, 0);
 
             spriteBatch.End();
             base.Draw(gameTime);

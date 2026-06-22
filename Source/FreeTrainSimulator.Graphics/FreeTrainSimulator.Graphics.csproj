@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 	<PropertyGroup>
 		<Description>Free Train Simulator Graphics Library</Description>
 		<AssemblyTitle>Free Train Simulator Graphics Library</AssemblyTitle>
@@ -10,41 +10,7 @@
 		<Configurations>Debug;Release;CodeAnalysis;UpdateContentVersion</Configurations>
 	</PropertyGroup>
 	<ItemGroup>
-		<EmbeddedResource Include="Resources\ActiveBrokenNode.png" />
-		<EmbeddedResource Include="Resources\ActiveNode.png" />
-		<EmbeddedResource Include="Resources\ActiveNormalNode.png" />
-		<EmbeddedResource Include="Resources\ActiveTrackNode.png" />
-		<EmbeddedResource Include="Resources\ArrowedIndicator.png" />
-		<EmbeddedResource Include="Resources\CarSpawner.png" />
-		<EmbeddedResource Include="Resources\Circle.png" />
-		<EmbeddedResource Include="Resources\Disc.png" />
-		<EmbeddedResource Include="Resources\Hazard.png" />
-		<EmbeddedResource Include="Resources\LevelCrossing.png" />
-		<EmbeddedResource Include="Resources\PathEnd.png" />
-		<EmbeddedResource Include="Resources\PathNormal.png" />
-		<EmbeddedResource Include="Resources\PathReverse.png" />
-		<EmbeddedResource Include="Resources\PathStart.png" />
-		<EmbeddedResource Include="Resources\PathWait.png" />
-		<EmbeddedResource Include="Resources\Pickup.png" />
-		<EmbeddedResource Include="Resources\Platform.png" />
-		<EmbeddedResource Include="Resources\Ring.png" />
-		<EmbeddedResource Include="Resources\RingBold.png" />
-		<EmbeddedResource Include="Resources\RingCrossed.png" />
-		<EmbeddedResource Include="Resources\Signal.png" />
-		<EmbeddedResource Include="Resources\SignalDotGreen.png" />
-		<EmbeddedResource Include="Resources\SignalDotRed.png" />
-		<EmbeddedResource Include="Resources\SignalDotYellow.png" />
-		<EmbeddedResource Include="Resources\SignalGreen.png" />
-		<EmbeddedResource Include="Resources\SignalNone.png" />
-		<EmbeddedResource Include="Resources\SignalRed.png" />
-		<EmbeddedResource Include="Resources\SignalSmall.png" />
-		<EmbeddedResource Include="Resources\SignalSmallGreen.png" />
-		<EmbeddedResource Include="Resources\SignalSmallNone.png" />
-		<EmbeddedResource Include="Resources\SignalSmallRed.png" />
-		<EmbeddedResource Include="Resources\SignalSmallYellow.png" />
-		<EmbeddedResource Include="Resources\SignalYellow.png" />
-		<EmbeddedResource Include="Resources\Sound.png" />
-		<EmbeddedResource Include="Resources\PlayerTrain.png" />
+		<EmbeddedResource Include="Resources/*.png" />
 	</ItemGroup>
 	<ItemGroup>
 		<ProjectReference Include="..\FreeTrainSimulator.Models.Imported\FreeTrainSimulator.Models.Imported.csproj" />

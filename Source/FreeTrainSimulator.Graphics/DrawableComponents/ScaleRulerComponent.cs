@@ -86,7 +86,7 @@ namespace FreeTrainSimulator.Graphics.DrawableComponents
         public override void Update(GameTime gameTime)
         {
             IMapRulerOverlayContext rulerContext = content as IMapRulerOverlayContext;
-            if (rulerContext == null || !Enabled || (scale == rulerContext.Scale && texture != null))
+            if (rulerContext == null || !Enabled || (scale == rulerContext.Scale && Texture != null))
             {
                 base.Update(gameTime);
                 return;
@@ -99,7 +99,7 @@ namespace FreeTrainSimulator.Graphics.DrawableComponents
             int maxLength = Math.Min(200, windowSize.X - Math.Abs((int)positionOffset.X * 2));
             if (maxLength < 50)
             {
-                texture = null;
+                ClearTexture(false);
                 return;
             }
 
@@ -114,11 +114,12 @@ namespace FreeTrainSimulator.Graphics.DrawableComponents
                 }
                 rulerLength = (int)((int)metricRuler * rulerContext.Scale);
                 string key = $"{metricRuler.GetDescription()}::{rulerLength}";
-                if (!rulerTextures.TryGetValue(key, out texture))
+                if (!rulerTextures.TryGetValue(key, out Texture2D cachedTexture))
                 {
-                    texture = DrawRulerTexture(rulerLength, MetricRuler.m0_0.GetDescription(), metricRuler.GetDescription());
-                    rulerTextures.Add(key, texture);
+                    cachedTexture = DrawRulerTexture(rulerLength, MetricRuler.m0_0.GetDescription(), metricRuler.GetDescription());
+                    rulerTextures.Add(key, cachedTexture);
                 }
+                SetTexture(cachedTexture, false);
             }
             else
             {
@@ -128,11 +129,12 @@ namespace FreeTrainSimulator.Graphics.DrawableComponents
                 }
                 rulerLength = (int)(imperialRulerData[(int)imperialRuler] * rulerContext.Scale);
                 string key = $"{imperialRuler.GetDescription()}::{rulerLength}";
-                if (!rulerTextures.TryGetValue(key, out texture))
+                if (!rulerTextures.TryGetValue(key, out Texture2D cachedTexture))
                 {
-                    texture = DrawRulerTexture(rulerLength, ImperialRuler.i0_0.GetDescription(), imperialRuler.GetDescription());
-                    rulerTextures.Add(key, texture);
+                    cachedTexture = DrawRulerTexture(rulerLength, ImperialRuler.i0_0.GetDescription(), imperialRuler.GetDescription());
+                    rulerTextures.Add(key, cachedTexture);
                 }
+                SetTexture(cachedTexture, false);
             }
 
             Window_ClientSizeChanged(this, EventArgs.Empty);
@@ -141,11 +143,11 @@ namespace FreeTrainSimulator.Graphics.DrawableComponents
 
         public override void Draw(GameTime gameTime)
         {
-            if (texture == null)
+            if (Texture == null)
                 return;
             renderHelper.DrawSpriteBatch(spriteBatch =>
             {
-                spriteBatch.Draw(texture, position, null, color, 0, Vector2.Zero, Vector2.One, SpriteEffects.None, 0);
+                spriteBatch.Draw(Texture, position, null, color, 0, Vector2.Zero, Vector2.One, SpriteEffects.None, 0);
             });
             base.Draw(gameTime);
         }
@@ -159,6 +161,7 @@ namespace FreeTrainSimulator.Graphics.DrawableComponents
                     item?.Dispose();
                 }
                 rulerTextures.Clear();
+                ClearTexture(false);
                 fontBrush.Dispose();
                 rulerPen.Dispose();
             }

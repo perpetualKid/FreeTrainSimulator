@@ -1,7 +1,5 @@
 using System;
 
-using Microsoft.Xna.Framework;
-
 namespace FreeTrainSimulator.Graphics.MapView
 {
     internal sealed class XnaMapSession : IXnaMapShellSession

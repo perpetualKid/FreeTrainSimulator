@@ -32,13 +32,12 @@ namespace FreeTrainSimulator.Graphics.Xna
 #pragma warning disable CA2000 // Dispose objects before losing scope
             Texture2D updatedTexture = textRenderer.Resize(text, font);
 #pragma warning restore CA2000 // Dispose objects before losing scope
-            (updatedTexture, texture) = (texture, updatedTexture);
-            updatedTexture?.Dispose();
+            SetTexture(updatedTexture, updatedTexture != textRenderer.EmptyTexture);
         }
 
         protected virtual void RenderText(string text)
         {
-            textRenderer.RenderText(text, font, texture, OutlineRenderOptions.Default);
+            textRenderer.RenderText(text, font, Texture, OutlineRenderOptions.Default);
         }
 
         protected override void Dispose(bool disposing)
@@ -72,7 +71,7 @@ namespace FreeTrainSimulator.Graphics.Xna
 
             Bitmap currentSurface = bmpSurface;
             System.Drawing.Graphics currentGraphics = g;
-            bmpSurface = new Bitmap(texture.Width, texture.Height);
+            bmpSurface = new Bitmap(Texture.Width, Texture.Height);
             g = System.Drawing.Graphics.FromImage(bmpSurface);
             currentGraphics?.Dispose();
             currentSurface?.Dispose();
@@ -96,7 +95,7 @@ namespace FreeTrainSimulator.Graphics.Xna
             Marshal.Copy(bmd.Scan0, bytes, 0, bytes.Length);
 
             // copy our buffer to the texture
-            texture.SetData(bytes);
+            Texture.SetData(bytes);
             // unlock the bitmap data
             bmpSurface.UnlockBits(bmd);
         }

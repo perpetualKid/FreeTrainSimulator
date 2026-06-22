@@ -1,3 +1,5 @@
+using System;
+
 using FreeTrainSimulator.Common.Input;
 using FreeTrainSimulator.Graphics.MapView.Shapes;
 using FreeTrainSimulator.Graphics.Xna;
@@ -41,6 +43,10 @@ namespace FreeTrainSimulator.Graphics.MapView
 
         public XnaMapAdapterBundle(Game game, ContentBase content, MouseInputGameComponent mouseInputGameComponent)
         {
+            ArgumentNullException.ThrowIfNull(game);
+            ArgumentNullException.ThrowIfNull(content);
+            ArgumentNullException.ThrowIfNull(mouseInputGameComponent);
+
             SpriteBatch = new SpriteBatch(game.GraphicsDevice);
             RenderingLifetime = new XnaMapRenderingLifetime(game);
             RenderingResources = new XnaMapRenderingResources(RenderingLifetime, SpriteBatch);
