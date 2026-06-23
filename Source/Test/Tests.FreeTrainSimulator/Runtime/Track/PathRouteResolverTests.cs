@@ -1,9 +1,12 @@
+using System;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Reflection;
 
 using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Position;
 using FreeTrainSimulator.Models.Content;
+using FreeTrainSimulator.Models.Track;
 using FreeTrainSimulator.Runtime.Track;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -113,6 +116,27 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
         }
 
         /// <summary>
+        /// Verifies that same-track-node spans resolve deterministically when hybrid anchors are available.
+        /// </summary>
+        [TestMethod]
+        public void ResolveWhenLinkedNodesShareTrackNodeResolvesSpan()
+        {
+            TrackWorld trackWorld = CreateTrackWorldWithSingleVectorNode();
+            PathModel pathModel = new PathModel()
+            {
+                PathNodes = ImmutableArray.Create(
+                    CreateNode(PathNodeType.Start, 1, nodeIndex: 1),
+                    CreateNode(PathNodeType.End, -1, nodeIndex: 1)),
+            };
+
+            PathRouteResolution result = PathRouteResolver.Resolve(pathModel, trackWorld);
+
+            Assert.AreEqual(PathRouteSpanStatus.Resolved, result.MainRoute.Spans[0].Status);
+            Assert.AreEqual(1, result.MainRoute.Spans[0].TrackVectorNodeIndexes.Length);
+            Assert.AreEqual(1, result.MainRoute.Spans[0].TrackVectorNodeIndexes[0]);
+        }
+
+        /// <summary>
         /// Verifies that passing links create passing routes when enabled.
         /// </summary>
         [TestMethod]
@@ -155,14 +179,44 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
             Assert.AreEqual(0, result.PassingRoutes[0].StartNodeIndex);
         }
 
-        private static PathNode CreateNode(PathNodeType nodeType, int nextMainNode, int nextSidingNode = -1)
+        private static PathNode CreateNode(PathNodeType nodeType, int nextMainNode, int nextSidingNode = -1, int nodeIndex = 0)
         {
             return new PathNode(new WorldLocation(new Tile(0, 0), Vector3.Zero))
             {
                 NodeType = nodeType,
+                NodeIndex = nodeIndex,
                 NextMainNode = nextMainNode,
                 NextSidingNode = nextSidingNode,
             };
+        }
+
+        private static TrackWorld CreateTrackWorldWithSingleVectorNode()
+        {
+            WorldLocation start = new WorldLocation(new Tile(0, 0), Vector3.Zero);
+            WorldLocation end = new WorldLocation(new Tile(0, 0), new Vector3(100, 0, 0));
+            VectorNode vectorNode = new VectorNode(start, new Tile(0, 0), end)
+            {
+                NodeIndex = 1,
+            };
+
+            TrackDatabase trackDatabase = new TrackDatabase()
+            {
+                TrackNodes = ImmutableArray.Create<TrackNodeBase>(null, vectorNode),
+                TrackNodeConnectors = ImmutableArray.Create(
+                    new TrackNodeConnectorIndex(),
+                    new TrackNodeConnectorIndex() { NodeIndex = 1, TrackNodeConnectors = ImmutableArray<TrackNodeConnector>.Empty }),
+            };
+            TrackModel trackModel = new TrackModel()
+            {
+                TrackDatabase = trackDatabase,
+            };
+
+            return (TrackWorld)Activator.CreateInstance(
+                typeof(TrackWorld),
+                BindingFlags.NonPublic | BindingFlags.Instance,
+                null,
+                new object[] { trackModel },
+                null);
         }
     }
 }
