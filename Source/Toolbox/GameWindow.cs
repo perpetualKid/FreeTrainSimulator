@@ -47,13 +47,13 @@ namespace FreeTrainSimulator.Toolbox
         private Screen currentScreen;
         private Point windowPosition;
         private System.Drawing.Size windowSize;
-        private readonly Point clientRectangleOffset;
 
         private readonly Action onClientSizeChanged;
 
         private WindowManager<ToolboxWindowType> windowManager;
         private ContentArea contentArea;
         private int suppressCount;
+        private Action<string> hostedTitleUpdateCallback;
 
         internal ContentArea ContentArea
         {
@@ -64,7 +64,7 @@ namespace FreeTrainSimulator.Toolbox
                 {
                     contentArea.Enabled = false;
                     Components.Remove(contentArea);
-                    Window.Title = windowTitle;
+                    SetWindowTitle(windowTitle);
                     contentArea.Dispose();
                     contentArea = null;
                 }
@@ -74,7 +74,8 @@ namespace FreeTrainSimulator.Toolbox
                     contentArea.ResetSize(Window.ClientBounds.Size, 60);
                     Components.Add(value);
                     contentArea.IsEnabled = true;
-                    Window.Title = windowTitle + Catalog.GetString($" Route: {value.Content.RouteName}");
+                    string newTitle = windowTitle + Catalog.GetString($" Route: {value.Content.RouteName}");
+                    SetWindowTitle(newTitle);
                 }
                 contentArea = value;
                 OnContentAreaChanged?.Invoke(this, new ContentAreaChangedEventArgs(contentArea));
@@ -164,7 +165,7 @@ namespace FreeTrainSimulator.Toolbox
 #if DEBUG
             windowTitle += " (debug)";
 #endif
-            Window.Title = windowTitle;
+            SetWindowTitle(windowTitle);
             Window.AllowUserResizing = true;
 
             //Window.ClientSizeChanged += Window_ClientSizeChanged; // not using the GameForm event as it does not raise when Window is moved (ie to another screeen) using keyboard shortcut
@@ -173,7 +174,6 @@ namespace FreeTrainSimulator.Toolbox
             //IsFixedTimeStep = false;
             //TargetElapsedTime = TimeSpan.FromMilliseconds(5);
 
-            clientRectangleOffset = new Point(windowForm.Width - windowForm.ClientRectangle.Width, windowForm.Height - windowForm.ClientRectangle.Height);
             Window.Position = windowPosition;
 
             SetScreenMode(currentScreenMode);
@@ -258,12 +258,20 @@ namespace FreeTrainSimulator.Toolbox
         // reparenting happens in-thread and never stalls the WPF UI thread during its modal resize loop.
         private Action<IntPtr, int, int> hostedReattachCallback;
 
-        internal void EnableHostedMode(Action<IntPtr, int, int> reattachCallback)
+        internal void EnableHostedMode(Action<IntPtr, int, int> reattachCallback, Action<string> titleUpdateCallback)
         {
             hostedReattachCallback = reattachCallback;
+            hostedTitleUpdateCallback = titleUpdateCallback;
             Window.AllowUserResizing = false;
             windowForm.FormBorderStyle = FormBorderStyle.None;
+            SetWindowTitle(windowTitle);
             SetScreenMode(ScreenMode.Windowed);
+        }
+
+        private void SetWindowTitle(string title)
+        {
+            windowForm.Text = title;
+            hostedTitleUpdateCallback?.Invoke(title);
         }
 
         /// <summary>

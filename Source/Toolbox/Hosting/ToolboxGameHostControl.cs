@@ -132,7 +132,7 @@ namespace FreeTrainSimulator.Toolbox.Hosting
                 using (GameWindow game = new GameWindow())
                 {
                     gameWindow = game;
-                    game.EnableHostedMode(ReattachHostedWindow);
+                    game.EnableHostedMode(ReattachHostedWindow, UpdateHostWindowTitle);
 
                     Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(AttachHostedWindow));
                     Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(PublishHostedBridges));
@@ -309,6 +309,16 @@ namespace FreeTrainSimulator.Toolbox.Hosting
         private void Game_LanguageChanged(object sender, EventArgs e)
         {
             Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() => LanguageChanged?.Invoke(this, EventArgs.Empty)));
+        }
+
+        private void UpdateHostWindowTitle(string title)
+        {
+            Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() =>
+            {
+                System.Windows.Window window = System.Windows.Window.GetWindow(this);
+                if (window != null)
+                    window.Title = title;
+            }));
         }
 
         /// <summary>
