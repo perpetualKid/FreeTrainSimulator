@@ -66,6 +66,9 @@ namespace FreeTrainSimulator.Runtime.Track
         /// <summary>The authored path graph contains a cycle that the first resolver slice does not support.</summary>
         UnsupportedGraphCycle,
 
+        /// <summary>The authored main path does not reach the end node.</summary>
+        MainRouteDoesNotReachEnd,
+
         /// <summary>An authored node location could not be resolved to track.</summary>
         AnchorNotOnTrack,
 

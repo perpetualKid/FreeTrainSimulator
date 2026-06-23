@@ -85,12 +85,24 @@ namespace FreeTrainSimulator.Runtime.Track
             ResolvedPathRoute mainRoute = startNodeIndex >= 0
                 ? BuildRoute(PathRouteBranchKind.Main, pathNodes, anchors, trackWorld, diagnostics, startNodeIndex, static node => node.NextMainNode, cancellationToken)
                 : null;
+            ValidateMainRouteReachesEnd(mainRoute, endNodeIndex, diagnostics);
             ImmutableArray<ResolvedPathRoute> passingRoutes = options.ResolvePassingBranches
                 ? BuildPassingRoutes(pathNodes, anchors, trackWorld, diagnostics, cancellationToken)
                 : ImmutableArray<ResolvedPathRoute>.Empty;
             ValidatePassingBranchRejoins(mainRoute, passingRoutes, diagnostics);
 
             return new PathRouteResolution(mainRoute, passingRoutes, anchors, diagnostics.ToImmutableArray());
+        }
+
+        private static void ValidateMainRouteReachesEnd(ResolvedPathRoute mainRoute, int endNodeIndex, List<PathRouteDiagnostic> diagnostics)
+        {
+            if (mainRoute == null || endNodeIndex < 0 || mainRoute.EndNodeIndex == endNodeIndex)
+                return;
+
+            diagnostics.Add(new PathRouteDiagnostic(PathRouteDiagnosticSeverity.Fatal, PathRouteDiagnosticCode.MainRouteDoesNotReachEnd,
+                $"Main path ends at node {mainRoute.EndNodeIndex} before reaching authored end node {endNodeIndex}.",
+                mainRoute.EndNodeIndex, mainRoute.EndNodeIndex, endNodeIndex,
+                "Reconnect the main path so it reaches the authored end node."));
         }
 
         private static int FindFirstNodeOfType(ImmutableArray<PathNode> pathNodes, PathNodeType nodeType)
@@ -142,6 +154,7 @@ namespace FreeTrainSimulator.Runtime.Track
         {
             HashSet<int> reachable = new HashSet<int>();
             HashSet<int> active = new HashSet<int>();
+            HashSet<(int FromNodeIndex, int ToNodeIndex)> reportedCycles = new HashSet<(int FromNodeIndex, int ToNodeIndex)>();
             Visit(startNodeIndex);
             return reachable.ToImmutableHashSet();
 
@@ -163,9 +176,27 @@ namespace FreeTrainSimulator.Runtime.Track
 
                 active.Add(nodeIndex);
                 PathNode node = pathNodes[nodeIndex];
-                Visit(node.NextMainNode);
-                Visit(node.NextSidingNode);
+                VisitNext(nodeIndex, node.NextMainNode, "main", "Repair the main path links or add explicit via nodes if the loop is intentional.");
+                VisitNext(nodeIndex, node.NextSidingNode, "siding", "Repair the passing path links or add explicit via nodes if the loop is intentional.");
                 active.Remove(nodeIndex);
+            }
+
+            void VisitNext(int fromNodeIndex, int toNodeIndex, string linkKind, string suggestedAction)
+            {
+                if (!IsInRange(toNodeIndex, pathNodes.Length))
+                    return;
+                if (active.Contains(toNodeIndex))
+                {
+                    if (reportedCycles.Add((fromNodeIndex, toNodeIndex)))
+                    {
+                        diagnostics.Add(new PathRouteDiagnostic(PathRouteDiagnosticSeverity.Warning, PathRouteDiagnosticCode.UnsupportedGraphCycle,
+                            $"Path graph contains a {linkKind} link cycle from node {fromNodeIndex} to node {toNodeIndex}.",
+                            fromNodeIndex, toNodeIndex, suggestedAction));
+                    }
+                    return;
+                }
+
+                Visit(toNodeIndex);
             }
         }
 

@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 using FreeTrainSimulator.Common.Input;
@@ -8,6 +10,7 @@ using FreeTrainSimulator.Models.Content;
 using FreeTrainSimulator.Models.Shim;
 using FreeTrainSimulator.Runtime;
 using FreeTrainSimulator.Runtime.Track;
+using FreeTrainSimulator.Models.Track;
 
 namespace FreeTrainSimulator.Toolbox
 {
@@ -60,6 +63,9 @@ namespace FreeTrainSimulator.Toolbox
             try
             {
                 this.path = path;
+                if (path != null && !CanInitializePath(path))
+                    return false;
+
                 InitializePathModel(path);
                 OnPathChanged?.Invoke(this, new PathEditorChangedEventArgs(TrainPath));
                 return true;
@@ -69,6 +75,35 @@ namespace FreeTrainSimulator.Toolbox
                 Trace.TraceError($"Failed to initialize path editor: {ex.Message}");
                 return false;
             }
+        }
+
+        internal static bool CanInitializePath(PathModel pathModel, out PathRouteResolution resolution)
+        {
+            return CanInitializePath(pathModel, RuntimeDataResolver.Instance.TrackWorld, out resolution);
+        }
+
+        internal static bool CanInitializePath(PathModel pathModel, TrackWorld trackWorld, out PathRouteResolution resolution)
+        {
+            ArgumentNullException.ThrowIfNull(pathModel);
+
+            resolution = PathRouteResolver.Resolve(pathModel, trackWorld, CancellationToken.None);
+            return resolution.HighestSeverity < PathRouteDiagnosticSeverity.Fatal;
+        }
+
+        private static bool CanInitializePath(PathModelHeader path)
+        {
+            PathModel pathModel = path is PathModel model
+                ? model
+                : Task.Run(async () => await path.GetExtended(CancellationToken.None).ConfigureAwait(false)).Result;
+
+            if (CanInitializePath(pathModel, out PathRouteResolution resolution))
+                return true;
+
+            string diagnostics = string.Join("; ", resolution.Diagnostics
+                .Where(diagnostic => diagnostic.Severity == PathRouteDiagnosticSeverity.Fatal)
+                .Select(diagnostic => $"{diagnostic.Code}: {diagnostic.Message}"));
+            Trace.TraceWarning($"Path editor cannot open path '{path.Id}' because the path content has fatal route diagnostics. {diagnostics}");
+            return false;
         }
 
         public void InitializeNewPath()

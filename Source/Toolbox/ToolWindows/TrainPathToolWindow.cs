@@ -7,6 +7,8 @@ using FreeTrainSimulator.Models.Content;
 using FreeTrainSimulator.Runtime.Track;
 using FreeTrainSimulator.Toolbox.PopupWindows;
 
+using DrawingColor = System.Drawing.Color;
+
 namespace FreeTrainSimulator.Toolbox.ToolWindows
 {
     /// <summary>
@@ -202,7 +204,33 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
             builder.Add(new ToolWindowRow("End", currentPath.PathModel.End, null, false));
             builder.Add(new ToolWindowRow("Player Path", currentPath.PathModel.PlayerPath ? "Yes" : "No", null, false));
             builder.Add(new ToolWindowRow("Path Length", FormatStrings.FormatDistanceDisplay(currentPath.Length, metricUnits, 1000), null, false));
+            builder.AddRange(BuildResolverDiagnosticMetadata(PathRouteResolver.Resolve(currentPath.PathModel, null)));
             return builder.ToImmutable();
+        }
+
+        internal static ImmutableArray<ToolWindowRow> BuildResolverDiagnosticMetadata(PathRouteResolution resolution)
+        {
+            if (resolution == null || resolution.Diagnostics.IsDefaultOrEmpty)
+                return ImmutableArray<ToolWindowRow>.Empty;
+
+            ImmutableArray<ToolWindowRow>.Builder builder = ImmutableArray.CreateBuilder<ToolWindowRow>();
+            builder.Add(new ToolWindowRow("Route Diagnostics", $"{resolution.Diagnostics.Length} ({resolution.HighestSeverity})", DiagnosticColor(resolution.HighestSeverity), true));
+            foreach (PathRouteDiagnostic diagnostic in resolution.Diagnostics)
+                builder.Add(new ToolWindowRow(diagnostic.Code.ToString(), diagnostic.Message, DiagnosticColor(diagnostic.Severity), diagnostic.Severity >= PathRouteDiagnosticSeverity.Error));
+
+            return builder.ToImmutable();
+        }
+
+        private static DrawingColor? DiagnosticColor(PathRouteDiagnosticSeverity severity)
+        {
+            return severity switch
+            {
+                PathRouteDiagnosticSeverity.Fatal => DrawingColor.Red,
+                PathRouteDiagnosticSeverity.Error => DrawingColor.OrangeRed,
+                PathRouteDiagnosticSeverity.Warning => DrawingColor.Gold,
+                PathRouteDiagnosticSeverity.Information => DrawingColor.LightGray,
+                _ => null,
+            };
         }
 
         /// <summary>

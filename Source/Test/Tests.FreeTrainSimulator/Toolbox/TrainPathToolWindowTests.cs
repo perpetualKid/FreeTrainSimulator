@@ -1,3 +1,7 @@
+using System.Collections.Immutable;
+using System.Linq;
+
+using FreeTrainSimulator.Runtime.Track;
 using FreeTrainSimulator.Toolbox.ToolWindows;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -87,6 +91,33 @@ namespace Tests.FreeTrainSimulator.Toolbox
             trainPathToolWindow.RefreshSnapshot();
 
             Assert.AreEqual(0, editorQueries);
+        }
+
+        [TestMethod]
+        public void WhenResolverHasNoDiagnosticsThenDiagnosticMetadataIsEmpty()
+        {
+            PathRouteResolution resolution = new PathRouteResolution(null, ImmutableArray<PathRouteDiagnostic>.Empty);
+
+            ImmutableArray<ToolWindowRow> rows = TrainPathToolWindow.BuildResolverDiagnosticMetadata(resolution);
+
+            Assert.IsTrue(rows.IsEmpty);
+        }
+
+        [TestMethod]
+        public void WhenResolverHasDiagnosticsThenDiagnosticMetadataContainsSummaryAndDetails()
+        {
+            PathRouteDiagnostic diagnostic = new PathRouteDiagnostic(PathRouteDiagnosticSeverity.Warning, PathRouteDiagnosticCode.MissingEndNode,
+                "Path has no end node.");
+            PathRouteResolution resolution = new PathRouteResolution(null, ImmutableArray.Create(diagnostic));
+
+            ImmutableArray<ToolWindowRow> rows = TrainPathToolWindow.BuildResolverDiagnosticMetadata(resolution);
+
+            Assert.HasCount(2, rows);
+            Assert.AreEqual("Route Diagnostics", rows[0].Name);
+            Assert.AreEqual("1 (Warning)", rows[0].Value);
+            Assert.AreEqual(nameof(PathRouteDiagnosticCode.MissingEndNode), rows[1].Name);
+            Assert.AreEqual("Path has no end node.", rows[1].Value);
+            Assert.IsTrue(rows.Any(row => row.Color.HasValue));
         }
     }
 }
