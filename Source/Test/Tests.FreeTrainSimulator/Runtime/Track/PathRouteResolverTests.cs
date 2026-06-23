@@ -238,6 +238,66 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
         }
 
         /// <summary>
+        /// Verifies that a passing branch ending on a later main route node does not report a rejoin warning.
+        /// </summary>
+        [TestMethod]
+        public void ResolveWhenPassingBranchRejoinsMainRouteDoesNotReturnRejoinDiagnostic()
+        {
+            PathModel pathModel = new PathModel()
+            {
+                PathNodes = ImmutableArray.Create(
+                    CreateNode(PathNodeType.Start, 1, 2),
+                    CreateNode(PathNodeType.Intermediate, 3),
+                    CreateNode(PathNodeType.Intermediate, -1, 3),
+                    CreateNode(PathNodeType.End, -1)),
+            };
+
+            PathRouteResolution result = PathRouteResolver.Resolve(pathModel, null);
+
+            Assert.IsFalse(result.Diagnostics.Any(diagnostic => diagnostic.Code == PathRouteDiagnosticCode.PassingBranchDoesNotRejoinMain));
+        }
+
+        /// <summary>
+        /// Verifies that a passing branch not ending on the remaining main route is reported.
+        /// </summary>
+        [TestMethod]
+        public void ResolveWhenPassingBranchDoesNotRejoinMainRouteReturnsDiagnostic()
+        {
+            PathModel pathModel = new PathModel()
+            {
+                PathNodes = ImmutableArray.Create(
+                    CreateNode(PathNodeType.Start, 1, 2),
+                    CreateNode(PathNodeType.End, -1),
+                    CreateNode(PathNodeType.Intermediate, -1)),
+            };
+
+            PathRouteResolution result = PathRouteResolver.Resolve(pathModel, null);
+
+            Assert.IsTrue(result.Diagnostics.Any(diagnostic => diagnostic.Code == PathRouteDiagnosticCode.PassingBranchDoesNotRejoinMain && diagnostic.FromNodeIndex == 0 && diagnostic.ToNodeIndex == 2));
+        }
+
+        /// <summary>
+        /// Verifies that a passing branch rejoining an earlier main route node is reported.
+        /// </summary>
+        [TestMethod]
+        public void ResolveWhenPassingBranchRejoinsEarlierMainRouteNodeReturnsDiagnostic()
+        {
+            PathModel pathModel = new PathModel()
+            {
+                PathNodes = ImmutableArray.Create(
+                    CreateNode(PathNodeType.Start, 1),
+                    CreateNode(PathNodeType.Intermediate, 2),
+                    CreateNode(PathNodeType.Intermediate, 3, 4),
+                    CreateNode(PathNodeType.End, -1),
+                    CreateNode(PathNodeType.Intermediate, -1, 1)),
+            };
+
+            PathRouteResolution result = PathRouteResolver.Resolve(pathModel, null);
+
+            Assert.IsTrue(result.Diagnostics.Any(diagnostic => diagnostic.Code == PathRouteDiagnosticCode.PassingBranchDoesNotRejoinMain && diagnostic.FromNodeIndex == 2 && diagnostic.ToNodeIndex == 1));
+        }
+
+        /// <summary>
         /// Verifies that an intermediate siding node does not start a separate passing route.
         /// </summary>
         [TestMethod]

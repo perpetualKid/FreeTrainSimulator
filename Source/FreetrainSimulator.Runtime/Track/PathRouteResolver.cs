@@ -88,6 +88,7 @@ namespace FreeTrainSimulator.Runtime.Track
             ImmutableArray<ResolvedPathRoute> passingRoutes = options.ResolvePassingBranches
                 ? BuildPassingRoutes(pathNodes, anchors, trackWorld, diagnostics, cancellationToken)
                 : ImmutableArray<ResolvedPathRoute>.Empty;
+            ValidatePassingBranchRejoins(mainRoute, passingRoutes, diagnostics);
 
             return new PathRouteResolution(mainRoute, passingRoutes, anchors, diagnostics.ToImmutableArray());
         }
@@ -229,7 +230,11 @@ namespace FreeTrainSimulator.Runtime.Track
             trackVectorSectionIndex = -1;
             ambiguous = false;
 
-            if (node.NodeIndex > 0 && IsInRange(node.NodeIndex, trackWorld.TrackDatabase?.TrackNodes.Length ?? 0) && trackWorld.TrackDatabase.TrackNodes[node.NodeIndex] != null)
+            TrackDatabase trackDatabase = trackWorld.TrackDatabase;
+            if (trackDatabase == null)
+                return -1;
+
+            if (node.NodeIndex > 0 && IsInRange(node.NodeIndex, trackDatabase.TrackNodes.Length) && trackDatabase.TrackNodes[node.NodeIndex] != null)
                 return node.NodeIndex;
 
             if ((node.NodeType & PathNodeType.Junction) == PathNodeType.Junction)
@@ -300,6 +305,37 @@ namespace FreeTrainSimulator.Runtime.Track
             return routes.ToImmutable();
         }
 
+        private static void ValidatePassingBranchRejoins(ResolvedPathRoute mainRoute, ImmutableArray<ResolvedPathRoute> passingRoutes, List<PathRouteDiagnostic> diagnostics)
+        {
+            if (mainRoute == null || passingRoutes.IsEmpty)
+                return;
+
+            foreach (ResolvedPathRoute passingRoute in passingRoutes)
+            {
+                ImmutableHashSet<int> mainRouteNodes = MainRouteNodesAfterBranchStart(mainRoute, passingRoute.StartNodeIndex);
+                if (!mainRouteNodes.Contains(passingRoute.EndNodeIndex))
+                {
+                    diagnostics.Add(new PathRouteDiagnostic(PathRouteDiagnosticSeverity.Warning, PathRouteDiagnosticCode.PassingBranchDoesNotRejoinMain,
+                        $"Passing branch starting at node {passingRoute.StartNodeIndex} ends at node {passingRoute.EndNodeIndex}, which is not on the remaining main path.",
+                        passingRoute.StartNodeIndex, passingRoute.EndNodeIndex, "Reconnect the passing branch to a later main path node."));
+                }
+            }
+        }
+
+        private static ImmutableHashSet<int> MainRouteNodesAfterBranchStart(ResolvedPathRoute mainRoute, int branchStartNodeIndex)
+        {
+            ImmutableHashSet<int>.Builder nodes = ImmutableHashSet.CreateBuilder<int>();
+            bool afterBranchStart = false;
+            foreach (ResolvedPathSpan span in mainRoute.Spans)
+            {
+                if (span.FromNodeIndex == branchStartNodeIndex)
+                    afterBranchStart = true;
+                if (afterBranchStart)
+                    nodes.Add(span.ToNodeIndex);
+            }
+            return nodes.ToImmutable();
+        }
+
         private static ResolvedPathSpan ResolveSpan(int fromNodeIndex, int toNodeIndex, ImmutableArray<PathRouteAnchor> anchors, TrackWorld trackWorld, List<PathRouteDiagnostic> diagnostics)
         {
             if (trackWorld == null || anchors.IsDefaultOrEmpty || !IsInRange(fromNodeIndex, anchors.Length) || !IsInRange(toNodeIndex, anchors.Length))
@@ -332,6 +368,8 @@ namespace FreeTrainSimulator.Runtime.Track
 
             ImmutableArray<TrackNodeConnector> startConnectors = trackDatabase.TrackNodeConnectors[startTrackNodeIndex].TrackNodeConnectors;
             ImmutableArray<TrackNodeConnector> endConnectors = trackDatabase.TrackNodeConnectors[endTrackNodeIndex].TrackNodeConnectors;
+            if (startConnectors.IsDefault || endConnectors.IsDefault)
+                return ImmutableArray<int>.Empty;
 
             TrackNodeConnector[] sharedConnectors = startConnectors.Intersect(endConnectors, TrackNodeConnectorComparer.LinkOnlyComparer).ToArray();
             if (sharedConnectors.Length == 1)
@@ -363,7 +401,7 @@ namespace FreeTrainSimulator.Runtime.Track
                         .Intersect(trackDatabase.TrackNodeConnectors[endConnector.Link].TrackNodeConnectors, TrackNodeConnectorComparer.LinkOnlyComparer);
                     foreach (TrackNodeConnector connection in connections)
                     {
-                        if (trackDatabase.TrackNodes[connection.Link] is VectorNode && !candidates.Contains(connection.Link))
+                        if (IsInRange(connection.Link, trackDatabase.TrackNodes.Length) && trackDatabase.TrackNodes[connection.Link] is VectorNode && !candidates.Contains(connection.Link))
                             candidates.Add(connection.Link);
                     }
                 }
