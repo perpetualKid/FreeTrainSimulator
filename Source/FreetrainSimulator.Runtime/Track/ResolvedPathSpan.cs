@@ -26,8 +26,24 @@ namespace FreeTrainSimulator.Runtime.Track
         /// <summary>
         /// Initializes a new instance of the <see cref="ResolvedPathSpan"/> record.
         /// </summary>
+        public ResolvedPathSpan(int fromNodeIndex, int toNodeIndex, PathRouteSpanStatus status)
+            : this(fromNodeIndex, toNodeIndex, status, ImmutableArray<int>.Empty, ImmutableArray<PathRouteAnchor>.Empty)
+        {
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ResolvedPathSpan"/> record.
+        /// </summary>
+        public ResolvedPathSpan(int fromNodeIndex, int toNodeIndex, PathRouteSpanStatus status, ImmutableArray<int> trackVectorNodeIndexes)
+            : this(fromNodeIndex, toNodeIndex, status, trackVectorNodeIndexes, ImmutableArray<PathRouteAnchor>.Empty)
+        {
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ResolvedPathSpan"/> record.
+        /// </summary>
         public ResolvedPathSpan(int fromNodeIndex, int toNodeIndex, PathRouteSpanStatus status,
-            ImmutableArray<int> trackVectorNodeIndexes = default, ImmutableArray<PathRouteAnchor> generatedIntermediaryAnchors = default)
+            ImmutableArray<int> trackVectorNodeIndexes, ImmutableArray<PathRouteAnchor> generatedIntermediaryAnchors)
         {
             if (fromNodeIndex < 0)
                 throw new ArgumentOutOfRangeException(nameof(fromNodeIndex), fromNodeIndex, "Source node index must not be negative.");

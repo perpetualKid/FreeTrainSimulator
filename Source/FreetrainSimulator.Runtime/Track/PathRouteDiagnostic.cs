@@ -31,8 +31,40 @@ namespace FreeTrainSimulator.Runtime.Track
         /// <summary>
         /// Initializes a new instance of the <see cref="PathRouteDiagnostic"/> record.
         /// </summary>
-        public PathRouteDiagnostic(PathRouteDiagnosticSeverity severity,PathRouteDiagnosticCode code,
-            string message,int nodeIndex = -1, int fromNodeIndex = -1,int toNodeIndex = -1,string suggestedAction = null)
+        public PathRouteDiagnostic(PathRouteDiagnosticSeverity severity, PathRouteDiagnosticCode code, string message)
+            : this(severity, code, message, -1, -1, -1, null)
+        {
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="PathRouteDiagnostic"/> record.
+        /// </summary>
+        public PathRouteDiagnostic(PathRouteDiagnosticSeverity severity, PathRouteDiagnosticCode code, string message, string suggestedAction)
+            : this(severity, code, message, -1, -1, -1, suggestedAction)
+        {
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="PathRouteDiagnostic"/> record.
+        /// </summary>
+        public PathRouteDiagnostic(PathRouteDiagnosticSeverity severity, PathRouteDiagnosticCode code, string message, int nodeIndex, string suggestedAction)
+            : this(severity, code, message, nodeIndex, -1, -1, suggestedAction)
+        {
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="PathRouteDiagnostic"/> record.
+        /// </summary>
+        public PathRouteDiagnostic(PathRouteDiagnosticSeverity severity, PathRouteDiagnosticCode code, string message, int fromNodeIndex, int toNodeIndex, string suggestedAction)
+            : this(severity, code, message, -1, fromNodeIndex, toNodeIndex, suggestedAction)
+        {
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="PathRouteDiagnostic"/> record.
+        /// </summary>
+        public PathRouteDiagnostic(PathRouteDiagnosticSeverity severity, PathRouteDiagnosticCode code,
+            string message, int nodeIndex, int fromNodeIndex, int toNodeIndex, string suggestedAction)
         {
             ArgumentException.ThrowIfNullOrWhiteSpace(message);
 

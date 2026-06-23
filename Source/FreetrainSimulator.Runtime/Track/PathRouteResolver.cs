@@ -19,23 +19,43 @@ namespace FreeTrainSimulator.Runtime.Track
         /// <summary>
         /// Resolves and validates a path model.
         /// </summary>
-        public static PathRouteResolution Resolve(PathModel pathModel, TrackWorld trackWorld, PathRouteResolverOptions options = null, CancellationToken cancellationToken = default)
+        public static PathRouteResolution Resolve(PathModel pathModel, TrackWorld trackWorld)
+        {
+            return Resolve(pathModel, trackWorld, PathRouteResolverOptions.Default, CancellationToken.None);
+        }
+
+        /// <summary>
+        /// Resolves and validates a path model.
+        /// </summary>
+        public static PathRouteResolution Resolve(PathModel pathModel, TrackWorld trackWorld, PathRouteResolverOptions options)
+        {
+            return Resolve(pathModel, trackWorld, options, CancellationToken.None);
+        }
+
+        /// <summary>
+        /// Resolves and validates a path model.
+        /// </summary>
+        public static PathRouteResolution Resolve(PathModel pathModel, TrackWorld trackWorld, CancellationToken cancellationToken)
+        {
+            return Resolve(pathModel, trackWorld, PathRouteResolverOptions.Default, cancellationToken);
+        }
+
+        /// <summary>
+        /// Resolves and validates a path model.
+        /// </summary>
+        public static PathRouteResolution Resolve(PathModel pathModel, TrackWorld trackWorld, PathRouteResolverOptions options, CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(pathModel);
-
-            options ??= PathRouteResolverOptions.Default;
+            ArgumentNullException.ThrowIfNull(options);
 
             List<PathRouteDiagnostic> diagnostics = new List<PathRouteDiagnostic>();
             ImmutableArray<PathNode> pathNodes = pathModel.PathNodes.IsDefault ? ImmutableArray<PathNode>.Empty : pathModel.PathNodes;
             if (pathNodes.IsEmpty)
             {
-                diagnostics.Add(new PathRouteDiagnostic(
-                    PathRouteDiagnosticSeverity.Fatal,
-                    PathRouteDiagnosticCode.EmptyPath,
-                    "Path has no authored nodes.",
-                    suggestedAction: "Add a start node and an end node."));
+                diagnostics.Add(new PathRouteDiagnostic(PathRouteDiagnosticSeverity.Fatal, PathRouteDiagnosticCode.EmptyPath,
+                    "Path has no authored nodes.", "Add a start node and an end node."));
 
-                return new PathRouteResolution(null, diagnostics: diagnostics.ToImmutableArray());
+                return new PathRouteResolution(null, diagnostics.ToImmutableArray());
             }
 
             cancellationToken.ThrowIfCancellationRequested();
@@ -45,20 +65,14 @@ namespace FreeTrainSimulator.Runtime.Track
 
             if (startNodeIndex < 0)
             {
-                diagnostics.Add(new PathRouteDiagnostic(
-                    PathRouteDiagnosticSeverity.Fatal,
-                    PathRouteDiagnosticCode.MissingStartNode,
-                    "Path has no start node.",
-                    suggestedAction: "Mark one authored node as the start node."));
+                diagnostics.Add(new PathRouteDiagnostic(PathRouteDiagnosticSeverity.Fatal, PathRouteDiagnosticCode.MissingStartNode,
+                    "Path has no start node.", "Mark one authored node as the start node."));
             }
 
             if (endNodeIndex < 0)
             {
-                diagnostics.Add(new PathRouteDiagnostic(
-                    PathRouteDiagnosticSeverity.Fatal,
-                    PathRouteDiagnosticCode.MissingEndNode,
-                    "Path has no end node.",
-                    suggestedAction: "Mark one authored node as the end node."));
+                diagnostics.Add(new PathRouteDiagnostic(PathRouteDiagnosticSeverity.Fatal, PathRouteDiagnosticCode.MissingEndNode,
+                    "Path has no end node.", "Mark one authored node as the end node."));
             }
 
             ValidateLinks(pathNodes, diagnostics);
@@ -69,10 +83,10 @@ namespace FreeTrainSimulator.Runtime.Track
 
             ImmutableArray<PathRouteAnchor> anchors = ResolveAnchors(pathNodes, trackWorld, diagnostics, cancellationToken);
             ResolvedPathRoute mainRoute = startNodeIndex >= 0
-                ? BuildRoute(PathRouteBranchKind.Main, pathNodes, anchors, trackWorld, startNodeIndex, static node => node.NextMainNode, cancellationToken)
+                ? BuildRoute(PathRouteBranchKind.Main, pathNodes, anchors, trackWorld, diagnostics, startNodeIndex, static node => node.NextMainNode, cancellationToken)
                 : null;
             ImmutableArray<ResolvedPathRoute> passingRoutes = options.ResolvePassingBranches
-                ? BuildPassingRoutes(pathNodes, anchors, trackWorld, cancellationToken)
+                ? BuildPassingRoutes(pathNodes, anchors, trackWorld, diagnostics, cancellationToken)
                 : ImmutableArray<ResolvedPathRoute>.Empty;
 
             return new PathRouteResolution(mainRoute, passingRoutes, anchors, diagnostics.ToImmutableArray());
@@ -105,26 +119,16 @@ namespace FreeTrainSimulator.Runtime.Track
                 PathNode node = pathNodes[i];
                 if (node.NextMainNode < -1 || node.NextMainNode >= pathNodes.Length)
                 {
-                    diagnostics.Add(new PathRouteDiagnostic(
-                        PathRouteDiagnosticSeverity.Fatal,
-                        PathRouteDiagnosticCode.InvalidMainLink,
-                        $"Path node {i} has invalid main link {node.NextMainNode}.",
-                        nodeIndex: i,
-                        fromNodeIndex: i,
-                        toNodeIndex: node.NextMainNode,
-                        suggestedAction: "Repair or remove the invalid main path link."));
+                    diagnostics.Add(new PathRouteDiagnostic(PathRouteDiagnosticSeverity.Fatal, PathRouteDiagnosticCode.InvalidMainLink,
+                        $"Path node {i} has invalid main link {node.NextMainNode}.", i, i, node.NextMainNode,
+                        "Repair or remove the invalid main path link."));
                 }
 
                 if (node.NextSidingNode < -1 || node.NextSidingNode >= pathNodes.Length)
                 {
-                    diagnostics.Add(new PathRouteDiagnostic(
-                        PathRouteDiagnosticSeverity.Error,
-                        PathRouteDiagnosticCode.InvalidSidingLink,
-                        $"Path node {i} has invalid siding link {node.NextSidingNode}.",
-                        nodeIndex: i,
-                        fromNodeIndex: i,
-                        toNodeIndex: node.NextSidingNode,
-                        suggestedAction: "Repair or remove the invalid passing path link."));
+                    diagnostics.Add(new PathRouteDiagnostic(PathRouteDiagnosticSeverity.Error, PathRouteDiagnosticCode.InvalidSidingLink,
+                        $"Path node {i} has invalid siding link {node.NextSidingNode}.", i, i, node.NextSidingNode,
+                        "Repair or remove the invalid passing path link."));
                 }
             }
         }
@@ -148,12 +152,9 @@ namespace FreeTrainSimulator.Runtime.Track
                     return;
                 if (active.Contains(nodeIndex))
                 {
-                    diagnostics.Add(new PathRouteDiagnostic(
-                        PathRouteDiagnosticSeverity.Warning,
-                        PathRouteDiagnosticCode.UnsupportedGraphCycle,
-                        $"Path graph contains a cycle at node {nodeIndex}.",
-                        nodeIndex: nodeIndex,
-                        suggestedAction: "Add explicit via nodes or repair links if this cycle is not intentional."));
+                    diagnostics.Add(new PathRouteDiagnostic(PathRouteDiagnosticSeverity.Warning, PathRouteDiagnosticCode.UnsupportedGraphCycle,
+                        $"Path graph contains a cycle at node {nodeIndex}.", nodeIndex,
+                        "Add explicit via nodes or repair links if this cycle is not intentional."));
                     return;
                 }
                 if (!reachable.Add(nodeIndex))
@@ -176,12 +177,9 @@ namespace FreeTrainSimulator.Runtime.Track
             {
                 if (!reachableNodes.Contains(i))
                 {
-                    diagnostics.Add(new PathRouteDiagnostic(
-                        PathRouteDiagnosticSeverity.Warning,
-                        PathRouteDiagnosticCode.UnreachableNode,
-                        $"Path node {i} is not reachable from the start node.",
-                        nodeIndex: i,
-                        suggestedAction: "Connect the node to the main or passing path, or remove it."));
+                    diagnostics.Add(new PathRouteDiagnostic(PathRouteDiagnosticSeverity.Warning, PathRouteDiagnosticCode.UnreachableNode,
+                        $"Path node {i} is not reachable from the start node.", i,
+                        "Connect the node to the main or passing path, or remove it."));
                 }
             }
         }
@@ -212,21 +210,15 @@ namespace FreeTrainSimulator.Runtime.Track
             int trackNodeIndex = ResolveTrackNodeIndex(node, trackWorld, out int trackVectorSectionIndex, out bool ambiguous);
             if (trackNodeIndex < 0)
             {
-                diagnostics.Add(new PathRouteDiagnostic(
-                    PathRouteDiagnosticSeverity.Error,
-                    PathRouteDiagnosticCode.AnchorNotOnTrack,
-                    $"Path node {authoredNodeIndex} could not be resolved to track.",
-                    nodeIndex: authoredNodeIndex,
-                    suggestedAction: "Move the path node onto a valid track segment or junction."));
+                diagnostics.Add(new PathRouteDiagnostic(PathRouteDiagnosticSeverity.Error, PathRouteDiagnosticCode.AnchorNotOnTrack,
+                    $"Path node {authoredNodeIndex} could not be resolved to track.", authoredNodeIndex,
+                    "Move the path node onto a valid track segment or junction."));
             }
             else if (ambiguous)
             {
-                diagnostics.Add(new PathRouteDiagnostic(
-                    PathRouteDiagnosticSeverity.Warning,
-                    PathRouteDiagnosticCode.AmbiguousAnchor,
-                    $"Path node {authoredNodeIndex} resolves to multiple plausible track anchors.",
-                    nodeIndex: authoredNodeIndex,
-                    suggestedAction: "Add a route-choice node or choose the intended track anchor."));
+                diagnostics.Add(new PathRouteDiagnostic(PathRouteDiagnosticSeverity.Warning, PathRouteDiagnosticCode.AmbiguousAnchor,
+                    $"Path node {authoredNodeIndex} resolves to multiple plausible track anchors.", authoredNodeIndex,
+                    "Add a route-choice node or choose the intended track anchor."));
             }
 
             return new PathRouteAnchor(authoredNodeIndex, node.Location, node.NodeType, trackNodeIndex, trackVectorSectionIndex);
@@ -268,7 +260,7 @@ namespace FreeTrainSimulator.Runtime.Track
         }
 
         private static ResolvedPathRoute BuildRoute(PathRouteBranchKind branchKind, ImmutableArray<PathNode> pathNodes,
-            ImmutableArray<PathRouteAnchor> anchors, TrackWorld trackWorld, int startNodeIndex, Func<PathNode, int> nextNodeSelector, CancellationToken cancellationToken)
+            ImmutableArray<PathRouteAnchor> anchors, TrackWorld trackWorld, List<PathRouteDiagnostic> diagnostics, int startNodeIndex, Func<PathNode, int> nextNodeSelector, CancellationToken cancellationToken)
         {
             List<ResolvedPathSpan> spans = new List<ResolvedPathSpan>();
             HashSet<int> visited = new HashSet<int>();
@@ -283,7 +275,7 @@ namespace FreeTrainSimulator.Runtime.Track
                 if (!IsInRange(nextNodeIndex, pathNodes.Length))
                     break;
 
-                spans.Add(ResolveSpan(currentNodeIndex, nextNodeIndex, anchors, trackWorld));
+                spans.Add(ResolveSpan(currentNodeIndex, nextNodeIndex, anchors, trackWorld, diagnostics));
                 endNodeIndex = nextNodeIndex;
                 currentNodeIndex = nextNodeIndex;
             }
@@ -292,7 +284,7 @@ namespace FreeTrainSimulator.Runtime.Track
         }
 
         private static ImmutableArray<ResolvedPathRoute> BuildPassingRoutes(ImmutableArray<PathNode> pathNodes, 
-            ImmutableArray<PathRouteAnchor> anchors, TrackWorld trackWorld, CancellationToken cancellationToken)
+            ImmutableArray<PathRouteAnchor> anchors, TrackWorld trackWorld, List<PathRouteDiagnostic> diagnostics, CancellationToken cancellationToken)
         {
             ImmutableArray<ResolvedPathRoute>.Builder routes = ImmutableArray.CreateBuilder<ResolvedPathRoute>();
             for (int i = 0; i < pathNodes.Length; i++)
@@ -303,12 +295,12 @@ namespace FreeTrainSimulator.Runtime.Track
                 // successor; intermediate siding nodes also carry NextSidingNode but must not start a branch.
                 PathNode node = pathNodes[i];
                 if (IsInRange(node.NextMainNode, pathNodes.Length) && IsInRange(node.NextSidingNode, pathNodes.Length))
-                    routes.Add(BuildRoute(PathRouteBranchKind.Passing, pathNodes, anchors, trackWorld, i, static pathNode => pathNode.NextSidingNode, cancellationToken));
+                    routes.Add(BuildRoute(PathRouteBranchKind.Passing, pathNodes, anchors, trackWorld, diagnostics, i, static pathNode => pathNode.NextSidingNode, cancellationToken));
             }
             return routes.ToImmutable();
         }
 
-        private static ResolvedPathSpan ResolveSpan(int fromNodeIndex, int toNodeIndex, ImmutableArray<PathRouteAnchor> anchors, TrackWorld trackWorld)
+        private static ResolvedPathSpan ResolveSpan(int fromNodeIndex, int toNodeIndex, ImmutableArray<PathRouteAnchor> anchors, TrackWorld trackWorld, List<PathRouteDiagnostic> diagnostics)
         {
             if (trackWorld == null || anchors.IsDefaultOrEmpty || !IsInRange(fromNodeIndex, anchors.Length) || !IsInRange(toNodeIndex, anchors.Length))
                 return new ResolvedPathSpan(fromNodeIndex, toNodeIndex, PathRouteSpanStatus.NotResolved);
@@ -319,9 +311,14 @@ namespace FreeTrainSimulator.Runtime.Track
                 return new ResolvedPathSpan(fromNodeIndex, toNodeIndex, PathRouteSpanStatus.Unresolved);
 
             ImmutableArray<int> trackVectorNodeIndexes = ResolveDenseTrackVectorNodes(fromAnchor.TrackNodeIndex, toAnchor.TrackNodeIndex, trackWorld);
-            return trackVectorNodeIndexes.IsEmpty
-                ? new ResolvedPathSpan(fromNodeIndex, toNodeIndex, PathRouteSpanStatus.Unresolved)
-                : new ResolvedPathSpan(fromNodeIndex, toNodeIndex, PathRouteSpanStatus.Resolved, trackVectorNodeIndexes);
+            if (!trackVectorNodeIndexes.IsEmpty)
+                return new ResolvedPathSpan(fromNodeIndex, toNodeIndex, PathRouteSpanStatus.Resolved, trackVectorNodeIndexes);
+
+            diagnostics.Add(new PathRouteDiagnostic(PathRouteDiagnosticSeverity.Warning, PathRouteDiagnosticCode.UnresolvedDenseSpan,
+                $"Path span from node {fromNodeIndex} to node {toNodeIndex} could not be resolved by dense routing.",
+                fromNodeIndex, toNodeIndex, "Add explicit via nodes or use sparse routing when available."));
+
+            return new ResolvedPathSpan(fromNodeIndex, toNodeIndex, PathRouteSpanStatus.Unresolved);
         }
 
         private static ImmutableArray<int> ResolveDenseTrackVectorNodes(int startTrackNodeIndex, int endTrackNodeIndex, TrackWorld trackWorld)

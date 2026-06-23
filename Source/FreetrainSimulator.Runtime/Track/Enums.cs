@@ -74,6 +74,9 @@ namespace FreeTrainSimulator.Runtime.Track
 
         /// <summary>A populated track anchor does not agree with the stored node location.</summary>
         AnchorLocationMismatch,
+
+        /// <summary>A span between two anchored path nodes could not be resolved by dense routing.</summary>
+        UnresolvedDenseSpan,
     }
 
     /// <summary>

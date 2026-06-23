@@ -34,7 +34,15 @@ namespace FreeTrainSimulator.Runtime.Track
         /// <summary>
         /// Initializes a new instance of the <see cref="PathRouteAnchor"/> record.
         /// </summary>
-        public PathRouteAnchor(int authoredNodeIndex, in WorldLocation location, PathNodeType nodeType, int trackNodeIndex = -1, int trackVectorSectionIndex = -1)
+        public PathRouteAnchor(int authoredNodeIndex, in WorldLocation location, PathNodeType nodeType)
+            : this(authoredNodeIndex, in location, nodeType, -1, -1)
+        {
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="PathRouteAnchor"/> record.
+        /// </summary>
+        public PathRouteAnchor(int authoredNodeIndex, in WorldLocation location, PathNodeType nodeType, int trackNodeIndex, int trackVectorSectionIndex)
         {
             if (authoredNodeIndex < 0)
                 throw new ArgumentOutOfRangeException(nameof(authoredNodeIndex), authoredNodeIndex, "Authored node index must not be negative.");

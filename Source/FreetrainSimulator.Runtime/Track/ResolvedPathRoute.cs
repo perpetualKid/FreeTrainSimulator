@@ -23,7 +23,15 @@ namespace FreeTrainSimulator.Runtime.Track
         /// <summary>
         /// Initializes a new instance of the <see cref="ResolvedPathRoute"/> record.
         /// </summary>
-        public ResolvedPathRoute(PathRouteBranchKind branchKind, int startNodeIndex, int endNodeIndex, ImmutableArray<ResolvedPathSpan> spans = default)
+        public ResolvedPathRoute(PathRouteBranchKind branchKind, int startNodeIndex, int endNodeIndex)
+            : this(branchKind, startNodeIndex, endNodeIndex, ImmutableArray<ResolvedPathSpan>.Empty)
+        {
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ResolvedPathRoute"/> record.
+        /// </summary>
+        public ResolvedPathRoute(PathRouteBranchKind branchKind, int startNodeIndex, int endNodeIndex, ImmutableArray<ResolvedPathSpan> spans)
         {
             if (startNodeIndex < 0)
                 throw new ArgumentOutOfRangeException(nameof(startNodeIndex), startNodeIndex, "Start node index must not be negative.");

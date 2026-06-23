@@ -29,8 +29,16 @@ namespace FreeTrainSimulator.Runtime.Track
         /// <summary>
         /// Initializes a new instance of the <see cref="PathRouteResolution"/> record.
         /// </summary>
-        public PathRouteResolution(ResolvedPathRoute mainRoute, ImmutableArray<ResolvedPathRoute> passingRoutes = default,
-            ImmutableArray<PathRouteAnchor> authoredNodeAnchors = default, ImmutableArray<PathRouteDiagnostic> diagnostics = default)
+        public PathRouteResolution(ResolvedPathRoute mainRoute, ImmutableArray<PathRouteDiagnostic> diagnostics)
+            : this(mainRoute, ImmutableArray<ResolvedPathRoute>.Empty, ImmutableArray<PathRouteAnchor>.Empty, diagnostics)
+        {
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="PathRouteResolution"/> record.
+        /// </summary>
+        public PathRouteResolution(ResolvedPathRoute mainRoute, ImmutableArray<ResolvedPathRoute> passingRoutes,
+            ImmutableArray<PathRouteAnchor> authoredNodeAnchors, ImmutableArray<PathRouteDiagnostic> diagnostics)
         {
             MainRoute = mainRoute;
             PassingRoutes = passingRoutes.IsDefault ? ImmutableArray<ResolvedPathRoute>.Empty : passingRoutes;

@@ -137,6 +137,85 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
         }
 
         /// <summary>
+        /// Verifies that two track nodes connected through the same junction resolve as a dense span.
+        /// </summary>
+        [TestMethod]
+        public void ResolveWhenLinkedNodesShareJunctionResolvesDenseSpan()
+        {
+            TrackWorld trackWorld = CreateTrackWorld(
+                ImmutableArray.Create<TrackNodeBase>(null, CreateVectorNode(1), CreateVectorNode(2), CreateJunctionNode(3)),
+                ImmutableArray.Create(
+                    new TrackNodeConnectorIndex(),
+                    CreateConnectors(1, 3),
+                    CreateConnectors(2, 3),
+                    CreateConnectors(3, 1, 2)));
+            PathModel pathModel = new PathModel()
+            {
+                PathNodes = ImmutableArray.Create(
+                    CreateNode(PathNodeType.Start, 1, nodeIndex: 1),
+                    CreateNode(PathNodeType.End, -1, nodeIndex: 2)),
+            };
+
+            PathRouteResolution result = PathRouteResolver.Resolve(pathModel, trackWorld);
+
+            Assert.AreEqual(PathRouteSpanStatus.Resolved, result.MainRoute.Spans[0].Status);
+            CollectionAssert.AreEqual(new[] { 1, 2 }, result.MainRoute.Spans[0].TrackVectorNodeIndexes.ToArray());
+        }
+
+        /// <summary>
+        /// Verifies that a single intermediary vector node resolves as a deterministic dense span.
+        /// </summary>
+        [TestMethod]
+        public void ResolveWhenLinkedNodesHaveSingleIntermediaryVectorResolvesDenseSpan()
+        {
+            TrackWorld trackWorld = CreateTrackWorld(
+                ImmutableArray.Create<TrackNodeBase>(null, CreateVectorNode(1), CreateVectorNode(2), CreateJunctionNode(3), CreateJunctionNode(4), CreateVectorNode(5)),
+                ImmutableArray.Create(
+                    new TrackNodeConnectorIndex(),
+                    CreateConnectors(1, 3),
+                    CreateConnectors(2, 4),
+                    CreateConnectors(3, 1, 5),
+                    CreateConnectors(4, 2, 5),
+                    CreateConnectors(5, 3, 4)));
+            PathModel pathModel = new PathModel()
+            {
+                PathNodes = ImmutableArray.Create(
+                    CreateNode(PathNodeType.Start, 1, nodeIndex: 1),
+                    CreateNode(PathNodeType.End, -1, nodeIndex: 2)),
+            };
+
+            PathRouteResolution result = PathRouteResolver.Resolve(pathModel, trackWorld);
+
+            Assert.AreEqual(PathRouteSpanStatus.Resolved, result.MainRoute.Spans[0].Status);
+            CollectionAssert.AreEqual(new[] { 1, 5, 2 }, result.MainRoute.Spans[0].TrackVectorNodeIndexes.ToArray());
+        }
+
+        /// <summary>
+        /// Verifies that anchored spans without a deterministic dense connection are reported.
+        /// </summary>
+        [TestMethod]
+        public void ResolveWhenAnchoredSpanHasNoDenseConnectionReturnsDiagnostic()
+        {
+            TrackWorld trackWorld = CreateTrackWorld(
+                ImmutableArray.Create<TrackNodeBase>(null, CreateVectorNode(1), CreateVectorNode(2)),
+                ImmutableArray.Create(
+                    new TrackNodeConnectorIndex(),
+                    CreateConnectors(1),
+                    CreateConnectors(2)));
+            PathModel pathModel = new PathModel()
+            {
+                PathNodes = ImmutableArray.Create(
+                    CreateNode(PathNodeType.Start, 1, nodeIndex: 1),
+                    CreateNode(PathNodeType.End, -1, nodeIndex: 2)),
+            };
+
+            PathRouteResolution result = PathRouteResolver.Resolve(pathModel, trackWorld);
+
+            Assert.AreEqual(PathRouteSpanStatus.Unresolved, result.MainRoute.Spans[0].Status);
+            Assert.IsTrue(result.Diagnostics.Any(diagnostic => diagnostic.Code == PathRouteDiagnosticCode.UnresolvedDenseSpan && diagnostic.FromNodeIndex == 0 && diagnostic.ToNodeIndex == 1));
+        }
+
+        /// <summary>
         /// Verifies that passing links create passing routes when enabled.
         /// </summary>
         [TestMethod]
@@ -199,12 +278,19 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
                 NodeIndex = 1,
             };
 
+            return CreateTrackWorld(
+                ImmutableArray.Create<TrackNodeBase>(null, vectorNode),
+                ImmutableArray.Create(
+                    new TrackNodeConnectorIndex(),
+                    CreateConnectors(1)));
+        }
+
+        private static TrackWorld CreateTrackWorld(ImmutableArray<TrackNodeBase> trackNodes, ImmutableArray<TrackNodeConnectorIndex> connectors)
+        {
             TrackDatabase trackDatabase = new TrackDatabase()
             {
-                TrackNodes = ImmutableArray.Create<TrackNodeBase>(null, vectorNode),
-                TrackNodeConnectors = ImmutableArray.Create(
-                    new TrackNodeConnectorIndex(),
-                    new TrackNodeConnectorIndex() { NodeIndex = 1, TrackNodeConnectors = ImmutableArray<TrackNodeConnector>.Empty }),
+                TrackNodes = trackNodes,
+                TrackNodeConnectors = connectors,
             };
             TrackModel trackModel = new TrackModel()
             {
@@ -217,6 +303,33 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
                 null,
                 new object[] { trackModel },
                 null);
+        }
+
+        private static TrackNodeConnectorIndex CreateConnectors(int nodeIndex, params int[] linkedNodeIndexes)
+        {
+            return new TrackNodeConnectorIndex()
+            {
+                NodeIndex = nodeIndex,
+                TrackNodeConnectors = linkedNodeIndexes.Select(link => new TrackNodeConnector() { Link = link }).ToImmutableArray(),
+            };
+        }
+
+        private static VectorNode CreateVectorNode(int nodeIndex)
+        {
+            WorldLocation start = new WorldLocation(new Tile(0, 0), new Vector3(nodeIndex * 100, 0, 0));
+            WorldLocation end = new WorldLocation(new Tile(0, 0), new Vector3((nodeIndex * 100) + 50, 0, 0));
+            return new VectorNode(start, new Tile(0, 0), end)
+            {
+                NodeIndex = nodeIndex,
+            };
+        }
+
+        private static JunctionNode CreateJunctionNode(int nodeIndex)
+        {
+            return new JunctionNode(new WorldLocation(new Tile(0, 0), new Vector3(nodeIndex * 100, 0, 0)), new Tile(0, 0), Vector3.Zero)
+            {
+                NodeIndex = nodeIndex,
+            };
         }
     }
 }
