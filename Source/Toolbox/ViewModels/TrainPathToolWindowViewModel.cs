@@ -243,15 +243,15 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
                 return ImmutableArray<ToolWindowRow>.Empty;
 
             ImmutableArray<ToolWindowRow>.Builder builder = ImmutableArray.CreateBuilder<ToolWindowRow>();
-            builder.Add(new ToolWindowRow("Index", selectedNode.Index.ToString(), null, false));
+            builder.Add(new ToolWindowRow("Index", selectedNode.Index.ToString(System.Globalization.CultureInfo.InvariantCulture), null, false));
             builder.Add(new ToolWindowRow("Type", selectedNode.NodeType, null, false));
-            builder.Add(new ToolWindowRow("Track Node", selectedNode.TrackNodeIndex.ToString(), null, false));
-            builder.Add(new ToolWindowRow("Wait", selectedNode.WaitTime?.ToString() ?? string.Empty, null, false));
-            builder.Add(new ToolWindowRow("Next Main", selectedNode.NextMainNode.ToString(), null, false));
-            builder.Add(new ToolWindowRow("Next Siding", selectedNode.NextSidingNode.ToString(), null, false));
+            builder.Add(new ToolWindowRow("Track Node", selectedNode.TrackNodeIndex.ToString(System.Globalization.CultureInfo.InvariantCulture), null, false));
+            builder.Add(new ToolWindowRow("Wait", selectedNode.WaitTime?.ToString(System.Globalization.CultureInfo.InvariantCulture) ?? string.Empty, null, false));
+            builder.Add(new ToolWindowRow("Next Main", selectedNode.NextMainNode.ToString(System.Globalization.CultureInfo.InvariantCulture), null, false));
+            builder.Add(new ToolWindowRow("Next Siding", selectedNode.NextSidingNode.ToString(System.Globalization.CultureInfo.InvariantCulture), null, false));
             builder.Add(new ToolWindowRow("Validation", selectedNode.Validation ?? string.Empty, null, !selectedNode.Valid));
-            builder.Add(new ToolWindowRow("Nearest Track Node", selectedNode.NearestTrackNodeIndex?.ToString() ?? string.Empty, null, false));
-            builder.Add(new ToolWindowRow("Nearest Track Section", selectedNode.NearestTrackSectionIndex?.ToString() ?? string.Empty, null, false));
+            builder.Add(new ToolWindowRow("Nearest Track Node", selectedNode.NearestTrackNodeIndex?.ToString(System.Globalization.CultureInfo.InvariantCulture) ?? string.Empty, null, false));
+            builder.Add(new ToolWindowRow("Nearest Track Section", selectedNode.NearestTrackSectionIndex?.ToString(System.Globalization.CultureInfo.InvariantCulture) ?? string.Empty, null, false));
             builder.Add(new ToolWindowRow("Nearest Track Distance", FormatMeters(selectedNode.NearestTrackDistanceMeters), null, false));
             return builder.ToImmutable();
         }

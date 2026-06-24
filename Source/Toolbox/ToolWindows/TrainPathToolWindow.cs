@@ -307,7 +307,7 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
             bool hasReversalNodes = currentPath.PathPoints.Any(point => (point.NodeType & PathNodeType.Reversal) == PathNodeType.Reversal);
 
             ImmutableArray<ToolWindowRow>.Builder builder = ImmutableArray.CreateBuilder<ToolWindowRow>();
-            builder.Add(new ToolWindowRow("Node Count", currentPath.PathPoints.Count.ToString(), null, false));
+            builder.Add(new ToolWindowRow("Node Count", currentPath.PathPoints.Count.ToString(System.Globalization.CultureInfo.InvariantCulture), null, false));
             builder.Add(new ToolWindowRow("Has End", FormatStrings.FormatYesNo(hasEnd), null, false));
             builder.Add(new ToolWindowRow("Has Broken Nodes", FormatStrings.FormatYesNo(hasBrokenNodes), hasBrokenNodes ? DrawingColor.OrangeRed : null, hasBrokenNodes));
             builder.Add(new ToolWindowRow("Has Passing Paths", FormatStrings.FormatYesNo(hasPassingPaths), null, false));

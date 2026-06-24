@@ -42,7 +42,9 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
         }
 
         /// <summary>Display title for the dock pane.</summary>
+#pragma warning disable CA1822 // Mark members as static
         public string Title => "Settings";
+#pragma warning restore CA1822 // Mark members as static
 
         /// <summary>Whether logging is enabled (log level above <see cref="TraceEventType.Critical"/>).</summary>
         public bool EnableLogging => userSettings.LogLevel != TraceEventType.Critical;
