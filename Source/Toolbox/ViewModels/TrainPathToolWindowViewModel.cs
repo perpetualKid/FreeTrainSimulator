@@ -22,6 +22,8 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
         private TrainPathListItemViewModel selectedPath;
         private TrainPathNodeItemViewModel selectedNode;
         private string snapshotSelectedPathId;
+        private bool canUndo;
+        private bool canRedo;
         private bool suppressSelectionCommand;
 
         public TrainPathToolWindowViewModel(TrainPathToolWindow toolWindow, ToolWindowRefreshScheduler scheduler)
@@ -30,6 +32,8 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
             ArgumentNullException.ThrowIfNull(toolWindow);
 
             this.toolWindow = toolWindow;
+            UndoCommand = new RelayCommand(_ => toolWindow.Undo(), _ => CanUndo);
+            RedoCommand = new RelayCommand(_ => toolWindow.Redo(), _ => CanRedo);
         }
 
         public string Title => toolWindow.Title;
@@ -41,6 +45,30 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
         public ObservableCollection<DebugToolWindowRowViewModel> SelectedNodeDetailRows { get; } = new ObservableCollection<DebugToolWindowRowViewModel>();
 
         public ObservableCollection<DebugToolWindowRowViewModel> Metadata { get; } = new ObservableCollection<DebugToolWindowRowViewModel>();
+
+        public RelayCommand UndoCommand { get; }
+
+        public RelayCommand RedoCommand { get; }
+
+        public bool CanUndo
+        {
+            get => canUndo;
+            private set
+            {
+                if (SetProperty(ref canUndo, value))
+                    UndoCommand.RaiseCanExecuteChanged();
+            }
+        }
+
+        public bool CanRedo
+        {
+            get => canRedo;
+            private set
+            {
+                if (SetProperty(ref canRedo, value))
+                    RedoCommand.RaiseCanExecuteChanged();
+            }
+        }
 
         public string SearchText
         {
@@ -102,6 +130,8 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
             SyncNodes(snapshot.Nodes);
             UpdateSelectedNodeDetailRows();
             DebugToolWindowRowViewModel.Sync(Metadata, snapshot.Metadata);
+            CanUndo = snapshot.CanUndo;
+            CanRedo = snapshot.CanRedo;
 
             if (!string.Equals(snapshotSelectedPathId, snapshot.SelectedPathId, StringComparison.Ordinal))
             {

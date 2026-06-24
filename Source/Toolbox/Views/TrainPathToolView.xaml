@@ -16,11 +16,24 @@
         <TabItem Header="Path Nodes">
             <Grid>
                 <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
                     <RowDefinition Height="2*" MinHeight="120" />
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="*" MinHeight="80" />
                 </Grid.RowDefinitions>
-                <ListView Grid.Row="0"
+                <StackPanel Grid.Row="0"
+                            Orientation="Horizontal"
+                            HorizontalAlignment="Right"
+                            Margin="0,0,0,6">
+                    <Button Padding="8,2"
+                            Content="Undo"
+                            Command="{Binding UndoCommand}" />
+                    <Button Margin="6,0,0,0"
+                            Padding="8,2"
+                            Content="Redo"
+                            Command="{Binding RedoCommand}" />
+                </StackPanel>
+                <ListView Grid.Row="1"
                           ItemsSource="{Binding Nodes}"
                           SelectedItem="{Binding SelectedNode, Mode=TwoWay}"
                           behaviors:GridViewColumnBehavior.StretchListView="True">
@@ -44,13 +57,13 @@
                         </GridView>
                     </ListView.View>
                 </ListView>
-                <GridSplitter Grid.Row="1"
+                <GridSplitter Grid.Row="2"
                               Height="4"
                               HorizontalAlignment="Stretch"
                               VerticalAlignment="Center"
                               ResizeBehavior="PreviousAndNext"
                               ResizeDirection="Rows" />
-                <DockPanel Grid.Row="2">
+                <DockPanel Grid.Row="3">
                     <TextBlock DockPanel.Dock="Top"
                                Margin="0,2,0,4"
                                FontWeight="Bold"

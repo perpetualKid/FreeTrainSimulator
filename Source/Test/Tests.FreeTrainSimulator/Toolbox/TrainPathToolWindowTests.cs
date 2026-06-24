@@ -148,6 +148,15 @@ namespace Tests.FreeTrainSimulator.Toolbox
             Assert.AreEqual("Yes", rows.Single(row => row.Name == "Has Reversal Nodes").Value);
         }
 
+        [TestMethod]
+        public void WhenEditorHistoryAvailabilityChangesThenHistoryMetadataReflectsState()
+        {
+            ImmutableArray<ToolWindowRow> rows = TrainPathToolWindow.BuildEditorHistoryMetadata(true, false);
+
+            Assert.AreEqual("Yes", rows.Single(row => row.Name == "Can Undo").Value);
+            Assert.AreEqual("No", rows.Single(row => row.Name == "Can Redo").Value);
+        }
+
         private sealed record TestTrainPath : TrainPathBase
         {
             public TestTrainPath(PathModel pathModel)

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
@@ -27,12 +28,18 @@ namespace FreeTrainSimulator.Toolbox
     internal sealed class PathEditor : PathEditorBase
     {
         private readonly UserCommandController<UserCommand> userCommandController;
+        private readonly Stack<PathModel> undoHistory = new Stack<PathModel>();
+        private readonly Stack<PathModel> redoHistory = new Stack<PathModel>();
         private PathModelHeader path;
         private long lastPathClickTick;
         private bool validPointAdded;
         private bool editorDragged;
 
         public string PathId => path?.Id;
+
+        public bool CanUndo => undoHistory.Count > 0;
+
+        public bool CanRedo => redoHistory.Count > 0;
 
         internal event EventHandler<PathEditorChangedEventArgs> OnPathChanged;
 
@@ -66,6 +73,7 @@ namespace FreeTrainSimulator.Toolbox
                 if (path != null && !CanInitializePath(path))
                     return false;
 
+                ClearHistory();
                 InitializePathModel(path);
                 OnPathChanged?.Invoke(this, new PathEditorChangedEventArgs(TrainPath));
                 return true;
@@ -116,8 +124,37 @@ namespace FreeTrainSimulator.Toolbox
                 End = "End",
                 PlayerPath = true,
             };
+            ClearHistory();
             InitializePathEdit(path as PathModel);
             OnPathChanged?.Invoke(this, new PathEditorChangedEventArgs(TrainPath));
+        }
+
+        public bool Undo()
+        {
+            if (!CanUndo)
+                return false;
+
+            PathModel redoSnapshot = CaptureSnapshot();
+            PathModel undoSnapshot = undoHistory.Pop();
+            RestoreSnapshot(undoSnapshot);
+            if (redoSnapshot != null)
+                redoHistory.Push(redoSnapshot);
+            OnPathUpdated?.Invoke(this, new PathEditorChangedEventArgs(TrainPath));
+            return true;
+        }
+
+        public bool Redo()
+        {
+            if (!CanRedo)
+                return false;
+
+            PathModel undoSnapshot = CaptureSnapshot();
+            PathModel redoSnapshot = redoHistory.Pop();
+            RestoreSnapshot(redoSnapshot);
+            if (undoSnapshot != null)
+                undoHistory.Push(undoSnapshot);
+            OnPathUpdated?.Invoke(this, new PathEditorChangedEventArgs(TrainPath));
+            return true;
         }
 
         public async Task SavePath(PathModelHeader pathDetails)
@@ -137,14 +174,19 @@ namespace FreeTrainSimulator.Toolbox
         {
             if (EditMode & !editorDragged)
             {
+                PathModel undoSnapshot = CaptureSnapshot();
+                bool changed;
                 if (Environment.TickCount64 - lastPathClickTick < doubleClickInterval && validPointAdded) //considered as double click
                 {
-                    _ = AddPathEndPoint();
+                    changed = AddPathEndPoint();
                 }
                 else
                 {
-                    validPointAdded = AddPathPoint();
+                    changed = AddPathPoint();
+                    validPointAdded = changed;
                 }
+                if (changed)
+                    PushUndoSnapshot(undoSnapshot);
                 lastPathClickTick = Environment.TickCount64;
                 OnPathUpdated?.Invoke(this, new PathEditorChangedEventArgs(TrainPath));
                 userCommandArgs.Handled = true;
@@ -154,9 +196,41 @@ namespace FreeTrainSimulator.Toolbox
 
         public void MouseReleasedRight(UserCommandArgs userCommandArgs, KeyModifiers keyModifiers)
         {
-            _ = RemovePathPoint();
+            PathModel undoSnapshot = CaptureSnapshot();
+            if (RemovePathPoint())
+                PushUndoSnapshot(undoSnapshot);
             OnPathUpdated?.Invoke(this, new PathEditorChangedEventArgs(TrainPath));
             userCommandArgs.Handled = true;
+        }
+
+        private void ClearHistory()
+        {
+            undoHistory.Clear();
+            redoHistory.Clear();
+        }
+
+        private PathModel CaptureSnapshot()
+        {
+            return TrainPath == null || path == null ? null : ConvertTrainPath(path);
+        }
+
+        private void PushUndoSnapshot(PathModel snapshot)
+        {
+            if (snapshot == null)
+                return;
+
+            undoHistory.Push(snapshot);
+            redoHistory.Clear();
+        }
+
+        private void RestoreSnapshot(PathModel snapshot)
+        {
+            ArgumentNullException.ThrowIfNull(snapshot);
+
+            path = snapshot;
+            InitializePathEdit(snapshot);
+            validPointAdded = false;
+            editorDragged = false;
         }
     }
 }

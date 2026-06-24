@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using System.Reflection;
 using System.Windows.Threading;
 
 using FreeTrainSimulator.Toolbox.ToolWindows;
@@ -51,6 +52,56 @@ namespace Tests.FreeTrainSimulator.Toolbox
             }
 
             Assert.AreEqual(2, invocations);
+        }
+
+        [TestMethod]
+        public void WhenUndoCommandExecutedThenBridgeUndoIsMarshaled()
+        {
+            int invocations = 0;
+            TrainPathToolWindow bridge = CreateBridge(_ => invocations++);
+            using (ToolWindowRefreshScheduler refreshScheduler = new ToolWindowRefreshScheduler(Dispatcher.CurrentDispatcher))
+            {
+                using (TrainPathToolWindowViewModel trainPathToolWindowViewModel = new TrainPathToolWindowViewModel(bridge, refreshScheduler))
+                {
+                    SetCommandAvailability(trainPathToolWindowViewModel, "canUndo", true);
+
+                    trainPathToolWindowViewModel.UndoCommand.Execute(null);
+
+                    Assert.AreEqual(1, invocations);
+                }
+            }
+        }
+
+        [TestMethod]
+        public void WhenRedoCommandExecutedThenBridgeRedoIsMarshaled()
+        {
+            int invocations = 0;
+            TrainPathToolWindow bridge = CreateBridge(_ => invocations++);
+            using (ToolWindowRefreshScheduler refreshScheduler = new ToolWindowRefreshScheduler(Dispatcher.CurrentDispatcher))
+            {
+                using (TrainPathToolWindowViewModel trainPathToolWindowViewModel = new TrainPathToolWindowViewModel(bridge, refreshScheduler))
+                {
+                    SetCommandAvailability(trainPathToolWindowViewModel, "canRedo", true);
+
+                    trainPathToolWindowViewModel.RedoCommand.Execute(null);
+
+                    Assert.AreEqual(1, invocations);
+                }
+            }
+        }
+
+        [TestMethod]
+        public void WhenHistoryUnavailableThenUndoRedoCommandsCannotExecute()
+        {
+            TrainPathToolWindow bridge = CreateBridge(action => action());
+            using (ToolWindowRefreshScheduler refreshScheduler = new ToolWindowRefreshScheduler(Dispatcher.CurrentDispatcher))
+            {
+                using (TrainPathToolWindowViewModel trainPathToolWindowViewModel = new TrainPathToolWindowViewModel(bridge, refreshScheduler))
+                {
+                    Assert.IsFalse(trainPathToolWindowViewModel.UndoCommand.CanExecute(null));
+                    Assert.IsFalse(trainPathToolWindowViewModel.RedoCommand.CanExecute(null));
+                }
+            }
         }
 
         [TestMethod]
@@ -196,6 +247,11 @@ namespace Tests.FreeTrainSimulator.Toolbox
                     Assert.AreEqual("1.25 m", trainPathToolWindowViewModel.SelectedNodeDetailRows.Single(row => row.Name == "Nearest Track Distance").Value);
                 }
             }
+        }
+
+        private static void SetCommandAvailability(TrainPathToolWindowViewModel viewModel, string fieldName, bool value)
+        {
+            typeof(TrainPathToolWindowViewModel).GetField(fieldName, BindingFlags.Instance | BindingFlags.NonPublic).SetValue(viewModel, value);
         }
     }
 }

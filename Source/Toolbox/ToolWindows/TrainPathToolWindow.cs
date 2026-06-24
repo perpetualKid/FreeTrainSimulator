@@ -76,11 +76,11 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
     /// path's node rows, and its metadata name/value rows.
     /// </summary>
     internal sealed record TrainPathSnapshot(ImmutableArray<TrainPathListRow> Paths,
-        string SelectedPathId, ImmutableArray<TrainPathNodeRow> Nodes, ImmutableArray<ToolWindowRow> Metadata)
+        string SelectedPathId, ImmutableArray<TrainPathNodeRow> Nodes, ImmutableArray<ToolWindowRow> Metadata, bool CanUndo, bool CanRedo)
     {
         public static TrainPathSnapshot Empty { get; } = 
             new TrainPathSnapshot(ImmutableArray<TrainPathListRow>.Empty, null,
-            ImmutableArray<TrainPathNodeRow>.Empty, ImmutableArray<ToolWindowRow>.Empty);
+            ImmutableArray<TrainPathNodeRow>.Empty, ImmutableArray<ToolWindowRow>.Empty, false, false);
     }
 
     /// <summary>
@@ -155,6 +155,8 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
             TrainPathBase currentPath = pathEditor.TrainPath;
             string selectedPathId = currentPath?.PathModel?.Id;
             int nodeCount = currentPath?.PathPoints.Count ?? 0;
+            bool canUndo = pathEditor.CanUndo;
+            bool canRedo = pathEditor.CanRedo;
 
             int currentSnapshotVersion = snapshotVersion;
 
@@ -164,6 +166,8 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
                 && string.Equals(selectedPathId, lastPathId, StringComparison.Ordinal)
                 && nodeCount == lastNodeCount
                 && currentSnapshotVersion == lastSnapshotVersion
+                && canUndo == snapshot.CanUndo
+                && canRedo == snapshot.CanRedo
                 && paths.SequenceEqual(snapshot.Paths))
             {
                 return;
@@ -173,7 +177,7 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
             lastNodeCount = nodeCount;
             lastSnapshotVersion = currentSnapshotVersion;
 
-            snapshot = new TrainPathSnapshot(paths, selectedPathId, BuildNodes(currentPath), BuildMetadata(currentPath));
+            snapshot = new TrainPathSnapshot(paths, selectedPathId, BuildNodes(currentPath), BuildMetadata(pathEditor, currentPath), canUndo, canRedo);
         }
 
         /// <summary>
@@ -218,6 +222,26 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
             });
         }
 
+        internal void Undo()
+        {
+            gameThreadInvoker(() =>
+            {
+                PathEditor pathEditor = pathEditorAccessor();
+                if (pathEditor?.Undo() == true)
+                    MarkDirty();
+            });
+        }
+
+        internal void Redo()
+        {
+            gameThreadInvoker(() =>
+            {
+                PathEditor pathEditor = pathEditorAccessor();
+                if (pathEditor?.Redo() == true)
+                    MarkDirty();
+            });
+        }
+
         private ImmutableArray<TrainPathListRow> BuildPaths()
         {
             ImmutableArray<TrainPathListRow>.Builder builder = ImmutableArray.CreateBuilder<TrainPathListRow>();
@@ -245,7 +269,7 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
             return builder.ToImmutable();
         }
 
-        private ImmutableArray<ToolWindowRow> BuildMetadata(TrainPathBase currentPath)
+        private ImmutableArray<ToolWindowRow> BuildMetadata(PathEditor pathEditor, TrainPathBase currentPath)
         {
             if (currentPath?.PathModel == null)
                 return ImmutableArray<ToolWindowRow>.Empty;
@@ -256,11 +280,19 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
             builder.Add(new ToolWindowRow("Path Name", currentPath.PathModel.Name, null, false));
             builder.Add(new ToolWindowRow("Start", currentPath.PathModel.Start, null, false));
             builder.Add(new ToolWindowRow("End", currentPath.PathModel.End, null, false));
-            builder.Add(new ToolWindowRow("Player Path", currentPath.PathModel.PlayerPath ? "Yes" : "No", null, false));
+            builder.Add(new ToolWindowRow("Player Path", FormatStrings.FormatYesNo(currentPath.PathModel.PlayerPath), null, false));
             builder.Add(new ToolWindowRow("Path Length", FormatStrings.FormatDistanceDisplay(currentPath.Length, metricUnits, 1000), null, false));
             builder.AddRange(BuildEditorStateMetadata(currentPath));
+            builder.AddRange(BuildEditorHistoryMetadata(pathEditor?.CanUndo == true, pathEditor?.CanRedo == true));
             builder.AddRange(BuildResolverDiagnosticMetadata(PathRouteResolver.Resolve(currentPath.PathModel, null)));
             return builder.ToImmutable();
+        }
+
+        internal static ImmutableArray<ToolWindowRow> BuildEditorHistoryMetadata(bool canUndo, bool canRedo)
+        {
+            return ImmutableArray.Create(
+                new ToolWindowRow("Can Undo", FormatStrings.FormatYesNo(canUndo), null, false),
+                new ToolWindowRow("Can Redo", FormatStrings.FormatYesNo(canRedo), null, false));
         }
 
         internal static ImmutableArray<ToolWindowRow> BuildEditorStateMetadata(TrainPathBase currentPath)
@@ -276,17 +308,12 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
 
             ImmutableArray<ToolWindowRow>.Builder builder = ImmutableArray.CreateBuilder<ToolWindowRow>();
             builder.Add(new ToolWindowRow("Node Count", currentPath.PathPoints.Count.ToString(), null, false));
-            builder.Add(new ToolWindowRow("Has End", FormatYesNo(hasEnd), null, false));
-            builder.Add(new ToolWindowRow("Has Broken Nodes", FormatYesNo(hasBrokenNodes), hasBrokenNodes ? DrawingColor.OrangeRed : null, hasBrokenNodes));
-            builder.Add(new ToolWindowRow("Has Passing Paths", FormatYesNo(hasPassingPaths), null, false));
-            builder.Add(new ToolWindowRow("Has Wait Nodes", FormatYesNo(hasWaitNodes), null, false));
-            builder.Add(new ToolWindowRow("Has Reversal Nodes", FormatYesNo(hasReversalNodes), null, false));
+            builder.Add(new ToolWindowRow("Has End", FormatStrings.FormatYesNo(hasEnd), null, false));
+            builder.Add(new ToolWindowRow("Has Broken Nodes", FormatStrings.FormatYesNo(hasBrokenNodes), hasBrokenNodes ? DrawingColor.OrangeRed : null, hasBrokenNodes));
+            builder.Add(new ToolWindowRow("Has Passing Paths", FormatStrings.FormatYesNo(hasPassingPaths), null, false));
+            builder.Add(new ToolWindowRow("Has Wait Nodes", FormatStrings.FormatYesNo(hasWaitNodes), null, false));
+            builder.Add(new ToolWindowRow("Has Reversal Nodes", FormatStrings.FormatYesNo(hasReversalNodes), null, false));
             return builder.ToImmutable();
-        }
-
-        private static string FormatYesNo(bool value)
-        {
-            return value ? "Yes" : "No";
         }
 
         internal static ImmutableArray<ToolWindowRow> BuildResolverDiagnosticMetadata(PathRouteResolution resolution)

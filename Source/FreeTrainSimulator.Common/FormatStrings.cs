@@ -91,6 +91,11 @@ namespace FreeTrainSimulator.Common
         /// <summary>
         /// Formatted unlocalized speed string, used in reports and logs.
         /// </summary>
+        public static string FormatYesNo(bool value)
+        {
+            return value ? catalog.GetString("Yes") : catalog.GetString("No");
+        }
+
         public static string FormatSpeed(double speed, bool metric)
         {
             return string.Format(CultureInfo.CurrentCulture,
