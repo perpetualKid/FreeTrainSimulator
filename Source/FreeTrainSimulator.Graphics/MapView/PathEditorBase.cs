@@ -88,7 +88,7 @@ namespace FreeTrainSimulator.Graphics.MapView
 
         protected bool AddPathEndPoint()
         {
-            if (trainPath?.PathPoints.Count > 1 && activePathPoint.ValidationResult == PathNodeInvalidReasons.None)
+            if (trainPath?.PathPoints.Count > 1 && IsValidActivePathPoint())
             {
                 activePathPoint = trainPath.PathPoints[^1] as EditorPathPoint;
                 activePathPoint.UpdateDirectionTowards(trainPath.PathPoints[^2], true, true);
@@ -106,13 +106,18 @@ namespace FreeTrainSimulator.Graphics.MapView
         protected bool AddPathPoint()
         {
             EditorPathPoint currentItem = activePathPoint;
-            return trainPath != null && activePathPoint.ValidationResult == PathNodeInvalidReasons.None && (activePathPoint = trainPath.AddPathPoint(activePathPoint)) != currentItem;
+            return trainPath != null && IsValidActivePathPoint() && (activePathPoint = trainPath.AddPathPoint(activePathPoint)) != currentItem;
         }
 
         protected bool RemovePathPoint()
         {
             EditorPathPoint currentItem = activePathPoint;
             return trainPath != null && activePathPoint.ValidationResult == PathNodeInvalidReasons.None && (activePathPoint = trainPath.RemovePathPoint(activePathPoint)) != currentItem;
+        }
+
+        private bool IsValidActivePathPoint()
+        {
+            return activePathPoint != null && activePathPoint.ValidationResult == PathNodeInvalidReasons.None && !activePathPoint.ConnectedSegments.IsDefaultOrEmpty;
         }
         #endregion
 

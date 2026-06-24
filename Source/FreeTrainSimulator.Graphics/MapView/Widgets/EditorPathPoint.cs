@@ -79,7 +79,8 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
             if (nextPathPoint == null)
                 return;
 
-            if (alongTrack && nextPathPoint.ValidationResult == PathNodeInvalidReasons.None)
+            if (alongTrack && nextPathPoint.ValidationResult == PathNodeInvalidReasons.None &&
+                !ConnectedSegments.IsDefaultOrEmpty && !nextPathPoint.ConnectedSegments.IsDefaultOrEmpty)
             {
                 TrackSegmentBase trackSegment = ConnectedSegments.Length == 1 ? ConnectedSegments[0] :
                     ConnectedSegments.IntersectBy(nextPathPoint.ConnectedSegments.Select(s => s.TrackNodeIndex), s => s.TrackNodeIndex).FirstOrDefault();

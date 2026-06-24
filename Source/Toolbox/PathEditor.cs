@@ -134,7 +134,7 @@ namespace FreeTrainSimulator.Toolbox
             if (!CanUndo)
                 return false;
 
-            PathModel redoSnapshot = CaptureSnapshot();
+            PathModel redoSnapshot = TryCaptureSnapshot();
             PathModel undoSnapshot = undoHistory.Pop();
             RestoreSnapshot(undoSnapshot);
             if (redoSnapshot != null)
@@ -148,7 +148,7 @@ namespace FreeTrainSimulator.Toolbox
             if (!CanRedo)
                 return false;
 
-            PathModel undoSnapshot = CaptureSnapshot();
+            PathModel undoSnapshot = TryCaptureSnapshot();
             PathModel redoSnapshot = redoHistory.Pop();
             RestoreSnapshot(redoSnapshot);
             if (undoSnapshot != null)
@@ -174,7 +174,7 @@ namespace FreeTrainSimulator.Toolbox
         {
             if (EditMode & !editorDragged)
             {
-                PathModel undoSnapshot = CaptureSnapshot();
+                PathModel undoSnapshot = TryCaptureSnapshot();
                 bool changed;
                 if (Environment.TickCount64 - lastPathClickTick < doubleClickInterval && validPointAdded) //considered as double click
                 {
@@ -196,7 +196,7 @@ namespace FreeTrainSimulator.Toolbox
 
         public void MouseReleasedRight(UserCommandArgs userCommandArgs, KeyModifiers keyModifiers)
         {
-            PathModel undoSnapshot = CaptureSnapshot();
+            PathModel undoSnapshot = TryCaptureSnapshot();
             if (RemovePathPoint())
                 PushUndoSnapshot(undoSnapshot);
             OnPathUpdated?.Invoke(this, new PathEditorChangedEventArgs(TrainPath));
@@ -209,9 +209,46 @@ namespace FreeTrainSimulator.Toolbox
             redoHistory.Clear();
         }
 
-        private PathModel CaptureSnapshot()
+        private PathModel TryCaptureSnapshot()
         {
-            return TrainPath == null || path == null ? null : ConvertTrainPath(path);
+            try
+            {
+                return TrainPath == null || path == null ? null : ConvertTrainPath(path);
+            }
+            catch (InvalidOperationException ex)
+            {
+                Trace.TraceWarning($"Cannot capture train path undo snapshot because the current path is invalid: {ex.Message}. {BuildSnapshotContext()}");
+                return null;
+            }
+        }
+
+        private string BuildSnapshotContext()
+        {
+            int pointCount = TrainPath?.PathPoints.Count ?? 0;
+            string invalidPoints = TrainPath == null
+                ? "none"
+                : string.Join(", ", TrainPath.PathPoints
+                    .Select((point, index) => new { Point = point, Index = index })
+                    .Where(item => item.Point.ValidationResult != PathNodeInvalidReasons.None || item.Point.ConnectedSegments.IsDefaultOrEmpty)
+                    .Take(5)
+                    .Select(item => $"#{item.Index}:{item.Point.NodeType}:{FormatInvalidPointState(item.Point)}"));
+
+            if (string.IsNullOrEmpty(invalidPoints))
+                invalidPoints = "none";
+
+            return $"PathId='{path?.Id ?? "<none>"}', PathName='{path?.Name ?? "<none>"}', EditMode={EditMode}, "
+                + $"PointCount={pointCount}, InvalidPoints={invalidPoints}, CanUndo={CanUndo}, CanRedo={CanRedo}, "
+                + $"ValidPointAdded={validPointAdded}, EditorDragged={editorDragged}";
+        }
+
+        private static string FormatInvalidPointState(TrainPathPointBase point)
+        {
+            string validation = point.ValidationResult == PathNodeInvalidReasons.None ? "None" : point.ValidationResult.ToString();
+            string connectedSegments = point.ConnectedSegments.IsDefault
+                ? "DefaultSegments"
+                : $"Segments={point.ConnectedSegments.Length}";
+
+            return $"{validation}/{connectedSegments}";
         }
 
         private void PushUndoSnapshot(PathModel snapshot)

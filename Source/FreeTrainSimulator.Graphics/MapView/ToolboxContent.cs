@@ -322,6 +322,9 @@ namespace FreeTrainSimulator.Graphics.MapView
                     }
                 }
             }
+            if (ContentMode == ToolboxContentMode.EditPath && !viewSettings[MapContentType.Paths])
+                PathEditor?.Draw();
+
             if (ContentMode == ToolboxContentMode.ViewRoute || !viewSettings[MapContentType.Paths])
             {
                 if (null != nearestItems[MapContentType.Tracks])

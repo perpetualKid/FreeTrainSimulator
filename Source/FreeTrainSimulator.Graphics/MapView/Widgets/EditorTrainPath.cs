@@ -123,11 +123,11 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
             if (activeEditorSegmentStart != null && activeEditorSegmentStart.ValidationResult != PathNodeInvalidReasons.None)
                 return pathPoint;
 
-            activeEditorSegmentStart = new EditorPathPoint(pathPoint.Location, TrackWorld);
+            activeEditorSegmentStart = new EditorPathPoint(pathPoint);
 
             pathPoint = PathPoints.Count == 0
-                ? new EditorPathPoint(pathPoint.Location, TrackWorld) { NodeType = PathNodeType.Start, NextMainNode = 1 }
-                : new EditorPathPoint(pathPoint.Location, TrackWorld) { NextMainNode = PathPoints.Count + 1 };
+                ? pathPoint with { NodeType = PathNodeType.Start, NextMainNode = 1 }
+                : pathPoint with { NextMainNode = PathPoints.Count + 1 };
             PathPoints.Add(pathPoint);
             sections.Clear();
             editorUseIntermediaryPathPoint = false;
@@ -144,7 +144,7 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
             if (PathPoints.Count > 0)
             {
                 PathPoints.RemoveAt(PathPoints.Count - 1);
-                activeEditorSegmentStart = new EditorPathPoint(PathPoints[^1].Location, TrackWorld);
+                activeEditorSegmentStart = new EditorPathPoint(PathPoints[^1]);
                 RemoveSections(sections);
                 editorUseIntermediaryPathPoint = false;
                 pathSectionLookup = PathSections.Select(section => section as TrainPathSectionBase).ToLookup(section => section.PathItem, section => section) as Lookup<TrainPathPointBase, TrainPathSectionBase>;

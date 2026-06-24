@@ -123,7 +123,7 @@ namespace FreeTrainSimulator.Runtime.Track
             List<PathNode> pathNodes = new List<PathNode>();
             foreach (TrainPathPointBase pathPoint in PathPoints)
             {
-                if (pathPoint.ConnectedSegments.Length == 0)
+                if (pathPoint.ConnectedSegments.IsDefaultOrEmpty)
                     throw new InvalidOperationException("Invalid path point not on track segment");
 
                 TrackSegmentBase segment = pathPoint.ConnectedSegments[0];

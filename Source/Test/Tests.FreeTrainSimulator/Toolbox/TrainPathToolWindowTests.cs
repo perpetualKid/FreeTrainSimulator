@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using System;
 using System.Linq;
 using System.Reflection;
 
@@ -157,6 +158,27 @@ namespace Tests.FreeTrainSimulator.Toolbox
             Assert.AreEqual("No", rows.Single(row => row.Name == "Can Redo").Value);
         }
 
+        [TestMethod]
+        public void WhenPathPointHasDefaultConnectivityThenToPathModelThrowsInvalidOperationException()
+        {
+            TestTrainPath trainPath = new TestTrainPath(new PathModel
+            {
+                Id = "test-path",
+                Name = "Test Path",
+            });
+            trainPath.PathPoints.Add(new TestTrainPathPoint(PathNodeType.Start));
+
+            try
+            {
+                trainPath.ConvertToPathModel(new PathModelHeader());
+                Assert.Fail("Expected InvalidOperationException.");
+            }
+            catch (InvalidOperationException exception)
+            {
+                Assert.AreEqual("Invalid path point not on track segment", exception.Message);
+            }
+        }
+
         private sealed record TestTrainPath : TrainPathBase
         {
             public TestTrainPath(PathModel pathModel)
@@ -183,6 +205,11 @@ namespace Tests.FreeTrainSimulator.Toolbox
             public override double DistanceSquared(in PointD point)
             {
                 return double.NaN;
+            }
+
+            public PathModel ConvertToPathModel(PathModelHeader pathModelHeader)
+            {
+                return ToPathModel(pathModelHeader);
             }
         }
 
