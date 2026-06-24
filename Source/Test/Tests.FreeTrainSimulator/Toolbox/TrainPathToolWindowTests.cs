@@ -1,10 +1,16 @@
 using System.Collections.Immutable;
 using System.Linq;
+using System.Reflection;
 
+using FreeTrainSimulator.Common;
+using FreeTrainSimulator.Common.Position;
+using FreeTrainSimulator.Models.Content;
+using FreeTrainSimulator.Models.Track;
 using FreeTrainSimulator.Runtime.Track;
 using FreeTrainSimulator.Toolbox.ToolWindows;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Microsoft.Xna.Framework;
 
 namespace Tests.FreeTrainSimulator.Toolbox
 {
@@ -118,6 +124,89 @@ namespace Tests.FreeTrainSimulator.Toolbox
             Assert.AreEqual(nameof(PathRouteDiagnosticCode.MissingEndNode), rows[1].Name);
             Assert.AreEqual("Path has no end node.", rows[1].Value);
             Assert.IsTrue(rows.Any(row => row.Color.HasValue));
+        }
+
+        [TestMethod]
+        public void WhenPathHasNodeFeaturesThenEditorStateMetadataSummarizesThem()
+        {
+            TestTrainPath trainPath = new TestTrainPath(new PathModel
+            {
+                Id = "test-path",
+                Name = "Test Path",
+            });
+            trainPath.PathPoints.Add(new TestTrainPathPoint(PathNodeType.Start) { NextSidingNode = 1 });
+            trainPath.PathPoints.Add(new TestTrainPathPoint(PathNodeType.Wait | PathNodeType.Reversal) { WaitInfo = new PathNodeWaitInfo { WaitTime = 30 } });
+            trainPath.PathPoints.Add(new TestTrainPathPoint(PathNodeType.End) { ValidationResult = PathNodeInvalidReasons.NotOnTrack });
+
+            ImmutableArray<ToolWindowRow> rows = TrainPathToolWindow.BuildEditorStateMetadata(trainPath);
+
+            Assert.AreEqual("3", rows.Single(row => row.Name == "Node Count").Value);
+            Assert.AreEqual("Yes", rows.Single(row => row.Name == "Has End").Value);
+            Assert.AreEqual("Yes", rows.Single(row => row.Name == "Has Broken Nodes").Value);
+            Assert.AreEqual("Yes", rows.Single(row => row.Name == "Has Passing Paths").Value);
+            Assert.AreEqual("Yes", rows.Single(row => row.Name == "Has Wait Nodes").Value);
+            Assert.AreEqual("Yes", rows.Single(row => row.Name == "Has Reversal Nodes").Value);
+        }
+
+        private sealed record TestTrainPath : TrainPathBase
+        {
+            public TestTrainPath(PathModel pathModel)
+                : base(pathModel, CreateInitializedTrackWorld())
+            {
+            }
+
+            protected override TrackSegmentSectionBase<TrainPathSegmentBase> InitializeSection(in PointD startLocation, in PointD endLocation)
+            {
+                throw new System.NotSupportedException();
+            }
+
+            protected override TrackSegmentSectionBase<TrainPathSegmentBase> InitializeSection(TrackWorld trackWorld, int trackNodeIndex)
+            {
+                throw new System.NotSupportedException();
+            }
+
+            protected override TrackSegmentSectionBase<TrainPathSegmentBase> InitializeSection(TrackWorld trackWorld, int trackNodeIndex,
+                in PointD startLocation, in PointD endLocation)
+            {
+                throw new System.NotSupportedException();
+            }
+
+            public override double DistanceSquared(in PointD point)
+            {
+                return double.NaN;
+            }
+        }
+
+        private sealed record TestTrainPathPoint : TrainPathPointBase
+        {
+            public TestTrainPathPoint(PathNodeType nodeType)
+                : base(PointD.None, nodeType)
+            {
+            }
+        }
+
+        private static TrackWorld CreateInitializedTrackWorld()
+        {
+            WorldLocation start = new WorldLocation(new Tile(0, 0), Vector3.Zero);
+            WorldLocation end = new WorldLocation(new Tile(0, 0), new Vector3(100, 0, 0));
+            VectorNode vectorNode = new VectorNode(start, new Tile(0, 0), end)
+            {
+                NodeIndex = 1,
+                VectorSections = ImmutableArray<VectorSectionNode>.Empty,
+            };
+            TrackDatabase trackDatabase = new TrackDatabase()
+            {
+                TrackNodes = ImmutableArray.Create<TrackNodeBase>(null, vectorNode),
+                TrackNodeConnectors = ImmutableArray.Create(new TrackNodeConnectorIndex(), new TrackNodeConnectorIndex()),
+            };
+            typeof(TrackDatabase).GetMethod("OnSerializing", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(trackDatabase, null);
+            typeof(TrackDatabase).GetMethod("OnSerialized", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(trackDatabase, null);
+            TrackModel trackModel = new TrackModel()
+            {
+                TrackDatabase = trackDatabase,
+            };
+
+            return TrackWorld.Initialize(null, trackModel, new TrackSectionModel());
         }
     }
 }

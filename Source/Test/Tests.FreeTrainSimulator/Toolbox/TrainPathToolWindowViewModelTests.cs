@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Windows.Threading;
 
 using FreeTrainSimulator.Toolbox.ToolWindows;
@@ -164,7 +165,7 @@ namespace Tests.FreeTrainSimulator.Toolbox
         {
             TrainPathNodeItemViewModel node = new TrainPathNodeItemViewModel(new TrainPathNodeRow(1, "Wait", true, 7, 2, 3, 45, null));
 
-            node.Update(new TrainPathNodeRow(4, "Invalid", false, 9, -1, -1, null, "NotOnTrack"));
+            node.Update(new TrainPathNodeRow(4, "Invalid", false, 9, -1, -1, null, "NotOnTrack", 11, 5, 0.75));
 
             Assert.AreEqual(4, node.Index);
             Assert.AreEqual("Invalid", node.NodeType);
@@ -174,6 +175,27 @@ namespace Tests.FreeTrainSimulator.Toolbox
             Assert.AreEqual(-1, node.NextSidingNode);
             Assert.IsNull(node.WaitTime);
             Assert.AreEqual("NotOnTrack", node.Validation);
+            Assert.AreEqual(11, node.NearestTrackNodeIndex);
+            Assert.AreEqual(5, node.NearestTrackSectionIndex);
+            Assert.AreEqual(0.75, node.NearestTrackDistanceMeters);
+        }
+
+        [TestMethod]
+        public void WhenSelectedNodeHasNearestTrackDiagnosticsThenDetailRowsContainDiagnostics()
+        {
+            TrainPathToolWindow bridge = CreateBridge(action => action());
+            using (ToolWindowRefreshScheduler refreshScheduler = new ToolWindowRefreshScheduler(Dispatcher.CurrentDispatcher))
+            {
+                using (TrainPathToolWindowViewModel trainPathToolWindowViewModel = new TrainPathToolWindowViewModel(bridge, refreshScheduler)
+                {
+                    SelectedNode = new TrainPathNodeItemViewModel(new TrainPathNodeRow(2, "End", false, 0, -1, -1, null, "NotOnTrack", 42, 3, 1.25))
+                })
+                {
+                    Assert.AreEqual("42", trainPathToolWindowViewModel.SelectedNodeDetailRows.Single(row => row.Name == "Nearest Track Node").Value);
+                    Assert.AreEqual("3", trainPathToolWindowViewModel.SelectedNodeDetailRows.Single(row => row.Name == "Nearest Track Section").Value);
+                    Assert.AreEqual("1.25 m", trainPathToolWindowViewModel.SelectedNodeDetailRows.Single(row => row.Name == "Nearest Track Distance").Value);
+                }
+            }
         }
     }
 }

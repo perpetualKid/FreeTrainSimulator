@@ -220,7 +220,15 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
             builder.Add(new ToolWindowRow("Next Main", selectedNode.NextMainNode.ToString(), null, false));
             builder.Add(new ToolWindowRow("Next Siding", selectedNode.NextSidingNode.ToString(), null, false));
             builder.Add(new ToolWindowRow("Validation", selectedNode.Validation ?? string.Empty, null, !selectedNode.Valid));
+            builder.Add(new ToolWindowRow("Nearest Track Node", selectedNode.NearestTrackNodeIndex?.ToString() ?? string.Empty, null, false));
+            builder.Add(new ToolWindowRow("Nearest Track Section", selectedNode.NearestTrackSectionIndex?.ToString() ?? string.Empty, null, false));
+            builder.Add(new ToolWindowRow("Nearest Track Distance", FormatMeters(selectedNode.NearestTrackDistanceMeters), null, false));
             return builder.ToImmutable();
+        }
+
+        private static string FormatMeters(double? value)
+        {
+            return value.HasValue ? FormattableString.Invariant($"{value.Value:0.###} m") : string.Empty;
         }
 
         }
@@ -274,6 +282,9 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
         private int nextSidingNode;
         private int? waitTime;
         private string validation;
+        private int? nearestTrackNodeIndex;
+        private int? nearestTrackSectionIndex;
+        private double? nearestTrackDistanceMeters;
 
         public TrainPathNodeItemViewModel(int index, string nodeType, bool valid)
         {
@@ -338,6 +349,24 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
             private set => SetProperty(ref validation, value);
         }
 
+        public int? NearestTrackNodeIndex
+        {
+            get => nearestTrackNodeIndex;
+            private set => SetProperty(ref nearestTrackNodeIndex, value);
+        }
+
+        public int? NearestTrackSectionIndex
+        {
+            get => nearestTrackSectionIndex;
+            private set => SetProperty(ref nearestTrackSectionIndex, value);
+        }
+
+        public double? NearestTrackDistanceMeters
+        {
+            get => nearestTrackDistanceMeters;
+            private set => SetProperty(ref nearestTrackDistanceMeters, value);
+        }
+
         public void Update(int index, string nodeType, bool valid)
         {
             Index = index;
@@ -353,6 +382,9 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
             NextSidingNode = row.NextSidingNode;
             WaitTime = row.WaitTime;
             Validation = row.Validation;
+            NearestTrackNodeIndex = row.NearestTrackNodeIndex;
+            NearestTrackSectionIndex = row.NearestTrackSectionIndex;
+            NearestTrackDistanceMeters = row.NearestTrackDistanceMeters;
         }
     }
 }

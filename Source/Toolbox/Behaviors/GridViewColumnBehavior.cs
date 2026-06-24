@@ -63,6 +63,17 @@ namespace FreeTrainSimulator.Toolbox.Behaviors
 
         public static void SetStretchListView(ListView listView, bool value) => listView.SetValue(StretchListViewProperty, value);
 
+        public static readonly DependencyProperty EqualColumnWidthProperty =
+            DependencyProperty.RegisterAttached(
+                "EqualColumnWidth",
+                typeof(bool),
+                typeof(GridViewColumnBehavior),
+                new PropertyMetadata(false));
+
+        public static bool GetEqualColumnWidth(ListView listView) => (bool)listView.GetValue(EqualColumnWidthProperty);
+
+        public static void SetEqualColumnWidth(ListView listView, bool value) => listView.SetValue(EqualColumnWidthProperty, value);
+
         private static void OnStretchListViewChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
             if (d is not ListView listView)
@@ -112,6 +123,12 @@ namespace FreeTrainSimulator.Toolbox.Behaviors
             if ((bool)listView.GetValue(AdjustingProperty))
                 return;
 
+            if (GetEqualColumnWidth(listView))
+            {
+                AdjustEqualColumns(listView, gridView);
+                return;
+            }
+
             GridViewColumn stretchColumn = gridView.Columns.FirstOrDefault(column => GetStretchColumn(column));
             if (stretchColumn is null)
                 return;
@@ -153,6 +170,32 @@ namespace FreeTrainSimulator.Toolbox.Behaviors
                         ScrollViewer.SetHorizontalScrollBarVisibility(listView, ScrollBarVisibility.Auto);
                         stretchColumn.Width = Math.Min(contentWidth, fillWidth * maxOverflowFactor);
                     }
+                }
+                finally
+                {
+                    listView.SetValue(AdjustingProperty, false);
+                }
+            }));
+        }
+
+        private static void AdjustEqualColumns(ListView listView, GridView gridView)
+        {
+            if (gridView.Columns.Count == 0)
+                return;
+
+            listView.SetValue(AdjustingProperty, true);
+            listView.Dispatcher.BeginInvoke(DispatcherPriority.Loaded, new Action(() =>
+            {
+                try
+                {
+                    double viewport = GetViewportWidth(listView);
+                    if (viewport <= 0)
+                        return;
+
+                    ScrollViewer.SetHorizontalScrollBarVisibility(listView, ScrollBarVisibility.Disabled);
+                    double columnWidth = Math.Max(0, viewport / gridView.Columns.Count);
+                    foreach (GridViewColumn column in gridView.Columns)
+                        column.Width = columnWidth;
                 }
                 finally
                 {

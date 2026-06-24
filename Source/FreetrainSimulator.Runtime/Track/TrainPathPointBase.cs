@@ -23,6 +23,8 @@ namespace FreeTrainSimulator.Runtime.Track
 
         public PathNodeWaitInfo WaitInfo { get; init; }
 
+        public TrackDistanceDiagnostic NearestTrackDistance { get; }
+
         public PathNodeInvalidReasons ValidationResult { get; set; }
 
         protected TrainPathPointBase(PathNode node, TrackWorld trackWorld)
@@ -36,6 +38,7 @@ namespace FreeTrainSimulator.Runtime.Track
             NextSidingNode = node.NextSidingNode;
             NodeIndex = node.NodeIndex;
             WaitInfo = node.WaitInfo;
+            NearestTrackDistance = trackWorld.NearestTrackDistance(Location);
 
             JunctionNode = (node.NodeType & PathNodeType.Junction) == PathNodeType.Junction ? trackWorld.JunctionNodeBaseAt(Location) : null;
             if ((node.NodeType & PathNodeType.Junction) == PathNodeType.Junction && JunctionNode == null)
@@ -57,6 +60,7 @@ namespace FreeTrainSimulator.Runtime.Track
 
             JunctionNode = trackWorld.JunctionNodeBaseAt(Location);
             NodeType = JunctionNode != null ? PathNodeType.Junction : PathNodeType.Intermediate;
+            NearestTrackDistance = trackWorld.NearestTrackDistance(Location);
 
             ConnectedSegments = GetConnectedNodes(trackWorld);
             if (!ConnectedSegments.Any())
@@ -67,6 +71,7 @@ namespace FreeTrainSimulator.Runtime.Track
         {
             ArgumentNullException.ThrowIfNull(trackWorld);
 
+            NearestTrackDistance = trackWorld.NearestTrackDistance(Location);
             JunctionNode = junctionNode;
             if (JunctionNode != null)
             {

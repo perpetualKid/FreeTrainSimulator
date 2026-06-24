@@ -15,12 +15,12 @@
     <ListView Margin="6"
               ItemsSource="{Binding Rows}"
               ItemContainerStyle="{StaticResource ToolWindowRowItemStyle}"
+              behaviors:GridViewColumnBehavior.EqualColumnWidth="True"
               behaviors:GridViewColumnBehavior.StretchListView="True">
         <ListView.View>
             <GridView>
-                <GridViewColumn Header="Name" Width="180" DisplayMemberBinding="{Binding Name}" />
-                <GridViewColumn Header="Value" Width="320" DisplayMemberBinding="{Binding Value}"
-                                behaviors:GridViewColumnBehavior.StretchColumn="True" />
+                <GridViewColumn Header="Name" Width="250" CellTemplate="{StaticResource ToolWindowNameCellTemplate}" />
+                <GridViewColumn Header="Value" Width="250" CellTemplate="{StaticResource ToolWindowValueCellTemplate}" />
             </GridView>
         </ListView.View>
     </ListView>

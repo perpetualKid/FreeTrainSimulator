@@ -22,11 +22,17 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
     internal readonly record struct TrainPathNodeRow
     {
         public TrainPathNodeRow(int index, string nodeType, bool valid)
-            : this(index, nodeType, valid, 0, -1, -1, null, null)
+            : this(index, nodeType, valid, 0, -1, -1, null, null, null, null, null)
         {
         }
 
         public TrainPathNodeRow(int index, string nodeType, bool valid, int trackNodeIndex, int nextMainNode, int nextSidingNode, int? waitTime, string validation)
+            : this(index, nodeType, valid, trackNodeIndex, nextMainNode, nextSidingNode, waitTime, validation, null, null, null)
+        {
+        }
+
+        public TrainPathNodeRow(int index, string nodeType, bool valid, int trackNodeIndex, int nextMainNode, int nextSidingNode, int? waitTime,
+            string validation, int? nearestTrackNodeIndex, int? nearestTrackSectionIndex, double? nearestTrackDistanceMeters)
         {
             Index = index;
             NodeType = nodeType;
@@ -36,6 +42,9 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
             NextSidingNode = nextSidingNode;
             WaitTime = waitTime;
             Validation = validation;
+            NearestTrackNodeIndex = nearestTrackNodeIndex;
+            NearestTrackSectionIndex = nearestTrackSectionIndex;
+            NearestTrackDistanceMeters = nearestTrackDistanceMeters;
         }
 
         public int Index { get; }
@@ -53,6 +62,12 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
         public int? WaitTime { get; }
 
         public string Validation { get; }
+
+        public int? NearestTrackNodeIndex { get; }
+
+        public int? NearestTrackSectionIndex { get; }
+
+        public double? NearestTrackDistanceMeters { get; }
     }
 
     /// <summary>
@@ -221,9 +236,11 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
             {
                 TrainPathPointBase item = currentPath.PathPoints[i];
                 PathNodeInvalidReasons validationResult = item.ValidationResult;
+                TrackDistanceDiagnostic nearestTrackDistance = item.NearestTrackDistance;
                 builder.Add(new TrainPathNodeRow(i, item.NodeType.ToString(), validationResult == PathNodeInvalidReasons.None,
                     item.NodeIndex, item.NextMainNode, item.NextSidingNode, item.WaitInfo?.WaitTime,
-                    validationResult == PathNodeInvalidReasons.None ? null : validationResult.ToString()));
+                    validationResult == PathNodeInvalidReasons.None ? null : validationResult.ToString(),
+                    nearestTrackDistance?.TrackNodeIndex, nearestTrackDistance?.TrackVectorSectionIndex, nearestTrackDistance?.DistanceMeters));
             }
             return builder.ToImmutable();
         }
@@ -241,8 +258,35 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
             builder.Add(new ToolWindowRow("End", currentPath.PathModel.End, null, false));
             builder.Add(new ToolWindowRow("Player Path", currentPath.PathModel.PlayerPath ? "Yes" : "No", null, false));
             builder.Add(new ToolWindowRow("Path Length", FormatStrings.FormatDistanceDisplay(currentPath.Length, metricUnits, 1000), null, false));
+            builder.AddRange(BuildEditorStateMetadata(currentPath));
             builder.AddRange(BuildResolverDiagnosticMetadata(PathRouteResolver.Resolve(currentPath.PathModel, null)));
             return builder.ToImmutable();
+        }
+
+        internal static ImmutableArray<ToolWindowRow> BuildEditorStateMetadata(TrainPathBase currentPath)
+        {
+            if (currentPath == null)
+                return ImmutableArray<ToolWindowRow>.Empty;
+
+            bool hasEnd = currentPath.PathPoints.Any(point => (point.NodeType & PathNodeType.End) == PathNodeType.End);
+            bool hasBrokenNodes = currentPath.PathPoints.Any(point => point.ValidationResult != PathNodeInvalidReasons.None);
+            bool hasPassingPaths = currentPath.PathPoints.Any(point => point.NextSidingNode >= 0);
+            bool hasWaitNodes = currentPath.PathPoints.Any(point => (point.NodeType & PathNodeType.Wait) == PathNodeType.Wait || point.WaitInfo != null);
+            bool hasReversalNodes = currentPath.PathPoints.Any(point => (point.NodeType & PathNodeType.Reversal) == PathNodeType.Reversal);
+
+            ImmutableArray<ToolWindowRow>.Builder builder = ImmutableArray.CreateBuilder<ToolWindowRow>();
+            builder.Add(new ToolWindowRow("Node Count", currentPath.PathPoints.Count.ToString(), null, false));
+            builder.Add(new ToolWindowRow("Has End", FormatYesNo(hasEnd), null, false));
+            builder.Add(new ToolWindowRow("Has Broken Nodes", FormatYesNo(hasBrokenNodes), hasBrokenNodes ? DrawingColor.OrangeRed : null, hasBrokenNodes));
+            builder.Add(new ToolWindowRow("Has Passing Paths", FormatYesNo(hasPassingPaths), null, false));
+            builder.Add(new ToolWindowRow("Has Wait Nodes", FormatYesNo(hasWaitNodes), null, false));
+            builder.Add(new ToolWindowRow("Has Reversal Nodes", FormatYesNo(hasReversalNodes), null, false));
+            return builder.ToImmutable();
+        }
+
+        private static string FormatYesNo(bool value)
+        {
+            return value ? "Yes" : "No";
         }
 
         internal static ImmutableArray<ToolWindowRow> BuildResolverDiagnosticMetadata(PathRouteResolution resolution)

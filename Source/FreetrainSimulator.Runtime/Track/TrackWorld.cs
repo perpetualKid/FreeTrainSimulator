@@ -12,6 +12,25 @@ using Microsoft.Xna.Framework;
 
 namespace FreeTrainSimulator.Runtime.Track
 {
+    /// <summary>
+    /// Read-only nearest rail-track diagnostic for a map location.
+    /// </summary>
+    public sealed record TrackDistanceDiagnostic
+    {
+        public TrackDistanceDiagnostic(int trackNodeIndex, int trackVectorSectionIndex, double distanceMeters)
+        {
+            TrackNodeIndex = trackNodeIndex;
+            TrackVectorSectionIndex = trackVectorSectionIndex;
+            DistanceMeters = distanceMeters;
+        }
+
+        public int TrackNodeIndex { get; }
+
+        public int TrackVectorSectionIndex { get; }
+
+        public double DistanceMeters { get; }
+    }
+
     public sealed class TrackWorld
     {
         // 1 m² — consistent with PointPrimitive.ProximityTolerance used elsewhere in the runtime
@@ -224,6 +243,38 @@ namespace FreeTrainSimulator.Runtime.Track
                 if (SectionGeometry.TryGetValue(section, out SectionGeometry geo))
                     yield return SegmentSections[geo.Node.NodeIndex].SectionSegments[geo.SectionIndex];
             }
+        }
+
+        /// <summary>
+        /// Returns the nearest rail vector section to <paramref name="location"/> together with the measured
+        /// 2D distance in meters, or <see langword="null"/> when rail section geometry is unavailable.
+        /// Unlike <see cref="SectionAt(in WorldLocation, int)"/>, this reports the nearest section even when
+        /// it is outside the normal proximity tolerance.
+        /// </summary>
+        public TrackDistanceDiagnostic NearestTrackDistance(in PointD location)
+        {
+            WorldLocation worldLocation = PointD.ToWorldLocation(location);
+            VectorSectionNode nearest = null;
+            SectionGeometry nearestGeometry = null;
+            double nearestDistanceSquared = double.PositiveInfinity;
+
+            foreach (VectorSectionNode section in ContentByTile[MapContentType.Tracks].Cast<VectorSectionNode>())
+            {
+                if (!SectionGeometry.TryGetValue(section, out SectionGeometry geometry))
+                    continue;
+
+                double distanceSquared = geometry.DistanceSquared(worldLocation);
+                if (double.IsNaN(distanceSquared) || distanceSquared >= nearestDistanceSquared)
+                    continue;
+
+                nearestDistanceSquared = distanceSquared;
+                nearest = section;
+                nearestGeometry = geometry;
+            }
+
+            return nearest == null || nearestGeometry == null
+                ? null
+                : new TrackDistanceDiagnostic(nearestGeometry.Node.NodeIndex, nearestGeometry.SectionIndex, Math.Sqrt(nearestDistanceSquared));
         }
 
         /// <summary>
