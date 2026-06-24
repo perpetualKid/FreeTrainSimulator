@@ -7,10 +7,35 @@
     <viewModels:BoolToFontWeightConverter x:Key="BoolToFontWeightConverter" />
     <viewModels:ColorNameToBrushConverter x:Key="ColorNameToBrushConverter" />
     <viewModels:StringToVisibilityConverter x:Key="StringToVisibilityConverter" />
+    <DataTemplate x:Key="ToolWindowNameCellTemplate">
+        <TextBlock Text="{Binding Name}">
+            <TextBlock.Style>
+                <Style TargetType="TextBlock">
+                    <Setter Property="Padding" Value="4,0,0,0" />
+                    <Style.Triggers>
+                        <DataTrigger Binding="{Binding Bold}" Value="True">
+                            <Setter Property="Padding" Value="0,0,0,0" />
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </TextBlock.Style>
+        </TextBlock>
+    </DataTemplate>
+    <DataTemplate x:Key="ToolWindowValueCellTemplate">
+        <Border BorderBrush="Gainsboro"
+                BorderThickness="1,0,0,0"
+                Margin="-6,0,0,0"
+                Padding="4,0,0,0">
+            <TextBlock Text="{Binding Value}" />
+        </Border>
+    </DataTemplate>
     <Style x:Key="ToolWindowRowItemStyle" TargetType="ListViewItem">
         <Setter Property="Foreground"
                 Value="{Binding Color, Converter={StaticResource DrawingColorToBrushConverter}}" />
         <Setter Property="FontWeight"
                 Value="{Binding Bold, Converter={StaticResource BoolToFontWeightConverter}}" />
+        <Setter Property="BorderBrush" Value="Gainsboro" />
+        <Setter Property="BorderThickness" Value="0,0,0,1" />
+        <Setter Property="Padding" Value="0,1" />
     </Style>
 </ResourceDictionary>
