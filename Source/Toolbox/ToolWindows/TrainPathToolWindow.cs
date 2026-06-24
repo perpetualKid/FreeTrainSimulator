@@ -19,7 +19,41 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
     /// <summary>
     /// One node row of the currently edited train path (index, node type, validity).
     /// </summary>
-    internal readonly record struct TrainPathNodeRow(int Index, string NodeType, bool Valid);
+    internal readonly record struct TrainPathNodeRow
+    {
+        public TrainPathNodeRow(int index, string nodeType, bool valid)
+            : this(index, nodeType, valid, 0, -1, -1, null, null)
+        {
+        }
+
+        public TrainPathNodeRow(int index, string nodeType, bool valid, int trackNodeIndex, int nextMainNode, int nextSidingNode, int? waitTime, string validation)
+        {
+            Index = index;
+            NodeType = nodeType;
+            Valid = valid;
+            TrackNodeIndex = trackNodeIndex;
+            NextMainNode = nextMainNode;
+            NextSidingNode = nextSidingNode;
+            WaitTime = waitTime;
+            Validation = validation;
+        }
+
+        public int Index { get; }
+
+        public string NodeType { get; }
+
+        public bool Valid { get; }
+
+        public int TrackNodeIndex { get; }
+
+        public int NextMainNode { get; }
+
+        public int NextSidingNode { get; }
+
+        public int? WaitTime { get; }
+
+        public string Validation { get; }
+    }
 
     /// <summary>
     /// Immutable snapshot of the hosted train-path tool window state, captured on the game thread and read
@@ -186,7 +220,10 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
             for (int i = 0; i < currentPath.PathPoints.Count; i++)
             {
                 TrainPathPointBase item = currentPath.PathPoints[i];
-                builder.Add(new TrainPathNodeRow(i, item.NodeType.ToString(), item.ValidationResult == PathNodeInvalidReasons.None));
+                PathNodeInvalidReasons validationResult = item.ValidationResult;
+                builder.Add(new TrainPathNodeRow(i, item.NodeType.ToString(), validationResult == PathNodeInvalidReasons.None,
+                    item.NodeIndex, item.NextMainNode, item.NextSidingNode, item.WaitInfo?.WaitTime,
+                    validationResult == PathNodeInvalidReasons.None ? null : validationResult.ToString()));
             }
             return builder.ToImmutable();
         }

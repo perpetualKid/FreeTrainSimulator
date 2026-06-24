@@ -138,8 +138,10 @@ namespace FreeTrainSimulator.Runtime.Track
                 pathNodes.Add(new PathNode(location)
                 {
                     NodeType = pathPoint.NodeType,
+                    NodeIndex = pathPoint.NodeIndex,
                     NextMainNode = (pathPoint.NodeType & PathNodeType.End) == PathNodeType.End ? -1 : pathPoint.NextMainNode,
-                    NextSidingNode = -1,
+                    NextSidingNode = pathPoint.NextSidingNode,
+                    WaitInfo = pathPoint.WaitInfo,
                 });
             }
             return new PathModel(pathDetails)

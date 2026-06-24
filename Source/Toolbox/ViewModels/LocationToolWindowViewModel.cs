@@ -13,7 +13,7 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
         private readonly LocationToolWindow toolWindow;
 
         public LocationToolWindowViewModel(LocationToolWindow toolWindow, ToolWindowRefreshScheduler scheduler)
-            : base(scheduler, TimeSpan.FromMilliseconds(250))
+            : base(scheduler, ToolWindowRefreshScheduler.BaseInterval)
         {
             ArgumentNullException.ThrowIfNull(toolWindow);
 

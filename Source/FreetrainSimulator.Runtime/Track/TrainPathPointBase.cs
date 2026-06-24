@@ -19,6 +19,10 @@ namespace FreeTrainSimulator.Runtime.Track
         public int NextMainNode { get; init; } = -1;
         public int NextSidingNode { get; init; } = -1;
 
+        public int NodeIndex { get; init; }
+
+        public PathNodeWaitInfo WaitInfo { get; init; }
+
         public PathNodeInvalidReasons ValidationResult { get; set; }
 
         protected TrainPathPointBase(PathNode node, TrackWorld trackWorld)
@@ -30,6 +34,8 @@ namespace FreeTrainSimulator.Runtime.Track
             NodeType = node.NodeType;
             NextMainNode = node.NextMainNode;
             NextSidingNode = node.NextSidingNode;
+            NodeIndex = node.NodeIndex;
+            WaitInfo = node.WaitInfo;
 
             JunctionNode = (node.NodeType & PathNodeType.Junction) == PathNodeType.Junction ? trackWorld.JunctionNodeBaseAt(Location) : null;
             if ((node.NodeType & PathNodeType.Junction) == PathNodeType.Junction && JunctionNode == null)

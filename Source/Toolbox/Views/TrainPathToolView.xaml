@@ -14,18 +14,60 @@
              d:DesignHeight="520">
     <TabControl Margin="6">
         <TabItem Header="Path Nodes">
-            <ListView ItemsSource="{Binding Nodes}"
-                      SelectedItem="{Binding SelectedNode, Mode=TwoWay}"
-                      behaviors:GridViewColumnBehavior.StretchListView="True">
-                <ListView.View>
-                    <GridView>
-                        <GridViewColumn Header="Idx" Width="50" DisplayMemberBinding="{Binding Index}" />
-                        <GridViewColumn Header="Type" Width="160" DisplayMemberBinding="{Binding NodeType}"
-                                        behaviors:GridViewColumnBehavior.StretchColumn="True" />
-                        <GridViewColumn Header="Valid" Width="60" DisplayMemberBinding="{Binding Valid}" />
-                    </GridView>
-                </ListView.View>
-            </ListView>
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="2*" MinHeight="120" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" MinHeight="80" />
+                </Grid.RowDefinitions>
+                <ListView Grid.Row="0"
+                          ItemsSource="{Binding Nodes}"
+                          SelectedItem="{Binding SelectedNode, Mode=TwoWay}"
+                          behaviors:GridViewColumnBehavior.StretchListView="True">
+                    <ListView.ItemContainerStyle>
+                        <Style TargetType="ListViewItem">
+                            <Setter Property="ToolTip" Value="{Binding Validation}" />
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding Valid}" Value="False">
+                                    <Setter Property="Foreground" Value="OrangeRed" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </ListView.ItemContainerStyle>
+                    <ListView.View>
+                        <GridView>
+                            <GridViewColumn Header="Idx" Width="50" DisplayMemberBinding="{Binding Index}" />
+                            <GridViewColumn Header="Type" Width="120" DisplayMemberBinding="{Binding NodeType}" />
+                            <GridViewColumn Header="Valid" Width="60" DisplayMemberBinding="{Binding Valid}" />
+                            <GridViewColumn Header="Validation" Width="180" DisplayMemberBinding="{Binding Validation}"
+                                            behaviors:GridViewColumnBehavior.StretchColumn="True" />
+                        </GridView>
+                    </ListView.View>
+                </ListView>
+                <GridSplitter Grid.Row="1"
+                              Height="4"
+                              HorizontalAlignment="Stretch"
+                              VerticalAlignment="Center"
+                              ResizeBehavior="PreviousAndNext"
+                              ResizeDirection="Rows" />
+                <DockPanel Grid.Row="2">
+                    <TextBlock DockPanel.Dock="Top"
+                               Margin="0,2,0,4"
+                               FontWeight="Bold"
+                               Text="Details" />
+                    <ListView ItemsSource="{Binding SelectedNodeDetailRows}"
+                              ItemContainerStyle="{StaticResource ToolWindowRowItemStyle}"
+                              behaviors:GridViewColumnBehavior.StretchListView="True">
+                        <ListView.View>
+                            <GridView>
+                                <GridViewColumn Header="Name" Width="180" DisplayMemberBinding="{Binding Name}" />
+                                <GridViewColumn Header="Value" Width="320" DisplayMemberBinding="{Binding Value}"
+                                                behaviors:GridViewColumnBehavior.StretchColumn="True" />
+                            </GridView>
+                        </ListView.View>
+                    </ListView>
+                </DockPanel>
+            </Grid>
         </TabItem>
         <TabItem Header="Path Data">
             <ListView ItemsSource="{Binding Metadata}"

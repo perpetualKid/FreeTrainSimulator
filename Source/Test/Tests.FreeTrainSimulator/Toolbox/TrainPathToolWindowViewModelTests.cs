@@ -158,5 +158,22 @@ namespace Tests.FreeTrainSimulator.Toolbox
                 }
             }
         }
+
+        [TestMethod]
+        public void WhenNodeRowUpdatedThenNodeDetailsAreUpdated()
+        {
+            TrainPathNodeItemViewModel node = new TrainPathNodeItemViewModel(new TrainPathNodeRow(1, "Wait", true, 7, 2, 3, 45, null));
+
+            node.Update(new TrainPathNodeRow(4, "Invalid", false, 9, -1, -1, null, "NotOnTrack"));
+
+            Assert.AreEqual(4, node.Index);
+            Assert.AreEqual("Invalid", node.NodeType);
+            Assert.IsFalse(node.Valid);
+            Assert.AreEqual(9, node.TrackNodeIndex);
+            Assert.AreEqual(-1, node.NextMainNode);
+            Assert.AreEqual(-1, node.NextSidingNode);
+            Assert.IsNull(node.WaitTime);
+            Assert.AreEqual("NotOnTrack", node.Validation);
+        }
     }
 }

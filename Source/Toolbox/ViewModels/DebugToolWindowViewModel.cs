@@ -17,7 +17,7 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
         private readonly DebugToolWindow toolWindow;
 
         public DebugToolWindowViewModel(DebugToolWindow toolWindow, ToolWindowRefreshScheduler scheduler)
-            : base(scheduler, TimeSpan.FromMilliseconds(250))
+            : base(scheduler, TimeSpan.FromMilliseconds(100))
         {
             ArgumentNullException.ThrowIfNull(toolWindow);
 

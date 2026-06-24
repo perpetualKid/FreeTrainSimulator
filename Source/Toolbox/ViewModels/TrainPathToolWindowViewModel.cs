@@ -25,7 +25,7 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
         private bool suppressSelectionCommand;
 
         public TrainPathToolWindowViewModel(TrainPathToolWindow toolWindow, ToolWindowRefreshScheduler scheduler)
-            : base(scheduler, TimeSpan.FromMilliseconds(250))
+            : base(scheduler, ToolWindowRefreshScheduler.BaseInterval)
         {
             ArgumentNullException.ThrowIfNull(toolWindow);
 
@@ -37,6 +37,8 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
         public ObservableCollection<TrainPathListItemViewModel> Paths { get; } = new ObservableCollection<TrainPathListItemViewModel>();
 
         public ObservableCollection<TrainPathNodeItemViewModel> Nodes { get; } = new ObservableCollection<TrainPathNodeItemViewModel>();
+
+        public ObservableCollection<DebugToolWindowRowViewModel> SelectedNodeDetailRows { get; } = new ObservableCollection<DebugToolWindowRowViewModel>();
 
         public ObservableCollection<DebugToolWindowRowViewModel> Metadata { get; } = new ObservableCollection<DebugToolWindowRowViewModel>();
 
@@ -84,6 +86,7 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
                     return;
 
                 toolWindow.HighlightNode(value?.Index ?? -1);
+                UpdateSelectedNodeDetailRows();
             }
         }
 
@@ -97,6 +100,7 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
 
             SyncPaths(snapshot.Paths);
             SyncNodes(snapshot.Nodes);
+            UpdateSelectedNodeDetailRows();
             DebugToolWindowRowViewModel.Sync(Metadata, snapshot.Metadata);
 
             if (!string.Equals(snapshotSelectedPathId, snapshot.SelectedPathId, StringComparison.Ordinal))
@@ -137,9 +141,9 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
             {
                 TrainPathNodeRow row = rows[i];
                 if (i < Nodes.Count)
-                    Nodes[i].Update(row.Index, row.NodeType, row.Valid);
+                    Nodes[i].Update(row);
                 else
-                    Nodes.Add(new TrainPathNodeItemViewModel(row.Index, row.NodeType, row.Valid));
+                    Nodes.Add(new TrainPathNodeItemViewModel(row));
             }
 
             for (int i = Nodes.Count - 1; i >= rows.Length; i--)
@@ -189,11 +193,34 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
             try
             {
                 SelectedNode = Nodes.FirstOrDefault(n => n.Index == index);
+                UpdateSelectedNodeDetailRows();
             }
             finally
             {
                 suppressSelectionCommand = false;
             }
+        }
+
+        private void UpdateSelectedNodeDetailRows()
+        {
+            ImmutableArray<ToolWindowRow> rows = BuildSelectedNodeDetailRows(SelectedNode);
+            DebugToolWindowRowViewModel.Sync(SelectedNodeDetailRows, rows);
+        }
+
+        private static ImmutableArray<ToolWindowRow> BuildSelectedNodeDetailRows(TrainPathNodeItemViewModel selectedNode)
+        {
+            if (selectedNode == null)
+                return ImmutableArray<ToolWindowRow>.Empty;
+
+            ImmutableArray<ToolWindowRow>.Builder builder = ImmutableArray.CreateBuilder<ToolWindowRow>();
+            builder.Add(new ToolWindowRow("Index", selectedNode.Index.ToString(), null, false));
+            builder.Add(new ToolWindowRow("Type", selectedNode.NodeType, null, false));
+            builder.Add(new ToolWindowRow("Track Node", selectedNode.TrackNodeIndex.ToString(), null, false));
+            builder.Add(new ToolWindowRow("Wait", selectedNode.WaitTime?.ToString() ?? string.Empty, null, false));
+            builder.Add(new ToolWindowRow("Next Main", selectedNode.NextMainNode.ToString(), null, false));
+            builder.Add(new ToolWindowRow("Next Siding", selectedNode.NextSidingNode.ToString(), null, false));
+            builder.Add(new ToolWindowRow("Validation", selectedNode.Validation ?? string.Empty, null, !selectedNode.Valid));
+            return builder.ToImmutable();
         }
 
         }
@@ -242,12 +269,25 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
         private int index;
         private string nodeType;
         private bool valid;
+        private int trackNodeIndex;
+        private int nextMainNode;
+        private int nextSidingNode;
+        private int? waitTime;
+        private string validation;
 
         public TrainPathNodeItemViewModel(int index, string nodeType, bool valid)
         {
             this.index = index;
             this.nodeType = nodeType;
             this.valid = valid;
+            nextMainNode = -1;
+            nextSidingNode = -1;
+        }
+
+        public TrainPathNodeItemViewModel(TrainPathNodeRow row)
+            : this(row.Index, row.NodeType, row.Valid)
+        {
+            Update(row);
         }
 
         public int Index
@@ -268,11 +308,51 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
             private set => SetProperty(ref valid, value);
         }
 
+        public int TrackNodeIndex
+        {
+            get => trackNodeIndex;
+            private set => SetProperty(ref trackNodeIndex, value);
+        }
+
+        public int NextMainNode
+        {
+            get => nextMainNode;
+            private set => SetProperty(ref nextMainNode, value);
+        }
+
+        public int NextSidingNode
+        {
+            get => nextSidingNode;
+            private set => SetProperty(ref nextSidingNode, value);
+        }
+
+        public int? WaitTime
+        {
+            get => waitTime;
+            private set => SetProperty(ref waitTime, value);
+        }
+
+        public string Validation
+        {
+            get => validation;
+            private set => SetProperty(ref validation, value);
+        }
+
         public void Update(int index, string nodeType, bool valid)
         {
             Index = index;
             NodeType = nodeType;
             Valid = valid;
+        }
+
+        public void Update(TrainPathNodeRow row)
+        {
+            Update(row.Index, row.NodeType, row.Valid);
+            TrackNodeIndex = row.TrackNodeIndex;
+            NextMainNode = row.NextMainNode;
+            NextSidingNode = row.NextSidingNode;
+            WaitTime = row.WaitTime;
+            Validation = row.Validation;
         }
     }
 }
