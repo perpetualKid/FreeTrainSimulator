@@ -224,10 +224,15 @@ namespace FreeTrainSimulator.Toolbox
 
         private string BuildSnapshotContext()
         {
-            int pointCount = TrainPath?.PathPoints.Count ?? 0;
-            string invalidPoints = TrainPath == null
+            return BuildSnapshotContext(path, TrainPath, EditMode, CanUndo, CanRedo, validPointAdded, editorDragged);
+        }
+
+        internal static string BuildSnapshotContext(PathModelHeader path, TrainPathBase trainPath, bool editMode, bool canUndo, bool canRedo, bool validPointAdded, bool editorDragged)
+        {
+            int pointCount = trainPath?.PathPoints.Count ?? 0;
+            string invalidPoints = trainPath == null
                 ? "none"
-                : string.Join(", ", TrainPath.PathPoints
+                : string.Join(", ", trainPath.PathPoints
                     .Select((point, index) => new { Point = point, Index = index })
                     .Where(item => item.Point.ValidationResult != PathNodeInvalidReasons.None || item.Point.ConnectedSegments.IsDefaultOrEmpty)
                     .Take(5)
@@ -236,8 +241,8 @@ namespace FreeTrainSimulator.Toolbox
             if (string.IsNullOrEmpty(invalidPoints))
                 invalidPoints = "none";
 
-            return $"PathId='{path?.Id ?? "<none>"}', PathName='{path?.Name ?? "<none>"}', EditMode={EditMode}, "
-                + $"PointCount={pointCount}, InvalidPoints={invalidPoints}, CanUndo={CanUndo}, CanRedo={CanRedo}, "
+            return $"PathId='{path?.Id ?? "<none>"}', PathName='{path?.Name ?? "<none>"}', EditMode={editMode}, "
+                + $"PointCount={pointCount}, InvalidPoints={invalidPoints}, CanUndo={canUndo}, CanRedo={canRedo}, "
                 + $"ValidPointAdded={validPointAdded}, EditorDragged={editorDragged}";
         }
 

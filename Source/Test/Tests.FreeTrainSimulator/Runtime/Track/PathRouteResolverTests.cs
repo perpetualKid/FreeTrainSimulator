@@ -277,6 +277,46 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
         }
 
         /// <summary>
+        /// Verifies that hybrid anchors with matching stored location and node index do not report a mismatch.
+        /// </summary>
+        [TestMethod]
+        public void ResolveWhenNodeIndexMatchesLocationDoesNotReturnAnchorLocationMismatch()
+        {
+            TrackWorld trackWorld = CreateInitializedTrackWorldWithTwoVectorNodes();
+            PathModel pathModel = new PathModel()
+            {
+                PathNodes = ImmutableArray.Create(
+                    CreateNode(PathNodeType.Start, 1, -1, 1, new WorldLocation(new Tile(0, 0), new Vector3(10, 0, 0))),
+                    CreateNode(PathNodeType.End, -1, -1, 2, new WorldLocation(new Tile(0, 0), new Vector3(210, 0, 0)))),
+            };
+
+            PathRouteResolution result = PathRouteResolver.Resolve(pathModel, trackWorld, TestContext.CancellationToken);
+
+            Assert.IsFalse(result.Diagnostics.Any(diagnostic => diagnostic.Code == PathRouteDiagnosticCode.AnchorLocationMismatch));
+            Assert.AreEqual(1, result.AuthoredNodeAnchors[0].TrackNodeIndex);
+        }
+
+        /// <summary>
+        /// Verifies that hybrid anchors report a mismatch when the stored node index disagrees with the stored location.
+        /// </summary>
+        [TestMethod]
+        public void ResolveWhenNodeIndexDisagreesWithLocationReturnsAnchorLocationMismatch()
+        {
+            TrackWorld trackWorld = CreateInitializedTrackWorldWithTwoVectorNodes();
+            PathModel pathModel = new PathModel()
+            {
+                PathNodes = ImmutableArray.Create(
+                    CreateNode(PathNodeType.Start, 1, -1, 2, new WorldLocation(new Tile(0, 0), new Vector3(10, 0, 0))),
+                    CreateNode(PathNodeType.End, -1, -1, 2, new WorldLocation(new Tile(0, 0), new Vector3(210, 0, 0)))),
+            };
+
+            PathRouteResolution result = PathRouteResolver.Resolve(pathModel, trackWorld, TestContext.CancellationToken);
+
+            Assert.IsTrue(result.Diagnostics.Any(diagnostic => diagnostic.Code == PathRouteDiagnosticCode.AnchorLocationMismatch && diagnostic.NodeIndex == 0));
+            Assert.AreEqual(2, result.AuthoredNodeAnchors[0].TrackNodeIndex);
+        }
+
+        /// <summary>
         /// Verifies that passing links create passing routes when enabled.
         /// </summary>
         [TestMethod]
@@ -374,7 +414,12 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
 
         private static PathNode CreateNode(PathNodeType nodeType, int nextMainNode, int nextSidingNode = -1, int nodeIndex = 0)
         {
-            return new PathNode(new WorldLocation(new Tile(0, 0), Vector3.Zero))
+            return CreateNode(nodeType, nextMainNode, nextSidingNode, nodeIndex, new WorldLocation(new Tile(0, 0), Vector3.Zero));
+        }
+
+        private static PathNode CreateNode(PathNodeType nodeType, int nextMainNode, int nextSidingNode, int nodeIndex, WorldLocation location)
+        {
+            return new PathNode(location)
             {
                 NodeType = nodeType,
                 NodeIndex = nodeIndex,
@@ -415,6 +460,55 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
                 null,
                 new object[] { trackModel },
                 null);
+        }
+
+        private static TrackWorld CreateInitializedTrackWorldWithTwoVectorNodes()
+        {
+            VectorNode firstNode = CreateInitializedVectorNode(1, 0);
+            VectorNode secondNode = CreateInitializedVectorNode(2, 200);
+            TrackDatabase trackDatabase = new TrackDatabase()
+            {
+                TrackNodes = ImmutableArray.Create<TrackNodeBase>(CreateInitializedVectorNode(0, -200), firstNode, secondNode),
+                TrackNodeConnectors = ImmutableArray.Create(new TrackNodeConnectorIndex(), CreateConnectors(1), CreateConnectors(2)),
+            };
+            InitializeTrackDatabase(trackDatabase);
+            TrackModel trackModel = new TrackModel()
+            {
+                TrackDatabase = trackDatabase,
+            };
+            TrackSectionModel trackSectionModel = new TrackSectionModel()
+            {
+                TrackSections = ImmutableDictionary<int, TrackSection>.Empty.Add(1, new TrackSection()
+                {
+                    SectionIndex = 1,
+                    Gauge = 1.435f,
+                    Length = 100,
+                }),
+            };
+
+            return TrackWorld.Initialize(null, trackModel, trackSectionModel);
+        }
+
+        private static void InitializeTrackDatabase(TrackDatabase trackDatabase)
+        {
+            typeof(TrackDatabase).GetMethod("OnSerializing", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(trackDatabase, null);
+            typeof(TrackDatabase).GetMethod("OnSerialized", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(trackDatabase, null);
+        }
+
+        private static VectorNode CreateInitializedVectorNode(int nodeIndex, float startX)
+        {
+            WorldLocation start = new WorldLocation(new Tile(0, 0), new Vector3(startX, 0, 0));
+            WorldLocation end = new WorldLocation(new Tile(0, 0), new Vector3(startX + 100, 0, 0));
+            VectorSectionNode section = new VectorSectionNode(start, new Tile(0, 0), Vector3.UnitX, end)
+            {
+                NodeIndex = 1,
+            };
+
+            return new VectorNode(start, new Tile(0, 0), end)
+            {
+                NodeIndex = nodeIndex,
+                VectorSections = ImmutableArray.Create(section),
+            };
         }
 
         private static TrackNodeConnectorIndex CreateConnectors(int nodeIndex, params int[] linkedNodeIndexes)

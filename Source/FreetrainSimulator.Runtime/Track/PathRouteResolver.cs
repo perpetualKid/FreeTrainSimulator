@@ -239,7 +239,7 @@ namespace FreeTrainSimulator.Runtime.Track
             if (trackWorld == null)
                 return new PathRouteAnchor(authoredNodeIndex, node.Location, node.NodeType);
 
-            int trackNodeIndex = ResolveTrackNodeIndex(node, trackWorld, out int trackVectorSectionIndex, out bool ambiguous);
+            int trackNodeIndex = ResolveTrackNodeIndex(authoredNodeIndex, node, trackWorld, diagnostics, out int trackVectorSectionIndex, out bool ambiguous);
             if (trackNodeIndex < 0)
             {
                 diagnostics.Add(new PathRouteDiagnostic(PathRouteDiagnosticSeverity.Error, PathRouteDiagnosticCode.AnchorNotOnTrack,
@@ -256,7 +256,8 @@ namespace FreeTrainSimulator.Runtime.Track
             return new PathRouteAnchor(authoredNodeIndex, node.Location, node.NodeType, trackNodeIndex, trackVectorSectionIndex);
         }
 
-        private static int ResolveTrackNodeIndex(PathNode node, TrackWorld trackWorld, out int trackVectorSectionIndex, out bool ambiguous)
+        private static int ResolveTrackNodeIndex(int authoredNodeIndex, PathNode node, TrackWorld trackWorld, List<PathRouteDiagnostic> diagnostics,
+            out int trackVectorSectionIndex, out bool ambiguous)
         {
             trackVectorSectionIndex = -1;
             ambiguous = false;
@@ -266,7 +267,64 @@ namespace FreeTrainSimulator.Runtime.Track
                 return -1;
 
             if (node.NodeIndex > 0 && IsInRange(node.NodeIndex, trackDatabase.TrackNodes.Length) && trackDatabase.TrackNodes[node.NodeIndex] != null)
+            {
+                if (trackWorld.SectionGeometry.Count > 0)
+                {
+                    int locationTrackNodeIndex = ResolveTrackNodeIndexByLocation(node, trackWorld, out int locationTrackVectorSectionIndex, out bool locationAmbiguous);
+                    bool anchorContainsLocation = StoredAnchorContainsLocation(trackDatabase.TrackNodes[node.NodeIndex], node, trackWorld, out int storedTrackVectorSectionIndex);
+                    if (anchorContainsLocation)
+                    {
+                        trackVectorSectionIndex = storedTrackVectorSectionIndex;
+                        ambiguous = locationAmbiguous;
+                    }
+                    else
+                    {
+                        if (locationTrackNodeIndex >= 0)
+                        {
+                            trackVectorSectionIndex = locationTrackNodeIndex == node.NodeIndex ? locationTrackVectorSectionIndex : -1;
+                            ambiguous = locationAmbiguous;
+                        }
+
+                        diagnostics.Add(new PathRouteDiagnostic(PathRouteDiagnosticSeverity.Warning, PathRouteDiagnosticCode.AnchorLocationMismatch,
+                            FormatAnchorLocationMismatchMessage(authoredNodeIndex, node.NodeIndex, locationTrackNodeIndex),
+                            authoredNodeIndex, "Review the path node location and stored track anchor before saving or repairing the path."));
+                    }
+                }
+
                 return node.NodeIndex;
+            }
+
+            return ResolveTrackNodeIndexByLocation(node, trackWorld, out trackVectorSectionIndex, out ambiguous);
+        }
+
+        private static bool StoredAnchorContainsLocation(TrackNodeBase trackNode, PathNode node, TrackWorld trackWorld, out int trackVectorSectionIndex)
+        {
+            trackVectorSectionIndex = -1;
+
+            if (trackNode is VectorNode vectorNode)
+            {
+                VectorSectionNode section = trackWorld.SectionAt(vectorNode, node.Location);
+                if (section == null || !trackWorld.SectionGeometry.TryGetValue(section, out SectionGeometry geometry))
+                    return false;
+
+                trackVectorSectionIndex = geometry.SectionIndex;
+                return true;
+            }
+
+            return true;
+        }
+
+        private static string FormatAnchorLocationMismatchMessage(int authoredNodeIndex, int storedTrackNodeIndex, int locationTrackNodeIndex)
+        {
+            return locationTrackNodeIndex >= 0
+                ? $"Path node {authoredNodeIndex} has track anchor {storedTrackNodeIndex}, but its stored location resolves to track node {locationTrackNodeIndex}."
+                : $"Path node {authoredNodeIndex} has track anchor {storedTrackNodeIndex}, but its stored location is not on that track node.";
+        }
+
+        private static int ResolveTrackNodeIndexByLocation(PathNode node, TrackWorld trackWorld, out int trackVectorSectionIndex, out bool ambiguous)
+        {
+            trackVectorSectionIndex = -1;
+            ambiguous = false;
 
             if ((node.NodeType & PathNodeType.Junction) == PathNodeType.Junction)
             {
