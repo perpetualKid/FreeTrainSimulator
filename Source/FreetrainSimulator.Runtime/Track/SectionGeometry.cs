@@ -203,6 +203,8 @@ namespace FreeTrainSimulator.Runtime.Track
 
                 // The arc always sweeps from 0 to +|ArcAngle| in the U/V basis (see DistanceSquared),
                 // so on-arc points fall in [0, absArc] regardless of the stored ArcAngle sign.
+                // No tolerance padding is needed here (unlike DistanceSquared): points just past an
+                // endpoint already fall through to the endpoint-distance branch below.
                 double absArc = Math.Abs(ArcAngle);
                 bool inArc = pointAngle >= 0 && pointAngle <= absArc;
 
@@ -264,7 +266,7 @@ namespace FreeTrainSimulator.Runtime.Track
                 double absArc = Math.Abs(ArcAngle);
                 pointAngle = Math.Clamp(pointAngle, 0, absArc);
 
-                double distance = Math.Abs(pointAngle) * Radius;
+                double distance = pointAngle * Radius;
                 return WorldLocation.PointAlongArc(section.Location, section.EndLocation, ArcAngle, Radius, distance);
             }
             else
@@ -298,6 +300,8 @@ namespace FreeTrainSimulator.Runtime.Track
                 double dotU = Vector3.Dot(centerToPoint, U);
                 double dotV = Vector3.Dot(centerToPoint, V);
                 double pointAngle = Math.Atan2(dotV, dotU);
+                // pointAngle is unclamped here; Math.Abs covers the tolerance band where a near-start
+                // on-section point (admitted by SectionAt) can project to a slightly negative angle.
                 return Math.Abs(pointAngle) * Radius;
             }
             else

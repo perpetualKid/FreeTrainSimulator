@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
+using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Input;
 using FreeTrainSimulator.Graphics.MapView;
 using FreeTrainSimulator.Models.Content;
@@ -157,10 +158,83 @@ namespace FreeTrainSimulator.Toolbox
             return true;
         }
 
+        #region core editing commands
+        // Command enablement derived from the current authored path. Each property is cheap and snapshot-driven,
+        // so the tool window can poll it to gate its command UI. A null/unconvertible path disables everything.
+
+        /// <summary><see langword="true"/> when the path has nodes but no start node yet.</summary>
+        public bool CanAddStart => HasNodeType(snapshot => snapshot.PathNodes.Length > 0 && !HasFlag(snapshot, PathNodeType.Start));
+
+        /// <summary><see langword="true"/> when the path has a start node to remove.</summary>
+        public bool CanRemoveStart => HasNodeType(snapshot => HasFlag(snapshot, PathNodeType.Start));
+
+        /// <summary><see langword="true"/> when the path has a start but its last node is not yet an end node.</summary>
+        public bool CanAddEnd => HasNodeType(snapshot => snapshot.PathNodes.Length > 0 && HasFlag(snapshot, PathNodeType.Start)
+            && (snapshot.PathNodes[^1].NodeType & PathNodeType.End) != PathNodeType.End);
+
+        /// <summary><see langword="true"/> when the path has an end node to remove.</summary>
+        public bool CanRemoveEnd => HasNodeType(snapshot => HasFlag(snapshot, PathNodeType.End));
+
+        /// <summary>Adds a start node to the current path and records an undo snapshot. Returns the operation result.</summary>
+        public PathEditResult AddStart() => ApplyMutation(PathModelEditor.AddStart);
+
+        /// <summary>Removes the start node from the current path and records an undo snapshot. Returns the operation result.</summary>
+        public PathEditResult RemoveStart() => ApplyMutation(PathModelEditor.RemoveStart);
+
+        /// <summary>Adds an end node to the current path and records an undo snapshot. Returns the operation result.</summary>
+        public PathEditResult AddEnd() => ApplyMutation(PathModelEditor.AddEnd);
+
+        /// <summary>Removes the end node from the current path and records an undo snapshot. Returns the operation result.</summary>
+        public PathEditResult RemoveEnd() => ApplyMutation(PathModelEditor.RemoveEnd);
+
+        /// <summary>
+        /// Truncates the path after the node at <paramref name="nodeIndex"/>, marking it as the new end, and
+        /// records an undo snapshot. Returns the operation result.
+        /// </summary>
+        public PathEditResult RemoveRestOfPath(int nodeIndex) => ApplyMutation(model => PathModelEditor.RemoveRestOfPath(model, nodeIndex));
+
+        // Captures the current authored path, runs the mutation, and on success records an undo snapshot and
+        // rebuilds the editor from the new model. Returns a failed result (with a reason) when no path is
+        // currently loaded or the mutation reports failure.
+        private PathEditResult ApplyMutation(Func<PathModel, PathEditResult> mutation)
+        {
+            PathModel currentModel = TryCaptureSnapshot();
+            if (currentModel == null)
+                return PathEditResult.Failed("No editable path is currently loaded.", null);
+
+            PathEditResult result = mutation(currentModel);
+            if (!result.Success)
+                return result;
+
+            PushUndoSnapshot(currentModel);
+            RestoreSnapshot(result.PathModel);
+            OnPathUpdated?.Invoke(this, new PathEditorChangedEventArgs(TrainPath));
+            return result;
+        }
+
+        private bool HasNodeType(Func<PathModel, bool> predicate)
+        {
+            PathModel currentModel = TryCaptureSnapshot();
+            return currentModel != null && predicate(currentModel);
+        }
+
+        private static bool HasFlag(PathModel pathModel, PathNodeType nodeType)
+        {
+            foreach (PathNode node in pathModel.PathNodes)
+            {
+                if ((node.NodeType & nodeType) == nodeType)
+                    return true;
+            }
+            return false;
+        }
+        #endregion
+
         public async Task SavePath(PathModelHeader pathDetails)
         {
             PathModel pathModel = ConvertTrainPath(pathDetails);
-            //TODO 2026-03-26 This needs to be a GameInstance, not just Instance
+            // The toolbox registers RuntimeDataResolver process-wide only (RuntimeDataResolver.Initialize
+            // passes game: null), so Instance is the single authoritative resolver here; a game-scoped
+            // GameInstance(game) lookup would resolve to the same object.
             pathModel = await RuntimeDataResolver.Instance.RouteData.Save(pathModel).ConfigureAwait(false);
             OnPathChanged?.Invoke(this, new PathEditorChangedEventArgs(TrainPath));
         }
