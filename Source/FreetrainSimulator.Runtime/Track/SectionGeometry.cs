@@ -128,10 +128,12 @@ namespace FreeTrainSimulator.Runtime.Track
                 double dotV = Vector3.Dot(centerToPoint, V);
                 double pointAngle = Math.Atan2(dotV, dotU); // angle from start direction
 
+                // The U/V basis is built so the arc always sweeps from 0 to +|ArcAngle| (the end always
+                // projects to +absArc via the right-handed cross product), independent of the stored
+                // ArcAngle sign. So on-arc points always fall in [0, absArc].
                 double absArc = Math.Abs(ArcAngle);
-                bool inArc = ArcAngle >= 0
-                    ? pointAngle >= -WorldLocation.ProximityTolerance / Radius && pointAngle <= absArc + WorldLocation.ProximityTolerance / Radius
-                    : pointAngle <= WorldLocation.ProximityTolerance / Radius && pointAngle >= -absArc - WorldLocation.ProximityTolerance / Radius;
+                double angleTolerance = WorldLocation.ProximityTolerance / Radius;
+                bool inArc = pointAngle >= -angleTolerance && pointAngle <= absArc + angleTolerance;
 
                 if (inArc)
                     return radialError * radialError;
@@ -178,6 +180,58 @@ namespace FreeTrainSimulator.Runtime.Track
         }
 
         /// <summary>
+        /// Returns the squared nearest horizontal distance from <paramref name="location"/> to this section.
+        /// Unlike <see cref="DistanceSquared"/>, points outside the section extents are measured to the nearest endpoint.
+        /// </summary>
+        public double NearestDistanceSquared(in WorldLocation location)
+        {
+            if (!HasGeometry)
+                return double.NaN;
+
+            VectorSectionNode section = Node.VectorSections[SectionIndex];
+
+            if (Curved)
+            {
+                Vector3 centerToPoint = WorldLocation.GetDistanceVector(ArcCenter, location);
+                centerToPoint.Y = 0;
+                double distFromCenter = centerToPoint.Length();
+                double radialError = distFromCenter - Radius;
+
+                double dotU = Vector3.Dot(centerToPoint, U);
+                double dotV = Vector3.Dot(centerToPoint, V);
+                double pointAngle = Math.Atan2(dotV, dotU);
+
+                // The arc always sweeps from 0 to +|ArcAngle| in the U/V basis (see DistanceSquared),
+                // so on-arc points fall in [0, absArc] regardless of the stored ArcAngle sign.
+                double absArc = Math.Abs(ArcAngle);
+                bool inArc = pointAngle >= 0 && pointAngle <= absArc;
+
+                if (inArc)
+                    return radialError * radialError;
+
+                return Math.Min(
+                    WorldLocation.GetDistanceSquared2D(section.Location, location),
+                    WorldLocation.GetDistanceSquared2D(section.EndLocation, location));
+            }
+
+            Vector3 segVec = WorldLocation.GetDistanceVector(section.Location, section.EndLocation);
+            Vector3 toPoint = WorldLocation.GetDistanceVector(section.Location, location);
+            segVec.Y = 0;
+            toPoint.Y = 0;
+            double segLenSq = segVec.LengthSquared();
+
+            if (segLenSq < 1e-12)
+                return WorldLocation.GetDistanceSquared2D(section.Location, location);
+
+            double t = Math.Clamp(Vector3.Dot(toPoint, segVec) / segLenSq, 0.0, 1.0);
+            Vector3 closest = new Vector3(
+                toPoint.X - (float)(t * segVec.X),
+                0,
+                toPoint.Z - (float)(t * segVec.Z));
+            return closest.LengthSquared();
+        }
+
+        /// <summary>
         /// Returns <see langword="true"/> when <paramref name="location"/> is within
         /// <see cref="WorldLocation.ProximityTolerance"/> of this section.
         /// </summary>
@@ -205,12 +259,10 @@ namespace FreeTrainSimulator.Runtime.Track
                 double dotV = Vector3.Dot(centerToPoint, V);
                 double pointAngle = Math.Atan2(dotV, dotU);
 
-                // Clamp to arc range
+                // The arc always sweeps from 0 to +|ArcAngle| in the U/V basis (see DistanceSquared),
+                // so clamp the parametric angle into [0, absArc] regardless of the stored ArcAngle sign.
                 double absArc = Math.Abs(ArcAngle);
-                if (ArcAngle >= 0)
-                    pointAngle = Math.Clamp(pointAngle, 0, absArc);
-                else
-                    pointAngle = Math.Clamp(pointAngle, -absArc, 0);
+                pointAngle = Math.Clamp(pointAngle, 0, absArc);
 
                 double distance = Math.Abs(pointAngle) * Radius;
                 return WorldLocation.PointAlongArc(section.Location, section.EndLocation, ArcAngle, Radius, distance);

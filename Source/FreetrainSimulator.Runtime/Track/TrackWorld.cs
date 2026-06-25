@@ -263,7 +263,7 @@ namespace FreeTrainSimulator.Runtime.Track
                 if (!SectionGeometry.TryGetValue(section, out SectionGeometry geometry))
                     continue;
 
-                double distanceSquared = geometry.DistanceSquared(worldLocation);
+                double distanceSquared = geometry.NearestDistanceSquared(worldLocation);
                 if (double.IsNaN(distanceSquared) || distanceSquared >= nearestDistanceSquared)
                     continue;
 

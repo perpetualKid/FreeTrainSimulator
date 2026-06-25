@@ -274,7 +274,8 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
             if (currentPath?.PathModel == null)
                 return ImmutableArray<ToolWindowRow>.Empty;
 
-            bool metricUnits = toolingContextAccessor()?.UseMetricUnits ?? true;
+            ITrainPathToolingContext toolingContext = toolingContextAccessor();
+            bool metricUnits = toolingContext?.UseMetricUnits ?? true;
             ImmutableArray<ToolWindowRow>.Builder builder = ImmutableArray.CreateBuilder<ToolWindowRow>();
             builder.Add(new ToolWindowRow("Path ID", currentPath.PathModel.Id, null, false));
             builder.Add(new ToolWindowRow("Path Name", currentPath.PathModel.Name, null, false));
@@ -284,7 +285,7 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
             builder.Add(new ToolWindowRow("Path Length", FormatStrings.FormatDistanceDisplay(currentPath.Length, metricUnits, 1000), null, false));
             builder.AddRange(BuildEditorStateMetadata(currentPath));
             builder.AddRange(BuildEditorHistoryMetadata(pathEditor?.CanUndo == true, pathEditor?.CanRedo == true));
-            builder.AddRange(BuildResolverDiagnosticMetadata(PathRouteResolver.Resolve(currentPath.PathModel, null)));
+            builder.AddRange(BuildResolverDiagnosticMetadata(PathRouteResolver.Resolve(currentPath.PathModel, toolingContext?.TrackWorld)));
             return builder.ToImmutable();
         }
 
@@ -322,7 +323,8 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
                 return ImmutableArray<ToolWindowRow>.Empty;
 
             ImmutableArray<ToolWindowRow>.Builder builder = ImmutableArray.CreateBuilder<ToolWindowRow>();
-            builder.Add(new ToolWindowRow("Route Diagnostics", $"{resolution.Diagnostics.Length} ({resolution.HighestSeverity})", DiagnosticColor(resolution.HighestSeverity), true));
+            builder.Add(new ToolWindowRow("Route Diagnostics", string.Empty, DiagnosticColor(resolution.HighestSeverity), true));
+            builder.Add(new ToolWindowRow("Summary", $"{resolution.Diagnostics.Length} ({resolution.HighestSeverity})", DiagnosticColor(resolution.HighestSeverity), false));
             foreach (PathRouteDiagnostic diagnostic in resolution.Diagnostics)
                 builder.Add(new ToolWindowRow(diagnostic.Code.ToString(), diagnostic.Message, DiagnosticColor(diagnostic.Severity), diagnostic.Severity >= PathRouteDiagnosticSeverity.Error));
 
@@ -335,7 +337,7 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
             {
                 PathRouteDiagnosticSeverity.Fatal => DrawingColor.Red,
                 PathRouteDiagnosticSeverity.Error => DrawingColor.OrangeRed,
-                PathRouteDiagnosticSeverity.Warning => DrawingColor.Gold,
+                PathRouteDiagnosticSeverity.Warning => null,
                 PathRouteDiagnosticSeverity.Information => DrawingColor.LightGray,
                 _ => null,
             };

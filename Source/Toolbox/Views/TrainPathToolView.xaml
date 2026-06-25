@@ -12,6 +12,44 @@
              views:ToolWindow.DefaultFloatingSize="520,520"
              d:DesignWidth="520"
              d:DesignHeight="520">
+    <UserControl.Resources>
+        <DataTemplate x:Key="TrainPathMetadataNameCellTemplate">
+            <TextBlock Text="{Binding Name}"
+                       TextWrapping="Wrap">
+                <TextBlock.Style>
+                    <Style TargetType="TextBlock">
+                        <Setter Property="Padding" Value="4,0,0,0" />
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding Bold}" Value="True">
+                                <Setter Property="Padding" Value="0,2,0,2" />
+                                <Setter Property="FontWeight" Value="Bold" />
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </TextBlock.Style>
+            </TextBlock>
+        </DataTemplate>
+        <DataTemplate x:Key="TrainPathMetadataValueCellTemplate">
+            <Border BorderBrush="Gainsboro"
+                    BorderThickness="1,0,0,0"
+                    Margin="-6,0,0,0"
+                    Padding="4,0,0,0">
+                <TextBlock Text="{Binding Value}"
+                           TextWrapping="Wrap" />
+            </Border>
+        </DataTemplate>
+        <Style x:Key="TrainPathMetadataRowItemStyle"
+               TargetType="ListViewItem"
+               BasedOn="{StaticResource ToolWindowRowItemStyle}">
+            <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding Bold}" Value="True">
+                    <Setter Property="Background" Value="#FFEFEFEF" />
+                    <Setter Property="Padding" Value="0,3" />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+    </UserControl.Resources>
     <TabControl Margin="6">
         <TabItem Header="Path Nodes">
             <Grid>
@@ -84,12 +122,14 @@
         </TabItem>
         <TabItem Header="Path Data">
             <ListView ItemsSource="{Binding Metadata}"
+                      ItemContainerStyle="{StaticResource TrainPathMetadataRowItemStyle}"
+                      ScrollViewer.HorizontalScrollBarVisibility="Disabled"
                       behaviors:GridViewColumnBehavior.EqualColumnWidth="True"
                       behaviors:GridViewColumnBehavior.StretchListView="True">
                 <ListView.View>
                     <GridView>
-                        <GridViewColumn Header="Setting" Width="250" CellTemplate="{StaticResource ToolWindowNameCellTemplate}" />
-                        <GridViewColumn Header="Value" Width="250" CellTemplate="{StaticResource ToolWindowValueCellTemplate}" />
+                        <GridViewColumn Header="Setting" Width="250" CellTemplate="{StaticResource TrainPathMetadataNameCellTemplate}" />
+                        <GridViewColumn Header="Value" Width="250" CellTemplate="{StaticResource TrainPathMetadataValueCellTemplate}" />
                     </GridView>
                 </ListView.View>
             </ListView>

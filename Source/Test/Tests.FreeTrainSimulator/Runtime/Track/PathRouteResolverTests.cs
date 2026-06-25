@@ -499,7 +499,8 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
         {
             WorldLocation start = new WorldLocation(new Tile(0, 0), new Vector3(startX, 0, 0));
             WorldLocation end = new WorldLocation(new Tile(0, 0), new Vector3(startX + 100, 0, 0));
-            VectorSectionNode section = new VectorSectionNode(start, new Tile(0, 0), Vector3.UnitX, end)
+            // Heading along +X (Direction.Y == PiOver2) so geometry and endpoints agree.
+            VectorSectionNode section = new VectorSectionNode(start, new Tile(0, 0), new Vector3(0, MathHelper.PiOver2, 0), end)
             {
                 NodeIndex = 1,
             };

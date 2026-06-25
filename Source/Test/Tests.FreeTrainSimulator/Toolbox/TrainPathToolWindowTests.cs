@@ -119,12 +119,30 @@ namespace Tests.FreeTrainSimulator.Toolbox
 
             ImmutableArray<ToolWindowRow> rows = TrainPathToolWindow.BuildResolverDiagnosticMetadata(resolution);
 
-            Assert.HasCount(2, rows);
+            Assert.HasCount(3, rows);
             Assert.AreEqual("Route Diagnostics", rows[0].Name);
-            Assert.AreEqual("1 (Warning)", rows[0].Value);
-            Assert.AreEqual(nameof(PathRouteDiagnosticCode.MissingEndNode), rows[1].Name);
-            Assert.AreEqual("Path has no end node.", rows[1].Value);
-            Assert.IsTrue(rows.Any(row => row.Color.HasValue));
+            Assert.AreEqual(string.Empty, rows[0].Value);
+            Assert.IsTrue(rows[0].Bold);
+            Assert.AreEqual("Summary", rows[1].Name);
+            Assert.AreEqual("1 (Warning)", rows[1].Value);
+            Assert.AreEqual(nameof(PathRouteDiagnosticCode.MissingEndNode), rows[2].Name);
+            Assert.AreEqual("Path has no end node.", rows[2].Value);
+        }
+
+        [TestMethod]
+        public void WhenResolverHasAnchorMismatchThenDiagnosticMetadataContainsMismatchDetails()
+        {
+            PathRouteDiagnostic diagnostic = new PathRouteDiagnostic(PathRouteDiagnosticSeverity.Warning, PathRouteDiagnosticCode.AnchorLocationMismatch,
+                "Path node 0 has track anchor 2, but its stored location resolves to track node 1.", 0,
+                "Review the path node location and stored track anchor before saving or repairing the path.");
+            PathRouteResolution resolution = new PathRouteResolution(null, ImmutableArray.Create(diagnostic));
+
+            ImmutableArray<ToolWindowRow> rows = TrainPathToolWindow.BuildResolverDiagnosticMetadata(resolution);
+
+            Assert.HasCount(3, rows);
+            Assert.AreEqual(nameof(PathRouteDiagnosticCode.AnchorLocationMismatch), rows[2].Name);
+            Assert.Contains("track anchor 2", rows[2].Value);
+            Assert.Contains("track node 1", rows[2].Value);
         }
 
         [TestMethod]

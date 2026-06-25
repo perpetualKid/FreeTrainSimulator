@@ -3,6 +3,8 @@ using System.Threading.Tasks;
 
 using FreeTrainSimulator.Models.Content;
 using FreeTrainSimulator.Models.Shim;
+using FreeTrainSimulator.Runtime;
+using FreeTrainSimulator.Runtime.Track;
 
 namespace FreeTrainSimulator.Toolbox
 {
@@ -12,6 +14,8 @@ namespace FreeTrainSimulator.Toolbox
         private readonly bool useMetricUnits;
 
         public bool UseMetricUnits => useMetricUnits;
+
+        public TrackWorld TrackWorld => RuntimeDataResolver.Instance?.TrackWorld;
 
         public TrainPathToolingContext(RouteModelHeader route, bool useMetricUnits)
         {

@@ -75,8 +75,8 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
             WorldLocation loc1 = new WorldLocation(new Tile(0, 0), Vector3.Zero);
             WorldLocation loc2 = new WorldLocation(new Tile(0, 0), new Vector3(10, 0, 0));
             WorldLocation loc3 = new WorldLocation(new Tile(0, 0), new Vector3(20, 0, 0));
-            VectorSectionNode section1 = new VectorSectionNode(loc1, new Tile(0, 0), Vector3.UnitX, loc2);
-            VectorSectionNode section2 = new VectorSectionNode(loc2, new Tile(0, 0), Vector3.UnitX, loc3);
+            VectorSectionNode section1 = new VectorSectionNode(loc1, new Tile(0, 0), new Vector3(0, MathHelper.PiOver2, 0), loc2);
+            VectorSectionNode section2 = new VectorSectionNode(loc2, new Tile(0, 0), new Vector3(0, MathHelper.PiOver2, 0), loc3);
 
             // Create VectorNode with multiple sections
             VectorNode vectorNode = new VectorNode(loc1, new Tile(0, 0), loc3)
@@ -122,8 +122,8 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
             WorldLocation loc1 = new WorldLocation(new Tile(0, 0), Vector3.Zero);
             WorldLocation loc2 = new WorldLocation(new Tile(0, 0), new Vector3(10, 0, 0));
             WorldLocation loc3 = new WorldLocation(new Tile(0, 0), new Vector3(20, 0, 0));
-            VectorSectionNode section1 = new VectorSectionNode(loc1, new Tile(0, 0), Vector3.UnitX, loc2);
-            VectorSectionNode section2 = new VectorSectionNode(loc2, new Tile(0, 0), Vector3.UnitX, loc3);
+            VectorSectionNode section1 = new VectorSectionNode(loc1, new Tile(0, 0), new Vector3(0, MathHelper.PiOver2, 0), loc2);
+            VectorSectionNode section2 = new VectorSectionNode(loc2, new Tile(0, 0), new Vector3(0, MathHelper.PiOver2, 0), loc3);
 
             // Create VectorNode with multiple sections
             VectorNode vectorNode = new VectorNode(loc1, new Tile(0, 0), loc3)
@@ -450,7 +450,7 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
             // Create VectorSectionNodes for testing
             WorldLocation loc1 = new WorldLocation(new Tile(0, 0), Vector3.Zero);
             WorldLocation loc2 = new WorldLocation(new Tile(0, 0), new Vector3(10, 0, 0));
-            VectorSectionNode section1 = new VectorSectionNode(loc1, new Tile(0, 0), Vector3.UnitX, loc2);
+            VectorSectionNode section1 = new VectorSectionNode(loc1, new Tile(0, 0), new Vector3(0, MathHelper.PiOver2, 0), loc2);
 
             // Create VectorNode with section
             VectorNode vectorNode = new VectorNode(loc1, new Tile(0, 0), loc2)
@@ -502,8 +502,8 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
             WorldLocation loc1 = new WorldLocation(new Tile(0, 0), Vector3.Zero);
             WorldLocation loc2 = new WorldLocation(new Tile(0, 0), new Vector3(10, 0, 0));
             WorldLocation loc3 = new WorldLocation(new Tile(0, 0), new Vector3(20, 0, 0));
-            VectorSectionNode section1 = new VectorSectionNode(loc1, new Tile(0, 0), Vector3.UnitX, loc2);
-            VectorSectionNode section2 = new VectorSectionNode(loc2, new Tile(0, 0), Vector3.UnitX, loc3);
+            VectorSectionNode section1 = new VectorSectionNode(loc1, new Tile(0, 0), new Vector3(0, MathHelper.PiOver2, 0), loc2);
+            VectorSectionNode section2 = new VectorSectionNode(loc2, new Tile(0, 0), new Vector3(0, MathHelper.PiOver2, 0), loc3);
 
             // Create VectorNode with multiple sections
             VectorNode vectorNode = new VectorNode(loc1, new Tile(0, 0), loc3)

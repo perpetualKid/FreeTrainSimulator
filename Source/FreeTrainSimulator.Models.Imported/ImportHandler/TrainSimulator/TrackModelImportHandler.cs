@@ -142,7 +142,7 @@ namespace FreeTrainSimulator.Models.Imported.ImportHandler.TrainSimulator
                         NodeIndex = endNode.Index,
                         WorldId = endNode.UiD.WorldId,
                     } as TrackNodeBase,
-                    TrackVectorNode vectorNode => ConvertVectorNode(vectorNode, trackNodes, trackSections, trackdatabaseFile),
+                    TrackVectorNode vectorNode => ConvertVectorNode(vectorNode, trackSections),
                     _ => null,
                 };
             }).ToImmutableArray();
@@ -220,11 +220,11 @@ namespace FreeTrainSimulator.Models.Imported.ImportHandler.TrainSimulator
             };
         }
 
-        private static VectorNode ConvertVectorNode(TrackVectorNode vectorNode, TrackNodes trackNodes, TrackSectionModel trackSections, string trackdatabaseFile)
+        private static VectorNode ConvertVectorNode(TrackVectorNode vectorNode, TrackSectionModel trackSections)
         {
             ImmutableArray<VectorSectionNode> sections = vectorNode.TrackVectorSections.Select((tvs, i) =>
                 new VectorSectionNode(tvs.Location, tvs.WorldTile, tvs.Direction,
-                    ComputeEndLocation(vectorNode.TrackVectorSections, i, vectorNode, trackNodes, trackSections, trackdatabaseFile))
+                    ComputeEndLocation(vectorNode.TrackVectorSections, i, trackSections))
                 {
                     NodeIndex = tvs.SectionIndex,
                     ShapeIndex = tvs.ShapeIndex,
@@ -661,36 +661,23 @@ namespace FreeTrainSimulator.Models.Imported.ImportHandler.TrainSimulator
         }
 
         /// <summary>
-        /// Computes the 3D world location of the far end of a track vector section.
-        /// The direction is determined by the start location of the next section (or the connected node for the last section).
-        /// Falls back to <paramref name="nextLocation"/> when the section index is not found in <paramref name="trackSections"/>.
+        /// Computes the 3D world location of the far end of a track vector section from the section's own
+        /// start position, heading (<see cref="TrackVectorSection.Direction"/>), and geometry template
+        /// (<see cref="Track.TrackSection"/>). This tangent-based end is the authoritative geometry: it matches
+        /// the renderer (<c>TrackSegmentBase</c>), <c>SectionGeometry</c>, and the physics traveller, and is
+        /// independent of the next section's stored start (which can be inconsistent or, for the last section,
+        /// resolve through a pin link to a far/wrong node). Falls back to the section start when the section
+        /// index is not found in <paramref name="trackSections"/>.
         /// </summary>
-        private static WorldLocation ComputeEndLocation(TrackVectorSection[] sections, int index, TrackVectorNode vectorNode, TrackNodes trackNodes, TrackSectionModel trackSections, string trackdatabaseFile)
+        private static WorldLocation ComputeEndLocation(TrackVectorSection[] sections, int index, TrackSectionModel trackSections)
         {
-            // The far end of this section is the start of the next one, or the connected node's location for the last section.
-            WorldLocation nextLocation = index + 1 < sections.Length
-                ? sections[index + 1].Location
-                : trackNodes[vectorNode.TrackPins[vectorNode.InPins].Link]?.UiD.Location ?? WorldLocation.None;
-
-            if (!trackSections.TrackSections.TryGetValue(sections[index].SectionIndex, out Track.TrackSection trackSection))
-            {
-                return nextLocation;
-            }
-            if (WorldLocation.GetDistanceSquared(sections[index].Location, nextLocation) < 0.001)
-            {
-                Trace.TraceWarning($"Vector Node {vectorNode.Index} section index {index} from {trackdatabaseFile} has degenerate next location - computing end position from direction and geometry");
-                return ComputeEndLocationFromDirection(sections[index], trackSection);
-            }
-
-            return trackSection.Curved
-                ? WorldLocation.PointAlongArc(sections[index].Location, nextLocation,
-                    MathHelper.ToRadians(trackSection.Angle), trackSection.Radius, trackSection.Length)
-                : WorldLocation.PointAlongDirection(sections[index].Location, nextLocation, trackSection.Length);
+            return trackSections.TrackSections.TryGetValue(sections[index].SectionIndex, out Track.TrackSection trackSection)
+                ? ComputeEndLocationFromDirection(sections[index], trackSection)
+                : sections[index].Location;
         }
 
         /// <summary>
         /// Computes the end location of a track vector section using only its start position, heading direction, and section geometry.
-        /// Used as a fallback when the next section's start location coincides with this section's start (degenerate graph data).
         /// Assumes the section lies in a horizontal plane — elevation (Y) is preserved from the start location.
         /// Mirrors the endpoint formulas used in <see cref="FreetrainSimulator.Runtime.Track.TrackSegmentBase"/>.
         /// </summary>
