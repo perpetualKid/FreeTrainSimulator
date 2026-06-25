@@ -82,6 +82,11 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
                 {
                     TrainPathPointBase endPoint = (startPoint.NodeType & PathNodeType.End) == PathNodeType.End ? PathPoints.PreviousPathPoint(startPoint, pathType) : PathPoints.NextPathPoint(startPoint, pathType);
 
+                    // A partial (incomplete) path can have a dangling last node that is not yet flagged End and
+                    // has no next node to connect to; there is no section to build for it, so skip it.
+                    if (endPoint == null)
+                        return;
+
                     (startPoint as EditorPathPoint).UpdateDirectionTowards(endPoint, startPoint.ValidationResult == PathNodeInvalidReasons.None, (startPoint.NodeType & PathNodeType.End) == PathNodeType.End);
                     List<TrainPathSectionBase> sections = InitializeSections(pathType, startPoint, endPoint).Sections;
 
@@ -107,6 +112,12 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
 
             SetBounds();
             pathSectionLookup = PathSections.Select(section => section as TrainPathSectionBase).ToLookup(section => section.PathItem, section => section) as Lookup<TrainPathPointBase, TrainPathSectionBase>;
+
+            // When the path is reconstructed from a model (e.g. after undo/redo) with existing points, seed the
+            // active editing anchor to the last point so a subsequent pointer move (UpdatePathEndPoint) extends
+            // the preview segment from there instead of dereferencing a null anchor.
+            if (PathPoints.Count > 0)
+                activeEditorSegmentStart = new EditorPathPoint(PathPoints[^1]);
         }
 
         public new PathModel ToPathModel(PathModelHeader pathModelHeader)
@@ -132,7 +143,6 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
             sections.Clear();
             editorUseIntermediaryPathPoint = false;
             pathSectionLookup = PathSections.Select(section => section as TrainPathSectionBase).ToLookup(section => section.PathItem, section => section) as Lookup<TrainPathPointBase, TrainPathSectionBase>;
-            //return new EditorPathPoint(PointD.None, PointD.None, PathNodeType.Start);// editorSegmentStart with { NodeType = PathNodeType.None };
             return activeEditorSegmentStart with { NodeType = PathNodeType.None };
         }
 
@@ -144,7 +154,8 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
             if (PathPoints.Count > 0)
             {
                 PathPoints.RemoveAt(PathPoints.Count - 1);
-                activeEditorSegmentStart = new EditorPathPoint(PathPoints[^1]);
+                // Re-seed the active anchor from the new last point, or clear it when the path is now empty.
+                activeEditorSegmentStart = PathPoints.Count > 0 ? new EditorPathPoint(PathPoints[^1]) : null;
                 RemoveSections(sections);
                 editorUseIntermediaryPathPoint = false;
                 pathSectionLookup = PathSections.Select(section => section as TrainPathSectionBase).ToLookup(section => section.PathItem, section => section) as Lookup<TrainPathPointBase, TrainPathSectionBase>;
@@ -163,6 +174,11 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
 
             if (!startPoint)
             {
+                // The active anchor can be null when the path was reconstructed or reduced to empty; without an
+                // anchor there is no segment to preview, so return the candidate point unmodified.
+                if (activeEditorSegmentStart == null)
+                    return pathPoint;
+
                 activeEditorSegmentStart.ValidationResult = PathNodeInvalidReasons.None;
                 RemoveSections(sections);
 
@@ -188,7 +204,6 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
                 if (sections.Count > 1) // the new sections cross a junction
                 {
                     PathPoints.Add(new EditorPathPoint(intermediaryJunction) with { NodeType = PathNodeType.Junction });
-                    //AddPathPoint(new EditorPathPoint(intermediaryJunction) with { NodeType = PathNodeType.Junction });
                     editorUseIntermediaryPathPoint = true;
                 }
                 AddSections(sections);

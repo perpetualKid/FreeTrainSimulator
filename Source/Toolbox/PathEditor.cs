@@ -12,7 +12,6 @@ using FreeTrainSimulator.Models.Content;
 using FreeTrainSimulator.Models.Shim;
 using FreeTrainSimulator.Runtime;
 using FreeTrainSimulator.Runtime.Track;
-using FreeTrainSimulator.Models.Track;
 
 namespace FreeTrainSimulator.Toolbox
 {
@@ -117,7 +116,7 @@ namespace FreeTrainSimulator.Toolbox
 
         public void InitializeNewPath()
         {
-            this.path = new PathModel()
+            PathModel newPath = new PathModel()
             {
                 Id = "<New Path>",
                 Name = "<New Path>",
@@ -125,8 +124,9 @@ namespace FreeTrainSimulator.Toolbox
                 End = "End",
                 PlayerPath = true,
             };
+            path = newPath;
             ClearHistory();
-            InitializePathEdit(path as PathModel);
+            InitializePathEdit(newPath);
             OnPathChanged?.Invoke(this, new PathEditorChangedEventArgs(TrainPath));
         }
 
@@ -194,10 +194,13 @@ namespace FreeTrainSimulator.Toolbox
         public PathEditResult RemoveRestOfPath(int nodeIndex) => ApplyMutation(model => PathModelEditor.RemoveRestOfPath(model, nodeIndex));
 
         // Captures the current authored path, runs the mutation, and on success records an undo snapshot and
-        // rebuilds the editor from the new model. Returns a failed result (with a reason) when no path is
-        // currently loaded or the mutation reports failure.
+        // rebuilds the editor from the new model. Returns a failed result (with a reason) when the editor is not
+        // in edit mode, no path is currently loaded, or the mutation reports failure.
         private PathEditResult ApplyMutation(Func<PathModel, PathEditResult> mutation)
         {
+            if (!EditMode)
+                return PathEditResult.Failed("The path is not in edit mode.", null);
+
             PathModel currentModel = TryCaptureSnapshot();
             if (currentModel == null)
                 return PathEditResult.Failed("No editable path is currently loaded.", null);
@@ -214,6 +217,9 @@ namespace FreeTrainSimulator.Toolbox
 
         private bool HasNodeType(Func<PathModel, bool> predicate)
         {
+            if (!EditMode)
+                return false;
+
             PathModel currentModel = TryCaptureSnapshot();
             return currentModel != null && predicate(currentModel);
         }
@@ -246,7 +252,7 @@ namespace FreeTrainSimulator.Toolbox
 
         public void MouseReleasedLeft(UserCommandArgs userCommandArgs, KeyModifiers keyModifiers)
         {
-            if (EditMode & !editorDragged)
+            if (EditMode && !editorDragged)
             {
                 PathModel undoSnapshot = TryCaptureSnapshot();
                 bool changed;
@@ -270,6 +276,9 @@ namespace FreeTrainSimulator.Toolbox
 
         public void MouseReleasedRight(UserCommandArgs userCommandArgs, KeyModifiers keyModifiers)
         {
+            if (!EditMode)
+                return;
+
             PathModel undoSnapshot = TryCaptureSnapshot();
             if (RemovePathPoint())
                 PushUndoSnapshot(undoSnapshot);
@@ -343,8 +352,10 @@ namespace FreeTrainSimulator.Toolbox
         {
             ArgumentNullException.ThrowIfNull(snapshot);
 
+            // Preserve the current View/Edit mode across the rebuild: undoing/redoing or mutating must not
+            // silently switch a path that was opened for viewing into edit mode.
             path = snapshot;
-            InitializePathEdit(snapshot);
+            RestorePath(snapshot, EditMode);
             validPointAdded = false;
             editorDragged = false;
         }

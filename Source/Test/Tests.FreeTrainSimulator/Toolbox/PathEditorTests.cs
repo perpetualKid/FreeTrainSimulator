@@ -1,16 +1,16 @@
 using System.Collections.Immutable;
 using System;
-using System.Reflection;
 
 using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Position;
 using FreeTrainSimulator.Models.Content;
-using FreeTrainSimulator.Models.Track;
 using FreeTrainSimulator.Runtime.Track;
 using FreeTrainSimulator.Toolbox;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.Xna.Framework;
+
+using Tests.FreeTrainSimulator.Common;
 
 namespace Tests.FreeTrainSimulator.Toolbox
 {
@@ -93,6 +93,35 @@ namespace Tests.FreeTrainSimulator.Toolbox
             Assert.Contains("EditorDragged=True", context);
         }
 
+        [TestMethod]
+        public void WhenPathHasStartButNoEndThenTrainPathConstructionSucceeds()
+        {
+            // Regression: undoing after an endpoint was set restores a partial path (Start + intermediate,
+            // no End yet). The TrainPathBase constructor must not throw for an incomplete path during editing;
+            // completeness is validated separately by PathRouteResolver.
+            PathModel partialPath = new PathModel()
+            {
+                PathNodes = ImmutableArray.Create(CreateNode(PathNodeType.Start, 1), CreateNode(PathNodeType.Intermediate, -1)),
+            };
+
+            TestTrainPath trainPath = new TestTrainPath(partialPath);
+
+            Assert.IsNotNull(trainPath);
+        }
+
+        [TestMethod]
+        public void WhenPathHasEndButNoStartThenTrainPathConstructionSucceeds()
+        {
+            PathModel partialPath = new PathModel()
+            {
+                PathNodes = ImmutableArray.Create(CreateNode(PathNodeType.Intermediate, 1), CreateNode(PathNodeType.End, -1)),
+            };
+
+            TestTrainPath trainPath = new TestTrainPath(partialPath);
+
+            Assert.IsNotNull(trainPath);
+        }
+
         private static PathNode CreateNode(PathNodeType nodeType, int nextMainNode)
         {
             return new PathNode(new WorldLocation(new Tile(0, 0), Vector3.Zero))
@@ -150,28 +179,6 @@ namespace Tests.FreeTrainSimulator.Toolbox
             }
         }
 
-        private static TrackWorld CreateInitializedTrackWorld()
-        {
-            WorldLocation start = new WorldLocation(new Tile(0, 0), Vector3.Zero);
-            WorldLocation end = new WorldLocation(new Tile(0, 0), new Vector3(100, 0, 0));
-            VectorNode vectorNode = new VectorNode(start, new Tile(0, 0), end)
-            {
-                NodeIndex = 1,
-                VectorSections = ImmutableArray<VectorSectionNode>.Empty,
-            };
-            TrackDatabase trackDatabase = new TrackDatabase()
-            {
-                TrackNodes = ImmutableArray.Create<TrackNodeBase>(null, vectorNode),
-                TrackNodeConnectors = ImmutableArray.Create(new TrackNodeConnectorIndex(), new TrackNodeConnectorIndex()),
-            };
-            typeof(TrackDatabase).GetMethod("OnSerializing", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(trackDatabase, null);
-            typeof(TrackDatabase).GetMethod("OnSerialized", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(trackDatabase, null);
-            TrackModel trackModel = new TrackModel()
-            {
-                TrackDatabase = trackDatabase,
-            };
-
-            return TrackWorld.Initialize(null, trackModel, new TrackSectionModel());
-        }
+        private static TrackWorld CreateInitializedTrackWorld() => TrackWorldTestFixture.CreateSingleVectorNodeTrackWorld();
     }
 }

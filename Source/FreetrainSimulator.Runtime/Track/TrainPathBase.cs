@@ -46,9 +46,12 @@ namespace FreeTrainSimulator.Runtime.Track
         protected TrainPathBase(PathModel pathModel, TrackWorld trackWorld)
             :   base(pathModel == null ? throw new ArgumentNullException(nameof(pathModel)) :
                     pathModel.PathNodes.IsDefaultOrEmpty ? PointD.None :
-                    PointD.FromWorldLocation(pathModel.PathNodes.NodeOfType(PathNodeType.Start)?.Location ?? throw new ArgumentOutOfRangeException(nameof(pathModel), "Path has no Start node")),
+                    // During editing the path may be incomplete (a partial path has a Start and intermediate
+                    // nodes but no End yet); fall back to the first/last node for the viewport bounds rather
+                    // than requiring a complete path. Structural completeness is validated by PathRouteResolver.
+                    PointD.FromWorldLocation((pathModel.PathNodes.NodeOfType(PathNodeType.Start) ?? pathModel.PathNodes[0]).Location),
                   pathModel.PathNodes.IsDefaultOrEmpty ? PointD.None : 
-                    PointD.FromWorldLocation(pathModel.PathNodes.NodeOfType(PathNodeType.End)?.Location ?? throw new ArgumentOutOfRangeException(nameof(pathModel), "Path has no End node")))
+                    PointD.FromWorldLocation((pathModel.PathNodes.NodeOfType(PathNodeType.End) ?? pathModel.PathNodes[^1]).Location))
         {
             TrackWorld = trackWorld ?? throw new ArgumentNullException(nameof(trackWorld));
             PathModel = pathModel;

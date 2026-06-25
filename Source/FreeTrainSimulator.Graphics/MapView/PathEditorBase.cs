@@ -41,6 +41,9 @@ namespace FreeTrainSimulator.Graphics.MapView
 
         internal void UpdatePointerLocation(in PointD location, TrackSegmentBase nearestSegment)
         {
+            if (trainPath == null)
+                return;
+
             // if a tracksegment is nearby, snap to the segment
             PointD snapLocation = nearestSegment?.SnapToSegment(location) ?? location;
             Runtime.Track.JunctionNodeBase junction;
@@ -81,6 +84,20 @@ namespace FreeTrainSimulator.Graphics.MapView
             activePathPoint = new EditorPathPoint(PointD.None, PointD.None, PathNodeType.Start);
         }
 
+        /// <summary>
+        /// Rebuilds the editor from <paramref name="pathModel"/> while preserving the supplied
+        /// <paramref name="editMode"/>, used when restoring an undo/redo snapshot or applying a mutation so a
+        /// path that was opened for viewing is not silently switched into edit mode. Seeds the active preview
+        /// point consistently with the interactive editing path so a subsequent pointer move has a valid anchor.
+        /// </summary>
+        protected void RestorePath(PathModel pathModel, bool editMode)
+        {
+            EditMode = editMode;
+            editorContext.ContentMode = editMode ? ToolboxContentMode.EditPath : ToolboxContentMode.ViewPath;
+            trainPath = ((IPathEditorContextServicesAccessor)editorContext).Services.CreateEditorTrainPath(pathModel);
+            activePathPoint = editMode ? new EditorPathPoint(PointD.None, PointD.None, PathNodeType.Start) : null;
+        }
+
         public PathModel ConvertTrainPath(PathModelHeader pathModelHeader)
         {
             return trainPath?.ToPathModel(pathModelHeader);
@@ -88,9 +105,10 @@ namespace FreeTrainSimulator.Graphics.MapView
 
         protected bool AddPathEndPoint()
         {
-            if (trainPath?.PathPoints.Count > 1 && IsValidActivePathPoint())
+            if (trainPath?.PathPoints.Count > 1 && IsValidActivePathPoint()
+                && trainPath.PathPoints[^1] is EditorPathPoint endPoint)
             {
-                activePathPoint = trainPath.PathPoints[^1] as EditorPathPoint;
+                activePathPoint = endPoint;
                 activePathPoint.UpdateDirectionTowards(trainPath.PathPoints[^2], true, true);
                 trainPath.PathPoints[^1] = activePathPoint with { NodeType = PathNodeType.End };
 
@@ -112,7 +130,7 @@ namespace FreeTrainSimulator.Graphics.MapView
         protected bool RemovePathPoint()
         {
             EditorPathPoint currentItem = activePathPoint;
-            return trainPath != null && activePathPoint.ValidationResult == PathNodeInvalidReasons.None && (activePathPoint = trainPath.RemovePathPoint(activePathPoint)) != currentItem;
+            return trainPath != null && activePathPoint != null && activePathPoint.ValidationResult == PathNodeInvalidReasons.None && (activePathPoint = trainPath.RemovePathPoint(activePathPoint)) != currentItem;
         }
 
         private bool IsValidActivePathPoint()
@@ -123,6 +141,9 @@ namespace FreeTrainSimulator.Graphics.MapView
 
         public void HighlightPathItem(int index)
         {
+            if (trainPath == null)
+                return;
+
             trainPath.SelectedNodeIndex = index;
             TrainPathPointBase item = trainPath.SelectedNode;
             if (item != null)

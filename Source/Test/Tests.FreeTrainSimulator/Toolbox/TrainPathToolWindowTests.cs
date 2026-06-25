@@ -1,17 +1,16 @@
 using System.Collections.Immutable;
 using System;
 using System.Linq;
-using System.Reflection;
 
 using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Position;
 using FreeTrainSimulator.Models.Content;
-using FreeTrainSimulator.Models.Track;
 using FreeTrainSimulator.Runtime.Track;
 using FreeTrainSimulator.Toolbox.ToolWindows;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Microsoft.Xna.Framework;
+
+using Tests.FreeTrainSimulator.Common;
 
 namespace Tests.FreeTrainSimulator.Toolbox
 {
@@ -239,28 +238,6 @@ namespace Tests.FreeTrainSimulator.Toolbox
             }
         }
 
-        private static TrackWorld CreateInitializedTrackWorld()
-        {
-            WorldLocation start = new WorldLocation(new Tile(0, 0), Vector3.Zero);
-            WorldLocation end = new WorldLocation(new Tile(0, 0), new Vector3(100, 0, 0));
-            VectorNode vectorNode = new VectorNode(start, new Tile(0, 0), end)
-            {
-                NodeIndex = 1,
-                VectorSections = ImmutableArray<VectorSectionNode>.Empty,
-            };
-            TrackDatabase trackDatabase = new TrackDatabase()
-            {
-                TrackNodes = ImmutableArray.Create<TrackNodeBase>(null, vectorNode),
-                TrackNodeConnectors = ImmutableArray.Create(new TrackNodeConnectorIndex(), new TrackNodeConnectorIndex()),
-            };
-            typeof(TrackDatabase).GetMethod("OnSerializing", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(trackDatabase, null);
-            typeof(TrackDatabase).GetMethod("OnSerialized", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(trackDatabase, null);
-            TrackModel trackModel = new TrackModel()
-            {
-                TrackDatabase = trackDatabase,
-            };
-
-            return TrackWorld.Initialize(null, trackModel, new TrackSectionModel());
-        }
+        private static TrackWorld CreateInitializedTrackWorld() => TrackWorldTestFixture.CreateSingleVectorNodeTrackWorld();
     }
 }
