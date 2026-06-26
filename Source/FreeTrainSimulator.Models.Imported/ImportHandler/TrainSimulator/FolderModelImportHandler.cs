@@ -63,6 +63,7 @@ namespace FreeTrainSimulator.Models.Imported.ImportHandler.TrainSimulator
         }
 
         internal static ImmutableArray<FolderModel> MergeFoldersForRefresh(ContentModel contentModel, ImmutableArray<FolderModel> legacyFolders)
+        {
             ArgumentNullException.ThrowIfNull(contentModel, nameof(contentModel));
 
             // Configured folders are authoritative and added first; legacy-discovered folders only fill gaps.
