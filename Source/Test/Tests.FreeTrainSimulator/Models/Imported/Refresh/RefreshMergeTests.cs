@@ -23,7 +23,7 @@ namespace Tests.FreeTrainSimulator.Models.Imported.Refresh
     public class RefreshMergeTests
     {
         [TestMethod]
-        public async Task ConvertContent_RefreshesModelNativeRoute_WhenRouteVersionIsOutdated()
+        public async Task ConvertContentRefreshesModelNativeRoute_WhenRouteVersionIsOutdated()
         {
             string uniqueSuffix = Guid.NewGuid().ToString("N");
             ContentModel contentModel = new ContentModel();
@@ -51,14 +51,14 @@ namespace Tests.FreeTrainSimulator.Models.Imported.Refresh
 
             RouteModel refreshedRoute = await RouteModelHandler.GetExtended(routeModel.Id, folderModel, CancellationToken.None).ConfigureAwait(false);
             Assert.IsNotNull(refreshedRoute);
-            Assert.IsTrue(VersionInfo.Compare(refreshedRoute.Version) <= 0);
+            Assert.IsLessThanOrEqualTo(0, VersionInfo.Compare(refreshedRoute.Version));
             Assert.IsFalse(RouteModelImportHandler.IsSourceBackedRoute(refreshedRoute));
             Assert.AreEqual("OutdatedRouteKey", refreshedRoute.RouteKey);
             Assert.IsTrue(refreshedRoute.Settings.ContainsKey("SampleSetting"));
         }
 
         [TestMethod]
-        public async Task RefreshPersistedRouteModel_PreservesExtendedData_WhenMigratingOutdatedRoute()
+        public async Task RefreshPersistedRouteModelPreservesExtendedData_WhenMigratingOutdatedRoute()
         {
             string uniqueSuffix = Guid.NewGuid().ToString("N");
             ContentModel contentModel = new ContentModel();
@@ -87,11 +87,11 @@ namespace Tests.FreeTrainSimulator.Models.Imported.Refresh
             Assert.IsNotNull(reloaded);
             Assert.AreEqual("ExtendedRouteKey", reloaded.RouteKey);
             Assert.IsTrue(reloaded.Settings.ContainsKey("SampleSetting"));
-            Assert.IsTrue(VersionInfo.Compare(reloaded.Version) <= 0);
+            Assert.IsLessThanOrEqualTo(0, VersionInfo.Compare(reloaded.Version));
         }
 
         [TestMethod]
-        public async Task ExpandRouteModels_PreservesPersistedModelNativeRoute_WhenLegacySourceIsUnavailable()
+        public async Task ExpandRouteModelsPreservesPersistedModelNativeRoute_WhenLegacySourceIsUnavailable()
         {
             string uniqueSuffix = Guid.NewGuid().ToString("N");
             ContentModel contentModel = new ContentModel();
@@ -115,7 +115,7 @@ namespace Tests.FreeTrainSimulator.Models.Imported.Refresh
         }
 
         [TestMethod]
-        public async Task ExpandRouteModels_PreservesPersistedSourceBackedRoute_WhenSourceIsUnavailable()
+        public async Task ExpandRouteModelsPreservesPersistedSourceBackedRoute_WhenSourceIsUnavailable()
         {
             string uniqueSuffix = Guid.NewGuid().ToString("N");
             ContentModel contentModel = new ContentModel();
@@ -143,7 +143,7 @@ namespace Tests.FreeTrainSimulator.Models.Imported.Refresh
         }
 
         [TestMethod]
-        public async Task ExpandFolderModels_PreservesConfiguredFolder_WhenNotPresentInLegacyDiscovery()
+        public async Task ExpandFolderModelsPreservesConfiguredFolder_WhenNotPresentInLegacyDiscovery()
         {
             string uniqueSuffix = Guid.NewGuid().ToString("N");
             ContentModel contentModel = new ContentModel();
@@ -161,7 +161,7 @@ namespace Tests.FreeTrainSimulator.Models.Imported.Refresh
         }
 
         [TestMethod]
-        public void MergeFoldersForRefresh_PreservesConfiguredAndAddsMissingLegacyFolders()
+        public void MergeFoldersForRefreshPreservesConfiguredAndAddsMissingLegacyFolders()
         {
             string uniqueSuffix = Guid.NewGuid().ToString("N");
             string sharedPath = Path.Combine(Path.GetTempPath(), $"fts-shared-{uniqueSuffix}");
@@ -181,7 +181,7 @@ namespace Tests.FreeTrainSimulator.Models.Imported.Refresh
 
             ImmutableArray<FolderModel> mergedFolders = FolderModelImportHandler.MergeFoldersForRefresh(contentModel, ImmutableArray.Create(legacySharedFolder, legacyOnlyFolder));
 
-            Assert.AreEqual(3, mergedFolders.Length);
+            Assert.HasCount(3, mergedFolders);
             Assert.IsTrue(mergedFolders.Any(folder => string.Equals(folder.Id, configuredSharedFolder.Id, StringComparison.OrdinalIgnoreCase)));
             Assert.IsTrue(mergedFolders.Any(folder => string.Equals(folder.Id, configuredOnlyFolder.Id, StringComparison.OrdinalIgnoreCase)));
             Assert.IsTrue(mergedFolders.Any(folder => string.Equals(folder.Id, legacyOnlyFolder.Id, StringComparison.OrdinalIgnoreCase)));
@@ -196,9 +196,11 @@ namespace Tests.FreeTrainSimulator.Models.Imported.Refresh
             string targetDirectory = Path.GetDirectoryName(targetFileName) ?? throw new InvalidOperationException($"Unable to determine target directory for {targetFileName}.");
             _ = Directory.CreateDirectory(targetDirectory);
 
-            await using FileStream saveFile = new FileStream(targetFileName, FileMode.Create, FileAccess.Write);
-            await MemoryPackSerializer.SerializeAsync(saveFile, routeModel, null, cancellationToken).ConfigureAwait(false);
-            await saveFile.FlushAsync(cancellationToken).ConfigureAwait(false);
+            using (FileStream saveFile = new FileStream(targetFileName, FileMode.Create, FileAccess.Write))
+            {
+                await MemoryPackSerializer.SerializeAsync(saveFile, routeModel, null, cancellationToken).ConfigureAwait(false);
+                await saveFile.FlushAsync(cancellationToken).ConfigureAwait(false);
+            }
         }
 
         private static async Task<RouteModel> ReadPersistedRouteModelAsync(RouteModelHeader routeModel, CancellationToken cancellationToken)
@@ -207,8 +209,10 @@ namespace Tests.FreeTrainSimulator.Models.Imported.Refresh
 
             string targetFileName = ModelFileResolver<RouteModelHeader>.FilePath(routeModel) + ContentHandlerBase<RouteModelHeader>.SaveStateExtension;
 
-            await using FileStream readFile = new FileStream(targetFileName, FileMode.Open, FileAccess.Read);
-            return await MemoryPackSerializer.DeserializeAsync<RouteModel>(readFile, null, cancellationToken).ConfigureAwait(false);
+            using (FileStream readFile = new FileStream(targetFileName, FileMode.Open, FileAccess.Read))
+            {
+                return await MemoryPackSerializer.DeserializeAsync<RouteModel>(readFile, null, cancellationToken).ConfigureAwait(false);
+            }
         }
     }
 }
