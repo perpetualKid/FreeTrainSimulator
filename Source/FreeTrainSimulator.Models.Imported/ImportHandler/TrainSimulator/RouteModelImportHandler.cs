@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -26,7 +27,8 @@ namespace FreeTrainSimulator.Models.Imported.ImportHandler.TrainSimulator
         {
             ArgumentNullException.ThrowIfNull(folderModel, nameof(folderModel));
 
-            ConcurrentBag<RouteModelHeader> results = new ConcurrentBag<RouteModelHeader>();
+            ImmutableDictionary<string, RouteModelHeader> persistedRoutes = await LoadPersistedRouteModels(folderModel, cancellationToken).ConfigureAwait(false);
+            ConcurrentDictionary<string, RouteModelHeader> importedRoutes = new ConcurrentDictionary<string, RouteModelHeader>(StringComparer.OrdinalIgnoreCase);
             ConcurrentDictionary<string, FolderStructure.ContentFolder.RouteFolder> routeFolders = new ConcurrentDictionary<string, FolderStructure.ContentFolder.RouteFolder>(StringComparer.OrdinalIgnoreCase);
 
             string sourceFolder = folderModel.MstsContentFolder().RoutesFolder;
@@ -43,18 +45,109 @@ namespace FreeTrainSimulator.Models.Imported.ImportHandler.TrainSimulator
 
                 await Parallel.ForEachAsync(routeFolders, cancellationToken, async (routeFolder, token) =>
                 {
-                    Task<RouteModelHeader> modelTask = Cast(Convert(routeFolder.Value, folderModel, cancellationToken));
+                    Task<RouteModelHeader> modelTask = Cast(Convert(routeFolder.Value, folderModel, token));
                     RouteModelHeader routeModel = await modelTask.ConfigureAwait(false);
-                    string key = routeModel.Hierarchy();
-                    results.Add(routeModel);
-                    modelTaskCache[key] = modelTask;
+                    if (routeModel == null || string.IsNullOrWhiteSpace(routeModel.Id))
+                        return;
+
+                    importedRoutes[routeModel.Id] = routeModel;
+                    modelTaskCache[routeModel.Hierarchy()] = modelTask;
                 }).ConfigureAwait(false);
             }
 
-            ImmutableArray<RouteModelHeader> result = results.ToImmutableArray();
+            Dictionary<string, RouteModelHeader> mergedRoutes = new Dictionary<string, RouteModelHeader>(persistedRoutes, StringComparer.OrdinalIgnoreCase);
+            foreach ((string routeId, RouteModelHeader routeModel) in importedRoutes)
+            {
+                mergedRoutes[routeId] = routeModel;
+            }
+
+            ImmutableArray<RouteModelHeader> result = mergedRoutes.Values
+                .OrderBy(route => route?.Name ?? string.Empty, StringComparer.OrdinalIgnoreCase)
+                .ThenBy(route => route?.Id ?? string.Empty, StringComparer.OrdinalIgnoreCase)
+                .ToImmutableArray();
+
+            // imported routes are already cached above; cache the preserved (non-imported) persisted routes
+            foreach ((string routeId, RouteModelHeader persistedRoute) in persistedRoutes)
+            {
+                if (persistedRoute != null && !importedRoutes.ContainsKey(routeId))
+                    modelTaskCache[persistedRoute.Hierarchy()] = Task.FromResult(persistedRoute);
+            }
+
+            Trace.TraceInformation($"Route refresh merge for folder '{folderModel.Id}': imported={importedRoutes.Count}, preserved={result.Length - importedRoutes.Count}, merged={result.Length}");
+
             string key = folderModel.Hierarchy();
             modelSetTaskCache[key] = Task.FromResult(result);
             return result;
+        }
+
+        private static async Task<ImmutableDictionary<string, RouteModelHeader>> LoadPersistedRouteModels(FolderModel folderModel, CancellationToken cancellationToken)
+        {
+            ArgumentNullException.ThrowIfNull(folderModel, nameof(folderModel));
+
+            string routesFolder = ModelFileResolver<RouteModelHeader>.FolderPath(folderModel);
+            string pattern = ModelFileResolver<RouteModelHeader>.WildcardSavePattern;
+            ConcurrentDictionary<string, RouteModelHeader> persistedRoutes = new ConcurrentDictionary<string, RouteModelHeader>(StringComparer.OrdinalIgnoreCase);
+
+            if (Directory.Exists(routesFolder))
+            {
+                await Parallel.ForEachAsync(Directory.EnumerateFiles(routesFolder, pattern), cancellationToken, async (file, token) =>
+                {
+                    string routeId = Path.GetFileNameWithoutExtension(file);
+                    if (routeId.EndsWith(fileExtension, StringComparison.OrdinalIgnoreCase))
+                        routeId = routeId[..^fileExtension.Length];
+
+                    RouteModelHeader routeModel = await FromFile<FolderModel>(routeId, folderModel, token).ConfigureAwait(false);
+                    if (routeModel != null && !string.IsNullOrWhiteSpace(routeModel.Id))
+                        persistedRoutes[routeModel.Id] = routeModel;
+                }).ConfigureAwait(false);
+            }
+
+            return persistedRoutes.ToImmutableDictionary(StringComparer.OrdinalIgnoreCase);
+        }
+
+        internal static bool IsSourceBackedRoute(RouteModelHeader routeModel)
+        {
+            ArgumentNullException.ThrowIfNull(routeModel, nameof(routeModel));
+
+            return routeModel.Tags != null &&
+                routeModel.Tags.TryGetValue(SourceNameKey, out string sourceRouteName) &&
+                !string.IsNullOrWhiteSpace(sourceRouteName);
+        }
+
+        internal static bool HasResolvableSourceRoute(RouteModelHeader routeModel)
+        {
+            ArgumentNullException.ThrowIfNull(routeModel, nameof(routeModel));
+
+            if (!IsSourceBackedRoute(routeModel) || routeModel.Parent == null)
+                return false;
+
+            try
+            {
+                FolderStructure.ContentFolder.RouteFolder routeFolder = routeModel.Parent.MstsContentFolder().Route(routeModel.Tags[SourceNameKey]);
+                return routeFolder.Valid && File.Exists(routeFolder.TrackFileName);
+            }
+            catch (Exception ex) when (ex is KeyNotFoundException or InvalidOperationException or ArgumentException or DirectoryNotFoundException)
+            {
+                Trace.TraceWarning($"Unable to resolve source route for '{routeModel.Id}': {ex.Message}");
+                return false;
+            }
+        }
+
+        internal static async Task<RouteModelHeader> RefreshPersistedRouteModel(RouteModelHeader routeModel, CancellationToken cancellationToken)
+        {
+            ArgumentNullException.ThrowIfNull(routeModel, nameof(routeModel));
+
+            // Load the full route model so version migration re-persists every property and does not
+            // truncate a persisted RouteModel down to its header.
+            RouteModel extendedModel = await FromFile<RouteModel, FolderModel>(routeModel.Id, routeModel.Parent, cancellationToken).ConfigureAwait(false);
+            if (extendedModel == null)
+                return routeModel;
+
+            extendedModel.RefreshModel();
+            await Create(extendedModel, extendedModel.Parent, true, true, cancellationToken).ConfigureAwait(false);
+
+            modelTaskCache[extendedModel.Hierarchy()] = Task.FromResult<RouteModelHeader>(extendedModel);
+            return extendedModel;
         }
 
         private static async Task<RouteModel> Convert(FolderStructure.ContentFolder.RouteFolder routeFolder, FolderModel contentFolder, CancellationToken cancellationToken)
