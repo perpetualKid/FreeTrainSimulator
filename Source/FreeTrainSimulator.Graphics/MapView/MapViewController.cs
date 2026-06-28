@@ -23,6 +23,7 @@ namespace FreeTrainSimulator.Graphics.MapView
         private PointD previousTopLeft;
         private PointD previousBottomRight;
         private long nextUpdate;
+        private long nextPointerUpdate;
         private bool scaleChanged;
         private bool redrawRequested;
 
@@ -206,8 +207,11 @@ namespace FreeTrainSimulator.Graphics.MapView
                 return;
 
             worldPosition = ScreenToWorldCoordinates(position);
-            if (Scale > 0.2)
+            if (Scale > 0.2 && Environment.TickCount64 > nextPointerUpdate)
+            {
                 content.UpdatePointerLocation(worldPosition, BottomLeftTile, TopRightTile);
+                nextPointerUpdate = Environment.TickCount64 + 16;
+            }
         }
 
         public void MouseDragging(UserCommandArgs userCommandArgs)
