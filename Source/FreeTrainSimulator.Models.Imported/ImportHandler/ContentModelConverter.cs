@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -71,21 +72,39 @@ namespace FreeTrainSimulator.Models.Imported.ImportHandler
         {
             ArgumentNullException.ThrowIfNull(routeModel, nameof(routeModel));
 
-            if (VersionInfo.Compare(routeModel.Version) > 0 || refresh)
+            bool modelVersionUpgradeRequired = VersionInfo.Compare(routeModel.Version) > 0;
+            if (!modelVersionUpgradeRequired && !refresh)
+                return routeModel;
+
+            bool sourceBacked = RouteModelImportHandler.IsSourceBackedRoute(routeModel);
+
+            // Routes without a resolvable MSTS source cannot be re-imported. Migrate them in place only when
+            // the stored model version is behind the application version; otherwise preserve them untouched.
+            if (!sourceBacked || !RouteModelImportHandler.HasResolvableSourceRoute(routeModel))
             {
-                await Task.WhenAll(
-                    TrackSectionModelImportHandler.ExpandTrackSectionModel(routeModel, cancellationToken),
-                    PathModelImportHandler.ExpandPathModels(routeModel, cancellationToken),
-                    ActivityModelImportHandler.ExpandActivityModels(routeModel, cancellationToken),
-                    TimetableModelHandler.ExpandTimetableModels(routeModel, cancellationToken),
-                    WeatherModelHandler.ExpandPathModels(routeModel, cancellationToken),
-                    SignalConfigurationModelImportHandler.ExpandSignalConfigurationModel(routeModel, cancellationToken)
-                    ).ConfigureAwait(false);
-                // Expanding track model needs the track sections and signal config expanded before
-                await Task.WhenAll(
-                    TrackModelImportHandler.ExpandTrackModel(routeModel, cancellationToken)
-                    ).ConfigureAwait(false);
+                if (modelVersionUpgradeRequired)
+                {
+                    Trace.TraceInformation($"Migrating persisted route '{routeModel.Id}' in place due to version upgrade.");
+                    return await RouteModelImportHandler.RefreshPersistedRouteModel(routeModel, cancellationToken).ConfigureAwait(false);
+                }
+
+                if (sourceBacked)
+                    Trace.TraceWarning($"Preserving source-backed route '{routeModel.Id}' although its MSTS source is unavailable; version is already current.");
+                return routeModel;
             }
+
+            await Task.WhenAll(
+                TrackSectionModelImportHandler.ExpandTrackSectionModel(routeModel, cancellationToken),
+                PathModelImportHandler.ExpandPathModels(routeModel, cancellationToken),
+                ActivityModelImportHandler.ExpandActivityModels(routeModel, cancellationToken),
+                TimetableModelHandler.ExpandTimetableModels(routeModel, cancellationToken),
+                WeatherModelHandler.ExpandPathModels(routeModel, cancellationToken),
+                SignalConfigurationModelImportHandler.ExpandSignalConfigurationModel(routeModel, cancellationToken)
+                ).ConfigureAwait(false);
+            // Expanding track model needs the track sections and signal config expanded before
+            await Task.WhenAll(
+                TrackModelImportHandler.ExpandTrackModel(routeModel, cancellationToken)
+                ).ConfigureAwait(false);
 
             return routeModel;
         }
