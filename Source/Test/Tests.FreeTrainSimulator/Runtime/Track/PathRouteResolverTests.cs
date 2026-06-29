@@ -231,6 +231,100 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
         }
 
         /// <summary>
+        /// Verifies that automatically routed spans expose generated intermediary anchors.
+        /// </summary>
+        [TestMethod]
+        public void ResolveWhenRouteHasIntermediaryNodesThenGeneratedAnchorsArePopulated()
+        {
+            TrackWorld trackWorld = CreateTrackWorld(
+                ImmutableArray.Create<TrackNodeBase>(null, CreateVectorNode(1), CreateVectorNode(2), CreateJunctionNode(3), CreateJunctionNode(4), CreateVectorNode(5)),
+                ImmutableArray.Create(new TrackNodeConnectorIndex(), CreateConnectors(1, 3), CreateConnectors(2, 4),
+                    CreateConnectors(3, 1, 5), CreateConnectors(4, 2, 5), CreateConnectors(5, 3, 4)));
+
+            PathModel pathModel = new PathModel()
+            {
+                PathNodes = ImmutableArray.Create(
+                    CreateNode(PathNodeType.Start, 1, nodeIndex: 1),
+                    CreateNode(PathNodeType.End, -1, nodeIndex: 2)),
+            };
+
+            PathRouteResolution result = PathRouteResolver.Resolve(pathModel, trackWorld, TestContext.CancellationToken);
+
+            Assert.IsTrue(result.MainRoute.Spans[0].GeneratedIntermediaryAnchors.Any(anchor => anchor.AuthoredNodeIndex == -1 && anchor.TrackNodeIndex == 5));
+        }
+
+        /// <summary>
+        /// Verifies that generated anchors can be suppressed by resolver options.
+        /// </summary>
+        [TestMethod]
+        public void ResolveWhenGeneratedIntermediaryNodesDisabledThenGeneratedAnchorsAreEmpty()
+        {
+            TrackWorld trackWorld = CreateTrackWorld(
+                ImmutableArray.Create<TrackNodeBase>(null, CreateVectorNode(1), CreateVectorNode(2), CreateJunctionNode(3)),
+                ImmutableArray.Create(new TrackNodeConnectorIndex(), CreateConnectors(1, 3), CreateConnectors(2, 3), CreateConnectors(3, 1, 2)));
+            PathRouteResolverOptions options = new PathRouteResolverOptions(5000.0, false, false, false, true);
+
+            PathModel pathModel = new PathModel()
+            {
+                PathNodes = ImmutableArray.Create(
+                    CreateNode(PathNodeType.Start, 1, nodeIndex: 1),
+                    CreateNode(PathNodeType.End, -1, nodeIndex: 2)),
+            };
+
+            PathRouteResolution result = PathRouteResolver.Resolve(pathModel, trackWorld, options, TestContext.CancellationToken);
+
+            Assert.IsTrue(result.MainRoute.Spans[0].GeneratedIntermediaryAnchors.IsEmpty);
+        }
+
+        /// <summary>
+        /// Verifies that equal-cost graph routes are surfaced as ambiguous spans by default.
+        /// </summary>
+        [TestMethod]
+        public void ResolveWhenMultipleEqualRoutesExistThenSpanIsAmbiguous()
+        {
+            TrackWorld trackWorld = CreateTrackWorld(
+                ImmutableArray.Create<TrackNodeBase>(null, CreateVectorNode(1), CreateVectorNode(2), CreateJunctionNode(3), CreateJunctionNode(4)),
+                ImmutableArray.Create(new TrackNodeConnectorIndex(), CreateConnectors(1, 3, 4), CreateConnectors(2, 3, 4),
+                    CreateConnectors(3, 1, 2), CreateConnectors(4, 1, 2)));
+
+            PathModel pathModel = new PathModel()
+            {
+                PathNodes = ImmutableArray.Create(
+                    CreateNode(PathNodeType.Start, 1, nodeIndex: 1),
+                    CreateNode(PathNodeType.End, -1, nodeIndex: 2)),
+            };
+
+            PathRouteResolution result = PathRouteResolver.Resolve(pathModel, trackWorld, TestContext.CancellationToken);
+
+            Assert.AreEqual(PathRouteSpanStatus.Ambiguous, result.MainRoute.Spans[0].Status);
+            Assert.IsTrue(result.Diagnostics.Any(diagnostic => diagnostic.Code == PathRouteDiagnosticCode.AmbiguousRoute));
+        }
+
+        /// <summary>
+        /// Verifies that the maximum sparse search distance can reject an otherwise connected route.
+        /// </summary>
+        [TestMethod]
+        public void ResolveWhenRouteExceedsMaximumSearchDistanceThenSpanIsUnresolved()
+        {
+            TrackWorld trackWorld = CreateTrackWorld(
+                ImmutableArray.Create<TrackNodeBase>(null, CreateVectorNode(1), CreateVectorNode(2), CreateJunctionNode(3)),
+                ImmutableArray.Create(new TrackNodeConnectorIndex(), CreateConnectors(1, 3), CreateConnectors(2, 3), CreateConnectors(3, 1, 2)));
+            PathRouteResolverOptions options = new PathRouteResolverOptions(1.0, false, false, true, true);
+
+            PathModel pathModel = new PathModel()
+            {
+                PathNodes = ImmutableArray.Create(
+                    CreateNode(PathNodeType.Start, 1, nodeIndex: 1),
+                    CreateNode(PathNodeType.End, -1, nodeIndex: 2)),
+            };
+
+            PathRouteResolution result = PathRouteResolver.Resolve(pathModel, trackWorld, options, TestContext.CancellationToken);
+
+            Assert.AreEqual(PathRouteSpanStatus.Unresolved, result.MainRoute.Spans[0].Status);
+            Assert.IsTrue(result.Diagnostics.Any(diagnostic => diagnostic.Code == PathRouteDiagnosticCode.UnresolvedDenseSpan));
+        }
+
+        /// <summary>
         /// Verifies that looped track topology is not treated as an authored graph cycle.
         /// </summary>
         [TestMethod]

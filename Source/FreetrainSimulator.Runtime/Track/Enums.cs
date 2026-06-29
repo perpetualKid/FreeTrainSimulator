@@ -81,6 +81,9 @@ namespace FreeTrainSimulator.Runtime.Track
         /// <summary>A span between two anchored path nodes could not be resolved by dense routing.</summary>
         UnresolvedDenseSpan,
 
+        /// <summary>A span between two anchored path nodes has multiple plausible routes.</summary>
+        AmbiguousRoute,
+
         /// <summary>A passing branch does not rejoin the main authored path.</summary>
         PassingBranchDoesNotRejoinMain,
     }

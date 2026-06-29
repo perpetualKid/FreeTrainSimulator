@@ -16,6 +16,8 @@ namespace FreeTrainSimulator.Runtime.Track
     /// </summary>
     public static class PathRouteResolver
     {
+        private const double CostEpsilon = 1e-6;
+
         /// <summary>
         /// Resolves and validates a path model.
         /// </summary>
@@ -83,11 +85,11 @@ namespace FreeTrainSimulator.Runtime.Track
 
             ImmutableArray<PathRouteAnchor> anchors = ResolveAnchors(pathNodes, trackWorld, diagnostics, cancellationToken);
             ResolvedPathRoute mainRoute = startNodeIndex >= 0
-                ? BuildRoute(PathRouteBranchKind.Main, pathNodes, anchors, trackWorld, diagnostics, startNodeIndex, static node => node.NextMainNode, cancellationToken)
+                ? BuildRoute(PathRouteBranchKind.Main, pathNodes, anchors, trackWorld, options, diagnostics, startNodeIndex, static node => node.NextMainNode, cancellationToken)
                 : null;
             ValidateMainRouteReachesEnd(mainRoute, endNodeIndex, diagnostics);
             ImmutableArray<ResolvedPathRoute> passingRoutes = options.ResolvePassingBranches
-                ? BuildPassingRoutes(pathNodes, anchors, trackWorld, diagnostics, cancellationToken)
+                ? BuildPassingRoutes(pathNodes, anchors, trackWorld, options, diagnostics, cancellationToken)
                 : ImmutableArray<ResolvedPathRoute>.Empty;
             ValidatePassingBranchRejoins(mainRoute, passingRoutes, diagnostics);
 
@@ -354,7 +356,7 @@ namespace FreeTrainSimulator.Runtime.Track
         }
 
         private static ResolvedPathRoute BuildRoute(PathRouteBranchKind branchKind, ImmutableArray<PathNode> pathNodes,
-            ImmutableArray<PathRouteAnchor> anchors, TrackWorld trackWorld, List<PathRouteDiagnostic> diagnostics, int startNodeIndex, Func<PathNode, int> nextNodeSelector, CancellationToken cancellationToken)
+            ImmutableArray<PathRouteAnchor> anchors, TrackWorld trackWorld, PathRouteResolverOptions options, List<PathRouteDiagnostic> diagnostics, int startNodeIndex, Func<PathNode, int> nextNodeSelector, CancellationToken cancellationToken)
         {
             List<ResolvedPathSpan> spans = new List<ResolvedPathSpan>();
             HashSet<int> visited = new HashSet<int>();
@@ -369,7 +371,7 @@ namespace FreeTrainSimulator.Runtime.Track
                 if (!IsInRange(nextNodeIndex, pathNodes.Length))
                     break;
 
-                spans.Add(ResolveSpan(currentNodeIndex, nextNodeIndex, anchors, trackWorld, diagnostics));
+                spans.Add(ResolveSpan(currentNodeIndex, nextNodeIndex, anchors, trackWorld, options, diagnostics, cancellationToken));
                 endNodeIndex = nextNodeIndex;
                 currentNodeIndex = nextNodeIndex;
             }
@@ -378,7 +380,7 @@ namespace FreeTrainSimulator.Runtime.Track
         }
 
         private static ImmutableArray<ResolvedPathRoute> BuildPassingRoutes(ImmutableArray<PathNode> pathNodes, 
-            ImmutableArray<PathRouteAnchor> anchors, TrackWorld trackWorld, List<PathRouteDiagnostic> diagnostics, CancellationToken cancellationToken)
+            ImmutableArray<PathRouteAnchor> anchors, TrackWorld trackWorld, PathRouteResolverOptions options, List<PathRouteDiagnostic> diagnostics, CancellationToken cancellationToken)
         {
             ImmutableArray<ResolvedPathRoute>.Builder routes = ImmutableArray.CreateBuilder<ResolvedPathRoute>();
             for (int i = 0; i < pathNodes.Length; i++)
@@ -389,7 +391,7 @@ namespace FreeTrainSimulator.Runtime.Track
                 // successor; intermediate siding nodes also carry NextSidingNode but must not start a branch.
                 PathNode node = pathNodes[i];
                 if (IsInRange(node.NextMainNode, pathNodes.Length) && IsInRange(node.NextSidingNode, pathNodes.Length))
-                    routes.Add(BuildRoute(PathRouteBranchKind.Passing, pathNodes, anchors, trackWorld, diagnostics, i, static pathNode => pathNode.NextSidingNode, cancellationToken));
+                    routes.Add(BuildRoute(PathRouteBranchKind.Passing, pathNodes, anchors, trackWorld, options, diagnostics, i, static pathNode => pathNode.NextSidingNode, cancellationToken));
             }
             return routes.ToImmutable();
         }
@@ -425,7 +427,8 @@ namespace FreeTrainSimulator.Runtime.Track
             return nodes.ToImmutable();
         }
 
-        private static ResolvedPathSpan ResolveSpan(int fromNodeIndex, int toNodeIndex, ImmutableArray<PathRouteAnchor> anchors, TrackWorld trackWorld, List<PathRouteDiagnostic> diagnostics)
+        private static ResolvedPathSpan ResolveSpan(int fromNodeIndex, int toNodeIndex, ImmutableArray<PathRouteAnchor> anchors,
+            TrackWorld trackWorld, PathRouteResolverOptions options, List<PathRouteDiagnostic> diagnostics, CancellationToken cancellationToken)
         {
             if (trackWorld == null || anchors.IsDefaultOrEmpty || !IsInRange(fromNodeIndex, anchors.Length) || !IsInRange(toNodeIndex, anchors.Length))
                 return new ResolvedPathSpan(fromNodeIndex, toNodeIndex, PathRouteSpanStatus.NotResolved);
@@ -435,15 +438,187 @@ namespace FreeTrainSimulator.Runtime.Track
             if (!fromAnchor.HasTrackAnchor || !toAnchor.HasTrackAnchor)
                 return new ResolvedPathSpan(fromNodeIndex, toNodeIndex, PathRouteSpanStatus.Unresolved);
 
-            ImmutableArray<int> trackVectorNodeIndexes = ResolveDenseTrackVectorNodes(fromAnchor.TrackNodeIndex, toAnchor.TrackNodeIndex, trackWorld);
-            if (!trackVectorNodeIndexes.IsEmpty)
-                return new ResolvedPathSpan(fromNodeIndex, toNodeIndex, PathRouteSpanStatus.Resolved, trackVectorNodeIndexes);
+            TrackRouteSearchResult routeSearchResult = FindTrackRoute(fromAnchor, toAnchor, trackWorld, options, cancellationToken);
+            if (routeSearchResult.Resolved)
+            {
+                if (routeSearchResult.Ambiguous && options.AllowMainRouteFirstTieBreaking)
+                {
+                    diagnostics.Add(new PathRouteDiagnostic(PathRouteDiagnosticSeverity.Warning, PathRouteDiagnosticCode.AmbiguousRoute,
+                        $"Path span from node {fromNodeIndex} to node {toNodeIndex} has multiple equal-cost routes; the deterministic first route was selected.",
+                        fromNodeIndex, toNodeIndex, "Add an explicit via node if a different route is intended."));
+                    return new ResolvedPathSpan(fromNodeIndex, toNodeIndex, PathRouteSpanStatus.Resolved,
+                        routeSearchResult.TrackVectorNodeIndexes, routeSearchResult.GeneratedIntermediaryAnchors);
+                }
+
+                if (routeSearchResult.Ambiguous)
+                {
+                    diagnostics.Add(new PathRouteDiagnostic(options.TreatAmbiguityAsError ? PathRouteDiagnosticSeverity.Error : PathRouteDiagnosticSeverity.Warning,
+                        PathRouteDiagnosticCode.AmbiguousRoute,
+                        $"Path span from node {fromNodeIndex} to node {toNodeIndex} has multiple equal-cost routes.",
+                        fromNodeIndex, toNodeIndex, "Add an explicit via node to choose the intended route."));
+                    return new ResolvedPathSpan(fromNodeIndex, toNodeIndex, PathRouteSpanStatus.Ambiguous,
+                        routeSearchResult.TrackVectorNodeIndexes, routeSearchResult.GeneratedIntermediaryAnchors);
+                }
+
+                return new ResolvedPathSpan(fromNodeIndex, toNodeIndex, PathRouteSpanStatus.Resolved,
+                    routeSearchResult.TrackVectorNodeIndexes, routeSearchResult.GeneratedIntermediaryAnchors);
+            }
 
             diagnostics.Add(new PathRouteDiagnostic(PathRouteDiagnosticSeverity.Warning, PathRouteDiagnosticCode.UnresolvedDenseSpan,
-                $"Path span from node {fromNodeIndex} to node {toNodeIndex} could not be resolved by dense routing.",
-                fromNodeIndex, toNodeIndex, "Add explicit via nodes or use sparse routing when available."));
+                $"Path span from node {fromNodeIndex} to node {toNodeIndex} could not be resolved by track graph routing.",
+                fromNodeIndex, toNodeIndex, "Add explicit via nodes or increase the route search distance if appropriate."));
 
             return new ResolvedPathSpan(fromNodeIndex, toNodeIndex, PathRouteSpanStatus.Unresolved);
+        }
+
+        private static TrackRouteSearchResult FindTrackRoute(PathRouteAnchor fromAnchor, PathRouteAnchor toAnchor, TrackWorld trackWorld,
+            PathRouteResolverOptions options, CancellationToken cancellationToken)
+        {
+            if (trackWorld?.TrackDatabase == null || !fromAnchor.HasTrackAnchor || !toAnchor.HasTrackAnchor)
+                return TrackRouteSearchResult.Unresolved;
+
+            TrackDatabase trackDatabase = trackWorld.TrackDatabase;
+            if (!IsInRange(fromAnchor.TrackNodeIndex, trackDatabase.TrackNodes.Length) || !IsInRange(toAnchor.TrackNodeIndex, trackDatabase.TrackNodes.Length)
+                || !IsInRange(fromAnchor.TrackNodeIndex, trackDatabase.TrackNodeConnectors.Length) || !IsInRange(toAnchor.TrackNodeIndex, trackDatabase.TrackNodeConnectors.Length))
+                return TrackRouteSearchResult.Unresolved;
+
+            if (fromAnchor.TrackNodeIndex == toAnchor.TrackNodeIndex)
+                return BuildTrackRouteSearchResult(ImmutableArray.Create(fromAnchor.TrackNodeIndex), trackWorld, options, false);
+
+            double maximumCost = options?.MaximumSparseSearchDistance ?? PathRouteResolverOptions.DefaultMaximumSparseSearchDistance;
+            int nodeCount = trackDatabase.TrackNodes.Length;
+            double[] costs = Enumerable.Repeat(double.PositiveInfinity, nodeCount).ToArray();
+            int[] previousNodes = Enumerable.Repeat(-1, nodeCount).ToArray();
+            bool[] ambiguousNodes = new bool[nodeCount];
+            PriorityQueue<int, double> pendingNodes = new PriorityQueue<int, double>();
+
+            costs[fromAnchor.TrackNodeIndex] = 0.0;
+            pendingNodes.Enqueue(fromAnchor.TrackNodeIndex, 0.0);
+
+            while (pendingNodes.Count > 0)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+
+                int currentNodeIndex = pendingNodes.Dequeue();
+                double currentCost = costs[currentNodeIndex];
+                if (currentCost > maximumCost)
+                    continue;
+
+                if (!IsInRange(currentNodeIndex, trackDatabase.TrackNodeConnectors.Length))
+                    continue;
+
+                ImmutableArray<TrackNodeConnector> connectors = trackDatabase.TrackNodeConnectors[currentNodeIndex].TrackNodeConnectors;
+                if (connectors.IsDefaultOrEmpty)
+                    continue;
+
+                foreach (TrackNodeConnector connector in connectors.OrderBy(connector => connector.Link))
+                {
+                    int nextNodeIndex = connector.Link;
+                    if (!IsInRange(nextNodeIndex, nodeCount) || trackDatabase.TrackNodes[nextNodeIndex] == null)
+                        continue;
+
+                    double nextCost = currentCost + RouteSearchNodeCost(trackWorld, trackDatabase.TrackNodes[nextNodeIndex]);
+                    if (nextCost > maximumCost)
+                        continue;
+
+                    if (nextCost + CostEpsilon < costs[nextNodeIndex])
+                    {
+                        costs[nextNodeIndex] = nextCost;
+                        previousNodes[nextNodeIndex] = currentNodeIndex;
+                        ambiguousNodes[nextNodeIndex] = ambiguousNodes[currentNodeIndex];
+                        pendingNodes.Enqueue(nextNodeIndex, nextCost);
+                    }
+                    else if (Math.Abs(nextCost - costs[nextNodeIndex]) <= CostEpsilon && previousNodes[nextNodeIndex] != currentNodeIndex)
+                    {
+                        ambiguousNodes[nextNodeIndex] = true;
+                    }
+                }
+            }
+
+            if (double.IsPositiveInfinity(costs[toAnchor.TrackNodeIndex]))
+                return TrackRouteSearchResult.Unresolved;
+
+            ImmutableArray<int> routeNodeIndexes = ReconstructRoute(previousNodes, fromAnchor.TrackNodeIndex, toAnchor.TrackNodeIndex);
+            return routeNodeIndexes.IsEmpty
+                ? TrackRouteSearchResult.Unresolved
+                : BuildTrackRouteSearchResult(routeNodeIndexes, trackWorld, options, ambiguousNodes[toAnchor.TrackNodeIndex]);
+        }
+
+        private static ImmutableArray<int> ReconstructRoute(int[] previousNodes, int startNodeIndex, int endNodeIndex)
+        {
+            List<int> routeNodeIndexes = new List<int>();
+            HashSet<int> visited = new HashSet<int>();
+            int currentNodeIndex = endNodeIndex;
+            while (currentNodeIndex >= 0 && visited.Add(currentNodeIndex))
+            {
+                routeNodeIndexes.Add(currentNodeIndex);
+                if (currentNodeIndex == startNodeIndex)
+                    break;
+
+                currentNodeIndex = previousNodes[currentNodeIndex];
+            }
+
+            if (routeNodeIndexes[^1] != startNodeIndex)
+                return ImmutableArray<int>.Empty;
+
+            routeNodeIndexes.Reverse();
+            return routeNodeIndexes.ToImmutableArray();
+        }
+
+        private static TrackRouteSearchResult BuildTrackRouteSearchResult(ImmutableArray<int> routeNodeIndexes, TrackWorld trackWorld,
+            PathRouteResolverOptions options, bool ambiguous)
+        {
+            ImmutableArray<int>.Builder trackVectorNodeIndexes = ImmutableArray.CreateBuilder<int>();
+            ImmutableArray<PathRouteAnchor>.Builder generatedAnchors = ImmutableArray.CreateBuilder<PathRouteAnchor>();
+            TrackDatabase trackDatabase = trackWorld.TrackDatabase;
+            for (int i = 0; i < routeNodeIndexes.Length; i++)
+            {
+                int trackNodeIndex = routeNodeIndexes[i];
+                TrackNodeBase trackNode = trackDatabase.TrackNodes[trackNodeIndex];
+                if (trackNode is VectorNode)
+                    trackVectorNodeIndexes.Add(trackNodeIndex);
+
+                if (options.IncludeGeneratedIntermediaryNodes && i > 0 && i < routeNodeIndexes.Length - 1)
+                    generatedAnchors.Add(new PathRouteAnchor(-1, trackNode.Location, PathNodeType.Intermediate, trackNodeIndex, -1));
+            }
+
+            return new TrackRouteSearchResult(routeNodeIndexes, trackVectorNodeIndexes.ToImmutable(), generatedAnchors.ToImmutable(), ambiguous);
+        }
+
+        private static double RouteSearchNodeCost(TrackWorld trackWorld, TrackNodeBase trackNode)
+        {
+            if (trackNode is VectorNode vectorNode)
+            {
+                double length = trackWorld.VectorNodeLength(vectorNode);
+                return length > 0.0 ? length : 1.0;
+            }
+
+            return 1.0;
+        }
+
+        private sealed class TrackRouteSearchResult
+        {
+            internal static TrackRouteSearchResult Unresolved { get; } = new TrackRouteSearchResult(
+                ImmutableArray<int>.Empty, ImmutableArray<int>.Empty, ImmutableArray<PathRouteAnchor>.Empty, false);
+
+            internal TrackRouteSearchResult(ImmutableArray<int> routeNodeIndexes, ImmutableArray<int> trackVectorNodeIndexes,
+                ImmutableArray<PathRouteAnchor> generatedIntermediaryAnchors, bool ambiguous)
+            {
+                RouteNodeIndexes = routeNodeIndexes.IsDefault ? ImmutableArray<int>.Empty : routeNodeIndexes;
+                TrackVectorNodeIndexes = trackVectorNodeIndexes.IsDefault ? ImmutableArray<int>.Empty : trackVectorNodeIndexes;
+                GeneratedIntermediaryAnchors = generatedIntermediaryAnchors.IsDefault ? ImmutableArray<PathRouteAnchor>.Empty : generatedIntermediaryAnchors;
+                Ambiguous = ambiguous;
+            }
+
+            internal ImmutableArray<int> RouteNodeIndexes { get; }
+
+            internal ImmutableArray<int> TrackVectorNodeIndexes { get; }
+
+            internal ImmutableArray<PathRouteAnchor> GeneratedIntermediaryAnchors { get; }
+
+            internal bool Ambiguous { get; }
+
+            internal bool Resolved => !RouteNodeIndexes.IsEmpty;
         }
 
         private static ImmutableArray<int> ResolveDenseTrackVectorNodes(int startTrackNodeIndex, int endTrackNodeIndex, TrackWorld trackWorld)
