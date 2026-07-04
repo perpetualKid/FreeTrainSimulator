@@ -200,7 +200,7 @@ namespace FreeTrainSimulator.Menu
             }
             checkDataLogStationStops.Checked = this.userSettings.EvaluationStationStops;
 
-            bindingSourceContent.DataSource = initialContentSetup ? ContentModel.ImportFolderSettings().ToList() :
+            bindingSourceContent.DataSource = initialContentSetup ? ContentModel.RefreshFolderSettings().ToList() :
                 ContentModel.ContentFolders.Length == 0 ? new List<FolderModel>() { ContentModel.TrainSimulatorFolder() } :
                 ContentModel.ContentFolders.OrderBy(f => f.Name).ToList();
 
@@ -248,7 +248,7 @@ namespace FreeTrainSimulator.Menu
 
             if (tabOptions.SelectedTab == tabPageContent) // inital setup?
             {
-                if (ContentModel.ImportFolderSettings().Length > 0)
+                if (ContentModel.RefreshFolderSettings().Length > 0)
                 {
                     if (MessageBox.Show($"In an effort to optimize content, {RuntimeInfo.ProductName} will analyze existing content files and folders. No updates will be made to existing content." + Environment.NewLine + Environment.NewLine +
                         "Please review the current content folder settings, and confirm using \"OK\"-Button when closing the \"Options\" dialog." + Environment.NewLine + Environment.NewLine +

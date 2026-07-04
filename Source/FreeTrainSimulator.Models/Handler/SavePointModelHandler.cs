@@ -21,17 +21,6 @@ namespace FreeTrainSimulator.Models.Handler
         }
 
         public static Task<SavePointModel> GetCore(string savepointId, RouteModelHeader routeModel, CancellationToken cancellationToken)
-        {
-            ArgumentNullException.ThrowIfNull(routeModel, nameof(routeModel));
-            string key = routeModel.Hierarchy(savepointId);
-
-            if (!modelTaskCache.TryGetValue(key, out Task<SavePointModel> modelTask) || modelTask.IsFaulted)
-            {
-                modelTaskCache[key] = modelTask = FromFile(savepointId, routeModel, cancellationToken);
-                collectionUpdateRequired[routeModel.Hierarchy()] = true;
-            }
-
-            return modelTask;
-        }
+            => GetOrAddCore(savepointId, routeModel, cancellationToken);
     }
 }

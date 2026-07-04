@@ -129,6 +129,68 @@ namespace FreeTrainSimulator.Models.Handler
         }
 
         /// <summary>
+        /// Returns the cached load task for a single model identified by <paramref name="id"/> within
+        /// <paramref name="parent"/>, starting and caching a fresh <see cref="FromFile{TContainer}"/> load when none
+        /// is cached or the cached load faulted, and marking the parent collection for refresh.
+        /// </summary>
+        protected static Task<TModel> GetOrAddCore<TContainer>(string id, TContainer parent, CancellationToken cancellationToken) where TContainer : ModelBase
+        {
+            ArgumentNullException.ThrowIfNull(parent, nameof(parent));
+            string key = parent.Hierarchy(id);
+
+            if (!modelTaskCache.TryGetValue(key, out Task<TModel> modelTask) || modelTask.IsFaulted)
+            {
+                modelTaskCache[key] = modelTask = FromFile(id, parent, cancellationToken);
+                collectionUpdateRequired[parent.Hierarchy()] = true;
+            }
+
+            return modelTask;
+        }
+
+        /// <summary>
+        /// Returns the cached collection task for all models under <paramref name="parent"/>, reloading from disk
+        /// when the collection was marked for refresh, is uncached, or the cached load faulted.
+        /// </summary>
+        protected static Task<ImmutableArray<TModel>> GetOrAddCollection<TContainer>(TContainer parent, CancellationToken cancellationToken) where TContainer : ModelBase
+        {
+            ArgumentNullException.ThrowIfNull(parent, nameof(parent));
+            string key = parent.Hierarchy();
+
+            if (collectionUpdateRequired.TryRemove(key, out _) || !modelSetTaskCache.TryGetValue(key, out Task<ImmutableArray<TModel>> modelSetTask) || modelSetTask.IsFaulted)
+            {
+                modelSetTaskCache[key] = modelSetTask = LoadFromFolder(parent, cancellationToken);
+            }
+
+            return modelSetTask;
+        }
+
+        private static async Task<ImmutableArray<TModel>> LoadFromFolder<TContainer>(TContainer parent, CancellationToken cancellationToken) where TContainer : ModelBase
+        {
+            string folder = ModelFileResolver<TModel>.FolderPath(parent);
+            string pattern = ModelFileResolver<TModel>.WildcardSavePattern;
+
+            ConcurrentBag<TModel> results = new ConcurrentBag<TModel>();
+
+            // Load each model file in the parent folder; a missing folder simply yields an empty collection.
+            if (Directory.Exists(folder))
+            {
+                await Parallel.ForEachAsync(Directory.EnumerateFiles(folder, pattern), cancellationToken, async (file, token) =>
+                {
+                    string id = Path.GetFileNameWithoutExtension(file);
+
+                    if (id.EndsWith(fileExtension, StringComparison.OrdinalIgnoreCase))
+                        id = id[..^fileExtension.Length];
+
+                    TModel model = await GetOrAddCore(id, parent, token).ConfigureAwait(false);
+                    if (null != model)
+                        results.Add(model);
+                }).ConfigureAwait(false);
+            }
+
+            return results.ToImmutableArray();
+        }
+
+        /// <summary>
         /// Cast a Full Model task to Base Model task to mimic task covariance
         /// </summary>
         protected static async Task<TModel> Cast<TExtendedModel>(Task<TExtendedModel> t) where TExtendedModel : TModel => t != null ? await t.ConfigureAwait(false) : null;

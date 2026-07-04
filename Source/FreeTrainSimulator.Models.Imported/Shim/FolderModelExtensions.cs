@@ -24,6 +24,11 @@ namespace FreeTrainSimulator.Models.Imported.Shim
         {
             return FolderModelImportHandler.InitialFolderImport(contentModel);
         }
-             
+
+        public static ImmutableArray<FolderModel> RefreshFolderSettings(this ContentModel contentModel)
+        {
+            return FolderModelImportHandler.InitialFolderImportForRefresh(contentModel);
+        }
+
     }
 }

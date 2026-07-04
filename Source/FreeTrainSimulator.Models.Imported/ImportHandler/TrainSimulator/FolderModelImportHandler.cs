@@ -33,6 +33,15 @@ namespace FreeTrainSimulator.Models.Imported.ImportHandler.TrainSimulator
             return modelSetTask.Result;
         }
 
+        internal static ImmutableArray<FolderModel> InitialFolderImportForRefresh(ContentModel contentModel)
+        {
+            ArgumentNullException.ThrowIfNull(contentModel, nameof(contentModel));
+
+            // Present the already configured folders (authoritative) together with any legacy-discovered
+            // folders, so a forced content refresh still shows the user's previously added folders.
+            return MergeFoldersForRefresh(contentModel, InitialFolderImport(contentModel));
+        }
+
         public static async Task<ImmutableArray<FolderModel>> ExpandFolderModels(ContentModel contentModel, CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(contentModel, nameof(contentModel));
@@ -55,7 +64,10 @@ namespace FreeTrainSimulator.Models.Imported.ImportHandler.TrainSimulator
                 .ThenBy(folder => folder?.Id ?? string.Empty, StringComparer.OrdinalIgnoreCase)
                 .ToImmutableArray();
 
-            Trace.TraceInformation($"Folder refresh merge for '{contentModel.Id}': configured={contentModel.ContentFolders.Length}, legacy={legacyFolders.Length}, merged={result.Length}");
+            // ContentModel is the singleton hierarchy root and intentionally has an empty Id
+            // (its descriptor persists as 'Content\.content.save'), so label it for readable diagnostics.
+            string contentModelId = string.IsNullOrEmpty(contentModel.Id) ? "content root" : contentModel.Id;
+            Trace.TraceInformation($"Folder refresh merge for '{contentModelId}': configured={contentModel.ContentFolders.Length}, legacy={legacyFolders.Length}, merged={result.Length}");
 
             string key = contentModel.Hierarchy();
             modelSetTaskCache[key] = Task.FromResult(result);

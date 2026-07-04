@@ -24,18 +24,7 @@ namespace FreeTrainSimulator.Models.Handler
         }
 
         public static Task<ActivityModelHeader> GetCore(string activityId, RouteModelHeader routeModel, CancellationToken cancellationToken)
-        {
-            ArgumentNullException.ThrowIfNull(routeModel, nameof(routeModel));
-            string key = routeModel.Hierarchy(activityId);
-
-            if (!modelTaskCache.TryGetValue(key, out Task<ActivityModelHeader> modelTask) || modelTask.IsFaulted)
-            {
-                modelTaskCache[key] = modelTask = FromFile(activityId, routeModel, cancellationToken);
-                collectionUpdateRequired[routeModel.Hierarchy()] = true;
-            }
-
-            return modelTask;
-        }
+            => GetOrAddCore(activityId, routeModel, cancellationToken);
 
         public static ValueTask<ActivityModel> GetExtended(ActivityModelHeader activityModel, CancellationToken cancellationToken)
         {

@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Collections.Concurrent;
 using System.Collections.Immutable;
-using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -23,18 +21,7 @@ namespace FreeTrainSimulator.Models.Handler
         }
 
         public static Task<PathModelHeader> GetCore(string pathId, RouteModelHeader routeModel, CancellationToken cancellationToken)
-        {
-            ArgumentNullException.ThrowIfNull(routeModel, nameof(routeModel));
-            string key = routeModel.Hierarchy(pathId);
-
-            if (!modelTaskCache.TryGetValue(key, out Task<PathModelHeader> modelTask) || modelTask.IsFaulted)
-            {
-                modelTaskCache[key] = modelTask = FromFile(pathId, routeModel, cancellationToken);
-                collectionUpdateRequired[routeModel.Hierarchy()] = true;
-            }
-
-            return modelTask;
-        }
+            => GetOrAddCore(pathId, routeModel, cancellationToken);
 
         public static ValueTask<PathModel> GetExtended(PathModelHeader pathModel, CancellationToken cancellationToken)
         {
@@ -66,41 +53,6 @@ namespace FreeTrainSimulator.Models.Handler
         }
 
         public static Task<ImmutableArray<PathModelHeader>> GetPaths(RouteModelHeader routeModel, CancellationToken cancellationToken)
-        {
-            ArgumentNullException.ThrowIfNull(routeModel, nameof(routeModel));
-            string key = routeModel.Hierarchy();
-
-            if (collectionUpdateRequired.TryRemove(key, out _) || !modelSetTaskCache.TryGetValue(key, out Task<ImmutableArray<PathModelHeader>> modelSetTask) || modelSetTask.IsFaulted)
-            {
-                modelSetTaskCache[key] = modelSetTask = LoadPaths(routeModel, cancellationToken);
-            }
-
-            return modelSetTask;
-        }
-
-        private static async Task<ImmutableArray<PathModelHeader>> LoadPaths(RouteModelHeader routeModel, CancellationToken cancellationToken)
-        {
-            string pathsFolder = ModelFileResolver<PathModelHeader>.FolderPath(routeModel);
-            string pattern = ModelFileResolver<PathModelHeader>.WildcardSavePattern;
-
-            ConcurrentBag<PathModelHeader> results = new ConcurrentBag<PathModelHeader>();
-
-            //load existing path models, and compare if the corresponding folder still exists.
-            if (Directory.Exists(pathsFolder))
-            {
-                await Parallel.ForEachAsync(Directory.EnumerateFiles(pathsFolder, pattern), cancellationToken, async (file, token) =>
-                {
-                    string pathId = Path.GetFileNameWithoutExtension(file);
-
-                    if (pathId.EndsWith(fileExtension, StringComparison.OrdinalIgnoreCase))
-                        pathId = pathId[..^fileExtension.Length];
-
-                    PathModelHeader path = await GetCore(pathId, routeModel, token).ConfigureAwait(false);
-                    if (null != path)
-                        results.Add(path);
-                }).ConfigureAwait(false);
-            }
-            return results.ToImmutableArray();
-        }
+            => GetOrAddCollection(routeModel, cancellationToken);
     }
 }

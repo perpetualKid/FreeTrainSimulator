@@ -18,6 +18,24 @@ namespace FreeTrainSimulator.Models.Handler
     }
 
     /// <summary>
+    /// Holds the root directory under which all models are persisted. Defaults to the user-data
+    /// root (<see cref="RuntimeInfo.UserDataFolder"/>) and can be redirected to isolate model
+    /// persistence from the real content store (for example, so tests never touch user content).
+    /// </summary>
+    internal static class ModelStore
+    {
+        private static string contentRoot = Path.GetFullPath(RuntimeInfo.UserDataFolder);
+
+        internal static string ContentRoot => contentRoot;
+
+        internal static void RedirectContentRoot(string root)
+        {
+            ArgumentException.ThrowIfNullOrWhiteSpace(root, nameof(root));
+            contentRoot = Path.GetFullPath(root);
+        }
+    }
+
+    /// <summary>
     /// Resolves file system paths for model persistence. Combines the model's
     /// <see cref="ModelResolverAttribute"/> metadata (folder and extension) with the parent
     /// hierarchy to produce deterministic file and folder paths under the user-data root.
@@ -25,7 +43,7 @@ namespace FreeTrainSimulator.Models.Handler
     /// <typeparam name="TModel">The model type whose storage paths are resolved.</typeparam>
     public static class ModelFileResolver<TModel> where TModel : ModelBase
     {
-        private static readonly string contentRoot = Path.GetFullPath(RuntimeInfo.UserDataFolder);
+        private static string contentRoot => ModelStore.ContentRoot;
 
         private static class ModelTypeCache
         {
