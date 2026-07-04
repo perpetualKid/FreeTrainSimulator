@@ -621,59 +621,6 @@ namespace FreeTrainSimulator.Runtime.Track
             internal bool Resolved => !RouteNodeIndexes.IsEmpty;
         }
 
-        private static ImmutableArray<int> ResolveDenseTrackVectorNodes(int startTrackNodeIndex, int endTrackNodeIndex, TrackWorld trackWorld)
-        {
-            if (startTrackNodeIndex == endTrackNodeIndex)
-                return ImmutableArray.Create(startTrackNodeIndex);
-
-            TrackDatabase trackDatabase = trackWorld.TrackDatabase;
-            if (trackDatabase == null || !IsInRange(startTrackNodeIndex, trackDatabase.TrackNodeConnectors.Length) || !IsInRange(endTrackNodeIndex, trackDatabase.TrackNodeConnectors.Length))
-                return ImmutableArray<int>.Empty;
-
-            ImmutableArray<TrackNodeConnector> startConnectors = trackDatabase.TrackNodeConnectors[startTrackNodeIndex].TrackNodeConnectors;
-            ImmutableArray<TrackNodeConnector> endConnectors = trackDatabase.TrackNodeConnectors[endTrackNodeIndex].TrackNodeConnectors;
-            if (startConnectors.IsDefault || endConnectors.IsDefault)
-                return ImmutableArray<int>.Empty;
-
-            TrackNodeConnector[] sharedConnectors = startConnectors.Intersect(endConnectors, TrackNodeConnectorComparer.LinkOnlyComparer).ToArray();
-            if (sharedConnectors.Length == 1)
-                return ImmutableArray.Create(startTrackNodeIndex, endTrackNodeIndex);
-
-            ImmutableArray<int> intermediaryTrackNodes = ResolveSingleIntermediaryTrackNode(startConnectors, endConnectors, trackDatabase);
-            return intermediaryTrackNodes.IsEmpty
-                ? ImmutableArray<int>.Empty
-                : ImmutableArray.Create(startTrackNodeIndex, intermediaryTrackNodes[0], endTrackNodeIndex);
-        }
-
-        private static ImmutableArray<int> ResolveSingleIntermediaryTrackNode(
-            ImmutableArray<TrackNodeConnector> startConnectors,
-            ImmutableArray<TrackNodeConnector> endConnectors,
-            TrackDatabase trackDatabase)
-        {
-            ImmutableArray<int>.Builder candidates = ImmutableArray.CreateBuilder<int>();
-            foreach (TrackNodeConnector startConnector in startConnectors)
-            {
-                if (!IsInRange(startConnector.Link, trackDatabase.TrackNodeConnectors.Length))
-                    continue;
-
-                foreach (TrackNodeConnector endConnector in endConnectors)
-                {
-                    if (!IsInRange(endConnector.Link, trackDatabase.TrackNodeConnectors.Length))
-                        continue;
-
-                    IEnumerable<TrackNodeConnector> connections = trackDatabase.TrackNodeConnectors[startConnector.Link].TrackNodeConnectors
-                        .Intersect(trackDatabase.TrackNodeConnectors[endConnector.Link].TrackNodeConnectors, TrackNodeConnectorComparer.LinkOnlyComparer);
-                    foreach (TrackNodeConnector connection in connections)
-                    {
-                        if (IsInRange(connection.Link, trackDatabase.TrackNodes.Length) && trackDatabase.TrackNodes[connection.Link] is VectorNode && !candidates.Contains(connection.Link))
-                            candidates.Add(connection.Link);
-                    }
-                }
-            }
-
-            return candidates.Count == 1 ? ImmutableArray.Create(candidates[0]) : ImmutableArray<int>.Empty;
-        }
-
         private static bool IsInRange(int nodeIndex, int nodeCount) => nodeIndex >= 0 && nodeIndex < nodeCount;
     }
 }
