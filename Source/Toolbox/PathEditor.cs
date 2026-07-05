@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
@@ -98,6 +99,17 @@ namespace FreeTrainSimulator.Toolbox
             return resolution.HighestSeverity < PathRouteDiagnosticSeverity.Fatal;
         }
 
+        // Resolves the model against the track and reports its validation state. A path is Valid when it resolves
+        // without error or fatal diagnostics; warnings (e.g. ambiguity) are still considered valid, matching
+        // PathRouteResolution.IsValid. This is the single source of truth for the persisted PathModelHeader.ValidationState.
+        internal static PathValidationState ResolveValidationState(PathModel pathModel, TrackWorld trackWorld)
+        {
+            ArgumentNullException.ThrowIfNull(pathModel);
+
+            PathRouteResolution resolution = PathRouteResolver.Resolve(pathModel, trackWorld, CancellationToken.None);
+            return resolution.HighestSeverity < PathRouteDiagnosticSeverity.Error ? PathValidationState.Valid : PathValidationState.Invalid;
+        }
+
         private static bool CanInitializePath(PathModelHeader path)
         {
             PathModel pathModel = path is PathModel model
@@ -175,28 +187,43 @@ namespace FreeTrainSimulator.Toolbox
         /// <summary><see langword="true"/> when the path has an end node to remove.</summary>
         public bool CanRemoveEnd => HasNodeType(snapshot => HasFlag(snapshot, PathNodeType.End));
 
+        /// <summary>
+        /// <see langword="true"/> when the current path can be snapped to track: it is in edit mode, has a
+        /// start node, and has no passing branches (which generation cannot yet rebuild).
+        /// </summary>
+        public bool CanSnapToTrack => HasNodeType(snapshot => snapshot.PathNodes.Length > 0
+            && HasFlag(snapshot, PathNodeType.Start) && !HasPassingBranch(snapshot));
+
         /// <summary>Adds a start node to the current path and records an undo snapshot. Returns the operation result.</summary>
-        public PathEditResult AddStart() => ApplyMutation(PathModelEditor.AddStart);
+        public PathEditResult AddStart() => ApplyUndoableEdit(PathModelEditor.AddStart);
 
         /// <summary>Removes the start node from the current path and records an undo snapshot. Returns the operation result.</summary>
-        public PathEditResult RemoveStart() => ApplyMutation(PathModelEditor.RemoveStart);
+        public PathEditResult RemoveStart() => ApplyUndoableEdit(PathModelEditor.RemoveStart);
 
         /// <summary>Adds an end node to the current path and records an undo snapshot. Returns the operation result.</summary>
-        public PathEditResult AddEnd() => ApplyMutation(PathModelEditor.AddEnd);
+        public PathEditResult AddEnd() => ApplyUndoableEdit(PathModelEditor.AddEnd);
 
         /// <summary>Removes the end node from the current path and records an undo snapshot. Returns the operation result.</summary>
-        public PathEditResult RemoveEnd() => ApplyMutation(PathModelEditor.RemoveEnd);
+        public PathEditResult RemoveEnd() => ApplyUndoableEdit(PathModelEditor.RemoveEnd);
 
         /// <summary>
         /// Truncates the path after the node at <paramref name="nodeIndex"/>, marking it as the new end, and
         /// records an undo snapshot. Returns the operation result.
         /// </summary>
-        public PathEditResult RemoveRestOfPath(int nodeIndex) => ApplyMutation(model => PathModelEditor.RemoveRestOfPath(model, nodeIndex));
+        public PathEditResult RemoveRestOfPath(int nodeIndex) => ApplyUndoableEdit(model => PathModelEditor.RemoveRestOfPath(model, nodeIndex));
 
-        // Captures the current authored path, runs the mutation, and on success records an undo snapshot and
+        /// <summary>
+        /// Resolves the current authored path and rebuilds it along the resolved main-route track anchors,
+        /// recording an undo snapshot. Refuses paths that contain passing branches (not yet supported by
+        /// generation) or that the resolver cannot resolve; the reason is returned in the result.
+        /// </summary>
+        public PathEditResult SnapToTrack()
+            => ApplyUndoableEdit(model => SnapPathToTrack(model, RuntimeDataResolver.Instance.TrackWorld));
+
+        // Captures the current authored path, runs the edit, and on success records an undo snapshot and
         // rebuilds the editor from the new model. Returns a failed result (with a reason) when the editor is not
-        // in edit mode, no path is currently loaded, or the mutation reports failure.
-        private PathEditResult ApplyMutation(Func<PathModel, PathEditResult> mutation)
+        // in edit mode, no path is currently loaded, or the edit reports failure.
+        private PathEditResult ApplyUndoableEdit(Func<PathModel, PathEditResult> edit)
         {
             if (!EditMode)
                 return PathEditResult.Failed("The path is not in edit mode.", null);
@@ -205,7 +232,7 @@ namespace FreeTrainSimulator.Toolbox
             if (currentModel == null)
                 return PathEditResult.Failed("No editable path is currently loaded.", null);
 
-            PathEditResult result = mutation(currentModel);
+            PathEditResult result = edit(currentModel);
             if (!result.Success)
                 return result;
 
@@ -233,16 +260,122 @@ namespace FreeTrainSimulator.Toolbox
             }
             return false;
         }
+
+        private static bool HasPassingBranch(PathModel pathModel)
+        {
+            foreach (PathNode node in pathModel.PathNodes)
+            {
+                if (node.NextSidingNode >= 0)
+                    return true;
+            }
+            return false;
+        }
+
+        // Resolves the model and rebuilds its main route along track anchors. Refuses (without generating) when
+        // the path has passing branches, because GenerateMainPath rebuilds only the main route and would drop
+        // them. On resolver/generation failure the original model is returned unchanged with the reason.
+        internal static PathEditResult SnapPathToTrack(PathModel model, TrackWorld trackWorld)
+        {
+            if (HasPassingBranch(model))
+                return PathEditResult.Failed("Cannot snap a path with passing branches to track; passing-path generation is not yet supported.", model);
+
+            PathGenerationResult generation = GenerateTrackSnappedPath(model, trackWorld);
+            return generation.Success
+                ? PathEditResult.Succeeded(generation.Message, generation.PathModel, generation.ChangedNodeIndexes)
+                : PathEditResult.Failed(generation.Message, model);
+        }
+
+        // Resolves the model with default options and rebuilds its main route via the generator, populating track
+        // anchors and inserting generated intermediary nodes. Shared by SnapToTrack and snap-on-save.
+        internal static PathGenerationResult GenerateTrackSnappedPath(PathModel model, TrackWorld trackWorld)
+        {
+            PathRouteResolution resolution = PathRouteResolver.Resolve(model, trackWorld, PathRouteResolverOptions.Default, CancellationToken.None);
+            return PathModelRouteGenerator.GenerateMainPath(model, resolution, trackWorld, PathRouteResolverOptions.Default);
+        }
         #endregion
 
         public async Task SavePath(PathModelHeader pathDetails)
         {
             PathModel pathModel = ConvertTrainPath(pathDetails);
+
+            // Editor-saved paths are always normalized to track (guard-and-refuse preserves passing-branch paths).
+            pathModel = TrySnapForSave(pathModel);
+
+            // Stamp the validation state from the model that will actually be persisted so the header is self-describing.
+            pathModel = pathModel with { ValidationState = ResolveValidationState(pathModel, RuntimeDataResolver.Instance.TrackWorld) };
+
             // The toolbox registers RuntimeDataResolver process-wide only (RuntimeDataResolver.Initialize
             // passes game: null), so Instance is the single authoritative resolver here; a game-scoped
             // GameInstance(game) lookup would resolve to the same object.
             pathModel = await RuntimeDataResolver.Instance.RouteData.Save(pathModel).ConfigureAwait(false);
             OnPathChanged?.Invoke(this, new PathEditorChangedEventArgs(TrainPath));
+        }
+
+        /// <summary>
+        /// Validates the paths of <paramref name="routeModel"/> against <paramref name="trackWorld"/> and persists
+        /// the resulting <see cref="PathModelHeader.ValidationState"/>. When <paramref name="forceRevalidate"/> is
+        /// <see langword="false"/> only paths that have never been validated
+        /// (<see cref="PathValidationState.NotValidated"/>) are resolved, which keeps the common route-open case
+        /// cheap; when <see langword="true"/> every path is re-resolved (used by the explicit "validate all paths"
+        /// command and after a route may have changed). Each path is persisted only when its computed state differs
+        /// from the stored value. Returns the number of paths found to be invalid.
+        /// </summary>
+        internal static async Task<int> ValidateRoutePaths(RouteModelHeader routeModel, TrackWorld trackWorld, bool forceRevalidate, CancellationToken cancellationToken)
+        {
+            ArgumentNullException.ThrowIfNull(routeModel);
+
+            ImmutableArray<PathModelHeader> headers = await routeModel.GetRoutePaths(cancellationToken).ConfigureAwait(false);
+            int invalidCount = 0;
+            int revalidatedCount = 0;
+
+            foreach (PathModelHeader header in headers)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+
+                if (!forceRevalidate && header.ValidationState != PathValidationState.NotValidated)
+                {
+                    if (header.ValidationState == PathValidationState.Invalid)
+                        invalidCount++;
+                    continue;
+                }
+
+                PathModel pathModel = await header.GetExtended(cancellationToken).ConfigureAwait(false);
+                if (pathModel == null)
+                    continue;
+
+                PathValidationState state = ResolveValidationState(pathModel, trackWorld);
+                if (state == PathValidationState.Invalid)
+                    invalidCount++;
+
+                if (pathModel.ValidationState != state)
+                {
+                    _ = await routeModel.Save(pathModel with { ValidationState = state }).ConfigureAwait(false);
+                    revalidatedCount++;
+                }
+            }
+
+            if (revalidatedCount > 0)
+                Trace.TraceInformation($"Validated {revalidatedCount} path(s) for route '{routeModel.Id}'; {invalidCount} invalid.");
+
+            return invalidCount;
+        }
+
+        // Attempts to snap the model to track before saving. Guard-and-refuse: paths with passing branches or
+        // that fail to resolve are saved as authored (never dropping data), with the reason traced.
+        private static PathModel TrySnapForSave(PathModel pathModel)
+        {
+            if (HasPassingBranch(pathModel))
+            {
+                Trace.TraceInformation($"Snap-to-track on save skipped for path '{pathModel.Id}': passing branches are not yet supported.");
+                return pathModel;
+            }
+
+            PathGenerationResult snapped = GenerateTrackSnappedPath(pathModel, RuntimeDataResolver.Instance.TrackWorld);
+            if (snapped.Success)
+                return snapped.PathModel;
+
+            Trace.TraceWarning($"Snap-to-track on save skipped for path '{pathModel.Id}': {snapped.Message}");
+            return pathModel;
         }
 
         public void MouseDragged(UserCommandArgs userCommandArgs, KeyModifiers keyModifiers)

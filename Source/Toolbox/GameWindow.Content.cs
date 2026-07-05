@@ -189,6 +189,15 @@ namespace FreeTrainSimulator.Toolbox
             toolboxContent.UpdateWidgetColorSettings(ToolboxSettings.ColorSettings, ToolboxSettings.FontOutline, ToolboxSettings.LimitTrackWidth);
             ContentArea = ((IXnaMapShellHost)toolboxContent.ShellHost).Component as ContentArea;
             ImmutableArray<PathModelHeader> paths = await pathTask.ConfigureAwait(true);
+
+            // Lazily validate paths that have never been validated (Valid is null), persisting the resulting
+            // flag so subsequent loads only read the lightweight header. Legacy/imported paths get flagged here
+            // without their node data being altered. Re-fetch afterwards so the menu/tool window show the marker.
+            await PathEditor.ValidateRoutePaths(routeModel, RuntimeDataResolver.Instance.TrackWorld, false, ctsProfileLoading.Token).ConfigureAwait(true);
+            if (ctsProfileLoading.Token.IsCancellationRequested)
+                return;
+            paths = await routeModel.GetRoutePaths(ctsProfileLoading.Token).ConfigureAwait(true);
+
             menu.PopulatePaths(paths);
             hostedTrainPathToolWindow?.UpdatePaths(paths);
             _ = windowManager[ToolboxWindowType.StatusWindow].Close();

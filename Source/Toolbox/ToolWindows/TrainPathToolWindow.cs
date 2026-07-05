@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Threading.Tasks;
 
 using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Models.Content;
@@ -14,7 +15,24 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
     /// <summary>
     /// One available train path in the hosted train-path tool window's path list.
     /// </summary>
-    internal readonly record struct TrainPathListRow(string Id, string Name);
+    internal readonly record struct TrainPathListRow
+    {
+        public TrainPathListRow(string id, string name, PathValidationState validationState)
+        {
+            Id = id;
+            Name = name;
+            ValidationState = validationState;
+        }
+
+        /// <summary>Unique id of the path.</summary>
+        public string Id { get; }
+
+        /// <summary>Display name of the path.</summary>
+        public string Name { get; }
+
+        /// <summary>Persisted validation state of the path (valid, invalid, or not yet validated).</summary>
+        public PathValidationState ValidationState { get; }
+    }
 
     /// <summary>
     /// One node row of the currently edited train path (index, node type, validity).
@@ -75,12 +93,40 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
     /// lock-free by the WPF view model. Combines the available paths, the selected path id, the current
     /// path's node rows, and its metadata name/value rows.
     /// </summary>
-    internal sealed record TrainPathSnapshot(ImmutableArray<TrainPathListRow> Paths,
-        string SelectedPathId, ImmutableArray<TrainPathNodeRow> Nodes, ImmutableArray<ToolWindowRow> Metadata, bool CanUndo, bool CanRedo)
+    internal sealed record TrainPathSnapshot
     {
-        public static TrainPathSnapshot Empty { get; } = 
-            new TrainPathSnapshot(ImmutableArray<TrainPathListRow>.Empty, null,
-            ImmutableArray<TrainPathNodeRow>.Empty, ImmutableArray<ToolWindowRow>.Empty, false, false);
+        /// <summary>Available paths for the loaded route.</summary>
+        public ImmutableArray<TrainPathListRow> Paths { get; init; }
+
+        /// <summary>Id of the currently selected path, or null when none is selected.</summary>
+        public string SelectedPathId { get; init; }
+
+        /// <summary>Node rows of the currently edited path.</summary>
+        public ImmutableArray<TrainPathNodeRow> Nodes { get; init; }
+
+        /// <summary>Name/value metadata rows for the currently edited path.</summary>
+        public ImmutableArray<ToolWindowRow> Metadata { get; init; }
+
+        /// <summary>Whether an undo step is available.</summary>
+        public bool CanUndo { get; init; }
+
+        /// <summary>Whether a redo step is available.</summary>
+        public bool CanRedo { get; init; }
+
+        /// <summary>Whether the current path can be snapped to track.</summary>
+        public bool CanSnapToTrack { get; init; }
+
+        /// <summary>An empty snapshot used before any path content is available.</summary>
+        public static TrainPathSnapshot Empty { get; } = new TrainPathSnapshot
+        {
+            Paths = ImmutableArray<TrainPathListRow>.Empty,
+            SelectedPathId = null,
+            Nodes = ImmutableArray<TrainPathNodeRow>.Empty,
+            Metadata = ImmutableArray<ToolWindowRow>.Empty,
+            CanUndo = false,
+            CanRedo = false,
+            CanSnapToTrack = false,
+        };
     }
 
     /// <summary>
@@ -143,11 +189,25 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
             PathEditor pathEditor = pathEditorAccessor();
             if (pathEditor == null)
             {
-                if (snapshot != TrainPathSnapshot.Empty)
-                {
-                    ResetCaches();
-                    snapshot = TrainPathSnapshot.Empty;
-                }
+                // No edit session is active, but the available-paths list (and its validation markers) must
+                // still be shown and refreshed, e.g. after loading a route or running "Validate All". The path
+                // list only changes when UpdatePaths/InvalidatePaths bump snapshotVersion, so rebuild the
+                // paths-only snapshot only then; otherwise this branch runs every frame and must stay idle to
+                // avoid per-frame allocations.
+                int pathsSnapshotVersion = snapshotVersion;
+                bool snapshotIsPathsOnly = snapshot.SelectedPathId == null
+                    && snapshot.Nodes.IsEmpty
+                    && snapshot.Metadata.IsEmpty
+                    && !snapshot.CanUndo
+                    && !snapshot.CanRedo
+                    && !snapshot.CanSnapToTrack;
+                if (snapshotIsPathsOnly && pathsSnapshotVersion == lastSnapshotVersion)
+                    return;
+
+                lastPathId = null;
+                lastNodeCount = 0;
+                lastSnapshotVersion = pathsSnapshotVersion;
+                snapshot = TrainPathSnapshot.Empty with { Paths = BuildPaths() };
                 return;
             }
 
@@ -157,6 +217,7 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
             int nodeCount = currentPath?.PathPoints.Count ?? 0;
             bool canUndo = pathEditor.CanUndo;
             bool canRedo = pathEditor.CanRedo;
+            bool canSnapToTrack = pathEditor.CanSnapToTrack;
 
             int currentSnapshotVersion = snapshotVersion;
 
@@ -168,6 +229,7 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
                 && currentSnapshotVersion == lastSnapshotVersion
                 && canUndo == snapshot.CanUndo
                 && canRedo == snapshot.CanRedo
+                && canSnapToTrack == snapshot.CanSnapToTrack
                 && paths.SequenceEqual(snapshot.Paths))
             {
                 return;
@@ -177,7 +239,16 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
             lastNodeCount = nodeCount;
             lastSnapshotVersion = currentSnapshotVersion;
 
-            snapshot = new TrainPathSnapshot(paths, selectedPathId, BuildNodes(currentPath), BuildMetadata(pathEditor, currentPath), canUndo, canRedo);
+            snapshot = new TrainPathSnapshot
+            {
+                Paths = paths,
+                SelectedPathId = selectedPathId,
+                Nodes = BuildNodes(currentPath),
+                Metadata = BuildMetadata(pathEditor, currentPath),
+                CanUndo = canUndo,
+                CanRedo = canRedo,
+                CanSnapToTrack = canSnapToTrack,
+            };
         }
 
         /// <summary>
@@ -188,12 +259,8 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
         /// </summary>
         internal void SelectPath(string pathId)
         {
-            gameThreadInvoker(() =>
+            InvokeEditorAction(pathEditor =>
             {
-                PathEditor pathEditor = pathEditorAccessor();
-                if (pathEditor == null)
-                    return;
-
                 if (string.IsNullOrEmpty(pathId))
                 {
                     _ = pathEditor.InitializePath(null);
@@ -212,41 +279,67 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
         /// </summary>
         internal void HighlightNode(int index)
         {
-            gameThreadInvoker(() =>
+            InvokeEditorAction(pathEditor =>
             {
-                PathEditor pathEditor = pathEditorAccessor();
-                if (pathEditor?.TrainPath == null)
+                if (pathEditor.TrainPath == null)
                     return;
 
                 pathEditor.HighlightPathItem(index);
             });
         }
 
-        internal void Undo()
+        internal void Undo() => InvokeEditorMutation(pathEditor => pathEditor.Undo());
+
+        internal void Redo() => InvokeEditorMutation(pathEditor => pathEditor.Redo());
+
+        internal void SnapToTrack() => InvokeEditorMutation(pathEditor => pathEditor.SnapToTrack().Success);
+
+        // Marshals onto the game thread, resolves the current (possibly not-yet-created) editor, and runs
+        // <paramref name="mutate"/> against it, marking the snapshot dirty when the mutation reports a change.
+        // No-op when no editor exists yet.
+        private void InvokeEditorMutation(Func<PathEditor, bool> mutate)
         {
             gameThreadInvoker(() =>
             {
                 PathEditor pathEditor = pathEditorAccessor();
-                if (pathEditor?.Undo() == true)
+                if (pathEditor != null && mutate(pathEditor))
                     MarkDirty();
             });
         }
 
-        internal void Redo()
+        // Marshals onto the game thread, resolves the current (possibly not-yet-created) editor, and runs
+        // <paramref name="action"/> against it. No-op when no editor exists yet. Unlike InvokeEditorMutation this
+        // does not mark the snapshot dirty; callers that change snapshot-relevant state do so explicitly.
+        private void InvokeEditorAction(Action<PathEditor> action)
         {
             gameThreadInvoker(() =>
             {
                 PathEditor pathEditor = pathEditorAccessor();
-                if (pathEditor?.Redo() == true)
-                    MarkDirty();
+                if (pathEditor != null)
+                    action(pathEditor);
             });
+        }
+
+        /// <summary>
+        /// Forces revalidation of every path for the loaded route against the current track, persisting the
+        /// updated validity flags, then refreshes the cached path list so the review markers update. Awaitable so
+        /// the caller can surface failures; the cache update is marshalled back onto the game thread.
+        /// </summary>
+        internal async Task ValidateAllPaths()
+        {
+            ITrainPathToolingContext toolingContext = toolingContextAccessor();
+            if (toolingContext == null)
+                return;
+
+            ImmutableArray<PathModelHeader> paths = await toolingContext.ValidateAllPaths().ConfigureAwait(false);
+            gameThreadInvoker(() => UpdatePaths(paths));
         }
 
         private ImmutableArray<TrainPathListRow> BuildPaths()
         {
             ImmutableArray<TrainPathListRow>.Builder builder = ImmutableArray.CreateBuilder<TrainPathListRow>();
             foreach (PathModelHeader path in cachedPaths.OrderBy(p => p.Name))
-                builder.Add(new TrainPathListRow(path.Id, path.Name));
+                builder.Add(new TrainPathListRow(path.Id, path.Name, path.ValidationState));
             return builder.ToImmutable();
         }
 
@@ -277,12 +370,12 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
             ITrainPathToolingContext toolingContext = toolingContextAccessor();
             bool metricUnits = toolingContext?.UseMetricUnits ?? true;
             ImmutableArray<ToolWindowRow>.Builder builder = ImmutableArray.CreateBuilder<ToolWindowRow>();
-            builder.Add(new ToolWindowRow("Path ID", currentPath.PathModel.Id, null, false));
-            builder.Add(new ToolWindowRow("Path Name", currentPath.PathModel.Name, null, false));
-            builder.Add(new ToolWindowRow("Start", currentPath.PathModel.Start, null, false));
-            builder.Add(new ToolWindowRow("End", currentPath.PathModel.End, null, false));
-            builder.Add(new ToolWindowRow("Player Path", FormatStrings.FormatYesNo(currentPath.PathModel.PlayerPath), null, false));
-            builder.Add(new ToolWindowRow("Path Length", FormatStrings.FormatDistanceDisplay(currentPath.Length, metricUnits, 1000), null, false));
+            builder.Add(new ToolWindowRow { Name = "Path ID", Value = currentPath.PathModel.Id });
+            builder.Add(new ToolWindowRow { Name = "Path Name", Value = currentPath.PathModel.Name });
+            builder.Add(new ToolWindowRow { Name = "Start", Value = currentPath.PathModel.Start });
+            builder.Add(new ToolWindowRow { Name = "End", Value = currentPath.PathModel.End });
+            builder.Add(new ToolWindowRow { Name = "Player Path", Value = FormatStrings.FormatYesNo(currentPath.PathModel.PlayerPath) });
+            builder.Add(new ToolWindowRow { Name = "Path Length", Value = FormatStrings.FormatDistanceDisplay(currentPath.Length, metricUnits, 1000) });
             builder.AddRange(BuildEditorStateMetadata(currentPath));
             builder.AddRange(BuildEditorHistoryMetadata(pathEditor?.CanUndo == true, pathEditor?.CanRedo == true));
             builder.AddRange(BuildResolverDiagnosticMetadata(PathRouteResolver.Resolve(currentPath.PathModel, toolingContext?.TrackWorld)));
@@ -292,8 +385,8 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
         internal static ImmutableArray<ToolWindowRow> BuildEditorHistoryMetadata(bool canUndo, bool canRedo)
         {
             return ImmutableArray.Create(
-                new ToolWindowRow("Can Undo", FormatStrings.FormatYesNo(canUndo), null, false),
-                new ToolWindowRow("Can Redo", FormatStrings.FormatYesNo(canRedo), null, false));
+                new ToolWindowRow { Name = "Can Undo", Value = FormatStrings.FormatYesNo(canUndo) },
+                new ToolWindowRow { Name = "Can Redo", Value = FormatStrings.FormatYesNo(canRedo) });
         }
 
         internal static ImmutableArray<ToolWindowRow> BuildEditorStateMetadata(TrainPathBase currentPath)
@@ -308,12 +401,12 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
             bool hasReversalNodes = currentPath.PathPoints.Any(point => (point.NodeType & PathNodeType.Reversal) == PathNodeType.Reversal);
 
             ImmutableArray<ToolWindowRow>.Builder builder = ImmutableArray.CreateBuilder<ToolWindowRow>();
-            builder.Add(new ToolWindowRow("Node Count", currentPath.PathPoints.Count.ToString(System.Globalization.CultureInfo.InvariantCulture), null, false));
-            builder.Add(new ToolWindowRow("Has End", FormatStrings.FormatYesNo(hasEnd), null, false));
-            builder.Add(new ToolWindowRow("Has Broken Nodes", FormatStrings.FormatYesNo(hasBrokenNodes), hasBrokenNodes ? DrawingColor.OrangeRed : null, hasBrokenNodes));
-            builder.Add(new ToolWindowRow("Has Passing Paths", FormatStrings.FormatYesNo(hasPassingPaths), null, false));
-            builder.Add(new ToolWindowRow("Has Wait Nodes", FormatStrings.FormatYesNo(hasWaitNodes), null, false));
-            builder.Add(new ToolWindowRow("Has Reversal Nodes", FormatStrings.FormatYesNo(hasReversalNodes), null, false));
+            builder.Add(new ToolWindowRow { Name = "Node Count", Value = currentPath.PathPoints.Count.ToString(System.Globalization.CultureInfo.InvariantCulture) });
+            builder.Add(new ToolWindowRow { Name = "Has End", Value = FormatStrings.FormatYesNo(hasEnd) });
+            builder.Add(new ToolWindowRow { Name = "Has Broken Nodes", Value = FormatStrings.FormatYesNo(hasBrokenNodes), Color = hasBrokenNodes ? DrawingColor.OrangeRed : null, Bold = hasBrokenNodes });
+            builder.Add(new ToolWindowRow { Name = "Has Passing Paths", Value = FormatStrings.FormatYesNo(hasPassingPaths) });
+            builder.Add(new ToolWindowRow { Name = "Has Wait Nodes", Value = FormatStrings.FormatYesNo(hasWaitNodes) });
+            builder.Add(new ToolWindowRow { Name = "Has Reversal Nodes", Value = FormatStrings.FormatYesNo(hasReversalNodes) });
             return builder.ToImmutable();
         }
 
@@ -323,10 +416,10 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
                 return ImmutableArray<ToolWindowRow>.Empty;
 
             ImmutableArray<ToolWindowRow>.Builder builder = ImmutableArray.CreateBuilder<ToolWindowRow>();
-            builder.Add(new ToolWindowRow("Route Diagnostics", string.Empty, DiagnosticColor(resolution.HighestSeverity), true));
-            builder.Add(new ToolWindowRow("Summary", $"{resolution.Diagnostics.Length} ({resolution.HighestSeverity})", DiagnosticColor(resolution.HighestSeverity), false));
+            builder.Add(new ToolWindowRow { Name = "Route Diagnostics", Value = string.Empty, Color = DiagnosticColor(resolution.HighestSeverity), Bold = true });
+            builder.Add(new ToolWindowRow { Name = "Summary", Value = $"{resolution.Diagnostics.Length} ({resolution.HighestSeverity})", Color = DiagnosticColor(resolution.HighestSeverity) });
             foreach (PathRouteDiagnostic diagnostic in resolution.Diagnostics)
-                builder.Add(new ToolWindowRow(diagnostic.Code.ToString(), diagnostic.Message, DiagnosticColor(diagnostic.Severity), diagnostic.Severity >= PathRouteDiagnosticSeverity.Error));
+                builder.Add(new ToolWindowRow { Name = diagnostic.Code.ToString(), Value = diagnostic.Message, Color = DiagnosticColor(diagnostic.Severity), Bold = diagnostic.Severity >= PathRouteDiagnosticSeverity.Error });
 
             return builder.ToImmutable();
         }
@@ -370,14 +463,6 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
         internal void MarkDirty()
         {
             snapshotVersion++;
-        }
-
-        private void ResetCaches()
-        {
-            cachedPaths = ImmutableArray<PathModelHeader>.Empty;
-            lastPathId = null;
-            lastNodeCount = -1;
-            lastSnapshotVersion = -1;
         }
     }
 }

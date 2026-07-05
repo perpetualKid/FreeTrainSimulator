@@ -85,15 +85,15 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
             {
                 (double latitude, double longitude) = EarthCoordinates.ConvertWTC(location);
                 (string latitudeText, string longitudeText) = EarthCoordinates.ToString(latitude, longitude);
-                rows.Add(new ToolWindowRow("Coordinates", $"{latitudeText} {longitudeText}", Color.Orange, false));
+                rows.Add(new ToolWindowRow { Name = "Coordinates", Value = $"{latitudeText} {longitudeText}", Color = Color.Orange });
             }
             else
             {
-                rows.Add(new ToolWindowRow("Tile (X:Z)", $"{location.Tile.X}:{location.Tile.Z}", Color.Orange, false));
-                rows.Add(new ToolWindowRow("Location (x, z)", $"{location.Location.X,4:00.##} {location.Location.Z,4:00.##}", Color.Orange, false));
+                rows.Add(new ToolWindowRow { Name = "Tile (X:Z)", Value = $"{location.Tile.X}:{location.Tile.Z}", Color = Color.Orange });
+                rows.Add(new ToolWindowRow { Name = "Location (x, z)", Value = $"{location.Location.X,4:00.##} {location.Location.Z,4:00.##}", Color = Color.Orange });
             }
 
-            snapshot = new ToolWindowSnapshot(rows.ToImmutable());
+            snapshot = new ToolWindowSnapshot { Rows = rows.ToImmutable() };
         }
     }
 }

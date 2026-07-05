@@ -20,5 +20,12 @@ namespace FreeTrainSimulator.Models.Content
         public string End { get; init; }
         /// <summary>Is the path a player path or not</summary>
         public bool PlayerPath { get; init; }
+        /// <summary>
+        /// Result of validating the path against the current track via the path route resolver. Defaults to
+        /// <see cref="PathValidationState.NotValidated"/> for paths that have not been validated yet (including
+        /// path files written before this field existed). Appended last to preserve MemoryPack version-tolerant
+        /// sequential layout.
+        /// </summary>
+        public PathValidationState ValidationState { get; init; }
     }
 }

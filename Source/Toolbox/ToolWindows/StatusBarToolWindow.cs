@@ -55,7 +55,7 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
             AppendTrackNodeFields(fields);
             AppendTrackItemFields(fields);
 
-            snapshot = new StatusBarSnapshot(fields.ToImmutable());
+            snapshot = new StatusBarSnapshot { Fields = fields.ToImmutable() };
         }
 
         private void AppendLocationFields(ImmutableArray<StatusBarField>.Builder fields)
@@ -63,15 +63,15 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
             PointD worldPoint = locationContext?.WorldPosition ?? PointD.None;
             WorldLocation location = PointD.ToWorldLocation(worldPoint);
 
-            fields.Add(new StatusBarField("Tile", null, $"{location.Tile.X}, {location.Tile.Z}"));
-            fields.Add(new StatusBarField("LocationX", null, $"{location.Location.X,4:F1}"));
-            fields.Add(new StatusBarField("LocationZ", null, $"{location.Location.Z,4:F1}"));
+            fields.Add(new StatusBarField { Key = "Tile", Value = $"{location.Tile.X}, {location.Tile.Z}" });
+            fields.Add(new StatusBarField { Key = "LocationX", Value = $"{location.Location.X,4:F1}" });
+            fields.Add(new StatusBarField { Key = "LocationZ", Value = $"{location.Location.Z,4:F1}" });
         }
 
         private void AppendTrackNodeFields(ImmutableArray<StatusBarField>.Builder fields)
         {
             string nodeIndex = ReadValue(trackNodeInfoContext?.TrackNodeInfo, NodeIndexKey);
-            fields.Add(new StatusBarField("TrackNode", "Track", nodeIndex));
+            fields.Add(new StatusBarField { Key = "TrackNode", Label = "Track", Value = nodeIndex });
         }
 
         private void AppendTrackItemFields(ImmutableArray<StatusBarField>.Builder fields)
@@ -84,7 +84,7 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
                 ? itemIndex
                 : string.IsNullOrEmpty(itemIndex) ? itemType : $"{itemType} {itemIndex}";
 
-            fields.Add(new StatusBarField("TrackItem", "Item", itemValue));
+            fields.Add(new StatusBarField { Key = "TrackItem", Label = "Item", Value = itemValue });
         }
 
         // Reads a single value from an information provider's detail dictionary. The dictionary indexer

@@ -49,6 +49,30 @@
                 </DataTrigger>
             </Style.Triggers>
         </Style>
+        <DataTemplate x:Key="TrainPathValidityCellTemplate">
+            <TextBlock HorizontalAlignment="Center"
+                       FontWeight="Bold">
+                <TextBlock.Style>
+                    <Style TargetType="TextBlock">
+                        <Setter Property="Text" Value="&#x2013;" />
+                        <Setter Property="Foreground" Value="Gray" />
+                        <Setter Property="ToolTip" Value="Not yet validated" />
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding ValidationState}" Value="Valid">
+                                <Setter Property="Text" Value="&#x2713;" />
+                                <Setter Property="Foreground" Value="Green" />
+                                <Setter Property="ToolTip" Value="Valid: resolves against the current track" />
+                            </DataTrigger>
+                            <DataTrigger Binding="{Binding ValidationState}" Value="Invalid">
+                                <Setter Property="Text" Value="&#x26A0;" />
+                                <Setter Property="Foreground" Value="OrangeRed" />
+                                <Setter Property="ToolTip" Value="Invalid: does not resolve against the current track" />
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </TextBlock.Style>
+            </TextBlock>
+        </DataTemplate>
     </UserControl.Resources>
     <TabControl Margin="6">
         <TabItem Header="Path Nodes">
@@ -70,6 +94,11 @@
                             Padding="8,2"
                             Content="Redo"
                             Command="{Binding RedoCommand}" />
+                    <Button Margin="12,0,0,0"
+                            Padding="8,2"
+                            Content="Snap to Track"
+                            Command="{Binding SnapToTrackCommand}"
+                            ToolTip="Rebuild the path along the resolved track (main route only)" />
                 </StackPanel>
                 <ListView Grid.Row="1"
                           ItemsSource="{Binding Nodes}"
@@ -136,6 +165,13 @@
         </TabItem>
         <TabItem Header="Paths">
             <DockPanel>
+                <Button DockPanel.Dock="Top"
+                        Margin="0,0,0,6"
+                        Padding="8,2"
+                        HorizontalAlignment="Right"
+                        Content="Validate All"
+                        Command="{Binding ValidateAllPathsCommand}"
+                        ToolTip="Re-validate every path against the current track (useful after a route changes)" />
                 <TextBox DockPanel.Dock="Top"
                          Margin="0,0,0,6"
                          VerticalContentAlignment="Center"
@@ -161,6 +197,7 @@
                     </ListView.ItemContainerStyle>
                     <ListView.View>
                         <GridView>
+                            <GridViewColumn Header="" Width="28" CellTemplate="{StaticResource TrainPathValidityCellTemplate}" />
                             <GridViewColumn Header="Name" Width="320" DisplayMemberBinding="{Binding Name}"
                                             behaviors:GridViewColumnBehavior.StretchColumn="True" />
                         </GridView>

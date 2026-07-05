@@ -197,16 +197,18 @@ namespace FreeTrainSimulator.Toolbox
             hostedTrainPathToolWindow = new TrainPathToolWindow(() => HostedPathEditor, () => HostedTrainPathToolingContext, InvokeOnGameThread);
             hostedStatusBarToolWindow = new StatusBarToolWindow();
             hostedRouteNavigationToolWindow = new RouteNavigationToolWindow(InvokeOnGameThread);
-            hostedServices = new HostedToolboxServices(
-                hostedMenu,
-                hostedDebugToolWindow,
-                hostedLocationToolWindow,
-                hostedLogToolWindow,
-                hostedHelpToolWindow,
-                hostedSettingsToolWindow,
-                hostedTrainPathToolWindow,
-                hostedStatusBarToolWindow,
-                hostedRouteNavigationToolWindow);
+            hostedServices = new HostedToolboxServices
+            {
+                Menu = hostedMenu,
+                DebugToolWindow = hostedDebugToolWindow,
+                LocationToolWindow = hostedLocationToolWindow,
+                LogToolWindow = hostedLogToolWindow,
+                HelpToolWindow = hostedHelpToolWindow,
+                SettingsToolWindow = hostedSettingsToolWindow,
+                TrainPathToolWindow = hostedTrainPathToolWindow,
+                StatusBarToolWindow = hostedStatusBarToolWindow,
+                RouteNavigationToolWindow = hostedRouteNavigationToolWindow,
+            };
             OnContentAreaChanged += GameWindow_OnContentAreaChanged;
             windowForm.KeyPreview = true;// need to preview keys to enable Monogames TextInput handler, otherwise adding the main menu will break text input
         }

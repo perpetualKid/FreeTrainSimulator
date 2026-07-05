@@ -3,6 +3,7 @@ using System.Collections.Immutable;
 using System.Collections.ObjectModel;
 using System.Linq;
 
+using FreeTrainSimulator.Models.Content;
 using FreeTrainSimulator.Toolbox.ToolWindows;
 
 namespace FreeTrainSimulator.Toolbox.ViewModels
@@ -24,6 +25,7 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
         private string snapshotSelectedPathId;
         private bool canUndo;
         private bool canRedo;
+        private bool canSnapToTrack;
         private bool suppressSelectionCommand;
 
         public TrainPathToolWindowViewModel(TrainPathToolWindow toolWindow, ToolWindowRefreshScheduler scheduler)
@@ -34,6 +36,8 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
             this.toolWindow = toolWindow;
             UndoCommand = new RelayCommand(_ => toolWindow.Undo(), _ => CanUndo);
             RedoCommand = new RelayCommand(_ => toolWindow.Redo(), _ => CanRedo);
+            SnapToTrackCommand = new RelayCommand(_ => toolWindow.SnapToTrack(), _ => CanSnapToTrack);
+            ValidateAllPathsCommand = new RelayCommand(_ => ValidateAllPaths());
         }
 
         public string Title => toolWindow.Title;
@@ -49,6 +53,10 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
         public RelayCommand UndoCommand { get; }
 
         public RelayCommand RedoCommand { get; }
+
+        public RelayCommand SnapToTrackCommand { get; }
+
+        public RelayCommand ValidateAllPathsCommand { get; }
 
         public bool CanUndo
         {
@@ -67,6 +75,16 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
             {
                 if (SetProperty(ref canRedo, value))
                     RedoCommand.RaiseCanExecuteChanged();
+            }
+        }
+
+        public bool CanSnapToTrack
+        {
+            get => canSnapToTrack;
+            private set
+            {
+                if (SetProperty(ref canSnapToTrack, value))
+                    SnapToTrackCommand.RaiseCanExecuteChanged();
             }
         }
 
@@ -132,6 +150,7 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
             DebugToolWindowRowViewModel.Sync(Metadata, snapshot.Metadata);
             CanUndo = snapshot.CanUndo;
             CanRedo = snapshot.CanRedo;
+            CanSnapToTrack = snapshot.CanSnapToTrack;
 
             if (!string.Equals(snapshotSelectedPathId, snapshot.SelectedPathId, StringComparison.Ordinal))
             {
@@ -140,18 +159,33 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
             }
         }
 
+        // Runs the forced 'validate all paths' bridge. Exceptions are surfaced through StatusMessage instead of
+        // being thrown from the ICommand handler so a validation failure never crashes the UI thread.
+        private async void ValidateAllPaths()
+        {
+            try
+            {
+                StatusMessage = "Validating paths...";
+                await toolWindow.ValidateAllPaths().ConfigureAwait(true);
+                StatusMessage = "Path validation complete.";
+            }
+            catch (Exception ex) when (ex is InvalidOperationException || ex is System.IO.IOException)
+            {
+                StatusMessage = $"Path validation failed: {ex.Message}";
+            }
+        }
+
         private void SyncPaths(ImmutableArray<TrainPathListRow> rows)
         {
             // Preserve the bound selection across the in-place sync.
             string selectedId = SelectedPath?.Id;
-
             for (int i = 0; i < rows.Length; i++)
             {
                 TrainPathListRow row = rows[i];
                 if (i < Paths.Count)
-                    Paths[i].Update(row.Id, row.Name);
+                    Paths[i].Update(row.Id, row.Name, row.ValidationState);
                 else
-                    Paths.Add(new TrainPathListItemViewModel(row.Id, row.Name));
+                    Paths.Add(new TrainPathListItemViewModel(row.Id, row.Name, row.ValidationState));
             }
 
             for (int i = Paths.Count - 1; i >= rows.Length; i--)
@@ -243,16 +277,16 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
                 return ImmutableArray<ToolWindowRow>.Empty;
 
             ImmutableArray<ToolWindowRow>.Builder builder = ImmutableArray.CreateBuilder<ToolWindowRow>();
-            builder.Add(new ToolWindowRow("Index", selectedNode.Index.ToString(System.Globalization.CultureInfo.InvariantCulture), null, false));
-            builder.Add(new ToolWindowRow("Type", selectedNode.NodeType, null, false));
-            builder.Add(new ToolWindowRow("Track Node", selectedNode.TrackNodeIndex.ToString(System.Globalization.CultureInfo.InvariantCulture), null, false));
-            builder.Add(new ToolWindowRow("Wait", selectedNode.WaitTime?.ToString(System.Globalization.CultureInfo.InvariantCulture) ?? string.Empty, null, false));
-            builder.Add(new ToolWindowRow("Next Main", selectedNode.NextMainNode.ToString(System.Globalization.CultureInfo.InvariantCulture), null, false));
-            builder.Add(new ToolWindowRow("Next Siding", selectedNode.NextSidingNode.ToString(System.Globalization.CultureInfo.InvariantCulture), null, false));
-            builder.Add(new ToolWindowRow("Validation", selectedNode.Validation ?? string.Empty, null, !selectedNode.Valid));
-            builder.Add(new ToolWindowRow("Nearest Track Node", selectedNode.NearestTrackNodeIndex?.ToString(System.Globalization.CultureInfo.InvariantCulture) ?? string.Empty, null, false));
-            builder.Add(new ToolWindowRow("Nearest Track Section", selectedNode.NearestTrackSectionIndex?.ToString(System.Globalization.CultureInfo.InvariantCulture) ?? string.Empty, null, false));
-            builder.Add(new ToolWindowRow("Nearest Track Distance", FormatMeters(selectedNode.NearestTrackDistanceMeters), null, false));
+            builder.Add(new ToolWindowRow { Name = "Index", Value = selectedNode.Index.ToString(System.Globalization.CultureInfo.InvariantCulture) });
+            builder.Add(new ToolWindowRow { Name = "Type", Value = selectedNode.NodeType });
+            builder.Add(new ToolWindowRow { Name = "Track Node", Value = selectedNode.TrackNodeIndex.ToString(System.Globalization.CultureInfo.InvariantCulture) });
+            builder.Add(new ToolWindowRow { Name = "Wait", Value = selectedNode.WaitTime?.ToString(System.Globalization.CultureInfo.InvariantCulture) ?? string.Empty });
+            builder.Add(new ToolWindowRow { Name = "Next Main", Value = selectedNode.NextMainNode.ToString(System.Globalization.CultureInfo.InvariantCulture) });
+            builder.Add(new ToolWindowRow { Name = "Next Siding", Value = selectedNode.NextSidingNode.ToString(System.Globalization.CultureInfo.InvariantCulture) });
+            builder.Add(new ToolWindowRow { Name = "Validation", Value = selectedNode.Validation ?? string.Empty, Bold = !selectedNode.Valid });
+            builder.Add(new ToolWindowRow { Name = "Nearest Track Node", Value = selectedNode.NearestTrackNodeIndex?.ToString(System.Globalization.CultureInfo.InvariantCulture) ?? string.Empty });
+            builder.Add(new ToolWindowRow { Name = "Nearest Track Section", Value = selectedNode.NearestTrackSectionIndex?.ToString(System.Globalization.CultureInfo.InvariantCulture) ?? string.Empty });
+            builder.Add(new ToolWindowRow { Name = "Nearest Track Distance", Value = FormatMeters(selectedNode.NearestTrackDistanceMeters) });
             return builder.ToImmutable();
         }
 
@@ -260,20 +294,21 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
         {
             return value.HasValue ? FormattableString.Invariant($"{value.Value:0.###} m") : string.Empty;
         }
+    }
 
-        }
-
-        /// <summary>Bindable row for the available-paths list. Observable so it can be updated in place.</summary>
+    /// <summary>Bindable row for the available-paths list. Observable so it can be updated in place.</summary>
     internal sealed class TrainPathListItemViewModel : ObservableObject
     {
         private string id;
         private string name;
+        private PathValidationState validationState;
         private bool isVisible = true;
 
-        public TrainPathListItemViewModel(string id, string name)
+        public TrainPathListItemViewModel(string id, string name, PathValidationState validationState)
         {
             this.id = id;
             this.name = name;
+            this.validationState = validationState;
         }
 
         public string Id
@@ -288,16 +323,24 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
             private set => SetProperty(ref name, value);
         }
 
+        /// <summary>Persisted validation state of the path against the current track.</summary>
+        public PathValidationState ValidationState
+        {
+            get => validationState;
+            private set => SetProperty(ref validationState, value);
+        }
+
         public bool IsVisible
         {
             get => isVisible;
             set => SetProperty(ref isVisible, value);
         }
 
-        public void Update(string id, string name)
+        public void Update(string id, string name, PathValidationState validationState)
         {
             Id = id;
             Name = name;
+            ValidationState = validationState;
         }
     }
 

@@ -27,5 +27,14 @@ namespace FreeTrainSimulator.Toolbox
         {
             return route?.GetPaths(System.Threading.CancellationToken.None) ?? Task.FromResult(ImmutableArray<PathModelHeader>.Empty);
         }
+
+        public async Task<ImmutableArray<PathModelHeader>> ValidateAllPaths()
+        {
+            if (route == null)
+                return ImmutableArray<PathModelHeader>.Empty;
+
+            _ = await PathEditor.ValidateRoutePaths(route, TrackWorld, true, System.Threading.CancellationToken.None).ConfigureAwait(false);
+            return await route.GetPaths(System.Threading.CancellationToken.None).ConfigureAwait(false);
+        }
     }
 }

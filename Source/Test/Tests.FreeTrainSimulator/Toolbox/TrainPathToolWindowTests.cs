@@ -44,6 +44,28 @@ namespace Tests.FreeTrainSimulator.Toolbox
         }
 
         [TestMethod]
+        public void WhenActiveWithNoEditorButPathsUpdatedThenSnapshotSurfacesPathsWithValidationState()
+        {
+            // Regression: after loading a route or running "Validate All" no path is being edited, yet the
+            // available-paths list and its validation markers must still be published.
+            TrainPathToolWindow trainPathToolWindow = new TrainPathToolWindow(() => null, () => null, _ => { })
+            {
+                Active = true,
+            };
+            ImmutableArray<PathModelHeader> paths = ImmutableArray.Create(
+                new PathModelHeader { Id = "p1", Name = "Alpha", ValidationState = PathValidationState.Valid },
+                new PathModelHeader { Id = "p2", Name = "Beta", ValidationState = PathValidationState.Invalid });
+            trainPathToolWindow.UpdatePaths(paths);
+
+            trainPathToolWindow.RefreshSnapshot();
+
+            TrainPathSnapshot snapshot = trainPathToolWindow.CaptureTrainPathSnapshot();
+            Assert.AreEqual(2, snapshot.Paths.Length);
+            Assert.AreEqual(PathValidationState.Valid, snapshot.Paths[0].ValidationState);
+            Assert.AreEqual(PathValidationState.Invalid, snapshot.Paths[1].ValidationState);
+        }
+
+        [TestMethod]
         public void WhenSelectPathThenGameThreadInvokerIsCalled()
         {
             int invocations = 0;

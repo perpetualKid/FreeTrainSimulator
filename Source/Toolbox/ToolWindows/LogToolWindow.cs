@@ -50,8 +50,8 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
 
             previousContent = content;
             ImmutableArray<ToolWindowRow>.Builder rows = ImmutableArray.CreateBuilder<ToolWindowRow>(1);
-            rows.Add(new ToolWindowRow("LogText", content, Color.White, false));
-            snapshot = new ToolWindowSnapshot(rows.ToImmutable());
+            rows.Add(new ToolWindowRow { Name = "LogText", Value = content, Color = Color.White });
+            snapshot = new ToolWindowSnapshot { Rows = rows.ToImmutable() };
         }
 
         private string ReadLogContent()

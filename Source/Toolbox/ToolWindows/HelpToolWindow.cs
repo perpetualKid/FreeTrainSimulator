@@ -66,10 +66,10 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
                 if (!MatchesFilter(row))
                     continue;
 
-                builder.Add(new ToolWindowRow(row.Command, row.Key, null, false));
+                builder.Add(new ToolWindowRow { Name = row.Command, Value = row.Key });
             }
 
-            snapshot = new ToolWindowSnapshot(builder.ToImmutable());
+            snapshot = new ToolWindowSnapshot { Rows = builder.ToImmutable() };
             updateRequired = false;
         }
 
@@ -91,12 +91,19 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
             {
                 string commandText = command.GetLocalizedDescription();
                 string keyText = InputSettings.UserCommands[command]?.ToString() ?? string.Empty;
-                rows.Add(new HelpRow(commandText, keyText));
+                rows.Add(new HelpRow { Command = commandText, Key = keyText });
             }
 
             return rows.ToImmutable();
         }
 
-        private readonly record struct HelpRow(string Command, string Key);
+        private readonly record struct HelpRow
+        {
+            /// <summary>The command description shown in the help list.</summary>
+            public string Command { get; init; }
+
+            /// <summary>The key binding shown for the command.</summary>
+            public string Key { get; init; }
+        }
     }
 }

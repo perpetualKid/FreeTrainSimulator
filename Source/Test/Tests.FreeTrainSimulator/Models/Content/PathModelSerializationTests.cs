@@ -139,6 +139,30 @@ namespace Tests.FreeTrainSimulator.Models.Content
             Assert.IsTrue(restored.PathNodes.IsEmpty);
         }
 
+        [TestMethod]
+        public void WhenPathModelRoundTripsThenValidationStateIsPreserved()
+        {
+            PathModel original = CreatePathModel() with { ValidationState = PathValidationState.Invalid };
+
+            PathModel restored = RoundTrip(original);
+
+            Assert.AreEqual(PathValidationState.Invalid, restored.ValidationState);
+        }
+
+        [TestMethod]
+        public void WhenPathModelSerializedAndReadBackAsHeaderThenValidationStateIsPreserved()
+        {
+            // The content handler writes the full PathModel but reads the summary back as a PathModelHeader
+            // (ContentHandlerBase.FromFile<PathModelHeader>). The validation marker in the toolbox path list
+            // depends on that cross-type read preserving ValidationState.
+            PathModel original = CreatePathModel() with { ValidationState = PathValidationState.Invalid };
+
+            byte[] serialized = MemoryPackSerializer.Serialize(original);
+            PathModelHeader header = MemoryPackSerializer.Deserialize<PathModelHeader>(serialized);
+
+            Assert.AreEqual(PathValidationState.Invalid, header.ValidationState);
+        }
+
         private static PathModel RoundTrip(PathModel pathModel)
         {
             byte[] serialized = MemoryPackSerializer.Serialize(pathModel);

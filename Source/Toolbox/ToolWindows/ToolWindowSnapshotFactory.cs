@@ -30,7 +30,7 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
                     AppendProvider(builder, provider);
             }
 
-            return new ToolWindowSnapshot(builder.ToImmutable());
+            return new ToolWindowSnapshot { Rows = builder.ToImmutable() };
         }
 
         /// <summary>
@@ -41,7 +41,7 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
         {
             ImmutableArray<ToolWindowRow>.Builder builder = ImmutableArray.CreateBuilder<ToolWindowRow>();
             AppendProvider(builder, provider);
-            return new ToolWindowSnapshot(builder.ToImmutable());
+            return new ToolWindowSnapshot { Rows = builder.ToImmutable() };
         }
 
         private static void AppendProvider(ImmutableArray<ToolWindowRow>.Builder builder, INameValueInformationProvider provider)
@@ -58,7 +58,7 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
                     ? Color.FromArgb(textColor.A, textColor.R, textColor.G, textColor.B)
                     : null;
                 bool bold = format?.FontStyle.HasFlag(FontStyle.Bold) ?? false;
-                builder.Add(new ToolWindowRow(key, detail[key], color, bold));
+                builder.Add(new ToolWindowRow { Name = key, Value = detail[key], Color = color, Bold = bold });
             }
         }
     }

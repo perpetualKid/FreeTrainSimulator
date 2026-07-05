@@ -122,12 +122,82 @@ namespace Tests.FreeTrainSimulator.Toolbox
             Assert.IsNotNull(trainPath);
         }
 
+        [TestMethod]
+        public void WhenPathHasPassingBranchThenSnapToTrackRefusesAndReturnsOriginalUnchanged()
+        {
+            PathModel pathModel = new PathModel()
+            {
+                PathNodes = ImmutableArray.Create(
+                    CreateSidingNode(PathNodeType.Start, 1, 2),
+                    CreateNode(PathNodeType.End, -1),
+                    CreateNode(PathNodeType.Intermediate, 1)),
+            };
+
+            PathEditResult result = PathEditor.SnapPathToTrack(pathModel, null);
+
+            Assert.IsFalse(result.Success);
+            Assert.Contains("passing", result.Message, StringComparison.OrdinalIgnoreCase);
+            Assert.AreSame(pathModel, result.PathModel);
+        }
+
+        [TestMethod]
+        public void WhenPathCannotResolveToTrackThenSnapToTrackFailsAndReturnsOriginalUnchanged()
+        {
+            PathModel pathModel = new PathModel()
+            {
+                PathNodes = ImmutableArray.Create(CreateNode(PathNodeType.Start, 1), CreateNode(PathNodeType.End, -1)),
+            };
+
+            PathEditResult result = PathEditor.SnapPathToTrack(pathModel, null);
+
+            Assert.IsFalse(result.Success);
+            Assert.AreSame(pathModel, result.PathModel);
+        }
+
+        [TestMethod]
+        public void WhenPathHasFatalResolverDiagnosticThenResolveValidationStateReturnsInvalid()
+        {
+            PathModel pathModel = new PathModel()
+            {
+                PathNodes = ImmutableArray.Create(CreateNode(PathNodeType.Start, 4), CreateNode(PathNodeType.End, -1)),
+            };
+
+            PathValidationState state = PathEditor.ResolveValidationState(pathModel, null);
+
+            Assert.AreEqual(PathValidationState.Invalid, state);
+        }
+
+        [TestMethod]
+        public void WhenPathResolvesWithoutErrorThenResolveValidationStateReturnsValid()
+        {
+            // A start-to-end path without a track world produces at most warnings/information (no error or
+            // fatal), which ResolveValidationState treats as valid, matching PathRouteResolution.IsValid.
+            PathModel pathModel = new PathModel()
+            {
+                PathNodes = ImmutableArray.Create(CreateNode(PathNodeType.Start, 1), CreateNode(PathNodeType.End, -1)),
+            };
+
+            PathValidationState state = PathEditor.ResolveValidationState(pathModel, null);
+
+            Assert.AreEqual(PathValidationState.Valid, state);
+        }
+
         private static PathNode CreateNode(PathNodeType nodeType, int nextMainNode)
         {
             return new PathNode(new WorldLocation(new Tile(0, 0), Vector3.Zero))
             {
                 NodeType = nodeType,
                 NextMainNode = nextMainNode,
+            };
+        }
+
+        private static PathNode CreateSidingNode(PathNodeType nodeType, int nextMainNode, int nextSidingNode)
+        {
+            return new PathNode(new WorldLocation(new Tile(0, 0), Vector3.Zero))
+            {
+                NodeType = nodeType,
+                NextMainNode = nextMainNode,
+                NextSidingNode = nextSidingNode,
             };
         }
 

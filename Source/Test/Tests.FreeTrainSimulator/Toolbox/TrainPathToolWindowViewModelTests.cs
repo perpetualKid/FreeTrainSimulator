@@ -3,6 +3,7 @@ using System.Linq;
 using System.Reflection;
 using System.Windows.Threading;
 
+using FreeTrainSimulator.Models.Content;
 using FreeTrainSimulator.Toolbox.ToolWindows;
 using FreeTrainSimulator.Toolbox.ViewModels;
 
@@ -27,7 +28,7 @@ namespace Tests.FreeTrainSimulator.Toolbox
             {
                 using (TrainPathToolWindowViewModel trainPathToolWindowViewModel = new TrainPathToolWindowViewModel(bridge, refreshScheduler)
                 {
-                    SelectedPath = new TrainPathListItemViewModel("path-1", "First Path")
+                    SelectedPath = new TrainPathListItemViewModel("path-1", "First Path", PathValidationState.NotValidated)
                 })
                 {
                     Assert.AreEqual(1, invocations);
@@ -44,7 +45,7 @@ namespace Tests.FreeTrainSimulator.Toolbox
             {
                 using (TrainPathToolWindowViewModel trainPathToolWindowViewModel = new TrainPathToolWindowViewModel(bridge, refreshScheduler)
                 {
-                    SelectedPath = new TrainPathListItemViewModel("path-1", "First Path")
+                    SelectedPath = new TrainPathListItemViewModel("path-1", "First Path", PathValidationState.NotValidated)
                 })
                 {
                     trainPathToolWindowViewModel.SelectedPath = null;
@@ -109,7 +110,7 @@ namespace Tests.FreeTrainSimulator.Toolbox
         {
             int invocations = 0;
             TrainPathToolWindow bridge = CreateBridge(_ => invocations++);
-            TrainPathListItemViewModel path = new TrainPathListItemViewModel("path-1", "First Path");
+            TrainPathListItemViewModel path = new TrainPathListItemViewModel("path-1", "First Path", PathValidationState.NotValidated);
             using (ToolWindowRefreshScheduler refreshScheduler = new ToolWindowRefreshScheduler(Dispatcher.CurrentDispatcher))
             {
                 using (TrainPathToolWindowViewModel trainPathToolWindowViewModel = new TrainPathToolWindowViewModel(bridge, refreshScheduler)
@@ -131,7 +132,7 @@ namespace Tests.FreeTrainSimulator.Toolbox
             {
                 using (TrainPathToolWindowViewModel trainPathToolWindowViewModel = new TrainPathToolWindowViewModel(bridge, refreshScheduler)
                 {
-                    SelectedPath = new TrainPathListItemViewModel("path-1", "First Path")
+                    SelectedPath = new TrainPathListItemViewModel("path-1", "First Path", PathValidationState.NotValidated)
                 })
                 {
                     Assert.AreEqual(string.Empty, trainPathToolWindowViewModel.StatusMessage);
@@ -183,7 +184,7 @@ namespace Tests.FreeTrainSimulator.Toolbox
             {
                 using (TrainPathToolWindowViewModel trainPathToolWindowViewModel = new TrainPathToolWindowViewModel(bridge, refreshScheduler))
                 {
-                    TrainPathListItemViewModel match = new TrainPathListItemViewModel("p1", "Northbound");
+                    TrainPathListItemViewModel match = new TrainPathListItemViewModel("p1", "Northbound", PathValidationState.NotValidated);
                     trainPathToolWindowViewModel.Paths.Add(match);
 
                     trainPathToolWindowViewModel.SearchText = "north";
@@ -201,7 +202,7 @@ namespace Tests.FreeTrainSimulator.Toolbox
             {
                 using (TrainPathToolWindowViewModel trainPathToolWindowViewModel = new TrainPathToolWindowViewModel(bridge, refreshScheduler))
                 {
-                    TrainPathListItemViewModel other = new TrainPathListItemViewModel("p2", "Southbound");
+                    TrainPathListItemViewModel other = new TrainPathListItemViewModel("p2", "Southbound", PathValidationState.NotValidated);
                     trainPathToolWindowViewModel.Paths.Add(other);
 
                     trainPathToolWindowViewModel.SearchText = "north";
