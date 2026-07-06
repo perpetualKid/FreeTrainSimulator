@@ -123,24 +123,6 @@ namespace Tests.FreeTrainSimulator.Toolbox
         }
 
         [TestMethod]
-        public void WhenPathHasPassingBranchThenSnapToTrackRefusesAndReturnsOriginalUnchanged()
-        {
-            PathModel pathModel = new PathModel()
-            {
-                PathNodes = ImmutableArray.Create(
-                    CreateSidingNode(PathNodeType.Start, 1, 2),
-                    CreateNode(PathNodeType.End, -1),
-                    CreateNode(PathNodeType.Intermediate, 1)),
-            };
-
-            PathEditResult result = PathEditor.SnapPathToTrack(pathModel, null);
-
-            Assert.IsFalse(result.Success);
-            Assert.Contains("passing", result.Message, StringComparison.OrdinalIgnoreCase);
-            Assert.AreSame(pathModel, result.PathModel);
-        }
-
-        [TestMethod]
         public void WhenPathCannotResolveToTrackThenSnapToTrackFailsAndReturnsOriginalUnchanged()
         {
             PathModel pathModel = new PathModel()
@@ -151,6 +133,27 @@ namespace Tests.FreeTrainSimulator.Toolbox
             PathEditResult result = PathEditor.SnapPathToTrack(pathModel, null);
 
             Assert.IsFalse(result.Success);
+            Assert.AreSame(pathModel, result.PathModel);
+        }
+
+        [TestMethod]
+        public void WhenPathHasPassingBranchThenSnapToTrackNoLongerRefusesForPassingBranches()
+        {
+            // The passing-branch guard was lifted: snapping now defers to path generation, which weaves passing
+            // branches where they rejoin. Without a track world the spans stay unresolved, so this still fails,
+            // but not because of a passing-branch refusal.
+            PathModel pathModel = new PathModel()
+            {
+                PathNodes = ImmutableArray.Create(
+                    CreatePassingNode(PathNodeType.Start, 1, 2),
+                    CreatePassingNode(PathNodeType.End, -1, -1),
+                    CreatePassingNode(PathNodeType.Intermediate, -1, 1)),
+            };
+
+            PathEditResult result = PathEditor.SnapPathToTrack(pathModel, null);
+
+            Assert.IsFalse(result.Success);
+            Assert.DoesNotContain("passing", result.Message, StringComparison.OrdinalIgnoreCase);
             Assert.AreSame(pathModel, result.PathModel);
         }
 
@@ -191,7 +194,7 @@ namespace Tests.FreeTrainSimulator.Toolbox
             };
         }
 
-        private static PathNode CreateSidingNode(PathNodeType nodeType, int nextMainNode, int nextSidingNode)
+        private static PathNode CreatePassingNode(PathNodeType nodeType, int nextMainNode, int nextSidingNode)
         {
             return new PathNode(new WorldLocation(new Tile(0, 0), Vector3.Zero))
             {

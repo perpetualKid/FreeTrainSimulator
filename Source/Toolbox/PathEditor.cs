@@ -188,11 +188,12 @@ namespace FreeTrainSimulator.Toolbox
         public bool CanRemoveEnd => HasNodeType(snapshot => HasFlag(snapshot, PathNodeType.End));
 
         /// <summary>
-        /// <see langword="true"/> when the current path can be snapped to track: it is in edit mode, has a
-        /// start node, and has no passing branches (which generation cannot yet rebuild).
+        /// <see langword="true"/> when the current path can be snapped to track: it is in edit mode and has a
+        /// start node. Passing branches are woven back into the generated path where they rejoin the main route;
+        /// shapes the generator cannot represent are reported when the snap is attempted.
         /// </summary>
         public bool CanSnapToTrack => HasNodeType(snapshot => snapshot.PathNodes.Length > 0
-            && HasFlag(snapshot, PathNodeType.Start) && !HasPassingBranch(snapshot));
+            && HasFlag(snapshot, PathNodeType.Start));
 
         /// <summary>Adds a start node to the current path and records an undo snapshot. Returns the operation result.</summary>
         public PathEditResult AddStart() => ApplyUndoableEdit(PathModelEditor.AddStart);
@@ -213,9 +214,10 @@ namespace FreeTrainSimulator.Toolbox
         public PathEditResult RemoveRestOfPath(int nodeIndex) => ApplyUndoableEdit(model => PathModelEditor.RemoveRestOfPath(model, nodeIndex));
 
         /// <summary>
-        /// Resolves the current authored path and rebuilds it along the resolved main-route track anchors,
-        /// recording an undo snapshot. Refuses paths that contain passing branches (not yet supported by
-        /// generation) or that the resolver cannot resolve; the reason is returned in the result.
+        /// Resolves the current authored path and rebuilds it along the resolved track anchors, weaving any
+        /// resolved passing branches back into the generated graph, and records an undo snapshot. Refuses paths
+        /// that the resolver cannot resolve or whose passing shapes the generator cannot represent; the reason is
+        /// returned in the result.
         /// </summary>
         public PathEditResult SnapToTrack()
             => ApplyUndoableEdit(model => SnapPathToTrack(model, RuntimeDataResolver.Instance.TrackWorld));
@@ -261,36 +263,24 @@ namespace FreeTrainSimulator.Toolbox
             return false;
         }
 
-        private static bool HasPassingBranch(PathModel pathModel)
-        {
-            foreach (PathNode node in pathModel.PathNodes)
-            {
-                if (node.NextSidingNode >= 0)
-                    return true;
-            }
-            return false;
-        }
-
-        // Resolves the model and rebuilds its main route along track anchors. Refuses (without generating) when
-        // the path has passing branches, because GenerateMainPath rebuilds only the main route and would drop
-        // them. On resolver/generation failure the original model is returned unchanged with the reason.
+        // Resolves the model and rebuilds its route along track anchors, weaving any resolved passing branches
+        // back into the generated graph. On resolver/generation failure (including passing shapes the generator
+        // cannot represent, such as non-rejoining branches) the original model is returned unchanged with the reason.
         internal static PathEditResult SnapPathToTrack(PathModel model, TrackWorld trackWorld)
         {
-            if (HasPassingBranch(model))
-                return PathEditResult.Failed("Cannot snap a path with passing branches to track; passing-path generation is not yet supported.", model);
-
             PathGenerationResult generation = GenerateTrackSnappedPath(model, trackWorld);
             return generation.Success
                 ? PathEditResult.Succeeded(generation.Message, generation.PathModel, generation.ChangedNodeIndexes)
                 : PathEditResult.Failed(generation.Message, model);
         }
 
-        // Resolves the model with default options and rebuilds its main route via the generator, populating track
-        // anchors and inserting generated intermediary nodes. Shared by SnapToTrack and snap-on-save.
+        // Resolves the model with default options and rebuilds its route via the generator, populating track
+        // anchors, inserting generated intermediary nodes, and weaving resolved passing branches. Shared by
+        // SnapToTrack and snap-on-save.
         internal static PathGenerationResult GenerateTrackSnappedPath(PathModel model, TrackWorld trackWorld)
         {
             PathRouteResolution resolution = PathRouteResolver.Resolve(model, trackWorld, PathRouteResolverOptions.Default, CancellationToken.None);
-            return PathModelRouteGenerator.GenerateMainPath(model, resolution, trackWorld, PathRouteResolverOptions.Default);
+            return PathModelRouteGenerator.GeneratePath(model, resolution, trackWorld, PathRouteResolverOptions.Default);
         }
         #endregion
 
@@ -360,16 +350,11 @@ namespace FreeTrainSimulator.Toolbox
             return invalidCount;
         }
 
-        // Attempts to snap the model to track before saving. Guard-and-refuse: paths with passing branches or
-        // that fail to resolve are saved as authored (never dropping data), with the reason traced.
+        // Attempts to snap the model to track before saving. Passing branches that rejoin the main route are
+        // woven into the generated path; paths that fail to resolve or whose passing shapes the generator cannot
+        // represent are saved as authored (never dropping data), with the reason traced.
         private static PathModel TrySnapForSave(PathModel pathModel)
         {
-            if (HasPassingBranch(pathModel))
-            {
-                Trace.TraceInformation($"Snap-to-track on save skipped for path '{pathModel.Id}': passing branches are not yet supported.");
-                return pathModel;
-            }
-
             PathGenerationResult snapped = GenerateTrackSnappedPath(pathModel, RuntimeDataResolver.Instance.TrackWorld);
             if (snapped.Success)
                 return snapped.PathModel;

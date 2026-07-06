@@ -12,6 +12,8 @@ using FreeTrainSimulator.Runtime.Track;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.Xna.Framework;
 
+using MemoryPack;
+
 namespace Tests.FreeTrainSimulator.Runtime.Track
 {
     [TestClass]
@@ -105,6 +107,95 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
             Assert.IsTrue(result.Diagnostics.Any(diagnostic => diagnostic.Code == PathRouteDiagnosticCode.AmbiguousRoute));
         }
 
+        [TestMethod]
+        public void WhenGeneratePathHasPassingBranchThenSidingNodeIsWeavedAndRejoinsMain()
+        {
+            TrackWorld trackWorld = CreatePassingTrackWorld();
+            PathModel sourcePath = CreatePassingSourcePath();
+            PathRouteResolution resolution = PathRouteResolver.Resolve(sourcePath, trackWorld, TestContext.CancellationToken);
+
+            PathGenerationResult result = PathModelRouteGenerator.GeneratePath(sourcePath, resolution, trackWorld, PathRouteResolverOptions.Default);
+
+            Assert.IsTrue(result.Success);
+            Assert.HasCount(4, result.PathModel.PathNodes);
+            Assert.AreEqual(1, result.PathModel.PathNodes[0].NextMainNode);
+            Assert.AreEqual(3, result.PathModel.PathNodes[0].NextSidingNode);
+            Assert.AreEqual(2, result.PathModel.PathNodes[1].NextMainNode);
+            Assert.AreEqual(-1, result.PathModel.PathNodes[2].NextMainNode);
+            Assert.AreEqual(2, result.PathModel.PathNodes[3].NextSidingNode);
+        }
+
+        [TestMethod]
+        public void WhenGeneratePathHasPassingBranchThenSidingNodeKeepsTrackAnchor()
+        {
+            TrackWorld trackWorld = CreatePassingTrackWorld();
+            PathModel sourcePath = CreatePassingSourcePath();
+            PathRouteResolution resolution = PathRouteResolver.Resolve(sourcePath, trackWorld, TestContext.CancellationToken);
+
+            PathGenerationResult result = PathModelRouteGenerator.GeneratePath(sourcePath, resolution, trackWorld, PathRouteResolverOptions.Default);
+
+            PathNode sidingNode = result.PathModel.PathNodes[3];
+            Assert.AreEqual(3, sidingNode.NodeIndex);
+            Assert.IsTrue((sidingNode.NodeType & PathNodeType.Intermediate) == PathNodeType.Intermediate);
+        }
+
+        [TestMethod]
+        public void WhenGenerateMainPathHasPassingBranchThenSidingLinksAreDropped()
+        {
+            TrackWorld trackWorld = CreatePassingTrackWorld();
+            PathModel sourcePath = CreatePassingSourcePath();
+            PathRouteResolution resolution = PathRouteResolver.Resolve(sourcePath, trackWorld, TestContext.CancellationToken);
+
+            PathGenerationResult result = PathModelRouteGenerator.GenerateMainPath(sourcePath, resolution, trackWorld, PathRouteResolverOptions.Default);
+
+            Assert.IsTrue(result.Success);
+            Assert.HasCount(3, result.PathModel.PathNodes);
+            Assert.IsTrue(result.PathModel.PathNodes.All(node => node.NextSidingNode == -1));
+        }
+
+        [TestMethod]
+        public void WhenGeneratePathPassingBranchDoesNotRejoinMainThenGenerationIsRefused()
+        {
+            TrackWorld trackWorld = CreatePassingTrackWorld();
+            PathModel sourcePath = CreateNonRejoiningPassingSourcePath();
+            PathRouteResolution resolution = PathRouteResolver.Resolve(sourcePath, trackWorld, TestContext.CancellationToken);
+
+            PathGenerationResult result = PathModelRouteGenerator.GeneratePath(sourcePath, resolution, trackWorld, PathRouteResolverOptions.Default);
+
+            Assert.IsFalse(result.Success);
+            Assert.AreEqual(sourcePath, result.PathModel);
+            Assert.Contains("rejoin", result.Message, StringComparison.OrdinalIgnoreCase);
+        }
+
+        [TestMethod]
+        public void WhenGeneratedPassingPathIsResolvedAgainThenPassingBranchRejoinsWithoutDiagnostic()
+        {
+            TrackWorld trackWorld = CreatePassingTrackWorld();
+            PathModel sourcePath = CreatePassingSourcePath();
+            PathRouteResolution resolution = PathRouteResolver.Resolve(sourcePath, trackWorld, TestContext.CancellationToken);
+            PathGenerationResult result = PathModelRouteGenerator.GeneratePath(sourcePath, resolution, trackWorld, PathRouteResolverOptions.Default);
+
+            PathRouteResolution regenerated = PathRouteResolver.Resolve(result.PathModel, trackWorld, TestContext.CancellationToken);
+
+            Assert.HasCount(1, regenerated.PassingRoutes);
+            Assert.IsFalse(regenerated.Diagnostics.Any(diagnostic => diagnostic.Code == PathRouteDiagnosticCode.PassingBranchDoesNotRejoinMain));
+        }
+
+        [TestMethod]
+        public void WhenGeneratedPassingPathRoundTripsThenSidingChainIsPreserved()
+        {
+            TrackWorld trackWorld = CreatePassingTrackWorld();
+            PathModel sourcePath = CreatePassingSourcePath();
+            PathRouteResolution resolution = PathRouteResolver.Resolve(sourcePath, trackWorld, TestContext.CancellationToken);
+            PathGenerationResult result = PathModelRouteGenerator.GeneratePath(sourcePath, resolution, trackWorld, PathRouteResolverOptions.Default);
+
+            byte[] serialized = MemoryPackSerializer.Serialize(result.PathModel);
+            PathModel restored = MemoryPackSerializer.Deserialize<PathModel>(serialized);
+
+            Assert.AreEqual(3, restored.PathNodes[0].NextSidingNode);
+            Assert.AreEqual(2, restored.PathNodes[3].NextSidingNode);
+        }
+
         private static PathModel CreateSourcePath()
         {
             return CreateSourcePath(PathNodeType.End, null);
@@ -134,6 +225,65 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
                 NodeIndex = nodeIndex,
                 WaitInfo = waitInfo,
             };
+        }
+
+        // Authored path with a single passing branch that rejoins the main route:
+        // node0 (start) --main--> node1 --main--> node3 (end)
+        //               \--siding--> node2 --siding--> node3 (rejoin)
+        // Track nodes 1..4 are directly connected so the resolved spans carry no generated intermediaries.
+        private static PathModel CreatePassingSourcePath()
+        {
+            return new PathModel
+            {
+                Id = "passing-path-id",
+                Name = "Passing Path",
+                Start = "Start Location",
+                End = "End Location",
+                PlayerPath = true,
+                PathNodes = ImmutableArray.Create(
+                    CreatePassingNode(PathNodeType.Start, 1, 2, 1),
+                    CreatePassingNode(PathNodeType.Intermediate, 3, -1, 2),
+                    CreatePassingNode(PathNodeType.Intermediate, -1, 3, 3),
+                    CreatePassingNode(PathNodeType.End, -1, -1, 4)),
+            };
+        }
+
+        // Same topology as CreatePassingSourcePath but the siding node does not rejoin the main route
+        // (its NextSidingNode is -1), so passing-branch generation must refuse the path.
+        private static PathModel CreateNonRejoiningPassingSourcePath()
+        {
+            return new PathModel
+            {
+                Id = "broken-passing-path-id",
+                Name = "Broken Passing Path",
+                Start = "Start Location",
+                End = "End Location",
+                PlayerPath = true,
+                PathNodes = ImmutableArray.Create(
+                    CreatePassingNode(PathNodeType.Start, 1, 2, 1),
+                    CreatePassingNode(PathNodeType.Intermediate, 3, -1, 2),
+                    CreatePassingNode(PathNodeType.Intermediate, -1, -1, 3),
+                    CreatePassingNode(PathNodeType.End, -1, -1, 4)),
+            };
+        }
+
+        private static PathNode CreatePassingNode(PathNodeType nodeType, int nextMainNode, int nextSidingNode, int nodeIndex)
+        {
+            return new PathNode(new WorldLocation(new Tile(0, 0), Vector3.Zero))
+            {
+                NodeType = nodeType,
+                NextMainNode = nextMainNode,
+                NextSidingNode = nextSidingNode,
+                NodeIndex = nodeIndex,
+            };
+        }
+
+        private static TrackWorld CreatePassingTrackWorld()
+        {
+            return CreateTrackWorld(
+                ImmutableArray.Create<TrackNodeBase>(null, CreateVectorNode(1), CreateVectorNode(2), CreateVectorNode(3), CreateVectorNode(4)),
+                ImmutableArray.Create(new TrackNodeConnectorIndex(), CreateConnectors(1, 2, 3), CreateConnectors(2, 1, 4),
+                    CreateConnectors(3, 1, 4), CreateConnectors(4, 2, 3)));
         }
 
         private static TrackWorld CreateAmbiguousTrackWorld()
