@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using System.Reflection;
 
 using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Position;
@@ -124,6 +125,23 @@ namespace Tests.FreeTrainSimulator.Graphics.MapView.Widgets
             EditorTrainPath trainPath = CreateEmptyEditorPath();
 
             _ = trainPath.AddPathPoint(CreateEditableCandidate());
+            _ = trainPath.AddPathPoint(CreateEditableCandidate());
+
+            Assert.AreEqual(2, trainPath.PathPoints[1].NextMainNode);
+        }
+
+        [TestMethod]
+        public void WhenAddingPointAfterPreviewIntermediaryThenIntermediaryLinksToCommittedPoint()
+        {
+            // UpdatePathEndPoint temporarily inserts an intermediary junction preview when a segment crosses a
+            // junction. Committing the candidate must link that preview node to the committed endpoint;
+            // otherwise resolver validation sees the main path stop at the intermediary and marks later nodes
+            // unreachable.
+            EditorTrainPath trainPath = CreateEmptyEditorPath();
+            _ = trainPath.AddPathPoint(CreateEditableCandidate());
+            trainPath.PathPoints.Add(CreateEditableCandidate() with { NodeType = PathNodeType.Junction });
+            typeof(EditorTrainPath).GetField("editorUseIntermediaryPathPoint", BindingFlags.Instance | BindingFlags.NonPublic).SetValue(trainPath, true);
+
             _ = trainPath.AddPathPoint(CreateEditableCandidate());
 
             Assert.AreEqual(2, trainPath.PathPoints[1].NextMainNode);

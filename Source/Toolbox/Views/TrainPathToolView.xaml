@@ -74,9 +74,103 @@
             </TextBlock>
         </DataTemplate>
     </UserControl.Resources>
-    <TabControl Margin="6">
+    <TabControl Margin="10"
+                SelectedIndex="0">
+        <TabItem Header="Paths"
+                 IsSelected="True">
+            <Grid Margin="6">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="34*"/>
+                    <ColumnDefinition Width="5*"/>
+                    <ColumnDefinition Width="202*"/>
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" MinHeight="120" />
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="2*" MinHeight="160" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+                <StackPanel Grid.Row="0"
+                            Orientation="Horizontal"
+                            HorizontalAlignment="Right"
+                            Margin="0,0,0,6" Grid.Column="2">
+                    <Button Padding="8,2"
+                            Content="New Path"
+                            Command="{Binding NewPathCommand}"
+                            ToolTip="Start editing a new path for the current route" />
+                    <Button Margin="6,0,0,0"
+                            Padding="8,2"
+                            Content="Save Path"
+                            Command="{Binding SavePathCommand}"
+                            ToolTip="Save the currently edited path" />
+                    <Button Margin="12,0,0,0"
+                            Padding="8,2"
+                            Content="Validate All"
+                            Command="{Binding ValidateAllPathsCommand}"
+                            ToolTip="Re-validate every path against the current track (useful after a route changes)" />
+                </StackPanel>
+                <TextBox Grid.Row="1"
+                         Margin="0,0,0,6"
+                         VerticalContentAlignment="Center"
+                         Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
+                         ToolTip="Search Paths" Grid.ColumnSpan="3" />
+                <ListView Grid.Row="2"
+                          ItemsSource="{Binding Paths}"
+                          SelectedItem="{Binding SelectedPath, Mode=TwoWay}"
+                          behaviors:GridViewColumnBehavior.StretchListView="True" Grid.ColumnSpan="3">
+                    <ListView.ItemContainerStyle>
+                        <Style TargetType="ListViewItem">
+                            <Setter Property="Visibility" Value="Visible" />
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding IsVisible}" Value="False">
+                                    <Setter Property="Visibility" Value="Collapsed" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </ListView.ItemContainerStyle>
+                    <ListView.View>
+                        <GridView>
+                            <GridViewColumn Header="" Width="28" CellTemplate="{StaticResource TrainPathValidityCellTemplate}" />
+                            <GridViewColumn Header="Name" Width="320" DisplayMemberBinding="{Binding Name}"
+                                            behaviors:GridViewColumnBehavior.StretchColumn="True" />
+                        </GridView>
+                    </ListView.View>
+                </ListView>
+                <GridSplitter Grid.Row="3"
+                              Height="4"
+                              HorizontalAlignment="Stretch"
+                              VerticalAlignment="Center"
+                              ResizeBehavior="PreviousAndNext"
+                              ResizeDirection="Rows" Grid.ColumnSpan="3" />
+                <DockPanel Grid.Row="3" Grid.ColumnSpan="3" Margin="0,4,0,0" Grid.RowSpan="2">
+                    <TextBlock DockPanel.Dock="Top"
+                               Margin="0,2,0,4"
+                               FontWeight="Bold"
+                               Text="Path Details" />
+                    <ListView ItemsSource="{Binding Metadata}"
+                              ItemContainerStyle="{StaticResource TrainPathMetadataRowItemStyle}"
+                              ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                              behaviors:GridViewColumnBehavior.EqualColumnWidth="True"
+                              behaviors:GridViewColumnBehavior.StretchListView="True">
+                        <ListView.View>
+                            <GridView>
+                                <GridViewColumn Header="Setting" Width="250" CellTemplate="{StaticResource TrainPathMetadataNameCellTemplate}" />
+                                <GridViewColumn Header="Value" Width="250" CellTemplate="{StaticResource TrainPathMetadataValueCellTemplate}" />
+                            </GridView>
+                        </ListView.View>
+                    </ListView>
+                </DockPanel>
+                <TextBlock Grid.Row="5"
+                           Margin="0,6,0,0"
+                           Foreground="OrangeRed"
+                           TextWrapping="Wrap"
+                           Text="{Binding StatusMessage}" Grid.ColumnSpan="3" />
+            </Grid>
+        </TabItem>
         <TabItem Header="Path Nodes">
-            <Grid>
+            <Grid Margin="6">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="2*" MinHeight="120" />
@@ -134,7 +228,7 @@
                     <TextBlock DockPanel.Dock="Top"
                                Margin="0,2,0,4"
                                FontWeight="Bold"
-                               Text="Details" />
+                               Text="Path Node Details" />
                     <ListView ItemsSource="{Binding SelectedNodeDetailRows}"
                               ItemContainerStyle="{StaticResource ToolWindowRowItemStyle}"
                               behaviors:GridViewColumnBehavior.EqualColumnWidth="True"
@@ -148,62 +242,6 @@
                     </ListView>
                 </DockPanel>
             </Grid>
-        </TabItem>
-        <TabItem Header="Path Data">
-            <ListView ItemsSource="{Binding Metadata}"
-                      ItemContainerStyle="{StaticResource TrainPathMetadataRowItemStyle}"
-                      ScrollViewer.HorizontalScrollBarVisibility="Disabled"
-                      behaviors:GridViewColumnBehavior.EqualColumnWidth="True"
-                      behaviors:GridViewColumnBehavior.StretchListView="True">
-                <ListView.View>
-                    <GridView>
-                        <GridViewColumn Header="Setting" Width="250" CellTemplate="{StaticResource TrainPathMetadataNameCellTemplate}" />
-                        <GridViewColumn Header="Value" Width="250" CellTemplate="{StaticResource TrainPathMetadataValueCellTemplate}" />
-                    </GridView>
-                </ListView.View>
-            </ListView>
-        </TabItem>
-        <TabItem Header="Paths">
-            <DockPanel>
-                <Button DockPanel.Dock="Top"
-                        Margin="0,0,0,6"
-                        Padding="8,2"
-                        HorizontalAlignment="Right"
-                        Content="Validate All"
-                        Command="{Binding ValidateAllPathsCommand}"
-                        ToolTip="Re-validate every path against the current track (useful after a route changes)" />
-                <TextBox DockPanel.Dock="Top"
-                         Margin="0,0,0,6"
-                         VerticalContentAlignment="Center"
-                         Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
-                         ToolTip="Search Paths" />
-                <TextBlock DockPanel.Dock="Bottom"
-                           Margin="0,6,0,0"
-                           Foreground="OrangeRed"
-                           TextWrapping="Wrap"
-                           Text="{Binding StatusMessage}" />
-                <ListView ItemsSource="{Binding Paths}"
-                          SelectedItem="{Binding SelectedPath, Mode=TwoWay}"
-                          behaviors:GridViewColumnBehavior.StretchListView="True">
-                    <ListView.ItemContainerStyle>
-                        <Style TargetType="ListViewItem">
-                            <Setter Property="Visibility" Value="Visible" />
-                            <Style.Triggers>
-                                <DataTrigger Binding="{Binding IsVisible}" Value="False">
-                                    <Setter Property="Visibility" Value="Collapsed" />
-                                </DataTrigger>
-                            </Style.Triggers>
-                        </Style>
-                    </ListView.ItemContainerStyle>
-                    <ListView.View>
-                        <GridView>
-                            <GridViewColumn Header="" Width="28" CellTemplate="{StaticResource TrainPathValidityCellTemplate}" />
-                            <GridViewColumn Header="Name" Width="320" DisplayMemberBinding="{Binding Name}"
-                                            behaviors:GridViewColumnBehavior.StretchColumn="True" />
-                        </GridView>
-                    </ListView.View>
-                </ListView>
-            </DockPanel>
         </TabItem>
     </TabControl>
 </UserControl>

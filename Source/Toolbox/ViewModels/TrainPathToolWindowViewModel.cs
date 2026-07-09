@@ -26,6 +26,8 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
         private bool canUndo;
         private bool canRedo;
         private bool canSnapToTrack;
+        private bool canCreatePath;
+        private bool canSavePath;
         private bool suppressSelectionCommand;
 
         public TrainPathToolWindowViewModel(TrainPathToolWindow toolWindow, ToolWindowRefreshScheduler scheduler)
@@ -37,6 +39,8 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
             UndoCommand = new RelayCommand(_ => toolWindow.Undo(), _ => CanUndo);
             RedoCommand = new RelayCommand(_ => toolWindow.Redo(), _ => CanRedo);
             SnapToTrackCommand = new RelayCommand(_ => toolWindow.SnapToTrack(), _ => CanSnapToTrack);
+            NewPathCommand = new RelayCommand(_ => toolWindow.CreatePath(), _ => CanCreatePath);
+            SavePathCommand = new RelayCommand(_ => toolWindow.SavePath(), _ => CanSavePath);
             ValidateAllPathsCommand = new RelayCommand(_ => ValidateAllPaths());
         }
 
@@ -55,6 +59,10 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
         public RelayCommand RedoCommand { get; }
 
         public RelayCommand SnapToTrackCommand { get; }
+
+        public RelayCommand NewPathCommand { get; }
+
+        public RelayCommand SavePathCommand { get; }
 
         public RelayCommand ValidateAllPathsCommand { get; }
 
@@ -85,6 +93,26 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
             {
                 if (SetProperty(ref canSnapToTrack, value))
                     SnapToTrackCommand.RaiseCanExecuteChanged();
+            }
+        }
+
+        public bool CanCreatePath
+        {
+            get => canCreatePath;
+            private set
+            {
+                if (SetProperty(ref canCreatePath, value))
+                    NewPathCommand.RaiseCanExecuteChanged();
+            }
+        }
+
+        public bool CanSavePath
+        {
+            get => canSavePath;
+            private set
+            {
+                if (SetProperty(ref canSavePath, value))
+                    SavePathCommand.RaiseCanExecuteChanged();
             }
         }
 
@@ -151,6 +179,8 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
             CanUndo = snapshot.CanUndo;
             CanRedo = snapshot.CanRedo;
             CanSnapToTrack = snapshot.CanSnapToTrack;
+            CanCreatePath = toolWindow.CanCreatePath;
+            CanSavePath = toolWindow.CanSavePath;
 
             if (!string.Equals(snapshotSelectedPathId, snapshot.SelectedPathId, StringComparison.Ordinal))
             {

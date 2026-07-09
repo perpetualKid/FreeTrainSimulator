@@ -146,6 +146,10 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
         private readonly Func<PathEditor> pathEditorAccessor;
         private readonly Func<ITrainPathToolingContext> toolingContextAccessor;
         private readonly Action<Action> gameThreadInvoker;
+        private readonly Action createPathAction;
+        private readonly Action savePathAction;
+        private readonly Action<PathModelHeader> loadPathAction;
+        private readonly Action unloadPathAction;
         private volatile TrainPathSnapshot snapshot = TrainPathSnapshot.Empty;
         private volatile bool active;
 
@@ -155,16 +159,21 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
         private int snapshotVersion;
         private int lastSnapshotVersion = -1;
 
-        internal TrainPathToolWindow(Func<PathEditor> pathEditorAccessor, Func<ITrainPathToolingContext> toolingContextAccessor, Action<Action> gameThreadInvoker)
+        internal TrainPathToolWindow(Func<PathEditor> pathEditorAccessor, Func<ITrainPathToolingContext> toolingContextAccessor,
+            Action<Action> gameThreadInvoker, Action createPathAction, Action savePathAction, Action<PathModelHeader> loadPathAction, Action unloadPathAction)
         {
             this.pathEditorAccessor = pathEditorAccessor ?? throw new ArgumentNullException(nameof(pathEditorAccessor));
             this.toolingContextAccessor = toolingContextAccessor ?? throw new ArgumentNullException(nameof(toolingContextAccessor));
             this.gameThreadInvoker = gameThreadInvoker ?? throw new ArgumentNullException(nameof(gameThreadInvoker));
+            this.createPathAction = createPathAction ?? throw new ArgumentNullException(nameof(createPathAction));
+            this.savePathAction = savePathAction ?? throw new ArgumentNullException(nameof(savePathAction));
+            this.loadPathAction = loadPathAction ?? throw new ArgumentNullException(nameof(loadPathAction));
+            this.unloadPathAction = unloadPathAction ?? throw new ArgumentNullException(nameof(unloadPathAction));
         }
 
         public ToolboxWindowType WindowType => ToolboxWindowType.TrainPathWindow;
 
-        public string Title => "Train Path Details";
+        public string Title => "Path Editor";
 
         public bool Active
         {
@@ -207,12 +216,12 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
                 lastPathId = null;
                 lastNodeCount = 0;
                 lastSnapshotVersion = pathsSnapshotVersion;
-                snapshot = TrainPathSnapshot.Empty with { Paths = BuildPaths() };
+                snapshot = TrainPathSnapshot.Empty with { Paths = BuildPaths(null) };
                 return;
             }
 
-            ImmutableArray<TrainPathListRow> paths = BuildPaths();
             TrainPathBase currentPath = pathEditor.TrainPath;
+            ImmutableArray<TrainPathListRow> paths = BuildPaths(currentPath?.PathModel);
             string selectedPathId = currentPath?.PathModel?.Id;
             int nodeCount = currentPath?.PathPoints.Count ?? 0;
             bool canUndo = pathEditor.CanUndo;
@@ -259,17 +268,21 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
         /// </summary>
         internal void SelectPath(string pathId)
         {
-            InvokeEditorAction(pathEditor =>
+            gameThreadInvoker(() =>
             {
                 if (string.IsNullOrEmpty(pathId))
                 {
-                    _ = pathEditor.InitializePath(null);
+                    unloadPathAction();
+                    MarkDirty();
                     return;
                 }
 
                 PathModelHeader path = cachedPaths.FirstOrDefault(p => string.Equals(p.Id, pathId, StringComparison.OrdinalIgnoreCase));
                 if (path != null)
-                    _ = pathEditor.InitializePath(path);
+                {
+                    loadPathAction(path);
+                    MarkDirty();
+                }
             });
         }
 
@@ -293,6 +306,24 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
         internal void Redo() => InvokeEditorMutation(pathEditor => pathEditor.Redo());
 
         internal void SnapToTrack() => InvokeEditorMutation(pathEditor => pathEditor.SnapToTrack().Success);
+
+        internal bool CanCreatePath => toolingContextAccessor() != null;
+
+        internal bool CanSavePath => pathEditorAccessor()?.TrainPath != null;
+
+        internal void CreatePath()
+        {
+            gameThreadInvoker(() =>
+            {
+                createPathAction();
+                MarkDirty();
+            });
+        }
+
+        internal void SavePath()
+        {
+            gameThreadInvoker(savePathAction);
+        }
 
         // Marshals onto the game thread, resolves the current (possibly not-yet-created) editor, and runs
         // <paramref name="mutate"/> against it, marking the snapshot dirty when the mutation reports a change.
@@ -335,11 +366,22 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
             gameThreadInvoker(() => UpdatePaths(paths));
         }
 
-        private ImmutableArray<TrainPathListRow> BuildPaths()
+        private ImmutableArray<TrainPathListRow> BuildPaths(PathModel currentPathModel)
         {
+            return BuildPathRows(cachedPaths, currentPathModel);
+        }
+
+        internal static ImmutableArray<TrainPathListRow> BuildPathRows(ImmutableArray<PathModelHeader> savedPaths, PathModel currentPathModel)
+        {
+            savedPaths = savedPaths.IsDefault ? ImmutableArray<PathModelHeader>.Empty : savedPaths;
             ImmutableArray<TrainPathListRow>.Builder builder = ImmutableArray.CreateBuilder<TrainPathListRow>();
-            foreach (PathModelHeader path in cachedPaths.OrderBy(p => p.Name))
+
+            if (currentPathModel != null && !savedPaths.Any(path => string.Equals(path.Id, currentPathModel.Id, StringComparison.OrdinalIgnoreCase)))
+                builder.Add(new TrainPathListRow(currentPathModel.Id, currentPathModel.Name, currentPathModel.ValidationState));
+
+            foreach (PathModelHeader path in savedPaths.OrderBy(p => p.Name))
                 builder.Add(new TrainPathListRow(path.Id, path.Name, path.ValidationState));
+
             return builder.ToImmutable();
         }
 
@@ -369,6 +411,7 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
 
             ITrainPathToolingContext toolingContext = toolingContextAccessor();
             bool metricUnits = toolingContext?.UseMetricUnits ?? true;
+            PathModel resolverPathModel = pathEditor?.TryCaptureCurrentPathModel() ?? currentPath.PathModel;
             ImmutableArray<ToolWindowRow>.Builder builder = ImmutableArray.CreateBuilder<ToolWindowRow>();
             builder.Add(new ToolWindowRow { Name = "Path ID", Value = currentPath.PathModel.Id });
             builder.Add(new ToolWindowRow { Name = "Path Name", Value = currentPath.PathModel.Name });
@@ -378,7 +421,7 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
             builder.Add(new ToolWindowRow { Name = "Path Length", Value = FormatStrings.FormatDistanceDisplay(currentPath.Length, metricUnits, 1000) });
             builder.AddRange(BuildEditorStateMetadata(currentPath));
             builder.AddRange(BuildEditorHistoryMetadata(pathEditor?.CanUndo == true, pathEditor?.CanRedo == true));
-            builder.AddRange(BuildResolverDiagnosticMetadata(PathRouteResolver.Resolve(currentPath.PathModel, toolingContext?.TrackWorld)));
+            builder.AddRange(BuildResolverDiagnosticMetadata(PathRouteResolver.Resolve(resolverPathModel, toolingContext?.TrackWorld)));
             return builder.ToImmutable();
         }
 

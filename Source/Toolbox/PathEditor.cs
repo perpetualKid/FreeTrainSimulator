@@ -423,6 +423,11 @@ namespace FreeTrainSimulator.Toolbox
             }
         }
 
+        internal PathModel TryCaptureCurrentPathModel()
+        {
+            return TryCaptureSnapshot();
+        }
+
         private string BuildSnapshotContext()
         {
             return BuildSnapshotContext(path, TrainPath, EditMode, CanUndo, CanRedo, validPointAdded, editorDragged);

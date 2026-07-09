@@ -134,7 +134,7 @@ namespace FreeTrainSimulator.Toolbox
                     () => viewModel.HelpTool, () => viewModel.HelpTool.Start(), () => viewModel.HelpTool.Stop()),
                 new ToolWindowDescriptor(SettingsToolWindowContentId, "Settings", () => SettingsToolAnchorable, value => viewModel.IsSettingsToolVisible = value,
                     () => viewModel.SettingsTool, () => viewModel.SettingsTool.Start(), () => viewModel.SettingsTool.Stop()),
-                new ToolWindowDescriptor(TrainPathToolWindowContentId, "Train Path Details", () => TrainPathToolAnchorable, value => viewModel.IsTrainPathToolVisible = value,
+                new ToolWindowDescriptor(TrainPathToolWindowContentId, "Path Editor", () => TrainPathToolAnchorable, value => viewModel.IsTrainPathToolVisible = value,
                     () => viewModel.TrainPathTool, () => viewModel.TrainPathTool.Start(), () => viewModel.TrainPathTool.Stop()),
             };
         }
@@ -642,6 +642,7 @@ namespace FreeTrainSimulator.Toolbox
                 UnhookToolWindowAnchorables();
                 DeserializeDockLayout(defaultDockLayoutXml);
                 HookToolWindowAnchorables();
+                SelectRouteToolByDefault();
                 UpdateAllToolWindowLifecycles();
                 UpdateHostedInputCapture();
             }
@@ -649,6 +650,16 @@ namespace FreeTrainSimulator.Toolbox
             {
                 Trace.TraceError($"Failed to reset dock layout: {ex.Message}");
             }
+        }
+
+        private void SelectRouteToolByDefault()
+        {
+            LayoutAnchorable routeAnchorable = FindToolWindowAnchorable(RouteToolWindowContentId);
+            if (routeAnchorable is null)
+                return;
+
+            routeAnchorable.IsSelected = true;
+            routeAnchorable.IsActive = true;
         }
 
         private static bool IsMapDocumentFloating(string layoutXml)

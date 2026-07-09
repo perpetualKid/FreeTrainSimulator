@@ -135,6 +135,8 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
                 return pathPoint;
 
             activeEditorSegmentStart = new EditorPathPoint(pathPoint);
+            if (editorUseIntermediaryPathPoint && PathPoints.Count > 0)
+                PathPoints[^1] = PathPoints[^1] with { NextMainNode = PathPoints.Count };
 
             pathPoint = PathPoints.Count == 0
                 ? pathPoint with { NodeType = PathNodeType.Start, NextMainNode = 1 }

@@ -212,6 +212,8 @@ namespace FreeTrainSimulator.Toolbox
         internal void EditPath()
         {
             PathEditor.InitializeNewPath();
+            SetHostedInputCaptured(false);
+            FocusHostedWindow();
         }
 
         // Raised on the game thread in hosted mode when the user requests a path save, so the WPF shell can

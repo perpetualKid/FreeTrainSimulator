@@ -20,10 +20,8 @@ namespace Tests.FreeTrainSimulator.Toolbox
         [TestMethod]
         public void WhenInactiveRefreshSnapshotThenSnapshotStaysEmpty()
         {
-            TrainPathToolWindow trainPathToolWindow= new TrainPathToolWindow(() => null, () => null, _ => { })
-            {
-                Active = false,
-            };
+            TrainPathToolWindow trainPathToolWindow = CreateTrainPathToolWindow(_ => { });
+            trainPathToolWindow.Active = false;
 
             trainPathToolWindow.RefreshSnapshot();
 
@@ -33,10 +31,8 @@ namespace Tests.FreeTrainSimulator.Toolbox
         [TestMethod]
         public void WhenActiveWithNoEditorRefreshSnapshotThenSnapshotStaysEmpty()
         {
-            TrainPathToolWindow trainPathToolWindow = new TrainPathToolWindow(() => null, () => null, _ => { })
-            {
-                Active = true,
-            };
+            TrainPathToolWindow trainPathToolWindow = CreateTrainPathToolWindow(_ => { });
+            trainPathToolWindow.Active = true;
 
             trainPathToolWindow.RefreshSnapshot();
 
@@ -48,10 +44,8 @@ namespace Tests.FreeTrainSimulator.Toolbox
         {
             // Regression: after loading a route or running "Validate All" no path is being edited, yet the
             // available-paths list and its validation markers must still be published.
-            TrainPathToolWindow trainPathToolWindow = new TrainPathToolWindow(() => null, () => null, _ => { })
-            {
-                Active = true,
-            };
+            TrainPathToolWindow trainPathToolWindow = CreateTrainPathToolWindow(_ => { });
+            trainPathToolWindow.Active = true;
             ImmutableArray<PathModelHeader> paths = ImmutableArray.Create(
                 new PathModelHeader { Id = "p1", Name = "Alpha", ValidationState = PathValidationState.Valid },
                 new PathModelHeader { Id = "p2", Name = "Beta", ValidationState = PathValidationState.Invalid });
@@ -66,10 +60,48 @@ namespace Tests.FreeTrainSimulator.Toolbox
         }
 
         [TestMethod]
+        public void WhenCurrentPathIsNotSavedThenBuildPathRowsAddsVirtualCurrentPathFirst()
+        {
+            ImmutableArray<PathModelHeader> savedPaths = ImmutableArray.Create(
+                new PathModelHeader { Id = "saved", Name = "Saved Path", ValidationState = PathValidationState.Valid });
+            PathModel currentPath = new PathModel
+            {
+                Id = "<New Path>",
+                Name = "<New Path>",
+                ValidationState = PathValidationState.NotValidated,
+            };
+
+            ImmutableArray<TrainPathListRow> rows = TrainPathToolWindow.BuildPathRows(savedPaths, currentPath);
+
+            Assert.HasCount(2, rows);
+            Assert.AreEqual("<New Path>", rows[0].Id);
+            Assert.AreEqual(PathValidationState.NotValidated, rows[0].ValidationState);
+            Assert.AreEqual("saved", rows[1].Id);
+        }
+
+        [TestMethod]
+        public void WhenCurrentPathIsSavedThenBuildPathRowsDoesNotDuplicateIt()
+        {
+            ImmutableArray<PathModelHeader> savedPaths = ImmutableArray.Create(
+                new PathModelHeader { Id = "path-1", Name = "Saved Path", ValidationState = PathValidationState.Valid });
+            PathModel currentPath = new PathModel
+            {
+                Id = "path-1",
+                Name = "Saved Path",
+                ValidationState = PathValidationState.Valid,
+            };
+
+            ImmutableArray<TrainPathListRow> rows = TrainPathToolWindow.BuildPathRows(savedPaths, currentPath);
+
+            Assert.HasCount(1, rows);
+            Assert.AreEqual("path-1", rows[0].Id);
+        }
+
+        [TestMethod]
         public void WhenSelectPathThenGameThreadInvokerIsCalled()
         {
             int invocations = 0;
-            TrainPathToolWindow trainPathToolWindow = new TrainPathToolWindow(() => null, () => null, _ => invocations++);
+            TrainPathToolWindow trainPathToolWindow = CreateTrainPathToolWindow(_ => invocations++);
 
             trainPathToolWindow.SelectPath("path-1");
 
@@ -77,10 +109,60 @@ namespace Tests.FreeTrainSimulator.Toolbox
         }
 
         [TestMethod]
+        public void WhenSelectPathThenLoadPathActionIsCalled()
+        {
+            PathModelHeader loadedPath = null;
+            TrainPathToolWindow trainPathToolWindow = CreateTrainPathToolWindow(action => action(), () => { }, () => { }, path => loadedPath = path, () => { });
+            trainPathToolWindow.UpdatePaths(ImmutableArray.Create(new PathModelHeader { Id = "path-1", Name = "First Path" }));
+
+            trainPathToolWindow.SelectPath("path-1");
+
+            Assert.IsNotNull(loadedPath);
+            Assert.AreEqual("path-1", loadedPath.Id);
+        }
+
+        [TestMethod]
+        public void WhenSelectPathClearedThenUnloadPathActionIsCalled()
+        {
+            int unloads = 0;
+            TrainPathToolWindow trainPathToolWindow = CreateTrainPathToolWindow(action => action(), () => { }, () => { }, _ => { }, () => unloads++);
+
+            trainPathToolWindow.SelectPath(null);
+
+            Assert.AreEqual(1, unloads);
+        }
+
+        [TestMethod]
+        public void WhenCreatePathThenCreateActionIsMarshaled()
+        {
+            int invocations = 0;
+            int createActions = 0;
+            TrainPathToolWindow trainPathToolWindow = CreateTrainPathToolWindow(action => { invocations++; action(); }, () => createActions++, () => { });
+
+            trainPathToolWindow.CreatePath();
+
+            Assert.AreEqual(1, invocations);
+            Assert.AreEqual(1, createActions);
+        }
+
+        [TestMethod]
+        public void WhenSavePathThenSaveActionIsMarshaled()
+        {
+            int invocations = 0;
+            int saveActions = 0;
+            TrainPathToolWindow trainPathToolWindow = CreateTrainPathToolWindow(action => { invocations++; action(); }, () => { }, () => saveActions++);
+
+            trainPathToolWindow.SavePath();
+
+            Assert.AreEqual(1, invocations);
+            Assert.AreEqual(1, saveActions);
+        }
+
+        [TestMethod]
         public void WhenHighlightNodeThenGameThreadInvokerIsCalled()
         {
             int invocations = 0;
-            TrainPathToolWindow trainPathToolWindow = new TrainPathToolWindow(() => null, () => null, _ => invocations++);
+            TrainPathToolWindow trainPathToolWindow = CreateTrainPathToolWindow(_ => invocations++);
 
             trainPathToolWindow.HighlightNode(3);
 
@@ -90,7 +172,7 @@ namespace Tests.FreeTrainSimulator.Toolbox
         [TestMethod]
         public void WhenSelectPathInvokedWithNullEditorThenMarshaledActionIsSafeNoOp()
         {
-            TrainPathToolWindow trainPathToolWindow = new TrainPathToolWindow(() => null, () => null, action => action());
+            TrainPathToolWindow trainPathToolWindow = CreateTrainPathToolWindow(action => action());
 
             trainPathToolWindow.SelectPath("path-1");
 
@@ -100,7 +182,7 @@ namespace Tests.FreeTrainSimulator.Toolbox
         [TestMethod]
         public void WhenHighlightNodeInvokedWithNullEditorThenMarshaledActionIsSafeNoOp()
         {
-            TrainPathToolWindow trainPathToolWindow = new TrainPathToolWindow(() => null, () => null, action => action());
+            TrainPathToolWindow trainPathToolWindow = CreateTrainPathToolWindow(action => action());
 
             trainPathToolWindow.HighlightNode(0);
 
@@ -111,7 +193,7 @@ namespace Tests.FreeTrainSimulator.Toolbox
         public void WhenInactiveRefreshSnapshotThenPathEditorIsNotQueried()
         {
             int editorQueries = 0;
-            TrainPathToolWindow trainPathToolWindow = new TrainPathToolWindow(() => { editorQueries++; return null; }, () => null, action => action())
+            TrainPathToolWindow trainPathToolWindow = new TrainPathToolWindow(() => { editorQueries++; return null; }, () => null, action => action(), () => { }, () => { }, _ => { }, () => { })
             {
                 Active = false,
             };
@@ -258,6 +340,22 @@ namespace Tests.FreeTrainSimulator.Toolbox
                 : base(PointD.None, nodeType)
             {
             }
+        }
+
+        private static TrainPathToolWindow CreateTrainPathToolWindow(Action<Action> invoker)
+        {
+            return CreateTrainPathToolWindow(invoker, () => { }, () => { });
+        }
+
+        private static TrainPathToolWindow CreateTrainPathToolWindow(Action<Action> invoker, Action createPathAction, Action savePathAction)
+        {
+            return CreateTrainPathToolWindow(invoker, createPathAction, savePathAction, _ => { }, () => { });
+        }
+
+        private static TrainPathToolWindow CreateTrainPathToolWindow(Action<Action> invoker, Action createPathAction, Action savePathAction,
+            Action<PathModelHeader> loadPathAction, Action unloadPathAction)
+        {
+            return new TrainPathToolWindow(() => null, () => null, invoker, createPathAction, savePathAction, loadPathAction, unloadPathAction);
         }
 
         private static TrackWorld CreateInitializedTrackWorld() => TrackWorldTestFixture.CreateSingleVectorNodeTrackWorld();

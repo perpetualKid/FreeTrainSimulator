@@ -16,7 +16,12 @@ namespace Tests.FreeTrainSimulator.Toolbox
     {
         private static TrainPathToolWindow CreateBridge(Action<Action> invoker)
         {
-            return new TrainPathToolWindow(() => null, () => null, invoker);
+            return CreateBridge(invoker, () => { }, () => { });
+        }
+
+        private static TrainPathToolWindow CreateBridge(Action<Action> invoker, Action createPathAction, Action savePathAction)
+        {
+            return new TrainPathToolWindow(() => null, () => null, invoker, createPathAction, savePathAction, _ => { }, () => { });
         }
 
         [TestMethod]
@@ -87,6 +92,46 @@ namespace Tests.FreeTrainSimulator.Toolbox
                     trainPathToolWindowViewModel.RedoCommand.Execute(null);
 
                     Assert.AreEqual(1, invocations);
+                }
+            }
+        }
+
+        [TestMethod]
+        public void WhenNewPathCommandExecutedThenBridgeCreatePathIsMarshaled()
+        {
+            int invocations = 0;
+            int createActions = 0;
+            TrainPathToolWindow bridge = CreateBridge(action => { invocations++; action(); }, () => createActions++, () => { });
+            using (ToolWindowRefreshScheduler refreshScheduler = new ToolWindowRefreshScheduler(Dispatcher.CurrentDispatcher))
+            {
+                using (TrainPathToolWindowViewModel trainPathToolWindowViewModel = new TrainPathToolWindowViewModel(bridge, refreshScheduler))
+                {
+                    SetCommandAvailability(trainPathToolWindowViewModel, "canCreatePath", true);
+
+                    trainPathToolWindowViewModel.NewPathCommand.Execute(null);
+
+                    Assert.AreEqual(1, invocations);
+                    Assert.AreEqual(1, createActions);
+                }
+            }
+        }
+
+        [TestMethod]
+        public void WhenSavePathCommandExecutedThenBridgeSavePathIsMarshaled()
+        {
+            int invocations = 0;
+            int saveActions = 0;
+            TrainPathToolWindow bridge = CreateBridge(action => { invocations++; action(); }, () => { }, () => saveActions++);
+            using (ToolWindowRefreshScheduler refreshScheduler = new ToolWindowRefreshScheduler(Dispatcher.CurrentDispatcher))
+            {
+                using (TrainPathToolWindowViewModel trainPathToolWindowViewModel = new TrainPathToolWindowViewModel(bridge, refreshScheduler))
+                {
+                    SetCommandAvailability(trainPathToolWindowViewModel, "canSavePath", true);
+
+                    trainPathToolWindowViewModel.SavePathCommand.Execute(null);
+
+                    Assert.AreEqual(1, invocations);
+                    Assert.AreEqual(1, saveActions);
                 }
             }
         }

@@ -56,7 +56,7 @@
                           IsCheckable="True"
                           IsChecked="{Binding DataContext.IsSettingsToolVisible, ElementName=RootWindow, Mode=OneWay}"
                           Command="{Binding DataContext.ToggleSettingsToolCommand, ElementName=RootWindow}" />
-                <MenuItem Header="Train _Path Details"
+                <MenuItem Header="_Path Editor"
                           IsCheckable="True"
                           IsChecked="{Binding DataContext.IsTrainPathToolVisible, ElementName=RootWindow, Mode=OneWay}"
                           Command="{Binding DataContext.ToggleTrainPathToolCommand, ElementName=RootWindow}" />
@@ -93,7 +93,7 @@
                 </ItemsControl.ItemTemplate>
             </ItemsControl>
         </StatusBar>
-        <Grid>
+        <Grid Margin="6">
             <avalonDock:DockingManager x:Name="DockingManager">
                 <avalonLayout:LayoutRoot>
                     <avalonLayout:LayoutPanel Orientation="Horizontal">
@@ -107,6 +107,14 @@
                                                                   CanHide="True"
                                                                   IsSelected="True">
                                         <views:RouteToolView DataContext="{Binding DataContext.Menu, ElementName=RootWindow}" />
+                                    </avalonLayout:LayoutAnchorable>
+                                    <avalonLayout:LayoutAnchorable x:Name="TrainPathToolAnchorable"
+                                                                  ContentId="TrainPathToolWindow"
+                                                                  Title="Path Editor"
+                                                                  CanClose="False"
+                                                                  CanHide="True"
+                                                                  IsVisible="False">
+                                        <views:TrainPathToolView DataContext="{Binding DataContext.TrainPathTool, ElementName=RootWindow}" />
                                     </avalonLayout:LayoutAnchorable>
                                 </avalonLayout:LayoutAnchorablePane>
                                 <avalonLayout:LayoutDocumentPane>
@@ -144,8 +152,7 @@
                                                               Title="Route Navigation"
                                                               CanClose="False"
                                                               CanHide="True"
-                                                              IsVisible="False"
-                                                              IsSelected="False">
+                                                              IsVisible="False">
                                     <views:RouteNavigationToolView DataContext="{Binding DataContext.RouteNavigationTool, ElementName=RootWindow}" />
                                 </avalonLayout:LayoutAnchorable>
                                 <avalonLayout:LayoutAnchorable x:Name="SettingsToolAnchorable"
@@ -153,18 +160,8 @@
                                                               Title="Settings"
                                                               CanClose="False"
                                                               CanHide="True"
-                                                              IsVisible="False"
-                                                              IsSelected="False">
+                                                              IsVisible="False">
                                     <views:SettingsToolView DataContext="{Binding DataContext.SettingsTool, ElementName=RootWindow}" />
-                                </avalonLayout:LayoutAnchorable>
-                                <avalonLayout:LayoutAnchorable x:Name="TrainPathToolAnchorable"
-                                                              ContentId="TrainPathToolWindow"
-                                                              Title="Train Path Details"
-                                                              CanClose="False"
-                                                              CanHide="True"
-                                                              IsVisible="False"
-                                                              IsSelected="False">
-                                    <views:TrainPathToolView DataContext="{Binding DataContext.TrainPathTool, ElementName=RootWindow}" />
                                 </avalonLayout:LayoutAnchorable>
                             </avalonLayout:LayoutAnchorablePane>
                             <avalonLayout:LayoutAnchorablePane DockHeight="2*">
