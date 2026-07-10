@@ -21,6 +21,16 @@ namespace FreeTrainSimulator.Graphics.MapView
         private readonly IPathEditorContext editorContext;
         protected TrackWorld TrackWorld { get; }
 
+        protected TrainPathPointBase ActivePathPoint => activePathPoint;
+
+        protected bool UseStandaloneActivePathPointPreview { get; set; }
+
+        protected void SetHiddenPathNodeIndex(int nodeIndex)
+        {
+            if (trainPath != null)
+                trainPath.HiddenNodeIndex = nodeIndex;
+        }
+
         public TrainPathBase TrainPath
         {
             get => trainPath;
@@ -50,7 +60,9 @@ namespace FreeTrainSimulator.Graphics.MapView
             if ((junction = TrackWorld.JunctionNodeBaseAt(snapLocation)) != null) //if within junction proximity, snap to the junction
                 snapLocation = junction.Location;
 
-            activePathPoint = trainPath.UpdatePathEndPoint(snapLocation, junction, nearestSegment);
+            activePathPoint = UseStandaloneActivePathPointPreview
+                ? new EditorPathPoint(snapLocation, junction, nearestSegment, TrackWorld)
+                : trainPath.UpdatePathEndPoint(snapLocation, junction, nearestSegment);
         }
 
         internal void Draw()

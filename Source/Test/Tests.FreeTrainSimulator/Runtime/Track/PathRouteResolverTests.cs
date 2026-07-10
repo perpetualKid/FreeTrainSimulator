@@ -325,6 +325,27 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
         }
 
         /// <summary>
+        /// Verifies that a path node marked as a junction must actually be located on a junction.
+        /// </summary>
+        [TestMethod]
+        public void ResolveWhenJunctionNodeIsNotAtJunctionThenReturnsNoJunctionNodeDiagnostic()
+        {
+            TrackWorld trackWorld = CreateInitializedTrackWorldWithTwoVectorNodes();
+            PathModel pathModel = new PathModel()
+            {
+                PathNodes = ImmutableArray.Create(
+                    CreateNode(PathNodeType.Start, 1, -1, 1, new WorldLocation(new Tile(0, 0), new Vector3(10, 0, 0))),
+                    CreateNode(PathNodeType.Junction, 2, -1, 1, new WorldLocation(new Tile(0, 0), new Vector3(20, 0, 0))),
+                    CreateNode(PathNodeType.End, -1, -1, 2, new WorldLocation(new Tile(0, 0), new Vector3(210, 0, 0))))
+            };
+
+            PathRouteResolution result = PathRouteResolver.Resolve(pathModel, trackWorld, TestContext.CancellationToken);
+
+            Assert.IsTrue(result.Diagnostics.Any(diagnostic => diagnostic.Code == PathRouteDiagnosticCode.NoJunctionNode && diagnostic.NodeIndex == 1));
+            Assert.AreEqual(PathRouteDiagnosticSeverity.Error, result.HighestSeverity);
+        }
+
+        /// <summary>
         /// Verifies that looped track topology is not treated as an authored graph cycle.
         /// </summary>
         [TestMethod]

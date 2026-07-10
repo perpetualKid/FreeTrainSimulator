@@ -188,6 +188,7 @@ namespace FreeTrainSimulator.Toolbox
             toolboxContent.InitializeItemVisiblity(ToolboxSettings.ViewSettings);
             toolboxContent.UpdateWidgetColorSettings(ToolboxSettings.ColorSettings, ToolboxSettings.FontOutline, ToolboxSettings.LimitTrackWidth);
             ContentArea = ((IXnaMapShellHost)toolboxContent.ShellHost).Component as ContentArea;
+            selectedRoute = route;
             ImmutableArray<PathModelHeader> paths = await pathTask.ConfigureAwait(true);
 
             // Lazily validate paths that have never been validated (Valid is null), persisting the resulting
@@ -201,17 +202,21 @@ namespace FreeTrainSimulator.Toolbox
             menu.PopulatePaths(paths);
             hostedTrainPathToolWindow?.UpdatePaths(paths);
             _ = windowManager[ToolboxWindowType.StatusWindow].Close();
-            selectedRoute = route;
         }
 
         internal bool LoadPath(PathModelHeader path)
         {
-            return PathEditor.InitializePath(path);
+            PathEditor editor = PathEditor;
+            return editor?.InitializePath(path) == true;
         }
 
         internal void EditPath()
         {
-            PathEditor.InitializeNewPath();
+            PathEditor editor = PathEditor;
+            if (editor == null)
+                return;
+
+            editor.InitializeNewPath();
             SetHostedInputCaptured(false);
             FocusHostedWindow();
         }
@@ -258,6 +263,8 @@ namespace FreeTrainSimulator.Toolbox
             ContentArea = null;
             selectedRoute = null;
             menu.ClearPathMenu();
+            menu.PreSelectRoute(null);
+            hostedTrainPathToolWindow?.InvalidatePaths();
             if (pathEditor != null)
             {
                 pathEditor.OnPathChanged -= PathEditor_OnEditorPathChanged;
@@ -266,11 +273,12 @@ namespace FreeTrainSimulator.Toolbox
                 pathEditor = null;
                 OnPathEditorChanged?.Invoke(this, new PathEditorAvailabilityChangedEventArgs(null));
             }
+            toolboxContent = null;
         }
 
         internal void UnloadPath()
         {
-            _ = PathEditor.InitializePath(null);
+            _ = pathEditor?.InitializePath(null);
         }
     }
 }

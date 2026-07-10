@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 
 using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Input;
+using FreeTrainSimulator.Common.Position;
 using FreeTrainSimulator.Graphics.MapView;
 using FreeTrainSimulator.Models.Content;
 using FreeTrainSimulator.Models.Shim;
@@ -35,12 +36,15 @@ namespace FreeTrainSimulator.Toolbox
         private long lastPathClickTick;
         private bool validPointAdded;
         private bool editorDragged;
+        private int movingNodeIndex = -1;
 
         public string PathId => path?.Id;
 
         public bool CanUndo => undoHistory.Count > 0;
 
         public bool CanRedo => redoHistory.Count > 0;
+
+        public bool IsMovingNode => movingNodeIndex >= 0;
 
         internal event EventHandler<PathEditorChangedEventArgs> OnPathChanged;
 
@@ -74,6 +78,7 @@ namespace FreeTrainSimulator.Toolbox
                 if (path != null && !CanInitializePath(path))
                     return false;
 
+                ClearMoveNodeState();
                 ClearHistory();
                 InitializePathModel(path);
                 OnPathChanged?.Invoke(this, new PathEditorChangedEventArgs(TrainPath));
@@ -137,6 +142,7 @@ namespace FreeTrainSimulator.Toolbox
                 PlayerPath = true,
             };
             path = newPath;
+            ClearMoveNodeState();
             ClearHistory();
             InitializePathEdit(newPath);
             OnPathChanged?.Invoke(this, new PathEditorChangedEventArgs(TrainPath));
@@ -221,6 +227,44 @@ namespace FreeTrainSimulator.Toolbox
         /// </summary>
         public PathEditResult SnapToTrack()
             => ApplyUndoableEdit(model => SnapPathToTrack(model, RuntimeDataResolver.Instance.TrackWorld));
+
+        public bool CanMoveNode(int nodeIndex)
+        {
+            PathModel currentModel = TryCaptureSnapshot();
+            ImmutableArray<PathNode> nodes = currentModel?.PathNodes ?? ImmutableArray<PathNode>.Empty;
+            return nodeIndex >= 0 && nodeIndex < nodes.Length;
+        }
+
+        public bool BeginMoveNode(int nodeIndex)
+        {
+            PathModel currentModel = TryCaptureSnapshot();
+            ImmutableArray<PathNode> nodes = currentModel?.PathNodes ?? ImmutableArray<PathNode>.Empty;
+            if (nodeIndex < 0 || nodeIndex >= nodes.Length)
+                return false;
+
+            if (!EditMode)
+            {
+                path = currentModel;
+                RestorePath(currentModel, true);
+            }
+
+            movingNodeIndex = nodeIndex;
+            UseStandaloneActivePathPointPreview = true;
+            SetHiddenPathNodeIndex(nodeIndex);
+            HighlightPathItem(nodeIndex);
+            OnPathUpdated?.Invoke(this, new PathEditorChangedEventArgs(TrainPath));
+            return true;
+        }
+
+        public bool CancelMoveNode()
+        {
+            if (!IsMovingNode)
+                return false;
+
+            ClearMoveNodeState();
+            OnPathUpdated?.Invoke(this, new PathEditorChangedEventArgs(TrainPath));
+            return true;
+        }
 
         // Captures the current authored path, runs the edit, and on success records an undo snapshot and
         // rebuilds the editor from the new model. Returns a failed result (with a reason) when the editor is not
@@ -370,6 +414,14 @@ namespace FreeTrainSimulator.Toolbox
 
         public void MouseReleasedLeft(UserCommandArgs userCommandArgs, KeyModifiers keyModifiers)
         {
+            if (IsMovingNode)
+            {
+                _ = CommitMoveNode();
+                userCommandArgs.Handled = true;
+                editorDragged = false;
+                return;
+            }
+
             if (EditMode && !editorDragged)
             {
                 PathModel undoSnapshot = TryCaptureSnapshot();
@@ -408,6 +460,51 @@ namespace FreeTrainSimulator.Toolbox
         {
             undoHistory.Clear();
             redoHistory.Clear();
+        }
+
+        private PathEditResult CommitMoveNode()
+        {
+            TrainPathPointBase candidate = ActivePathPoint;
+            if (candidate == null || candidate.ValidationResult != PathNodeInvalidReasons.None || candidate.ConnectedSegments.IsDefaultOrEmpty)
+                return PathEditResult.Failed("Select a valid track location for the node.", TryCaptureSnapshot());
+
+            PathModel currentModel = TryCaptureSnapshot();
+            if (currentModel == null)
+                return PathEditResult.Failed("No editable path is currently loaded.", null);
+
+            PathNode replacementAnchor = CreateReplacementAnchor(candidate);
+            bool isJunction = candidate.JunctionNode != null || (candidate.NodeType & PathNodeType.Junction) == PathNodeType.Junction;
+            PathEditResult result = PathModelEditor.MoveNode(currentModel, movingNodeIndex, replacementAnchor, isJunction);
+            if (!result.Success)
+                return result;
+
+            int movedNodeIndex = movingNodeIndex;
+            PushUndoSnapshot(currentModel);
+            ClearMoveNodeState();
+            path = result.PathModel;
+            RestorePath(result.PathModel, false);
+            HighlightPathItem(movedNodeIndex);
+            OnPathUpdated?.Invoke(this, new PathEditorChangedEventArgs(TrainPath));
+            return result;
+        }
+
+        private static PathNode CreateReplacementAnchor(TrainPathPointBase candidate)
+        {
+            int trackNodeIndex = !candidate.ConnectedSegments.IsDefaultOrEmpty
+                ? candidate.ConnectedSegments[0].TrackNodeIndex
+                : candidate.NearestTrackDistance?.TrackNodeIndex ?? candidate.NodeIndex;
+
+            return new PathNode(PointD.ToWorldLocation(candidate.Location))
+            {
+                NodeIndex = trackNodeIndex,
+            };
+        }
+
+        private void ClearMoveNodeState()
+        {
+            movingNodeIndex = -1;
+            UseStandaloneActivePathPointPreview = false;
+            SetHiddenPathNodeIndex(-1);
         }
 
         private PathModel TryCaptureSnapshot()
@@ -479,6 +576,7 @@ namespace FreeTrainSimulator.Toolbox
             // silently switch a path that was opened for viewing into edit mode.
             path = snapshot;
             RestorePath(snapshot, EditMode);
+            ClearMoveNodeState();
             validPointAdded = false;
             editorDragged = false;
         }

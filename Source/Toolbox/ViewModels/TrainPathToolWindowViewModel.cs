@@ -28,6 +28,7 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
         private bool canSnapToTrack;
         private bool canCreatePath;
         private bool canSavePath;
+        private bool canCancelMoveNode;
         private bool suppressSelectionCommand;
 
         public TrainPathToolWindowViewModel(TrainPathToolWindow toolWindow, ToolWindowRefreshScheduler scheduler)
@@ -39,6 +40,8 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
             UndoCommand = new RelayCommand(_ => toolWindow.Undo(), _ => CanUndo);
             RedoCommand = new RelayCommand(_ => toolWindow.Redo(), _ => CanRedo);
             SnapToTrackCommand = new RelayCommand(_ => toolWindow.SnapToTrack(), _ => CanSnapToTrack);
+            MoveSelectedNodeCommand = new RelayCommand(_ => MoveSelectedNode(), _ => CanMoveSelectedNode);
+            CancelMoveNodeCommand = new RelayCommand(_ => CancelMoveNode(), _ => CanCancelMoveNode);
             NewPathCommand = new RelayCommand(_ => toolWindow.CreatePath(), _ => CanCreatePath);
             SavePathCommand = new RelayCommand(_ => toolWindow.SavePath(), _ => CanSavePath);
             ValidateAllPathsCommand = new RelayCommand(_ => ValidateAllPaths());
@@ -60,6 +63,10 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
 
         public RelayCommand SnapToTrackCommand { get; }
 
+        public RelayCommand MoveSelectedNodeCommand { get; }
+
+        public RelayCommand CancelMoveNodeCommand { get; }
+
         public RelayCommand NewPathCommand { get; }
 
         public RelayCommand SavePathCommand { get; }
@@ -75,6 +82,21 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
                     UndoCommand.RaiseCanExecuteChanged();
             }
         }
+
+        public bool CanCancelMoveNode
+        {
+            get => canCancelMoveNode;
+            private set
+            {
+                if (SetProperty(ref canCancelMoveNode, value))
+                {
+                    CancelMoveNodeCommand.RaiseCanExecuteChanged();
+                    MoveSelectedNodeCommand.RaiseCanExecuteChanged();
+                }
+            }
+        }
+
+        public bool CanMoveSelectedNode => SelectedNode != null && !CanCancelMoveNode;
 
         public bool CanRedo
         {
@@ -161,6 +183,7 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
 
                 toolWindow.HighlightNode(value?.Index ?? -1);
                 UpdateSelectedNodeDetailRows();
+                MoveSelectedNodeCommand.RaiseCanExecuteChanged();
             }
         }
 
@@ -179,6 +202,7 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
             CanUndo = snapshot.CanUndo;
             CanRedo = snapshot.CanRedo;
             CanSnapToTrack = snapshot.CanSnapToTrack;
+            CanCancelMoveNode = snapshot.CanCancelMoveNode;
             CanCreatePath = toolWindow.CanCreatePath;
             CanSavePath = toolWindow.CanSavePath;
 
@@ -187,6 +211,21 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
                 snapshotSelectedPathId = snapshot.SelectedPathId;
                 UpdateSelectedPathFromSnapshot();
             }
+        }
+
+        private void MoveSelectedNode()
+        {
+            if (SelectedNode == null)
+                return;
+
+            toolWindow.BeginMoveNode(SelectedNode.Index);
+            StatusMessage = $"Select a new track location for node {SelectedNode.Index}.";
+        }
+
+        private void CancelMoveNode()
+        {
+            toolWindow.CancelMoveNode();
+            StatusMessage = "Node move canceled.";
         }
 
         // Runs the forced 'validate all paths' bridge. Exceptions are surfaced through StatusMessage instead of

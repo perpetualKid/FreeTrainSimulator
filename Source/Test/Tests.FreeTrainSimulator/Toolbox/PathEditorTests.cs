@@ -185,6 +185,19 @@ namespace Tests.FreeTrainSimulator.Toolbox
             Assert.AreEqual(PathValidationState.Valid, state);
         }
 
+        [TestMethod]
+        public void WhenPathHasJunctionNodeAwayFromJunctionThenResolveValidationStateReturnsInvalid()
+        {
+            PathModel pathModel = new PathModel()
+            {
+                PathNodes = ImmutableArray.Create(CreateNode(PathNodeType.Start, 1), CreateNode(PathNodeType.Junction, 2), CreateNode(PathNodeType.End, -1)),
+            };
+
+            PathValidationState state = PathEditor.ResolveValidationState(pathModel, TrackWorldTestFixture.CreateSingleVectorNodeTrackWorld());
+
+            Assert.AreEqual(PathValidationState.Invalid, state);
+        }
+
         private static PathNode CreateNode(PathNodeType nodeType, int nextMainNode)
         {
             return new PathNode(new WorldLocation(new Tile(0, 0), Vector3.Zero))

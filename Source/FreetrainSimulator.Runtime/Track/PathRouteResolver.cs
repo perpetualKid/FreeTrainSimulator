@@ -241,6 +241,13 @@ namespace FreeTrainSimulator.Runtime.Track
             if (trackWorld == null)
                 return new PathRouteAnchor(authoredNodeIndex, node.Location, node.NodeType);
 
+            if ((node.NodeType & PathNodeType.Junction) == PathNodeType.Junction && trackWorld.JunctionAt(node.Location) == null)
+            {
+                diagnostics.Add(new PathRouteDiagnostic(PathRouteDiagnosticSeverity.Error, PathRouteDiagnosticCode.NoJunctionNode,
+                    $"Path node {authoredNodeIndex} is marked as a junction, but no junction exists at its stored location.", authoredNodeIndex,
+                    "Move the node to a junction or convert it to a track point."));
+            }
+
             int trackNodeIndex = ResolveTrackNodeIndex(authoredNodeIndex, node, trackWorld, diagnostics, out int trackVectorSectionIndex, out bool ambiguous);
             if (trackNodeIndex < 0)
             {

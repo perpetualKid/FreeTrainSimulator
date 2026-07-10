@@ -22,6 +22,8 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
 
         public int SelectedNodeIndex { get; set; } = -1;
 
+        public int HiddenNodeIndex { get; set; } = -1;
+
         public TrainPathPointBase SelectedNode => SelectedNodeIndex >= 0 && SelectedNodeIndex < PathPoints.Count ? PathPoints[SelectedNodeIndex] : null;
 
         private record TrainPathSection : TrainPathSectionBase, IDrawable<VectorPrimitive>
@@ -229,12 +231,13 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
             {
                 pathSection.Draw(renderer, colorVariation, scaleFactor);
             }
-            foreach (EditorPathPoint pathItem in PathPoints)
+            for (int i = 0; i < PathPoints.Count; i++)
             {
-                pathItem.Draw(renderer, colorVariation, scaleFactor);
+                if (i != HiddenNodeIndex)
+                    (PathPoints[i] as EditorPathPoint)?.Draw(renderer, colorVariation, scaleFactor);
             }
 
-            if (SelectedNodeIndex >= 0 && SelectedNodeIndex < PathPoints.Count)
+            if (SelectedNodeIndex >= 0 && SelectedNodeIndex < PathPoints.Count && SelectedNodeIndex != HiddenNodeIndex)
             {
                 (PathPoints[SelectedNodeIndex] as EditorPathPoint)?.Draw(renderer, ColorVariation.ComplementHighlight, 5);
 
@@ -243,6 +246,11 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
                     pathSection.Draw(renderer, colorVariation, 3);
                 }
             }
+        }
+
+        internal bool IsNodeHidden(int nodeIndex)
+        {
+            return nodeIndex == HiddenNodeIndex;
         }
 
         protected override TrackSegmentSectionBase<TrainPathSegmentBase> InitializeSection(in PointD start, in PointD end)

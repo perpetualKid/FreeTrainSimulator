@@ -75,6 +75,9 @@ namespace FreeTrainSimulator.Runtime.Track
         /// <summary>An authored node location resolves to more than one plausible track anchor.</summary>
         AmbiguousAnchor,
 
+        /// <summary>An authored node is marked as a junction, but no junction exists at its stored location.</summary>
+        NoJunctionNode,
+
         /// <summary>A populated track anchor does not agree with the stored node location.</summary>
         AnchorLocationMismatch,
 

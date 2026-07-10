@@ -137,6 +137,45 @@ namespace Tests.FreeTrainSimulator.Toolbox
         }
 
         [TestMethod]
+        public void WhenMoveSelectedNodeCommandExecutedThenBridgeMoveNodeIsMarshaled()
+        {
+            int invocations = 0;
+            TrainPathToolWindow bridge = CreateBridge(_ => invocations++);
+            using (ToolWindowRefreshScheduler refreshScheduler = new ToolWindowRefreshScheduler(Dispatcher.CurrentDispatcher))
+            {
+                using (TrainPathToolWindowViewModel trainPathToolWindowViewModel = new TrainPathToolWindowViewModel(bridge, refreshScheduler)
+                {
+                    SelectedNode = new TrainPathNodeItemViewModel(2, "Intermediate", true)
+                })
+                {
+                    trainPathToolWindowViewModel.MoveSelectedNodeCommand.Execute(null);
+
+                    Assert.AreEqual(2, invocations);
+                    Assert.Contains("node 2", trainPathToolWindowViewModel.StatusMessage);
+                }
+            }
+        }
+
+        [TestMethod]
+        public void WhenCancelMoveNodeCommandExecutedThenBridgeCancelMoveIsMarshaled()
+        {
+            int invocations = 0;
+            TrainPathToolWindow bridge = CreateBridge(_ => invocations++);
+            using (ToolWindowRefreshScheduler refreshScheduler = new ToolWindowRefreshScheduler(Dispatcher.CurrentDispatcher))
+            {
+                using (TrainPathToolWindowViewModel trainPathToolWindowViewModel = new TrainPathToolWindowViewModel(bridge, refreshScheduler))
+                {
+                    SetCommandAvailability(trainPathToolWindowViewModel, "canCancelMoveNode", true);
+
+                    trainPathToolWindowViewModel.CancelMoveNodeCommand.Execute(null);
+
+                    Assert.AreEqual(1, invocations);
+                    Assert.AreEqual("Node move canceled.", trainPathToolWindowViewModel.StatusMessage);
+                }
+            }
+        }
+
+        [TestMethod]
         public void WhenHistoryUnavailableThenUndoRedoCommandsCannotExecute()
         {
             TrainPathToolWindow bridge = CreateBridge(action => action());

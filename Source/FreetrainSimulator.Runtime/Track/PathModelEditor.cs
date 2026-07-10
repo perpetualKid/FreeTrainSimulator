@@ -146,6 +146,39 @@ namespace FreeTrainSimulator.Runtime.Track
                 ImmutableArray.Create(nodeIndex));
         }
 
+        /// <summary>
+        /// Moves the node at <paramref name="nodeIndex"/> to a new track anchor, preserving its path links and
+        /// wait metadata. Start/end/wait/reversal intent is preserved, while junction/intermediate classification
+        /// is recalculated from <paramref name="isJunction"/>.
+        /// </summary>
+        public static PathEditResult MoveNode(PathModel pathModel, int nodeIndex, PathNode replacementAnchor, bool isJunction)
+        {
+            ArgumentNullException.ThrowIfNull(pathModel);
+            ArgumentNullException.ThrowIfNull(replacementAnchor);
+
+            ImmutableArray<PathNode> nodes = Nodes(pathModel);
+            if (nodeIndex < 0 || nodeIndex >= nodes.Length)
+                return PathEditResult.Failed($"Node index {nodeIndex} is out of range.", pathModel);
+
+            PathNode original = nodes[nodeIndex];
+            PathNodeType nodeType = original.NodeType & (PathNodeType.Start | PathNodeType.End | PathNodeType.Wait | PathNodeType.Reversal | PathNodeType.Invalid);
+            nodeType &= ~PathNodeType.Invalid;
+            nodeType |= isJunction ? PathNodeType.Junction : PathNodeType.Intermediate;
+
+            PathNode movedNode = new PathNode(replacementAnchor.Location)
+            {
+                NodeType = nodeType,
+                NodeIndex = replacementAnchor.NodeIndex,
+                NextMainNode = original.NextMainNode,
+                NextSidingNode = original.NextSidingNode,
+                WaitInfo = original.WaitInfo,
+            };
+
+            return PathEditResult.Succeeded($"Moved node {nodeIndex}.",
+                pathModel with { PathNodes = nodes.SetItem(nodeIndex, movedNode) },
+                ImmutableArray.Create(nodeIndex));
+        }
+
         // Returns the authored nodes, normalizing a default ImmutableArray to empty.
         private static ImmutableArray<PathNode> Nodes(PathModel pathModel)
         {

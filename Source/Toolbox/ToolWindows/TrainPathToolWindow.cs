@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
@@ -116,6 +117,9 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
         /// <summary>Whether the current path can be snapped to track.</summary>
         public bool CanSnapToTrack { get; init; }
 
+        /// <summary>Whether a node move operation is currently active.</summary>
+        public bool CanCancelMoveNode { get; init; }
+
         /// <summary>An empty snapshot used before any path content is available.</summary>
         public static TrainPathSnapshot Empty { get; } = new TrainPathSnapshot
         {
@@ -126,6 +130,7 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
             CanUndo = false,
             CanRedo = false,
             CanSnapToTrack = false,
+            CanCancelMoveNode = false,
         };
     }
 
@@ -154,6 +159,7 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
         private volatile bool active;
 
         private ImmutableArray<PathModelHeader> cachedPaths = ImmutableArray<PathModelHeader>.Empty;
+        private readonly Dictionary<string, PathModel> transientPaths = new Dictionary<string, PathModel>(StringComparer.OrdinalIgnoreCase);
         private string lastPathId;
         private int lastNodeCount = -1;
         private int snapshotVersion;
@@ -209,7 +215,8 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
                     && snapshot.Metadata.IsEmpty
                     && !snapshot.CanUndo
                     && !snapshot.CanRedo
-                    && !snapshot.CanSnapToTrack;
+                    && !snapshot.CanSnapToTrack
+                    && !snapshot.CanCancelMoveNode;
                 if (snapshotIsPathsOnly && pathsSnapshotVersion == lastSnapshotVersion)
                     return;
 
@@ -227,6 +234,7 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
             bool canUndo = pathEditor.CanUndo;
             bool canRedo = pathEditor.CanRedo;
             bool canSnapToTrack = pathEditor.CanSnapToTrack;
+            bool canCancelMoveNode = pathEditor.IsMovingNode;
 
             int currentSnapshotVersion = snapshotVersion;
 
@@ -239,6 +247,7 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
                 && canUndo == snapshot.CanUndo
                 && canRedo == snapshot.CanRedo
                 && canSnapToTrack == snapshot.CanSnapToTrack
+                && canCancelMoveNode == snapshot.CanCancelMoveNode
                 && paths.SequenceEqual(snapshot.Paths))
             {
                 return;
@@ -257,6 +266,7 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
                 CanUndo = canUndo,
                 CanRedo = canRedo,
                 CanSnapToTrack = canSnapToTrack,
+                CanCancelMoveNode = canCancelMoveNode,
             };
         }
 
@@ -270,6 +280,8 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
         {
             gameThreadInvoker(() =>
             {
+                CaptureTransientCurrentPath();
+
                 if (string.IsNullOrEmpty(pathId))
                 {
                     unloadPathAction();
@@ -277,7 +289,14 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
                     return;
                 }
 
-                PathModelHeader path = cachedPaths.FirstOrDefault(p => string.Equals(p.Id, pathId, StringComparison.OrdinalIgnoreCase));
+                PathModelHeader path = transientPaths.TryGetValue(pathId, out PathModel transientPath)
+                    ? transientPath
+                    : cachedPaths.FirstOrDefault(p => string.Equals(p.Id, pathId, StringComparison.OrdinalIgnoreCase));
+                if (path == null)
+                {
+                    RefreshCachedPathsFromContext();
+                    path = cachedPaths.FirstOrDefault(p => string.Equals(p.Id, pathId, StringComparison.OrdinalIgnoreCase));
+                }
                 if (path != null)
                 {
                     loadPathAction(path);
@@ -307,6 +326,10 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
 
         internal void SnapToTrack() => InvokeEditorMutation(pathEditor => pathEditor.SnapToTrack().Success);
 
+        internal void BeginMoveNode(int nodeIndex) => InvokeEditorMutation(pathEditor => pathEditor.BeginMoveNode(nodeIndex));
+
+        internal void CancelMoveNode() => InvokeEditorMutation(pathEditor => pathEditor.CancelMoveNode());
+
         internal bool CanCreatePath => toolingContextAccessor() != null;
 
         internal bool CanSavePath => pathEditorAccessor()?.TrainPath != null;
@@ -315,6 +338,7 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
         {
             gameThreadInvoker(() =>
             {
+                CaptureTransientCurrentPath();
                 createPathAction();
                 MarkDirty();
             });
@@ -368,16 +392,32 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
 
         private ImmutableArray<TrainPathListRow> BuildPaths(PathModel currentPathModel)
         {
-            return BuildPathRows(cachedPaths, currentPathModel);
+            return BuildPathRows(cachedPaths, transientPaths.Values.ToImmutableArray(), currentPathModel);
         }
 
         internal static ImmutableArray<TrainPathListRow> BuildPathRows(ImmutableArray<PathModelHeader> savedPaths, PathModel currentPathModel)
         {
+            return BuildPathRows(savedPaths, ImmutableArray<PathModel>.Empty, currentPathModel);
+        }
+
+        internal static ImmutableArray<TrainPathListRow> BuildPathRows(ImmutableArray<PathModelHeader> savedPaths, ImmutableArray<PathModel> transientPaths, PathModel currentPathModel)
+        {
             savedPaths = savedPaths.IsDefault ? ImmutableArray<PathModelHeader>.Empty : savedPaths;
+            transientPaths = transientPaths.IsDefault ? ImmutableArray<PathModel>.Empty : transientPaths;
             ImmutableArray<TrainPathListRow>.Builder builder = ImmutableArray.CreateBuilder<TrainPathListRow>();
 
             if (currentPathModel != null && !savedPaths.Any(path => string.Equals(path.Id, currentPathModel.Id, StringComparison.OrdinalIgnoreCase)))
                 builder.Add(new TrainPathListRow(currentPathModel.Id, currentPathModel.Name, currentPathModel.ValidationState));
+
+            foreach (PathModel transientPath in transientPaths.OrderBy(path => path.Name))
+            {
+                if (currentPathModel != null && string.Equals(transientPath.Id, currentPathModel.Id, StringComparison.OrdinalIgnoreCase))
+                    continue;
+                if (savedPaths.Any(path => string.Equals(path.Id, transientPath.Id, StringComparison.OrdinalIgnoreCase)))
+                    continue;
+
+                builder.Add(new TrainPathListRow(transientPath.Id, transientPath.Name, transientPath.ValidationState));
+            }
 
             foreach (PathModelHeader path in savedPaths.OrderBy(p => p.Name))
                 builder.Add(new TrainPathListRow(path.Id, path.Name, path.ValidationState));
@@ -486,6 +526,11 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
         internal void InvalidatePaths()
         {
             cachedPaths = ImmutableArray<PathModelHeader>.Empty;
+            transientPaths.Clear();
+            lastPathId = null;
+            lastNodeCount = -1;
+            lastSnapshotVersion = -1;
+            snapshot = TrainPathSnapshot.Empty;
             MarkDirty();
         }
 
@@ -496,7 +541,35 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
         internal void UpdatePaths(ImmutableArray<PathModelHeader> paths)
         {
             cachedPaths = paths.IsDefault ? ImmutableArray<PathModelHeader>.Empty : paths;
+            foreach (PathModelHeader path in cachedPaths)
+                transientPaths.Remove(path.Id);
             MarkDirty();
+        }
+
+        private void CaptureTransientCurrentPath()
+        {
+            PathModel currentModel = pathEditorAccessor()?.TryCaptureCurrentPathModel();
+            if (currentModel == null || string.IsNullOrWhiteSpace(currentModel.Id))
+                return;
+
+            transientPaths[currentModel.Id] = currentModel;
+        }
+
+        private void RefreshCachedPathsFromContext()
+        {
+            ITrainPathToolingContext toolingContext = toolingContextAccessor();
+            if (toolingContext == null)
+                return;
+
+            try
+            {
+                ImmutableArray<PathModelHeader> paths = toolingContext.GetPaths().ConfigureAwait(false).GetAwaiter().GetResult();
+                cachedPaths = paths.IsDefault ? ImmutableArray<PathModelHeader>.Empty : paths;
+            }
+            catch (Exception ex) when (ex is InvalidOperationException || ex is System.IO.IOException)
+            {
+                System.Diagnostics.Trace.TraceWarning($"Failed to refresh path cache for selection: {ex.Message}");
+            }
         }
 
         /// <summary>

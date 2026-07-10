@@ -190,6 +190,16 @@
                             Command="{Binding RedoCommand}" />
                     <Button Margin="12,0,0,0"
                             Padding="8,2"
+                            Content="Move Node"
+                            Command="{Binding MoveSelectedNodeCommand}"
+                            ToolTip="Move the selected node to the next valid map location you click" />
+                    <Button Margin="6,0,0,0"
+                            Padding="8,2"
+                            Content="Cancel Move"
+                            Command="{Binding CancelMoveNodeCommand}"
+                            ToolTip="Cancel the active node move operation" />
+                    <Button Margin="12,0,0,0"
+                            Padding="8,2"
                             Content="Snap to Track"
                             Command="{Binding SnapToTrackCommand}"
                             ToolTip="Rebuild the path along the resolved track (main route only)" />

@@ -1,11 +1,13 @@
 using System.Collections.Immutable;
 using System;
 using System.Linq;
+using System.Threading.Tasks;
 
 using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Position;
 using FreeTrainSimulator.Models.Content;
 using FreeTrainSimulator.Runtime.Track;
+using FreeTrainSimulator.Toolbox;
 using FreeTrainSimulator.Toolbox.ToolWindows;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -60,6 +62,20 @@ namespace Tests.FreeTrainSimulator.Toolbox
         }
 
         [TestMethod]
+        public void WhenPathsInvalidatedThenSnapshotClearsPreviousPaths()
+        {
+            TrainPathToolWindow trainPathToolWindow = CreateTrainPathToolWindow(action => action());
+            trainPathToolWindow.Active = true;
+            trainPathToolWindow.UpdatePaths(ImmutableArray.Create(new PathModelHeader { Id = "old", Name = "Old Path" }));
+            trainPathToolWindow.RefreshSnapshot();
+
+            trainPathToolWindow.InvalidatePaths();
+            trainPathToolWindow.RefreshSnapshot();
+
+            Assert.IsTrue(trainPathToolWindow.CaptureTrainPathSnapshot().Paths.IsEmpty);
+        }
+
+        [TestMethod]
         public void WhenCurrentPathIsNotSavedThenBuildPathRowsAddsVirtualCurrentPathFirst()
         {
             ImmutableArray<PathModelHeader> savedPaths = ImmutableArray.Create(
@@ -98,6 +114,43 @@ namespace Tests.FreeTrainSimulator.Toolbox
         }
 
         [TestMethod]
+        public void WhenTransientPathExistsThenBuildPathRowsIncludesItBeforeSavedPaths()
+        {
+            ImmutableArray<PathModelHeader> savedPaths = ImmutableArray.Create(
+                new PathModelHeader { Id = "saved", Name = "Saved Path", ValidationState = PathValidationState.Valid });
+            ImmutableArray<PathModel> transientPaths = ImmutableArray.Create(new PathModel
+            {
+                Id = "edited",
+                Name = "Edited Path",
+                ValidationState = PathValidationState.NotValidated,
+            });
+
+            ImmutableArray<TrainPathListRow> rows = TrainPathToolWindow.BuildPathRows(savedPaths, transientPaths, null);
+
+            Assert.HasCount(2, rows);
+            Assert.AreEqual("edited", rows[0].Id);
+            Assert.AreEqual("saved", rows[1].Id);
+        }
+
+        [TestMethod]
+        public void WhenTransientPathMatchesSavedPathThenBuildPathRowsDoesNotDuplicateIt()
+        {
+            ImmutableArray<PathModelHeader> savedPaths = ImmutableArray.Create(
+                new PathModelHeader { Id = "path-1", Name = "Saved Path", ValidationState = PathValidationState.Valid });
+            ImmutableArray<PathModel> transientPaths = ImmutableArray.Create(new PathModel
+            {
+                Id = "path-1",
+                Name = "Edited Path",
+                ValidationState = PathValidationState.NotValidated,
+            });
+
+            ImmutableArray<TrainPathListRow> rows = TrainPathToolWindow.BuildPathRows(savedPaths, transientPaths, null);
+
+            Assert.HasCount(1, rows);
+            Assert.AreEqual("path-1", rows[0].Id);
+        }
+
+        [TestMethod]
         public void WhenSelectPathThenGameThreadInvokerIsCalled()
         {
             int invocations = 0;
@@ -114,6 +167,19 @@ namespace Tests.FreeTrainSimulator.Toolbox
             PathModelHeader loadedPath = null;
             TrainPathToolWindow trainPathToolWindow = CreateTrainPathToolWindow(action => action(), () => { }, () => { }, path => loadedPath = path, () => { });
             trainPathToolWindow.UpdatePaths(ImmutableArray.Create(new PathModelHeader { Id = "path-1", Name = "First Path" }));
+
+            trainPathToolWindow.SelectPath("path-1");
+
+            Assert.IsNotNull(loadedPath);
+            Assert.AreEqual("path-1", loadedPath.Id);
+        }
+
+        [TestMethod]
+        public void WhenSelectPathCacheIsEmptyThenPathsAreRefreshedFromContext()
+        {
+            PathModelHeader loadedPath = null;
+            TestTrainPathToolingContext toolingContext = new TestTrainPathToolingContext(ImmutableArray.Create(new PathModelHeader { Id = "path-1", Name = "First Path" }));
+            TrainPathToolWindow trainPathToolWindow = new TrainPathToolWindow(() => null, () => toolingContext, action => action(), () => { }, () => { }, path => loadedPath = path, () => { });
 
             trainPathToolWindow.SelectPath("path-1");
 
@@ -165,6 +231,28 @@ namespace Tests.FreeTrainSimulator.Toolbox
             TrainPathToolWindow trainPathToolWindow = CreateTrainPathToolWindow(_ => invocations++);
 
             trainPathToolWindow.HighlightNode(3);
+
+            Assert.AreEqual(1, invocations);
+        }
+
+        [TestMethod]
+        public void WhenBeginMoveNodeThenGameThreadInvokerIsCalled()
+        {
+            int invocations = 0;
+            TrainPathToolWindow trainPathToolWindow = CreateTrainPathToolWindow(_ => invocations++);
+
+            trainPathToolWindow.BeginMoveNode(2);
+
+            Assert.AreEqual(1, invocations);
+        }
+
+        [TestMethod]
+        public void WhenCancelMoveNodeThenGameThreadInvokerIsCalled()
+        {
+            int invocations = 0;
+            TrainPathToolWindow trainPathToolWindow = CreateTrainPathToolWindow(_ => invocations++);
+
+            trainPathToolWindow.CancelMoveNode();
 
             Assert.AreEqual(1, invocations);
         }
@@ -356,6 +444,24 @@ namespace Tests.FreeTrainSimulator.Toolbox
             Action<PathModelHeader> loadPathAction, Action unloadPathAction)
         {
             return new TrainPathToolWindow(() => null, () => null, invoker, createPathAction, savePathAction, loadPathAction, unloadPathAction);
+        }
+
+        private sealed class TestTrainPathToolingContext : ITrainPathToolingContext
+        {
+            private readonly ImmutableArray<PathModelHeader> paths;
+
+            public TestTrainPathToolingContext(ImmutableArray<PathModelHeader> paths)
+            {
+                this.paths = paths;
+            }
+
+            public bool UseMetricUnits => true;
+
+            public TrackWorld TrackWorld => null;
+
+            public Task<ImmutableArray<PathModelHeader>> GetPaths() => Task.FromResult(paths);
+
+            public Task<ImmutableArray<PathModelHeader>> ValidateAllPaths() => Task.FromResult(paths);
         }
 
         private static TrackWorld CreateInitializedTrackWorld() => TrackWorldTestFixture.CreateSingleVectorNodeTrackWorld();

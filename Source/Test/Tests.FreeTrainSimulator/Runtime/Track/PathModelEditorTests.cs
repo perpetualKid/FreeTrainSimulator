@@ -270,6 +270,58 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
         }
 
         [TestMethod]
+        public void WhenMoveNodeThenLocationAndAnchorAreUpdated()
+        {
+            PathModel path = CreatePath(
+                Node(PathNodeType.Start, 1),
+                Node(PathNodeType.End, -1));
+            PathNode replacement = new PathNode(new WorldLocation(new Tile(0, 0), new Vector3(10, 0, 20)))
+            {
+                NodeIndex = 42,
+            };
+
+            PathEditResult result = PathModelEditor.MoveNode(path, 1, replacement, false);
+
+            Assert.IsTrue(result.Success);
+            Assert.AreEqual(42, result.PathModel.PathNodes[1].NodeIndex);
+            Assert.AreEqual(replacement.Location, result.PathModel.PathNodes[1].Location);
+        }
+
+        [TestMethod]
+        public void WhenMoveNodeThenLinksAndWaitInfoArePreserved()
+        {
+            PathNodeWaitInfo waitInfo = new PathNodeWaitInfo { WaitTime = 25 };
+            PathModel path = CreatePath(
+                Node(PathNodeType.Start, 1),
+                Node(PathNodeType.Wait | PathNodeType.Reversal, 2, -1) with { WaitInfo = waitInfo },
+                Node(PathNodeType.End, -1));
+            PathNode replacement = new PathNode(new WorldLocation(new Tile(0, 0), new Vector3(10, 0, 20)))
+            {
+                NodeIndex = 42,
+            };
+
+            PathEditResult result = PathModelEditor.MoveNode(path, 1, replacement, true);
+
+            Assert.AreEqual(2, result.PathModel.PathNodes[1].NextMainNode);
+            Assert.AreEqual(waitInfo, result.PathModel.PathNodes[1].WaitInfo);
+            Assert.IsTrue((result.PathModel.PathNodes[1].NodeType & PathNodeType.Wait) == PathNodeType.Wait);
+            Assert.IsTrue((result.PathModel.PathNodes[1].NodeType & PathNodeType.Reversal) == PathNodeType.Reversal);
+            Assert.IsTrue((result.PathModel.PathNodes[1].NodeType & PathNodeType.Junction) == PathNodeType.Junction);
+        }
+
+        [TestMethod]
+        public void WhenMoveNodeWithOutOfRangeIndexThenResultFails()
+        {
+            PathModel path = CreatePath(Node(PathNodeType.Start, -1));
+            PathNode replacement = Node(PathNodeType.Intermediate, -1);
+
+            PathEditResult result = PathModelEditor.MoveNode(path, 4, replacement, false);
+
+            Assert.IsFalse(result.Success);
+            Assert.AreSame(path, result.PathModel);
+        }
+
+        [TestMethod]
         public void WhenSuccessfulMutationIsUndoneViaSnapshotThenPriorModelIsRecovered()
         {
             // Mirrors PathEditor.ApplyMutation + Undo: push the current model, apply the mutation, then
