@@ -100,6 +100,8 @@ namespace Tests.FreeTrainSimulator.Models
         [DynamicData(nameof(ExpectedTypes))]
         public void MemberOrderMatchesSnapshot(Type modelType)
         {
+            ArgumentNullException.ThrowIfNull(modelType);
+
             string[] expected = Expected[modelType];
             IReadOnlyList<string> actual = SerializedMemberOrder(modelType);
             CollectionAssert.AreEqual(expected, actual.ToArray(),
@@ -115,7 +117,7 @@ namespace Tests.FreeTrainSimulator.Models
             IEnumerable<Type> discovered = DiscoverMemoryPackableModelTypes();
             List<string> missing = discovered.Where(type => !Expected.ContainsKey(type)).Select(type => type.FullName).OrderBy(name => name, StringComparer.Ordinal).ToList();
 
-            Assert.IsTrue(missing.Count == 0,
+            Assert.IsEmpty(missing,
                 $"These [MemoryPackable] model types have no member-order snapshot and are unguarded against the append-only rule:{Environment.NewLine}" +
                 $"{string.Join(Environment.NewLine, missing)}{Environment.NewLine}" +
                 "Add each to the Expected dictionary with its serialized member order.");
@@ -127,7 +129,7 @@ namespace Tests.FreeTrainSimulator.Models
             HashSet<Type> discovered = DiscoverMemoryPackableModelTypes().ToHashSet();
             List<string> stale = Expected.Keys.Where(type => !discovered.Contains(type)).Select(type => type.FullName).OrderBy(name => name, StringComparer.Ordinal).ToList();
 
-            Assert.IsTrue(stale.Count == 0,
+            Assert.IsEmpty(stale,
                 $"These Expected entries no longer correspond to a [MemoryPackable] model type and should be removed:{Environment.NewLine}" +
                 $"{string.Join(Environment.NewLine, stale)}");
         }
@@ -145,7 +147,7 @@ namespace Tests.FreeTrainSimulator.Models
         // serializes. A property is serialized when it has a getter and is either settable (set/init) or backed by a
         // [MemoryPackConstructor] parameter (get-only records such as PathNode.Location). [MemoryPackIgnore] members
         // (inherited by overrides) and the compiler-generated record EqualityContract are excluded.
-        private static IReadOnlyList<string> SerializedMemberOrder(Type modelType)
+        private static List<string> SerializedMemberOrder(Type modelType)
         {
             HashSet<string> constructorParameters = MemoryPackConstructorParameterNames(modelType);
 
