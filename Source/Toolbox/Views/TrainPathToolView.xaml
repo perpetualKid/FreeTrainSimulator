@@ -205,9 +205,9 @@
                             ToolTip="Cancel the active node move operation" />
                     <Button Margin="0,0,6,4"
                             Padding="8,2"
-                            Content="Snap to Track"
+                            Content="Re-resolve Path"
                             Command="{Binding SnapToTrackCommand}"
-                            ToolTip="Rebuild the path along the resolved track (main route only)" />
+                            ToolTip="Rebuild the whole path from its authored nodes using the path resolver. This may insert generated nodes and update links." />
                 </WrapPanel>
                 <ListView Grid.Row="1"
                           ItemsSource="{Binding Nodes}"
