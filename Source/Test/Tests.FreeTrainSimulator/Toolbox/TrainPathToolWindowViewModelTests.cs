@@ -176,6 +176,26 @@ namespace Tests.FreeTrainSimulator.Toolbox
         }
 
         [TestMethod]
+        public void WhenMoveModeEndsThenMoveGuidanceStatusIsCleared()
+        {
+            TrainPathToolWindow bridge = CreateBridge(action => action());
+            using (ToolWindowRefreshScheduler refreshScheduler = new ToolWindowRefreshScheduler(Dispatcher.CurrentDispatcher))
+            {
+                using (TrainPathToolWindowViewModel trainPathToolWindowViewModel = new TrainPathToolWindowViewModel(bridge, refreshScheduler)
+                {
+                    SelectedNode = new TrainPathNodeItemViewModel(2, "Intermediate", true)
+                })
+                {
+                    trainPathToolWindowViewModel.MoveSelectedNodeCommand.Execute(null);
+                    SetCommandAvailability(trainPathToolWindowViewModel, "canCancelMoveNode", true);
+                    typeof(TrainPathToolWindowViewModel).GetMethod("Refresh", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(trainPathToolWindowViewModel, null);
+
+                    Assert.AreEqual(string.Empty, trainPathToolWindowViewModel.StatusMessage);
+                }
+            }
+        }
+
+        [TestMethod]
         public void WhenHistoryUnavailableThenUndoRedoCommandsCannotExecute()
         {
             TrainPathToolWindow bridge = CreateBridge(action => action());

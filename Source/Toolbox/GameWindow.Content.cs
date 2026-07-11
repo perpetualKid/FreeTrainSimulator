@@ -210,6 +210,8 @@ namespace FreeTrainSimulator.Toolbox
             return editor?.InitializePath(path) == true;
         }
 
+        internal bool HasUnsavedPathChanges => hostedTrainPathToolWindow?.HasUnsavedPathChanges == true || pathEditor?.HasUnsavedChanges == true;
+
         internal void EditPath()
         {
             PathEditor editor = PathEditor;

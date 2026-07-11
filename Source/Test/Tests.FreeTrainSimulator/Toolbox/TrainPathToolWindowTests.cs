@@ -1,6 +1,8 @@
 using System.Collections.Immutable;
 using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Threading.Tasks;
 
 using FreeTrainSimulator.Common;
@@ -114,6 +116,24 @@ namespace Tests.FreeTrainSimulator.Toolbox
         }
 
         [TestMethod]
+        public void WhenCurrentPathOverridesSavedPathThenBuildPathRowsUsesCurrentValidationState()
+        {
+            ImmutableArray<PathModelHeader> savedPaths = ImmutableArray.Create(
+                new PathModelHeader { Id = "path-1", Name = "Saved Path", ValidationState = PathValidationState.Invalid });
+            PathModel currentPath = new PathModel
+            {
+                Id = "path-1",
+                Name = "Saved Path",
+                ValidationState = PathValidationState.Valid,
+            };
+
+            ImmutableArray<TrainPathListRow> rows = TrainPathToolWindow.BuildPathRows(savedPaths, currentPath);
+
+            Assert.HasCount(1, rows);
+            Assert.AreEqual(PathValidationState.Valid, rows[0].ValidationState);
+        }
+
+        [TestMethod]
         public void WhenTransientPathExistsThenBuildPathRowsIncludesItBeforeSavedPaths()
         {
             ImmutableArray<PathModelHeader> savedPaths = ImmutableArray.Create(
@@ -133,6 +153,26 @@ namespace Tests.FreeTrainSimulator.Toolbox
         }
 
         [TestMethod]
+        public void WhenTransientPathExistsThenHasUnsavedPathChangesIsTrue()
+        {
+            TrainPathToolWindow trainPathToolWindow = CreateTrainPathToolWindow(action => action());
+            Dictionary<string, PathModel> transientPaths = (Dictionary<string, PathModel>)typeof(TrainPathToolWindow)
+                .GetField("transientPaths", BindingFlags.Instance | BindingFlags.NonPublic)
+                .GetValue(trainPathToolWindow);
+            transientPaths.Add("edited", new PathModel { Id = "edited", Name = "Edited Path" });
+
+            Assert.IsTrue(trainPathToolWindow.HasUnsavedPathChanges);
+        }
+
+        [TestMethod]
+        public void WhenNoEditorOrTransientPathThenHasUnsavedPathChangesIsFalse()
+        {
+            TrainPathToolWindow trainPathToolWindow = CreateTrainPathToolWindow(action => action());
+
+            Assert.IsFalse(trainPathToolWindow.HasUnsavedPathChanges);
+        }
+
+        [TestMethod]
         public void WhenTransientPathMatchesSavedPathThenBuildPathRowsDoesNotDuplicateIt()
         {
             ImmutableArray<PathModelHeader> savedPaths = ImmutableArray.Create(
@@ -141,13 +181,14 @@ namespace Tests.FreeTrainSimulator.Toolbox
             {
                 Id = "path-1",
                 Name = "Edited Path",
-                ValidationState = PathValidationState.NotValidated,
+                ValidationState = PathValidationState.Invalid,
             });
 
             ImmutableArray<TrainPathListRow> rows = TrainPathToolWindow.BuildPathRows(savedPaths, transientPaths, null);
 
             Assert.HasCount(1, rows);
             Assert.AreEqual("path-1", rows[0].Id);
+            Assert.AreEqual(PathValidationState.Invalid, rows[0].ValidationState);
         }
 
         [TestMethod]

@@ -20,6 +20,7 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
         private readonly TrainPathToolWindow toolWindow;
         private string searchText = string.Empty;
         private string statusMessage = string.Empty;
+        private bool statusMessageIsWarning;
         private TrainPathListItemViewModel selectedPath;
         private TrainPathNodeItemViewModel selectedNode;
         private string snapshotSelectedPathId;
@@ -154,6 +155,12 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
             private set => SetProperty(ref statusMessage, value);
         }
 
+        public bool StatusMessageIsWarning
+        {
+            get => statusMessageIsWarning;
+            private set => SetProperty(ref statusMessageIsWarning, value);
+        }
+
         public TrainPathListItemViewModel SelectedPath
         {
             get => selectedPath;
@@ -165,7 +172,7 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
                 if (suppressSelectionCommand)
                     return;
 
-                StatusMessage = string.Empty;
+                SetStatusMessage(string.Empty, false);
                 toolWindow.SelectPath(value?.Id);
             }
         }
@@ -202,9 +209,13 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
             CanUndo = snapshot.CanUndo;
             CanRedo = snapshot.CanRedo;
             CanSnapToTrack = snapshot.CanSnapToTrack;
+            bool wasMovingNode = CanCancelMoveNode;
             CanCancelMoveNode = snapshot.CanCancelMoveNode;
             CanCreatePath = toolWindow.CanCreatePath;
             CanSavePath = toolWindow.CanSavePath;
+
+            if (wasMovingNode && !CanCancelMoveNode && IsMoveGuidanceMessage(StatusMessage))
+                SetStatusMessage(string.Empty, false);
 
             if (!string.Equals(snapshotSelectedPathId, snapshot.SelectedPathId, StringComparison.Ordinal))
             {
@@ -219,13 +230,13 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
                 return;
 
             toolWindow.BeginMoveNode(SelectedNode.Index);
-            StatusMessage = $"Select a new track location for node {SelectedNode.Index}.";
+            SetStatusMessage($"Select a new track location for node {SelectedNode.Index}.", false);
         }
 
         private void CancelMoveNode()
         {
             toolWindow.CancelMoveNode();
-            StatusMessage = "Node move canceled.";
+            SetStatusMessage("Node move canceled.", false);
         }
 
         // Runs the forced 'validate all paths' bridge. Exceptions are surfaced through StatusMessage instead of
@@ -234,14 +245,25 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
         {
             try
             {
-                StatusMessage = "Validating paths...";
+                SetStatusMessage("Validating paths...", false);
                 await toolWindow.ValidateAllPaths().ConfigureAwait(true);
-                StatusMessage = "Path validation complete.";
+                SetStatusMessage("Path validation complete.", false);
             }
             catch (Exception ex) when (ex is InvalidOperationException || ex is System.IO.IOException)
             {
-                StatusMessage = $"Path validation failed: {ex.Message}";
+                SetStatusMessage($"Path validation failed: {ex.Message}", true);
             }
+        }
+
+        private void SetStatusMessage(string message, bool isWarning)
+        {
+            StatusMessage = message;
+            StatusMessageIsWarning = isWarning;
+        }
+
+        private static bool IsMoveGuidanceMessage(string message)
+        {
+            return message?.StartsWith("Select a new track location", StringComparison.Ordinal) == true;
         }
 
         private void SyncPaths(ImmutableArray<TrainPathListRow> rows)

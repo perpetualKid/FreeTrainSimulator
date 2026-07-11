@@ -765,15 +765,32 @@ namespace FreeTrainSimulator.Toolbox
 
             // Confirm before exiting. This runs for every close path - the top-right X button, the File >
             // Exit menu (via MapHost_ExitRequested), and Alt+F4 - so the user always gets a chance to cancel.
-            if (!ConfirmExit())
+            if (!await ConfirmExitAsync().ConfigureAwait(true))
                 return;
 
             await CompleteShutdownAndCloseAsync().ConfigureAwait(true);
         }
 
-        private bool ConfirmExit()
+        private async Task<bool> ConfirmExitAsync()
         {
-            QuitDialog dialog = new QuitDialog
+            string message = RuntimeInfo.ApplicationName is null
+                ? "Exit?"
+                : $"Exit {RuntimeInfo.ApplicationName}?";
+
+            try
+            {
+                if (await MapHost.HasUnsavedPathChangesAsync().ConfigureAwait(true))
+                {
+                    message += Environment.NewLine + Environment.NewLine
+                        + "There are unsaved path changes. If you exit now, those changes will be lost.";
+                }
+            }
+            catch (InvalidOperationException ex)
+            {
+                Trace.TraceWarning($"Failed to query unsaved path changes during exit confirmation: {ex.Message}");
+            }
+
+            QuitDialog dialog = new QuitDialog(message)
             {
                 Owner = this,
             };

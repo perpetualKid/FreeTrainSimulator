@@ -356,6 +356,20 @@ namespace FreeTrainSimulator.Toolbox.Hosting
             return game == null ? Task.CompletedTask : game.InvokeOnGameThreadAsync(() => game.SaveScreenshotAsync(fileName));
         }
 
+        /// <summary>
+        /// Returns whether the hosted game has active or transient unsaved path edits.
+        /// </summary>
+        internal Task<bool> HasUnsavedPathChangesAsync()
+        {
+            GameWindow game = gameWindow;
+            if (game == null)
+                return Task.FromResult(false);
+
+            TaskCompletionSource<bool> completion = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+            game.InvokeOnGameThread(() => completion.TrySetResult(game.HasUnsavedPathChanges));
+            return completion.Task;
+        }
+
         private void OnHostedWindowPointerDown()
         {
             HostedWindowPointerDown?.Invoke(this, EventArgs.Empty);

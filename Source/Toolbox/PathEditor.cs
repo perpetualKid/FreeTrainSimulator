@@ -40,6 +40,7 @@ namespace FreeTrainSimulator.Toolbox
         private PathModel moveSourceModel;
         private PathModel movePreviewModel;
         private PathNode movePreviewAnchor;
+        private bool hasUnsavedChanges;
 
         public string PathId => path?.Id;
 
@@ -48,6 +49,8 @@ namespace FreeTrainSimulator.Toolbox
         public bool CanRedo => redoHistory.Count > 0;
 
         public bool IsMovingNode => movingNodeIndex >= 0;
+
+        public bool HasUnsavedChanges => hasUnsavedChanges;
 
         internal event EventHandler<PathEditorChangedEventArgs> OnPathChanged;
 
@@ -84,6 +87,7 @@ namespace FreeTrainSimulator.Toolbox
                 ClearMoveNodeState();
                 ClearHistory();
                 InitializePathModel(path);
+                hasUnsavedChanges = false;
                 OnPathChanged?.Invoke(this, new PathEditorChangedEventArgs(TrainPath));
                 return true;
             }
@@ -148,6 +152,7 @@ namespace FreeTrainSimulator.Toolbox
             ClearMoveNodeState();
             ClearHistory();
             InitializePathEdit(newPath);
+            hasUnsavedChanges = true;
             OnPathChanged?.Invoke(this, new PathEditorChangedEventArgs(TrainPath));
         }
 
@@ -161,6 +166,7 @@ namespace FreeTrainSimulator.Toolbox
             RestoreSnapshot(undoSnapshot);
             if (redoSnapshot != null)
                 redoHistory.Push(redoSnapshot);
+            hasUnsavedChanges = true;
             OnPathUpdated?.Invoke(this, new PathEditorChangedEventArgs(TrainPath));
             return true;
         }
@@ -175,6 +181,7 @@ namespace FreeTrainSimulator.Toolbox
             RestoreSnapshot(redoSnapshot);
             if (undoSnapshot != null)
                 undoHistory.Push(undoSnapshot);
+            hasUnsavedChanges = true;
             OnPathUpdated?.Invoke(this, new PathEditorChangedEventArgs(TrainPath));
             return true;
         }
@@ -336,6 +343,7 @@ namespace FreeTrainSimulator.Toolbox
 
             PushUndoSnapshot(currentModel);
             RestoreSnapshot(result.PathModel);
+            hasUnsavedChanges = true;
             OnPathUpdated?.Invoke(this, new PathEditorChangedEventArgs(TrainPath));
             return result;
         }
@@ -394,6 +402,7 @@ namespace FreeTrainSimulator.Toolbox
             // passes game: null), so Instance is the single authoritative resolver here; a game-scoped
             // GameInstance(game) lookup would resolve to the same object.
             pathModel = await RuntimeDataResolver.Instance.RouteData.Save(pathModel).ConfigureAwait(false);
+            hasUnsavedChanges = false;
             OnPathChanged?.Invoke(this, new PathEditorChangedEventArgs(TrainPath));
         }
 
@@ -489,6 +498,8 @@ namespace FreeTrainSimulator.Toolbox
                 }
                 if (changed)
                     PushUndoSnapshot(undoSnapshot);
+                if (changed)
+                    hasUnsavedChanges = true;
                 lastPathClickTick = Environment.TickCount64;
                 OnPathUpdated?.Invoke(this, new PathEditorChangedEventArgs(TrainPath));
                 userCommandArgs.Handled = true;
@@ -503,7 +514,10 @@ namespace FreeTrainSimulator.Toolbox
 
             PathModel undoSnapshot = TryCaptureSnapshot();
             if (RemovePathPoint())
+            {
                 PushUndoSnapshot(undoSnapshot);
+                hasUnsavedChanges = true;
+            }
             OnPathUpdated?.Invoke(this, new PathEditorChangedEventArgs(TrainPath));
             userCommandArgs.Handled = true;
         }
@@ -539,6 +553,7 @@ namespace FreeTrainSimulator.Toolbox
 
             int movedNodeIndex = movingNodeIndex;
             PushUndoSnapshot(currentModel);
+            hasUnsavedChanges = true;
             ClearMoveNodeState();
             path = committedModel;
             RestorePath(committedModel, false);

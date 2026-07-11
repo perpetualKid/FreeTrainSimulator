@@ -181,6 +181,8 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
 
         public string Title => "Path Editor";
 
+        internal bool HasUnsavedPathChanges => pathEditorAccessor()?.HasUnsavedChanges == true || transientPaths.Count > 0;
+
         public bool Active
         {
             get => active;
@@ -228,7 +230,8 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
             }
 
             TrainPathBase currentPath = pathEditor.TrainPath;
-            ImmutableArray<TrainPathListRow> paths = BuildPaths(currentPath?.PathModel);
+            PathModel currentPathModel = NormalizeTransientPathModel(pathEditor.TryCaptureCurrentPathModel() ?? currentPath?.PathModel);
+            ImmutableArray<TrainPathListRow> paths = BuildPaths(currentPathModel);
             string selectedPathId = currentPath?.PathModel?.Id;
             int nodeCount = currentPath?.PathPoints.Count ?? 0;
             bool canUndo = pathEditor.CanUndo;
@@ -420,7 +423,12 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
             }
 
             foreach (PathModelHeader path in savedPaths.OrderBy(p => p.Name))
-                builder.Add(new TrainPathListRow(path.Id, path.Name, path.ValidationState));
+            {
+                PathModelHeader rowPath = currentPathModel != null && string.Equals(currentPathModel.Id, path.Id, StringComparison.OrdinalIgnoreCase)
+                    ? currentPathModel
+                    : transientPaths.FirstOrDefault(transientPath => string.Equals(transientPath.Id, path.Id, StringComparison.OrdinalIgnoreCase)) ?? path;
+                builder.Add(new TrainPathListRow(rowPath.Id, rowPath.Name, rowPath.ValidationState));
+            }
 
             return builder.ToImmutable();
         }
@@ -548,11 +556,21 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
 
         private void CaptureTransientCurrentPath()
         {
-            PathModel currentModel = pathEditorAccessor()?.TryCaptureCurrentPathModel();
+            PathModel currentModel = NormalizeTransientPathModel(pathEditorAccessor()?.TryCaptureCurrentPathModel());
             if (currentModel == null || string.IsNullOrWhiteSpace(currentModel.Id))
                 return;
 
             transientPaths[currentModel.Id] = currentModel;
+        }
+
+        private PathModel NormalizeTransientPathModel(PathModel pathModel)
+        {
+            if (pathModel == null)
+                return null;
+
+            ITrainPathToolingContext toolingContext = toolingContextAccessor();
+            PathValidationState validationState = PathEditor.ResolveValidationState(pathModel, toolingContext?.TrackWorld);
+            return pathModel.ValidationState == validationState ? pathModel : pathModel with { ValidationState = validationState };
         }
 
         private void RefreshCachedPathsFromContext()

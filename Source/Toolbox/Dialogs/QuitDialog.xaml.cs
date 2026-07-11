@@ -14,8 +14,14 @@ namespace FreeTrainSimulator.Toolbox.Dialogs
     public partial class QuitDialog : Window
     {
         internal QuitDialog()
+            : this(CatalogManager.Catalog.GetString($"Exit {RuntimeInfo.ApplicationName}?"))
+        {
+        }
+
+        internal QuitDialog(string message)
         {
             InitializeComponent();
+            Message = message;
             DataContext = this;
         }
 
@@ -24,7 +30,7 @@ namespace FreeTrainSimulator.Toolbox.Dialogs
         /// localized; the binding is data-bound, so the WPF Localizer skips it and the catalog lookup here is
         /// the single localization point.
         /// </summary>
-        public static string Message => CatalogManager.Catalog.GetString($"Exit {RuntimeInfo.ApplicationName}?");
+        public string Message { get; }
 
         private void ExitButton_Click(object sender, RoutedEventArgs e)
         {
