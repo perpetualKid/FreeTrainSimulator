@@ -37,6 +37,9 @@ namespace FreeTrainSimulator.Toolbox
         private bool validPointAdded;
         private bool editorDragged;
         private int movingNodeIndex = -1;
+        private PathModel moveSourceModel;
+        private PathModel movePreviewModel;
+        private PathNode movePreviewAnchor;
 
         public string PathId => path?.Id;
 
@@ -249,11 +252,60 @@ namespace FreeTrainSimulator.Toolbox
             }
 
             movingNodeIndex = nodeIndex;
+            moveSourceModel = currentModel;
+            movePreviewModel = null;
+            movePreviewAnchor = null;
             UseStandaloneActivePathPointPreview = true;
             SetHiddenPathNodeIndex(nodeIndex);
-            HighlightPathItem(nodeIndex);
+            SelectPathItem(nodeIndex);
             OnPathUpdated?.Invoke(this, new PathEditorChangedEventArgs(TrainPath));
             return true;
+        }
+
+        protected override void OnActivePathPointUpdated()
+        {
+            if (IsMovingNode)
+                UpdateMovePreview();
+        }
+
+        private void UpdateMovePreview()
+        {
+            if (moveSourceModel == null)
+            {
+                ClearMovePreview();
+                return;
+            }
+
+            TrainPathPointBase candidate = ActivePathPoint;
+            if (candidate == null || candidate.ValidationResult != PathNodeInvalidReasons.None || candidate.ConnectedSegments.IsDefaultOrEmpty)
+            {
+                ClearMovePreview();
+                return;
+            }
+
+            PathNode replacementAnchor = CreateReplacementAnchor(candidate);
+            if (EquivalentMoveAnchor(movePreviewAnchor, replacementAnchor))
+                return;
+
+            bool isJunction = candidate.JunctionNode != null || (candidate.NodeType & PathNodeType.Junction) == PathNodeType.Junction;
+            PathEditResult result = PathModelEditor.MoveNode(moveSourceModel, movingNodeIndex, replacementAnchor, isJunction);
+            if (!result.Success)
+            {
+                ClearMovePreview();
+                return;
+            }
+
+            movePreviewAnchor = replacementAnchor;
+            movePreviewModel = result.PathModel;
+            SetPreviewPath(movePreviewModel);
+            OnPathUpdated?.Invoke(this, new PathEditorChangedEventArgs(TrainPath));
+        }
+
+        private void ClearMovePreview()
+        {
+            movePreviewAnchor = null;
+            movePreviewModel = null;
+            SetPreviewPath(null);
         }
 
         public bool CancelMoveNode()
@@ -472,20 +524,27 @@ namespace FreeTrainSimulator.Toolbox
             if (currentModel == null)
                 return PathEditResult.Failed("No editable path is currently loaded.", null);
 
-            PathNode replacementAnchor = CreateReplacementAnchor(candidate);
-            bool isJunction = candidate.JunctionNode != null || (candidate.NodeType & PathNodeType.Junction) == PathNodeType.Junction;
-            PathEditResult result = PathModelEditor.MoveNode(currentModel, movingNodeIndex, replacementAnchor, isJunction);
-            if (!result.Success)
-                return result;
+            PathModel committedModel = movePreviewModel;
+            PathEditResult result;
+            if (committedModel == null)
+            {
+                PathNode replacementAnchor = CreateReplacementAnchor(candidate);
+                bool isJunction = candidate.JunctionNode != null || (candidate.NodeType & PathNodeType.Junction) == PathNodeType.Junction;
+                result = PathModelEditor.MoveNode(currentModel, movingNodeIndex, replacementAnchor, isJunction);
+                if (!result.Success)
+                    return result;
+
+                committedModel = result.PathModel;
+            }
 
             int movedNodeIndex = movingNodeIndex;
             PushUndoSnapshot(currentModel);
             ClearMoveNodeState();
-            path = result.PathModel;
-            RestorePath(result.PathModel, false);
-            HighlightPathItem(movedNodeIndex);
+            path = committedModel;
+            RestorePath(committedModel, false);
+            SelectPathItem(movedNodeIndex);
             OnPathUpdated?.Invoke(this, new PathEditorChangedEventArgs(TrainPath));
-            return result;
+            return PathEditResult.Succeeded($"Moved node {movedNodeIndex}.", committedModel, ImmutableArray.Create(movedNodeIndex));
         }
 
         private static PathNode CreateReplacementAnchor(TrainPathPointBase candidate)
@@ -500,9 +559,21 @@ namespace FreeTrainSimulator.Toolbox
             };
         }
 
+        internal static bool EquivalentMoveAnchor(PathNode first, PathNode second)
+        {
+            if (ReferenceEquals(first, second))
+                return true;
+            if (first == null || second == null)
+                return false;
+
+            return first.NodeIndex == second.NodeIndex && first.Location == second.Location;
+        }
+
         private void ClearMoveNodeState()
         {
             movingNodeIndex = -1;
+            moveSourceModel = null;
+            ClearMovePreview();
             UseStandaloneActivePathPointPreview = false;
             SetHiddenPathNodeIndex(-1);
         }
@@ -522,7 +593,7 @@ namespace FreeTrainSimulator.Toolbox
 
         internal PathModel TryCaptureCurrentPathModel()
         {
-            return TryCaptureSnapshot();
+            return PreviewPathModel ?? TryCaptureSnapshot();
         }
 
         private string BuildSnapshotContext()

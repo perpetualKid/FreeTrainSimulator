@@ -198,6 +198,40 @@ namespace Tests.FreeTrainSimulator.Toolbox
             Assert.AreEqual(PathValidationState.Invalid, state);
         }
 
+        [TestMethod]
+        public void WhenMoveAnchorsHaveSameLocationAndTrackNodeThenTheyAreEquivalent()
+        {
+            PathNode first = new PathNode(new WorldLocation(new Tile(0, 0), new Vector3(1, 0, 2)))
+            {
+                NodeIndex = 4,
+            };
+            PathNode second = new PathNode(new WorldLocation(new Tile(0, 0), new Vector3(1, 0, 2)))
+            {
+                NodeIndex = 4,
+            };
+
+            bool equivalent = PathEditor.EquivalentMoveAnchor(first, second);
+
+            Assert.IsTrue(equivalent);
+        }
+
+        [TestMethod]
+        public void WhenMoveAnchorsHaveDifferentTrackNodeThenTheyAreNotEquivalent()
+        {
+            PathNode first = new PathNode(new WorldLocation(new Tile(0, 0), new Vector3(1, 0, 2)))
+            {
+                NodeIndex = 4,
+            };
+            PathNode second = new PathNode(new WorldLocation(new Tile(0, 0), new Vector3(1, 0, 2)))
+            {
+                NodeIndex = 5,
+            };
+
+            bool equivalent = PathEditor.EquivalentMoveAnchor(first, second);
+
+            Assert.IsFalse(equivalent);
+        }
+
         private static PathNode CreateNode(PathNodeType nodeType, int nextMainNode)
         {
             return new PathNode(new WorldLocation(new Tile(0, 0), Vector3.Zero))
