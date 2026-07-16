@@ -43,6 +43,7 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
             SnapToTrackCommand = new RelayCommand(_ => toolWindow.SnapToTrack(), _ => CanSnapToTrack);
             MoveSelectedNodeCommand = new RelayCommand(_ => MoveSelectedNode(), _ => CanMoveSelectedNode);
             CancelMoveNodeCommand = new RelayCommand(_ => CancelMoveNode(), _ => CanCancelMoveNode);
+            RepairSelectedNodeCommand = new RelayCommand(_ => RepairSelectedNode(), _ => CanRepairSelectedNode);
             NewPathCommand = new RelayCommand(_ => toolWindow.CreatePath(), _ => CanCreatePath);
             SavePathCommand = new RelayCommand(_ => toolWindow.SavePath(), _ => CanSavePath);
             ValidateAllPathsCommand = new RelayCommand(_ => ValidateAllPaths());
@@ -67,6 +68,8 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
         public RelayCommand MoveSelectedNodeCommand { get; }
 
         public RelayCommand CancelMoveNodeCommand { get; }
+
+        public RelayCommand RepairSelectedNodeCommand { get; }
 
         public RelayCommand NewPathCommand { get; }
 
@@ -98,6 +101,8 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
         }
 
         public bool CanMoveSelectedNode => SelectedNode != null && !CanCancelMoveNode;
+
+        public bool CanRepairSelectedNode => SelectedNode != null && !CanCancelMoveNode;
 
         public bool CanRedo
         {
@@ -191,6 +196,7 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
                 toolWindow.HighlightNode(value?.Index ?? -1);
                 UpdateSelectedNodeDetailRows();
                 MoveSelectedNodeCommand.RaiseCanExecuteChanged();
+                RepairSelectedNodeCommand.RaiseCanExecuteChanged();
             }
         }
 
@@ -237,6 +243,15 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
         {
             toolWindow.CancelMoveNode();
             SetStatusMessage("Node move canceled.", false);
+        }
+
+        private void RepairSelectedNode()
+        {
+            if (SelectedNode == null)
+                return;
+
+            toolWindow.RepairSelectedNode(SelectedNode.Index);
+            SetStatusMessage($"Repair selected node {SelectedNode.Index} requested.", false);
         }
 
         // Runs the forced 'validate all paths' bridge. Exceptions are surfaced through StatusMessage instead of

@@ -1,8 +1,11 @@
 using System;
 using System.Collections.Immutable;
+using System.Linq;
 
 using FreeTrainSimulator.Common;
+using FreeTrainSimulator.Common.Position;
 using FreeTrainSimulator.Models.Content;
+using FreeTrainSimulator.Models.Track;
 
 namespace FreeTrainSimulator.Runtime.Track
 {
@@ -17,6 +20,8 @@ namespace FreeTrainSimulator.Runtime.Track
     /// </summary>
     public static class PathModelEditor
     {
+        private const double NearbyJunctionRepairDistanceMeters = 10.0;
+
         /// <summary>
         /// Marks the last node of a linear main path as the end node. Fails when a node is already the end,
         /// when the path is empty, or when there is no start node.
@@ -177,6 +182,97 @@ namespace FreeTrainSimulator.Runtime.Track
             return PathEditResult.Succeeded($"Moved node {nodeIndex}.",
                 pathModel with { PathNodes = nodes.SetItem(nodeIndex, movedNode) },
                 ImmutableArray.Create(nodeIndex));
+        }
+
+        /// <summary>
+        /// Safely repairs the node at <paramref name="nodeIndex"/> when the repair is unambiguous. The first
+        /// supported repair converts a node incorrectly marked as a junction into a track point when its stored
+        /// location lies on exactly one vector section and no actual junction exists there.
+        /// </summary>
+        public static PathEditResult RepairNode(PathModel pathModel, int nodeIndex, TrackWorld trackWorld)
+        {
+            ArgumentNullException.ThrowIfNull(pathModel);
+
+            if (trackWorld == null)
+                return PathEditResult.Failed("Cannot repair node because no track world is available.", pathModel);
+
+            ImmutableArray<PathNode> nodes = Nodes(pathModel);
+            if (nodeIndex < 0 || nodeIndex >= nodes.Length)
+                return PathEditResult.Failed($"Node index {nodeIndex} is out of range.", pathModel);
+
+            PathNode node = nodes[nodeIndex];
+            JunctionNode exactJunction = trackWorld.JunctionAt(node.Location);
+            if (exactJunction != null)
+                return PathEditResult.Failed($"Node {nodeIndex} is already located on a junction.", pathModel);
+
+            JunctionNode[] nearbyJunctions = FindNearbyJunctions(trackWorld, node.Location);
+            if (nearbyJunctions.Length == 1)
+                return MoveNodeToJunction(pathModel, nodeIndex, nearbyJunctions[0]);
+            if (nearbyJunctions.Length > 1)
+                return PathEditResult.Failed($"Node {nodeIndex} has multiple nearby junction repairs; choose the intended junction manually.", pathModel);
+
+            if ((node.NodeType & PathNodeType.Junction) != PathNodeType.Junction)
+                return PathEditResult.Failed($"Node {nodeIndex} does not have a supported automatic repair.", pathModel);
+
+            VectorSectionNode[] candidates = trackWorld.TrackDatabase?.TrackNodes
+                .OfType<VectorNode>()
+                .Select(vectorNode => trackWorld.SectionAt(vectorNode, node.Location))
+                .Where(section => section != null)
+                .Take(2)
+                .ToArray() ?? Array.Empty<VectorSectionNode>();
+            int trackNodeIndex;
+            if (candidates.Length == 0)
+            {
+                TrackDistanceDiagnostic nearestTrackDistance = trackWorld.NearestTrackDistance(PointD.FromWorldLocation(node.Location));
+                if (nearestTrackDistance == null || nearestTrackDistance.DistanceMeters > 1.0)
+                    return PathEditResult.Failed($"Node {nodeIndex} is not on a valid track section.", pathModel);
+
+                trackNodeIndex = nearestTrackDistance.TrackNodeIndex;
+            }
+            else
+            {
+                if (candidates.Length > 1)
+                    return PathEditResult.Failed($"Node {nodeIndex} has multiple possible track repairs; choose the intended track manually.", pathModel);
+                if (!trackWorld.SectionGeometry.TryGetValue(candidates[0], out SectionGeometry geometry))
+                    return PathEditResult.Failed($"Node {nodeIndex} track section has no resolved geometry.", pathModel);
+
+                trackNodeIndex = geometry.Node.NodeIndex;
+            }
+
+            PathNode replacementAnchor = new PathNode(node.Location)
+            {
+                NodeIndex = trackNodeIndex,
+            };
+
+            PathEditResult result = MoveNode(pathModel, nodeIndex, replacementAnchor, false);
+            return result.Success
+                ? PathEditResult.Succeeded($"Repaired node {nodeIndex} as a track point.", result.PathModel, result.ChangedNodeIndexes)
+                : result;
+        }
+
+        private static JunctionNode[] FindNearbyJunctions(TrackWorld trackWorld, in WorldLocation location)
+        {
+            WorldLocation targetLocation = location;
+            double maxDistanceSquared = NearbyJunctionRepairDistanceMeters * NearbyJunctionRepairDistanceMeters;
+            return trackWorld.TrackDatabase?.TrackNodes
+                .OfType<JunctionNode>()
+                .Where(junction => WorldLocation.GetDistanceSquared2D(junction.Location, targetLocation) <= maxDistanceSquared)
+                .OrderBy(junction => WorldLocation.GetDistanceSquared2D(junction.Location, targetLocation))
+                .Take(2)
+                .ToArray() ?? Array.Empty<JunctionNode>();
+        }
+
+        private static PathEditResult MoveNodeToJunction(PathModel pathModel, int nodeIndex, JunctionNode junctionNode)
+        {
+            PathNode replacementAnchor = new PathNode(junctionNode.Location)
+            {
+                NodeIndex = junctionNode.NodeIndex,
+            };
+
+            PathEditResult result = MoveNode(pathModel, nodeIndex, replacementAnchor, true);
+            return result.Success
+                ? PathEditResult.Succeeded($"Repaired node {nodeIndex} by snapping it to junction {junctionNode.NodeIndex}.", result.PathModel, result.ChangedNodeIndexes)
+                : result;
         }
 
         // Returns the authored nodes, normalizing a default ImmutableArray to empty.

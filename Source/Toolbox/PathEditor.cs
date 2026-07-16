@@ -240,14 +240,39 @@ namespace FreeTrainSimulator.Toolbox
 
         public bool CanMoveNode(int nodeIndex)
         {
-            PathModel currentModel = TryCaptureSnapshot();
+            PathModel currentModel = TryGetEditablePathModel();
             ImmutableArray<PathNode> nodes = currentModel?.PathNodes ?? ImmutableArray<PathNode>.Empty;
             return nodeIndex >= 0 && nodeIndex < nodes.Length;
         }
 
+        public PathEditResult RepairSelectedNode(int nodeIndex)
+        {
+            PathModel currentModel = TryGetEditablePathModel();
+            ImmutableArray<PathNode> nodes = currentModel?.PathNodes ?? ImmutableArray<PathNode>.Empty;
+            if (nodeIndex < 0 || nodeIndex >= nodes.Length)
+                return PathEditResult.Failed($"Node index {nodeIndex} is out of range.", currentModel);
+
+            PathEditResult result = PathModelEditor.RepairNode(currentModel, nodeIndex, RuntimeDataResolver.Instance.TrackWorld);
+            if (!result.Success)
+                return result;
+
+            if (!EditMode)
+            {
+                path = currentModel;
+                RestorePath(currentModel, true);
+            }
+
+            PushUndoSnapshot(currentModel);
+            hasUnsavedChanges = true;
+            RestoreSnapshot(result.PathModel);
+            SelectPathItem(nodeIndex);
+            OnPathUpdated?.Invoke(this, new PathEditorChangedEventArgs(TrainPath));
+            return result;
+        }
+
         public bool BeginMoveNode(int nodeIndex)
         {
-            PathModel currentModel = TryCaptureSnapshot();
+            PathModel currentModel = TryGetEditablePathModel();
             ImmutableArray<PathNode> nodes = currentModel?.PathNodes ?? ImmutableArray<PathNode>.Empty;
             if (nodeIndex < 0 || nodeIndex >= nodes.Length)
                 return false;
@@ -320,7 +345,15 @@ namespace FreeTrainSimulator.Toolbox
             if (!IsMovingNode)
                 return false;
 
+            int movedNodeIndex = movingNodeIndex;
+            PathModel currentModel = TryGetEditablePathModel();
             ClearMoveNodeState();
+            if (currentModel != null)
+            {
+                path = currentModel;
+                RestorePath(currentModel, false);
+                SelectPathItem(movedNodeIndex);
+            }
             OnPathUpdated?.Invoke(this, new PathEditorChangedEventArgs(TrainPath));
             return true;
         }
@@ -333,7 +366,7 @@ namespace FreeTrainSimulator.Toolbox
             if (!EditMode)
                 return PathEditResult.Failed("The path is not in edit mode.", null);
 
-            PathModel currentModel = TryCaptureSnapshot();
+            PathModel currentModel = TryCaptureSnapshot() ?? moveSourceModel;
             if (currentModel == null)
                 return PathEditResult.Failed("No editable path is currently loaded.", null);
 
@@ -477,7 +510,9 @@ namespace FreeTrainSimulator.Toolbox
         {
             if (IsMovingNode)
             {
-                _ = CommitMoveNode();
+                PathEditResult result = CommitMoveNode();
+                if (!result.Success)
+                    Trace.TraceWarning($"Cannot commit moved path node: {result.Message}");
                 userCommandArgs.Handled = true;
                 editorDragged = false;
                 return;
@@ -530,11 +565,7 @@ namespace FreeTrainSimulator.Toolbox
 
         private PathEditResult CommitMoveNode()
         {
-            TrainPathPointBase candidate = ActivePathPoint;
-            if (candidate == null || candidate.ValidationResult != PathNodeInvalidReasons.None || candidate.ConnectedSegments.IsDefaultOrEmpty)
-                return PathEditResult.Failed("Select a valid track location for the node.", TryCaptureSnapshot());
-
-            PathModel currentModel = TryCaptureSnapshot();
+            PathModel currentModel = TryCaptureSnapshot() ?? moveSourceModel;
             if (currentModel == null)
                 return PathEditResult.Failed("No editable path is currently loaded.", null);
 
@@ -542,6 +573,10 @@ namespace FreeTrainSimulator.Toolbox
             PathEditResult result;
             if (committedModel == null)
             {
+                TrainPathPointBase candidate = ActivePathPoint;
+                if (candidate == null || candidate.ValidationResult != PathNodeInvalidReasons.None || candidate.ConnectedSegments.IsDefaultOrEmpty)
+                    return PathEditResult.Failed("Select a valid track location for the node.", currentModel);
+
                 PathNode replacementAnchor = CreateReplacementAnchor(candidate);
                 bool isJunction = candidate.JunctionNode != null || (candidate.NodeType & PathNodeType.Junction) == PathNodeType.Junction;
                 result = PathModelEditor.MoveNode(currentModel, movingNodeIndex, replacementAnchor, isJunction);
@@ -606,9 +641,32 @@ namespace FreeTrainSimulator.Toolbox
             }
         }
 
+        private PathModel TryGetEditablePathModel()
+        {
+            return TryCaptureSnapshot() ?? TryGetLoadedPathModel();
+        }
+
+        private PathModel TryGetLoadedPathModel()
+        {
+            try
+            {
+                return path switch
+                {
+                    null => null,
+                    PathModel model => model,
+                    _ => Task.Run(async () => await path.GetExtended(CancellationToken.None).ConfigureAwait(false)).Result,
+                };
+            }
+            catch (Exception ex) when (ex is InvalidOperationException || ex is ArgumentException)
+            {
+                Trace.TraceWarning($"Cannot load fallback path model for editing: {ex.Message}");
+                return null;
+            }
+        }
+
         internal PathModel TryCaptureCurrentPathModel()
         {
-            return PreviewPathModel ?? TryCaptureSnapshot();
+            return PreviewPathModel ?? TryGetEditablePathModel();
         }
 
         private string BuildSnapshotContext()

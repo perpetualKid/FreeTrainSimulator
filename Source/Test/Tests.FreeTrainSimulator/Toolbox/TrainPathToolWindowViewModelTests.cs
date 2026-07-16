@@ -157,6 +157,26 @@ namespace Tests.FreeTrainSimulator.Toolbox
         }
 
         [TestMethod]
+        public void WhenRepairSelectedNodeCommandExecutedThenBridgeRepairNodeIsMarshaled()
+        {
+            int invocations = 0;
+            TrainPathToolWindow bridge = CreateBridge(_ => invocations++);
+            using (ToolWindowRefreshScheduler refreshScheduler = new ToolWindowRefreshScheduler(Dispatcher.CurrentDispatcher))
+            {
+                using (TrainPathToolWindowViewModel trainPathToolWindowViewModel = new TrainPathToolWindowViewModel(bridge, refreshScheduler)
+                {
+                    SelectedNode = new TrainPathNodeItemViewModel(2, "Intermediate", true)
+                })
+                {
+                    trainPathToolWindowViewModel.RepairSelectedNodeCommand.Execute(null);
+
+                    Assert.AreEqual(2, invocations);
+                    Assert.Contains("node 2", trainPathToolWindowViewModel.StatusMessage);
+                }
+            }
+        }
+
+        [TestMethod]
         public void WhenCancelMoveNodeCommandExecutedThenBridgeCancelMoveIsMarshaled()
         {
             int invocations = 0;

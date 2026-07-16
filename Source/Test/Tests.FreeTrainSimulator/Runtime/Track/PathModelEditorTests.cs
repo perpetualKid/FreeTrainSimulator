@@ -1,9 +1,12 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
+using System.Reflection;
 
 using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Position;
 using FreeTrainSimulator.Models.Content;
+using FreeTrainSimulator.Models.Track;
 using FreeTrainSimulator.Runtime.Track;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -270,6 +273,69 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
         }
 
         [TestMethod]
+        public void WhenRepairJunctionNodeOnSingleTrackSectionThenNodeBecomesTrackPoint()
+        {
+            TrackWorld trackWorld = CreateInitializedTrackWorldWithSingleVectorNode();
+            PathModel path = CreatePath(
+                Node(PathNodeType.Start, 1),
+                Node(PathNodeType.Junction, 2),
+                Node(PathNodeType.End, -1));
+
+            PathEditResult result = PathModelEditor.RepairNode(path, 1, trackWorld);
+
+            Assert.IsTrue(result.Success);
+            Assert.IsTrue((result.PathModel.PathNodes[1].NodeType & PathNodeType.Intermediate) == PathNodeType.Intermediate);
+            Assert.IsFalse((result.PathModel.PathNodes[1].NodeType & PathNodeType.Junction) == PathNodeType.Junction);
+            Assert.AreEqual(1, result.PathModel.PathNodes[1].NodeIndex);
+        }
+
+        [TestMethod]
+        public void WhenRepairNodeHasSingleNearbyJunctionThenNodeSnapsToJunction()
+        {
+            TrackWorld trackWorld = CreateTrackWorldWithJunctions(
+                new JunctionNode(new WorldLocation(new Tile(0, 0), new Vector3(3, 0, 0)), new Tile(0, 0), Vector3.Zero) { NodeIndex = 2 });
+            PathModel path = CreatePath(
+                Node(PathNodeType.Start, 1),
+                Node(PathNodeType.Intermediate, 2),
+                Node(PathNodeType.End, -1));
+
+            PathEditResult result = PathModelEditor.RepairNode(path, 1, trackWorld);
+
+            Assert.IsTrue(result.Success);
+            Assert.AreEqual(2, result.PathModel.PathNodes[1].NodeIndex);
+            Assert.AreEqual(new WorldLocation(new Tile(0, 0), new Vector3(3, 0, 0)), result.PathModel.PathNodes[1].Location);
+            Assert.IsTrue((result.PathModel.PathNodes[1].NodeType & PathNodeType.Junction) == PathNodeType.Junction);
+        }
+
+        [TestMethod]
+        public void WhenRepairNodeHasMultipleNearbyJunctionsThenResultFails()
+        {
+            TrackWorld trackWorld = CreateTrackWorldWithJunctions(
+                new JunctionNode(new WorldLocation(new Tile(0, 0), new Vector3(3, 0, 0)), new Tile(0, 0), Vector3.Zero) { NodeIndex = 2 },
+                new JunctionNode(new WorldLocation(new Tile(0, 0), new Vector3(-3, 0, 0)), new Tile(0, 0), Vector3.Zero) { NodeIndex = 3 });
+            PathModel path = CreatePath(
+                Node(PathNodeType.Start, 1),
+                Node(PathNodeType.Intermediate, 2),
+                Node(PathNodeType.End, -1));
+
+            PathEditResult result = PathModelEditor.RepairNode(path, 1, trackWorld);
+
+            Assert.IsFalse(result.Success);
+            Assert.AreSame(path, result.PathModel);
+        }
+
+        [TestMethod]
+        public void WhenRepairNodeWithoutTrackWorldThenResultFails()
+        {
+            PathModel path = CreatePath(Node(PathNodeType.Junction, -1));
+
+            PathEditResult result = PathModelEditor.RepairNode(path, 0, null);
+
+            Assert.IsFalse(result.Success);
+            Assert.AreSame(path, result.PathModel);
+        }
+
+        [TestMethod]
         public void WhenMoveNodeThenLocationAndAnchorAreUpdated()
         {
             PathModel path = CreatePath(
@@ -360,6 +426,64 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
                 Name = "Test Path",
                 PathNodes = ImmutableArray.Create(nodes),
             };
+        }
+
+        private static TrackWorld CreateInitializedTrackWorldWithSingleVectorNode()
+        {
+            WorldLocation start = new WorldLocation(new Tile(0, 0), Vector3.Zero);
+            WorldLocation end = new WorldLocation(new Tile(0, 0), new Vector3(100, 0, 0));
+            VectorSectionNode section = new VectorSectionNode(start, new Tile(0, 0), new Vector3(0, MathHelper.PiOver2, 0), end)
+            {
+                NodeIndex = 1,
+            };
+            VectorNode vectorNode = new VectorNode(start, new Tile(0, 0), end)
+            {
+                NodeIndex = 1,
+                VectorSections = ImmutableArray.Create(section),
+            };
+            TrackDatabase trackDatabase = new TrackDatabase()
+            {
+                TrackNodes = ImmutableArray.Create<TrackNodeBase>(null, vectorNode),
+                TrackNodeConnectors = ImmutableArray.Create(new TrackNodeConnectorIndex(), new TrackNodeConnectorIndex()),
+            };
+            typeof(TrackDatabase).GetMethod("OnSerializing", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(trackDatabase, null);
+            typeof(TrackDatabase).GetMethod("OnSerialized", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(trackDatabase, null);
+
+            TrackModel trackModel = new TrackModel()
+            {
+                TrackDatabase = trackDatabase,
+            };
+            TrackSectionModel trackSectionModel = new TrackSectionModel()
+            {
+                TrackSections = ImmutableDictionary<int, TrackSection>.Empty.Add(1, new TrackSection
+                {
+                    SectionIndex = 1,
+                    Gauge = 1.435f,
+                    Length = 100,
+                }),
+            };
+            return TrackWorld.Initialize(null, trackModel, trackSectionModel);
+        }
+
+        private static TrackWorld CreateTrackWorldWithJunctions(params JunctionNode[] junctionNodes)
+        {
+            TrackNodeBase[] nodes = new TrackNodeBase[junctionNodes.Max(junction => junction.NodeIndex) + 1];
+            foreach (JunctionNode junctionNode in junctionNodes)
+                nodes[junctionNode.NodeIndex] = junctionNode;
+
+            TrackDatabase trackDatabase = new TrackDatabase()
+            {
+                TrackNodes = ImmutableArray.Create(nodes),
+                TrackNodeConnectors = ImmutableArray.CreateRange(Enumerable.Range(0, nodes.Length).Select(index => new TrackNodeConnectorIndex { NodeIndex = index })),
+            };
+            typeof(TrackDatabase).GetMethod("OnSerializing", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(trackDatabase, null);
+            typeof(TrackDatabase).GetMethod("OnSerialized", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(trackDatabase, null);
+
+            TrackModel trackModel = new TrackModel()
+            {
+                TrackDatabase = trackDatabase,
+            };
+            return TrackWorld.Initialize(null, trackModel, new TrackSectionModel());
         }
     }
 }

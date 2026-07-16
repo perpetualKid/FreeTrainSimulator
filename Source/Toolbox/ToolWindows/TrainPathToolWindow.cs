@@ -333,6 +333,8 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
 
         internal void CancelMoveNode() => InvokeEditorMutation(pathEditor => pathEditor.CancelMoveNode());
 
+        internal void RepairSelectedNode(int nodeIndex) => InvokeEditorMutation(pathEditor => pathEditor.RepairSelectedNode(nodeIndex).Success);
+
         internal bool CanCreatePath => toolingContextAccessor() != null;
 
         internal bool CanSavePath => pathEditorAccessor()?.TrainPath != null;
