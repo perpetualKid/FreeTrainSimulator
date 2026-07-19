@@ -24,11 +24,11 @@ namespace FreeTrainSimulator.Runtime
 
         public static RuntimeDataResolver GameInstance(Game game) => GameService<RuntimeDataResolver>.Get(game);
 
-        public static async Task Initialize(RouteModel route, bool metricUnits, IRuntimeReferenceResolver runtimeReferenceResolver = null)
+        public static async Task Initialize(RouteModel route, bool metricUnits, IRuntimeReferenceResolver runtimeReferenceResolver, CancellationToken cancellationToken)
         {
-            TrackSectionModel trackSectionModel = await route.GetTrackSectionModel(CancellationToken.None).ConfigureAwait(false);
-            TrackModel trackModel = await route.GetTrackModel(CancellationToken.None).ConfigureAwait(false);
-            SignalConfigurationModel signalConfigurationModel = await route.GetSignalConfigurationModel(CancellationToken.None).ConfigureAwait(false);
+            TrackSectionModel trackSectionModel = await route.GetTrackSectionModel(cancellationToken).ConfigureAwait(false);
+            TrackModel trackModel = await route.GetTrackModel(cancellationToken).ConfigureAwait(false);
+            SignalConfigurationModel signalConfigurationModel = await route.GetSignalConfigurationModel(cancellationToken).ConfigureAwait(false);
 
             Track.TrackWorld trackWorld = Track.TrackWorld.Initialize(null, trackModel, trackSectionModel);
 

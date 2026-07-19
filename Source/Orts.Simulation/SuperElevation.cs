@@ -46,10 +46,15 @@ namespace Orts.Simulation
             MaximumAllowedM = 0.07f + simulator.UserSettings.SuperElevationLevel / 100f;//max allowed elevation controlled by user setting
 
             TrackWorld trackWorld = TrackWorld.Instance;
-            TrackDatabase trackDatabase = RuntimeDataResolver.Instance.TrackWorld.TrackDatabase;
-            ImmutableDictionary<int, TrackSection> trackSections = RuntimeDataResolver.Instance.TrackSections.TrackSections;
+            RuntimeDataResolver runtimeDataResolver = RuntimeDataResolver.Instance;
 
-            if (trackDatabase == null || trackWorld == null)
+            if (runtimeDataResolver == null || runtimeDataResolver.TrackWorld == null || runtimeDataResolver.TrackSections == null || trackWorld == null)
+                return;
+
+            TrackDatabase trackDatabase = runtimeDataResolver.TrackWorld.TrackDatabase;
+            ImmutableDictionary<int, TrackSection> trackSections = runtimeDataResolver.TrackSections.TrackSections;
+
+            if (trackDatabase == null || trackSections == null)
                 return;
 
             List<SectionGeometry> SectionList = new List<SectionGeometry>();

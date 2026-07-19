@@ -173,7 +173,7 @@ namespace FreeTrainSimulator.Toolbox
             if (ToolboxUserSettings.MeasurementUnit == MeasurementUnit.Route)
                 useMetricUnits = routeModel.MetricUnits;
 
-            await RuntimeDataResolver.Initialize(routeModel, useMetricUnits).ConfigureAwait(true);
+            await RuntimeDataResolver.Initialize(routeModel, useMetricUnits, null, CancellationToken.None).ConfigureAwait(true);
             if (ctsProfileLoading.Token.IsCancellationRequested)
                 return;
 
@@ -204,10 +204,10 @@ namespace FreeTrainSimulator.Toolbox
             _ = windowManager[ToolboxWindowType.StatusWindow].Close();
         }
 
-        internal bool LoadPath(PathModelHeader path)
+        internal async Task<bool> LoadPathAsync(PathModelHeader path)
         {
             PathEditor editor = PathEditor;
-            return editor?.InitializePath(path) == true;
+            return editor != null && await editor.InitializePathAsync(path, ctsProfileLoading?.Token ?? CancellationToken.None).ConfigureAwait(true);
         }
 
         internal bool HasUnsavedPathChanges => hostedTrainPathToolWindow?.HasUnsavedPathChanges == true || pathEditor?.HasUnsavedChanges == true;
@@ -251,7 +251,7 @@ namespace FreeTrainSimulator.Toolbox
                             PathModelHeader path = (await route.GetRoutePaths(CancellationToken.None).ConfigureAwait(true)).GetById(pathId);
                             if (null != path)
                             {
-                                if (LoadPath(path))
+                                if (await LoadPathAsync(path).ConfigureAwait(true))
                                     menu.PreSelectPath(path);
                             }
                         }
@@ -278,9 +278,9 @@ namespace FreeTrainSimulator.Toolbox
             toolboxContent = null;
         }
 
-        internal void UnloadPath()
+        internal Task UnloadPathAsync()
         {
-            _ = pathEditor?.InitializePath(null);
+            return pathEditor?.InitializePathAsync(null) ?? Task.CompletedTask;
         }
     }
 }

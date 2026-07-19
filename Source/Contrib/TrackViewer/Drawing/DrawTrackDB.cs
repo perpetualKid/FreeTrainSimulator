@@ -60,7 +60,7 @@ namespace ORTS.TrackViewer.Drawing
             FolderStructure.ContentFolder.RouteFolder routeFolder = routeModel.MstsRouteFolder();
             storedRoutePath = routeFolder.CurrentFolder;
 
-            Task.Run(async () => await RuntimeDataResolver.Initialize(routeModel, true).ConfigureAwait(false)).Wait();
+            Task.Run(async () => await RuntimeDataResolver.Initialize(routeModel, true, null, CancellationToken.None).ConfigureAwait(false)).Wait();
         }
 
         /// <summary>

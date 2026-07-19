@@ -76,17 +76,23 @@ namespace FreeTrainSimulator.Toolbox
             base.Dispose(disposing);
         }
 
-        public bool InitializePath(PathModelHeader path)
+        public async Task<bool> InitializePathAsync(PathModelHeader path, CancellationToken cancellationToken = default)
         {
             try
             {
                 this.path = path;
-                if (path != null && !CanInitializePath(path))
+                PathModel pathModel = path as PathModel;
+                if (path != null && pathModel == null)
+                {
+                    pathModel = await path.GetExtended(cancellationToken).ConfigureAwait(false);
+                }
+
+                if (path != null && !await CanInitializePathAsync(path, cancellationToken).ConfigureAwait(false))
                     return false;
 
                 ClearMoveNodeState();
                 ClearHistory();
-                InitializePathModel(path);
+                await InitializePathModelAsync(pathModel, cancellationToken).ConfigureAwait(false);
                 hasUnsavedChanges = false;
                 OnPathChanged?.Invoke(this, new PathEditorChangedEventArgs(TrainPath));
                 return true;
@@ -122,11 +128,11 @@ namespace FreeTrainSimulator.Toolbox
             return resolution.HighestSeverity < PathRouteDiagnosticSeverity.Error ? PathValidationState.Valid : PathValidationState.Invalid;
         }
 
-        private static bool CanInitializePath(PathModelHeader path)
+        private static async Task<bool> CanInitializePathAsync(PathModelHeader path, CancellationToken cancellationToken)
         {
             PathModel pathModel = path is PathModel model
                 ? model
-                : Task.Run(async () => await path.GetExtended(CancellationToken.None).ConfigureAwait(false)).Result;
+                : await path.GetExtended(cancellationToken).ConfigureAwait(false);
 
             if (CanInitializePath(pathModel, out PathRouteResolution resolution))
                 return true;
@@ -648,20 +654,12 @@ namespace FreeTrainSimulator.Toolbox
 
         private PathModel TryGetLoadedPathModel()
         {
-            try
+            return path switch
             {
-                return path switch
-                {
-                    null => null,
-                    PathModel model => model,
-                    _ => Task.Run(async () => await path.GetExtended(CancellationToken.None).ConfigureAwait(false)).Result,
-                };
-            }
-            catch (Exception ex) when (ex is InvalidOperationException || ex is ArgumentException)
-            {
-                Trace.TraceWarning($"Cannot load fallback path model for editing: {ex.Message}");
-                return null;
-            }
+                null => null,
+                PathModel model => model,
+                _ => null,
+            };
         }
 
         internal PathModel TryCaptureCurrentPathModel()

@@ -194,7 +194,7 @@ namespace FreeTrainSimulator.Toolbox
             hostedLogToolWindow = new LogToolWindow(() => LogFileName);
             hostedHelpToolWindow = new HelpToolWindow();
             hostedSettingsToolWindow = new SettingsToolWindow(ToolboxSettings, ToolboxUserSettings, this);
-            hostedTrainPathToolWindow = new TrainPathToolWindow(() => HostedPathEditor, () => HostedTrainPathToolingContext, InvokeOnGameThread, EditPath, SavePath, path => _ = LoadPath(path), UnloadPath);
+            hostedTrainPathToolWindow = new TrainPathToolWindow(() => HostedPathEditor, () => HostedTrainPathToolingContext, InvokeOnGameThread, EditPath, SavePath, path => _ = LoadPathAsync(path), () => _ = UnloadPathAsync());
             hostedStatusBarToolWindow = new StatusBarToolWindow();
             hostedRouteNavigationToolWindow = new RouteNavigationToolWindow(InvokeOnGameThread);
             hostedServices = new HostedToolboxServices

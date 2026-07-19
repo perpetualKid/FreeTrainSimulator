@@ -549,7 +549,11 @@ namespace FreeTrainSimulator.Menu
                 return;
             }
 
-            using (ResumeForm form = new ResumeForm(ProfileUserSettings, ProfileSelections))
+            RouteModelHeader route = await ProfileSelections.SelectedRoute(CancellationToken.None).ConfigureAwait(true);
+            ActivityModelHeader activity = await ProfileSelections.SelectedActivity(CancellationToken.None).ConfigureAwait(true);
+            TimetableModel timetable = await ProfileSelections.SelectedTimetable(CancellationToken.None).ConfigureAwait(true);
+
+            using (ResumeForm form = new ResumeForm(ProfileUserSettings, ProfileSelections, route, activity, timetable))
             {
                 if (form.ShowDialog(this) == DialogResult.OK)
                 {
@@ -850,14 +854,19 @@ namespace FreeTrainSimulator.Menu
         #endregion
 
         #region Details
-        private void ShowDetails()
+        private async void ShowDetails()
         {
             if (InvokeRequired)
             {
-                Invoke(ShowDetails);
+                _ = BeginInvoke(new Action(async () => await ShowDetailsAsync().ConfigureAwait(true)));
                 return;
             }
 
+            await ShowDetailsAsync().ConfigureAwait(true);
+        }
+
+        private async Task ShowDetailsAsync()
+        {
             ClearDetails();
             if (comboBoxRoute.SelectedValue is RouteModelHeader routeModel)
             {
@@ -885,21 +894,22 @@ namespace FreeTrainSimulator.Menu
                 }
                 else
                 {
-                    TimetableModel timetableModel;
-                    TimetableTrainModel timetableTrainModel;
-                    if ((timetableModel = ProfileSelections.SelectedTimetable()) != null)
+                    TimetableModel timetableModel = await ProfileSelections.SelectedTimetable(CancellationToken.None).ConfigureAwait(true);
+                    TimetableTrainModel timetableTrainModel = await ProfileSelections.SelectedTimetableTrain(CancellationToken.None).ConfigureAwait(true);
+                    if (timetableModel != null)
                     {
                         if (!string.IsNullOrEmpty(ProfileSelections.TimetableName))
                             AddDetailToShow(catalog.GetString($"Timetable: {ProfileSelections.TimetableName}"), timetableModel.Name);
                     }
-                    if ((timetableTrainModel = ProfileSelections.SelectedTimetableTrain()) != null)
+                    if (timetableTrainModel != null)
                     {
                         if (string.IsNullOrEmpty(timetableTrainModel.Briefing))
                             AddDetailToShow(catalog.GetString("Train: {0}", timetableTrainModel.Name), catalog.GetString("Start time: {0}", timetableTrainModel.StartTime));
                         else
                             AddDetailToShow(catalog.GetString("Train: {0}", timetableTrainModel.Name), catalog.GetString("Start time: {0}", timetableTrainModel.StartTime) + $"\n{timetableTrainModel.Briefing}");
 
-                        WagonSetModel wagonSetModel = routeModel.Parent.GetWagonSets().GetById(timetableTrainModel.WagonSet);
+                        ImmutableArray<WagonSetModel> wagonSets = await routeModel.Parent.GetWagonSets(CancellationToken.None).ConfigureAwait(true);
+                        WagonSetModel wagonSetModel = wagonSets.GetById(timetableTrainModel.WagonSet);
                         if (null != wagonSetModel)
                         {
                             if (timetableTrainModel.WagonSetReverse)
@@ -910,7 +920,8 @@ namespace FreeTrainSimulator.Menu
                                 AddDetailToShow(catalog.GetString("Locomotive: {0}", wagonSetModel.Locomotive.Name), wagonSetModel.Locomotive.Description);
                             }
                         }
-                        PathModelHeader pathModel = routeModel.GetPaths().GetById(timetableTrainModel.Path);
+                        ImmutableArray<PathModelHeader> paths = await routeModel.GetPaths(CancellationToken.None).ConfigureAwait(true);
+                        PathModelHeader pathModel = paths.GetById(timetableTrainModel.Path);
                         if (pathModel != null)
                         {
                             AddDetailToShow(catalog.GetString("Path: {0}", pathModel.Name), string.Join("\n", catalog.GetString($"Start at: {pathModel.Start}"), catalog.GetString($"Heading to: {pathModel.End}")));

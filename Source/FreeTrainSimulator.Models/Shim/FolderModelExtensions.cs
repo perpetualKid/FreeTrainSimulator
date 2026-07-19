@@ -33,8 +33,5 @@ namespace FreeTrainSimulator.Models.Shim
 
             return await WagonSetModelHandler.GetCore(wagonSetId, folderModel, cancellationToken).ConfigureAwait(false);
         }
-
-        public static ImmutableArray<WagonSetModel> GetWagonSets(this FolderModel folderModel) => Task.Run(async () => await folderModel.GetWagonSets(CancellationToken.None).ConfigureAwait(false)).Result;
-
     }
 }

@@ -98,29 +98,28 @@ namespace FreeTrainSimulator.Models.Handler
             return GetProfiles(cancellationToken);
         }
 
-        private static Task<ImmutableArray<ProfileModel>> LoadProfiles(CancellationToken cancellationToken)
+        private static async Task<ImmutableArray<ProfileModel>> LoadProfiles(CancellationToken cancellationToken)
         {
             string profilesFolder = ModelFileResolver<ProfileModel>.FolderPath(null);
 
-            ConcurrentBag<ProfileModel> results = new ConcurrentBag<ProfileModel>();
+            ImmutableArray<ProfileModel>.Builder results = ImmutableArray.CreateBuilder<ProfileModel>();
 
             if (Directory.Exists(profilesFolder))
             {
-                Parallel.ForEach(Directory.EnumerateDirectories(profilesFolder), (directory) =>
+                foreach (string directory in Directory.EnumerateDirectories(profilesFolder))
                 {
-                    if (cancellationToken.IsCancellationRequested)
-                        return;
+                    cancellationToken.ThrowIfCancellationRequested();
                     string profileId = Path.GetFileNameWithoutExtension(directory);
-                    if (String.Equals(profileId, ProfileModel.TestingProfile, StringComparison.OrdinalIgnoreCase))
-                        return; // skip the $Testing profile from any regular listings
+                    if (string.Equals(profileId, ProfileModel.TestingProfile, StringComparison.OrdinalIgnoreCase))
+                        continue; // skip the $Testing profile from any regular listings
 
                     if (profileId.EndsWith(fileExtension, StringComparison.OrdinalIgnoreCase))
                         profileId = profileId[..^fileExtension.Length];
 
-                    results.Add(GetCore(profileId, cancellationToken).Result);
-                });
+                    results.Add(await GetCore(profileId, cancellationToken).ConfigureAwait(false));
+                }
             }
-            return Task.FromResult(results.ToImmutableArray());
+            return results.ToImmutable();
         }
     }
 }

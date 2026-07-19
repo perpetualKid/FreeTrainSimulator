@@ -116,7 +116,7 @@ namespace Orts.SimulatorTester
             ActivityModel activityModel = await routeModel.ActivityModel(saveState.ProfileSelections.ActivityId, CancellationToken.None).ConfigureAwait(false);
 
             DateTimeOffset startTime = DateTimeOffset.Now;
-            Simulator simulator = new Simulator(userSettings, routeModel);
+            Simulator simulator = await Simulator.CreateAsync(userSettings, routeModel, CancellationToken.None).ConfigureAwait(false);
             simulator.SetActivity(activityModel);
             simulator.Start(CancellationToken.None);
             simulator.SetCommandReceivers();

@@ -192,7 +192,17 @@ namespace Orts.Simulation
         public string ConsistFileName { get; private set; }
 
         public LevelCrossings LevelCrossings { get; private set; }
-        public SuperElevation SuperElevation { get; private set; }
+
+        private SuperElevation superElevation;
+        public SuperElevation SuperElevation
+        {
+            get
+            {
+                superElevation ??= new SuperElevation(this);
+                return superElevation;
+            }
+            private set => superElevation = value;
+        }
 
         // Used in save and restore form
         public string PathName { get; set; } = "<unknown>";
@@ -252,7 +262,18 @@ namespace Orts.Simulation
 
         public float TimetableLoadedFraction { get; internal set; }    // Set by AI.PrerunAI(), Get by GameStateRunActivity.Update()
 
-        public Simulator(ProfileUserSettingsModel userSettings, RouteModel routeModel)
+        public static async Task<Simulator> CreateAsync(ProfileUserSettingsModel userSettings, RouteModel routeModel, CancellationToken cancellationToken)
+        {
+            ArgumentNullException.ThrowIfNull(userSettings);
+            ArgumentNullException.ThrowIfNull(routeModel);
+
+            Simulator simulator = new Simulator(userSettings, routeModel);
+            RuntimeResolver runtimeResolver = new RuntimeResolver();
+            await RuntimeDataResolver.Initialize(routeModel, simulator.MetricUnits, runtimeResolver, cancellationToken).ConfigureAwait(false);
+            return simulator;
+        }
+
+        private Simulator(ProfileUserSettingsModel userSettings, RouteModel routeModel)
         {
             Instance = this;
             CatalogManager.SetCatalogDomainPattern(CatalogDomainPattern.AssemblyName, null, RuntimeInfo.LocalesFolder);
@@ -271,10 +292,6 @@ namespace Orts.Simulation
                 UserSettings.ComputerTrainDoors = openComputerTrainDoors;
 
             MetricUnits = userSettings.MeasurementUnit == MeasurementUnit.Route ? RouteModel.MetricUnits : (userSettings.MeasurementUnit == MeasurementUnit.Metric || userSettings.MeasurementUnit == MeasurementUnit.System && System.Globalization.RegionInfo.CurrentRegion.IsMetric);
-            RuntimeResolver runtimeResolver = new RuntimeResolver();
-            Task.Run(async () => await RuntimeDataResolver.Initialize(routeModel, MetricUnits, runtimeResolver).ConfigureAwait(false)).Wait();
-
-            SuperElevation = new SuperElevation(this);
 
             string carSpawnFile = RouteFolder.CarSpawnerFile;
             if (File.Exists(carSpawnFile))

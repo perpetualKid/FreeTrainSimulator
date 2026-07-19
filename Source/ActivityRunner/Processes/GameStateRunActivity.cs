@@ -584,7 +584,7 @@ namespace Orts.ActivityRunner.Processes
                         PathModel pathModel = await routeModel.PathModel(profileSelections.PathId, Game.LoaderProcess.CancellationToken).ConfigureAwait(false);
                         WagonSetModel wagonSetModel = await folderModel.WagonSetModel(profileSelections.WagonSetId, Game.LoaderProcess.CancellationToken).ConfigureAwait(false);
 
-                        simulator = new Simulator(userSettings, routeModel);
+                        simulator = await Simulator.CreateAsync(userSettings, routeModel, Game.LoaderProcess.CancellationToken).ConfigureAwait(false);
                         simulator.SetExplore(pathModel, wagonSetModel.SourceFile(), profileSelections.StartTime.ToTimeSpan(), profileSelections.Season, profileSelections.Weather);
                         break;
                     }
@@ -593,7 +593,7 @@ namespace Orts.ActivityRunner.Processes
                         PathModel pathModel = await routeModel.PathModel(profileSelections.PathId, Game.LoaderProcess.CancellationToken).ConfigureAwait(false);
                         WagonSetModel wagonSetModel = await folderModel.WagonSetModel(profileSelections.WagonSetId, Game.LoaderProcess.CancellationToken).ConfigureAwait(false);
 
-                        simulator = new Simulator(userSettings, routeModel);
+                        simulator = await Simulator.CreateAsync(userSettings, routeModel, Game.LoaderProcess.CancellationToken).ConfigureAwait(false);
                         simulator.SetExploreThroughActivity(pathModel, wagonSetModel.SourceFile(), profileSelections.StartTime.ToTimeSpan(), profileSelections.Season, profileSelections.Weather);
                         break;
                     }
@@ -604,7 +604,7 @@ namespace Orts.ActivityRunner.Processes
                         if (!string.IsNullOrEmpty(profileSelections.WeatherChanges))
                             Trace.WriteLine($"{"Weath Change",-12}= {profileSelections.WeatherChanges}");
 
-                        simulator = new Simulator(userSettings, routeModel);
+                        simulator = await Simulator.CreateAsync(userSettings, routeModel, Game.LoaderProcess.CancellationToken).ConfigureAwait(false);
                         simulator.SetTimetableOptions(timetableModel, $"{profileSelections.TimetableName}:{profileSelections.TimetableTrain}", profileSelections.Season, profileSelections.Weather, profileSelections.WeatherChanges);
                         break;
                     }
@@ -612,7 +612,7 @@ namespace Orts.ActivityRunner.Processes
                     {
                         ActivityModel activityModel = await routeModel.ActivityModel(profileSelections.ActivityId, Game.LoaderProcess.CancellationToken).ConfigureAwait(false);
 
-                        simulator = new Simulator(userSettings, routeModel);
+                        simulator = await Simulator.CreateAsync(userSettings, routeModel, Game.LoaderProcess.CancellationToken).ConfigureAwait(false);
                         simulator.SetActivity(activityModel);
                         break;
                     }

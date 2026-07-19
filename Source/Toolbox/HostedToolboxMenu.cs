@@ -185,14 +185,14 @@ namespace FreeTrainSimulator.Toolbox
         public void TogglePath(PathModelHeader path)
         {
             ArgumentNullException.ThrowIfNull(path);
-            game.InvokeOnGameThread(() =>
+            _ = game.InvokeOnGameThreadAsync(async () =>
             {
                 if (SelectedPath != null && string.Equals(SelectedPath.Id, path.Id, StringComparison.OrdinalIgnoreCase))
                 {
-                    game.UnloadPath();
+                    await game.UnloadPathAsync().ConfigureAwait(true);
                     ((IToolboxMenu)this).PreSelectPath(null);
                 }
-                else if (game.LoadPath(path))
+                else if (await game.LoadPathAsync(path).ConfigureAwait(true))
                 {
                     ((IToolboxMenu)this).PreSelectPath(path);
                 }

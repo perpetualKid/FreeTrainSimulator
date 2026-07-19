@@ -281,6 +281,11 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
         /// </summary>
         internal void SelectPath(string pathId)
         {
+            _ = SelectPathAsync(pathId);
+        }
+
+        private async Task SelectPathAsync(string pathId)
+        {
             gameThreadInvoker(() =>
             {
                 CaptureTransientCurrentPath();
@@ -297,7 +302,7 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
                     : cachedPaths.FirstOrDefault(p => string.Equals(p.Id, pathId, StringComparison.OrdinalIgnoreCase));
                 if (path == null)
                 {
-                    RefreshCachedPathsFromContext();
+                    _ = RefreshCachedPathsFromContextAsync();
                     path = cachedPaths.FirstOrDefault(p => string.Equals(p.Id, pathId, StringComparison.OrdinalIgnoreCase));
                 }
                 if (path != null)
@@ -575,7 +580,7 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
             return pathModel.ValidationState == validationState ? pathModel : pathModel with { ValidationState = validationState };
         }
 
-        private void RefreshCachedPathsFromContext()
+        private async Task RefreshCachedPathsFromContextAsync()
         {
             ITrainPathToolingContext toolingContext = toolingContextAccessor();
             if (toolingContext == null)
@@ -583,7 +588,7 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
 
             try
             {
-                ImmutableArray<PathModelHeader> paths = toolingContext.GetPaths().ConfigureAwait(false).GetAwaiter().GetResult();
+                ImmutableArray<PathModelHeader> paths = await toolingContext.GetPaths().ConfigureAwait(false);
                 cachedPaths = paths.IsDefault ? ImmutableArray<PathModelHeader>.Empty : paths;
             }
             catch (Exception ex) when (ex is InvalidOperationException || ex is System.IO.IOException)

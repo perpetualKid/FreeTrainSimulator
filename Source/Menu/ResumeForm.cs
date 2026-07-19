@@ -87,7 +87,7 @@ namespace FreeTrainSimulator.Menu
 
         private readonly Catalog catalog;
 
-        internal ResumeForm(ProfileUserSettingsModel userSettings, ProfileSelectionsModel profileSelections)
+        internal ResumeForm(ProfileUserSettingsModel userSettings, ProfileSelectionsModel profileSelections, RouteModelHeader route, ActivityModelHeader activity, TimetableModel timeTable)
         {
             catalog = CatalogManager.Catalog;
             InitializeComponent();  // Needed so that setting StartPosition = CenterParent is respected.
@@ -95,9 +95,9 @@ namespace FreeTrainSimulator.Menu
 
             this.userSettings = userSettings;
             this.profileSelectionsModel = profileSelections;
-            this.route = profileSelections.SelectedRoute();
-            this.activity = profileSelections.SelectedActivity();
-            this.timeTable = profileSelections.SelectedTimetable();
+            this.route = route;
+            this.activity = activity;
+            this.timeTable = timeTable;
 
             checkBoxReplayPauseBeforeEnd.Checked = userSettings.ReplayPause;
             numericReplayPauseBeforeEnd.Value = userSettings.ReplayPauseDuration;
@@ -106,10 +106,10 @@ namespace FreeTrainSimulator.Menu
 
             Text += profileSelections.ActivityType switch
             {
-                ActivityType.Explorer => $" - {route.Name} - {catalog.GetString("Explore Route")}",
-                ActivityType.ExploreActivity => $" - {route.Name} - {catalog.GetString("Explore in Activity Mode")}",
-                ActivityType.Activity => $" - {route.Name} - {activity.Name}",
-                ActivityType.TimeTable => $" - {route.Name} - {timeTable.Name}",
+                ActivityType.Explorer => $" - {route?.Name} - {catalog.GetString("Explore Route")}",
+                ActivityType.ExploreActivity => $" - {route?.Name} - {catalog.GetString("Explore in Activity Mode")}",
+                ActivityType.Activity => $" - {route?.Name} - {activity?.Name}",
+                ActivityType.TimeTable => $" - {route?.Name} - {timeTable?.Name}",
                 _ => throw new NotImplementedException(),
             };
 

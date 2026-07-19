@@ -88,8 +88,14 @@ namespace FreeTrainSimulator.Graphics.MapView
         }
 
         #region additional content (Paths)
-        protected void InitializePathModel(PathModelHeader pathModel)
+        protected async Task InitializePathModelAsync(PathModelHeader pathModelHeader, CancellationToken cancellationToken = default)
         {
+            PathModel pathModel = pathModelHeader as PathModel;
+            if (pathModelHeader != null && pathModel == null)
+            {
+                pathModel = await pathModelHeader.GetExtended(cancellationToken).ConfigureAwait(false);
+            }
+
             EditMode = false;
             trainPath = ((IPathEditorContextServicesAccessor)editorContext).Services.CreateEditorTrainPath(pathModel);
             SetPreviewPath(null);

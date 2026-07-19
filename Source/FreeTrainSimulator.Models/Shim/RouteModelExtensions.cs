@@ -51,7 +51,6 @@ namespace FreeTrainSimulator.Models.Shim
             return await TimetableModelHandler.GetCore(timetableId, routeModel, cancellationToken).ConfigureAwait(false);
         }
 
-        public static ImmutableArray<PathModelHeader> GetPaths(this RouteModelHeader routeModel) => Task.Run(async () => await routeModel.GetPaths(CancellationToken.None).ConfigureAwait(false)).Result;
 
         public static string SavePointName(this RouteModelHeader routeModelHeader, ActivityType activityType)
         {

@@ -80,10 +80,6 @@ namespace FreeTrainSimulator.Models.Shim
                 : (await contentFolder.GetRoutes(cancellationToken).ConfigureAwait(false)).GetById(profileSelections.RouteId);
         }
 
-        public static RouteModelHeader SelectedRoute(this ProfileSelectionsModel profileSelections)
-        {
-            return Task.Run(async () => await profileSelections.SelectedRoute(CancellationToken.None).ConfigureAwait(false)).Result;
-        }
 
         public static async ValueTask<ActivityModelHeader> SelectedActivity(this ProfileSelectionsModel profileSelections, CancellationToken cancellationToken)
         {
@@ -96,11 +92,6 @@ namespace FreeTrainSimulator.Models.Shim
             return null == routeModel
                 ? null
                 : (await routeModel.GetActivities(cancellationToken).ConfigureAwait(false)).GetById(profileSelections.ActivityId);
-        }
-
-        public static ActivityModelHeader SelectedActivity(this ProfileSelectionsModel profileSelections)
-        {
-            return Task.Run(async () => await profileSelections.SelectedActivity(CancellationToken.None).ConfigureAwait(false)).Result;
         }
 
         public static async ValueTask<PathModelHeader> SelectedPath(this ProfileSelectionsModel profileSelections, CancellationToken cancellationToken)
@@ -116,10 +107,6 @@ namespace FreeTrainSimulator.Models.Shim
                 : (await routeModel.GetPaths(cancellationToken).ConfigureAwait(false)).GetById(profileSelections.PathId);
         }
 
-        public static PathModelHeader SelectedPath(this ProfileSelectionsModel profileSelections)
-        {
-            return Task.Run(async () => await profileSelections.SelectedPath(CancellationToken.None).ConfigureAwait(false)).Result;
-        }
 
         public static async ValueTask<WagonSetModel> SelectedWagonSet(this ProfileSelectionsModel profileSelections, CancellationToken cancellationToken)
         {
@@ -134,11 +121,6 @@ namespace FreeTrainSimulator.Models.Shim
                 : (await contentFolder.GetWagonSets(cancellationToken).ConfigureAwait(false)).GetById(profileSelections.WagonSetId);
         }
 
-        public static WagonSetModel SelectedWagonSet(this ProfileSelectionsModel profileSelections)
-        {
-            return Task.Run(async () => await profileSelections.SelectedWagonSet(CancellationToken.None).ConfigureAwait(false)).Result;
-        }
-
         public static async ValueTask<WeatherModelHeader> SelectedWeatherChangesModel(this ProfileSelectionsModel profileSelections, CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(profileSelections, nameof(profileSelections));
@@ -147,11 +129,6 @@ namespace FreeTrainSimulator.Models.Shim
             return null == routeModel
                 ? null
                 : (await routeModel.GetWeatherFiles(cancellationToken).ConfigureAwait(false)).GetById(profileSelections.WeatherChanges);
-        }
-
-        public static WeatherModelHeader SelectedWeatherChangesModel(this ProfileSelectionsModel profileSelections)
-        {
-            return Task.Run(async () => await profileSelections.SelectedWeatherChangesModel(CancellationToken.None).ConfigureAwait(false)).Result;
         }
 
         public static async ValueTask<TimetableModel> SelectedTimetable(this ProfileSelectionsModel profileSelections, CancellationToken cancellationToken)
@@ -164,22 +141,12 @@ namespace FreeTrainSimulator.Models.Shim
                 : (await routeModel.GetTimetables(cancellationToken).ConfigureAwait(false)).GetById(profileSelections.TimetableSet);
         }
 
-        public static TimetableModel SelectedTimetable(this ProfileSelectionsModel profileSelections)
-        {
-            return Task.Run(async () => await profileSelections.SelectedTimetable(CancellationToken.None).ConfigureAwait(false)).Result;
-        }
-
         public static async ValueTask<TimetableTrainModel> SelectedTimetableTrain(this ProfileSelectionsModel profileSelections, CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(profileSelections, nameof(profileSelections));
 
             TimetableModel timetableModel = await profileSelections.SelectedTimetable(cancellationToken).ConfigureAwait(false);
             return timetableModel?.TimetableTrains.GetById(profileSelections.TimetableTrain);
-        }
-
-        public static TimetableTrainModel SelectedTimetableTrain(this ProfileSelectionsModel profileSelections)
-        {
-            return Task.Run(async () => await profileSelections.SelectedTimetableTrain(CancellationToken.None).ConfigureAwait(false)).Result;
         }
     }
 }
