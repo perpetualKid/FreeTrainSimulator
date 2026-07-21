@@ -205,6 +205,11 @@
                             ToolTip="Cancel the active node move operation" />
                     <Button Margin="0,0,6,4"
                             Padding="8,2"
+                            Content="Commit Move"
+                            Command="{Binding CommitMoveNodeCommand}"
+                            ToolTip="Commit the selected node to the current preview location" />
+                    <Button Margin="0,0,6,4"
+                            Padding="8,2"
                             Content="Repair Node"
                             Command="{Binding RepairSelectedNodeCommand}"
                             ToolTip="Safely repair the selected node when the fix is unambiguous, such as converting a non-junction junction marker into a track point" />

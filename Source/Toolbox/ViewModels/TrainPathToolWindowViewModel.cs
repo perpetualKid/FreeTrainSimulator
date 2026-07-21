@@ -42,6 +42,7 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
             RedoCommand = new RelayCommand(_ => toolWindow.Redo(), _ => CanRedo);
             SnapToTrackCommand = new RelayCommand(_ => toolWindow.SnapToTrack(), _ => CanSnapToTrack);
             MoveSelectedNodeCommand = new RelayCommand(_ => MoveSelectedNode(), _ => CanMoveSelectedNode);
+            CommitMoveNodeCommand = new RelayCommand(_ => CommitMoveNode(), _ => CanCancelMoveNode);
             CancelMoveNodeCommand = new RelayCommand(_ => CancelMoveNode(), _ => CanCancelMoveNode);
             RepairSelectedNodeCommand = new RelayCommand(_ => RepairSelectedNode(), _ => CanRepairSelectedNode);
             NewPathCommand = new RelayCommand(_ => toolWindow.CreatePath(), _ => CanCreatePath);
@@ -66,6 +67,8 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
         public RelayCommand SnapToTrackCommand { get; }
 
         public RelayCommand MoveSelectedNodeCommand { get; }
+
+        public RelayCommand CommitMoveNodeCommand { get; }
 
         public RelayCommand CancelMoveNodeCommand { get; }
 
@@ -243,6 +246,12 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
         {
             toolWindow.CancelMoveNode();
             SetStatusMessage("Node move canceled.", false);
+        }
+
+        private void CommitMoveNode()
+        {
+            toolWindow.CommitMoveNode();
+            SetStatusMessage("Commit move requested.", false);
         }
 
         private void RepairSelectedNode()

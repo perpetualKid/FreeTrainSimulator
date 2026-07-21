@@ -288,6 +288,17 @@ namespace Tests.FreeTrainSimulator.Toolbox
         }
 
         [TestMethod]
+        public void WhenCommitMoveNodeThenGameThreadInvokerIsCalled()
+        {
+            int invocations = 0;
+            TrainPathToolWindow trainPathToolWindow = CreateTrainPathToolWindow(_ => invocations++);
+
+            trainPathToolWindow.CommitMoveNode();
+
+            Assert.AreEqual(1, invocations);
+        }
+
+        [TestMethod]
         public void WhenRepairSelectedNodeThenGameThreadInvokerIsCalled()
         {
             int invocations = 0;

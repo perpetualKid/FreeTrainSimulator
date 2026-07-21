@@ -336,6 +336,8 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
 
         internal void BeginMoveNode(int nodeIndex) => InvokeEditorMutation(pathEditor => pathEditor.BeginMoveNode(nodeIndex));
 
+        internal void CommitMoveNode() => InvokeEditorMutation(pathEditor => pathEditor.CommitMoveNode().Success);
+
         internal void CancelMoveNode() => InvokeEditorMutation(pathEditor => pathEditor.CancelMoveNode());
 
         internal void RepairSelectedNode(int nodeIndex) => InvokeEditorMutation(pathEditor => pathEditor.RepairSelectedNode(nodeIndex).Success);

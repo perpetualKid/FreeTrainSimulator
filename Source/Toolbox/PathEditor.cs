@@ -569,7 +569,7 @@ namespace FreeTrainSimulator.Toolbox
             redoHistory.Clear();
         }
 
-        private PathEditResult CommitMoveNode()
+        public PathEditResult CommitMoveNode()
         {
             PathModel currentModel = TryCaptureSnapshot() ?? moveSourceModel;
             if (currentModel == null)

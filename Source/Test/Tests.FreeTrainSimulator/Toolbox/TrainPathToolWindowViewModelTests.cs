@@ -157,6 +157,25 @@ namespace Tests.FreeTrainSimulator.Toolbox
         }
 
         [TestMethod]
+        public void WhenCommitMoveNodeCommandExecutedThenBridgeCommitMoveIsMarshaled()
+        {
+            int invocations = 0;
+            TrainPathToolWindow bridge = CreateBridge(_ => invocations++);
+            using (ToolWindowRefreshScheduler refreshScheduler = new ToolWindowRefreshScheduler(Dispatcher.CurrentDispatcher))
+            {
+                using (TrainPathToolWindowViewModel trainPathToolWindowViewModel = new TrainPathToolWindowViewModel(bridge, refreshScheduler))
+                {
+                    SetCommandAvailability(trainPathToolWindowViewModel, "canCancelMoveNode", true);
+
+                    trainPathToolWindowViewModel.CommitMoveNodeCommand.Execute(null);
+
+                    Assert.AreEqual(1, invocations);
+                    Assert.AreEqual("Commit move requested.", trainPathToolWindowViewModel.StatusMessage);
+                }
+            }
+        }
+
+        [TestMethod]
         public void WhenRepairSelectedNodeCommandExecutedThenBridgeRepairNodeIsMarshaled()
         {
             int invocations = 0;
