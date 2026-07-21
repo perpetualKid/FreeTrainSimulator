@@ -165,12 +165,27 @@ namespace Tests.FreeTrainSimulator.Toolbox
             {
                 using (TrainPathToolWindowViewModel trainPathToolWindowViewModel = new TrainPathToolWindowViewModel(bridge, refreshScheduler))
                 {
-                    SetCommandAvailability(trainPathToolWindowViewModel, "canCancelMoveNode", true);
+                    SetCommandAvailability(trainPathToolWindowViewModel, "canCommitMoveNode", true);
 
                     trainPathToolWindowViewModel.CommitMoveNodeCommand.Execute(null);
 
                     Assert.AreEqual(1, invocations);
                     Assert.AreEqual("Commit move requested.", trainPathToolWindowViewModel.StatusMessage);
+                }
+            }
+        }
+
+        [TestMethod]
+        public void WhenMoveHasNoValidPreviewThenCommitMoveCommandCannotExecute()
+        {
+            TrainPathToolWindow bridge = CreateBridge(_ => { });
+            using (ToolWindowRefreshScheduler refreshScheduler = new ToolWindowRefreshScheduler(Dispatcher.CurrentDispatcher))
+            {
+                using (TrainPathToolWindowViewModel trainPathToolWindowViewModel = new TrainPathToolWindowViewModel(bridge, refreshScheduler))
+                {
+                    SetCommandAvailability(trainPathToolWindowViewModel, "canCancelMoveNode", true);
+
+                    Assert.IsFalse(trainPathToolWindowViewModel.CommitMoveNodeCommand.CanExecute(null));
                 }
             }
         }

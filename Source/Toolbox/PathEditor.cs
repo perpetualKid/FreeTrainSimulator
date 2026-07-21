@@ -50,6 +50,8 @@ namespace FreeTrainSimulator.Toolbox
 
         public bool IsMovingNode => movingNodeIndex >= 0;
 
+        public bool CanCommitMoveNode => IsMovingNode && movePreviewModel != null;
+
         public bool HasUnsavedChanges => hasUnsavedChanges;
 
         internal event EventHandler<PathEditorChangedEventArgs> OnPathChanged;

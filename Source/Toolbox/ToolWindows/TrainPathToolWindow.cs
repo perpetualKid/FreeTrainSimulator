@@ -120,6 +120,9 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
         /// <summary>Whether a node move operation is currently active.</summary>
         public bool CanCancelMoveNode { get; init; }
 
+        /// <summary>Whether the active node move has a valid preview that can be committed.</summary>
+        public bool CanCommitMoveNode { get; init; }
+
         /// <summary>An empty snapshot used before any path content is available.</summary>
         public static TrainPathSnapshot Empty { get; } = new TrainPathSnapshot
         {
@@ -131,6 +134,7 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
             CanRedo = false,
             CanSnapToTrack = false,
             CanCancelMoveNode = false,
+            CanCommitMoveNode = false,
         };
     }
 
@@ -218,7 +222,8 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
                     && !snapshot.CanUndo
                     && !snapshot.CanRedo
                     && !snapshot.CanSnapToTrack
-                    && !snapshot.CanCancelMoveNode;
+                    && !snapshot.CanCancelMoveNode
+                    && !snapshot.CanCommitMoveNode;
                 if (snapshotIsPathsOnly && pathsSnapshotVersion == lastSnapshotVersion)
                     return;
 
@@ -238,6 +243,7 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
             bool canRedo = pathEditor.CanRedo;
             bool canSnapToTrack = pathEditor.CanSnapToTrack;
             bool canCancelMoveNode = pathEditor.IsMovingNode;
+            bool canCommitMoveNode = pathEditor.CanCommitMoveNode;
 
             int currentSnapshotVersion = snapshotVersion;
 
@@ -251,6 +257,7 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
                 && canRedo == snapshot.CanRedo
                 && canSnapToTrack == snapshot.CanSnapToTrack
                 && canCancelMoveNode == snapshot.CanCancelMoveNode
+                && canCommitMoveNode == snapshot.CanCommitMoveNode
                 && paths.SequenceEqual(snapshot.Paths))
             {
                 return;
@@ -270,6 +277,7 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
                 CanRedo = canRedo,
                 CanSnapToTrack = canSnapToTrack,
                 CanCancelMoveNode = canCancelMoveNode,
+                CanCommitMoveNode = canCommitMoveNode,
             };
         }
 

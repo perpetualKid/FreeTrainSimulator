@@ -30,6 +30,7 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
         private bool canCreatePath;
         private bool canSavePath;
         private bool canCancelMoveNode;
+        private bool canCommitMoveNode;
         private bool suppressSelectionCommand;
 
         public TrainPathToolWindowViewModel(TrainPathToolWindow toolWindow, ToolWindowRefreshScheduler scheduler)
@@ -42,7 +43,7 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
             RedoCommand = new RelayCommand(_ => toolWindow.Redo(), _ => CanRedo);
             SnapToTrackCommand = new RelayCommand(_ => toolWindow.SnapToTrack(), _ => CanSnapToTrack);
             MoveSelectedNodeCommand = new RelayCommand(_ => MoveSelectedNode(), _ => CanMoveSelectedNode);
-            CommitMoveNodeCommand = new RelayCommand(_ => CommitMoveNode(), _ => CanCancelMoveNode);
+            CommitMoveNodeCommand = new RelayCommand(_ => CommitMoveNode(), _ => CanCommitMoveNode);
             CancelMoveNodeCommand = new RelayCommand(_ => CancelMoveNode(), _ => CanCancelMoveNode);
             RepairSelectedNodeCommand = new RelayCommand(_ => RepairSelectedNode(), _ => CanRepairSelectedNode);
             NewPathCommand = new RelayCommand(_ => toolWindow.CreatePath(), _ => CanCreatePath);
@@ -100,6 +101,16 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
                     CancelMoveNodeCommand.RaiseCanExecuteChanged();
                     MoveSelectedNodeCommand.RaiseCanExecuteChanged();
                 }
+            }
+        }
+
+        public bool CanCommitMoveNode
+        {
+            get => canCommitMoveNode;
+            private set
+            {
+                if (SetProperty(ref canCommitMoveNode, value))
+                    CommitMoveNodeCommand.RaiseCanExecuteChanged();
             }
         }
 
@@ -220,6 +231,7 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
             CanSnapToTrack = snapshot.CanSnapToTrack;
             bool wasMovingNode = CanCancelMoveNode;
             CanCancelMoveNode = snapshot.CanCancelMoveNode;
+            CanCommitMoveNode = snapshot.CanCommitMoveNode;
             CanCreatePath = toolWindow.CanCreatePath;
             CanSavePath = toolWindow.CanSavePath;
 
