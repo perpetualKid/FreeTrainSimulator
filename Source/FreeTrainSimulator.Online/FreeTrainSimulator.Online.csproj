@@ -6,10 +6,10 @@
 		<Configurations>Debug;Release;CodeAnalysis;UpdateContentVersion</Configurations>
 	</PropertyGroup>
 	<ItemGroup>
-		<PackageReference Include="MagicOnion.Abstractions" Version="7.10.1" />
-		<PackageReference Include="MagicOnion.Client" Version="7.10.1" />
+		<PackageReference Include="MagicOnion.Abstractions" Version="7.10.2" />
+		<PackageReference Include="MagicOnion.Client" Version="7.10.2" />
 		<PackageReference Include="MagicOnion.Serialization.MemoryPack" Version="7.10.1-preview" />
 		<PackageReference Include="MemoryPack" Version="1.21.4" />
-		<PackageReference Include="MessagePack" Version="3.1.7" />
+		<PackageReference Include="MessagePack" Version="3.1.8" />
 	</ItemGroup>
 </Project>

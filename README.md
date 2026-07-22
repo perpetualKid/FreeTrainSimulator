@@ -9,7 +9,7 @@ FTS is running on .NET 8, based on the [Monogame patch](http://www.elvastower.co
 
 In addition to features from OpenRails, Free Train Simulator includes:  
 
-- Most recent version of Monogame (3.8.4.1)
+- Most recent version of Monogame (3.8.5)
 - build on .NET 10, which generally allows for cross platform use (see [wiki](https://github.com/perpetualKid/FreeTrainSimulator/wiki/Linux-Wine) for Linux support)
 - full 64bit support, removing out-of-memory situations and allows to use all available system memory also beyond 3GB/4GB barrier as with 32bit software
 - rewritten SignalScript parsing engine for faster loading time
