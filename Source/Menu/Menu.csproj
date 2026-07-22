@@ -12,7 +12,7 @@
 		<ForceDesignerDpiUnaware>true</ForceDesignerDpiUnaware>
 	</PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="MonoGame.Framework.WindowsDX" Version="3.8.4.1" />
+    <PackageReference Include="MonoGame.Framework.WindowsDX" Version="3.8.5" />
     <PackageReference Include="GetText.NET" Version="11.0.10-preview.1" />
     <PackageReference Include="GetText.NET.WindowsForms" Version="11.0.10-preview.1" />
   </ItemGroup>
