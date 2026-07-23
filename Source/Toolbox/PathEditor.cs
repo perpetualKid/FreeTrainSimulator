@@ -33,6 +33,7 @@ namespace FreeTrainSimulator.Toolbox
         private readonly Stack<PathModel> undoHistory = new Stack<PathModel>();
         private readonly Stack<PathModel> redoHistory = new Stack<PathModel>();
         private PathModelHeader path;
+        private PathModel currentPathModel;
         private long lastPathClickTick;
         private bool validPointAdded;
         private bool editorDragged;
@@ -89,6 +90,7 @@ namespace FreeTrainSimulator.Toolbox
                 }
 
                 this.path = pathModel ?? path;
+                currentPathModel = pathModel;
 
                 if (pathModel != null && !CanInitializePath(pathModel, out PathRouteResolution resolution))
                 {
@@ -102,6 +104,7 @@ namespace FreeTrainSimulator.Toolbox
                 ClearMoveNodeState();
                 ClearHistory();
                 await InitializePathModelAsync(pathModel, cancellationToken).ConfigureAwait(false);
+                currentPathModel = pathModel;
                 hasUnsavedChanges = false;
                 OnPathChanged?.Invoke(this, new PathEditorChangedEventArgs(TrainPath));
                 return true;
@@ -164,6 +167,7 @@ namespace FreeTrainSimulator.Toolbox
                 PlayerPath = true,
             };
             path = newPath;
+            currentPathModel = newPath;
             ClearMoveNodeState();
             ClearHistory();
             InitializePathEdit(newPath);
@@ -176,7 +180,7 @@ namespace FreeTrainSimulator.Toolbox
             if (!CanUndo)
                 return false;
 
-            PathModel redoSnapshot = TryCaptureSnapshot();
+            PathModel redoSnapshot = currentPathModel;
             PathModel undoSnapshot = undoHistory.Pop();
             RestoreSnapshot(undoSnapshot);
             if (redoSnapshot != null)
@@ -191,7 +195,7 @@ namespace FreeTrainSimulator.Toolbox
             if (!CanRedo)
                 return false;
 
-            PathModel undoSnapshot = TryCaptureSnapshot();
+            PathModel undoSnapshot = currentPathModel;
             PathModel redoSnapshot = redoHistory.Pop();
             RestoreSnapshot(redoSnapshot);
             if (undoSnapshot != null)
@@ -253,6 +257,11 @@ namespace FreeTrainSimulator.Toolbox
         public PathEditResult SnapToTrack()
             => ApplyUndoableEdit(model => SnapPathToTrack(model, RuntimeDataResolver.Instance.TrackWorld));
 
+        public PathEditorCommandResult ReResolvePathCommand()
+        {
+            return PathEditorCommandResult.FromPathEditResult(SnapToTrack());
+        }
+
         public bool CanMoveNode(int nodeIndex)
         {
             PathModel currentModel = TryGetEditablePathModel();
@@ -274,6 +283,7 @@ namespace FreeTrainSimulator.Toolbox
             if (!EditMode)
             {
                 path = currentModel;
+                currentPathModel = currentModel;
                 RestorePath(currentModel, true);
             }
 
@@ -283,6 +293,11 @@ namespace FreeTrainSimulator.Toolbox
             SelectPathItem(nodeIndex);
             OnPathUpdated?.Invoke(this, new PathEditorChangedEventArgs(TrainPath));
             return result;
+        }
+
+        public PathEditorCommandResult RepairSelectedNodeCommand(int nodeIndex)
+        {
+            return PathEditorCommandResult.FromPathEditResult(RepairSelectedNode(nodeIndex));
         }
 
         public bool BeginMoveNode(int nodeIndex)
@@ -295,6 +310,7 @@ namespace FreeTrainSimulator.Toolbox
             if (!EditMode)
             {
                 path = currentModel;
+                currentPathModel = currentModel;
                 RestorePath(currentModel, true);
             }
 
@@ -307,6 +323,13 @@ namespace FreeTrainSimulator.Toolbox
             SelectPathItem(nodeIndex);
             OnPathUpdated?.Invoke(this, new PathEditorChangedEventArgs(TrainPath));
             return true;
+        }
+
+        public PathEditorCommandResult BeginMoveNodeCommand(int nodeIndex)
+        {
+            return BeginMoveNode(nodeIndex)
+                ? PathEditorCommandResult.Succeeded($"Select a new track location for node {nodeIndex}.", currentPathModel)
+                : PathEditorCommandResult.Failed($"Cannot move path node {nodeIndex}; the node is not available in the current path model.", currentPathModel);
         }
 
         protected override void OnActivePathPointUpdated()
@@ -368,11 +391,19 @@ namespace FreeTrainSimulator.Toolbox
             if (currentModel != null)
             {
                 path = currentModel;
+                currentPathModel = currentModel;
                 RestorePath(currentModel, false);
                 SelectPathItem(movedNodeIndex);
             }
             OnPathUpdated?.Invoke(this, new PathEditorChangedEventArgs(TrainPath));
             return true;
+        }
+
+        public PathEditorCommandResult CancelMoveNodeCommand()
+        {
+            return CancelMoveNode()
+                ? PathEditorCommandResult.Succeeded("Node move canceled.", currentPathModel)
+                : PathEditorCommandResult.Failed("No node move is active.", currentPathModel);
         }
 
         // Captures the current authored path, runs the edit, and on success records an undo snapshot and
@@ -403,7 +434,7 @@ namespace FreeTrainSimulator.Toolbox
             if (!EditMode)
                 return false;
 
-            PathModel currentModel = TryCaptureSnapshot();
+            PathModel currentModel = TryGetEditablePathModel();
             return currentModel != null && predicate(currentModel);
         }
 
@@ -440,7 +471,7 @@ namespace FreeTrainSimulator.Toolbox
 
         public async Task SavePath(PathModelHeader pathDetails)
         {
-            PathModel pathModel = ConvertTrainPath(pathDetails);
+            PathModel pathModel = new PathModel(pathDetails) { PathNodes = currentPathModel?.PathNodes ?? ImmutableArray<PathNode>.Empty };
 
             // Editor-saved paths are always normalized to track (guard-and-refuse preserves passing-branch paths).
             pathModel = TrySnapForSave(pathModel);
@@ -452,6 +483,8 @@ namespace FreeTrainSimulator.Toolbox
             // passes game: null), so Instance is the single authoritative resolver here; a game-scoped
             // GameInstance(game) lookup would resolve to the same object.
             pathModel = await RuntimeDataResolver.Instance.RouteData.Save(pathModel).ConfigureAwait(false);
+            path = pathModel;
+            currentPathModel = pathModel;
             hasUnsavedChanges = false;
             OnPathChanged?.Invoke(this, new PathEditorChangedEventArgs(TrainPath));
         }
@@ -537,7 +570,7 @@ namespace FreeTrainSimulator.Toolbox
 
             if (EditMode && !editorDragged)
             {
-                PathModel undoSnapshot = TryCaptureSnapshot();
+                PathModel undoSnapshot = currentPathModel;
                 bool changed;
                 if (Environment.TickCount64 - lastPathClickTick < doubleClickInterval && validPointAdded) //considered as double click
                 {
@@ -549,7 +582,10 @@ namespace FreeTrainSimulator.Toolbox
                     validPointAdded = changed;
                 }
                 if (changed)
+                {
+                    currentPathModel = TryCaptureSnapshot() ?? currentPathModel;
                     PushUndoSnapshot(undoSnapshot);
+                }
                 if (changed)
                     hasUnsavedChanges = true;
                 lastPathClickTick = Environment.TickCount64;
@@ -564,9 +600,10 @@ namespace FreeTrainSimulator.Toolbox
             if (!EditMode)
                 return;
 
-            PathModel undoSnapshot = TryCaptureSnapshot();
+            PathModel undoSnapshot = currentPathModel;
             if (RemovePathPoint())
             {
+                currentPathModel = TryCaptureSnapshot() ?? currentPathModel;
                 PushUndoSnapshot(undoSnapshot);
                 hasUnsavedChanges = true;
             }
@@ -582,7 +619,7 @@ namespace FreeTrainSimulator.Toolbox
 
         public PathEditResult CommitMoveNode()
         {
-            PathModel currentModel = TryCaptureSnapshot() ?? moveSourceModel;
+            PathModel currentModel = TryGetEditablePathModel() ?? moveSourceModel;
             if (currentModel == null)
                 return PathEditResult.Failed("No editable path is currently loaded.", null);
 
@@ -608,10 +645,16 @@ namespace FreeTrainSimulator.Toolbox
             hasUnsavedChanges = true;
             ClearMoveNodeState();
             path = committedModel;
+            currentPathModel = committedModel;
             RestorePath(committedModel, false);
             SelectPathItem(movedNodeIndex);
             OnPathUpdated?.Invoke(this, new PathEditorChangedEventArgs(TrainPath));
             return PathEditResult.Succeeded($"Moved node {movedNodeIndex}.", committedModel, ImmutableArray.Create(movedNodeIndex));
+        }
+
+        public PathEditorCommandResult CommitMoveNodeCommand()
+        {
+            return PathEditorCommandResult.FromPathEditResult(CommitMoveNode());
         }
 
         private static PathNode CreateReplacementAnchor(TrainPathPointBase candidate)
@@ -660,32 +703,7 @@ namespace FreeTrainSimulator.Toolbox
 
         private PathModel TryGetEditablePathModel()
         {
-            return CanCaptureCurrentTrainPath() ? TryCaptureSnapshot() ?? TryGetLoadedPathModel() : TryGetLoadedPathModel();
-        }
-
-        private bool CanCaptureCurrentTrainPath()
-        {
-            TrainPathBase trainPath = TrainPath;
-            if (trainPath == null)
-                return false;
-
-            foreach (TrainPathPointBase point in trainPath.PathPoints)
-            {
-                if (point.ValidationResult != PathNodeInvalidReasons.None || point.ConnectedSegments.IsDefaultOrEmpty)
-                    return false;
-            }
-
-            return true;
-        }
-
-        private PathModel TryGetLoadedPathModel()
-        {
-            return path switch
-            {
-                null => null,
-                PathModel model => model,
-                _ => null,
-            };
+            return currentPathModel;
         }
 
         internal PathModel TryCaptureCurrentPathModel()
@@ -743,6 +761,7 @@ namespace FreeTrainSimulator.Toolbox
             // Preserve the current View/Edit mode across the rebuild: undoing/redoing or mutating must not
             // silently switch a path that was opened for viewing into edit mode.
             path = snapshot;
+            currentPathModel = snapshot;
             RestorePath(snapshot, EditMode);
             ClearMoveNodeState();
             validPointAdded = false;

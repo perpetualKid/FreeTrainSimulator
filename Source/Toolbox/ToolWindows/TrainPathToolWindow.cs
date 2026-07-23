@@ -344,55 +344,18 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
 
         internal void Redo() => InvokeEditorMutation(pathEditor => pathEditor.Redo());
 
-        internal void SnapToTrack() => InvokeEditorMutation(pathEditor => pathEditor.SnapToTrack().Success);
+        internal void SnapToTrack() => ExecuteEditorCommand(pathEditor => pathEditor.ReResolvePathCommand());
 
         internal void BeginMoveNode(int nodeIndex)
         {
-            gameThreadInvoker(() =>
-            {
-                PathEditor pathEditor = pathEditorAccessor();
-                if (pathEditor == null)
-                {
-                    Trace.TraceWarning($"Cannot move path node {nodeIndex} because no path editor is active.");
-                    return;
-                }
-
-                if (pathEditor.BeginMoveNode(nodeIndex))
-                {
-                    activateMapInputAction();
-                    MarkDirty();
-                    return;
-                }
-
-                Trace.TraceWarning($"Cannot move path node {nodeIndex}; the node is not available in the current path model.");
-            });
+            ExecuteEditorCommand(pathEditor => pathEditor.BeginMoveNodeCommand(nodeIndex), activateMapInputAction);
         }
 
-        internal void CommitMoveNode() => InvokeEditorMutation(pathEditor => pathEditor.CommitMoveNode().Success);
+        internal void CommitMoveNode() => ExecuteEditorCommand(pathEditor => pathEditor.CommitMoveNodeCommand());
 
-        internal void CancelMoveNode() => InvokeEditorMutation(pathEditor => pathEditor.CancelMoveNode());
+        internal void CancelMoveNode() => ExecuteEditorCommand(pathEditor => pathEditor.CancelMoveNodeCommand());
 
-        internal void RepairSelectedNode(int nodeIndex)
-        {
-            gameThreadInvoker(() =>
-            {
-                PathEditor pathEditor = pathEditorAccessor();
-                if (pathEditor == null)
-                {
-                    Trace.TraceWarning($"Cannot repair path node {nodeIndex} because no path editor is active.");
-                    return;
-                }
-
-                PathEditResult result = pathEditor.RepairSelectedNode(nodeIndex);
-                if (result.Success)
-                {
-                    MarkDirty();
-                    return;
-                }
-
-                Trace.TraceWarning($"Cannot repair path node {nodeIndex}: {result.Message}");
-            });
-        }
+        internal void RepairSelectedNode(int nodeIndex) => ExecuteEditorCommand(pathEditor => pathEditor.RepairSelectedNodeCommand(nodeIndex));
 
         internal bool CanCreatePath => toolingContextAccessor() != null;
 
@@ -411,6 +374,31 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
         internal void SavePath()
         {
             gameThreadInvoker(savePathAction);
+        }
+
+        private void ExecuteEditorCommand(Func<PathEditor, PathEditorCommandResult> command, Action onSuccess = null)
+        {
+            ArgumentNullException.ThrowIfNull(command);
+
+            gameThreadInvoker(() =>
+            {
+                PathEditor pathEditor = pathEditorAccessor();
+                if (pathEditor == null)
+                {
+                    Trace.TraceWarning("Cannot execute path editor command because no path editor is active.");
+                    return;
+                }
+
+                PathEditorCommandResult result = command(pathEditor);
+                if (result.Success)
+                {
+                    onSuccess?.Invoke();
+                    MarkDirty();
+                    return;
+                }
+
+                Trace.TraceWarning(result.Message);
+            });
         }
 
         // Marshals onto the game thread, resolves the current (possibly not-yet-created) editor, and runs

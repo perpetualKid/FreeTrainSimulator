@@ -212,6 +212,13 @@ namespace FreeTrainSimulator.Common
         [Description("Message")] Message,
     };
 
+    public enum Severity
+    {
+        [Description("Information")] Information,
+        [Description("Warning")] Warning,
+        [Description("Error")] Error,
+    };
+
     #region CabControl
     public enum CabControl
     {
