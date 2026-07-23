@@ -21,7 +21,7 @@ namespace Tests.FreeTrainSimulator.Toolbox
 
         private static TrainPathToolWindow CreateBridge(Action<Action> invoker, Action createPathAction, Action savePathAction)
         {
-            return new TrainPathToolWindow(() => null, () => null, invoker, createPathAction, savePathAction, _ => { }, () => { });
+            return new TrainPathToolWindow(() => null, () => null, invoker, createPathAction, savePathAction, _ => { }, () => { }, () => { });
         }
 
         [TestMethod]

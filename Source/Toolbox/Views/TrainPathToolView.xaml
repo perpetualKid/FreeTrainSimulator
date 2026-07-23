@@ -181,6 +181,7 @@
                     <RowDefinition Height="2*" MinHeight="120" />
                     <RowDefinition Height="Auto" />
                     <RowDefinition Height="*" MinHeight="80" />
+                    <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
                 <WrapPanel Grid.Row="0"
                            HorizontalAlignment="Left"
@@ -266,6 +267,21 @@
                         </ListView.View>
                     </ListView>
                 </DockPanel>
+                <TextBlock Grid.Row="4"
+                           Margin="0,6,0,0"
+                           TextWrapping="Wrap"
+                           Text="{Binding StatusMessage}">
+                    <TextBlock.Style>
+                        <Style TargetType="TextBlock">
+                            <Setter Property="Foreground" Value="Gray" />
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding StatusMessageIsWarning}" Value="True">
+                                    <Setter Property="Foreground" Value="OrangeRed" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </TextBlock.Style>
+                </TextBlock>
             </Grid>
         </TabItem>
     </TabControl>

@@ -82,15 +82,22 @@ namespace FreeTrainSimulator.Toolbox
         {
             try
             {
-                this.path = path;
                 PathModel pathModel = path as PathModel;
                 if (path != null && pathModel == null)
                 {
                     pathModel = await path.GetExtended(cancellationToken).ConfigureAwait(false);
                 }
 
-                if (path != null && !await CanInitializePathAsync(path, cancellationToken).ConfigureAwait(false))
+                this.path = pathModel ?? path;
+
+                if (pathModel != null && !CanInitializePath(pathModel, out PathRouteResolution resolution))
+                {
+                    string diagnostics = string.Join("; ", resolution.Diagnostics
+                        .Where(diagnostic => diagnostic.Severity == PathRouteDiagnosticSeverity.Fatal)
+                        .Select(diagnostic => $"{diagnostic.Code}: {diagnostic.Message}"));
+                    Trace.TraceWarning($"Path editor cannot open path '{path.Id}' because the path content has fatal route diagnostics. {diagnostics}");
                     return false;
+                }
 
                 ClearMoveNodeState();
                 ClearHistory();
@@ -319,7 +326,9 @@ namespace FreeTrainSimulator.Toolbox
             TrainPathPointBase candidate = ActivePathPoint;
             if (candidate == null || candidate.ValidationResult != PathNodeInvalidReasons.None || candidate.ConnectedSegments.IsDefaultOrEmpty)
             {
-                ClearMovePreview();
+                // Keep the last valid preview available for Commit Move. The current hover candidate may be
+                // off-track (or the pointer may have moved over WPF chrome), but that should not discard the
+                // last valid target the user previewed.
                 return;
             }
 
@@ -374,7 +383,7 @@ namespace FreeTrainSimulator.Toolbox
             if (!EditMode)
                 return PathEditResult.Failed("The path is not in edit mode.", null);
 
-            PathModel currentModel = TryCaptureSnapshot() ?? moveSourceModel;
+            PathModel currentModel = TryGetEditablePathModel() ?? moveSourceModel;
             if (currentModel == null)
                 return PathEditResult.Failed("No editable path is currently loaded.", null);
 
@@ -651,7 +660,22 @@ namespace FreeTrainSimulator.Toolbox
 
         private PathModel TryGetEditablePathModel()
         {
-            return TryCaptureSnapshot() ?? TryGetLoadedPathModel();
+            return CanCaptureCurrentTrainPath() ? TryCaptureSnapshot() ?? TryGetLoadedPathModel() : TryGetLoadedPathModel();
+        }
+
+        private bool CanCaptureCurrentTrainPath()
+        {
+            TrainPathBase trainPath = TrainPath;
+            if (trainPath == null)
+                return false;
+
+            foreach (TrainPathPointBase point in trainPath.PathPoints)
+            {
+                if (point.ValidationResult != PathNodeInvalidReasons.None || point.ConnectedSegments.IsDefaultOrEmpty)
+                    return false;
+            }
+
+            return true;
         }
 
         private PathModel TryGetLoadedPathModel()

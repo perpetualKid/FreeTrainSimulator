@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -159,6 +160,7 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
         private readonly Action savePathAction;
         private readonly Action<PathModelHeader> loadPathAction;
         private readonly Action unloadPathAction;
+        private readonly Action activateMapInputAction;
         private volatile TrainPathSnapshot snapshot = TrainPathSnapshot.Empty;
         private volatile bool active;
 
@@ -170,7 +172,8 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
         private int lastSnapshotVersion = -1;
 
         internal TrainPathToolWindow(Func<PathEditor> pathEditorAccessor, Func<ITrainPathToolingContext> toolingContextAccessor,
-            Action<Action> gameThreadInvoker, Action createPathAction, Action savePathAction, Action<PathModelHeader> loadPathAction, Action unloadPathAction)
+            Action<Action> gameThreadInvoker, Action createPathAction, Action savePathAction, Action<PathModelHeader> loadPathAction,
+            Action unloadPathAction, Action activateMapInputAction)
         {
             this.pathEditorAccessor = pathEditorAccessor ?? throw new ArgumentNullException(nameof(pathEditorAccessor));
             this.toolingContextAccessor = toolingContextAccessor ?? throw new ArgumentNullException(nameof(toolingContextAccessor));
@@ -179,6 +182,7 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
             this.savePathAction = savePathAction ?? throw new ArgumentNullException(nameof(savePathAction));
             this.loadPathAction = loadPathAction ?? throw new ArgumentNullException(nameof(loadPathAction));
             this.unloadPathAction = unloadPathAction ?? throw new ArgumentNullException(nameof(unloadPathAction));
+            this.activateMapInputAction = activateMapInputAction ?? throw new ArgumentNullException(nameof(activateMapInputAction));
         }
 
         public ToolboxWindowType WindowType => ToolboxWindowType.TrainPathWindow;
@@ -342,13 +346,53 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
 
         internal void SnapToTrack() => InvokeEditorMutation(pathEditor => pathEditor.SnapToTrack().Success);
 
-        internal void BeginMoveNode(int nodeIndex) => InvokeEditorMutation(pathEditor => pathEditor.BeginMoveNode(nodeIndex));
+        internal void BeginMoveNode(int nodeIndex)
+        {
+            gameThreadInvoker(() =>
+            {
+                PathEditor pathEditor = pathEditorAccessor();
+                if (pathEditor == null)
+                {
+                    Trace.TraceWarning($"Cannot move path node {nodeIndex} because no path editor is active.");
+                    return;
+                }
+
+                if (pathEditor.BeginMoveNode(nodeIndex))
+                {
+                    activateMapInputAction();
+                    MarkDirty();
+                    return;
+                }
+
+                Trace.TraceWarning($"Cannot move path node {nodeIndex}; the node is not available in the current path model.");
+            });
+        }
 
         internal void CommitMoveNode() => InvokeEditorMutation(pathEditor => pathEditor.CommitMoveNode().Success);
 
         internal void CancelMoveNode() => InvokeEditorMutation(pathEditor => pathEditor.CancelMoveNode());
 
-        internal void RepairSelectedNode(int nodeIndex) => InvokeEditorMutation(pathEditor => pathEditor.RepairSelectedNode(nodeIndex).Success);
+        internal void RepairSelectedNode(int nodeIndex)
+        {
+            gameThreadInvoker(() =>
+            {
+                PathEditor pathEditor = pathEditorAccessor();
+                if (pathEditor == null)
+                {
+                    Trace.TraceWarning($"Cannot repair path node {nodeIndex} because no path editor is active.");
+                    return;
+                }
+
+                PathEditResult result = pathEditor.RepairSelectedNode(nodeIndex);
+                if (result.Success)
+                {
+                    MarkDirty();
+                    return;
+                }
+
+                Trace.TraceWarning($"Cannot repair path node {nodeIndex}: {result.Message}");
+            });
+        }
 
         internal bool CanCreatePath => toolingContextAccessor() != null;
 

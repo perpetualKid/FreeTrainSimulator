@@ -219,6 +219,11 @@ namespace FreeTrainSimulator.Toolbox
                 return;
 
             editor.InitializeNewPath();
+            ActivatePathEditingInput();
+        }
+
+        internal void ActivatePathEditingInput()
+        {
             SetHostedInputCaptured(false);
             FocusHostedWindow();
         }

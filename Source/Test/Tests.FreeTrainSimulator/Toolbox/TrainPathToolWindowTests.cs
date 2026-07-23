@@ -220,7 +220,7 @@ namespace Tests.FreeTrainSimulator.Toolbox
         {
             PathModelHeader loadedPath = null;
             TestTrainPathToolingContext toolingContext = new TestTrainPathToolingContext(ImmutableArray.Create(new PathModelHeader { Id = "path-1", Name = "First Path" }));
-            TrainPathToolWindow trainPathToolWindow = new TrainPathToolWindow(() => null, () => toolingContext, action => action(), () => { }, () => { }, path => loadedPath = path, () => { });
+            TrainPathToolWindow trainPathToolWindow = new TrainPathToolWindow(() => null, () => toolingContext, action => action(), () => { }, () => { }, path => loadedPath = path, () => { }, () => { });
 
             trainPathToolWindow.SelectPath("path-1");
 
@@ -344,7 +344,7 @@ namespace Tests.FreeTrainSimulator.Toolbox
         public void WhenInactiveRefreshSnapshotThenPathEditorIsNotQueried()
         {
             int editorQueries = 0;
-            TrainPathToolWindow trainPathToolWindow = new TrainPathToolWindow(() => { editorQueries++; return null; }, () => null, action => action(), () => { }, () => { }, _ => { }, () => { })
+            TrainPathToolWindow trainPathToolWindow = new TrainPathToolWindow(() => { editorQueries++; return null; }, () => null, action => action(), () => { }, () => { }, _ => { }, () => { }, () => { })
             {
                 Active = false,
             };
@@ -506,7 +506,7 @@ namespace Tests.FreeTrainSimulator.Toolbox
         private static TrainPathToolWindow CreateTrainPathToolWindow(Action<Action> invoker, Action createPathAction, Action savePathAction,
             Action<PathModelHeader> loadPathAction, Action unloadPathAction)
         {
-            return new TrainPathToolWindow(() => null, () => null, invoker, createPathAction, savePathAction, loadPathAction, unloadPathAction);
+            return new TrainPathToolWindow(() => null, () => null, invoker, createPathAction, savePathAction, loadPathAction, unloadPathAction, () => { });
         }
 
         private sealed class TestTrainPathToolingContext : ITrainPathToolingContext
