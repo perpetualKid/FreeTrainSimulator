@@ -8,8 +8,6 @@ using FreeTrainSimulator.Common.Position;
 using FreeTrainSimulator.Models.Content;
 using FreeTrainSimulator.Models.Track;
 
-using Microsoft.Xna.Framework;
-
 namespace FreeTrainSimulator.Runtime.Track
 {
     public abstract record TrainPathBase : TrackSegmentPathBase<TrainPathSegmentBase>
@@ -142,11 +140,12 @@ namespace FreeTrainSimulator.Runtime.Track
                 {
                     NodeType = pathPoint.NodeType,
                     NodeIndex = pathPoint.NodeIndex,
-                    NextMainNode = (pathPoint.NodeType & PathNodeType.End) == PathNodeType.End ? -1 : pathPoint.NextMainNode,
+                    NextMainNode = pathPoint.NodeType.Includes(PathNodeType.End) ? -1 : pathPoint.NextMainNode,
                     NextSidingNode = pathPoint.NextSidingNode,
                     WaitInfo = pathPoint.WaitInfo,
                 });
             }
+
             return new PathModel(pathDetails)
             {
                 PathNodes = pathNodes.ToImmutableArray(),

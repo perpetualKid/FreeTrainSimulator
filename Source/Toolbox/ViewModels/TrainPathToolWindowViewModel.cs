@@ -3,7 +3,6 @@ using System.Collections.Immutable;
 using System.Collections.ObjectModel;
 using System.Linq;
 
-using FreeTrainSimulator.Models.Content;
 using FreeTrainSimulator.Toolbox.ToolWindows;
 
 namespace FreeTrainSimulator.Toolbox.ViewModels
@@ -17,12 +16,15 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
     /// </summary>
     internal sealed class TrainPathToolWindowViewModel : PollingToolWindowViewModel
     {
+        private const int DefaultWaitTimeSeconds = 60;
+
         private readonly TrainPathToolWindow toolWindow;
         private string searchText = string.Empty;
         private string statusMessage = string.Empty;
         private bool statusMessageIsWarning;
         private TrainPathListItemViewModel selectedPath;
         private TrainPathNodeItemViewModel selectedNode;
+        private TrainPathRouteCandidateItemViewModel selectedRouteCandidate;
         private string snapshotSelectedPathId;
         private bool canUndo;
         private bool canRedo;
@@ -31,6 +33,7 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
         private bool canSavePath;
         private bool canCancelMoveNode;
         private bool canCommitMoveNode;
+        private int waitTimeSeconds = DefaultWaitTimeSeconds;
         private bool suppressSelectionCommand;
 
         public TrainPathToolWindowViewModel(TrainPathToolWindow toolWindow, ToolWindowRefreshScheduler scheduler)
@@ -46,9 +49,14 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
             CommitMoveNodeCommand = new RelayCommand(_ => CommitMoveNode(), _ => CanCommitMoveNode);
             CancelMoveNodeCommand = new RelayCommand(_ => CancelMoveNode(), _ => CanCancelMoveNode);
             RepairSelectedNodeCommand = new RelayCommand(_ => RepairSelectedNode(), _ => CanRepairSelectedNode);
+            ToggleWaitPointCommand = new RelayCommand(_ => ToggleWaitPoint(), _ => CanAnnotateSelectedNode);
+            ToggleReversalPointCommand = new RelayCommand(_ => ToggleReversalPoint(), _ => CanAnnotateSelectedNode);
+            AddViaPointCommand = new RelayCommand(_ => AddViaPoint(), _ => CanAnnotateSelectedNode);
+            RemoveViaPointCommand = new RelayCommand(_ => RemoveViaPoint(), _ => CanAnnotateSelectedNode);
             NewPathCommand = new RelayCommand(_ => toolWindow.CreatePath(), _ => CanCreatePath);
             SavePathCommand = new RelayCommand(_ => toolWindow.SavePath(), _ => CanSavePath);
             ValidateAllPathsCommand = new RelayCommand(_ => ValidateAllPaths());
+            AcceptRouteCandidateCommand = new RelayCommand(_ => AcceptRouteCandidate(), _ => CanAcceptRouteCandidate);
         }
 
         public string Title => toolWindow.Title;
@@ -60,6 +68,9 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
         public ObservableCollection<DebugToolWindowRowViewModel> SelectedNodeDetailRows { get; } = new ObservableCollection<DebugToolWindowRowViewModel>();
 
         public ObservableCollection<DebugToolWindowRowViewModel> Metadata { get; } = new ObservableCollection<DebugToolWindowRowViewModel>();
+
+        /// <summary>Equal-cost route candidates of the current path's ambiguous spans.</summary>
+        public ObservableCollection<TrainPathRouteCandidateItemViewModel> RouteCandidates { get; } = new ObservableCollection<TrainPathRouteCandidateItemViewModel>();
 
         public RelayCommand UndoCommand { get; }
 
@@ -75,11 +86,57 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
 
         public RelayCommand RepairSelectedNodeCommand { get; }
 
+        public RelayCommand ToggleWaitPointCommand { get; }
+
+        public RelayCommand ToggleReversalPointCommand { get; }
+
+        public RelayCommand AddViaPointCommand { get; }
+
+        public RelayCommand RemoveViaPointCommand { get; }
+
+        /// <summary>Wait time in seconds applied when marking the selected node as a wait point.</summary>
+        public int WaitTimeSeconds
+        {
+            get => waitTimeSeconds;
+            set => SetProperty(ref waitTimeSeconds, value);
+        }
+
         public RelayCommand NewPathCommand { get; }
 
         public RelayCommand SavePathCommand { get; }
 
         public RelayCommand ValidateAllPathsCommand { get; }
+
+        public RelayCommand AcceptRouteCandidateCommand { get; }
+
+        public bool CanAcceptRouteCandidate => SelectedRouteCandidate != null && !CanCancelMoveNode;
+
+        /// <summary>
+        /// Currently selected route candidate. Selecting a candidate previews it on the map; clearing the
+        /// selection discards the preview.
+        /// </summary>
+        public TrainPathRouteCandidateItemViewModel SelectedRouteCandidate
+        {
+            get => selectedRouteCandidate;
+            set
+            {
+                if (!SetProperty(ref selectedRouteCandidate, value))
+                    return;
+
+                AcceptRouteCandidateCommand.RaiseCanExecuteChanged();
+                if (suppressSelectionCommand)
+                    return;
+
+                if (value == null)
+                {
+                    toolWindow.ClearRouteCandidatePreview();
+                    return;
+                }
+
+                toolWindow.PreviewRouteCandidate(value.FromNodeIndex, value.CandidateIndex);
+                SetStatusMessage($"Previewing route candidate {value.CandidateIndex + 1} for nodes {value.FromNodeIndex}-{value.ToNodeIndex}.", false);
+            }
+        }
 
         public bool CanUndo
         {
@@ -117,6 +174,8 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
         public bool CanMoveSelectedNode => SelectedNode != null && !CanCancelMoveNode;
 
         public bool CanRepairSelectedNode => SelectedNode != null && !CanCancelMoveNode;
+
+        public bool CanAnnotateSelectedNode => SelectedNode != null && !CanCancelMoveNode;
 
         public bool CanRedo
         {
@@ -211,6 +270,10 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
                 UpdateSelectedNodeDetailRows();
                 MoveSelectedNodeCommand.RaiseCanExecuteChanged();
                 RepairSelectedNodeCommand.RaiseCanExecuteChanged();
+                ToggleWaitPointCommand.RaiseCanExecuteChanged();
+                ToggleReversalPointCommand.RaiseCanExecuteChanged();
+                AddViaPointCommand.RaiseCanExecuteChanged();
+                RemoveViaPointCommand.RaiseCanExecuteChanged();
             }
         }
 
@@ -226,6 +289,7 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
             SyncNodes(snapshot.Nodes);
             UpdateSelectedNodeDetailRows();
             DebugToolWindowRowViewModel.Sync(Metadata, snapshot.Metadata);
+            SyncRouteCandidates(snapshot.RouteCandidates);
             CanUndo = snapshot.CanUndo;
             CanRedo = snapshot.CanRedo;
             CanSnapToTrack = snapshot.CanSnapToTrack;
@@ -275,7 +339,65 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
             SetStatusMessage($"Repair selected node {SelectedNode.Index} requested.", false);
         }
 
-        // Runs the forced 'validate all paths' bridge. Exceptions are surfaced through StatusMessage instead of
+        private void ToggleWaitPoint()
+        {
+            if (SelectedNode == null)
+                return;
+
+            int nodeIndex = SelectedNode.Index;
+            if (SelectedNode.HasWaitPoint)
+            {
+                toolWindow.ClearWaitPoint(nodeIndex);
+                SetStatusMessage($"Clear wait point on node {nodeIndex} requested.", false);
+                return;
+            }
+
+            if (WaitTimeSeconds <= 0)
+            {
+                SetStatusMessage("Enter a positive wait time before marking a wait point.", true);
+                return;
+            }
+
+            toolWindow.SetWaitPoint(nodeIndex, WaitTimeSeconds);
+            SetStatusMessage($"Wait point of {WaitTimeSeconds}s on node {nodeIndex} requested.", false);
+        }
+
+        private void ToggleReversalPoint()
+        {
+            if (SelectedNode == null)
+                return;
+
+            int nodeIndex = SelectedNode.Index;
+            if (SelectedNode.HasReversalPoint)
+            {
+                toolWindow.ClearReversalPoint(nodeIndex);
+                SetStatusMessage($"Clear reversal point on node {nodeIndex} requested.", false);
+                return;
+            }
+
+            toolWindow.SetReversalPoint(nodeIndex);
+            SetStatusMessage($"Reversal point on node {nodeIndex} requested.", false);
+        }
+
+        private void AddViaPoint()
+        {
+            if (SelectedNode == null)
+                return;
+
+            toolWindow.AddViaPoint(SelectedNode.Index);
+            SetStatusMessage($"Select a track location for the new via point after node {SelectedNode.Index}.", false);
+        }
+
+        private void RemoveViaPoint()
+        {
+            if (SelectedNode == null)
+                return;
+
+            toolWindow.RemoveViaPoint(SelectedNode.Index);
+            SetStatusMessage($"Remove via point {SelectedNode.Index} requested.", false);
+        }
+
+        // Runs the forced 'validate all paths' bridge.
         // being thrown from the ICommand handler so a validation failure never crashes the UI thread.
         private async void ValidateAllPaths()
         {
@@ -291,6 +413,52 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
             }
         }
 
+        private void SyncRouteCandidates(ImmutableArray<TrainPathRouteCandidateRow> rows)
+        {
+            if (rows.IsDefault)
+                rows = ImmutableArray<TrainPathRouteCandidateRow>.Empty;
+
+            // Preserve the bound selection across the in-place sync without re-triggering a map preview.
+            TrainPathRouteCandidateItemViewModel selected = SelectedRouteCandidate;
+            for (int i = 0; i < rows.Length; i++)
+            {
+                if (i < RouteCandidates.Count)
+                    RouteCandidates[i].Update(rows[i]);
+                else
+                    RouteCandidates.Add(new TrainPathRouteCandidateItemViewModel(rows[i]));
+            }
+
+            for (int i = RouteCandidates.Count - 1; i >= rows.Length; i--)
+                RouteCandidates.RemoveAt(i);
+
+            if (selected != null && !RouteCandidates.Contains(selected))
+                RestoreRouteCandidateSelection(null);
+        }
+
+        private void RestoreRouteCandidateSelection(TrainPathRouteCandidateItemViewModel candidate)
+        {
+            suppressSelectionCommand = true;
+            try
+            {
+                SelectedRouteCandidate = candidate;
+            }
+            finally
+            {
+                suppressSelectionCommand = false;
+            }
+        }
+
+        private void AcceptRouteCandidate()
+        {
+            TrainPathRouteCandidateItemViewModel candidate = SelectedRouteCandidate;
+            if (candidate == null)
+                return;
+
+            toolWindow.AcceptRouteCandidate(candidate.FromNodeIndex, candidate.CandidateIndex);
+            SetStatusMessage($"Accept route candidate {candidate.CandidateIndex + 1} for nodes {candidate.FromNodeIndex}-{candidate.ToNodeIndex} requested.", false);
+            RestoreRouteCandidateSelection(null);
+        }
+
         private void SetStatusMessage(string message, bool isWarning)
         {
             StatusMessage = message;
@@ -299,7 +467,8 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
 
         private static bool IsMoveGuidanceMessage(string message)
         {
-            return message?.StartsWith("Select a new track location", StringComparison.Ordinal) == true;
+            return message?.StartsWith("Select a new track location", StringComparison.Ordinal) == true
+                || message?.StartsWith("Select a track location", StringComparison.Ordinal) == true;
         }
 
         private void SyncPaths(ImmutableArray<TrainPathListRow> rows)
@@ -405,7 +574,7 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
 
             ImmutableArray<ToolWindowRow>.Builder builder = ImmutableArray.CreateBuilder<ToolWindowRow>();
             builder.Add(new ToolWindowRow { Name = "Index", Value = selectedNode.Index.ToString(System.Globalization.CultureInfo.InvariantCulture) });
-            builder.Add(new ToolWindowRow { Name = "Type", Value = selectedNode.NodeType });
+            builder.Add(new ToolWindowRow { Name = "Type", Value = selectedNode.NodeType.ToString() });
             builder.Add(new ToolWindowRow { Name = "Track Node", Value = selectedNode.TrackNodeIndex.ToString(System.Globalization.CultureInfo.InvariantCulture) });
             builder.Add(new ToolWindowRow { Name = "Wait", Value = selectedNode.WaitTime?.ToString(System.Globalization.CultureInfo.InvariantCulture) ?? string.Empty });
             builder.Add(new ToolWindowRow { Name = "Next Main", Value = selectedNode.NextMainNode.ToString(System.Globalization.CultureInfo.InvariantCulture) });
@@ -420,171 +589,6 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
         private static string FormatMeters(double? value)
         {
             return value.HasValue ? FormattableString.Invariant($"{value.Value:0.###} m") : string.Empty;
-        }
-    }
-
-    /// <summary>Bindable row for the available-paths list. Observable so it can be updated in place.</summary>
-    internal sealed class TrainPathListItemViewModel : ObservableObject
-    {
-        private string id;
-        private string name;
-        private PathValidationState validationState;
-        private bool isVisible = true;
-
-        public TrainPathListItemViewModel(string id, string name, PathValidationState validationState)
-        {
-            this.id = id;
-            this.name = name;
-            this.validationState = validationState;
-        }
-
-        public string Id
-        {
-            get => id;
-            private set => SetProperty(ref id, value);
-        }
-
-        public string Name
-        {
-            get => name;
-            private set => SetProperty(ref name, value);
-        }
-
-        /// <summary>Persisted validation state of the path against the current track.</summary>
-        public PathValidationState ValidationState
-        {
-            get => validationState;
-            private set => SetProperty(ref validationState, value);
-        }
-
-        public bool IsVisible
-        {
-            get => isVisible;
-            set => SetProperty(ref isVisible, value);
-        }
-
-        public void Update(string id, string name, PathValidationState validationState)
-        {
-            Id = id;
-            Name = name;
-            ValidationState = validationState;
-        }
-    }
-
-    /// <summary>Bindable row for the path-node list. Observable so it can be updated in place.</summary>
-    internal sealed class TrainPathNodeItemViewModel : ObservableObject
-    {
-        private int index;
-        private string nodeType;
-        private bool valid;
-        private int trackNodeIndex;
-        private int nextMainNode;
-        private int nextSidingNode;
-        private int? waitTime;
-        private string validation;
-        private int? nearestTrackNodeIndex;
-        private int? nearestTrackSectionIndex;
-        private double? nearestTrackDistanceMeters;
-
-        public TrainPathNodeItemViewModel(int index, string nodeType, bool valid)
-        {
-            this.index = index;
-            this.nodeType = nodeType;
-            this.valid = valid;
-            nextMainNode = -1;
-            nextSidingNode = -1;
-        }
-
-        public TrainPathNodeItemViewModel(TrainPathNodeRow row)
-            : this(row.Index, row.NodeType, row.Valid)
-        {
-            Update(row);
-        }
-
-        public int Index
-        {
-            get => index;
-            private set => SetProperty(ref index, value);
-        }
-
-        public string NodeType
-        {
-            get => nodeType;
-            private set => SetProperty(ref nodeType, value);
-        }
-
-        public bool Valid
-        {
-            get => valid;
-            private set => SetProperty(ref valid, value);
-        }
-
-        public int TrackNodeIndex
-        {
-            get => trackNodeIndex;
-            private set => SetProperty(ref trackNodeIndex, value);
-        }
-
-        public int NextMainNode
-        {
-            get => nextMainNode;
-            private set => SetProperty(ref nextMainNode, value);
-        }
-
-        public int NextSidingNode
-        {
-            get => nextSidingNode;
-            private set => SetProperty(ref nextSidingNode, value);
-        }
-
-        public int? WaitTime
-        {
-            get => waitTime;
-            private set => SetProperty(ref waitTime, value);
-        }
-
-        public string Validation
-        {
-            get => validation;
-            private set => SetProperty(ref validation, value);
-        }
-
-        public int? NearestTrackNodeIndex
-        {
-            get => nearestTrackNodeIndex;
-            private set => SetProperty(ref nearestTrackNodeIndex, value);
-        }
-
-        public int? NearestTrackSectionIndex
-        {
-            get => nearestTrackSectionIndex;
-            private set => SetProperty(ref nearestTrackSectionIndex, value);
-        }
-
-        public double? NearestTrackDistanceMeters
-        {
-            get => nearestTrackDistanceMeters;
-            private set => SetProperty(ref nearestTrackDistanceMeters, value);
-        }
-
-        public void Update(int index, string nodeType, bool valid)
-        {
-            Index = index;
-            NodeType = nodeType;
-            Valid = valid;
-        }
-
-        public void Update(TrainPathNodeRow row)
-        {
-            Update(row.Index, row.NodeType, row.Valid);
-            TrackNodeIndex = row.TrackNodeIndex;
-            NextMainNode = row.NextMainNode;
-            NextSidingNode = row.NextSidingNode;
-            WaitTime = row.WaitTime;
-            Validation = row.Validation;
-            NearestTrackNodeIndex = row.NearestTrackNodeIndex;
-            NearestTrackSectionIndex = row.NearestTrackSectionIndex;
-            NearestTrackDistanceMeters = row.NearestTrackDistanceMeters;
         }
     }
 }

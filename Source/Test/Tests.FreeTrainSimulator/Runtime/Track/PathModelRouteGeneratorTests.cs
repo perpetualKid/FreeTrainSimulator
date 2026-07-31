@@ -72,9 +72,9 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
             PathGenerationResult result = PathModelRouteGenerator.GenerateMainPath(sourcePath, resolution, trackWorld, PathRouteResolverOptions.Default);
 
             PathNode endNode = result.PathModel.PathNodes[^1];
-            Assert.IsTrue((endNode.NodeType & PathNodeType.End) == PathNodeType.End);
-            Assert.IsTrue((endNode.NodeType & PathNodeType.Wait) == PathNodeType.Wait);
-            Assert.IsTrue((endNode.NodeType & PathNodeType.Reversal) == PathNodeType.Reversal);
+            Assert.IsTrue(endNode.NodeType.Includes(PathNodeType.End));
+            Assert.IsTrue(endNode.NodeType.Includes(PathNodeType.Wait));
+            Assert.IsTrue(endNode.NodeType.Includes(PathNodeType.Reversal));
             Assert.AreEqual(waitInfo, endNode.WaitInfo);
         }
 
@@ -136,7 +136,7 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
 
             PathNode sidingNode = result.PathModel.PathNodes[3];
             Assert.AreEqual(3, sidingNode.NodeIndex);
-            Assert.IsTrue((sidingNode.NodeType & PathNodeType.Intermediate) == PathNodeType.Intermediate);
+            Assert.IsTrue(sidingNode.NodeType.Includes(PathNodeType.Intermediate));
         }
 
         [TestMethod]

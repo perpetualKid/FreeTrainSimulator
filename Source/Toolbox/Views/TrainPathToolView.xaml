@@ -216,6 +216,35 @@
                             ToolTip="Safely repair the selected node when the fix is unambiguous, such as converting a non-junction junction marker into a track point" />
                     <Button Margin="0,0,6,4"
                             Padding="8,2"
+                            Content="Add Via Point"
+                            Command="{Binding AddViaPointCommand}"
+                            ToolTip="Insert a via point after the selected node and place it on the next valid map location you click" />
+                    <Button Margin="0,0,6,4"
+                            Padding="8,2"
+                            Content="Remove Via Point"
+                            Command="{Binding RemoveViaPointCommand}"
+                            ToolTip="Remove the selected via point and relink the path around it" />
+                    <Button Margin="0,0,6,4"
+                            Padding="8,2"
+                            Content="Toggle Wait"
+                            Command="{Binding ToggleWaitPointCommand}"
+                            ToolTip="Mark or clear the selected node as a wait point using the wait time below" />
+                    <TextBox Margin="0,0,2,4"
+                             Padding="4,2"
+                             Width="60"
+                             VerticalContentAlignment="Center"
+                             Text="{Binding WaitTimeSeconds, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                             ToolTip="Wait time in seconds applied when marking a wait point" />
+                    <TextBlock Margin="0,0,6,4"
+                               VerticalAlignment="Center"
+                               Text="s" />
+                    <Button Margin="0,0,6,4"
+                            Padding="8,2"
+                            Content="Toggle Reversal"
+                            Command="{Binding ToggleReversalPointCommand}"
+                            ToolTip="Mark or clear the selected node as a reversal point" />
+                    <Button Margin="0,0,6,4"
+                            Padding="8,2"
                             Content="Re-resolve Path"
                             Command="{Binding SnapToTrackCommand}"
                             ToolTip="Rebuild the whole path from its authored nodes using the path resolver. This may insert generated nodes and update links." />
@@ -283,6 +312,35 @@
                     </TextBlock.Style>
                 </TextBlock>
             </Grid>
+        </TabItem>
+        <TabItem Header="Route Candidates">
+            <DockPanel Margin="6">
+                <TextBlock DockPanel.Dock="Top"
+                           Margin="0,2,0,4"
+                           TextWrapping="Wrap"
+                           Text="Spans with several equal-cost routes. Select a candidate to preview it on the map, then accept it to author it as via points." />
+                <WrapPanel DockPanel.Dock="Bottom"
+                           HorizontalAlignment="Left"
+                           Margin="0,6,0,0">
+                    <Button Padding="8,2"
+                            Margin="0,0,6,4"
+                            Content="Accept Candidate"
+                            Command="{Binding AcceptRouteCandidateCommand}"
+                            ToolTip="Author the selected candidate route as via points, making the span unambiguous" />
+                </WrapPanel>
+                <ListView ItemsSource="{Binding RouteCandidates}"
+                          SelectedItem="{Binding SelectedRouteCandidate, Mode=TwoWay}"
+                          behaviors:GridViewColumnBehavior.StretchListView="True">
+                    <ListView.View>
+                        <GridView>
+                            <GridViewColumn Header="From" Width="60" DisplayMemberBinding="{Binding FromNodeIndex}" />
+                            <GridViewColumn Header="To" Width="60" DisplayMemberBinding="{Binding ToNodeIndex}" />
+                            <GridViewColumn Header="Route" Width="320" DisplayMemberBinding="{Binding Description}"
+                                            behaviors:GridViewColumnBehavior.StretchColumn="True" />
+                        </GridView>
+                    </ListView.View>
+                </ListView>
+            </DockPanel>
         </TabItem>
     </TabControl>
 </UserControl>

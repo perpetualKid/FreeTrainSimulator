@@ -37,7 +37,7 @@ namespace FreeTrainSimulator.Runtime.Track
                 return PathEditResult.Failed("Cannot add an end node before a start node exists.", pathModel);
 
             int lastIndex = nodes.Length - 1;
-            if ((nodes[lastIndex].NodeType & PathNodeType.End) == PathNodeType.End)
+            if (nodes[lastIndex].NodeType.Includes(PathNodeType.End))
                 return PathEditResult.Failed("The path already ends with an end node.", pathModel);
 
             // Swap Intermediate for End (keeping any Junction/Wait/Reversal flags) and break the trailing link.
@@ -149,6 +149,237 @@ namespace FreeTrainSimulator.Runtime.Track
             return PathEditResult.Succeeded($"Removed {nodes.Length - nodeIndex - 1} node(s) after node {nodeIndex}.",
                 pathModel with { PathNodes = builder.ToImmutable() },
                 ImmutableArray.Create(nodeIndex));
+        }
+
+        /// <summary>
+        /// Makes an ambiguous span unambiguous by inserting the chosen candidate's intermediary anchors as
+        /// authored via points after the node at <paramref name="nodeIndex"/>. Fails for an out-of-range
+        /// index or when the candidate carries no intermediary anchors to author.
+        /// </summary>
+        public static PathEditResult ApplyRouteCandidate(PathModel pathModel, int nodeIndex, ResolvedRouteCandidate candidate)
+        {
+            ArgumentNullException.ThrowIfNull(pathModel);
+            ArgumentNullException.ThrowIfNull(candidate);
+
+            ImmutableArray<PathNode> nodes = Nodes(pathModel);
+            if (nodeIndex < 0 || nodeIndex >= nodes.Length)
+                return PathEditResult.Failed($"Node index {nodeIndex} is out of range.", pathModel);
+            if (candidate.GeneratedIntermediaryAnchors.IsDefaultOrEmpty)
+                return PathEditResult.Failed("The selected route candidate has no intermediary anchors to author.", pathModel);
+
+            PathModel current = pathModel;
+            ImmutableArray<int>.Builder changedNodeIndexes = ImmutableArray.CreateBuilder<int>();
+            int insertAfterIndex = nodeIndex;
+            foreach (PathRouteAnchor anchor in candidate.GeneratedIntermediaryAnchors)
+            {
+                PathNode viaAnchor = new PathNode(anchor.Location) { NodeIndex = anchor.TrackNodeIndex };
+                PathEditResult result = InsertViaPoint(current, insertAfterIndex, viaAnchor, anchor.NodeType.Includes(PathNodeType.Junction));
+                if (!result.Success)
+                    return PathEditResult.Failed(result.Message, pathModel);
+
+                current = result.PathModel;
+                insertAfterIndex++;
+                changedNodeIndexes.Add(insertAfterIndex);
+            }
+
+            return PathEditResult.Succeeded($"Applied route candidate with {candidate.GeneratedIntermediaryAnchors.Length} via point(s) after node {nodeIndex}.",
+                current, changedNodeIndexes.ToImmutable());
+        }
+
+        /// <summary>
+        /// Inserts a via point directly after the node at <paramref name="nodeIndex"/>, linking it into the
+        /// main chain and re-indexing all following links. A via point is an authored intermediate anchor that
+        /// constrains the route the resolver may take. Fails for an out-of-range index or when the preceding node
+        /// is the end node.
+        /// </summary>
+        public static PathEditResult InsertViaPoint(PathModel pathModel, int nodeIndex, PathNode anchor, bool isJunction)
+        {
+            ArgumentNullException.ThrowIfNull(pathModel);
+            ArgumentNullException.ThrowIfNull(anchor);
+
+            ImmutableArray<PathNode> nodes = Nodes(pathModel);
+            if (nodeIndex < 0 || nodeIndex >= nodes.Length)
+                return PathEditResult.Failed($"Node index {nodeIndex} is out of range.", pathModel);
+            if (nodes[nodeIndex].NodeType.Includes(PathNodeType.End))
+                return PathEditResult.Failed("Cannot insert a via point after the end node.", pathModel);
+
+            int insertIndex = nodeIndex + 1;
+            ImmutableArray<PathNode>.Builder builder = ImmutableArray.CreateBuilder<PathNode>(nodes.Length + 1);
+            for (int i = 0; i < nodes.Length; i++)
+            {
+                if (i == insertIndex)
+                    builder.Add(CreateViaNode(anchor, isJunction, ShiftLink(nodes[nodeIndex].NextMainNode, insertIndex)));
+
+                builder.Add(nodes[i] with
+                {
+                    NextMainNode = i == nodeIndex ? insertIndex : ShiftLink(nodes[i].NextMainNode, insertIndex),
+                    NextSidingNode = ShiftLink(nodes[i].NextSidingNode, insertIndex),
+                });
+            }
+
+            if (insertIndex == nodes.Length)
+                builder.Add(CreateViaNode(anchor, isJunction, ShiftLink(nodes[nodeIndex].NextMainNode, insertIndex)));
+
+            return PathEditResult.Succeeded($"Inserted via point at node {insertIndex}.", pathModel with { PathNodes = builder.ToImmutable() }, ImmutableArray.Create(insertIndex));
+        }
+
+        /// <summary>
+        /// Removes the via point at <paramref name="nodeIndex"/>, relinking its predecessors to its successor and
+        /// re-indexing the remaining links. Fails for an out-of-range index or when the node is a start or end node.
+        /// </summary>
+        public static PathEditResult RemoveViaPoint(PathModel pathModel, int nodeIndex)
+        {
+            ArgumentNullException.ThrowIfNull(pathModel);
+
+            ImmutableArray<PathNode> nodes = Nodes(pathModel);
+            if (nodeIndex < 0 || nodeIndex >= nodes.Length)
+                return PathEditResult.Failed($"Node index {nodeIndex} is out of range.", pathModel);
+
+            PathNode removed = nodes[nodeIndex];
+            if ((removed.NodeType & (PathNodeType.Start | PathNodeType.End)) != PathNodeType.None)
+                return PathEditResult.Failed($"Node {nodeIndex} is a start or end node and is not a via point.", pathModel);
+
+            // Bridge the gap first (still using pre-removal indexes), then let RemoveNodeAt re-index everything.
+            ImmutableArray<PathNode> relinked = ImmutableArray.CreateRange(nodes, node => node with
+            {
+                NextMainNode = node.NextMainNode == nodeIndex ? removed.NextMainNode : node.NextMainNode,
+                NextSidingNode = node.NextSidingNode == nodeIndex ? removed.NextSidingNode : node.NextSidingNode,
+            });
+
+            return PathEditResult.Succeeded($"Removed via point {nodeIndex}.", pathModel with { PathNodes = RemoveNodeAt(relinked, nodeIndex) }, ImmutableArray.Create(nodeIndex));
+        }
+
+        private static PathNode CreateViaNode(PathNode anchor, bool junction, int nextMainNode)
+        {
+            return new PathNode(anchor.Location)
+            {
+                NodeType = junction ? PathNodeType.Junction : PathNodeType.Intermediate,
+                NodeIndex = anchor.NodeIndex,
+                NextMainNode = nextMainNode,
+                NextSidingNode = -1,
+            };
+        }
+
+        // Re-targets a single absolute link index after a node is inserted at insertIndex.
+        private static int ShiftLink(int link, int insertIndex)
+        {
+            return link >= insertIndex ? link + 1 : link;
+        }
+
+        /// <summary>
+        /// Marks the node at <paramref name="nodeIndex"/> as a wait point and stores the given wait time in
+        /// seconds. Fails for an out-of-range index, a non-positive wait time, a junction node, or a start/end node.
+        /// </summary>
+        public static PathEditResult SetWaitPoint(PathModel pathModel, int nodeIndex, int waitTimeSeconds)
+        {
+            ArgumentNullException.ThrowIfNull(pathModel);
+
+            if (waitTimeSeconds <= 0)
+                return PathEditResult.Failed("A wait point requires a positive wait time.", pathModel);
+
+            ImmutableArray<PathNode> nodes = Nodes(pathModel);
+            if (!CanAnnotateNode(nodes, nodeIndex, "wait point", out string failure))
+                return PathEditResult.Failed(failure, pathModel);
+
+            PathNode node = nodes[nodeIndex] with
+            {
+                NodeType = nodes[nodeIndex].NodeType | PathNodeType.Wait,
+                WaitInfo = new PathNodeWaitInfo { WaitTime = waitTimeSeconds },
+            };
+
+            return PathEditResult.Succeeded($"Set wait point of {waitTimeSeconds}s on node {nodeIndex}.", pathModel with { PathNodes = nodes.SetItem(nodeIndex, node) }, ImmutableArray.Create(nodeIndex));
+        }
+
+        /// <summary>
+        /// Clears the wait point marker and wait information from the node at <paramref name="nodeIndex"/>. Fails
+        /// for an out-of-range index or when the node is not a wait point.
+        /// </summary>
+        public static PathEditResult ClearWaitPoint(PathModel pathModel, int nodeIndex)
+        {
+            ArgumentNullException.ThrowIfNull(pathModel);
+
+            ImmutableArray<PathNode> nodes = Nodes(pathModel);
+            if (nodeIndex < 0 || nodeIndex >= nodes.Length)
+                return PathEditResult.Failed($"Node index {nodeIndex} is out of range.", pathModel);
+            if ((nodes[nodeIndex].NodeType & PathNodeType.Wait) != PathNodeType.Wait)
+                return PathEditResult.Failed($"Node {nodeIndex} is not a wait point.", pathModel);
+
+            PathNode node = nodes[nodeIndex] with
+            {
+                NodeType = WithoutMarker(nodes[nodeIndex].NodeType, PathNodeType.Wait),
+                WaitInfo = null,
+            };
+
+            return PathEditResult.Succeeded($"Cleared wait point on node {nodeIndex}.", pathModel with { PathNodes = nodes.SetItem(nodeIndex, node) }, ImmutableArray.Create(nodeIndex));
+        }
+
+        /// <summary>
+        /// Marks the node at <paramref name="nodeIndex"/> as a reversal point. Fails for an out-of-range index, a
+        /// junction node, or a start/end node.
+        /// </summary>
+        public static PathEditResult SetReversalPoint(PathModel pathModel, int nodeIndex)
+        {
+            ArgumentNullException.ThrowIfNull(pathModel);
+
+            ImmutableArray<PathNode> nodes = Nodes(pathModel);
+            if (!CanAnnotateNode(nodes, nodeIndex, "reversal point", out string failure))
+                return PathEditResult.Failed(failure, pathModel);
+
+            PathNode node = nodes[nodeIndex] with { NodeType = nodes[nodeIndex].NodeType | PathNodeType.Reversal };
+
+            return PathEditResult.Succeeded($"Set reversal point on node {nodeIndex}.", pathModel with { PathNodes = nodes.SetItem(nodeIndex, node) }, ImmutableArray.Create(nodeIndex));
+        }
+
+        /// <summary>
+        /// Clears the reversal point marker from the node at <paramref name="nodeIndex"/>. Fails for an
+        /// out-of-range index or when the node is not a reversal point.
+        /// </summary>
+        public static PathEditResult ClearReversalPoint(PathModel pathModel, int nodeIndex)
+        {
+            ArgumentNullException.ThrowIfNull(pathModel);
+
+            ImmutableArray<PathNode> nodes = Nodes(pathModel);
+            if (nodeIndex < 0 || nodeIndex >= nodes.Length)
+                return PathEditResult.Failed($"Node index {nodeIndex} is out of range.", pathModel);
+            if ((nodes[nodeIndex].NodeType & PathNodeType.Reversal) != PathNodeType.Reversal)
+                return PathEditResult.Failed($"Node {nodeIndex} is not a reversal point.", pathModel);
+
+            PathNode node = nodes[nodeIndex] with { NodeType = WithoutMarker(nodes[nodeIndex].NodeType, PathNodeType.Reversal) };
+
+            return PathEditResult.Succeeded($"Cleared reversal point on node {nodeIndex}.", pathModel with { PathNodes = nodes.SetItem(nodeIndex, node) }, ImmutableArray.Create(nodeIndex));
+        }
+
+        // Wait and reversal markers describe what the train does while running along a track point. They are not
+        // meaningful on the route termini or on a junction, where the resolver owns the node semantics.
+        private static bool CanAnnotateNode(ImmutableArray<PathNode> nodes, int nodeIndex, string markerName, out string failure)
+        {
+            if (nodeIndex < 0 || nodeIndex >= nodes.Length)
+            {
+                failure = $"Node index {nodeIndex} is out of range.";
+                return false;
+            }
+
+            PathNodeType nodeType = nodes[nodeIndex].NodeType;
+            if ((nodeType & (PathNodeType.Start | PathNodeType.End)) != PathNodeType.None)
+            {
+                failure = $"Node {nodeIndex} is a start or end node and cannot be a {markerName}.";
+                return false;
+            }
+            if (nodeType.Includes(PathNodeType.Junction))
+            {
+                failure = $"Node {nodeIndex} is a junction node and cannot be a {markerName}.";
+                return false;
+            }
+
+            failure = null;
+            return true;
+        }
+
+        // Drops a marker flag, falling back to a plain intermediate node when nothing else remains.
+        private static PathNodeType WithoutMarker(PathNodeType nodeType, PathNodeType marker)
+        {
+            PathNodeType remaining = nodeType & ~marker;
+            return remaining == PathNodeType.None ? PathNodeType.Intermediate : remaining;
         }
 
         /// <summary>
@@ -311,7 +542,7 @@ namespace FreeTrainSimulator.Runtime.Track
         // (the authored end is the last End-flagged node), all other flags from the head.
         private static int IndexOfNodeType(ImmutableArray<PathNode> nodes, PathNodeType nodeType)
         {
-            if ((nodeType & PathNodeType.End) == PathNodeType.End)
+            if (nodeType.Includes(PathNodeType.End))
             {
                 for (int i = nodes.Length - 1; i >= 0; i--)
                 {

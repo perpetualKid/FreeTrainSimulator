@@ -40,8 +40,8 @@ namespace FreeTrainSimulator.Runtime.Track
             WaitInfo = node.WaitInfo;
             NearestTrackDistance = trackWorld.NearestTrackDistance(Location);
 
-            JunctionNode = (node.NodeType & PathNodeType.Junction) == PathNodeType.Junction ? trackWorld.JunctionNodeBaseAt(Location) : null;
-            if ((node.NodeType & PathNodeType.Junction) == PathNodeType.Junction && JunctionNode == null)
+            JunctionNode = node.NodeType.Includes(PathNodeType.Junction) ? trackWorld.JunctionNodeBaseAt(Location) : null;
+            if (node.NodeType.Includes(PathNodeType.Junction) && JunctionNode == null)
                 ValidationResult |= PathNodeInvalidReasons.NoJunctionNode;
 
             ConnectedSegments = GetConnectedNodes(trackWorld);

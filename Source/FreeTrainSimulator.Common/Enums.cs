@@ -1931,8 +1931,22 @@ namespace FreeTrainSimulator.Common
         Wait = 0x10,
         /// <summary>Node is a reversal node</summary>
         Reversal = 0x20,
+        /// <summary>Node could not be resolved or placed on the track, and is therefore invalid</summary>
         Invalid = 0x1000,
     };
+
+    /// <summary>
+    /// Helpers for the <see cref="PathNodeType"/> flags enum.
+    /// </summary>
+    public static class PathNodeTypeExtensions
+    {
+        /// <summary>
+        /// Returns <see langword="true"/> when <paramref name="nodeType"/> carries all bits of
+        /// <paramref name="flag"/>. Preferred over <see cref="System.Enum.HasFlag(System.Enum)"/> because it does
+        /// not box, which matters on the path rendering and resolver hot paths.
+        /// </summary>
+        public static bool Includes(this PathNodeType nodeType, PathNodeType flag) => (nodeType & flag) == flag;
+    }
 
     public enum EtcsColorKeys
     {

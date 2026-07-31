@@ -284,8 +284,8 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
             PathEditResult result = PathModelEditor.RepairNode(path, 1, trackWorld);
 
             Assert.IsTrue(result.Success);
-            Assert.IsTrue((result.PathModel.PathNodes[1].NodeType & PathNodeType.Intermediate) == PathNodeType.Intermediate);
-            Assert.IsFalse((result.PathModel.PathNodes[1].NodeType & PathNodeType.Junction) == PathNodeType.Junction);
+            Assert.IsTrue(result.PathModel.PathNodes[1].NodeType.Includes(PathNodeType.Intermediate));
+            Assert.IsFalse(result.PathModel.PathNodes[1].NodeType.Includes(PathNodeType.Junction));
             Assert.AreEqual(1, result.PathModel.PathNodes[1].NodeIndex);
         }
 
@@ -304,7 +304,7 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
             Assert.IsTrue(result.Success);
             Assert.AreEqual(2, result.PathModel.PathNodes[1].NodeIndex);
             Assert.AreEqual(new WorldLocation(new Tile(0, 0), new Vector3(3, 0, 0)), result.PathModel.PathNodes[1].Location);
-            Assert.IsTrue((result.PathModel.PathNodes[1].NodeType & PathNodeType.Junction) == PathNodeType.Junction);
+            Assert.IsTrue(result.PathModel.PathNodes[1].NodeType.Includes(PathNodeType.Junction));
         }
 
         [TestMethod]
@@ -370,9 +370,9 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
 
             Assert.AreEqual(2, result.PathModel.PathNodes[1].NextMainNode);
             Assert.AreEqual(waitInfo, result.PathModel.PathNodes[1].WaitInfo);
-            Assert.IsTrue((result.PathModel.PathNodes[1].NodeType & PathNodeType.Wait) == PathNodeType.Wait);
-            Assert.IsTrue((result.PathModel.PathNodes[1].NodeType & PathNodeType.Reversal) == PathNodeType.Reversal);
-            Assert.IsTrue((result.PathModel.PathNodes[1].NodeType & PathNodeType.Junction) == PathNodeType.Junction);
+            Assert.IsTrue(result.PathModel.PathNodes[1].NodeType.Includes(PathNodeType.Wait));
+            Assert.IsTrue(result.PathModel.PathNodes[1].NodeType.Includes(PathNodeType.Reversal));
+            Assert.IsTrue(result.PathModel.PathNodes[1].NodeType.Includes(PathNodeType.Junction));
         }
 
         [TestMethod]
@@ -406,6 +406,351 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
             Assert.AreEqual(PathNodeType.End, afterMutation.PathNodes[1].NodeType);
             Assert.AreEqual(PathNodeType.Intermediate, afterUndo.PathNodes[1].NodeType);
             Assert.AreSame(original, afterUndo);
+        }
+
+        [TestMethod]
+        public void WhenWaitPointIsSetOnIntermediateNodeThenNodeIsMarkedAndWaitTimeStored()
+        {
+            PathModel path = CreatePath(
+                Node(PathNodeType.Start, 1),
+                Node(PathNodeType.Intermediate, 2),
+                Node(PathNodeType.End, -1));
+
+            PathEditResult result = PathModelEditor.SetWaitPoint(path, 1, 90);
+
+            Assert.IsTrue(result.Success);
+            Assert.AreEqual(PathNodeType.Intermediate | PathNodeType.Wait, result.PathModel.PathNodes[1].NodeType);
+            Assert.AreEqual(90, result.PathModel.PathNodes[1].WaitInfo.WaitTime);
+        }
+
+        [TestMethod]
+        public void WhenWaitPointIsSetWithNonPositiveWaitTimeThenEditFails()
+        {
+            PathModel path = CreatePath(
+                Node(PathNodeType.Start, 1),
+                Node(PathNodeType.Intermediate, -1));
+
+            PathEditResult result = PathModelEditor.SetWaitPoint(path, 1, 0);
+
+            Assert.IsFalse(result.Success);
+            Assert.AreSame(path, result.PathModel);
+        }
+
+        [TestMethod]
+        public void WhenWaitPointIsSetOnStartNodeThenEditFails()
+        {
+            PathModel path = CreatePath(
+                Node(PathNodeType.Start, 1),
+                Node(PathNodeType.End, -1));
+
+            PathEditResult result = PathModelEditor.SetWaitPoint(path, 0, 60);
+
+            Assert.IsFalse(result.Success);
+        }
+
+        [TestMethod]
+        public void WhenWaitPointIsSetOnJunctionNodeThenEditFails()
+        {
+            PathModel path = CreatePath(
+                Node(PathNodeType.Start, 1),
+                Node(PathNodeType.Junction, 2),
+                Node(PathNodeType.End, -1));
+
+            PathEditResult result = PathModelEditor.SetWaitPoint(path, 1, 60);
+
+            Assert.IsFalse(result.Success);
+        }
+
+        [TestMethod]
+        public void WhenWaitPointIsClearedThenMarkerAndWaitInfoAreRemoved()
+        {
+            PathModel path = CreatePath(
+                Node(PathNodeType.Start, 1),
+                Node(PathNodeType.Intermediate, -1));
+            PathModel withWait = PathModelEditor.SetWaitPoint(path, 1, 30).PathModel;
+
+            PathEditResult result = PathModelEditor.ClearWaitPoint(withWait, 1);
+
+            Assert.IsTrue(result.Success);
+            Assert.AreEqual(PathNodeType.Intermediate, result.PathModel.PathNodes[1].NodeType);
+            Assert.IsNull(result.PathModel.PathNodes[1].WaitInfo);
+        }
+
+        [TestMethod]
+        public void WhenWaitPointIsClearedOnNodeWithoutWaitThenEditFails()
+        {
+            PathModel path = CreatePath(
+                Node(PathNodeType.Start, 1),
+                Node(PathNodeType.Intermediate, -1));
+
+            PathEditResult result = PathModelEditor.ClearWaitPoint(path, 1);
+
+            Assert.IsFalse(result.Success);
+        }
+
+        [TestMethod]
+        public void WhenReversalPointIsSetOnIntermediateNodeThenNodeIsMarked()
+        {
+            PathModel path = CreatePath(
+                Node(PathNodeType.Start, 1),
+                Node(PathNodeType.Intermediate, 2),
+                Node(PathNodeType.End, -1));
+
+            PathEditResult result = PathModelEditor.SetReversalPoint(path, 1);
+
+            Assert.IsTrue(result.Success);
+            Assert.AreEqual(PathNodeType.Intermediate | PathNodeType.Reversal, result.PathModel.PathNodes[1].NodeType);
+        }
+
+        [TestMethod]
+        public void WhenReversalPointIsSetOnEndNodeThenEditFails()
+        {
+            PathModel path = CreatePath(
+                Node(PathNodeType.Start, 1),
+                Node(PathNodeType.End, -1));
+
+            PathEditResult result = PathModelEditor.SetReversalPoint(path, 1);
+
+            Assert.IsFalse(result.Success);
+        }
+
+        [TestMethod]
+        public void WhenReversalPointIsClearedThenMarkerIsRemoved()
+        {
+            PathModel path = CreatePath(
+                Node(PathNodeType.Start, 1),
+                Node(PathNodeType.Intermediate, -1));
+            PathModel withReversal = PathModelEditor.SetReversalPoint(path, 1).PathModel;
+
+            PathEditResult result = PathModelEditor.ClearReversalPoint(withReversal, 1);
+
+            Assert.IsTrue(result.Success);
+            Assert.AreEqual(PathNodeType.Intermediate, result.PathModel.PathNodes[1].NodeType);
+        }
+
+        [TestMethod]
+        public void WhenReversalPointIsClearedOnNodeWithoutReversalThenEditFails()
+        {
+            PathModel path = CreatePath(
+                Node(PathNodeType.Start, 1),
+                Node(PathNodeType.Intermediate, -1));
+
+            PathEditResult result = PathModelEditor.ClearReversalPoint(path, 1);
+
+            Assert.IsFalse(result.Success);
+        }
+
+        [TestMethod]
+        public void WhenWaitPointIsSetWithOutOfRangeIndexThenEditFails()
+        {
+            PathModel path = CreatePath(Node(PathNodeType.Start, -1));
+
+            PathEditResult result = PathModelEditor.SetWaitPoint(path, 5, 60);
+
+            Assert.IsFalse(result.Success);
+            Assert.AreSame(path, result.PathModel);
+        }
+
+        [TestMethod]
+        public void WhenViaPointIsInsertedThenItIsLinkedIntoTheMainChain()
+        {
+            PathModel path = CreatePath(
+                Node(PathNodeType.Start, 1),
+                Node(PathNodeType.End, -1));
+            PathNode anchor = new PathNode(new WorldLocation(new Tile(0, 0), new Vector3(50, 0, 0))) { NodeIndex = 4 };
+
+            PathEditResult result = PathModelEditor.InsertViaPoint(path, 0, anchor, false);
+
+            Assert.IsTrue(result.Success);
+            Assert.AreEqual(3, result.PathModel.PathNodes.Length);
+            Assert.AreEqual(1, result.PathModel.PathNodes[0].NextMainNode);
+            Assert.AreEqual(PathNodeType.Intermediate, result.PathModel.PathNodes[1].NodeType);
+            Assert.AreEqual(4, result.PathModel.PathNodes[1].NodeIndex);
+            Assert.AreEqual(2, result.PathModel.PathNodes[1].NextMainNode);
+            Assert.AreEqual(PathNodeType.End, result.PathModel.PathNodes[2].NodeType);
+        }
+
+        [TestMethod]
+        public void WhenViaPointIsInsertedThenFollowingLinksAreShifted()
+        {
+            PathModel path = CreatePath(
+                Node(PathNodeType.Start, 1),
+                Node(PathNodeType.Intermediate, 2),
+                Node(PathNodeType.End, -1));
+            PathNode anchor = new PathNode(new WorldLocation(new Tile(0, 0), Vector3.Zero));
+
+            PathEditResult result = PathModelEditor.InsertViaPoint(path, 0, anchor, false);
+
+            Assert.IsTrue(result.Success);
+            Assert.AreEqual(3, result.PathModel.PathNodes[2].NextMainNode);
+            Assert.AreEqual(-1, result.PathModel.PathNodes[3].NextMainNode);
+        }
+
+        [TestMethod]
+        public void WhenViaPointIsInsertedAsJunctionThenNodeIsMarkedAsJunction()
+        {
+            PathModel path = CreatePath(
+                Node(PathNodeType.Start, 1),
+                Node(PathNodeType.End, -1));
+            PathNode anchor = new PathNode(new WorldLocation(new Tile(0, 0), Vector3.Zero));
+
+            PathEditResult result = PathModelEditor.InsertViaPoint(path, 0, anchor, true);
+
+            Assert.IsTrue(result.Success);
+            Assert.AreEqual(PathNodeType.Junction, result.PathModel.PathNodes[1].NodeType);
+        }
+
+        [TestMethod]
+        public void WhenViaPointIsInsertedAfterEndNodeThenEditFails()
+        {
+            PathModel path = CreatePath(
+                Node(PathNodeType.Start, 1),
+                Node(PathNodeType.End, -1));
+            PathNode anchor = new PathNode(new WorldLocation(new Tile(0, 0), Vector3.Zero));
+
+            PathEditResult result = PathModelEditor.InsertViaPoint(path, 1, anchor, false);
+
+            Assert.IsFalse(result.Success);
+            Assert.AreSame(path, result.PathModel);
+        }
+
+        [TestMethod]
+        public void WhenViaPointIsInsertedWithOutOfRangeIndexThenEditFails()
+        {
+            PathModel path = CreatePath(Node(PathNodeType.Start, -1));
+            PathNode anchor = new PathNode(new WorldLocation(new Tile(0, 0), Vector3.Zero));
+
+            PathEditResult result = PathModelEditor.InsertViaPoint(path, 3, anchor, false);
+
+            Assert.IsFalse(result.Success);
+        }
+
+        [TestMethod]
+        public void WhenViaPointIsRemovedThenPathIsRelinkedAroundIt()
+        {
+            PathModel path = CreatePath(
+                Node(PathNodeType.Start, 1),
+                Node(PathNodeType.Intermediate, 2),
+                Node(PathNodeType.End, -1));
+
+            PathEditResult result = PathModelEditor.RemoveViaPoint(path, 1);
+
+            Assert.IsTrue(result.Success);
+            Assert.AreEqual(2, result.PathModel.PathNodes.Length);
+            Assert.AreEqual(1, result.PathModel.PathNodes[0].NextMainNode);
+            Assert.AreEqual(PathNodeType.End, result.PathModel.PathNodes[1].NodeType);
+        }
+
+        [TestMethod]
+        public void WhenViaPointIsRemovedOnStartNodeThenEditFails()
+        {
+            PathModel path = CreatePath(
+                Node(PathNodeType.Start, 1),
+                Node(PathNodeType.End, -1));
+
+            PathEditResult result = PathModelEditor.RemoveViaPoint(path, 0);
+
+            Assert.IsFalse(result.Success);
+            Assert.AreSame(path, result.PathModel);
+        }
+
+        [TestMethod]
+        public void WhenViaPointIsRemovedWithOutOfRangeIndexThenEditFails()
+        {
+            PathModel path = CreatePath(Node(PathNodeType.Start, -1));
+
+            PathEditResult result = PathModelEditor.RemoveViaPoint(path, 2);
+
+            Assert.IsFalse(result.Success);
+        }
+
+        [TestMethod]
+        public void WhenViaPointIsInsertedAndRemovedThenOriginalLinksAreRestored()
+        {
+            PathModel path = CreatePath(
+                Node(PathNodeType.Start, 1),
+                Node(PathNodeType.Intermediate, 2),
+                Node(PathNodeType.End, -1));
+            PathNode anchor = new PathNode(new WorldLocation(new Tile(0, 0), Vector3.Zero));
+
+            PathModel withVia = PathModelEditor.InsertViaPoint(path, 1, anchor, false).PathModel;
+            PathEditResult result = PathModelEditor.RemoveViaPoint(withVia, 2);
+
+            Assert.IsTrue(result.Success);
+            Assert.AreEqual(3, result.PathModel.PathNodes.Length);
+            Assert.AreEqual(1, result.PathModel.PathNodes[0].NextMainNode);
+            Assert.AreEqual(2, result.PathModel.PathNodes[1].NextMainNode);
+            Assert.AreEqual(-1, result.PathModel.PathNodes[2].NextMainNode);
+        }
+
+        [TestMethod]
+        public void WhenRouteCandidateIsAppliedThenAnchorsBecomeAuthoredViaPoints()
+        {
+            PathModel path = CreatePath(
+                Node(PathNodeType.Start, 1),
+                Node(PathNodeType.End, -1));
+            ResolvedRouteCandidate candidate = CreateCandidate(7, 8);
+
+            PathEditResult result = PathModelEditor.ApplyRouteCandidate(path, 0, candidate);
+
+            Assert.IsTrue(result.Success);
+            Assert.AreEqual(4, result.PathModel.PathNodes.Length);
+            Assert.AreEqual(7, result.PathModel.PathNodes[1].NodeIndex);
+            Assert.AreEqual(8, result.PathModel.PathNodes[2].NodeIndex);
+            Assert.AreEqual(PathNodeType.End, result.PathModel.PathNodes[3].NodeType);
+        }
+
+        [TestMethod]
+        public void WhenRouteCandidateIsAppliedThenMainChainStaysLinked()
+        {
+            PathModel path = CreatePath(
+                Node(PathNodeType.Start, 1),
+                Node(PathNodeType.End, -1));
+            ResolvedRouteCandidate candidate = CreateCandidate(7, 8);
+
+            PathEditResult result = PathModelEditor.ApplyRouteCandidate(path, 0, candidate);
+
+            Assert.IsTrue(result.Success);
+            Assert.AreEqual(1, result.PathModel.PathNodes[0].NextMainNode);
+            Assert.AreEqual(2, result.PathModel.PathNodes[1].NextMainNode);
+            Assert.AreEqual(3, result.PathModel.PathNodes[2].NextMainNode);
+            Assert.AreEqual(-1, result.PathModel.PathNodes[3].NextMainNode);
+        }
+
+        [TestMethod]
+        public void WhenRouteCandidateHasNoIntermediaryAnchorsThenEditFails()
+        {
+            PathModel path = CreatePath(
+                Node(PathNodeType.Start, 1),
+                Node(PathNodeType.End, -1));
+            ResolvedRouteCandidate candidate = new ResolvedRouteCandidate(ImmutableArray.Create(1, 2), ImmutableArray.Create(1, 2),
+                ImmutableArray<PathRouteAnchor>.Empty, 10.0);
+
+            PathEditResult result = PathModelEditor.ApplyRouteCandidate(path, 0, candidate);
+
+            Assert.IsFalse(result.Success);
+            Assert.AreSame(path, result.PathModel);
+        }
+
+        [TestMethod]
+        public void WhenRouteCandidateIsAppliedWithOutOfRangeIndexThenEditFails()
+        {
+            PathModel path = CreatePath(Node(PathNodeType.Start, -1));
+
+            PathEditResult result = PathModelEditor.ApplyRouteCandidate(path, 4, CreateCandidate(7));
+
+            Assert.IsFalse(result.Success);
+            Assert.AreSame(path, result.PathModel);
+        }
+
+        private static ResolvedRouteCandidate CreateCandidate(params int[] intermediaryTrackNodeIndexes)
+        {
+            ImmutableArray<PathRouteAnchor> anchors = intermediaryTrackNodeIndexes
+                .Select(trackNodeIndex => new PathRouteAnchor(-1, new WorldLocation(new Tile(0, 0), new Vector3(trackNodeIndex, 0, 0)),
+                    PathNodeType.Intermediate, trackNodeIndex, -1))
+                .ToImmutableArray();
+
+            return new ResolvedRouteCandidate(ImmutableArray<int>.Empty, ImmutableArray<int>.Empty, anchors, 10.0);
         }
 
         private static PathNode Node(PathNodeType nodeType, int nextMainNode, int nextSidingNode = -1)

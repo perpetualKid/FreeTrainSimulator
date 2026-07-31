@@ -17,14 +17,14 @@ namespace FreeTrainSimulator.Graphics.Window.Controls
         {
             textureType = nodeType switch
             {
-                PathNodeType _ when (nodeType & PathNodeType.Start) == PathNodeType.Start => BasicTextureType.PathStart,
-                PathNodeType _ when (nodeType & PathNodeType.End) == PathNodeType.End => BasicTextureType.PathEnd,
-                PathNodeType _ when (nodeType & PathNodeType.Junction) == PathNodeType.Junction => BasicTextureType.PathNormal,
-                PathNodeType _ when (nodeType & PathNodeType.Intermediate) == PathNodeType.Intermediate => BasicTextureType.PathNormal,
-                PathNodeType _ when (nodeType & PathNodeType.Wait) == PathNodeType.Wait => BasicTextureType.PathWait,
-                PathNodeType _ when (nodeType & PathNodeType.Reversal) == PathNodeType.Reversal => BasicTextureType.PathReverse,
-                PathNodeType _ when (nodeType & PathNodeType.None) == PathNodeType.None => BasicTextureType.RingCrossed,
-                PathNodeType _ when (nodeType & PathNodeType.Invalid) == PathNodeType.Invalid => BasicTextureType.RingCrossed,
+                PathNodeType _ when nodeType.Includes(PathNodeType.Start) => BasicTextureType.PathStart,
+                PathNodeType _ when nodeType.Includes(PathNodeType.End) => BasicTextureType.PathEnd,
+                PathNodeType _ when nodeType.Includes(PathNodeType.Junction) => BasicTextureType.PathNormal,
+                PathNodeType _ when nodeType.Includes(PathNodeType.Intermediate) => BasicTextureType.PathNormal,
+                PathNodeType _ when nodeType.Includes(PathNodeType.Wait) => BasicTextureType.PathWait,
+                PathNodeType _ when nodeType.Includes(PathNodeType.Reversal) => BasicTextureType.PathReverse,
+                PathNodeType _ when nodeType.Includes(PathNodeType.None) => BasicTextureType.RingCrossed,
+                PathNodeType _ when nodeType.Includes(PathNodeType.Invalid) => BasicTextureType.RingCrossed,
                 _ => throw new NotImplementedException(),
             };
         }

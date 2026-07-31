@@ -41,17 +41,17 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
     /// </summary>
     internal readonly record struct TrainPathNodeRow
     {
-        public TrainPathNodeRow(int index, string nodeType, bool valid)
+        public TrainPathNodeRow(int index, PathNodeType nodeType, bool valid)
             : this(index, nodeType, valid, 0, -1, -1, null, null, null, null, null)
         {
         }
 
-        public TrainPathNodeRow(int index, string nodeType, bool valid, int trackNodeIndex, int nextMainNode, int nextSidingNode, int? waitTime, string validation)
+        public TrainPathNodeRow(int index, PathNodeType nodeType, bool valid, int trackNodeIndex, int nextMainNode, int nextSidingNode, int? waitTime, string validation)
             : this(index, nodeType, valid, trackNodeIndex, nextMainNode, nextSidingNode, waitTime, validation, null, null, null)
         {
         }
 
-        public TrainPathNodeRow(int index, string nodeType, bool valid, int trackNodeIndex, int nextMainNode, int nextSidingNode, int? waitTime,
+        public TrainPathNodeRow(int index, PathNodeType nodeType, bool valid, int trackNodeIndex, int nextMainNode, int nextSidingNode, int? waitTime,
             string validation, int? nearestTrackNodeIndex, int? nearestTrackSectionIndex, double? nearestTrackDistanceMeters)
         {
             Index = index;
@@ -69,7 +69,7 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
 
         public int Index { get; }
 
-        public string NodeType { get; }
+        public PathNodeType NodeType { get; }
 
         public bool Valid { get; }
 
@@ -91,6 +91,32 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
     }
 
     /// <summary>
+    /// One equal-cost route candidate of an ambiguous span of the currently edited train path.
+    /// </summary>
+    internal readonly record struct TrainPathRouteCandidateRow
+    {
+        public TrainPathRouteCandidateRow(int fromNodeIndex, int toNodeIndex, int candidateIndex, string description)
+        {
+            FromNodeIndex = fromNodeIndex;
+            ToNodeIndex = toNodeIndex;
+            CandidateIndex = candidateIndex;
+            Description = description;
+        }
+
+        /// <summary>Authored node index the ambiguous span starts at.</summary>
+        public int FromNodeIndex { get; }
+
+        /// <summary>Authored node index the ambiguous span ends at.</summary>
+        public int ToNodeIndex { get; }
+
+        /// <summary>Index of the candidate within the span, stable across resolutions.</summary>
+        public int CandidateIndex { get; }
+
+        /// <summary>Human readable summary of the route the candidate takes.</summary>
+        public string Description { get; }
+    }
+
+    /// <summary>
     /// Immutable snapshot of the hosted train-path tool window state, captured on the game thread and read
     /// lock-free by the WPF view model. Combines the available paths, the selected path id, the current
     /// path's node rows, and its metadata name/value rows.
@@ -108,6 +134,9 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
 
         /// <summary>Name/value metadata rows for the currently edited path.</summary>
         public ImmutableArray<ToolWindowRow> Metadata { get; init; }
+
+        /// <summary>Equal-cost route candidates of the currently edited path's ambiguous spans.</summary>
+        public ImmutableArray<TrainPathRouteCandidateRow> RouteCandidates { get; init; }
 
         /// <summary>Whether an undo step is available.</summary>
         public bool CanUndo { get; init; }
@@ -131,6 +160,7 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
             SelectedPathId = null,
             Nodes = ImmutableArray<TrainPathNodeRow>.Empty,
             Metadata = ImmutableArray<ToolWindowRow>.Empty,
+            RouteCandidates = ImmutableArray<TrainPathRouteCandidateRow>.Empty,
             CanUndo = false,
             CanRedo = false,
             CanSnapToTrack = false,
@@ -277,6 +307,7 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
                 SelectedPathId = selectedPathId,
                 Nodes = BuildNodes(currentPath),
                 Metadata = BuildMetadata(pathEditor, currentPath),
+                RouteCandidates = BuildRouteCandidates(pathEditor),
                 CanUndo = canUndo,
                 CanRedo = canRedo,
                 CanSnapToTrack = canSnapToTrack,
@@ -356,6 +387,22 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
         internal void CancelMoveNode() => ExecuteEditorCommand(pathEditor => pathEditor.CancelMoveNodeCommand());
 
         internal void RepairSelectedNode(int nodeIndex) => ExecuteEditorCommand(pathEditor => pathEditor.RepairSelectedNodeCommand(nodeIndex));
+
+        internal void SetWaitPoint(int nodeIndex, int waitTimeSeconds) => ExecuteEditorCommand(pathEditor => pathEditor.SetWaitPointCommand(nodeIndex, waitTimeSeconds));        internal void ClearWaitPoint(int nodeIndex) => ExecuteEditorCommand(pathEditor => pathEditor.ClearWaitPointCommand(nodeIndex));
+
+        internal void SetReversalPoint(int nodeIndex) => ExecuteEditorCommand(pathEditor => pathEditor.SetReversalPointCommand(nodeIndex));
+
+        internal void ClearReversalPoint(int nodeIndex) => ExecuteEditorCommand(pathEditor => pathEditor.ClearReversalPointCommand(nodeIndex));
+
+        internal void AddViaPoint(int afterNodeIndex) => ExecuteEditorCommand(pathEditor => pathEditor.BeginAddViaPointCommand(afterNodeIndex), activateMapInputAction);
+
+        internal void RemoveViaPoint(int nodeIndex) => ExecuteEditorCommand(pathEditor => pathEditor.RemoveViaPointCommand(nodeIndex));
+
+        internal void PreviewRouteCandidate(int fromNodeIndex, int candidateIndex) => ExecuteEditorCommand(pathEditor => pathEditor.PreviewRouteCandidateCommand(fromNodeIndex, candidateIndex));
+
+        internal void ClearRouteCandidatePreview() => InvokeEditorAction(pathEditor => pathEditor.ClearRouteCandidatePreview());
+
+        internal void AcceptRouteCandidate(int fromNodeIndex, int candidateIndex) => ExecuteEditorCommand(pathEditor => pathEditor.AcceptRouteCandidateCommand(fromNodeIndex, candidateIndex));
 
         internal bool CanCreatePath => toolingContextAccessor() != null;
 
@@ -493,10 +540,30 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
                 TrainPathPointBase item = currentPath.PathPoints[i];
                 PathNodeInvalidReasons validationResult = item.ValidationResult;
                 TrackDistanceDiagnostic nearestTrackDistance = item.NearestTrackDistance;
-                builder.Add(new TrainPathNodeRow(i, item.NodeType.ToString(), validationResult == PathNodeInvalidReasons.None,
+                builder.Add(new TrainPathNodeRow(i, item.NodeType, validationResult == PathNodeInvalidReasons.None,
                     item.NodeIndex, item.NextMainNode, item.NextSidingNode, item.WaitInfo?.WaitTime,
                     validationResult == PathNodeInvalidReasons.None ? null : validationResult.ToString(),
                     nearestTrackDistance?.TrackNodeIndex, nearestTrackDistance?.TrackVectorSectionIndex, nearestTrackDistance?.DistanceMeters));
+            }
+            return builder.ToImmutable();
+        }
+
+        // Flattens the ambiguous spans of the current path into selectable candidate rows. Runs on the game
+        // thread as part of the snapshot capture, so the view model never touches resolver state directly.
+        private static ImmutableArray<TrainPathRouteCandidateRow> BuildRouteCandidates(PathEditor pathEditor)
+        {
+            if (pathEditor == null)
+                return ImmutableArray<TrainPathRouteCandidateRow>.Empty;
+
+            ImmutableArray<TrainPathRouteCandidateRow>.Builder builder = ImmutableArray.CreateBuilder<TrainPathRouteCandidateRow>();
+            foreach (ResolvedPathSpan span in pathEditor.GetAmbiguousSpans())
+            {
+                for (int i = 0; i < span.Candidates.Length; i++)
+                {
+                    string route = string.Join(" - ", span.Candidates[i].RouteNodeIndexes);
+                    builder.Add(new TrainPathRouteCandidateRow(span.FromNodeIndex, span.ToNodeIndex, i,
+                        $"Nodes {span.FromNodeIndex}-{span.ToNodeIndex}, candidate {i + 1}: {route}"));
+                }
             }
             return builder.ToImmutable();
         }
@@ -534,11 +601,11 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
             if (currentPath == null)
                 return ImmutableArray<ToolWindowRow>.Empty;
 
-            bool hasEnd = currentPath.PathPoints.Any(point => (point.NodeType & PathNodeType.End) == PathNodeType.End);
+            bool hasEnd = currentPath.PathPoints.Any(point => point.NodeType.Includes(PathNodeType.End));
             bool hasBrokenNodes = currentPath.PathPoints.Any(point => point.ValidationResult != PathNodeInvalidReasons.None);
             bool hasPassingPaths = currentPath.PathPoints.Any(point => point.NextSidingNode >= 0);
-            bool hasWaitNodes = currentPath.PathPoints.Any(point => (point.NodeType & PathNodeType.Wait) == PathNodeType.Wait || point.WaitInfo != null);
-            bool hasReversalNodes = currentPath.PathPoints.Any(point => (point.NodeType & PathNodeType.Reversal) == PathNodeType.Reversal);
+            bool hasWaitNodes = currentPath.PathPoints.Any(point => point.NodeType.Includes(PathNodeType.Wait) || point.WaitInfo != null);
+            bool hasReversalNodes = currentPath.PathPoints.Any(point => point.NodeType.Includes(PathNodeType.Reversal));
 
             ImmutableArray<ToolWindowRow>.Builder builder = ImmutableArray.CreateBuilder<ToolWindowRow>();
             builder.Add(new ToolWindowRow { Name = "Node Count", Value = currentPath.PathPoints.Count.ToString(System.Globalization.CultureInfo.InvariantCulture) });

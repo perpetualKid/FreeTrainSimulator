@@ -24,6 +24,12 @@ namespace FreeTrainSimulator.Runtime.Track
         public ImmutableArray<PathRouteAnchor> GeneratedIntermediaryAnchors { get; init; }
 
         /// <summary>
+        /// Equal-cost route candidates for the span. Populated only for an ambiguous span; the first candidate is
+        /// the deterministic route reflected by <see cref="TrackVectorNodeIndexes"/>.
+        /// </summary>
+        public ImmutableArray<ResolvedRouteCandidate> Candidates { get; init; }
+
+        /// <summary>
         /// Initializes a new instance of the <see cref="ResolvedPathSpan"/> record.
         /// </summary>
         public ResolvedPathSpan(int fromNodeIndex, int toNodeIndex, PathRouteSpanStatus status)
@@ -42,8 +48,15 @@ namespace FreeTrainSimulator.Runtime.Track
         /// <summary>
         /// Initializes a new instance of the <see cref="ResolvedPathSpan"/> record.
         /// </summary>
-        public ResolvedPathSpan(int fromNodeIndex, int toNodeIndex, PathRouteSpanStatus status,
-            ImmutableArray<int> trackVectorNodeIndexes, ImmutableArray<PathRouteAnchor> generatedIntermediaryAnchors)
+        public ResolvedPathSpan(int fromNodeIndex, int toNodeIndex, PathRouteSpanStatus status, ImmutableArray<int> trackVectorNodeIndexes, ImmutableArray<PathRouteAnchor> generatedIntermediaryAnchors)
+            : this(fromNodeIndex, toNodeIndex, status, trackVectorNodeIndexes, generatedIntermediaryAnchors, ImmutableArray<ResolvedRouteCandidate>.Empty)
+        {
+        }
+
+        /// <summary>
+        /// Initializes a new instance of the <see cref="ResolvedPathSpan"/> record.
+        /// </summary>
+        public ResolvedPathSpan(int fromNodeIndex, int toNodeIndex, PathRouteSpanStatus status, ImmutableArray<int> trackVectorNodeIndexes, ImmutableArray<PathRouteAnchor> generatedIntermediaryAnchors, ImmutableArray<ResolvedRouteCandidate> candidates)
         {
             if (fromNodeIndex < 0)
                 throw new ArgumentOutOfRangeException(nameof(fromNodeIndex), fromNodeIndex, "Source node index must not be negative.");
@@ -55,6 +68,7 @@ namespace FreeTrainSimulator.Runtime.Track
             Status = status;
             TrackVectorNodeIndexes = trackVectorNodeIndexes.IsDefault ? ImmutableArray<int>.Empty : trackVectorNodeIndexes;
             GeneratedIntermediaryAnchors = generatedIntermediaryAnchors.IsDefault ? ImmutableArray<PathRouteAnchor>.Empty : generatedIntermediaryAnchors;
+            Candidates = candidates.IsDefault ? ImmutableArray<ResolvedRouteCandidate>.Empty : candidates;
         }
     }
 }

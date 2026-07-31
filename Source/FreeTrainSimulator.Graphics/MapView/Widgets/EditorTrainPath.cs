@@ -82,14 +82,14 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
 
                 void AddPathSections(PathSectionType pathType)
                 {
-                    TrainPathPointBase endPoint = (startPoint.NodeType & PathNodeType.End) == PathNodeType.End ? PathPoints.PreviousPathPoint(startPoint, pathType) : PathPoints.NextPathPoint(startPoint, pathType);
+                    TrainPathPointBase endPoint = startPoint.NodeType.Includes(PathNodeType.End) ? PathPoints.PreviousPathPoint(startPoint, pathType) : PathPoints.NextPathPoint(startPoint, pathType);
 
                     // A partial (incomplete) path can have a dangling last node that is not yet flagged End and
                     // has no next node to connect to; there is no section to build for it, so skip it.
                     if (endPoint == null)
                         return;
 
-                    (startPoint as EditorPathPoint).UpdateDirectionTowards(endPoint, startPoint.ValidationResult == PathNodeInvalidReasons.None, (startPoint.NodeType & PathNodeType.End) == PathNodeType.End);
+                    (startPoint as EditorPathPoint).UpdateDirectionTowards(endPoint, startPoint.ValidationResult == PathNodeInvalidReasons.None, startPoint.NodeType.Includes(PathNodeType.End));
                     List<TrainPathSectionBase> sections = InitializeSections(pathType, startPoint, endPoint).Sections;
 
                     if ((startPoint.NodeType & PathNodeType.End) != PathNodeType.End)

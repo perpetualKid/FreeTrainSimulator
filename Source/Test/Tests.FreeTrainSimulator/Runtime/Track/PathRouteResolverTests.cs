@@ -301,6 +301,98 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
         }
 
         /// <summary>
+        /// Verifies that both equal-cost routes are surfaced as selectable candidates on the ambiguous span.
+        /// </summary>
+        [TestMethod]
+        public void ResolveWhenMultipleEqualRoutesExistThenBothCandidatesAreReported()
+        {
+            TrackWorld trackWorld = CreateTrackWorld(
+                ImmutableArray.Create<TrackNodeBase>(null, CreateVectorNode(1), CreateVectorNode(2), CreateJunctionNode(3), CreateJunctionNode(4)),
+                ImmutableArray.Create(new TrackNodeConnectorIndex(), CreateConnectors(1, 3, 4), CreateConnectors(2, 3, 4),
+                    CreateConnectors(3, 1, 2), CreateConnectors(4, 1, 2)));
+
+            PathModel pathModel = new PathModel()
+            {
+                PathNodes = ImmutableArray.Create(
+                    CreateNode(PathNodeType.Start, 1, nodeIndex: 1),
+                    CreateNode(PathNodeType.End, -1, nodeIndex: 2)),
+            };
+
+            PathRouteResolution result = PathRouteResolver.Resolve(pathModel, trackWorld, TestContext.CancellationToken);
+
+            Assert.AreEqual(2, result.MainRoute.Spans[0].Candidates.Length);
+        }
+
+        /// <summary>
+        /// Verifies that candidates are ordered deterministically, so a selected candidate index stays stable.
+        /// </summary>
+        [TestMethod]
+        public void ResolveWhenMultipleEqualRoutesExistThenCandidatesAreOrderedDeterministically()
+        {
+            TrackWorld trackWorld = CreateTrackWorld(
+                ImmutableArray.Create<TrackNodeBase>(null, CreateVectorNode(1), CreateVectorNode(2), CreateJunctionNode(3), CreateJunctionNode(4)),
+                ImmutableArray.Create(new TrackNodeConnectorIndex(), CreateConnectors(1, 3, 4), CreateConnectors(2, 3, 4),
+                    CreateConnectors(3, 1, 2), CreateConnectors(4, 1, 2)));
+
+            PathModel pathModel = new PathModel()
+            {
+                PathNodes = ImmutableArray.Create(
+                    CreateNode(PathNodeType.Start, 1, nodeIndex: 1),
+                    CreateNode(PathNodeType.End, -1, nodeIndex: 2)),
+            };
+
+            PathRouteResolution result = PathRouteResolver.Resolve(pathModel, trackWorld, TestContext.CancellationToken);
+
+            CollectionAssert.AreEqual(new[] { 1, 3, 2 }, result.MainRoute.Spans[0].Candidates[0].RouteNodeIndexes.ToArray());
+            CollectionAssert.AreEqual(new[] { 1, 4, 2 }, result.MainRoute.Spans[0].Candidates[1].RouteNodeIndexes.ToArray());
+        }
+
+        /// <summary>
+        /// Verifies that each candidate carries the intermediary anchors needed to author the chosen route.
+        /// </summary>
+        [TestMethod]
+        public void ResolveWhenSpanIsAmbiguousThenCandidatesCarryIntermediaryAnchors()
+        {
+            TrackWorld trackWorld = CreateTrackWorld(
+                ImmutableArray.Create<TrackNodeBase>(null, CreateVectorNode(1), CreateVectorNode(2), CreateJunctionNode(3), CreateJunctionNode(4)),
+                ImmutableArray.Create(new TrackNodeConnectorIndex(), CreateConnectors(1, 3, 4), CreateConnectors(2, 3, 4),
+                    CreateConnectors(3, 1, 2), CreateConnectors(4, 1, 2)));
+
+            PathModel pathModel = new PathModel()
+            {
+                PathNodes = ImmutableArray.Create(
+                    CreateNode(PathNodeType.Start, 1, nodeIndex: 1),
+                    CreateNode(PathNodeType.End, -1, nodeIndex: 2)),
+            };
+
+            PathRouteResolution result = PathRouteResolver.Resolve(pathModel, trackWorld, TestContext.CancellationToken);
+
+            Assert.AreEqual(4, result.MainRoute.Spans[0].Candidates[1].GeneratedIntermediaryAnchors.Single().TrackNodeIndex);
+        }
+
+        /// <summary>
+        /// Verifies that an unambiguous span reports exactly one candidate.
+        /// </summary>
+        [TestMethod]
+        public void ResolveWhenSpanIsUnambiguousThenSingleCandidateIsReported()
+        {
+            TrackWorld trackWorld = CreateTrackWorld(
+                ImmutableArray.Create<TrackNodeBase>(null, CreateVectorNode(1), CreateVectorNode(2), CreateJunctionNode(3)),
+                ImmutableArray.Create(new TrackNodeConnectorIndex(), CreateConnectors(1, 3), CreateConnectors(2, 3), CreateConnectors(3, 1, 2)));
+
+            PathModel pathModel = new PathModel()
+            {
+                PathNodes = ImmutableArray.Create(
+                    CreateNode(PathNodeType.Start, 1, nodeIndex: 1),
+                    CreateNode(PathNodeType.End, -1, nodeIndex: 2)),
+            };
+
+            PathRouteResolution result = PathRouteResolver.Resolve(pathModel, trackWorld, TestContext.CancellationToken);
+
+            Assert.AreEqual(1, result.MainRoute.Spans[0].Candidates.Length);
+        }
+
+        /// <summary>
         /// Verifies that the maximum sparse search distance can reject an otherwise connected route.
         /// </summary>
         [TestMethod]

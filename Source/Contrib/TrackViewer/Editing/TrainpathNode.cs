@@ -38,7 +38,6 @@
 // Because the path is a double linked list, to prevent issues with garbage collection, an Unlink method is provided that removes the lilnks.
 
 using System;
-using System.Collections.Immutable;
 
 using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Position;
@@ -46,7 +45,6 @@ using FreeTrainSimulator.Models.Track;
 using FreeTrainSimulator.Runtime;
 using FreeTrainSimulator.Runtime.Track;
 
-using Orts.Formats.Msts.Files;
 using Orts.Formats.Msts.Models;
 
 using TrackSection = FreeTrainSimulator.Models.Track.TrackSection;
@@ -147,7 +145,7 @@ namespace ORTS.TrackViewer.Editing
         /// <returns>A sub-class object properly initialized</returns>
         public static TrainpathNode CreatePathNode(PathNode tpn, TrackDatabase trackDatabase)
         {
-            if ((tpn.NodeType & PathNodeType.Junction) == PathNodeType.Junction)
+            if (tpn.NodeType.Includes(PathNodeType.Junction))
             {
                 // we do not use tpn: this means we do not interpret the flags
                 return new TrainpathJunctionNode(tpn, trackDatabase);
@@ -188,7 +186,7 @@ namespace ORTS.TrackViewer.Editing
             : this(trackDatabase)
         {
             Location = tpn.Location;
-            if ((tpn.NodeType & PathNodeType.Invalid) == PathNodeType.Invalid) // not a valid point
+            if (tpn.NodeType.Includes(PathNodeType.Invalid)) // not a valid point
             {
                 SetBroken(NodeStatus.SetAsInvalid);
             }
@@ -747,13 +745,13 @@ namespace ORTS.TrackViewer.Editing
 
             NodeType = tpn.NodeType switch
             {
-                PathNodeType _ when (tpn.NodeType & PathNodeType.Junction) == PathNodeType.Junction => TrainpathNodeType.Other,
-                PathNodeType _ when (tpn.NodeType & PathNodeType.Intermediate) == PathNodeType.Intermediate => TrainpathNodeType.Other,
-                PathNodeType _ when (tpn.NodeType & PathNodeType.Start) == PathNodeType.Start => TrainpathNodeType.Other,
-                PathNodeType _ when (tpn.NodeType & PathNodeType.End) == PathNodeType.End => TrainpathNodeType.Other,
-                PathNodeType _ when (tpn.NodeType & PathNodeType.Wait) == PathNodeType.Wait => TrainpathNodeType.Stop,
-                PathNodeType _ when (tpn.NodeType & PathNodeType.Reversal) == PathNodeType.Reversal => TrainpathNodeType.Reverse,
-                PathNodeType _ when (tpn.NodeType & PathNodeType.None) == PathNodeType.None => TrainpathNodeType.Other,
+                PathNodeType _ when tpn.NodeType.Includes(PathNodeType.Junction) => TrainpathNodeType.Other,
+                PathNodeType _ when tpn.NodeType.Includes(PathNodeType.Intermediate) => TrainpathNodeType.Other,
+                PathNodeType _ when tpn.NodeType.Includes(PathNodeType.Start) => TrainpathNodeType.Other,
+                PathNodeType _ when tpn.NodeType.Includes(PathNodeType.End) => TrainpathNodeType.Other,
+                PathNodeType _ when tpn.NodeType.Includes(PathNodeType.Wait) => TrainpathNodeType.Stop,
+                PathNodeType _ when tpn.NodeType.Includes(PathNodeType.Reversal) => TrainpathNodeType.Reverse,
+                PathNodeType _ when tpn.NodeType.Includes(PathNodeType.None) => TrainpathNodeType.Other,
                 _ => throw new NotImplementedException(),
             };
             ;

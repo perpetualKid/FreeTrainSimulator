@@ -41,7 +41,8 @@ namespace FreeTrainSimulator.Toolbox
         private PathModel moveSourceModel;
         private PathModel movePreviewModel;
         private PathNode movePreviewAnchor;
-        private bool hasUnsavedChanges;
+        private int pendingViaNodeIndex = -1;
+        private bool unsavedChanges;
 
         public string PathId => path?.Id;
 
@@ -53,7 +54,7 @@ namespace FreeTrainSimulator.Toolbox
 
         public bool CanCommitMoveNode => IsMovingNode && movePreviewModel != null;
 
-        public bool HasUnsavedChanges => hasUnsavedChanges;
+        public bool HasUnsavedChanges => unsavedChanges;
 
         internal event EventHandler<PathEditorChangedEventArgs> OnPathChanged;
 
@@ -105,7 +106,7 @@ namespace FreeTrainSimulator.Toolbox
                 ClearHistory();
                 await InitializePathModelAsync(pathModel, cancellationToken).ConfigureAwait(false);
                 currentPathModel = pathModel;
-                hasUnsavedChanges = false;
+                unsavedChanges = false;
                 OnPathChanged?.Invoke(this, new PathEditorChangedEventArgs(TrainPath));
                 return true;
             }
@@ -171,7 +172,7 @@ namespace FreeTrainSimulator.Toolbox
             ClearMoveNodeState();
             ClearHistory();
             InitializePathEdit(newPath);
-            hasUnsavedChanges = true;
+            unsavedChanges = true;
             OnPathChanged?.Invoke(this, new PathEditorChangedEventArgs(TrainPath));
         }
 
@@ -185,7 +186,7 @@ namespace FreeTrainSimulator.Toolbox
             RestoreSnapshot(undoSnapshot);
             if (redoSnapshot != null)
                 redoHistory.Push(redoSnapshot);
-            hasUnsavedChanges = true;
+            unsavedChanges = true;
             OnPathUpdated?.Invoke(this, new PathEditorChangedEventArgs(TrainPath));
             return true;
         }
@@ -200,7 +201,7 @@ namespace FreeTrainSimulator.Toolbox
             RestoreSnapshot(redoSnapshot);
             if (undoSnapshot != null)
                 undoHistory.Push(undoSnapshot);
-            hasUnsavedChanges = true;
+            unsavedChanges = true;
             OnPathUpdated?.Invoke(this, new PathEditorChangedEventArgs(TrainPath));
             return true;
         }
@@ -271,12 +272,209 @@ namespace FreeTrainSimulator.Toolbox
 
         public PathEditResult RepairSelectedNode(int nodeIndex)
         {
+            return ApplySelectedNodeEdit(nodeIndex, model => PathModelEditor.RepairNode(model, nodeIndex, RuntimeDataResolver.Instance.TrackWorld));
+        }
+
+        /// <summary>
+        /// Marks the node at <paramref name="nodeIndex"/> as a wait point with the given wait time in seconds and
+        /// records an undo snapshot. Returns the operation result.
+        /// </summary>
+        public PathEditResult SetWaitPoint(int nodeIndex, int waitTimeSeconds)
+        {
+            return ApplySelectedNodeEdit(nodeIndex, model => PathModelEditor.SetWaitPoint(model, nodeIndex, waitTimeSeconds));
+        }
+
+        /// <summary>Clears the wait point on the node at <paramref name="nodeIndex"/> and records an undo snapshot.</summary>
+        public PathEditResult ClearWaitPoint(int nodeIndex)
+        {
+            return ApplySelectedNodeEdit(nodeIndex, model => PathModelEditor.ClearWaitPoint(model, nodeIndex));
+        }
+
+        /// <summary>Marks the node at <paramref name="nodeIndex"/> as a reversal point and records an undo snapshot.</summary>
+        public PathEditResult SetReversalPoint(int nodeIndex)
+        {
+            return ApplySelectedNodeEdit(nodeIndex, model => PathModelEditor.SetReversalPoint(model, nodeIndex));
+        }
+
+        /// <summary>Clears the reversal point on the node at <paramref name="nodeIndex"/> and records an undo snapshot.</summary>
+        public PathEditResult ClearReversalPoint(int nodeIndex)
+        {
+            return ApplySelectedNodeEdit(nodeIndex, model => PathModelEditor.ClearReversalPoint(model, nodeIndex));
+        }
+
+        /// <summary>
+        /// Inserts a via point after the node at <paramref name="afterNodeIndex"/> and immediately starts the map
+        /// placement interaction for it, so the user positions the new node by clicking the map. Canceling the
+        /// placement also removes the inserted node.
+        /// </summary>
+        public PathEditResult BeginAddViaPoint(int afterNodeIndex)
+        {
+            PathModel currentModel = TryGetEditablePathModel();
+            ImmutableArray<PathNode> nodes = currentModel?.PathNodes ?? ImmutableArray<PathNode>.Empty;
+            if (afterNodeIndex < 0 || afterNodeIndex >= nodes.Length)
+                return PathEditResult.Failed($"Node index {afterNodeIndex} is out of range.", currentModel);
+
+            // The new node starts on the anchor of its predecessor; the placement interaction moves it to the
+            // location the user picks on the map.
+            PathNode anchor = new PathNode(nodes[afterNodeIndex].Location) { NodeIndex = nodes[afterNodeIndex].NodeIndex };
+            PathEditResult result = ApplySelectedNodeEdit(afterNodeIndex, model => PathModelEditor.InsertViaPoint(model, afterNodeIndex, anchor, false));
+            if (!result.Success)
+                return result;
+
+            int viaNodeIndex = afterNodeIndex + 1;
+            if (!BeginMoveNode(viaNodeIndex))
+            {
+                _ = Undo();
+                return PathEditResult.Failed($"Cannot place via point {viaNodeIndex}.", currentModel);
+            }
+
+            pendingViaNodeIndex = viaNodeIndex;
+            return result;
+        }
+
+        /// <summary>Removes the via point at <paramref name="nodeIndex"/> and records an undo snapshot.</summary>
+        public PathEditResult RemoveViaPoint(int nodeIndex)
+        {
+            return ApplySelectedNodeEdit(nodeIndex, model => PathModelEditor.RemoveViaPoint(model, nodeIndex));
+        }
+
+        /// <summary>
+        /// Resolves the current authored path and returns the spans that have several equal-cost route
+        /// candidates, so the user can choose the intended route.
+        /// </summary>
+        public ImmutableArray<ResolvedPathSpan> GetAmbiguousSpans()
+        {
+            PathModel currentModel = TryGetEditablePathModel();
+            if (currentModel == null)
+                return ImmutableArray<ResolvedPathSpan>.Empty;
+
+            PathRouteResolution resolution = PathRouteResolver.Resolve(currentModel, RuntimeDataResolver.Instance.TrackWorld, CancellationToken.None);
+            return resolution.MainRoute == null || resolution.MainRoute.Spans.IsDefaultOrEmpty
+                ? ImmutableArray<ResolvedPathSpan>.Empty
+                : resolution.MainRoute.Spans.Where(span => span.Candidates.Length > 1).ToImmutableArray();
+        }
+
+        /// <summary>
+        /// Shows the route candidate on the map without changing the authored path. The preview is discarded by
+        /// <see cref="ClearRouteCandidatePreview"/> or replaced by the next preview.
+        /// </summary>
+        public PathEditResult PreviewRouteCandidate(int fromNodeIndex, int candidateIndex)
+        {
+            PathEditResult result = BuildRouteCandidateModel(fromNodeIndex, candidateIndex);
+            if (!result.Success)
+                return result;
+
+            SetPreviewPath(result.PathModel);
+            OnPathUpdated?.Invoke(this, new PathEditorChangedEventArgs(TrainPath));
+            return result;
+        }
+
+        /// <summary>Discards an active route candidate preview.</summary>
+        public void ClearRouteCandidatePreview()
+        {
+            if (IsMovingNode)
+                return;
+
+            SetPreviewPath(null);
+            OnPathUpdated?.Invoke(this, new PathEditorChangedEventArgs(TrainPath));
+        }
+
+        /// <summary>
+        /// Commits the route candidate by authoring its intermediary anchors as via points, making the span
+        /// unambiguous, and records an undo snapshot.
+        /// </summary>
+        public PathEditResult AcceptRouteCandidate(int fromNodeIndex, int candidateIndex)
+        {
+            ResolvedRouteCandidate candidate = FindRouteCandidate(fromNodeIndex, candidateIndex);
+            if (candidate == null)
+                return PathEditResult.Failed($"No route candidate {candidateIndex} exists for the span starting at node {fromNodeIndex}.", TryGetEditablePathModel());
+
+            PathEditResult result = ApplySelectedNodeEdit(fromNodeIndex, model => PathModelEditor.ApplyRouteCandidate(model, fromNodeIndex, candidate));
+            if (result.Success)
+                SetPreviewPath(null);
+
+            return result;
+        }
+
+        public PathEditorCommandResult PreviewRouteCandidateCommand(int fromNodeIndex, int candidateIndex)
+        {
+            PathEditResult result = PreviewRouteCandidate(fromNodeIndex, candidateIndex);
+            return result.Success
+                ? PathEditorCommandResult.Succeeded($"Previewing route candidate {candidateIndex} for the span starting at node {fromNodeIndex}.", currentPathModel)
+                : PathEditorCommandResult.FromPathEditResult(result);
+        }
+
+        public PathEditorCommandResult AcceptRouteCandidateCommand(int fromNodeIndex, int candidateIndex)
+        {
+            return PathEditorCommandResult.FromPathEditResult(AcceptRouteCandidate(fromNodeIndex, candidateIndex));
+        }
+
+        // Builds (but does not commit) the authored path that results from choosing a candidate.
+        private PathEditResult BuildRouteCandidateModel(int fromNodeIndex, int candidateIndex)
+        {
+            PathModel currentModel = TryGetEditablePathModel();
+            if (currentModel == null)
+                return PathEditResult.Failed("No editable path is currently loaded.", null);
+
+            ResolvedRouteCandidate candidate = FindRouteCandidate(fromNodeIndex, candidateIndex);
+            return candidate == null
+                ? PathEditResult.Failed($"No route candidate {candidateIndex} exists for the span starting at node {fromNodeIndex}.", currentModel)
+                : PathModelEditor.ApplyRouteCandidate(currentModel, fromNodeIndex, candidate);
+        }
+
+        private ResolvedRouteCandidate FindRouteCandidate(int fromNodeIndex, int candidateIndex)
+        {
+            ResolvedPathSpan span = GetAmbiguousSpans().FirstOrDefault(span => span.FromNodeIndex == fromNodeIndex);
+            return span != null && candidateIndex >= 0 && candidateIndex < span.Candidates.Length
+                ? span.Candidates[candidateIndex]
+                : null;
+        }
+
+        public PathEditorCommandResult BeginAddViaPointCommand(int afterNodeIndex)
+        {
+            PathEditResult result = BeginAddViaPoint(afterNodeIndex);
+            return result.Success
+                ? PathEditorCommandResult.Succeeded($"Select a track location for the new via point after node {afterNodeIndex}.", currentPathModel)
+                : PathEditorCommandResult.FromPathEditResult(result);
+        }
+
+        public PathEditorCommandResult RemoveViaPointCommand(int nodeIndex)
+        {
+            return PathEditorCommandResult.FromPathEditResult(RemoveViaPoint(nodeIndex));
+        }
+
+        public PathEditorCommandResult SetWaitPointCommand(int nodeIndex, int waitTimeSeconds)
+        {
+            return PathEditorCommandResult.FromPathEditResult(SetWaitPoint(nodeIndex, waitTimeSeconds));
+        }
+
+        public PathEditorCommandResult ClearWaitPointCommand(int nodeIndex)
+        {
+            return PathEditorCommandResult.FromPathEditResult(ClearWaitPoint(nodeIndex));
+        }
+
+        public PathEditorCommandResult SetReversalPointCommand(int nodeIndex)
+        {
+            return PathEditorCommandResult.FromPathEditResult(SetReversalPoint(nodeIndex));
+        }
+
+        public PathEditorCommandResult ClearReversalPointCommand(int nodeIndex)
+        {
+            return PathEditorCommandResult.FromPathEditResult(ClearReversalPoint(nodeIndex));
+        }
+
+        // Runs a single-node edit against the current path. Unlike ApplyUndoableEdit this also works when the
+        // editor is not yet in edit mode: the current path is promoted to an editable model first, so selecting a
+        // node and acting on it does not require a separate 'start editing' step. Keeps the node selected so the
+        // user can chain edits on the same node.
+        private PathEditResult ApplySelectedNodeEdit(int nodeIndex, Func<PathModel, PathEditResult> edit)
+        {
             PathModel currentModel = TryGetEditablePathModel();
             ImmutableArray<PathNode> nodes = currentModel?.PathNodes ?? ImmutableArray<PathNode>.Empty;
             if (nodeIndex < 0 || nodeIndex >= nodes.Length)
                 return PathEditResult.Failed($"Node index {nodeIndex} is out of range.", currentModel);
 
-            PathEditResult result = PathModelEditor.RepairNode(currentModel, nodeIndex, RuntimeDataResolver.Instance.TrackWorld);
+            PathEditResult result = edit(currentModel);
             if (!result.Success)
                 return result;
 
@@ -288,7 +486,7 @@ namespace FreeTrainSimulator.Toolbox
             }
 
             PushUndoSnapshot(currentModel);
-            hasUnsavedChanges = true;
+            unsavedChanges = true;
             RestoreSnapshot(result.PathModel);
             SelectPathItem(nodeIndex);
             OnPathUpdated?.Invoke(this, new PathEditorChangedEventArgs(TrainPath));
@@ -359,7 +557,7 @@ namespace FreeTrainSimulator.Toolbox
             if (EquivalentMoveAnchor(movePreviewAnchor, replacementAnchor))
                 return;
 
-            bool isJunction = candidate.JunctionNode != null || (candidate.NodeType & PathNodeType.Junction) == PathNodeType.Junction;
+            bool isJunction = candidate.JunctionNode != null || candidate.NodeType.Includes(PathNodeType.Junction);
             PathEditResult result = PathModelEditor.MoveNode(moveSourceModel, movingNodeIndex, replacementAnchor, isJunction);
             if (!result.Success)
             {
@@ -386,6 +584,8 @@ namespace FreeTrainSimulator.Toolbox
                 return false;
 
             int movedNodeIndex = movingNodeIndex;
+            bool placingViaPoint = pendingViaNodeIndex >= 0;
+            pendingViaNodeIndex = -1;
             PathModel currentModel = TryGetEditablePathModel();
             ClearMoveNodeState();
             if (currentModel != null)
@@ -395,6 +595,11 @@ namespace FreeTrainSimulator.Toolbox
                 RestorePath(currentModel, false);
                 SelectPathItem(movedNodeIndex);
             }
+
+            // The via node only exists for this placement, so canceling reverts the insert as well.
+            if (placingViaPoint)
+                _ = Undo();
+
             OnPathUpdated?.Invoke(this, new PathEditorChangedEventArgs(TrainPath));
             return true;
         }
@@ -424,7 +629,7 @@ namespace FreeTrainSimulator.Toolbox
 
             PushUndoSnapshot(currentModel);
             RestoreSnapshot(result.PathModel);
-            hasUnsavedChanges = true;
+            unsavedChanges = true;
             OnPathUpdated?.Invoke(this, new PathEditorChangedEventArgs(TrainPath));
             return result;
         }
@@ -485,7 +690,7 @@ namespace FreeTrainSimulator.Toolbox
             pathModel = await RuntimeDataResolver.Instance.RouteData.Save(pathModel).ConfigureAwait(false);
             path = pathModel;
             currentPathModel = pathModel;
-            hasUnsavedChanges = false;
+            unsavedChanges = false;
             OnPathChanged?.Invoke(this, new PathEditorChangedEventArgs(TrainPath));
         }
 
@@ -587,7 +792,7 @@ namespace FreeTrainSimulator.Toolbox
                     PushUndoSnapshot(undoSnapshot);
                 }
                 if (changed)
-                    hasUnsavedChanges = true;
+                    unsavedChanges = true;
                 lastPathClickTick = Environment.TickCount64;
                 OnPathUpdated?.Invoke(this, new PathEditorChangedEventArgs(TrainPath));
                 userCommandArgs.Handled = true;
@@ -605,7 +810,7 @@ namespace FreeTrainSimulator.Toolbox
             {
                 currentPathModel = TryCaptureSnapshot() ?? currentPathModel;
                 PushUndoSnapshot(undoSnapshot);
-                hasUnsavedChanges = true;
+                unsavedChanges = true;
             }
             OnPathUpdated?.Invoke(this, new PathEditorChangedEventArgs(TrainPath));
             userCommandArgs.Handled = true;
@@ -632,7 +837,7 @@ namespace FreeTrainSimulator.Toolbox
                     return PathEditResult.Failed("Select a valid track location for the node.", currentModel);
 
                 PathNode replacementAnchor = CreateReplacementAnchor(candidate);
-                bool isJunction = candidate.JunctionNode != null || (candidate.NodeType & PathNodeType.Junction) == PathNodeType.Junction;
+                bool isJunction = candidate.JunctionNode != null || candidate.NodeType.Includes(PathNodeType.Junction);
                 result = PathModelEditor.MoveNode(currentModel, movingNodeIndex, replacementAnchor, isJunction);
                 if (!result.Success)
                     return result;
@@ -641,8 +846,9 @@ namespace FreeTrainSimulator.Toolbox
             }
 
             int movedNodeIndex = movingNodeIndex;
+            pendingViaNodeIndex = -1;
             PushUndoSnapshot(currentModel);
-            hasUnsavedChanges = true;
+            unsavedChanges = true;
             ClearMoveNodeState();
             path = committedModel;
             currentPathModel = committedModel;
@@ -671,17 +877,13 @@ namespace FreeTrainSimulator.Toolbox
 
         internal static bool EquivalentMoveAnchor(PathNode first, PathNode second)
         {
-            if (ReferenceEquals(first, second))
-                return true;
-            if (first == null || second == null)
-                return false;
-
-            return first.NodeIndex == second.NodeIndex && first.Location == second.Location;
+            return ReferenceEquals(first, second) || first != null && second != null && first.NodeIndex == second.NodeIndex && first.Location == second.Location;
         }
 
         private void ClearMoveNodeState()
         {
             movingNodeIndex = -1;
+            pendingViaNodeIndex = -1;
             moveSourceModel = null;
             ClearMovePreview();
             UseStandaloneActivePathPointPreview = false;
