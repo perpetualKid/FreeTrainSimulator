@@ -70,7 +70,7 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
             Assert.IsNull(next);
         }
 
-        private static TrainPathPointBase Point(PathNodeType nodeType, int nextMainNode)
+        private static TestTrainPathPoint Point(PathNodeType nodeType, int nextMainNode)
         {
             return new TestTrainPathPoint(nodeType) { NextMainNode = nextMainNode };
         }

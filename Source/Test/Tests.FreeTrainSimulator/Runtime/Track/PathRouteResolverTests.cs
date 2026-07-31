@@ -203,7 +203,7 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
             PathRouteResolution result = PathRouteResolver.Resolve(pathModel, trackWorld, TestContext.CancellationToken);
 
             Assert.AreEqual(PathRouteSpanStatus.Resolved, result.MainRoute.Spans[0].Status);
-            CollectionAssert.AreEqual(expectedArray12, result.MainRoute.Spans[0].TrackVectorNodeIndexes.ToArray());
+            Assert.AreSequenceEqual(expectedArray12, result.MainRoute.Spans[0].TrackVectorNodeIndexes.ToArray());
         }
 
         /// <summary>
@@ -227,7 +227,7 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
             PathRouteResolution result = PathRouteResolver.Resolve(pathModel, trackWorld, TestContext.CancellationToken);
 
             Assert.AreEqual(PathRouteSpanStatus.Resolved, result.MainRoute.Spans[0].Status);
-            CollectionAssert.AreEqual(expectedArray152, result.MainRoute.Spans[0].TrackVectorNodeIndexes.ToArray());
+            Assert.AreSequenceEqual(expectedArray152, result.MainRoute.Spans[0].TrackVectorNodeIndexes.ToArray());
         }
 
         /// <summary>
@@ -320,7 +320,7 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
 
             PathRouteResolution result = PathRouteResolver.Resolve(pathModel, trackWorld, TestContext.CancellationToken);
 
-            Assert.AreEqual(2, result.MainRoute.Spans[0].Candidates.Length);
+            Assert.HasCount(2, result.MainRoute.Spans[0].Candidates);
         }
 
         /// <summary>
@@ -343,8 +343,8 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
 
             PathRouteResolution result = PathRouteResolver.Resolve(pathModel, trackWorld, TestContext.CancellationToken);
 
-            CollectionAssert.AreEqual(new[] { 1, 3, 2 }, result.MainRoute.Spans[0].Candidates[0].RouteNodeIndexes.ToArray());
-            CollectionAssert.AreEqual(new[] { 1, 4, 2 }, result.MainRoute.Spans[0].Candidates[1].RouteNodeIndexes.ToArray());
+            Assert.AreSequenceEqual(expectedArray132, result.MainRoute.Spans[0].Candidates[0].RouteNodeIndexes.ToArray());
+            Assert.AreSequenceEqual(expectedArray142, result.MainRoute.Spans[0].Candidates[1].RouteNodeIndexes.ToArray());
         }
 
         /// <summary>
@@ -389,7 +389,7 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
 
             PathRouteResolution result = PathRouteResolver.Resolve(pathModel, trackWorld, TestContext.CancellationToken);
 
-            Assert.AreEqual(1, result.MainRoute.Spans[0].Candidates.Length);
+            Assert.HasCount(1, result.MainRoute.Spans[0].Candidates);
         }
 
         /// <summary>
@@ -698,8 +698,8 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
 
         private static void InitializeTrackDatabase(TrackDatabase trackDatabase)
         {
-            typeof(TrackDatabase).GetMethod("OnSerializing", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(trackDatabase, null);
-            typeof(TrackDatabase).GetMethod("OnSerialized", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(trackDatabase, null);
+            _ = typeof(TrackDatabase).GetMethod("OnSerializing", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(trackDatabase, null);
+            _ = typeof(TrackDatabase).GetMethod("OnSerialized", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(trackDatabase, null);
         }
 
         private static VectorNode CreateInitializedVectorNode(int nodeIndex, float startX)
@@ -750,5 +750,7 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
 
         private static readonly int[] expectedArray12 = new[] { 1, 2 };
         private static readonly int[] expectedArray152 = new[] { 1, 5, 2 };
+        private static readonly int[] expectedArray132 = new[] { 1, 3, 2 };
+        private static readonly int[] expectedArray142 = new[] { 1, 4, 2 };
     }
 }

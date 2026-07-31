@@ -23,7 +23,7 @@ namespace Tests.FreeTrainSimulator.Models.Imported.Refresh
     public class RefreshMergeTests
     {
         [TestMethod]
-        public async Task ConvertContentRefreshesModelNativeRoute_WhenRouteVersionIsOutdated()
+        public async Task ConvertContentRefreshesModelNativeRouteWhenRouteVersionIsOutdated()
         {
             string uniqueSuffix = Guid.NewGuid().ToString("N");
             ContentModel contentModel = new ContentModel();
@@ -58,7 +58,7 @@ namespace Tests.FreeTrainSimulator.Models.Imported.Refresh
         }
 
         [TestMethod]
-        public async Task RefreshPersistedRouteModelPreservesExtendedData_WhenMigratingOutdatedRoute()
+        public async Task RefreshPersistedRouteModelPreservesExtendedDataWhenMigratingOutdatedRoute()
         {
             string uniqueSuffix = Guid.NewGuid().ToString("N");
             ContentModel contentModel = new ContentModel();
@@ -91,7 +91,7 @@ namespace Tests.FreeTrainSimulator.Models.Imported.Refresh
         }
 
         [TestMethod]
-        public async Task ExpandRouteModelsPreservesPersistedModelNativeRoute_WhenLegacySourceIsUnavailable()
+        public async Task ExpandRouteModelsPreservesPersistedModelNativeRouteWhenLegacySourceIsUnavailable()
         {
             string uniqueSuffix = Guid.NewGuid().ToString("N");
             ContentModel contentModel = new ContentModel();
@@ -115,7 +115,7 @@ namespace Tests.FreeTrainSimulator.Models.Imported.Refresh
         }
 
         [TestMethod]
-        public async Task ExpandRouteModelsPreservesPersistedSourceBackedRoute_WhenSourceIsUnavailable()
+        public async Task ExpandRouteModelsPreservesPersistedSourceBackedRouteWhenSourceIsUnavailable()
         {
             string uniqueSuffix = Guid.NewGuid().ToString("N");
             ContentModel contentModel = new ContentModel();
@@ -143,7 +143,7 @@ namespace Tests.FreeTrainSimulator.Models.Imported.Refresh
         }
 
         [TestMethod]
-        public async Task ExpandFolderModelsPreservesConfiguredFolder_WhenNotPresentInLegacyDiscovery()
+        public async Task ExpandFolderModelsPreservesConfiguredFolderWhenNotPresentInLegacyDiscovery()
         {
             string uniqueSuffix = Guid.NewGuid().ToString("N");
             ContentModel contentModel = new ContentModel();
