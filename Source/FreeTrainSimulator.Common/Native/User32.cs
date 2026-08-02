@@ -228,6 +228,27 @@ namespace FreeTrainSimulator.Common.Native
         [DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
         [return: MarshalAs(UnmanagedType.Bool)]
         private static extern bool GetWindowPlacementNative(IntPtr hWnd, ref WindowPlacement lpwndpl);
+
+        /// <summary>
+        /// Returns whether the foreground window belongs to the current process.
+        /// </summary>
+        public static bool IsForegroundWindowOwnedByCurrentProcess()
+        {
+            IntPtr foregroundWindow = GetForegroundWindowNative();
+            if (foregroundWindow == IntPtr.Zero)
+                return false;
+
+            _ = GetWindowThreadProcessIdNative(foregroundWindow, out int processId);
+            return processId == Environment.ProcessId;
+        }
+
+        [DllImport("user32.dll", EntryPoint = "GetForegroundWindow", SetLastError = true)]
+        [DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
+        private static extern IntPtr GetForegroundWindowNative();
+
+        [DllImport("user32.dll", EntryPoint = "GetWindowThreadProcessId", SetLastError = true)]
+        [DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
+        private static extern int GetWindowThreadProcessIdNative(IntPtr hWnd, out int processId);
 #pragma warning restore SYSLIB1054 // Use 'LibraryImportAttribute' instead of 'DllImportAttribute' to generate P/Invoke marshalling code at compile time
 #pragma warning restore CA1711 // Identifiers should not have incorrect suffix
     }

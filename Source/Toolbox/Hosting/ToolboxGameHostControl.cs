@@ -53,6 +53,12 @@ namespace FreeTrainSimulator.Toolbox.Hosting
         internal event EventHandler HostedWindowPointerDown;
 
         /// <summary>
+        /// Raised on the WPF UI thread when the hosted game requests the map context menu, after it has hit
+        /// tested the pointer position against the current train path.
+        /// </summary>
+        internal event EventHandler<MapContextMenuRequestedEventArgs> MapContextMenuRequested;
+
+        /// <summary>
         /// Raised on the WPF UI thread when the hosted game requests a screenshot save location.
         /// </summary>
         internal event EventHandler ScreenshotRequested;
@@ -172,6 +178,8 @@ namespace FreeTrainSimulator.Toolbox.Hosting
             game.ExitRequested += Game_ExitRequested;
             game.LanguageChanged -= Game_LanguageChanged;
             game.LanguageChanged += Game_LanguageChanged;
+            game.MapContextMenuRequested -= Game_MapContextMenuRequested;
+            game.MapContextMenuRequested += Game_MapContextMenuRequested;
             HostedToolWindowsReady?.Invoke(this, EventArgs.Empty);
 
             // The hosted game already loaded its language during construction (before the shell subscribed), so
@@ -281,6 +289,19 @@ namespace FreeTrainSimulator.Toolbox.Hosting
             game.InvokeOnGameThread(() => game.SetHostedInputCaptured(captured));
         }
 
+        /// <summary>
+        /// Suppresses pointer-over activation of the hosted map surface, so that hovering the map does not take
+        /// input away from a tool window that currently holds keyboard focus.
+        /// </summary>
+        internal void SetPointerActivationSuppressed(bool suppressed)
+        {
+            GameWindow game = gameWindow;
+            if (game == null)
+                return;
+
+            game.InvokeOnGameThread(() => game.SetPointerActivationSuppressed(suppressed));
+        }
+
         // Game-thread event: re-raise on the WPF dispatcher so the shell can show its modal save dialog.
         private void Game_SaveTrainPathRequested(object sender, EventArgs e)
         {
@@ -309,6 +330,22 @@ namespace FreeTrainSimulator.Toolbox.Hosting
         private void Game_LanguageChanged(object sender, EventArgs e)
         {
             Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() => LanguageChanged?.Invoke(this, EventArgs.Empty)));
+        }
+
+        // Game-thread event: re-raise on the WPF dispatcher so the shell can show its context menu.
+        private void Game_MapContextMenuRequested(object sender, MapContextMenuRequestedEventArgs e)
+        {
+            Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() => MapContextMenuRequested?.Invoke(this, e)));
+        }
+
+        /// <summary>
+        /// Starts moving the given path node on the hosted game thread. Called by the shell after the map
+        /// context menu selection; the pointer then drives the move preview until commit or cancel.
+        /// </summary>
+        internal void BeginMoveNode(int nodeIndex)
+        {
+            GameWindow game = gameWindow;
+            game?.InvokeOnGameThread(() => game.BeginMoveNode(nodeIndex));
         }
 
         private void UpdateHostWindowTitle(string title)

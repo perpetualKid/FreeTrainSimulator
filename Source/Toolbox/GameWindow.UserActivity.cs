@@ -10,6 +10,7 @@ using System.Windows.Forms;
 using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Info;
 using FreeTrainSimulator.Common.Input;
+using FreeTrainSimulator.Common.Position;
 using FreeTrainSimulator.Graphics.MapView;
 using FreeTrainSimulator.Models.Content;
 using FreeTrainSimulator.Models.Shim;
@@ -33,9 +34,22 @@ namespace FreeTrainSimulator.Toolbox
         private static readonly Vector2 moveUp = new Vector2(0, 1);
         private static readonly Vector2 moveDown = new Vector2(0, -1);
 
+        // Set while the left button is held and the pointer has moved, i.e. the interaction is a pan drag
+        // rather than a click. Reset on every left button press.
+        private bool pointerDraggedSinceLeftPress;
+
         #endregion
 
         private const int zoomAmplifier = 3;
+
+        // Pointer radius, in screen pixels, used to hit test path nodes on the map surface.
+        private const int nodeHitTestRadiusPixels = 10;
+
+        /// <summary>
+        /// Raised on the game thread when the user requests the map context menu. The WPF shell re-raises this
+        /// on its dispatcher and shows the menu.
+        /// </summary>
+        internal event EventHandler<MapContextMenuRequestedEventArgs> MapContextMenuRequested;
 
         public void ChangeScreenMode()
         {
@@ -58,6 +72,7 @@ namespace FreeTrainSimulator.Toolbox
         {
             if (userCommandArgs is PointerMoveCommandArgs mouseMoveCommandArgs && contentArea is IMapHostControl hostControl)
             {
+                pointerDraggedSinceLeftPress = true;
                 hostControl.UpdatePosition(mouseMoveCommandArgs.Delta);
             }
         }
@@ -68,6 +83,90 @@ namespace FreeTrainSimulator.Toolbox
             {
                 hostControl.UpdateScaleAt(mouseWheelCommandArgs.Position, Math.Sign(mouseWheelCommandArgs.Delta) * ZoomAmplifier(modifiers));
             }
+        }
+
+        // Right click on the map surface: hit test the current path and ask the shell to show the context menu.
+        internal void RequestMapContextMenu(UserCommandArgs userCommandArgs)
+        {
+            if (userCommandArgs is not PointerCommandArgs pointerCommandArgs)
+                return;
+
+            PathEditor editor = pathEditor;
+            ContentArea content = contentArea;
+            if (editor == null || content == null)
+                return;
+
+            PointD location = content.ScreenToWorldCoordinates(pointerCommandArgs.Position);
+            double tolerance = content is IMapHostControl hostControl && hostControl.Scale > 0
+                ? nodeHitTestRadiusPixels / hostControl.Scale
+                : 0;
+
+            if (!editor.TryGetPathNodeAt(location, tolerance, out int nodeIndex))
+                return;
+
+            MapContextMenuRequested?.Invoke(this, new MapContextMenuRequestedEventArgs(
+                pointerCommandArgs.Position.X, pointerCommandArgs.Position.Y, nodeIndex, editor.CanMoveNode(nodeIndex)));
+        }
+
+        // Left button press on the map surface: starts a new pointer interaction, which turns into a pan drag
+        // only if the pointer subsequently moves.
+        internal void BeginPointerInteraction(UserCommandArgs userCommandArgs)
+        {
+            pointerDraggedSinceLeftPress = false;
+        }
+
+        // Left button release on the map surface commits an in-progress node move to the previewed target
+        // location.
+        //
+        // NOTE: this deliberately commits on release rather than on press, and only when the interaction was a
+        // click rather than a pan drag; committing on press would consume the button-down that starts a pan and
+        // move the node to whatever was under the pointer at that moment. If a future interaction model makes
+        // panning and node moving mutually exclusive (for example an explicit move mode that disables panning),
+        // this can be simplified back to a plain CommonUserCommand.PointerPressed handler without the
+        // pointerDraggedSinceLeftPress guard.
+        internal void CommitPendingNodeMove(UserCommandArgs userCommandArgs)
+        {
+            bool dragged = pointerDraggedSinceLeftPress;
+            pointerDraggedSinceLeftPress = false;
+
+            PathEditor editor = pathEditor;
+            if (dragged || editor == null || !editor.CanCommitMoveNode)
+                return;
+
+            PathEditorCommandResult result = editor.CommitMoveNodeCommand();
+            if (!result.Success)
+                Trace.TraceWarning(result.Message);
+
+            if (userCommandArgs != null)
+                userCommandArgs.Handled = true;
+        }
+
+        // Cancels an in-progress node move, leaving the path unchanged.
+        internal void CancelPendingNodeMove(UserCommandArgs userCommandArgs)
+        {
+            PathEditor editor = pathEditor;
+            if (editor == null || !editor.IsMovingNode)
+                return;
+
+            _ = editor.CancelMoveNodeCommand();
+
+            if (userCommandArgs != null)
+                userCommandArgs.Handled = true;
+        }
+
+        /// <summary>
+        /// Starts moving the given path node; the pointer then drives the move preview until the move is
+        /// committed or cancelled. Called by the shell after the context menu selection.
+        /// </summary>
+        internal void BeginMoveNode(int nodeIndex)
+        {
+            PathEditor editor = pathEditor;
+            if (editor == null)
+                return;
+
+            PathEditorCommandResult result = editor.BeginMoveNodeCommand(nodeIndex);
+            if (!result.Success)
+                Trace.TraceWarning(result.Message);
         }
 
         private void MoveByKeyLeft(UserCommandArgs commandArgs)

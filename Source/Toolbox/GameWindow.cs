@@ -499,6 +499,46 @@ namespace FreeTrainSimulator.Toolbox
         internal void SetHostedInputCaptured(bool captured)
         {
             InputCaptured = captured;
+            // Pointer-over activation re-evaluates the mouse gate every frame; this only sets the baseline the
+            // shell asked for.
+            PointerInputCaptured = captured;
+        }
+
+        /// <summary>
+        /// Suppresses pointer-over activation of keyboard input for the map surface. The shell sets this while
+        /// WPF keyboard focus is inside a tool window, so typing there is not interrupted when the pointer
+        /// happens to rest over the map. Mouse input (hover, zoom, pan) is never suppressed this way.
+        /// </summary>
+        internal void SetPointerActivationSuppressed(bool suppressed)
+        {
+            pointerActivationSuppressed = suppressed;
+        }
+
+        // The hosted MonoGame window is a cross-thread native child of the WPF host panel, so mouse messages go
+        // straight to it and WPF never sees them: MapHost.IsMouseOver stays false and MouseEnter never fires.
+        // Without this the map stays input-captured after startup until the user clicks it once, and it never
+        // reactivates while a tool window holds focus. Evaluate the cursor position on the game thread instead.
+        //
+        // Mouse and keyboard are gated separately on purpose: hovering the map always enables mouse input
+        // (hover readouts, wheel zoom, drag pan) even while a tool window holds keyboard focus, because that is
+        // never disruptive. Keyboard input is only handed to the map when no tool window is being typed into.
+        private void UpdatePointerActivation()
+        {
+            if (windowForm == null || windowForm.IsDisposed)
+                return;
+
+            bool pointerOverMap = FreeTrainSimulator.Common.Native.NativeMethods.IsForegroundWindowOwnedByCurrentProcess()
+                && windowForm.RectangleToScreen(windowForm.ClientRectangle).Contains(Cursor.Position);
+
+            // Mouse follows the pointer unconditionally; when the pointer leaves the map the shell's own
+            // capture rules apply again.
+            if (pointerOverMap)
+                PointerInputCaptured = false;
+            else if (InputCaptured)
+                PointerInputCaptured = true;
+
+            if (pointerOverMap && !pointerActivationSuppressed)
+                InputCaptured = false;
         }
 
         internal void UpdateColorPreference(ColorSetting setting, string colorName)
@@ -735,6 +775,7 @@ namespace FreeTrainSimulator.Toolbox
                 IgnoreActiveState = true,
             };
             Components.Add(mouseInputGameComponent);
+            mouseInputGameComponent.InputCapture = pointerInputCapture;
             MouseInputHandler<UserCommand> mouseInput = new MouseInputHandler<UserCommand>();
             mouseInput.Initialize(mouseInputGameComponent, keyboardInputGameComponent, userCommandController);
 
@@ -759,6 +800,10 @@ namespace FreeTrainSimulator.Toolbox
                 MouseDragging(userCommandArgs);
             });
             userCommandController.AddEvent(CommonUserCommand.VerticalScrollChanged, MouseWheel);
+            userCommandController.AddEvent(CommonUserCommand.AlternatePointerPressed, RequestMapContextMenu);
+            userCommandController.AddEvent(CommonUserCommand.PointerPressed, BeginPointerInteraction);
+            userCommandController.AddEvent(CommonUserCommand.PointerReleased, CommitPendingNodeMove);
+            userCommandController.AddEvent(UserCommand.Cancel, KeyEventType.KeyPressed, CancelPendingNodeMove);
             userCommandController.AddEvent(UserCommand.DisplayLocationWindow, KeyEventType.KeyPressed, (UserCommandArgs userCommandArgs) =>
             {
                 if (userCommandArgs is ModifiableKeyCommandArgs keyCommandArgs && (keyCommandArgs.AdditionalModifiers & KeyModifiers.Shift) == KeyModifiers.Shift)
@@ -829,6 +874,8 @@ namespace FreeTrainSimulator.Toolbox
 
         protected override void Update(GameTime gameTime)
         {
+            UpdatePointerActivation();
+
             if ((contentArea?.SuppressDrawing ?? false) && windowManager.SuppressDrawing && suppressCount-- > 0)
             {
                 SuppressDraw();
@@ -841,6 +888,22 @@ namespace FreeTrainSimulator.Toolbox
         }
 
         public bool InputCaptured { get; internal set; }
+
+        private bool pointerActivationSuppressed;
+
+        // Capture gate for mouse input only, kept separate from the keyboard gate above.
+        private bool PointerInputCaptured
+        {
+            get => pointerInputCapture.InputCaptured;
+            set => pointerInputCapture.InputCaptured = value;
+        }
+
+        private readonly PointerInputCapture pointerInputCapture = new PointerInputCapture();
+
+        private sealed class PointerInputCapture : IInputCapture
+        {
+            public bool InputCaptured { get; set; }
+        }
 
         private void GameWindow_OnContentAreaChanged(object sender, ContentAreaChangedEventArgs e)
         {

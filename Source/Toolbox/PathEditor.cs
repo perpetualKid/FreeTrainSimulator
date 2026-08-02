@@ -270,6 +270,39 @@ namespace FreeTrainSimulator.Toolbox
             return nodeIndex >= 0 && nodeIndex < nodes.Length;
         }
 
+        /// <summary>
+        /// Finds the path node closest to <paramref name="location"/> within <paramref name="toleranceWorldUnits"/>.
+        /// Used for map surface hit testing; returns false when no node is within tolerance.
+        /// </summary>
+        public bool TryGetPathNodeAt(in PointD location, double toleranceWorldUnits, out int nodeIndex)
+            => TryGetPathNodeAt(TrainPath?.PathPoints, location, toleranceWorldUnits, out nodeIndex);
+
+        /// <summary>
+        /// Finds the path point closest to <paramref name="location"/> within <paramref name="toleranceWorldUnits"/>.
+        /// </summary>
+        internal static bool TryGetPathNodeAt(IReadOnlyList<TrainPathPointBase> pathPoints, in PointD location, double toleranceWorldUnits, out int nodeIndex)
+        {
+            nodeIndex = -1;
+            if (toleranceWorldUnits <= 0)
+                return false;
+
+            if (pathPoints == null || pathPoints.Count == 0)
+                return false;
+
+            double closestDistanceSquared = toleranceWorldUnits * toleranceWorldUnits;
+            for (int i = 0; i < pathPoints.Count; i++)
+            {
+                double distanceSquared = pathPoints[i].Location.DistanceSquared(location);
+                if (distanceSquared <= closestDistanceSquared)
+                {
+                    closestDistanceSquared = distanceSquared;
+                    nodeIndex = i;
+                }
+            }
+
+            return nodeIndex >= 0;
+        }
+
         public PathEditResult RepairSelectedNode(int nodeIndex)
         {
             return ApplySelectedNodeEdit(nodeIndex, model => PathModelEditor.RepairNode(model, nodeIndex, RuntimeDataResolver.Instance.TrackWorld));

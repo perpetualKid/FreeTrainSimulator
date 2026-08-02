@@ -262,6 +262,45 @@ namespace Tests.FreeTrainSimulator.Toolbox
             return false;
         }
 
+        [TestMethod]
+        public void WhenLocationIsWithinToleranceThenTryGetPathNodeAtReturnsClosestNode()
+        {
+            TestTrainPathPoint[] pathPoints = new TestTrainPathPoint[]
+            {
+                new TestTrainPathPoint(new PointD(0, 0)),
+                new TestTrainPathPoint(new PointD(100, 0)),
+                new TestTrainPathPoint(new PointD(200, 0)),
+            };
+
+            bool found = PathEditor.TryGetPathNodeAt(pathPoints, new PointD(104, 3), 10, out int nodeIndex);
+
+            Assert.IsTrue(found);
+            Assert.AreEqual(1, nodeIndex);
+        }
+
+        [TestMethod]
+        public void WhenLocationIsOutsideToleranceThenTryGetPathNodeAtReturnsFalse()
+        {
+            TestTrainPathPoint[] pathPoints = new TestTrainPathPoint[]
+            {
+                new TestTrainPathPoint(new PointD(0, 0)),
+            };
+
+            bool found = PathEditor.TryGetPathNodeAt(pathPoints, new PointD(50, 0), 10, out int nodeIndex);
+
+            Assert.IsFalse(found);
+            Assert.AreEqual(-1, nodeIndex);
+        }
+
+        [TestMethod]
+        public void WhenPathHasNoPointsThenTryGetPathNodeAtReturnsFalse()
+        {
+            bool found = PathEditor.TryGetPathNodeAt(Array.Empty<TrainPathPointBase>(), new PointD(0, 0), 10, out int nodeIndex);
+
+            Assert.IsFalse(found);
+            Assert.AreEqual(-1, nodeIndex);
+        }
+
         private sealed record TestTrainPath : TrainPathBase
         {
             public TestTrainPath(PathModel pathModel)
@@ -295,6 +334,11 @@ namespace Tests.FreeTrainSimulator.Toolbox
         {
             public TestTrainPathPoint(PathNodeType nodeType)
                 : base(PointD.None, nodeType)
+            {
+            }
+
+            public TestTrainPathPoint(in PointD location)
+                : base(location, PathNodeType.Intermediate)
             {
             }
         }

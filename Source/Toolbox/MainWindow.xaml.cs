@@ -20,6 +20,9 @@ using FreeTrainSimulator.Toolbox.Settings;
 using FreeTrainSimulator.Toolbox.ToolWindows;
 using FreeTrainSimulator.Toolbox.ViewModels;
 
+using GetText;
+using GetText.Wpf;
+
 namespace FreeTrainSimulator.Toolbox
 {
     public partial class MainWindow : Window, IDisposable
@@ -68,6 +71,7 @@ namespace FreeTrainSimulator.Toolbox
             MapHost.AboutRequested += MapHost_AboutRequested;
             MapHost.ExitRequested += MapHost_ExitRequested;
             MapHost.LanguageChanged += MapHost_LanguageChanged;
+            MapHost.MapContextMenuRequested += MapHost_MapContextMenuRequested;
             DockingManager.ActiveContentChanged += DockingManager_ActiveContentChanged;
         }
 
@@ -326,6 +330,40 @@ namespace FreeTrainSimulator.Toolbox
             dialog.ShowDialog();
         }
 
+        private void MapHost_MapContextMenuRequested(object sender, MapContextMenuRequestedEventArgs e)
+        {
+            if (e is null || !e.CanMoveNode)
+                return;
+
+            System.Windows.Controls.MenuItem moveNodeItem = new System.Windows.Controls.MenuItem
+            {
+                Header = CatalogManager.Catalog.GetString("Move Node"),
+            };
+            int nodeIndex = e.NodeIndex;
+            moveNodeItem.Click += (_, _) => MapHost.BeginMoveNode(nodeIndex);
+
+            System.Windows.Point offset = DeviceToLogicalUnits(e.X, e.Y);
+            System.Windows.Controls.ContextMenu contextMenu = new System.Windows.Controls.ContextMenu
+            {
+                PlacementTarget = MapHost,
+                Placement = System.Windows.Controls.Primitives.PlacementMode.Relative,
+                HorizontalOffset = offset.X,
+                VerticalOffset = offset.Y,
+            };
+            contextMenu.Items.Add(moveNodeItem);
+            // Keyboard commands are routed to the hosted map surface, so focus must return to it.
+            contextMenu.Closed += (_, _) => ActivateMapInput();
+            contextMenu.IsOpen = true;
+        }
+
+        // Converts hosted map surface client pixels into the device-independent units WPF placement expects.
+        private System.Windows.Point DeviceToLogicalUnits(int x, int y)
+        {
+            System.Windows.Media.Matrix transform = PresentationSource.FromVisual(this)?.CompositionTarget?.TransformFromDevice
+                ?? System.Windows.Media.Matrix.Identity;
+            return transform.Transform(new System.Windows.Point(x, y));
+        }
+
         private void MapHost_ExitRequested(object sender, EventArgs e)
         {
             Close();
@@ -470,7 +508,15 @@ namespace FreeTrainSimulator.Toolbox
         private void UpdateHostedInputCapture(bool forceMapActive = false)
         {
             bool mapIsActive = forceMapActive || IsMapInteractionActive();
+            // While a tool window holds keyboard focus, hovering the map must not silently take input away from
+            // it; otherwise typing in a tool window would be interrupted by an incidental pointer position.
+            MapHost.SetPointerActivationSuppressed(!mapIsActive && IsKeyboardFocusInToolWindow());
             MapHost.SetInputCaptured(!mapIsActive);
+        }
+
+        private bool IsKeyboardFocusInToolWindow()
+        {
+            return DockingManager.IsKeyboardFocusWithin && !MapHost.IsKeyboardFocusWithin;
         }
 
         private bool IsMapInteractionActive()

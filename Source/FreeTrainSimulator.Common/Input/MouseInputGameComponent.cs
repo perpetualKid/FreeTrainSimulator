@@ -20,8 +20,11 @@ namespace FreeTrainSimulator.Common.Input
         private readonly EnumArray<MouseWheelEvent, MouseWheelEventType> mouseWheelEvents = new EnumArray<MouseWheelEvent, MouseWheelEventType>();
 
         private readonly bool isTouchEnabled;
-        private readonly IInputCapture inputCapture;
         private bool inActive;
+
+        // Capture gate for mouse input. Defaults to the game itself, but a host can supply a separate source so
+        // that mouse input can stay live while keyboard input is captured by other UI (or vice versa).
+        public IInputCapture InputCapture { get; set; }
 
         public bool DisableTouchInput { get; set; }
 
@@ -35,7 +38,7 @@ namespace FreeTrainSimulator.Common.Input
 
         public MouseInputGameComponent(Game game) : base(game)
         {
-            inputCapture = game as IInputCapture;
+            InputCapture = game as IInputCapture;
             try
             {
                 isTouchEnabled = TouchPanel.GetCapabilities().IsConnected;
@@ -80,7 +83,7 @@ namespace FreeTrainSimulator.Common.Input
 
         public override void Update(GameTime gameTime)
         {
-            if ((!Game.IsActive && !IgnoreActiveState) || (inputCapture?.InputCaptured ?? false))
+            if ((!Game.IsActive && !IgnoreActiveState) || (InputCapture?.InputCaptured ?? false))
             {
                 if (!inActive)
                 {
