@@ -14,7 +14,6 @@ using FreeTrainSimulator.Common.Position;
 using FreeTrainSimulator.Graphics.MapView;
 using FreeTrainSimulator.Models.Content;
 using FreeTrainSimulator.Models.Shim;
-using FreeTrainSimulator.Toolbox.PopupWindows;
 
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -97,8 +96,8 @@ namespace FreeTrainSimulator.Toolbox
                 return;
 
             PointD location = content.ScreenToWorldCoordinates(pointerCommandArgs.Position);
-            double tolerance = content is IMapHostControl hostControl && hostControl.Scale > 0
-                ? nodeHitTestRadiusPixels / hostControl.Scale
+            double tolerance = content.Scale > 0
+                ? nodeHitTestRadiusPixels / content.Scale
                 : 0;
 
             if (!editor.TryGetPathNodeAt(location, tolerance, out int nodeIndex))
