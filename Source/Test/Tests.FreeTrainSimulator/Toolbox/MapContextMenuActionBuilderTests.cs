@@ -1,4 +1,5 @@
 using System.Collections.Immutable;
+using System.Linq;
 
 using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Position;
@@ -8,46 +9,66 @@ using FreeTrainSimulator.Toolbox;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
+using static FreeTrainSimulator.Toolbox.MapContextMenuActionBuilder;
+
 namespace Tests.FreeTrainSimulator.Toolbox
 {
     [TestClass]
     public class MapContextMenuActionBuilderTests
     {
         [TestMethod]
-        public void WhenNodeMoveIsInProgressThenOnlyCancelMoveIsOffered()
+        public void WhenNodeMoveIsInProgressThenNodeMenuOnlyOffersCancelMove()
         {
-            ImmutableArray<MapContextMenuAction> actions = MapContextMenuActionBuilder.Build(
-                new TestPathPoint(PathNodeType.Intermediate), true, true);
+            ImmutableArray<MapContextMenuItem> items = BuildForNode(
+                new TestPathPoint(PathNodeType.Intermediate), 2, true, new MapContextMenuState { IsMovingNode = true });
 
-            Assert.AreEqual(1, actions.Length);
-            Assert.AreEqual(MapContextMenuAction.CancelMoveNode, actions[0]);
+            Assert.AreEqual(1, items.Length);
+            Assert.AreEqual(MapContextMenuAction.CancelMoveNode, items[0].Action);
         }
 
         [TestMethod]
-        public void WhenNodeIsNullThenNoActionsAreOffered()
+        public void WhenNodeMoveIsInProgressThenMapMenuOnlyOffersCancelMove()
         {
-            ImmutableArray<MapContextMenuAction> actions = MapContextMenuActionBuilder.Build(null, true, false);
+            ImmutableArray<MapContextMenuItem> items = BuildForMap(
+                new MapContextMenuState { IsMovingNode = true, CanExtendPath = true, CanUndo = true });
 
-            Assert.IsTrue(actions.IsEmpty);
+            Assert.AreEqual(1, items.Length);
+            Assert.AreEqual(MapContextMenuAction.CancelMoveNode, items[0].Action);
+        }
+
+        [TestMethod]
+        public void WhenNodeIsNullThenNoNodeActionsAreOffered()
+        {
+            ImmutableArray<MapContextMenuItem> items = BuildForNode(null, 0, true, default);
+
+            Assert.IsTrue(items.IsEmpty);
         }
 
         [TestMethod]
         public void WhenNodeCannotBeMovedThenMoveNodeIsNotOffered()
         {
-            ImmutableArray<MapContextMenuAction> actions = MapContextMenuActionBuilder.Build(
-                new TestPathPoint(PathNodeType.Intermediate), false, false);
+            ImmutableArray<MapContextMenuItem> items = BuildForNode(
+                new TestPathPoint(PathNodeType.Intermediate), 1, false, default);
 
-            Assert.DoesNotContain(MapContextMenuAction.MoveNode, actions);
+            Assert.DoesNotContain(MapContextMenuAction.MoveNode, Actions(items));
         }
 
         [TestMethod]
-        public void WhenNodeHasNoWaitPointThenSetWaitPointIsOffered()
+        public void WhenNodeIsEndThenRemoveViaPointIsNotOffered()
         {
-            ImmutableArray<MapContextMenuAction> actions = MapContextMenuActionBuilder.Build(
-                new TestPathPoint(PathNodeType.Intermediate), true, false);
+            ImmutableArray<MapContextMenuItem> items = BuildForNode(
+                new TestPathPoint(PathNodeType.End), 3, true, default);
 
-            Assert.Contains(MapContextMenuAction.SetWaitPoint, actions);
-            Assert.DoesNotContain(MapContextMenuAction.ClearWaitPoint, actions);
+            Assert.DoesNotContain(MapContextMenuAction.RemoveViaPoint, Actions(items));
+        }
+
+        [TestMethod]
+        public void WhenNodeIsIntermediateThenRemoveViaPointIsOffered()
+        {
+            ImmutableArray<MapContextMenuItem> items = BuildForNode(
+                new TestPathPoint(PathNodeType.Intermediate), 1, true, default);
+
+            Assert.Contains(MapContextMenuAction.RemoveViaPoint, Actions(items));
         }
 
         [TestMethod]
@@ -58,29 +79,29 @@ namespace Tests.FreeTrainSimulator.Toolbox
                 WaitInfo = new PathNodeWaitInfo { WaitTime = 30 },
             };
 
-            ImmutableArray<MapContextMenuAction> actions = MapContextMenuActionBuilder.Build(node, true, false);
+            ImmutableArray<MapContextMenuItem> items = BuildForNode(node, 1, true, default);
 
-            Assert.Contains(MapContextMenuAction.ClearWaitPoint, actions);
-            Assert.DoesNotContain(MapContextMenuAction.SetWaitPoint, actions);
+            Assert.Contains(MapContextMenuAction.ClearWaitPoint, Actions(items));
+            Assert.DoesNotContain(MapContextMenuAction.SetWaitPoint, Actions(items));
         }
 
         [TestMethod]
         public void WhenNodeHasReversalPointThenClearReversalPointIsOffered()
         {
-            ImmutableArray<MapContextMenuAction> actions = MapContextMenuActionBuilder.Build(
-                new TestPathPoint(PathNodeType.Reversal), true, false);
+            ImmutableArray<MapContextMenuItem> items = BuildForNode(
+                new TestPathPoint(PathNodeType.Reversal), 1, true, default);
 
-            Assert.Contains(MapContextMenuAction.ClearReversalPoint, actions);
-            Assert.DoesNotContain(MapContextMenuAction.SetReversalPoint, actions);
+            Assert.Contains(MapContextMenuAction.ClearReversalPoint, Actions(items));
+            Assert.DoesNotContain(MapContextMenuAction.SetReversalPoint, Actions(items));
         }
 
         [TestMethod]
         public void WhenNodeIsValidThenRepairNodeIsNotOffered()
         {
-            ImmutableArray<MapContextMenuAction> actions = MapContextMenuActionBuilder.Build(
-                new TestPathPoint(PathNodeType.Intermediate), true, false);
+            ImmutableArray<MapContextMenuItem> items = BuildForNode(
+                new TestPathPoint(PathNodeType.Intermediate), 1, true, default);
 
-            Assert.DoesNotContain(MapContextMenuAction.RepairNode, actions);
+            Assert.DoesNotContain(MapContextMenuAction.RepairNode, Actions(items));
         }
 
         [TestMethod]
@@ -91,19 +112,107 @@ namespace Tests.FreeTrainSimulator.Toolbox
                 ValidationResult = PathNodeInvalidReasons.NotOnTrack,
             };
 
-            ImmutableArray<MapContextMenuAction> actions = MapContextMenuActionBuilder.Build(node, true, false);
+            ImmutableArray<MapContextMenuItem> items = BuildForNode(node, 1, true, default);
 
-            Assert.Contains(MapContextMenuAction.RepairNode, actions);
+            Assert.Contains(MapContextMenuAction.RepairNode, Actions(items));
         }
 
         [TestMethod]
-        public void WhenNodeIsMovableThenMoveNodeIsTheFirstAction()
+        public void WhenNodeActionsAreBuiltThenTheyCarryTheNodeIndex()
         {
-            ImmutableArray<MapContextMenuAction> actions = MapContextMenuActionBuilder.Build(
-                new TestPathPoint(PathNodeType.Intermediate), true, false);
+            ImmutableArray<MapContextMenuItem> items = BuildForNode(
+                new TestPathPoint(PathNodeType.Intermediate), 4, true, default);
 
-            Assert.AreEqual(MapContextMenuAction.MoveNode, actions[0]);
+            Assert.IsTrue(items.All(item => item.IsSeparator
+                || item.Action == MapContextMenuAction.Undo
+                || item.Action == MapContextMenuAction.Redo
+                || item.NodeIndex == 4));
         }
+
+        [TestMethod]
+        public void WhenMenuHasMultipleSectionsThenSeparatorsAreInserted()
+        {
+            ImmutableArray<MapContextMenuItem> items = BuildForNode(
+                new TestPathPoint(PathNodeType.Intermediate), 1, true, new MapContextMenuState { CanUndo = true });
+
+            Assert.AreEqual(2, items.Count(item => item.IsSeparator));
+        }
+
+        [TestMethod]
+        public void WhenMenuEndsWithASectionBreakThenNoTrailingSeparatorRemains()
+        {
+            ImmutableArray<MapContextMenuItem> items = BuildForMap(new MapContextMenuState { CanExtendPath = true });
+
+            Assert.IsFalse(items[^1].IsSeparator);
+        }
+
+        [TestMethod]
+        public void WhenMenuStartsWithASectionThenNoLeadingSeparatorIsAdded()
+        {
+            ImmutableArray<MapContextMenuItem> items = BuildForMap(new MapContextMenuState { CanUndo = true, CanRedo = true });
+
+            Assert.IsFalse(items[0].IsSeparator);
+            Assert.AreEqual(MapContextMenuAction.Undo, items[0].Action);
+        }
+
+        [TestMethod]
+        public void WhenSpanIsUnambiguousThenOnlySpanEditsAreOffered()
+        {
+            ImmutableArray<MapContextMenuItem> items = BuildForSpan(2, ImmutableArray<ResolvedRouteCandidate>.Empty, default);
+
+            Assert.Contains(MapContextMenuAction.AddViaPoint, Actions(items));
+            Assert.Contains(MapContextMenuAction.RemoveRestOfPath, Actions(items));
+            Assert.DoesNotContain(MapContextMenuAction.SelectRouteCandidate, Actions(items));
+        }
+
+        [TestMethod]
+        public void WhenSpanIsAmbiguousThenEachCandidateIsOffered()
+        {
+            ImmutableArray<ResolvedRouteCandidate> candidates = ImmutableArray.Create(
+                Candidate(1, 2),
+                Candidate(1, 3));
+
+            ImmutableArray<MapContextMenuItem> items = BuildForSpan(1, candidates, default);
+
+            MapContextMenuItem[] candidateItems = items.Where(item => item.Action == MapContextMenuAction.SelectRouteCandidate).ToArray();
+            Assert.AreEqual(2, candidateItems.Length);
+            Assert.AreEqual(0, candidateItems[0].CandidateIndex);
+            Assert.AreEqual(1, candidateItems[1].CandidateIndex);
+            Assert.AreEqual(1, candidateItems[0].NodeIndex);
+        }
+
+        [TestMethod]
+        public void WhenMapMenuIsBuiltThenOnlyAvailablePathActionsAreOffered()
+        {
+            MapContextMenuState state = new MapContextMenuState
+            {
+                CanExtendPath = true,
+                CanStartNewPath = true,
+            };
+
+            ImmutableArray<MapContextMenuItem> items = BuildForMap(state);
+
+            Assert.Contains(MapContextMenuAction.ExtendPath, Actions(items));
+            Assert.Contains(MapContextMenuAction.StartNewPath, Actions(items));
+            Assert.DoesNotContain(MapContextMenuAction.SavePath, Actions(items));
+            Assert.DoesNotContain(MapContextMenuAction.ReResolvePath, Actions(items));
+        }
+
+        [TestMethod]
+        public void WhenUndoIsAvailableThenNodeMenuOffersUndo()
+        {
+            ImmutableArray<MapContextMenuItem> items = BuildForNode(
+                new TestPathPoint(PathNodeType.Intermediate), 1, true, new MapContextMenuState { CanUndo = true });
+
+            Assert.Contains(MapContextMenuAction.Undo, Actions(items));
+            Assert.DoesNotContain(MapContextMenuAction.Redo, Actions(items));
+        }
+
+        private static ImmutableArray<MapContextMenuAction> Actions(ImmutableArray<MapContextMenuItem> items)
+            => items.Select(item => item.Action).ToImmutableArray();
+
+        private static ResolvedRouteCandidate Candidate(params int[] routeNodeIndexes)
+            => new ResolvedRouteCandidate(ImmutableArray.Create(routeNodeIndexes), ImmutableArray<int>.Empty, ImmutableArray<PathRouteAnchor>.Empty, 1);
 
         private sealed record TestPathPoint : TrainPathPointBase
         {

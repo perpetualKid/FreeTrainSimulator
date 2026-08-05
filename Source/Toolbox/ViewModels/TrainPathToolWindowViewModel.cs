@@ -479,9 +479,9 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
             {
                 TrainPathListRow row = rows[i];
                 if (i < Paths.Count)
-                    Paths[i].Update(row.Id, row.Name, row.ValidationState);
+                    Paths[i].Update(row.Id, row.Name, row.ValidationState, row.HasUnsavedChanges);
                 else
-                    Paths.Add(new TrainPathListItemViewModel(row.Id, row.Name, row.ValidationState));
+                    Paths.Add(new TrainPathListItemViewModel(row.Id, row.Name, row.ValidationState, row.HasUnsavedChanges));
             }
 
             for (int i = Paths.Count - 1; i >= rows.Length; i--)

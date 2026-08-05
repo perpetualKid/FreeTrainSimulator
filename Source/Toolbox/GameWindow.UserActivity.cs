@@ -90,6 +90,7 @@ namespace FreeTrainSimulator.Toolbox
         }
 
         // Right click on the map surface: hit test the current path and ask the shell to show the context menu.
+        // The hit test cascades node -> span -> map, so path-scoped actions stay reachable on empty map.
         internal void RequestMapContextMenu(UserCommandArgs userCommandArgs)
         {
             if (userCommandArgs is not PointerCommandArgs pointerCommandArgs)
@@ -105,16 +106,38 @@ namespace FreeTrainSimulator.Toolbox
                 ? nodeHitTestRadiusPixels / content.Scale
                 : 0;
 
-            if (!editor.TryGetPathNodeAt(location, tolerance, out int nodeIndex))
-                return;
+            MapContextMenuActionBuilder.MapContextMenuState state = new MapContextMenuActionBuilder.MapContextMenuState
+            {
+                IsMovingNode = editor.IsMovingNode,
+                CanUndo = editor.CanUndo,
+                CanRedo = editor.CanRedo,
+                CanExtendPath = editor.CanExtendPath,
+                CanReResolvePath = editor.TrainPath != null,
+                CanSavePath = hostedTrainPathToolWindow?.CanSavePath == true,
+                CanStartNewPath = hostedTrainPathToolWindow?.CanCreatePath == true,
+            };
 
-            TrainPathPointBase node = editor.TrainPath?.PathPoints[nodeIndex];
-            ImmutableArray<MapContextMenuAction> actions = MapContextMenuActionBuilder.Build(node, editor.CanMoveNode(nodeIndex), editor.IsMovingNode);
-            if (actions.IsDefaultOrEmpty)
+            ImmutableArray<MapContextMenuItem> items;
+            if (editor.TryGetPathNodeAt(location, tolerance, out int nodeIndex))
+            {
+                items = MapContextMenuActionBuilder.BuildForNode(
+                    editor.TrainPath?.PathPoints[nodeIndex], nodeIndex, editor.CanMoveNode(nodeIndex), state);
+            }
+            else if (editor.TryGetPathSpanAt(location, tolerance, out int fromNodeIndex))
+            {
+                items = MapContextMenuActionBuilder.BuildForSpan(fromNodeIndex, editor.GetSpanCandidates(fromNodeIndex), state);
+            }
+            else
+            {
+                items = MapContextMenuActionBuilder.BuildForMap(state);
+                nodeIndex = -1;
+            }
+
+            if (items.IsDefaultOrEmpty)
                 return;
 
             MapContextMenuRequested?.Invoke(this, new MapContextMenuRequestedEventArgs(
-                pointerCommandArgs.Position.X, pointerCommandArgs.Position.Y, nodeIndex, actions));
+                pointerCommandArgs.Position.X, pointerCommandArgs.Position.Y, nodeIndex, items));
         }
 
         // Left button press on the map surface: starts a new pointer interaction, which turns into a pan drag
@@ -168,7 +191,7 @@ namespace FreeTrainSimulator.Toolbox
         /// window rather than the path editor directly, so its node list, status message and dirty state stay in
         /// sync with edits started on the map.
         /// </summary>
-        internal void ExecuteMapContextMenuAction(MapContextMenuAction action, int nodeIndex)
+        internal void ExecuteMapContextMenuAction(MapContextMenuAction action, int nodeIndex, int candidateIndex)
         {
             TrainPathToolWindow toolWindow = hostedTrainPathToolWindow;
             if (toolWindow == null)
@@ -207,6 +230,27 @@ namespace FreeTrainSimulator.Toolbox
                     break;
                 case MapContextMenuAction.RemoveRestOfPath:
                     toolWindow.RemoveRestOfPath(nodeIndex);
+                    break;
+                case MapContextMenuAction.SelectRouteCandidate:
+                    toolWindow.AcceptRouteCandidate(nodeIndex, candidateIndex);
+                    break;
+                case MapContextMenuAction.ExtendPath:
+                    toolWindow.ExtendPath();
+                    break;
+                case MapContextMenuAction.ReResolvePath:
+                    toolWindow.SnapToTrack();
+                    break;
+                case MapContextMenuAction.StartNewPath:
+                    toolWindow.CreatePath();
+                    break;
+                case MapContextMenuAction.SavePath:
+                    toolWindow.SavePath();
+                    break;
+                case MapContextMenuAction.Undo:
+                    toolWindow.Undo();
+                    break;
+                case MapContextMenuAction.Redo:
+                    toolWindow.Redo();
                     break;
                 default:
                     Trace.TraceWarning($"Unsupported map context menu action {action}.");

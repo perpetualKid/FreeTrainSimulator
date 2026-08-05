@@ -20,10 +20,16 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
     internal readonly record struct TrainPathListRow
     {
         public TrainPathListRow(string id, string name, PathValidationState validationState)
+            : this(id, name, validationState, false)
+        {
+        }
+
+        public TrainPathListRow(string id, string name, PathValidationState validationState, bool hasUnsavedChanges)
         {
             Id = id;
             Name = name;
             ValidationState = validationState;
+            HasUnsavedChanges = hasUnsavedChanges;
         }
 
         /// <summary>Unique id of the path.</summary>
@@ -34,6 +40,9 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
 
         /// <summary>Persisted validation state of the path (valid, invalid, or not yet validated).</summary>
         public PathValidationState ValidationState { get; }
+
+        /// <summary>Whether the path holds edits that have not been persisted yet.</summary>
+        public bool HasUnsavedChanges { get; }
     }
 
     /// <summary>
@@ -200,6 +209,11 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
         private int lastNodeCount = -1;
         private int snapshotVersion;
         private int lastSnapshotVersion = -1;
+
+        // Resolver diagnostic rows are cached against the resolution they were produced from. The path editor
+        // owns the resolution and reuses it per path model instance, so an edit resolves the path exactly once.
+        private PathRouteResolution cachedDiagnosticsResolution;
+        private ImmutableArray<ToolWindowRow> cachedDiagnosticsRows = ImmutableArray<ToolWindowRow>.Empty;
 
         internal TrainPathToolWindow(Func<PathEditor> pathEditorAccessor, Func<ITrainPathToolingContext> toolingContextAccessor,
             Action<Action> gameThreadInvoker, Action createPathAction, Action savePathAction, Action<PathModelHeader> loadPathAction,
@@ -377,6 +391,8 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
 
         internal void SnapToTrack() => ExecuteEditorCommand(pathEditor => pathEditor.ReResolvePathCommand());
 
+        internal void ExtendPath() => ExecuteEditorCommand(pathEditor => pathEditor.ExtendPathCommand(), activateMapInputAction);
+
         internal void BeginMoveNode(int nodeIndex)
         {
             ExecuteEditorCommand(pathEditor => pathEditor.BeginMoveNodeCommand(nodeIndex), activateMapInputAction);
@@ -495,39 +511,59 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
 
         private ImmutableArray<TrainPathListRow> BuildPaths(PathModel currentPathModel)
         {
-            return BuildPathRows(cachedPaths, transientPaths.Values.ToImmutableArray(), currentPathModel);
+            return BuildPathRows(cachedPaths, transientPaths.Values.ToImmutableArray(), currentPathModel,
+                pathEditorAccessor()?.HasUnsavedChanges == true);
         }
 
         internal static ImmutableArray<TrainPathListRow> BuildPathRows(ImmutableArray<PathModelHeader> savedPaths, PathModel currentPathModel)
         {
-            return BuildPathRows(savedPaths, ImmutableArray<PathModel>.Empty, currentPathModel);
+            return BuildPathRows(savedPaths, ImmutableArray<PathModel>.Empty, currentPathModel, false);
         }
 
         internal static ImmutableArray<TrainPathListRow> BuildPathRows(ImmutableArray<PathModelHeader> savedPaths, ImmutableArray<PathModel> transientPaths, PathModel currentPathModel)
+        {
+            return BuildPathRows(savedPaths, transientPaths, currentPathModel, false);
+        }
+
+        /// <summary>
+        /// Builds the available-paths rows. A row is flagged as having unsaved changes when it is a transient
+        /// (not yet persisted) path, or when it is the path currently open in the editor and the editor reports
+        /// pending edits.
+        /// </summary>
+        internal static ImmutableArray<TrainPathListRow> BuildPathRows(ImmutableArray<PathModelHeader> savedPaths, ImmutableArray<PathModel> transientPaths,
+            PathModel currentPathModel, bool currentPathHasUnsavedChanges)
         {
             savedPaths = savedPaths.IsDefault ? ImmutableArray<PathModelHeader>.Empty : savedPaths;
             transientPaths = transientPaths.IsDefault ? ImmutableArray<PathModel>.Empty : transientPaths;
             ImmutableArray<TrainPathListRow>.Builder builder = ImmutableArray.CreateBuilder<TrainPathListRow>();
 
+            bool IsCurrentPath(string pathId)
+                => currentPathModel != null && string.Equals(currentPathModel.Id, pathId, StringComparison.OrdinalIgnoreCase);
+
             if (currentPathModel != null && !savedPaths.Any(path => string.Equals(path.Id, currentPathModel.Id, StringComparison.OrdinalIgnoreCase)))
-                builder.Add(new TrainPathListRow(currentPathModel.Id, currentPathModel.Name, currentPathModel.ValidationState));
+            {
+                // Never persisted, so it always carries unsaved changes.
+                builder.Add(new TrainPathListRow(currentPathModel.Id, currentPathModel.Name, currentPathModel.ValidationState, true));
+            }
 
             foreach (PathModel transientPath in transientPaths.OrderBy(path => path.Name))
             {
-                if (currentPathModel != null && string.Equals(transientPath.Id, currentPathModel.Id, StringComparison.OrdinalIgnoreCase))
+                if (IsCurrentPath(transientPath.Id))
                     continue;
                 if (savedPaths.Any(path => string.Equals(path.Id, transientPath.Id, StringComparison.OrdinalIgnoreCase)))
                     continue;
 
-                builder.Add(new TrainPathListRow(transientPath.Id, transientPath.Name, transientPath.ValidationState));
+                builder.Add(new TrainPathListRow(transientPath.Id, transientPath.Name, transientPath.ValidationState, true));
             }
 
             foreach (PathModelHeader path in savedPaths.OrderBy(p => p.Name))
             {
-                PathModelHeader rowPath = currentPathModel != null && string.Equals(currentPathModel.Id, path.Id, StringComparison.OrdinalIgnoreCase)
+                bool isTransient = transientPaths.Any(transientPath => string.Equals(transientPath.Id, path.Id, StringComparison.OrdinalIgnoreCase));
+                PathModelHeader rowPath = IsCurrentPath(path.Id)
                     ? currentPathModel
                     : transientPaths.FirstOrDefault(transientPath => string.Equals(transientPath.Id, path.Id, StringComparison.OrdinalIgnoreCase)) ?? path;
-                builder.Add(new TrainPathListRow(rowPath.Id, rowPath.Name, rowPath.ValidationState));
+                bool hasUnsavedChanges = isTransient || (IsCurrentPath(path.Id) && currentPathHasUnsavedChanges);
+                builder.Add(new TrainPathListRow(rowPath.Id, rowPath.Name, rowPath.ValidationState, hasUnsavedChanges));
             }
 
             return builder.ToImmutable();
@@ -589,8 +625,22 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
             builder.Add(new ToolWindowRow { Name = "Path Length", Value = FormatStrings.FormatDistanceDisplay(currentPath.Length, metricUnits, 1000) });
             builder.AddRange(BuildEditorStateMetadata(currentPath));
             builder.AddRange(BuildEditorHistoryMetadata(pathEditor?.CanUndo == true, pathEditor?.CanRedo == true));
-            builder.AddRange(BuildResolverDiagnosticMetadata(PathRouteResolver.Resolve(resolverPathModel, toolingContext?.TrackWorld)));
+            builder.AddRange(GetResolverDiagnosticMetadata(pathEditor?.ResolveCurrent(resolverPathModel)));
             return builder.ToImmutable();
+        }
+
+        // Formats the resolver diagnostics, rebuilding the rows only when the resolution itself changed.
+        private ImmutableArray<ToolWindowRow> GetResolverDiagnosticMetadata(PathRouteResolution resolution)
+        {
+            if (resolution == null)
+                return ImmutableArray<ToolWindowRow>.Empty;
+
+            if (ReferenceEquals(resolution, cachedDiagnosticsResolution))
+                return cachedDiagnosticsRows;
+
+            cachedDiagnosticsRows = BuildResolverDiagnosticMetadata(resolution);
+            cachedDiagnosticsResolution = resolution;
+            return cachedDiagnosticsRows;
         }
 
         internal static ImmutableArray<ToolWindowRow> BuildEditorHistoryMetadata(bool canUndo, bool canRedo)
@@ -674,9 +724,16 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
             MarkDirty();
         }
 
+        // Preserves in-memory edits of the path being left behind, so switching paths does not discard them.
+        // Only paths with pending edits are captured: merely browsing must not turn every visited path into a
+        // transient (and therefore 'unsaved') one.
         private void CaptureTransientCurrentPath()
         {
-            PathModel currentModel = NormalizeTransientPathModel(pathEditorAccessor()?.TryCaptureCurrentPathModel());
+            PathEditor pathEditor = pathEditorAccessor();
+            if (pathEditor?.HasUnsavedChanges != true)
+                return;
+
+            PathModel currentModel = NormalizeTransientPathModel(pathEditor.TryCaptureCurrentPathModel());
             if (currentModel == null || string.IsNullOrWhiteSpace(currentModel.Id))
                 return;
 

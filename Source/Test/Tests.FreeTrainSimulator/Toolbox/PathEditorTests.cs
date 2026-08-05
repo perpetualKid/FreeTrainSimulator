@@ -171,6 +171,36 @@ namespace Tests.FreeTrainSimulator.Toolbox
         }
 
         [TestMethod]
+        public void WhenStaleValidationStateIsRefreshedThenModelReportsCurrentState()
+        {
+            // Regression: ValidationState is persisted on the model, so an edit that replaced PathNodes kept the
+            // stale marker until the path was saved or revalidated.
+            PathModel pathModel = new PathModel()
+            {
+                PathNodes = ImmutableArray.Create(CreateNode(PathNodeType.Start, 4), CreateNode(PathNodeType.End, -1)),
+                ValidationState = PathValidationState.Valid,
+            };
+
+            PathModel refreshed = PathEditor.RefreshValidationState(pathModel, null);
+
+            Assert.AreEqual(PathValidationState.Invalid, refreshed.ValidationState);
+        }
+
+        [TestMethod]
+        public void WhenValidationStateIsUnchangedThenRefreshReturnsTheSameInstance()
+        {
+            PathModel pathModel = new PathModel()
+            {
+                PathNodes = ImmutableArray.Create(CreateNode(PathNodeType.Start, 1), CreateNode(PathNodeType.End, -1)),
+                ValidationState = PathValidationState.Valid,
+            };
+
+            PathModel refreshed = PathEditor.RefreshValidationState(pathModel, null);
+
+            Assert.AreSame(pathModel, refreshed);
+        }
+
+        [TestMethod]
         public void WhenPathResolvesWithoutErrorThenResolveValidationStateReturnsValid()
         {
             // A start-to-end path without a track world produces at most warnings/information (no error or
@@ -299,6 +329,53 @@ namespace Tests.FreeTrainSimulator.Toolbox
 
             Assert.IsFalse(found);
             Assert.AreEqual(-1, nodeIndex);
+        }
+
+        [TestMethod]
+        public void WhenLocationIsBesideASpanThenTryGetPathSpanAtReturnsPrecedingNode()
+        {
+            TestTrainPathPoint[] pathPoints = new TestTrainPathPoint[]
+            {
+                new TestTrainPathPoint(new PointD(0, 0)),
+                new TestTrainPathPoint(new PointD(100, 0)),
+                new TestTrainPathPoint(new PointD(200, 0)),
+            };
+
+            bool found = PathEditor.TryGetPathSpanAt(pathPoints, new PointD(150, 4), 10, out int fromNodeIndex);
+
+            Assert.IsTrue(found);
+            Assert.AreEqual(1, fromNodeIndex);
+        }
+
+        [TestMethod]
+        public void WhenLocationIsBeyondSpanEndThenTryGetPathSpanAtReturnsFalse()
+        {
+            // The projection onto the segment must be clamped, so a point far past the last node is not
+            // reported as being on the span.
+            TestTrainPathPoint[] pathPoints = new TestTrainPathPoint[]
+            {
+                new TestTrainPathPoint(new PointD(0, 0)),
+                new TestTrainPathPoint(new PointD(100, 0)),
+            };
+
+            bool found = PathEditor.TryGetPathSpanAt(pathPoints, new PointD(400, 0), 10, out int fromNodeIndex);
+
+            Assert.IsFalse(found);
+            Assert.AreEqual(-1, fromNodeIndex);
+        }
+
+        [TestMethod]
+        public void WhenPathHasSinglePointThenTryGetPathSpanAtReturnsFalse()
+        {
+            TestTrainPathPoint[] pathPoints = new TestTrainPathPoint[]
+            {
+                new TestTrainPathPoint(new PointD(0, 0)),
+            };
+
+            bool found = PathEditor.TryGetPathSpanAt(pathPoints, new PointD(0, 0), 10, out int fromNodeIndex);
+
+            Assert.IsFalse(found);
+            Assert.AreEqual(-1, fromNodeIndex);
         }
 
         private sealed record TestTrainPath : TrainPathBase

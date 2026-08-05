@@ -18,18 +18,18 @@ namespace FreeTrainSimulator.Toolbox
         /// <summary>Authored path node index under the pointer, or -1 when no node was hit.</summary>
         public int NodeIndex { get; }
 
-        /// <summary>Actions available for the node under the pointer, in display order.</summary>
-        public ImmutableArray<MapContextMenuAction> Actions { get; }
+        /// <summary>Menu entries available at the pointer position, in display order.</summary>
+        public ImmutableArray<MapContextMenuItem> Items { get; }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="MapContextMenuRequestedEventArgs"/> class.
         /// </summary>
-        public MapContextMenuRequestedEventArgs(int x, int y, int nodeIndex, ImmutableArray<MapContextMenuAction> actions)
+        public MapContextMenuRequestedEventArgs(int x, int y, int nodeIndex, ImmutableArray<MapContextMenuItem> items)
         {
             X = x;
             Y = y;
             NodeIndex = nodeIndex;
-            Actions = actions;
+            Items = items;
         }
     }
 }

@@ -332,7 +332,7 @@ namespace FreeTrainSimulator.Toolbox
 
         private void MapHost_MapContextMenuRequested(object sender, MapContextMenuRequestedEventArgs e)
         {
-            if (e is null || e.Actions.IsDefaultOrEmpty)
+            if (e is null || e.Items.IsDefaultOrEmpty)
                 return;
 
             System.Windows.Point offset = DeviceToLogicalUnits(e.X, e.Y);
@@ -344,15 +344,20 @@ namespace FreeTrainSimulator.Toolbox
                 VerticalOffset = offset.Y,
             };
 
-            int nodeIndex = e.NodeIndex;
-            foreach (MapContextMenuAction action in e.Actions)
+            foreach (MapContextMenuItem menuItem in e.Items)
             {
-                MapContextMenuAction current = action;
+                if (menuItem.IsSeparator)
+                {
+                    contextMenu.Items.Add(new System.Windows.Controls.Separator());
+                    continue;
+                }
+
+                MapContextMenuItem current = menuItem;
                 System.Windows.Controls.MenuItem item = new System.Windows.Controls.MenuItem
                 {
                     Header = GetMapContextMenuCaption(current),
                 };
-                item.Click += (_, _) => MapHost.ExecuteMapContextMenuAction(current, nodeIndex);
+                item.Click += (_, _) => MapHost.ExecuteMapContextMenuAction(current.Action, current.NodeIndex, current.CandidateIndex);
                 contextMenu.Items.Add(item);
             }
 
@@ -361,20 +366,32 @@ namespace FreeTrainSimulator.Toolbox
             contextMenu.IsOpen = true;
         }
 
-        private static string GetMapContextMenuCaption(MapContextMenuAction action) => action switch
+        private static string GetMapContextMenuCaption(MapContextMenuItem item)
         {
-            MapContextMenuAction.MoveNode => CatalogManager.Catalog.GetString("Move Node"),
-            MapContextMenuAction.CancelMoveNode => CatalogManager.Catalog.GetString("Cancel Move"),
-            MapContextMenuAction.AddViaPoint => CatalogManager.Catalog.GetString("Add Via Point"),
-            MapContextMenuAction.RemoveViaPoint => CatalogManager.Catalog.GetString("Remove Via Point"),
-            MapContextMenuAction.SetWaitPoint => CatalogManager.Catalog.GetString("Set Wait Point"),
-            MapContextMenuAction.ClearWaitPoint => CatalogManager.Catalog.GetString("Clear Wait Point"),
-            MapContextMenuAction.SetReversalPoint => CatalogManager.Catalog.GetString("Set Reversal Point"),
-            MapContextMenuAction.ClearReversalPoint => CatalogManager.Catalog.GetString("Clear Reversal Point"),
-            MapContextMenuAction.RepairNode => CatalogManager.Catalog.GetString("Repair Node"),
-            MapContextMenuAction.RemoveRestOfPath => CatalogManager.Catalog.GetString("Remove Rest of Path"),
-            _ => action.ToString(),
-        };
+            string caption = item.Action switch
+            {
+                MapContextMenuAction.MoveNode => CatalogManager.Catalog.GetString("Move Node"),
+                MapContextMenuAction.CancelMoveNode => CatalogManager.Catalog.GetString("Cancel Move"),
+                MapContextMenuAction.AddViaPoint => CatalogManager.Catalog.GetString("Add Via Point Here"),
+                MapContextMenuAction.RemoveViaPoint => CatalogManager.Catalog.GetString("Remove Via Point"),
+                MapContextMenuAction.SetWaitPoint => CatalogManager.Catalog.GetString("Set Wait Point"),
+                MapContextMenuAction.ClearWaitPoint => CatalogManager.Catalog.GetString("Clear Wait Point"),
+                MapContextMenuAction.SetReversalPoint => CatalogManager.Catalog.GetString("Set Reversal Point"),
+                MapContextMenuAction.ClearReversalPoint => CatalogManager.Catalog.GetString("Clear Reversal Point"),
+                MapContextMenuAction.RepairNode => CatalogManager.Catalog.GetString("Repair Node"),
+                MapContextMenuAction.RemoveRestOfPath => CatalogManager.Catalog.GetString("Remove Rest of Path"),
+                MapContextMenuAction.SelectRouteCandidate => CatalogManager.Catalog.GetString("Use Route"),
+                MapContextMenuAction.ExtendPath => CatalogManager.Catalog.GetString("Extend Path"),
+                MapContextMenuAction.ReResolvePath => CatalogManager.Catalog.GetString("Re-resolve Path"),
+                MapContextMenuAction.StartNewPath => CatalogManager.Catalog.GetString("Start New Path"),
+                MapContextMenuAction.SavePath => CatalogManager.Catalog.GetString("Save Path"),
+                MapContextMenuAction.Undo => CatalogManager.Catalog.GetString("Undo"),
+                MapContextMenuAction.Redo => CatalogManager.Catalog.GetString("Redo"),
+                _ => item.Action.ToString(),
+            };
+
+            return string.IsNullOrEmpty(item.Detail) ? caption : $"{caption}: {item.Detail}";
+        }
 
         // Converts hosted map surface client pixels into the device-independent units WPF placement expects.
         private System.Windows.Point DeviceToLogicalUnits(int x, int y)

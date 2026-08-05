@@ -192,6 +192,53 @@ namespace Tests.FreeTrainSimulator.Toolbox
         }
 
         [TestMethod]
+        public void WhenPathIsTransientThenBuildPathRowsMarksItAsUnsaved()
+        {
+            ImmutableArray<PathModelHeader> savedPaths = ImmutableArray.Create(
+                new PathModelHeader { Id = "path-1", Name = "Saved Path", ValidationState = PathValidationState.Valid });
+            ImmutableArray<PathModel> transientPaths = ImmutableArray.Create(new PathModel { Id = "path-1", Name = "Saved Path" });
+
+            ImmutableArray<TrainPathListRow> rows = TrainPathToolWindow.BuildPathRows(savedPaths, transientPaths, null, false);
+
+            Assert.IsTrue(rows[0].HasUnsavedChanges);
+        }
+
+        [TestMethod]
+        public void WhenPathIsSavedAndUnchangedThenBuildPathRowsDoesNotMarkItAsUnsaved()
+        {
+            ImmutableArray<PathModelHeader> savedPaths = ImmutableArray.Create(
+                new PathModelHeader { Id = "path-1", Name = "Saved Path", ValidationState = PathValidationState.Valid });
+
+            ImmutableArray<TrainPathListRow> rows = TrainPathToolWindow.BuildPathRows(savedPaths, ImmutableArray<PathModel>.Empty, null, false);
+
+            Assert.IsFalse(rows[0].HasUnsavedChanges);
+        }
+
+        [TestMethod]
+        public void WhenCurrentPathHasPendingEditsThenBuildPathRowsMarksOnlyThatPathAsUnsaved()
+        {
+            ImmutableArray<PathModelHeader> savedPaths = ImmutableArray.Create(
+                new PathModelHeader { Id = "path-1", Name = "Edited Path", ValidationState = PathValidationState.Valid },
+                new PathModelHeader { Id = "path-2", Name = "Other Path", ValidationState = PathValidationState.Valid });
+            PathModel currentPath = new PathModel { Id = "path-1", Name = "Edited Path", ValidationState = PathValidationState.Valid };
+
+            ImmutableArray<TrainPathListRow> rows = TrainPathToolWindow.BuildPathRows(savedPaths, ImmutableArray<PathModel>.Empty, currentPath, true);
+
+            Assert.IsTrue(rows.Single(row => row.Id == "path-1").HasUnsavedChanges);
+            Assert.IsFalse(rows.Single(row => row.Id == "path-2").HasUnsavedChanges);
+        }
+
+        [TestMethod]
+        public void WhenCurrentPathWasNeverSavedThenBuildPathRowsMarksItAsUnsaved()
+        {
+            PathModel currentPath = new PathModel { Id = "new-path", Name = "New Path" };
+
+            ImmutableArray<TrainPathListRow> rows = TrainPathToolWindow.BuildPathRows(ImmutableArray<PathModelHeader>.Empty, currentPath);
+
+            Assert.IsTrue(rows[0].HasUnsavedChanges);
+        }
+
+        [TestMethod]
         public void WhenSelectPathThenGameThreadInvokerIsCalled()
         {
             int invocations = 0;

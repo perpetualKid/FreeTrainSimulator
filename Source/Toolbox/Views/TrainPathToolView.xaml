@@ -73,6 +73,39 @@
                 </TextBlock.Style>
             </TextBlock>
         </DataTemplate>
+        <!-- Paths with pending edits are marked with a trailing asterisk (announced by screen readers) and
+             bold text (scannable at a glance). Italic is deliberately avoided: it conventionally denotes
+             preview/temporary items rather than unsaved changes. -->
+        <DataTemplate x:Key="TrainPathNameCellTemplate">
+            <StackPanel Orientation="Horizontal">
+                <TextBlock Text="{Binding Name}"
+                           TextTrimming="CharacterEllipsis">
+                    <TextBlock.Style>
+                        <Style TargetType="TextBlock">
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding HasUnsavedChanges}" Value="True">
+                                    <Setter Property="FontWeight" Value="Bold" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </TextBlock.Style>
+                </TextBlock>
+                <TextBlock Text=" *"
+                           FontWeight="Bold"
+                           ToolTip="Unsaved changes">
+                    <TextBlock.Style>
+                        <Style TargetType="TextBlock">
+                            <Setter Property="Visibility" Value="Collapsed" />
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding HasUnsavedChanges}" Value="True">
+                                    <Setter Property="Visibility" Value="Visible" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </TextBlock.Style>
+                </TextBlock>
+            </StackPanel>
+        </DataTemplate>
     </UserControl.Resources>
     <TabControl Margin="10"
                 SelectedIndex="0">
@@ -128,7 +161,7 @@
                     <ListView.View>
                         <GridView>
                             <GridViewColumn Header="" Width="28" CellTemplate="{StaticResource TrainPathValidityCellTemplate}" />
-                            <GridViewColumn Header="Name" Width="320" DisplayMemberBinding="{Binding Name}"
+                            <GridViewColumn Header="Name" Width="320" CellTemplate="{StaticResource TrainPathNameCellTemplate}"
                                             behaviors:GridViewColumnBehavior.StretchColumn="True" />
                         </GridView>
                     </ListView.View>

@@ -32,6 +32,9 @@ namespace FreeTrainSimulator.Toolbox
         private readonly UserCommandController<UserCommand> userCommandController;
         private readonly Stack<PathModel> undoHistory = new Stack<PathModel>();
         private readonly Stack<PathModel> redoHistory = new Stack<PathModel>();
+        // One resolution per path model instance, shared by the persisted validation state and by consumers such
+        // as the train path tool window, so an edit resolves the path exactly once.
+        private readonly PathRouteResolutionCache resolutionCache = new PathRouteResolutionCache();
         private PathModelHeader path;
         private PathModel currentPathModel;
         private long lastPathClickTick;
@@ -137,8 +140,25 @@ namespace FreeTrainSimulator.Toolbox
         {
             ArgumentNullException.ThrowIfNull(pathModel);
 
-            PathRouteResolution resolution = PathRouteResolver.Resolve(pathModel, trackWorld, CancellationToken.None);
+            return ResolveValidationState(PathRouteResolver.Resolve(pathModel, trackWorld, CancellationToken.None));
+        }
+
+        // Maps an already computed resolution onto the persisted validation state, so callers holding a
+        // resolution do not have to resolve again.
+        internal static PathValidationState ResolveValidationState(PathRouteResolution resolution)
+        {
+            ArgumentNullException.ThrowIfNull(resolution);
+
             return resolution.HighestSeverity < PathRouteDiagnosticSeverity.Error ? PathValidationState.Valid : PathValidationState.Invalid;
+        }
+
+        /// <summary>
+        /// Returns the resolution of <paramref name="pathModel"/>, reusing the editor's cached resolution when it
+        /// was already resolved. Lets consumers show route diagnostics without resolving the path again.
+        /// </summary>
+        internal PathRouteResolution ResolveCurrent(PathModel pathModel)
+        {
+            return resolutionCache.Resolve(pathModel, RuntimeDataResolver.Instance?.TrackWorld);
         }
 
         private static async Task<bool> CanInitializePathAsync(PathModelHeader path, CancellationToken cancellationToken)
@@ -266,6 +286,105 @@ namespace FreeTrainSimulator.Toolbox
         public PathEditorCommandResult ReResolvePathCommand()
         {
             return PathEditorCommandResult.FromPathEditResult(SnapToTrack());
+        }
+
+        /// <summary>
+        /// Finds the path span closest to <paramref name="location"/> within <paramref name="toleranceWorldUnits"/>,
+        /// returning the index of the span's preceding node. Used for map surface hit testing when no node was hit.
+        /// </summary>
+        public bool TryGetPathSpanAt(in PointD location, double toleranceWorldUnits, out int fromNodeIndex)
+            => TryGetPathSpanAt(TrainPath?.PathPoints, location, toleranceWorldUnits, out fromNodeIndex);
+
+        /// <summary>
+        /// Finds the span between two consecutive path points closest to <paramref name="location"/>.
+        /// </summary>
+        internal static bool TryGetPathSpanAt(IReadOnlyList<TrainPathPointBase> pathPoints, in PointD location, double toleranceWorldUnits, out int fromNodeIndex)
+        {
+            fromNodeIndex = -1;
+            if (toleranceWorldUnits <= 0)
+                return false;
+
+            if (pathPoints == null || pathPoints.Count < 2)
+                return false;
+
+            double closestDistanceSquared = toleranceWorldUnits * toleranceWorldUnits;
+            for (int i = 0; i < pathPoints.Count - 1; i++)
+            {
+                double distanceSquared = DistanceSquaredToSegment(location, pathPoints[i].Location, pathPoints[i + 1].Location);
+                if (distanceSquared <= closestDistanceSquared)
+                {
+                    closestDistanceSquared = distanceSquared;
+                    fromNodeIndex = i;
+                }
+            }
+
+            return fromNodeIndex >= 0;
+        }
+
+        // Squared distance from a point to the line segment between start and end.
+        private static double DistanceSquaredToSegment(in PointD point, in PointD start, in PointD end)
+        {
+            double deltaX = end.X - start.X;
+            double deltaY = end.Y - start.Y;
+            double lengthSquared = (deltaX * deltaX) + (deltaY * deltaY);
+            if (lengthSquared <= double.Epsilon)
+                return start.DistanceSquared(point);
+
+            double projection = (((point.X - start.X) * deltaX) + ((point.Y - start.Y) * deltaY)) / lengthSquared;
+            projection = Math.Clamp(projection, 0, 1);
+
+            PointD closest = new PointD(start.X + (projection * deltaX), start.Y + (projection * deltaY));
+            return closest.DistanceSquared(point);
+        }
+
+        /// <summary>
+        /// Returns the equal-cost route candidates for the span starting at <paramref name="fromNodeIndex"/>, or
+        /// an empty array when the span is unambiguous.
+        /// </summary>
+        public ImmutableArray<ResolvedRouteCandidate> GetSpanCandidates(int fromNodeIndex)
+        {
+            foreach (ResolvedPathSpan span in GetAmbiguousSpans())
+            {
+                if (span.FromNodeIndex == fromNodeIndex)
+                    return span.Candidates;
+            }
+
+            return ImmutableArray<ResolvedRouteCandidate>.Empty;
+        }
+
+        /// <summary>
+        /// Whether the current path can be appended to interactively.
+        /// </summary>
+        public bool CanExtendPath => TrainPath != null && !EditMode && !IsMovingNode;
+
+        /// <summary>
+        /// Resumes interactive appending on the current path. When the path already ends with an end node, that
+        /// node is demoted to an intermediate node (as a single undoable step) so appending continues beyond it;
+        /// the user then clicks to add points and double-clicks to set the new end.
+        /// </summary>
+        public PathEditorCommandResult ExtendPathCommand()
+        {
+            PathModel currentModel = TryGetEditablePathModel();
+            if (currentModel == null)
+                return PathEditorCommandResult.Failed("No editable path is currently loaded.", null);
+
+            PathModel extendedModel = currentModel;
+            if (HasFlag(currentModel, PathNodeType.End))
+            {
+                PathEditResult removeEnd = PathModelEditor.RemoveEnd(currentModel);
+                if (!removeEnd.Success)
+                    return PathEditorCommandResult.FromPathEditResult(removeEnd);
+
+                extendedModel = removeEnd.PathModel;
+                PushUndoSnapshot(currentModel);
+                unsavedChanges = true;
+            }
+
+            path = extendedModel;
+            currentPathModel = extendedModel;
+            RestorePath(extendedModel, true);
+            OnPathUpdated?.Invoke(this, new PathEditorChangedEventArgs(TrainPath));
+            return PathEditorCommandResult.Succeeded("Click to append path points; double-click to set the new end.", extendedModel);
         }
 
         public bool CanMoveNode(int nodeIndex)
@@ -937,7 +1056,9 @@ namespace FreeTrainSimulator.Toolbox
         {
             try
             {
-                return TrainPath == null || path == null ? null : ConvertTrainPath(path);
+                // Interactive point add/remove captures the model directly instead of going through
+                // RestoreSnapshot, so refresh the validation state here as well.
+                return TrainPath == null || path == null ? null : RefreshValidationState(ConvertTrainPath(path));
             }
             catch (InvalidOperationException ex)
             {
@@ -1003,6 +1124,9 @@ namespace FreeTrainSimulator.Toolbox
         {
             ArgumentNullException.ThrowIfNull(snapshot);
 
+            // Every mutation funnels through here, so this is where the model's validation state is refreshed.
+            snapshot = RefreshValidationState(snapshot);
+
             // Preserve the current View/Edit mode across the rebuild: undoing/redoing or mutating must not
             // silently switch a path that was opened for viewing into edit mode.
             path = snapshot;
@@ -1011,6 +1135,30 @@ namespace FreeTrainSimulator.Toolbox
             ClearMoveNodeState();
             validPointAdded = false;
             editorDragged = false;
+        }
+
+        // Recomputes the model's persisted ValidationState. ValidationState travels with the model, so an edit
+        // that replaces PathNodes would otherwise keep the previously persisted value and leave the path list and
+        // details showing a stale valid/invalid marker until the path is saved or 'Validate All' is run.
+        internal static PathModel RefreshValidationState(PathModel pathModel, TrackWorld trackWorld)
+        {
+            if (pathModel == null)
+                return null;
+
+            return ApplyValidationState(pathModel, ResolveValidationState(pathModel, trackWorld));
+        }
+
+        // Instance variant reusing the editor's resolution cache, so the resolution computed here is the same one
+        // consumers get from ResolveCurrent.
+        private PathModel RefreshValidationState(PathModel pathModel)
+        {
+            PathRouteResolution resolution = ResolveCurrent(pathModel);
+            return resolution == null ? pathModel : ApplyValidationState(pathModel, ResolveValidationState(resolution));
+        }
+
+        private static PathModel ApplyValidationState(PathModel pathModel, PathValidationState validationState)
+        {
+            return validationState == pathModel.ValidationState ? pathModel : pathModel with { ValidationState = validationState };
         }
     }
 }

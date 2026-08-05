@@ -8,13 +8,20 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
         private string id;
         private string name;
         private PathValidationState validationState;
+        private bool hasUnsavedChanges;
         private bool visible = true;
 
         public TrainPathListItemViewModel(string id, string name, PathValidationState validationState)
+            : this(id, name, validationState, false)
+        {
+        }
+
+        public TrainPathListItemViewModel(string id, string name, PathValidationState validationState, bool hasUnsavedChanges)
         {
             this.id = id;
             this.name = name;
             this.validationState = validationState;
+            this.hasUnsavedChanges = hasUnsavedChanges;
         }
 
         public string Id
@@ -36,17 +43,25 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
             private set => SetProperty(ref validationState, value);
         }
 
+        /// <summary>Whether the path holds edits that have not been persisted yet.</summary>
+        public bool HasUnsavedChanges
+        {
+            get => hasUnsavedChanges;
+            private set => SetProperty(ref hasUnsavedChanges, value);
+        }
+
         public bool IsVisible
         {
             get => visible;
             set => SetProperty(ref visible, value);
         }
 
-        public void Update(string id, string name, PathValidationState validationState)
+        public void Update(string id, string name, PathValidationState validationState, bool hasUnsavedChanges)
         {
             Id = id;
             Name = name;
             ValidationState = validationState;
+            HasUnsavedChanges = hasUnsavedChanges;
         }
     }
 }
