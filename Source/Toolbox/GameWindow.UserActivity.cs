@@ -14,6 +14,8 @@ using FreeTrainSimulator.Common.Position;
 using FreeTrainSimulator.Graphics.MapView;
 using FreeTrainSimulator.Models.Content;
 using FreeTrainSimulator.Models.Shim;
+using FreeTrainSimulator.Runtime.Track;
+using FreeTrainSimulator.Toolbox.ToolWindows;
 
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -43,6 +45,9 @@ namespace FreeTrainSimulator.Toolbox
 
         // Pointer radius, in screen pixels, used to hit test path nodes on the map surface.
         private const int nodeHitTestRadiusPixels = 10;
+
+        // Wait time applied when marking a wait point from the map context menu.
+        private const int defaultWaitTimeSeconds = 60;
 
         /// <summary>
         /// Raised on the game thread when the user requests the map context menu. The WPF shell re-raises this
@@ -103,8 +108,13 @@ namespace FreeTrainSimulator.Toolbox
             if (!editor.TryGetPathNodeAt(location, tolerance, out int nodeIndex))
                 return;
 
+            TrainPathPointBase node = editor.TrainPath?.PathPoints[nodeIndex];
+            ImmutableArray<MapContextMenuAction> actions = MapContextMenuActionBuilder.Build(node, editor.CanMoveNode(nodeIndex), editor.IsMovingNode);
+            if (actions.IsDefaultOrEmpty)
+                return;
+
             MapContextMenuRequested?.Invoke(this, new MapContextMenuRequestedEventArgs(
-                pointerCommandArgs.Position.X, pointerCommandArgs.Position.Y, nodeIndex, editor.CanMoveNode(nodeIndex)));
+                pointerCommandArgs.Position.X, pointerCommandArgs.Position.Y, nodeIndex, actions));
         }
 
         // Left button press on the map surface: starts a new pointer interaction, which turns into a pan drag
@@ -154,18 +164,54 @@ namespace FreeTrainSimulator.Toolbox
         }
 
         /// <summary>
-        /// Starts moving the given path node; the pointer then drives the move preview until the move is
-        /// committed or cancelled. Called by the shell after the context menu selection.
+        /// Applies a node-related action selected from the map context menu. Routed through the train path tool
+        /// window rather than the path editor directly, so its node list, status message and dirty state stay in
+        /// sync with edits started on the map.
         /// </summary>
-        internal void BeginMoveNode(int nodeIndex)
+        internal void ExecuteMapContextMenuAction(MapContextMenuAction action, int nodeIndex)
         {
-            PathEditor editor = pathEditor;
-            if (editor == null)
+            TrainPathToolWindow toolWindow = hostedTrainPathToolWindow;
+            if (toolWindow == null)
                 return;
 
-            PathEditorCommandResult result = editor.BeginMoveNodeCommand(nodeIndex);
-            if (!result.Success)
-                Trace.TraceWarning(result.Message);
+            switch (action)
+            {
+                case MapContextMenuAction.MoveNode:
+                    toolWindow.BeginMoveNode(nodeIndex);
+                    break;
+                case MapContextMenuAction.CancelMoveNode:
+                    toolWindow.CancelMoveNode();
+                    break;
+                case MapContextMenuAction.AddViaPoint:
+                    toolWindow.AddViaPoint(nodeIndex);
+                    break;
+                case MapContextMenuAction.RemoveViaPoint:
+                    toolWindow.RemoveViaPoint(nodeIndex);
+                    break;
+                case MapContextMenuAction.SetWaitPoint:
+                    // The tool window owns the configurable wait time; the map menu applies a default which can
+                    // then be fine-tuned there.
+                    toolWindow.SetWaitPoint(nodeIndex, defaultWaitTimeSeconds);
+                    break;
+                case MapContextMenuAction.ClearWaitPoint:
+                    toolWindow.ClearWaitPoint(nodeIndex);
+                    break;
+                case MapContextMenuAction.SetReversalPoint:
+                    toolWindow.SetReversalPoint(nodeIndex);
+                    break;
+                case MapContextMenuAction.ClearReversalPoint:
+                    toolWindow.ClearReversalPoint(nodeIndex);
+                    break;
+                case MapContextMenuAction.RepairNode:
+                    toolWindow.RepairSelectedNode(nodeIndex);
+                    break;
+                case MapContextMenuAction.RemoveRestOfPath:
+                    toolWindow.RemoveRestOfPath(nodeIndex);
+                    break;
+                default:
+                    Trace.TraceWarning($"Unsupported map context menu action {action}.");
+                    break;
+            }
         }
 
         private void MoveByKeyLeft(UserCommandArgs commandArgs)

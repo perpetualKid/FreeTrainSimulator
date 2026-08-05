@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Immutable;
 
 namespace FreeTrainSimulator.Toolbox
 {
@@ -17,18 +18,18 @@ namespace FreeTrainSimulator.Toolbox
         /// <summary>Authored path node index under the pointer, or -1 when no node was hit.</summary>
         public int NodeIndex { get; }
 
-        /// <summary>Indicates whether the node under the pointer can be moved.</summary>
-        public bool CanMoveNode { get; }
+        /// <summary>Actions available for the node under the pointer, in display order.</summary>
+        public ImmutableArray<MapContextMenuAction> Actions { get; }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="MapContextMenuRequestedEventArgs"/> class.
         /// </summary>
-        public MapContextMenuRequestedEventArgs(int x, int y, int nodeIndex, bool canMoveNode)
+        public MapContextMenuRequestedEventArgs(int x, int y, int nodeIndex, ImmutableArray<MapContextMenuAction> actions)
         {
             X = x;
             Y = y;
             NodeIndex = nodeIndex;
-            CanMoveNode = canMoveNode;
+            Actions = actions;
         }
     }
 }

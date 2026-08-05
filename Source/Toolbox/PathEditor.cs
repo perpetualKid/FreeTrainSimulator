@@ -247,7 +247,12 @@ namespace FreeTrainSimulator.Toolbox
         /// Truncates the path after the node at <paramref name="nodeIndex"/>, marking it as the new end, and
         /// records an undo snapshot. Returns the operation result.
         /// </summary>
-        public PathEditResult RemoveRestOfPath(int nodeIndex) => ApplyUndoableEdit(model => PathModelEditor.RemoveRestOfPath(model, nodeIndex));
+        public PathEditResult RemoveRestOfPath(int nodeIndex) => ApplySelectedNodeEdit(nodeIndex, model => PathModelEditor.RemoveRestOfPath(model, nodeIndex));
+
+        public PathEditorCommandResult RemoveRestOfPathCommand(int nodeIndex)
+        {
+            return PathEditorCommandResult.FromPathEditResult(RemoveRestOfPath(nodeIndex));
+        }
 
         /// <summary>
         /// Resolves the current authored path and rebuilds it along the resolved track anchors, weaving any
@@ -500,6 +505,12 @@ namespace FreeTrainSimulator.Toolbox
         // editor is not yet in edit mode: the current path is promoted to an editable model first, so selecting a
         // node and acting on it does not require a separate 'start editing' step. Keeps the node selected so the
         // user can chain edits on the same node.
+        //
+        // NOTE: promoting the model must NOT switch the editor into EditMode. EditMode means "interactively
+        // appending points to the path tail": it seeds an active path point which the next pointer move turns
+        // into a rubber-band segment growing from the last node. That is correct while drawing a path, but after
+        // a single-node edit (repair, wait, reversal, via removal) it leaves the path dangling from its end node
+        // towards the cursor, which is not what the user asked for.
         private PathEditResult ApplySelectedNodeEdit(int nodeIndex, Func<PathModel, PathEditResult> edit)
         {
             PathModel currentModel = TryGetEditablePathModel();
@@ -515,7 +526,6 @@ namespace FreeTrainSimulator.Toolbox
             {
                 path = currentModel;
                 currentPathModel = currentModel;
-                RestorePath(currentModel, true);
             }
 
             PushUndoSnapshot(currentModel);

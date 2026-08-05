@@ -388,7 +388,11 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
 
         internal void RepairSelectedNode(int nodeIndex) => ExecuteEditorCommand(pathEditor => pathEditor.RepairSelectedNodeCommand(nodeIndex));
 
-        internal void SetWaitPoint(int nodeIndex, int waitTimeSeconds) => ExecuteEditorCommand(pathEditor => pathEditor.SetWaitPointCommand(nodeIndex, waitTimeSeconds));        internal void ClearWaitPoint(int nodeIndex) => ExecuteEditorCommand(pathEditor => pathEditor.ClearWaitPointCommand(nodeIndex));
+        internal void SetWaitPoint(int nodeIndex, int waitTimeSeconds) => ExecuteEditorCommand(pathEditor => pathEditor.SetWaitPointCommand(nodeIndex, waitTimeSeconds));
+
+        internal void ClearWaitPoint(int nodeIndex) => ExecuteEditorCommand(pathEditor => pathEditor.ClearWaitPointCommand(nodeIndex));
+
+        internal void RemoveRestOfPath(int nodeIndex) => ExecuteEditorCommand(pathEditor => pathEditor.RemoveRestOfPathCommand(nodeIndex));
 
         internal void SetReversalPoint(int nodeIndex) => ExecuteEditorCommand(pathEditor => pathEditor.SetReversalPointCommand(nodeIndex));
 

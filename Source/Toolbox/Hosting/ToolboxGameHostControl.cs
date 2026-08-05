@@ -339,13 +339,12 @@ namespace FreeTrainSimulator.Toolbox.Hosting
         }
 
         /// <summary>
-        /// Starts moving the given path node on the hosted game thread. Called by the shell after the map
-        /// context menu selection; the pointer then drives the move preview until commit or cancel.
+        /// Applies a node-related action selected from the map context menu on the hosted game thread.
         /// </summary>
-        internal void BeginMoveNode(int nodeIndex)
+        internal void ExecuteMapContextMenuAction(MapContextMenuAction action, int nodeIndex)
         {
             GameWindow game = gameWindow;
-            game?.InvokeOnGameThread(() => game.BeginMoveNode(nodeIndex));
+            game?.InvokeOnGameThread(() => game.ExecuteMapContextMenuAction(action, nodeIndex));
         }
 
         private void UpdateHostWindowTitle(string title)
