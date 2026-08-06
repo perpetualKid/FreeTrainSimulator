@@ -376,3 +376,4 @@ healthchecksdb
 MigrationBackup/
 /Source/ORActivityEdit
 /Docs
+/Source/.github
