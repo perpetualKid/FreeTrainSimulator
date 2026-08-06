@@ -16,8 +16,6 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
     /// </summary>
     internal sealed class TrainPathToolWindowViewModel : PollingToolWindowViewModel
     {
-        private const int DefaultWaitTimeSeconds = 60;
-
         private readonly TrainPathToolWindow toolWindow;
         private string searchText = string.Empty;
         private string statusMessage = string.Empty;
@@ -33,8 +31,9 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
         private bool canSavePath;
         private bool canCancelMoveNode;
         private bool canCommitMoveNode;
-        private int waitTimeSeconds = DefaultWaitTimeSeconds;
+        private int? selectedNodeWaitTime;
         private bool suppressSelectionCommand;
+        private bool suppressWaitTimeCommand;
 
         public TrainPathToolWindowViewModel(TrainPathToolWindow toolWindow, ToolWindowRefreshScheduler scheduler)
             : base(scheduler, ToolWindowRefreshScheduler.BaseInterval)
@@ -49,7 +48,6 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
             CommitMoveNodeCommand = new RelayCommand(_ => CommitMoveNode(), _ => CanCommitMoveNode);
             CancelMoveNodeCommand = new RelayCommand(_ => CancelMoveNode(), _ => CanCancelMoveNode);
             RepairSelectedNodeCommand = new RelayCommand(_ => RepairSelectedNode(), _ => CanRepairSelectedNode);
-            ToggleWaitPointCommand = new RelayCommand(_ => ToggleWaitPoint(), _ => CanAnnotateSelectedNode);
             ToggleReversalPointCommand = new RelayCommand(_ => ToggleReversalPoint(), _ => CanAnnotateSelectedNode);
             AddViaPointCommand = new RelayCommand(_ => AddViaPoint(), _ => CanAnnotateSelectedNode);
             RemoveViaPointCommand = new RelayCommand(_ => RemoveViaPoint(), _ => CanAnnotateSelectedNode);
@@ -57,6 +55,35 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
             SavePathCommand = new RelayCommand(_ => toolWindow.SavePath(), _ => CanSavePath);
             ValidateAllPathsCommand = new RelayCommand(_ => ValidateAllPaths());
             AcceptRouteCandidateCommand = new RelayCommand(_ => AcceptRouteCandidate(), _ => CanAcceptRouteCandidate);
+        }
+
+        /// <summary>
+        /// Wait time of the selected node. Entering a positive value creates or updates a wait point; clearing
+        /// the value or entering zero removes an existing wait point.
+        /// </summary>
+        public int? SelectedNodeWaitTime
+        {
+            get => selectedNodeWaitTime;
+            set
+            {
+                if (!SetProperty(ref selectedNodeWaitTime, value))
+                    return;
+
+                if (suppressWaitTimeCommand || SelectedNode == null)
+                    return;
+
+                int nodeIndex = SelectedNode.Index;
+                if (value is int waitTime && waitTime > 0)
+                {
+                    toolWindow.SetWaitPoint(nodeIndex, waitTime);
+                    SetStatusMessage($"Wait point on node {nodeIndex} set to {waitTime}s.", false);
+                }
+                else if (SelectedNode.HasWaitPoint)
+                {
+                    toolWindow.ClearWaitPoint(nodeIndex);
+                    SetStatusMessage($"Wait point on node {nodeIndex} cleared.", false);
+                }
+            }
         }
 
         public string Title => toolWindow.Title;
@@ -86,20 +113,11 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
 
         public RelayCommand RepairSelectedNodeCommand { get; }
 
-        public RelayCommand ToggleWaitPointCommand { get; }
-
         public RelayCommand ToggleReversalPointCommand { get; }
 
         public RelayCommand AddViaPointCommand { get; }
 
         public RelayCommand RemoveViaPointCommand { get; }
-
-        /// <summary>Wait time in seconds applied when marking the selected node as a wait point.</summary>
-        public int WaitTimeSeconds
-        {
-            get => waitTimeSeconds;
-            set => SetProperty(ref waitTimeSeconds, value);
-        }
 
         public RelayCommand NewPathCommand { get; }
 
@@ -267,10 +285,10 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
                     return;
 
                 toolWindow.HighlightNode(value?.Index ?? -1);
+                SyncWaitTimeFromSelectedNode();
                 UpdateSelectedNodeDetailRows();
                 MoveSelectedNodeCommand.RaiseCanExecuteChanged();
                 RepairSelectedNodeCommand.RaiseCanExecuteChanged();
-                ToggleWaitPointCommand.RaiseCanExecuteChanged();
                 ToggleReversalPointCommand.RaiseCanExecuteChanged();
                 AddViaPointCommand.RaiseCanExecuteChanged();
                 RemoveViaPointCommand.RaiseCanExecuteChanged();
@@ -286,7 +304,7 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
             TrainPathSnapshot snapshot = toolWindow.CaptureTrainPathSnapshot();
 
             SyncPaths(snapshot.Paths);
-            SyncNodes(snapshot.Nodes);
+            SyncNodes(snapshot.Nodes, snapshot.SelectedNodeIndex);
             UpdateSelectedNodeDetailRows();
             DebugToolWindowRowViewModel.Sync(Metadata, snapshot.Metadata);
             SyncRouteCandidates(snapshot.RouteCandidates);
@@ -337,29 +355,6 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
 
             toolWindow.RepairSelectedNode(SelectedNode.Index);
             SetStatusMessage($"Repair selected node {SelectedNode.Index} requested.", false);
-        }
-
-        private void ToggleWaitPoint()
-        {
-            if (SelectedNode == null)
-                return;
-
-            int nodeIndex = SelectedNode.Index;
-            if (SelectedNode.HasWaitPoint)
-            {
-                toolWindow.ClearWaitPoint(nodeIndex);
-                SetStatusMessage($"Clear wait point on node {nodeIndex} requested.", false);
-                return;
-            }
-
-            if (WaitTimeSeconds <= 0)
-            {
-                SetStatusMessage("Enter a positive wait time before marking a wait point.", true);
-                return;
-            }
-
-            toolWindow.SetWaitPoint(nodeIndex, WaitTimeSeconds);
-            SetStatusMessage($"Wait point of {WaitTimeSeconds}s on node {nodeIndex} requested.", false);
         }
 
         private void ToggleReversalPoint()
@@ -493,9 +488,9 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
                 RestorePathSelection(selectedId);
         }
 
-        private void SyncNodes(ImmutableArray<TrainPathNodeRow> rows)
+        private void SyncNodes(ImmutableArray<TrainPathNodeRow> rows, int selectedIndex)
         {
-            int selectedIndex = SelectedNode?.Index ?? -1;
+            int? previousSelectedWaitTime = SelectedNode?.WaitTime;
 
             for (int i = 0; i < rows.Length; i++)
             {
@@ -509,8 +504,17 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
             for (int i = Nodes.Count - 1; i >= rows.Length; i--)
                 Nodes.RemoveAt(i);
 
-            if (selectedIndex >= 0 && (SelectedNode == null || SelectedNode.Index != selectedIndex))
-                RestoreNodeSelection(selectedIndex);
+            if (selectedIndex >= 0)
+            {
+                if (SelectedNode == null || SelectedNode.Index != selectedIndex)
+                    RestoreNodeSelection(selectedIndex);
+                else if (SelectedNode.WaitTime != previousSelectedWaitTime)
+                    SyncWaitTimeFromSelectedNode();
+            }
+            else if (SelectedNode != null)
+            {
+                RestoreNodeSelection(-1);
+            }
         }
 
         private void ApplyPathFilter()
@@ -553,11 +557,25 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
             try
             {
                 SelectedNode = Nodes.FirstOrDefault(n => n.Index == index);
+                SyncWaitTimeFromSelectedNode();
                 UpdateSelectedNodeDetailRows();
             }
             finally
             {
                 suppressSelectionCommand = false;
+            }
+        }
+
+        private void SyncWaitTimeFromSelectedNode()
+        {
+            suppressWaitTimeCommand = true;
+            try
+            {
+                SelectedNodeWaitTime = SelectedNode?.WaitTime;
+            }
+            finally
+            {
+                suppressWaitTimeCommand = false;
             }
         }
 

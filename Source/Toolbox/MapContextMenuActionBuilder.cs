@@ -55,8 +55,10 @@ namespace FreeTrainSimulator.Toolbox
             if (canMoveNode)
                 items.Add(new MapContextMenuItem(MapContextMenuAction.MoveNode, nodeIndex));
 
-            items.Add(new MapContextMenuItem(
-                node.WaitInfo != null ? MapContextMenuAction.ClearWaitPoint : MapContextMenuAction.SetWaitPoint, nodeIndex));
+            // Creating or editing a wait point is done by editing the Wait property. Keep the one-click clear
+            // action here because removal remains useful directly on the map.
+            if (node.WaitInfo != null)
+                items.Add(new MapContextMenuItem(MapContextMenuAction.ClearWaitPoint, nodeIndex));
             items.Add(new MapContextMenuItem(
                 node.NodeType.Includes(PathNodeType.Reversal) ? MapContextMenuAction.ClearReversalPoint : MapContextMenuAction.SetReversalPoint, nodeIndex));
 

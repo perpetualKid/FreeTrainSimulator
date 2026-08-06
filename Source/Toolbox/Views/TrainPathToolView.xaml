@@ -29,6 +29,64 @@
                 </TextBlock.Style>
             </TextBlock>
         </DataTemplate>
+        <!-- The Wait row is the single editor for the wait time used by the map context menu. Other node
+             properties remain read-only diagnostic values. -->
+        <DataTemplate x:Key="TrainPathNodeDetailValueCellTemplate">
+            <Border BorderBrush="Gainsboro"
+                    BorderThickness="1,0,0,0"
+                    Margin="-6,0,0,0">
+                <!-- An empty TextBox otherwise measures to nearly zero width inside a GridView cell, making a
+                     normal node's blank Wait value impossible to click. The minimum width gives the value cell
+                     a stable property-grid editing surface even before it contains text. -->
+                <Grid MinWidth="200">
+                    <TextBlock Text="{Binding Value}"
+                               Padding="4,0,0,0"
+                               VerticalAlignment="Center"
+                               TextWrapping="Wrap">
+                        <TextBlock.Style>
+                            <Style TargetType="TextBlock">
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding Name}" Value="Wait">
+                                        <Setter Property="Visibility" Value="Collapsed" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </TextBlock.Style>
+                    </TextBlock>
+                    <TextBox MinWidth="200"
+                             HorizontalAlignment="Stretch"
+                             VerticalAlignment="Stretch"
+                             VerticalContentAlignment="Center"
+                             Padding="4,0"
+                             MaxLength="10"
+                             PreviewTextInput="WaitTimeTextBox_PreviewTextInput"
+                             DataObject.Pasting="WaitTimeTextBox_Pasting"
+                             Text="{Binding DataContext.SelectedNodeWaitTime, RelativeSource={RelativeSource AncestorType=UserControl}, Mode=TwoWay, UpdateSourceTrigger=LostFocus}"
+                             ToolTip="Wait time in seconds. Enter a positive value to create or update a wait point; clear the value or enter zero to remove it.">
+                        <TextBox.Style>
+                            <Style TargetType="TextBox">
+                                <Setter Property="Visibility" Value="Collapsed" />
+                                <Setter Property="Background" Value="Transparent" />
+                                <Setter Property="BorderBrush" Value="Transparent" />
+                                <Setter Property="BorderThickness" Value="0" />
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding Name}" Value="Wait">
+                                        <Setter Property="Visibility" Value="Visible" />
+                                    </DataTrigger>
+                                    <Trigger Property="IsKeyboardFocused" Value="True">
+                                        <Setter Property="Background" Value="White" />
+                                        <Setter Property="BorderBrush" Value="#FF007ACC" />
+                                    <Setter Property="BorderThickness" Value="1" />
+                                    <!-- Compensate for the focus border so the text does not move when editing. -->
+                                    <Setter Property="Padding" Value="3,0" />
+                                    </Trigger>
+                                </Style.Triggers>
+                            </Style>
+                        </TextBox.Style>
+                    </TextBox>
+                </Grid>
+            </Border>
+        </DataTemplate>
         <DataTemplate x:Key="TrainPathMetadataValueCellTemplate">
             <Border BorderBrush="Gainsboro"
                     BorderThickness="1,0,0,0"
@@ -229,55 +287,6 @@
                             Command="{Binding RedoCommand}" />
                     <Button Margin="0,0,6,4"
                             Padding="8,2"
-                            Content="Move Node"
-                            Command="{Binding MoveSelectedNodeCommand}"
-                            ToolTip="Move the selected node to the next valid map location you click" />
-                    <Button Margin="0,0,6,4"
-                            Padding="8,2"
-                            Content="Cancel Move"
-                            Command="{Binding CancelMoveNodeCommand}"
-                            ToolTip="Cancel the active node move operation" />
-                    <Button Margin="0,0,6,4"
-                            Padding="8,2"
-                            Content="Commit Move"
-                            Command="{Binding CommitMoveNodeCommand}"
-                            ToolTip="Commit the selected node to the current preview location" />
-                    <Button Margin="0,0,6,4"
-                            Padding="8,2"
-                            Content="Repair Node"
-                            Command="{Binding RepairSelectedNodeCommand}"
-                            ToolTip="Safely repair the selected node when the fix is unambiguous, such as converting a non-junction junction marker into a track point" />
-                    <Button Margin="0,0,6,4"
-                            Padding="8,2"
-                            Content="Add Via Point"
-                            Command="{Binding AddViaPointCommand}"
-                            ToolTip="Insert a via point after the selected node and place it on the next valid map location you click" />
-                    <Button Margin="0,0,6,4"
-                            Padding="8,2"
-                            Content="Remove Via Point"
-                            Command="{Binding RemoveViaPointCommand}"
-                            ToolTip="Remove the selected via point and relink the path around it" />
-                    <Button Margin="0,0,6,4"
-                            Padding="8,2"
-                            Content="Toggle Wait"
-                            Command="{Binding ToggleWaitPointCommand}"
-                            ToolTip="Mark or clear the selected node as a wait point using the wait time below" />
-                    <TextBox Margin="0,0,2,4"
-                             Padding="4,2"
-                             Width="60"
-                             VerticalContentAlignment="Center"
-                             Text="{Binding WaitTimeSeconds, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                             ToolTip="Wait time in seconds applied when marking a wait point" />
-                    <TextBlock Margin="0,0,6,4"
-                               VerticalAlignment="Center"
-                               Text="s" />
-                    <Button Margin="0,0,6,4"
-                            Padding="8,2"
-                            Content="Toggle Reversal"
-                            Command="{Binding ToggleReversalPointCommand}"
-                            ToolTip="Mark or clear the selected node as a reversal point" />
-                    <Button Margin="0,0,6,4"
-                            Padding="8,2"
                             Content="Re-resolve Path"
                             Command="{Binding SnapToTrackCommand}"
                             ToolTip="Rebuild the whole path from its authored nodes using the path resolver. This may insert generated nodes and update links." />
@@ -324,7 +333,7 @@
                         <ListView.View>
                             <GridView>
                                 <GridViewColumn Header="Name" Width="250" CellTemplate="{StaticResource ToolWindowNameCellTemplate}" />
-                                <GridViewColumn Header="Value" Width="250" CellTemplate="{StaticResource ToolWindowValueCellTemplate}" />
+                                <GridViewColumn Header="Value" Width="250" CellTemplate="{StaticResource TrainPathNodeDetailValueCellTemplate}" />
                             </GridView>
                         </ListView.View>
                     </ListView>

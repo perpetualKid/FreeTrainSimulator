@@ -46,9 +46,6 @@ namespace FreeTrainSimulator.Toolbox
         // Pointer radius, in screen pixels, used to hit test path nodes on the map surface.
         private const int nodeHitTestRadiusPixels = 10;
 
-        // Wait time applied when marking a wait point from the map context menu.
-        private const int defaultWaitTimeSeconds = 60;
-
         /// <summary>
         /// Raised on the game thread when the user requests the map context menu. The WPF shell re-raises this
         /// on its dispatcher and shows the menu.
@@ -210,11 +207,6 @@ namespace FreeTrainSimulator.Toolbox
                     break;
                 case MapContextMenuAction.RemoveViaPoint:
                     toolWindow.RemoveViaPoint(nodeIndex);
-                    break;
-                case MapContextMenuAction.SetWaitPoint:
-                    // The tool window owns the configurable wait time; the map menu applies a default which can
-                    // then be fine-tuned there.
-                    toolWindow.SetWaitPoint(nodeIndex, defaultWaitTimeSeconds);
                     break;
                 case MapContextMenuAction.ClearWaitPoint:
                     toolWindow.ClearWaitPoint(nodeIndex);

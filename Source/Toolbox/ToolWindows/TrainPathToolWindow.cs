@@ -141,6 +141,9 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
         /// <summary>Node rows of the currently edited path.</summary>
         public ImmutableArray<TrainPathNodeRow> Nodes { get; init; }
 
+        /// <summary>Index of the path node selected on the map, or -1 when none is selected.</summary>
+        public int SelectedNodeIndex { get; init; } = -1;
+
         /// <summary>Name/value metadata rows for the currently edited path.</summary>
         public ImmutableArray<ToolWindowRow> Metadata { get; init; }
 
@@ -168,6 +171,7 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
             Paths = ImmutableArray<TrainPathListRow>.Empty,
             SelectedPathId = null,
             Nodes = ImmutableArray<TrainPathNodeRow>.Empty,
+            SelectedNodeIndex = -1,
             Metadata = ImmutableArray<ToolWindowRow>.Empty,
             RouteCandidates = ImmutableArray<TrainPathRouteCandidateRow>.Empty,
             CanUndo = false,
@@ -287,6 +291,7 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
             ImmutableArray<TrainPathListRow> paths = BuildPaths(currentPathModel);
             string selectedPathId = currentPath?.PathModel?.Id;
             int nodeCount = currentPath?.PathPoints.Count ?? 0;
+            int selectedNodeIndex = pathEditor.SelectedPathNodeIndex;
             bool canUndo = pathEditor.CanUndo;
             bool canRedo = pathEditor.CanRedo;
             bool canSnapToTrack = pathEditor.CanSnapToTrack;
@@ -300,6 +305,7 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
             if (snapshot != TrainPathSnapshot.Empty
                 && string.Equals(selectedPathId, lastPathId, StringComparison.Ordinal)
                 && nodeCount == lastNodeCount
+                && selectedNodeIndex == snapshot.SelectedNodeIndex
                 && currentSnapshotVersion == lastSnapshotVersion
                 && canUndo == snapshot.CanUndo
                 && canRedo == snapshot.CanRedo
@@ -320,6 +326,7 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
                 Paths = paths,
                 SelectedPathId = selectedPathId,
                 Nodes = BuildNodes(currentPath),
+                SelectedNodeIndex = selectedNodeIndex,
                 Metadata = BuildMetadata(pathEditor, currentPath),
                 RouteCandidates = BuildRouteCandidates(pathEditor),
                 CanUndo = canUndo,

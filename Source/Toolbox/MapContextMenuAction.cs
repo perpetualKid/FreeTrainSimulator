@@ -12,7 +12,6 @@ namespace FreeTrainSimulator.Toolbox
         MoveNode,
         CancelMoveNode,
         RemoveViaPoint,
-        SetWaitPoint,
         ClearWaitPoint,
         SetReversalPoint,
         ClearReversalPoint,

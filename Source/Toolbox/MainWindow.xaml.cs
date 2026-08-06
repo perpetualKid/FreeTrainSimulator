@@ -374,7 +374,6 @@ namespace FreeTrainSimulator.Toolbox
                 MapContextMenuAction.CancelMoveNode => CatalogManager.Catalog.GetString("Cancel Move"),
                 MapContextMenuAction.AddViaPoint => CatalogManager.Catalog.GetString("Add Via Point Here"),
                 MapContextMenuAction.RemoveViaPoint => CatalogManager.Catalog.GetString("Remove Via Point"),
-                MapContextMenuAction.SetWaitPoint => CatalogManager.Catalog.GetString("Set Wait Point"),
                 MapContextMenuAction.ClearWaitPoint => CatalogManager.Catalog.GetString("Clear Wait Point"),
                 MapContextMenuAction.SetReversalPoint => CatalogManager.Catalog.GetString("Set Reversal Point"),
                 MapContextMenuAction.ClearReversalPoint => CatalogManager.Catalog.GetString("Clear Reversal Point"),

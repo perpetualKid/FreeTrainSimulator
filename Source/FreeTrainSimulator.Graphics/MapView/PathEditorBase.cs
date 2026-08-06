@@ -40,6 +40,9 @@ namespace FreeTrainSimulator.Graphics.MapView
             protected set => trainPath = value as EditorTrainPath;
         }
 
+        /// <summary>Index of the path node selected on the map, or -1 when no node is selected.</summary>
+        public int SelectedPathNodeIndex => trainPath?.SelectedNodeIndex ?? -1;
+
         public bool EditMode { get; private set; }
 
         protected PathEditorBase(IPathEditorContext editorContext)

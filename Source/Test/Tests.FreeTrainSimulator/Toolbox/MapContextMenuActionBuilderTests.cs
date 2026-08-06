@@ -82,7 +82,6 @@ namespace Tests.FreeTrainSimulator.Toolbox
             ImmutableArray<MapContextMenuItem> items = BuildForNode(node, 1, true, default);
 
             Assert.Contains(MapContextMenuAction.ClearWaitPoint, Actions(items));
-            Assert.DoesNotContain(MapContextMenuAction.SetWaitPoint, Actions(items));
         }
 
         [TestMethod]
