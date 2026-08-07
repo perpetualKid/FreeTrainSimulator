@@ -1,8 +1,10 @@
 using System.Collections.Immutable;
 using System;
+using System.Reflection;
 
 using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Position;
+using FreeTrainSimulator.Graphics.MapView;
 using FreeTrainSimulator.Models.Content;
 using FreeTrainSimulator.Runtime.Track;
 using FreeTrainSimulator.Toolbox;
@@ -107,6 +109,52 @@ namespace Tests.FreeTrainSimulator.Toolbox
             TestTrainPath trainPath = new TestTrainPath(partialPath);
 
             Assert.IsNotNull(trainPath);
+        }
+
+        [TestMethod]
+        public void WhenAnchoredViaPlacementBeginsThenInsertedNodeUsesProvidedAnchor()
+        {
+            PathModel source = CreateEditablePath();
+            PathEditor editor = CreateEditor(source);
+            PathNode anchor = CreateNodeAt(50, PathNodeType.Intermediate, -1);
+
+            PathEditResult result = editor.BeginViaPointPlacementAt(0, anchor);
+
+            Assert.IsTrue(result.Success);
+            Assert.AreEqual(anchor.Location, editor.TryCaptureCurrentPathModel().PathNodes[1].Location);
+        }
+
+        [TestMethod]
+        public void WhenPendingViaPlacementIsCanceledThenHistoryAndSourcePathAreRestored()
+        {
+            PathModel source = CreateEditablePath();
+            PathEditor editor = CreateEditor(source);
+            _ = editor.BeginViaPointPlacementAt(0, CreateNodeAt(50, PathNodeType.Intermediate, -1));
+
+            bool canceled = editor.CancelMoveNode();
+
+            Assert.IsTrue(canceled);
+            Assert.AreEqual(source.PathNodes, editor.TryCaptureCurrentPathModel().PathNodes);
+            Assert.IsFalse(editor.CanUndo);
+            Assert.IsFalse(editor.CanRedo);
+        }
+
+        [TestMethod]
+        public void WhenPendingViaPlacementIsCommittedThenSingleUndoRestoresSourcePath()
+        {
+            PathModel source = CreateEditablePath();
+            PathEditor editor = CreateEditor(source);
+            _ = editor.BeginViaPointPlacementAt(0, CreateNodeAt(50, PathNodeType.Intermediate, -1));
+            PathModel insertedModel = editor.TryCaptureCurrentPathModel();
+            SetPrivateField(editor, "movePreviewModel", insertedModel);
+
+            PathEditResult committed = editor.CommitMoveNode();
+            bool undone = editor.Undo();
+
+            Assert.IsTrue(committed.Success);
+            Assert.IsTrue(undone);
+            Assert.AreEqual(source.PathNodes, editor.TryCaptureCurrentPathModel().PathNodes);
+            Assert.IsFalse(editor.CanUndo);
         }
 
         [TestMethod]
@@ -331,51 +379,61 @@ namespace Tests.FreeTrainSimulator.Toolbox
             Assert.AreEqual(-1, nodeIndex);
         }
 
-        [TestMethod]
-        public void WhenLocationIsBesideASpanThenTryGetPathSpanAtReturnsPrecedingNode()
+        private static PathEditor CreateEditor(PathModel pathModel)
         {
-            TestTrainPathPoint[] pathPoints = new TestTrainPathPoint[]
-            {
-                new TestTrainPathPoint(new PointD(0, 0)),
-                new TestTrainPathPoint(new PointD(100, 0)),
-                new TestTrainPathPoint(new PointD(200, 0)),
-            };
-
-            bool found = PathEditor.TryGetPathSpanAt(pathPoints, new PointD(150, 4), 10, out int fromNodeIndex);
-
-            Assert.IsTrue(found);
-            Assert.AreEqual(1, fromNodeIndex);
+            TrackWorld trackWorld = TrackWorldTestFixture.CreateSingleVectorNodeTrackWorld();
+            PathEditor editor = new PathEditor(new TestPathEditorContext(trackWorld));
+            editor.InitializeNewPath();
+            typeof(PathEditor).GetMethod("RestoreSnapshot", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(editor, new object[] { pathModel });
+            return editor;
         }
 
-        [TestMethod]
-        public void WhenLocationIsBeyondSpanEndThenTryGetPathSpanAtReturnsFalse()
+        private static PathModel CreateEditablePath()
         {
-            // The projection onto the segment must be clamped, so a point far past the last node is not
-            // reported as being on the span.
-            TestTrainPathPoint[] pathPoints = new TestTrainPathPoint[]
+            return new PathModel()
             {
-                new TestTrainPathPoint(new PointD(0, 0)),
-                new TestTrainPathPoint(new PointD(100, 0)),
+                Id = "editable-path",
+                Name = "Editable Path",
+                PathNodes = ImmutableArray.Create(
+                    CreateNodeAt(0, PathNodeType.Start, 1),
+                    CreateNodeAt(100, PathNodeType.End, -1)),
             };
-
-            bool found = PathEditor.TryGetPathSpanAt(pathPoints, new PointD(400, 0), 10, out int fromNodeIndex);
-
-            Assert.IsFalse(found);
-            Assert.AreEqual(-1, fromNodeIndex);
         }
 
-        [TestMethod]
-        public void WhenPathHasSinglePointThenTryGetPathSpanAtReturnsFalse()
+        private static PathNode CreateNodeAt(float x, PathNodeType nodeType, int nextMainNode)
         {
-            TestTrainPathPoint[] pathPoints = new TestTrainPathPoint[]
+            return new PathNode(new WorldLocation(new Tile(0, 0), new Vector3(x, 0, 0)))
             {
-                new TestTrainPathPoint(new PointD(0, 0)),
+                NodeType = nodeType,
+                NodeIndex = 1,
+                NextMainNode = nextMainNode,
+                NextSidingNode = -1,
             };
+        }
 
-            bool found = PathEditor.TryGetPathSpanAt(pathPoints, new PointD(0, 0), 10, out int fromNodeIndex);
+        private static void SetPrivateField(PathEditor editor, string fieldName, object value)
+        {
+            typeof(PathEditor).GetField(fieldName, BindingFlags.Instance | BindingFlags.NonPublic).SetValue(editor, value);
+        }
 
-            Assert.IsFalse(found);
-            Assert.AreEqual(-1, fromNodeIndex);
+        private sealed class TestPathEditorContext : IPathEditorContext, IPathEditorContextServicesAccessor
+        {
+            private readonly IPathEditorServices services;
+
+            public IMapRenderer Renderer => null;
+
+            public IMapViewport Viewport => null;
+
+            public ToolboxContentMode ContentMode { get; set; }
+
+            public PathEditorBase PathEditor { get; set; }
+
+            IPathEditorServices IPathEditorContextServicesAccessor.Services => services;
+
+            public TestPathEditorContext(TrackWorld trackWorld)
+            {
+                services = new PathEditorServices(trackWorld);
+            }
         }
 
         private sealed record TestTrainPath : TrainPathBase

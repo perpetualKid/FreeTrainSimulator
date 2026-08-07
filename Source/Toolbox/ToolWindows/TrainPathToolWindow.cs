@@ -421,7 +421,11 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
 
         internal void ClearReversalPoint(int nodeIndex) => ExecuteEditorCommand(pathEditor => pathEditor.ClearReversalPointCommand(nodeIndex));
 
-        internal void AddViaPoint(int afterNodeIndex) => ExecuteEditorCommand(pathEditor => pathEditor.BeginAddViaPointCommand(afterNodeIndex), activateMapInputAction);
+        internal void BeginViaPointPlacement(int afterNodeIndex)
+            => ExecuteEditorCommand(pathEditor => pathEditor.BeginViaPointPlacementCommand(afterNodeIndex), activateMapInputAction);
+
+        internal void BeginViaPointPlacementAt(int afterNodeIndex, PathNode anchor)
+            => ExecuteEditorCommand(pathEditor => pathEditor.BeginViaPointPlacementAtCommand(afterNodeIndex, anchor), activateMapInputAction);
 
         internal void RemoveViaPoint(int nodeIndex) => ExecuteEditorCommand(pathEditor => pathEditor.RemoveViaPointCommand(nodeIndex));
 

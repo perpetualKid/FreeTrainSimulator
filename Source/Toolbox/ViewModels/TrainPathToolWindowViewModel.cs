@@ -379,7 +379,7 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
             if (SelectedNode == null)
                 return;
 
-            toolWindow.AddViaPoint(SelectedNode.Index);
+            toolWindow.BeginViaPointPlacement(SelectedNode.Index);
             SetStatusMessage($"Select a track location for the new via point after node {SelectedNode.Index}.", false);
         }
 

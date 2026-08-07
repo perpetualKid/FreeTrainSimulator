@@ -157,11 +157,13 @@ namespace Tests.FreeTrainSimulator.Toolbox
         [TestMethod]
         public void WhenSpanIsUnambiguousThenOnlySpanEditsAreOffered()
         {
-            ImmutableArray<MapContextMenuItem> items = BuildForSpan(2, ImmutableArray<ResolvedRouteCandidate>.Empty, default);
+            PathNode placementAnchor = PlacementAnchor();
+            ImmutableArray<MapContextMenuItem> items = BuildForSpan(2, placementAnchor, ImmutableArray<ResolvedRouteCandidate>.Empty, default);
 
             Assert.Contains(MapContextMenuAction.AddViaPoint, Actions(items));
             Assert.Contains(MapContextMenuAction.RemoveRestOfPath, Actions(items));
             Assert.DoesNotContain(MapContextMenuAction.SelectRouteCandidate, Actions(items));
+            Assert.AreSame(placementAnchor, items.Single(item => item.Action == MapContextMenuAction.AddViaPoint).PlacementAnchor);
         }
 
         [TestMethod]
@@ -171,7 +173,7 @@ namespace Tests.FreeTrainSimulator.Toolbox
                 Candidate(1, 2),
                 Candidate(1, 3));
 
-            ImmutableArray<MapContextMenuItem> items = BuildForSpan(1, candidates, default);
+            ImmutableArray<MapContextMenuItem> items = BuildForSpan(1, PlacementAnchor(), candidates, default);
 
             MapContextMenuItem[] candidateItems = items.Where(item => item.Action == MapContextMenuAction.SelectRouteCandidate).ToArray();
             Assert.AreEqual(2, candidateItems.Length);
@@ -212,6 +214,9 @@ namespace Tests.FreeTrainSimulator.Toolbox
 
         private static ResolvedRouteCandidate Candidate(params int[] routeNodeIndexes)
             => new ResolvedRouteCandidate(ImmutableArray.Create(routeNodeIndexes), ImmutableArray<int>.Empty, ImmutableArray<PathRouteAnchor>.Empty, 1);
+
+        private static PathNode PlacementAnchor()
+            => new PathNode(PointD.ToWorldLocation(new PointD(10, 0)));
 
         private sealed record TestPathPoint : TrainPathPointBase
         {

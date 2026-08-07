@@ -45,6 +45,9 @@ namespace FreeTrainSimulator.Toolbox
         private PathModel movePreviewModel;
         private PathNode movePreviewAnchor;
         private int pendingViaNodeIndex = -1;
+        private PathModel pendingViaSourceModel;
+        private bool pendingViaSourceEditMode;
+        private bool pendingViaSourceUnsavedChanges;
         private bool unsavedChanges;
 
         public string PathId => path?.Id;
@@ -288,55 +291,9 @@ namespace FreeTrainSimulator.Toolbox
             return PathEditorCommandResult.FromPathEditResult(SnapToTrack());
         }
 
-        /// <summary>
-        /// Finds the path span closest to <paramref name="location"/> within <paramref name="toleranceWorldUnits"/>,
-        /// returning the index of the span's preceding node. Used for map surface hit testing when no node was hit.
-        /// </summary>
-        public bool TryGetPathSpanAt(in PointD location, double toleranceWorldUnits, out int fromNodeIndex)
+        public bool TryGetPathSpanAt(in PointD location, double toleranceWorldUnits, out int fromNodeIndex, out PathNode placementAnchor)
         {
-            return TryGetRenderedMainPathSpanAt(location, toleranceWorldUnits, out fromNodeIndex);
-        }
-
-        /// <summary>
-        /// Finds the span between two consecutive path points closest to <paramref name="location"/>.
-        /// </summary>
-        internal static bool TryGetPathSpanAt(IReadOnlyList<TrainPathPointBase> pathPoints, in PointD location, double toleranceWorldUnits, out int fromNodeIndex)
-        {
-            fromNodeIndex = -1;
-            if (toleranceWorldUnits <= 0)
-                return false;
-
-            if (pathPoints == null || pathPoints.Count < 2)
-                return false;
-
-            double closestDistanceSquared = toleranceWorldUnits * toleranceWorldUnits;
-            for (int i = 0; i < pathPoints.Count - 1; i++)
-            {
-                double distanceSquared = DistanceSquaredToSegment(location, pathPoints[i].Location, pathPoints[i + 1].Location);
-                if (distanceSquared <= closestDistanceSquared)
-                {
-                    closestDistanceSquared = distanceSquared;
-                    fromNodeIndex = i;
-                }
-            }
-
-            return fromNodeIndex >= 0;
-        }
-
-        // Squared distance from a point to the line segment between start and end.
-        private static double DistanceSquaredToSegment(in PointD point, in PointD start, in PointD end)
-        {
-            double deltaX = end.X - start.X;
-            double deltaY = end.Y - start.Y;
-            double lengthSquared = (deltaX * deltaX) + (deltaY * deltaY);
-            if (lengthSquared <= double.Epsilon)
-                return start.DistanceSquared(point);
-
-            double projection = (((point.X - start.X) * deltaX) + ((point.Y - start.Y) * deltaY)) / lengthSquared;
-            projection = Math.Clamp(projection, 0, 1);
-
-            PointD closest = new PointD(start.X + (projection * deltaX), start.Y + (projection * deltaY));
-            return closest.DistanceSquared(point);
+            return TryGetRenderedMainPathSpanAt(location, toleranceWorldUnits, out fromNodeIndex, out placementAnchor);
         }
 
         /// <summary>
@@ -466,7 +423,7 @@ namespace FreeTrainSimulator.Toolbox
         /// placement interaction for it, so the user positions the new node by clicking the map. Canceling the
         /// placement also removes the inserted node.
         /// </summary>
-        public PathEditResult BeginAddViaPoint(int afterNodeIndex)
+        public PathEditResult BeginViaPointPlacement(int afterNodeIndex)
         {
             PathModel currentModel = TryGetEditablePathModel();
             ImmutableArray<PathNode> nodes = currentModel?.PathNodes ?? ImmutableArray<PathNode>.Empty;
@@ -476,14 +433,34 @@ namespace FreeTrainSimulator.Toolbox
             // The new node starts on the anchor of its predecessor; the placement interaction moves it to the
             // location the user picks on the map.
             PathNode anchor = new PathNode(nodes[afterNodeIndex].Location) { NodeIndex = nodes[afterNodeIndex].NodeIndex };
-            PathEditResult result = ApplySelectedNodeEdit(afterNodeIndex, model => PathModelEditor.InsertViaPoint(model, afterNodeIndex, anchor, false));
+            return BeginViaPointPlacementAt(afterNodeIndex, anchor);
+        }
+
+        public PathEditResult BeginViaPointPlacementAt(int afterNodeIndex, PathNode anchor)
+        {
+            ArgumentNullException.ThrowIfNull(anchor);
+
+            PathModel currentModel = TryGetEditablePathModel();
+            ImmutableArray<PathNode> nodes = currentModel?.PathNodes ?? ImmutableArray<PathNode>.Empty;
+            if (afterNodeIndex < 0 || afterNodeIndex >= nodes.Length)
+                return PathEditResult.Failed($"Node index {afterNodeIndex} is out of range.", currentModel);
+
+            PathEditResult result = PathModelEditor.InsertViaPoint(currentModel, afterNodeIndex, anchor, false);
             if (!result.Success)
                 return result;
+
+            pendingViaSourceModel = currentModel;
+            pendingViaSourceEditMode = EditMode;
+            pendingViaSourceUnsavedChanges = unsavedChanges;
+            path = result.PathModel;
+            currentPathModel = result.PathModel;
+            RestorePath(result.PathModel, EditMode);
+            unsavedChanges = true;
 
             int viaNodeIndex = afterNodeIndex + 1;
             if (!BeginMoveNode(viaNodeIndex))
             {
-                _ = Undo();
+                RestorePendingViaSource();
                 return PathEditResult.Failed($"Cannot place via point {viaNodeIndex}.", currentModel);
             }
 
@@ -589,11 +566,19 @@ namespace FreeTrainSimulator.Toolbox
                 : null;
         }
 
-        public PathEditorCommandResult BeginAddViaPointCommand(int afterNodeIndex)
+        public PathEditorCommandResult BeginViaPointPlacementCommand(int afterNodeIndex)
         {
-            PathEditResult result = BeginAddViaPoint(afterNodeIndex);
+            PathEditResult result = BeginViaPointPlacement(afterNodeIndex);
             return result.Success
                 ? PathEditorCommandResult.Succeeded($"Select a track location for the new via point after node {afterNodeIndex}.", currentPathModel)
+                : PathEditorCommandResult.FromPathEditResult(result);
+        }
+
+        public PathEditorCommandResult BeginViaPointPlacementAtCommand(int afterNodeIndex, PathNode anchor)
+        {
+            PathEditResult result = BeginViaPointPlacementAt(afterNodeIndex, anchor);
+            return result.Success
+                ? PathEditorCommandResult.Succeeded($"Via point added after node {afterNodeIndex}; move it or click to confirm.", currentPathModel)
                 : PathEditorCommandResult.FromPathEditResult(result);
         }
 
@@ -681,6 +666,11 @@ namespace FreeTrainSimulator.Toolbox
             movePreviewModel = null;
             movePreviewAnchor = null;
             UseStandaloneActivePathPointPreview = true;
+            if (!InitializeActivePathPointPreview(nodeIndex))
+            {
+                ClearMoveNodeState();
+                return false;
+            }
             SetHiddenPathNodeIndex(nodeIndex);
             SelectPathItem(nodeIndex);
             OnPathUpdated?.Invoke(this, new PathEditorChangedEventArgs(TrainPath));
@@ -748,21 +738,26 @@ namespace FreeTrainSimulator.Toolbox
                 return false;
 
             int movedNodeIndex = movingNodeIndex;
-            bool placingViaPoint = pendingViaNodeIndex >= 0;
-            pendingViaNodeIndex = -1;
+            PathModel viaSourceModel = pendingViaSourceModel;
+            bool viaSourceEditMode = pendingViaSourceEditMode;
+            bool viaSourceUnsavedChanges = pendingViaSourceUnsavedChanges;
             PathModel currentModel = TryGetEditablePathModel();
             ClearMoveNodeState();
-            if (currentModel != null)
+            if (viaSourceModel != null)
+            {
+                path = viaSourceModel;
+                currentPathModel = viaSourceModel;
+                RestorePath(viaSourceModel, viaSourceEditMode);
+                unsavedChanges = viaSourceUnsavedChanges;
+                SelectPathItem(Math.Min(movedNodeIndex, viaSourceModel.PathNodes.Length - 1));
+            }
+            else if (currentModel != null)
             {
                 path = currentModel;
                 currentPathModel = currentModel;
                 RestorePath(currentModel, false);
                 SelectPathItem(movedNodeIndex);
             }
-
-            // The via node only exists for this placement, so canceling reverts the insert as well.
-            if (placingViaPoint)
-                _ = Undo();
 
             OnPathUpdated?.Invoke(this, new PathEditorChangedEventArgs(TrainPath));
             return true;
@@ -1010,8 +1005,8 @@ namespace FreeTrainSimulator.Toolbox
             }
 
             int movedNodeIndex = movingNodeIndex;
-            pendingViaNodeIndex = -1;
-            PushUndoSnapshot(currentModel);
+            PathModel undoSnapshot = pendingViaSourceModel ?? currentModel;
+            PushUndoSnapshot(undoSnapshot);
             unsavedChanges = true;
             ClearMoveNodeState();
             path = committedModel;
@@ -1048,10 +1043,28 @@ namespace FreeTrainSimulator.Toolbox
         {
             movingNodeIndex = -1;
             pendingViaNodeIndex = -1;
+            pendingViaSourceModel = null;
+            pendingViaSourceEditMode = false;
+            pendingViaSourceUnsavedChanges = false;
             moveSourceModel = null;
             ClearMovePreview();
             UseStandaloneActivePathPointPreview = false;
             SetHiddenPathNodeIndex(-1);
+        }
+
+        private void RestorePendingViaSource()
+        {
+            PathModel sourceModel = pendingViaSourceModel;
+            bool sourceEditMode = pendingViaSourceEditMode;
+            bool sourceUnsavedChanges = pendingViaSourceUnsavedChanges;
+            ClearMoveNodeState();
+            if (sourceModel == null)
+                return;
+
+            path = sourceModel;
+            currentPathModel = sourceModel;
+            RestorePath(sourceModel, sourceEditMode);
+            unsavedChanges = sourceUnsavedChanges;
         }
 
         private PathModel TryCaptureSnapshot()

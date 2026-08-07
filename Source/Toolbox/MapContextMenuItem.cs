@@ -1,3 +1,5 @@
+using FreeTrainSimulator.Models.Content;
+
 namespace FreeTrainSimulator.Toolbox
 {
     /// <summary>
@@ -17,6 +19,9 @@ namespace FreeTrainSimulator.Toolbox
 
         /// <summary>Optional detail appended to the caption, used for route candidate descriptions.</summary>
         public string Detail { get; init; }
+
+        /// <summary>Track anchor selected for placement-oriented actions, or <see langword="null"/>.</summary>
+        public PathNode PlacementAnchor { get; init; }
 
         /// <summary>Whether this entry is a visual separator rather than a command.</summary>
         public bool IsSeparator => Action == MapContextMenuAction.Separator;

@@ -120,9 +120,9 @@ namespace FreeTrainSimulator.Toolbox
                 items = MapContextMenuActionBuilder.BuildForNode(
                     editor.TrainPath?.PathPoints[nodeIndex], nodeIndex, editor.CanMoveNode(nodeIndex), state);
             }
-            else if (editor.TryGetPathSpanAt(location, tolerance, out int fromNodeIndex))
+            else if (editor.TryGetPathSpanAt(location, tolerance, out int fromNodeIndex, out PathNode placementAnchor))
             {
-                items = MapContextMenuActionBuilder.BuildForSpan(fromNodeIndex, editor.GetSpanCandidates(fromNodeIndex), state);
+                items = MapContextMenuActionBuilder.BuildForSpan(fromNodeIndex, placementAnchor, editor.GetSpanCandidates(fromNodeIndex), state);
             }
             else
             {
@@ -188,7 +188,7 @@ namespace FreeTrainSimulator.Toolbox
         /// window rather than the path editor directly, so its node list, status message and dirty state stay in
         /// sync with edits started on the map.
         /// </summary>
-        internal void ExecuteMapContextMenuAction(MapContextMenuAction action, int nodeIndex, int candidateIndex)
+        internal void ExecuteMapContextMenuAction(MapContextMenuAction action, int nodeIndex, int candidateIndex, PathNode placementAnchor)
         {
             TrainPathToolWindow toolWindow = hostedTrainPathToolWindow;
             if (toolWindow == null)
@@ -203,7 +203,10 @@ namespace FreeTrainSimulator.Toolbox
                     toolWindow.CancelMoveNode();
                     break;
                 case MapContextMenuAction.AddViaPoint:
-                    toolWindow.AddViaPoint(nodeIndex);
+                    if (placementAnchor == null)
+                        toolWindow.BeginViaPointPlacement(nodeIndex);
+                    else
+                        toolWindow.BeginViaPointPlacementAt(nodeIndex, placementAnchor);
                     break;
                 case MapContextMenuAction.RemoveViaPoint:
                     toolWindow.RemoveViaPoint(nodeIndex);

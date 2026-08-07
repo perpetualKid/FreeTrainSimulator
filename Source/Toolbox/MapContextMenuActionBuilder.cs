@@ -1,6 +1,8 @@
+using System;
 using System.Collections.Immutable;
 
 using FreeTrainSimulator.Common;
+using FreeTrainSimulator.Models.Content;
 using FreeTrainSimulator.Runtime.Track;
 
 namespace FreeTrainSimulator.Toolbox
@@ -81,14 +83,17 @@ namespace FreeTrainSimulator.Toolbox
         /// Builds the menu for a path span. <paramref name="fromNodeIndex"/> is the span's preceding node;
         /// <paramref name="candidates"/> holds the equal-cost route candidates when the span is ambiguous.
         /// </summary>
-        public static ImmutableArray<MapContextMenuItem> BuildForSpan(int fromNodeIndex, ImmutableArray<ResolvedRouteCandidate> candidates, in MapContextMenuState state)
+        public static ImmutableArray<MapContextMenuItem> BuildForSpan(int fromNodeIndex, PathNode placementAnchor,
+            ImmutableArray<ResolvedRouteCandidate> candidates, in MapContextMenuState state)
         {
+            ArgumentNullException.ThrowIfNull(placementAnchor);
+
             if (state.IsMovingNode)
                 return ImmutableArray.Create(new MapContextMenuItem(MapContextMenuAction.CancelMoveNode, fromNodeIndex));
 
             ImmutableArray<MapContextMenuItem>.Builder items = ImmutableArray.CreateBuilder<MapContextMenuItem>();
 
-            items.Add(new MapContextMenuItem(MapContextMenuAction.AddViaPoint, fromNodeIndex));
+            items.Add(new MapContextMenuItem(MapContextMenuAction.AddViaPoint, fromNodeIndex) { PlacementAnchor = placementAnchor });
             items.Add(new MapContextMenuItem(MapContextMenuAction.RemoveRestOfPath, fromNodeIndex));
 
             if (!candidates.IsDefaultOrEmpty)

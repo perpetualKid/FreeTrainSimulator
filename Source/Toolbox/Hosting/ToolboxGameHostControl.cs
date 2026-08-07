@@ -341,10 +341,10 @@ namespace FreeTrainSimulator.Toolbox.Hosting
         /// <summary>
         /// Applies a node-related action selected from the map context menu on the hosted game thread.
         /// </summary>
-        internal void ExecuteMapContextMenuAction(MapContextMenuAction action, int nodeIndex, int candidateIndex)
+        internal void ExecuteMapContextMenuAction(MapContextMenuAction action, int nodeIndex, int candidateIndex, PathNode placementAnchor)
         {
             GameWindow game = gameWindow;
-            game?.InvokeOnGameThread(() => game.ExecuteMapContextMenuAction(action, nodeIndex, candidateIndex));
+            game?.InvokeOnGameThread(() => game.ExecuteMapContextMenuAction(action, nodeIndex, candidateIndex, placementAnchor));
         }
 
         private void UpdateHostWindowTitle(string title)

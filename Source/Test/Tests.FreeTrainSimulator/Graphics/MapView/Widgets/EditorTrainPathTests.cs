@@ -139,10 +139,36 @@ namespace Tests.FreeTrainSimulator.Graphics.MapView.Widgets
                 NodeAt(200, PathNodeType.End, nextMainNode: -1));
             EditorTrainPath trainPath = new EditorTrainPath(path, CreateTrackWorld());
 
-            bool found = trainPath.TryGetMainPathSpanAt(new PointD(150, 4), 10, out int fromNodeIndex);
+            bool found = trainPath.TryGetMainPathSpanAt(new PointD(150, 4), 10, out int fromNodeIndex, out PathNode placementAnchor);
 
             Assert.IsTrue(found);
             Assert.AreEqual(1, fromNodeIndex);
+            Assert.AreEqual(new PointD(150, 0), PointD.FromWorldLocation(placementAnchor.Location));
+        }
+
+        [TestMethod]
+        public void WhenPathNodePreviewIsCreatedThenItStartsAtNodeLocation()
+        {
+            PathModel path = CreatePath(
+                NodeAt(0, PathNodeType.Start, nextMainNode: 1),
+                NodeAt(100, PathNodeType.End, nextMainNode: -1));
+            EditorTrainPath trainPath = new EditorTrainPath(path, CreateTrackWorld());
+
+            EditorPathPoint preview = trainPath.CreatePathNodePreview(1);
+
+            Assert.IsNotNull(preview);
+            Assert.AreEqual(new PointD(100, 0), preview.Location);
+            Assert.AreEqual(PathNodeType.End, preview.NodeType);
+        }
+
+        [TestMethod]
+        public void WhenPathNodePreviewIndexIsOutOfRangeThenNoPreviewIsCreated()
+        {
+            EditorTrainPath trainPath = CreateEmptyEditorPath();
+
+            EditorPathPoint preview = trainPath.CreatePathNodePreview(0);
+
+            Assert.IsNull(preview);
         }
 
         [TestMethod]

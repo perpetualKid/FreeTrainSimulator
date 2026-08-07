@@ -357,7 +357,7 @@ namespace FreeTrainSimulator.Toolbox
                 {
                     Header = GetMapContextMenuCaption(current),
                 };
-                item.Click += (_, _) => MapHost.ExecuteMapContextMenuAction(current.Action, current.NodeIndex, current.CandidateIndex);
+                item.Click += (_, _) => MapHost.ExecuteMapContextMenuAction(current.Action, current.NodeIndex, current.CandidateIndex, current.PlacementAnchor);
                 contextMenu.Items.Add(item);
             }
 

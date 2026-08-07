@@ -140,6 +140,13 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
             return base.ToPathModel(pathModelHeader);
         }
 
+        internal EditorPathPoint CreatePathNodePreview(int nodeIndex)
+        {
+            return nodeIndex >= 0 && nodeIndex < PathModel.PathNodes.Length
+                ? new EditorPathPoint(PathModel.PathNodes[nodeIndex], TrackWorld)
+                : null;
+        }
+
         #region path editing
         internal EditorPathPoint AddPathPoint(EditorPathPoint pathPoint)
         {
@@ -238,13 +245,15 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
             return double.NaN;
         }
 
-        internal bool TryGetMainPathSpanAt(in PointD location, double toleranceWorldUnits, out int fromNodeIndex)
+        internal bool TryGetMainPathSpanAt(in PointD location, double toleranceWorldUnits, out int fromNodeIndex, out PathNode placementAnchor)
         {
             fromNodeIndex = -1;
+            placementAnchor = null;
             if (toleranceWorldUnits <= 0)
                 return false;
 
             double closestDistanceSquared = toleranceWorldUnits * toleranceWorldUnits;
+            EditorTrainPathSegment closestSegment = null;
             foreach (TrainPathSection section in PathSections)
             {
                 if (!section.IsMainPathSpan || section.SourceNodeIndex < 0)
@@ -257,11 +266,20 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
                     {
                         closestDistanceSquared = distanceSquared;
                         fromNodeIndex = section.SourceNodeIndex;
+                        closestSegment = segment;
                     }
                 }
             }
 
-            return fromNodeIndex >= 0;
+            if (closestSegment == null)
+                return false;
+
+            PointD snappedLocation = closestSegment.SnapToSegment(location);
+            placementAnchor = new PathNode(PointD.ToWorldLocation(snappedLocation))
+            {
+                NodeIndex = closestSegment.TrackNodeIndex,
+            };
+            return true;
         }
 
         public virtual void Draw(IMapRenderer renderer, ColorVariation colorVariation = ColorVariation.None, double scaleFactor = 1)

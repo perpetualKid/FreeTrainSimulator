@@ -34,12 +34,19 @@ namespace FreeTrainSimulator.Graphics.MapView
                 trainPath.HiddenNodeIndex = nodeIndex;
         }
 
-        protected bool TryGetRenderedMainPathSpanAt(in PointD location, double toleranceWorldUnits, out int fromNodeIndex)
+        protected bool InitializeActivePathPointPreview(int nodeIndex)
+        {
+            activePathPoint = trainPath?.CreatePathNodePreview(nodeIndex);
+            return activePathPoint != null;
+        }
+
+        protected bool TryGetRenderedMainPathSpanAt(in PointD location, double toleranceWorldUnits, out int fromNodeIndex, out PathNode placementAnchor)
         {
             if (trainPath != null)
-                return trainPath.TryGetMainPathSpanAt(location, toleranceWorldUnits, out fromNodeIndex);
+                return trainPath.TryGetMainPathSpanAt(location, toleranceWorldUnits, out fromNodeIndex, out placementAnchor);
 
             fromNodeIndex = -1;
+            placementAnchor = null;
             return false;
         }
 
