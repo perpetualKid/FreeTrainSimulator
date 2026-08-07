@@ -28,6 +28,10 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
 
         private record TrainPathSection : TrainPathSectionBase, IDrawable<VectorPrimitive>
         {
+            public int SourceNodeIndex { get; set; } = -1;
+
+            public bool IsMainPathSpan { get; set; }
+
             public TrainPathSection(in PointD startLocation, in PointD endLocation) :
                 base(startLocation, endLocation)
             {
@@ -91,6 +95,15 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
 
                     (startPoint as EditorPathPoint).UpdateDirectionTowards(endPoint, startPoint.ValidationResult == PathNodeInvalidReasons.None, startPoint.NodeType.Includes(PathNodeType.End));
                     List<TrainPathSectionBase> sections = InitializeSections(pathType, startPoint, endPoint).Sections;
+                    foreach (TrainPathSectionBase section in sections)
+                    {
+                        section.PathItem = startPoint;
+                        if (section is TrainPathSection editorSection)
+                        {
+                            editorSection.SourceNodeIndex = i;
+                            editorSection.IsMainPathSpan = pathType == PathSectionType.MainPath;
+                        }
+                    }
 
                     if ((startPoint.NodeType & PathNodeType.End) != PathNodeType.End)
                     {
@@ -223,6 +236,32 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
         public override double DistanceSquared(in PointD point)
         {
             return double.NaN;
+        }
+
+        internal bool TryGetMainPathSpanAt(in PointD location, double toleranceWorldUnits, out int fromNodeIndex)
+        {
+            fromNodeIndex = -1;
+            if (toleranceWorldUnits <= 0)
+                return false;
+
+            double closestDistanceSquared = toleranceWorldUnits * toleranceWorldUnits;
+            foreach (TrainPathSection section in PathSections)
+            {
+                if (!section.IsMainPathSpan || section.SourceNodeIndex < 0)
+                    continue;
+
+                foreach (EditorTrainPathSegment segment in section.SectionSegments)
+                {
+                    double distanceSquared = segment.DistanceSquared(location);
+                    if (!double.IsNaN(distanceSquared) && distanceSquared <= closestDistanceSquared)
+                    {
+                        closestDistanceSquared = distanceSquared;
+                        fromNodeIndex = section.SourceNodeIndex;
+                    }
+                }
+            }
+
+            return fromNodeIndex >= 0;
         }
 
         public virtual void Draw(IMapRenderer renderer, ColorVariation colorVariation = ColorVariation.None, double scaleFactor = 1)

@@ -34,6 +34,15 @@ namespace FreeTrainSimulator.Graphics.MapView
                 trainPath.HiddenNodeIndex = nodeIndex;
         }
 
+        protected bool TryGetRenderedMainPathSpanAt(in PointD location, double toleranceWorldUnits, out int fromNodeIndex)
+        {
+            if (trainPath != null)
+                return trainPath.TryGetMainPathSpanAt(location, toleranceWorldUnits, out fromNodeIndex);
+
+            fromNodeIndex = -1;
+            return false;
+        }
+
         public TrainPathBase TrainPath
         {
             get => trainPath;

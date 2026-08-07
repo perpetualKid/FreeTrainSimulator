@@ -131,6 +131,21 @@ namespace Tests.FreeTrainSimulator.Graphics.MapView.Widgets
         }
 
         [TestMethod]
+        public void WhenLocationIsBesideRenderedMainSectionThenSpanHitReturnsSourceNode()
+        {
+            PathModel path = CreatePath(
+                NodeAt(0, PathNodeType.Start, nextMainNode: 1),
+                NodeAt(100, PathNodeType.Intermediate, nextMainNode: 2),
+                NodeAt(200, PathNodeType.End, nextMainNode: -1));
+            EditorTrainPath trainPath = new EditorTrainPath(path, CreateTrackWorld());
+
+            bool found = trainPath.TryGetMainPathSpanAt(new PointD(150, 4), 10, out int fromNodeIndex);
+
+            Assert.IsTrue(found);
+            Assert.AreEqual(1, fromNodeIndex);
+        }
+
+        [TestMethod]
         public void WhenAddingPointAfterPreviewIntermediaryThenIntermediaryLinksToCommittedPoint()
         {
             // UpdatePathEndPoint temporarily inserts an intermediary junction preview when a segment crosses a
@@ -195,7 +210,12 @@ namespace Tests.FreeTrainSimulator.Graphics.MapView.Widgets
 
         private static PathNode Node(PathNodeType nodeType, int nextMainNode)
         {
-            return new PathNode(new WorldLocation(new Tile(0, 0), Vector3.Zero))
+            return NodeAt(0, nodeType, nextMainNode);
+        }
+
+        private static PathNode NodeAt(float x, PathNodeType nodeType, int nextMainNode)
+        {
+            return new PathNode(new WorldLocation(new Tile(0, 0), new Vector3(x, 0, 0)))
             {
                 NodeType = nodeType,
                 NextMainNode = nextMainNode,

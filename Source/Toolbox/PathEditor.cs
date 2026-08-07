@@ -293,7 +293,9 @@ namespace FreeTrainSimulator.Toolbox
         /// returning the index of the span's preceding node. Used for map surface hit testing when no node was hit.
         /// </summary>
         public bool TryGetPathSpanAt(in PointD location, double toleranceWorldUnits, out int fromNodeIndex)
-            => TryGetPathSpanAt(TrainPath?.PathPoints, location, toleranceWorldUnits, out fromNodeIndex);
+        {
+            return TryGetRenderedMainPathSpanAt(location, toleranceWorldUnits, out fromNodeIndex);
+        }
 
         /// <summary>
         /// Finds the span between two consecutive path points closest to <paramref name="location"/>.
