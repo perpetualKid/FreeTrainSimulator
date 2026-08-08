@@ -79,9 +79,9 @@ namespace FreeTrainSimulator.Toolbox
 
         protected override void Dispose(bool disposing)
         {
-            userCommandController.RemoveEvent(CommonUserCommand.PointerReleased, MouseReleasedLeft);
-            userCommandController.RemoveEvent(CommonUserCommand.AlternatePointerReleased, MouseReleasedRight);
-            userCommandController.RemoveEvent(CommonUserCommand.PointerDragged, MouseDragged);
+            userCommandController?.RemoveEvent(CommonUserCommand.PointerReleased, MouseReleasedLeft);
+            userCommandController?.RemoveEvent(CommonUserCommand.AlternatePointerReleased, MouseReleasedRight);
+            userCommandController?.RemoveEvent(CommonUserCommand.PointerDragged, MouseDragged);
 
             base.Dispose(disposing);
         }
