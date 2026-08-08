@@ -14,13 +14,11 @@ namespace FreeTrainSimulator.Graphics.MapView
     {
         private const int zoomAmplifier = 3;
 
-#pragma warning disable CA1859 // Use concrete types when possible for improved performance
         private readonly IMapViewStateAdapter viewStateAdapter;
         private readonly IMapRenderAdapter renderAdapter;
         private readonly IMapInteractionAdapter interactionAdapter;
         private readonly IMapHostSession hostSession;
         private readonly IMapBaseOverlayContext overlayBridge;
-#pragma warning restore CA1859 // Use concrete types when possible for improved performance
 
         public ContentBase Content { get; }
 

@@ -115,46 +115,52 @@ namespace Tests.FreeTrainSimulator.Toolbox
         public void WhenAnchoredViaPlacementBeginsThenInsertedNodeUsesProvidedAnchor()
         {
             PathModel source = CreateEditablePath();
-            PathEditor editor = CreateEditor(source);
-            PathNode anchor = CreateNodeAt(50, PathNodeType.Intermediate, -1);
+            using (PathEditor editor = CreateEditor(source))
+            {
+                PathNode anchor = CreateNodeAt(50, PathNodeType.Intermediate, -1);
 
-            PathEditResult result = editor.BeginViaPointPlacementAt(0, anchor);
+                PathEditResult result = editor.BeginViaPointPlacementAt(0, anchor);
 
-            Assert.IsTrue(result.Success);
-            Assert.AreEqual(anchor.Location, editor.TryCaptureCurrentPathModel().PathNodes[1].Location);
+                Assert.IsTrue(result.Success);
+                Assert.AreEqual(anchor.Location, editor.TryCaptureCurrentPathModel().PathNodes[1].Location);
+            }
         }
 
         [TestMethod]
         public void WhenPendingViaPlacementIsCanceledThenHistoryAndSourcePathAreRestored()
         {
             PathModel source = CreateEditablePath();
-            PathEditor editor = CreateEditor(source);
-            _ = editor.BeginViaPointPlacementAt(0, CreateNodeAt(50, PathNodeType.Intermediate, -1));
+            using (PathEditor editor = CreateEditor(source))
+            {
+                _ = editor.BeginViaPointPlacementAt(0, CreateNodeAt(50, PathNodeType.Intermediate, -1));
 
             bool canceled = editor.CancelMoveNode();
 
-            Assert.IsTrue(canceled);
-            Assert.AreEqual(source.PathNodes, editor.TryCaptureCurrentPathModel().PathNodes);
-            Assert.IsFalse(editor.CanUndo);
-            Assert.IsFalse(editor.CanRedo);
+                Assert.IsTrue(canceled);
+                Assert.AreSequenceEqual(source.PathNodes, editor.TryCaptureCurrentPathModel().PathNodes);
+                Assert.IsFalse(editor.CanUndo);
+                Assert.IsFalse(editor.CanRedo);
+            }
         }
 
         [TestMethod]
         public void WhenPendingViaPlacementIsCommittedThenSingleUndoRestoresSourcePath()
         {
             PathModel source = CreateEditablePath();
-            PathEditor editor = CreateEditor(source);
-            _ = editor.BeginViaPointPlacementAt(0, CreateNodeAt(50, PathNodeType.Intermediate, -1));
-            PathModel insertedModel = editor.TryCaptureCurrentPathModel();
-            SetPrivateField(editor, "movePreviewModel", insertedModel);
+            using (PathEditor editor = CreateEditor(source))
+            {
+                _ = editor.BeginViaPointPlacementAt(0, CreateNodeAt(50, PathNodeType.Intermediate, -1));
+                PathModel insertedModel = editor.TryCaptureCurrentPathModel();
+                SetPrivateField(editor, "movePreviewModel", insertedModel);
 
-            PathEditResult committed = editor.CommitMoveNode();
-            bool undone = editor.Undo();
+                PathEditResult committed = editor.CommitMoveNode();
+                bool undone = editor.Undo();
 
-            Assert.IsTrue(committed.Success);
-            Assert.IsTrue(undone);
-            Assert.AreEqual(source.PathNodes, editor.TryCaptureCurrentPathModel().PathNodes);
-            Assert.IsFalse(editor.CanUndo);
+                Assert.IsTrue(committed.Success);
+                Assert.IsTrue(undone);
+                Assert.AreSequenceEqual(source.PathNodes, editor.TryCaptureCurrentPathModel().PathNodes);
+                Assert.IsFalse(editor.CanUndo);
+            }
         }
 
         [TestMethod]
