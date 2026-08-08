@@ -165,10 +165,11 @@
             </StackPanel>
         </DataTemplate>
     </UserControl.Resources>
-    <TabControl Margin="10"
-                SelectedIndex="0">
-        <TabItem Header="Paths"
-                 IsSelected="True">
+    <TabControl x:Name="PathEditorTabs"
+                Margin="10"
+                SelectionChanged="PathEditorTabs_SelectionChanged"
+                SelectedIndex="{Binding SelectedTabIndex, Mode=OneWay}">
+        <TabItem Header="Paths">
             <Grid Margin="6">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
@@ -355,6 +356,90 @@
                 </TextBlock>
             </Grid>
         </TabItem>
+        <TabItem Header="Diagnostics">
+            <DockPanel Margin="6">
+                <TextBlock DockPanel.Dock="Top"
+                           Margin="0,2,0,4"
+                           TextWrapping="Wrap"
+                           Text="Select a diagnostic to highlight its affected node or span. Ambiguous routes open their matching route candidates." />
+                <Border DockPanel.Dock="Bottom"
+                        Margin="0,6,0,0"
+                        Padding="6"
+                        BorderBrush="Gainsboro"
+                        BorderThickness="1">
+                    <DockPanel>
+                        <Button DockPanel.Dock="Bottom"
+                                HorizontalAlignment="Left"
+                                Padding="8,2"
+                                Margin="0,6,0,0"
+                                Content="Repair Node"
+                                Command="{Binding RepairDiagnosticCommand}"
+                                ToolTip="Apply the existing safe repair operation to the selected diagnostic node" />
+                        <ScrollViewer MaxHeight="180"
+                                      VerticalScrollBarVisibility="Auto"
+                                      HorizontalScrollBarVisibility="Disabled">
+                            <StackPanel>
+                                <TextBlock FontWeight="Bold"
+                                           Text="Message" />
+                                <TextBlock Margin="0,2,0,6"
+                                           Text="{Binding SelectedDiagnostic.Message}"
+                                           TextWrapping="Wrap" />
+                                <TextBlock FontWeight="Bold"
+                                           Text="Suggested Action" />
+                                <TextBlock Margin="0,2,0,0"
+                                           Text="{Binding SelectedDiagnostic.SuggestedAction}"
+                                           TextWrapping="Wrap" />
+                            </StackPanel>
+                        </ScrollViewer>
+                    </DockPanel>
+                </Border>
+                <ListView ItemsSource="{Binding Diagnostics}"
+                          SelectedItem="{Binding SelectedDiagnostic, Mode=TwoWay}"
+                          ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                    <ListView.ItemContainerStyle>
+                        <Style TargetType="ListViewItem">
+                            <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                            <Setter Property="ToolTip" Value="{Binding SuggestedAction}" />
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding Severity}" Value="Error">
+                                    <Setter Property="Foreground" Value="OrangeRed" />
+                                    <Setter Property="FontWeight" Value="Bold" />
+                                </DataTrigger>
+                                <DataTrigger Binding="{Binding Severity}" Value="Fatal">
+                                    <Setter Property="Foreground" Value="Red" />
+                                    <Setter Property="FontWeight" Value="Bold" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </ListView.ItemContainerStyle>
+                    <ListView.ItemTemplate>
+                        <DataTemplate>
+                            <Grid Margin="3,2">
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                </Grid.RowDefinitions>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Margin="0,0,8,0"
+                                           FontWeight="SemiBold"
+                                           Text="{Binding Severity}" />
+                                <TextBlock Grid.Column="1"
+                                           HorizontalAlignment="Right"
+                                           Text="{Binding Target}" />
+                                <TextBlock Grid.Row="1"
+                                           Grid.ColumnSpan="2"
+                                           Margin="0,2,0,0"
+                                           Text="{Binding Code}"
+                                           TextWrapping="Wrap" />
+                            </Grid>
+                        </DataTemplate>
+                    </ListView.ItemTemplate>
+                </ListView>
+            </DockPanel>
+        </TabItem>
         <TabItem Header="Route Candidates">
             <DockPanel Margin="6">
                 <TextBlock DockPanel.Dock="Top"
@@ -372,15 +457,27 @@
                 </WrapPanel>
                 <ListView ItemsSource="{Binding RouteCandidates}"
                           SelectedItem="{Binding SelectedRouteCandidate, Mode=TwoWay}"
-                          behaviors:GridViewColumnBehavior.StretchListView="True">
-                    <ListView.View>
-                        <GridView>
-                            <GridViewColumn Header="From" Width="60" DisplayMemberBinding="{Binding FromNodeIndex}" />
-                            <GridViewColumn Header="To" Width="60" DisplayMemberBinding="{Binding ToNodeIndex}" />
-                            <GridViewColumn Header="Route" Width="320" DisplayMemberBinding="{Binding Description}"
-                                            behaviors:GridViewColumnBehavior.StretchColumn="True" />
-                        </GridView>
-                    </ListView.View>
+                          ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                    <ListView.ItemContainerStyle>
+                        <Style TargetType="ListViewItem">
+                            <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                        </Style>
+                    </ListView.ItemContainerStyle>
+                    <ListView.ItemTemplate>
+                        <DataTemplate>
+                            <StackPanel Margin="3,2">
+                                <TextBlock FontWeight="SemiBold">
+                                    <Run Text="Nodes " />
+                                    <Run Text="{Binding FromNodeIndex}" />
+                                    <Run Text="-" />
+                                    <Run Text="{Binding ToNodeIndex}" />
+                                </TextBlock>
+                                <TextBlock Margin="0,2,0,0"
+                                           Text="{Binding Description}"
+                                           TextWrapping="Wrap" />
+                            </StackPanel>
+                        </DataTemplate>
+                    </ListView.ItemTemplate>
                 </ListView>
             </DockPanel>
         </TabItem>

@@ -126,6 +126,55 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
     }
 
     /// <summary>
+    /// One resolver diagnostic of the currently edited train path, flattened into immutable UI-safe data.
+    /// </summary>
+    internal readonly record struct TrainPathDiagnosticRow
+    {
+        public TrainPathDiagnosticRow(PathRouteDiagnosticSeverity severity, PathRouteDiagnosticCode code, string message,
+            int nodeIndex, int fromNodeIndex, int toNodeIndex, string suggestedAction, bool canRepair)
+        {
+            Severity = severity;
+            Code = code;
+            Message = message;
+            NodeIndex = nodeIndex;
+            FromNodeIndex = fromNodeIndex;
+            ToNodeIndex = toNodeIndex;
+            SuggestedAction = suggestedAction;
+            CanRepair = canRepair;
+        }
+
+        /// <summary>Diagnostic severity.</summary>
+        public PathRouteDiagnosticSeverity Severity { get; }
+
+        /// <summary>Stable diagnostic code.</summary>
+        public PathRouteDiagnosticCode Code { get; }
+
+        /// <summary>Human-readable diagnostic message.</summary>
+        public string Message { get; }
+
+        /// <summary>Authored node index associated with the diagnostic, or -1 when not node-specific.</summary>
+        public int NodeIndex { get; }
+
+        /// <summary>Source authored node index for span diagnostics, or -1 when not span-specific.</summary>
+        public int FromNodeIndex { get; }
+
+        /// <summary>Target authored node index for span diagnostics, or -1 when not span-specific.</summary>
+        public int ToNodeIndex { get; }
+
+        /// <summary>Suggested repair or review action.</summary>
+        public string SuggestedAction { get; }
+
+        /// <summary>Whether the existing selected-node repair operation can repair this diagnostic target.</summary>
+        public bool CanRepair { get; }
+
+        /// <summary>Whether the diagnostic identifies one authored node.</summary>
+        public bool HasNodeTarget => NodeIndex >= 0;
+
+        /// <summary>Whether the diagnostic identifies an authored path span.</summary>
+        public bool HasSpanTarget => FromNodeIndex >= 0 && ToNodeIndex >= 0;
+    }
+
+    /// <summary>
     /// Immutable snapshot of the hosted train-path tool window state, captured on the game thread and read
     /// lock-free by the WPF view model. Combines the available paths, the selected path id, the current
     /// path's node rows, and its metadata name/value rows.
@@ -149,6 +198,9 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
 
         /// <summary>Equal-cost route candidates of the currently edited path's ambiguous spans.</summary>
         public ImmutableArray<TrainPathRouteCandidateRow> RouteCandidates { get; init; }
+
+        /// <summary>Resolver diagnostics of the currently edited path.</summary>
+        public ImmutableArray<TrainPathDiagnosticRow> Diagnostics { get; init; }
 
         /// <summary>Whether an undo step is available.</summary>
         public bool CanUndo { get; init; }
@@ -174,6 +226,7 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
             SelectedNodeIndex = -1,
             Metadata = ImmutableArray<ToolWindowRow>.Empty,
             RouteCandidates = ImmutableArray<TrainPathRouteCandidateRow>.Empty,
+            Diagnostics = ImmutableArray<TrainPathDiagnosticRow>.Empty,
             CanUndo = false,
             CanRedo = false,
             CanSnapToTrack = false,
@@ -213,11 +266,6 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
         private int lastNodeCount = -1;
         private int snapshotVersion;
         private int lastSnapshotVersion = -1;
-
-        // Resolver diagnostic rows are cached against the resolution they were produced from. The path editor
-        // owns the resolution and reuses it per path model instance, so an edit resolves the path exactly once.
-        private PathRouteResolution cachedDiagnosticsResolution;
-        private ImmutableArray<ToolWindowRow> cachedDiagnosticsRows = ImmutableArray<ToolWindowRow>.Empty;
 
         internal TrainPathToolWindow(Func<PathEditor> pathEditorAccessor, Func<ITrainPathToolingContext> toolingContextAccessor,
             Action<Action> gameThreadInvoker, Action createPathAction, Action savePathAction, Action<PathModelHeader> loadPathAction,
@@ -329,6 +377,7 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
                 SelectedNodeIndex = selectedNodeIndex,
                 Metadata = BuildMetadata(pathEditor, currentPath),
                 RouteCandidates = BuildRouteCandidates(pathEditor),
+                Diagnostics = BuildResolverDiagnostics(pathEditor.ResolveCurrent(currentPathModel), pathEditor),
                 CanUndo = canUndo,
                 CanRedo = canRedo,
                 CanSnapToTrack = canSnapToTrack,
@@ -376,6 +425,12 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
                 }
             });
         }
+
+        internal void HighlightDiagnosticTarget(int nodeIndex, int fromNodeIndex, int toNodeIndex)
+            => InvokeEditorAction(pathEditor => pathEditor.HighlightDiagnosticTarget(nodeIndex, fromNodeIndex, toNodeIndex));
+
+        internal void RepairDiagnosticNode(int nodeIndex)
+            => ExecuteEditorCommand(pathEditor => pathEditor.RepairSelectedNodeCommand(nodeIndex));
 
         /// <summary>
         /// Highlights the path node with the given index on the map (or clears the highlight when negative).
@@ -626,7 +681,6 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
 
             ITrainPathToolingContext toolingContext = toolingContextAccessor();
             bool metricUnits = toolingContext?.UseMetricUnits ?? true;
-            PathModel resolverPathModel = pathEditor?.TryCaptureCurrentPathModel() ?? currentPath.PathModel;
             ImmutableArray<ToolWindowRow>.Builder builder = ImmutableArray.CreateBuilder<ToolWindowRow>();
             builder.Add(new ToolWindowRow { Name = "Path ID", Value = currentPath.PathModel.Id });
             builder.Add(new ToolWindowRow { Name = "Path Name", Value = currentPath.PathModel.Name });
@@ -636,22 +690,7 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
             builder.Add(new ToolWindowRow { Name = "Path Length", Value = FormatStrings.FormatDistanceDisplay(currentPath.Length, metricUnits, 1000) });
             builder.AddRange(BuildEditorStateMetadata(currentPath));
             builder.AddRange(BuildEditorHistoryMetadata(pathEditor?.CanUndo == true, pathEditor?.CanRedo == true));
-            builder.AddRange(GetResolverDiagnosticMetadata(pathEditor?.ResolveCurrent(resolverPathModel)));
             return builder.ToImmutable();
-        }
-
-        // Formats the resolver diagnostics, rebuilding the rows only when the resolution itself changed.
-        private ImmutableArray<ToolWindowRow> GetResolverDiagnosticMetadata(PathRouteResolution resolution)
-        {
-            if (resolution == null)
-                return ImmutableArray<ToolWindowRow>.Empty;
-
-            if (ReferenceEquals(resolution, cachedDiagnosticsResolution))
-                return cachedDiagnosticsRows;
-
-            cachedDiagnosticsRows = BuildResolverDiagnosticMetadata(resolution);
-            cachedDiagnosticsResolution = resolution;
-            return cachedDiagnosticsRows;
         }
 
         internal static ImmutableArray<ToolWindowRow> BuildEditorHistoryMetadata(bool canUndo, bool canRedo)
@@ -682,30 +721,23 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
             return builder.ToImmutable();
         }
 
-        internal static ImmutableArray<ToolWindowRow> BuildResolverDiagnosticMetadata(PathRouteResolution resolution)
+        internal static ImmutableArray<TrainPathDiagnosticRow> BuildResolverDiagnostics(PathRouteResolution resolution)
+            => BuildResolverDiagnostics(resolution, null);
+
+        private static ImmutableArray<TrainPathDiagnosticRow> BuildResolverDiagnostics(PathRouteResolution resolution, PathEditor pathEditor)
         {
             if (resolution == null || resolution.Diagnostics.IsDefaultOrEmpty)
-                return ImmutableArray<ToolWindowRow>.Empty;
+                return ImmutableArray<TrainPathDiagnosticRow>.Empty;
 
-            ImmutableArray<ToolWindowRow>.Builder builder = ImmutableArray.CreateBuilder<ToolWindowRow>();
-            builder.Add(new ToolWindowRow { Name = "Route Diagnostics", Value = string.Empty, Color = DiagnosticColor(resolution.HighestSeverity), Bold = true });
-            builder.Add(new ToolWindowRow { Name = "Summary", Value = $"{resolution.Diagnostics.Length} ({resolution.HighestSeverity})", Color = DiagnosticColor(resolution.HighestSeverity) });
+            ImmutableArray<TrainPathDiagnosticRow>.Builder builder = ImmutableArray.CreateBuilder<TrainPathDiagnosticRow>(resolution.Diagnostics.Length);
             foreach (PathRouteDiagnostic diagnostic in resolution.Diagnostics)
-                builder.Add(new ToolWindowRow { Name = diagnostic.Code.ToString(), Value = diagnostic.Message, Color = DiagnosticColor(diagnostic.Severity), Bold = diagnostic.Severity >= PathRouteDiagnosticSeverity.Error });
+            {
+                builder.Add(new TrainPathDiagnosticRow(diagnostic.Severity, diagnostic.Code, diagnostic.Message,
+                    diagnostic.NodeIndex, diagnostic.FromNodeIndex, diagnostic.ToNodeIndex, diagnostic.SuggestedAction,
+                    diagnostic.NodeIndex >= 0 && pathEditor?.CanRepairNode(diagnostic.NodeIndex) == true));
+            }
 
             return builder.ToImmutable();
-        }
-
-        private static DrawingColor? DiagnosticColor(PathRouteDiagnosticSeverity severity)
-        {
-            return severity switch
-            {
-                PathRouteDiagnosticSeverity.Fatal => DrawingColor.Red,
-                PathRouteDiagnosticSeverity.Error => DrawingColor.OrangeRed,
-                PathRouteDiagnosticSeverity.Warning => null,
-                PathRouteDiagnosticSeverity.Information => DrawingColor.LightGray,
-                _ => null,
-            };
         }
 
         /// <summary>

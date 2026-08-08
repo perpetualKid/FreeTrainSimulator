@@ -402,48 +402,71 @@ namespace Tests.FreeTrainSimulator.Toolbox
         }
 
         [TestMethod]
-        public void WhenResolverHasNoDiagnosticsThenDiagnosticMetadataIsEmpty()
+        public void WhenResolverHasNoDiagnosticsThenDiagnosticRowsAreEmpty()
         {
             PathRouteResolution resolution = new PathRouteResolution(null, ImmutableArray<PathRouteDiagnostic>.Empty);
 
-            ImmutableArray<ToolWindowRow> rows = TrainPathToolWindow.BuildResolverDiagnosticMetadata(resolution);
+            ImmutableArray<TrainPathDiagnosticRow> rows = TrainPathToolWindow.BuildResolverDiagnostics(resolution);
 
             Assert.IsTrue(rows.IsEmpty);
         }
 
         [TestMethod]
-        public void WhenResolverHasDiagnosticsThenDiagnosticMetadataContainsSummaryAndDetails()
+        public void WhenResolverHasNodeDiagnosticThenDiagnosticRowPreservesNodeTargetAndAction()
         {
             PathRouteDiagnostic diagnostic = new PathRouteDiagnostic(PathRouteDiagnosticSeverity.Warning, PathRouteDiagnosticCode.MissingEndNode,
-                "Path has no end node.");
+                "Path has no end node.", 2, "Add or mark an end node.");
             PathRouteResolution resolution = new PathRouteResolution(null, ImmutableArray.Create(diagnostic));
 
-            ImmutableArray<ToolWindowRow> rows = TrainPathToolWindow.BuildResolverDiagnosticMetadata(resolution);
+            ImmutableArray<TrainPathDiagnosticRow> rows = TrainPathToolWindow.BuildResolverDiagnostics(resolution);
 
-            Assert.HasCount(3, rows);
-            Assert.AreEqual("Route Diagnostics", rows[0].Name);
-            Assert.AreEqual(string.Empty, rows[0].Value);
-            Assert.IsTrue(rows[0].Bold);
-            Assert.AreEqual("Summary", rows[1].Name);
-            Assert.AreEqual("1 (Warning)", rows[1].Value);
-            Assert.AreEqual(nameof(PathRouteDiagnosticCode.MissingEndNode), rows[2].Name);
-            Assert.AreEqual("Path has no end node.", rows[2].Value);
+            Assert.HasCount(1, rows);
+            Assert.AreEqual(PathRouteDiagnosticSeverity.Warning, rows[0].Severity);
+            Assert.AreEqual(PathRouteDiagnosticCode.MissingEndNode, rows[0].Code);
+            Assert.AreEqual("Path has no end node.", rows[0].Message);
+            Assert.AreEqual(2, rows[0].NodeIndex);
+            Assert.AreEqual("Add or mark an end node.", rows[0].SuggestedAction);
+            Assert.IsTrue(rows[0].HasNodeTarget);
+            Assert.IsFalse(rows[0].HasSpanTarget);
         }
 
         [TestMethod]
-        public void WhenResolverHasAnchorMismatchThenDiagnosticMetadataContainsMismatchDetails()
+        public void WhenResolverHasSpanDiagnosticThenDiagnosticRowPreservesSpanTarget()
         {
-            PathRouteDiagnostic diagnostic = new PathRouteDiagnostic(PathRouteDiagnosticSeverity.Warning, PathRouteDiagnosticCode.AnchorLocationMismatch,
-                "Path node 0 has track anchor 2, but its stored location resolves to track node 1.", 0,
-                "Review the path node location and stored track anchor before saving or repairing the path.");
+            PathRouteDiagnostic diagnostic = new PathRouteDiagnostic(PathRouteDiagnosticSeverity.Warning, PathRouteDiagnosticCode.AmbiguousRoute,
+                "Nodes 1-4 have equal-cost routes.", 1, 4, "Choose a route candidate.");
             PathRouteResolution resolution = new PathRouteResolution(null, ImmutableArray.Create(diagnostic));
 
-            ImmutableArray<ToolWindowRow> rows = TrainPathToolWindow.BuildResolverDiagnosticMetadata(resolution);
+            ImmutableArray<TrainPathDiagnosticRow> rows = TrainPathToolWindow.BuildResolverDiagnostics(resolution);
 
-            Assert.HasCount(3, rows);
-            Assert.AreEqual(nameof(PathRouteDiagnosticCode.AnchorLocationMismatch), rows[2].Name);
-            Assert.Contains("track anchor 2", rows[2].Value);
-            Assert.Contains("track node 1", rows[2].Value);
+            Assert.HasCount(1, rows);
+            Assert.AreEqual(1, rows[0].FromNodeIndex);
+            Assert.AreEqual(4, rows[0].ToNodeIndex);
+            Assert.IsFalse(rows[0].HasNodeTarget);
+            Assert.IsTrue(rows[0].HasSpanTarget);
+            Assert.IsFalse(rows[0].CanRepair);
+        }
+
+        [TestMethod]
+        public void WhenHighlightDiagnosticTargetInvokedThenActionIsMarshaled()
+        {
+            int invocations = 0;
+            TrainPathToolWindow trainPathToolWindow = CreateTrainPathToolWindow(_ => invocations++);
+
+            trainPathToolWindow.HighlightDiagnosticTarget(-1, 1, 4);
+
+            Assert.AreEqual(1, invocations);
+        }
+
+        [TestMethod]
+        public void WhenRepairDiagnosticNodeInvokedThenActionIsMarshaled()
+        {
+            int invocations = 0;
+            TrainPathToolWindow trainPathToolWindow = CreateTrainPathToolWindow(_ => invocations++);
+
+            trainPathToolWindow.RepairDiagnosticNode(2);
+
+            Assert.AreEqual(1, invocations);
         }
 
         [TestMethod]

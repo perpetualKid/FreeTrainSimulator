@@ -200,16 +200,38 @@ namespace FreeTrainSimulator.Graphics.MapView
             if (trainPath == null)
                 return;
 
+            trainPath.ClearHighlightedSpan();
             SelectPathItem(index);
             TrainPathPointBase item = trainPath.SelectedNode;
             if (item != null)
                 editorContext.Viewport.SetTrackingPosition(item.Location);
         }
 
+        protected bool HighlightPathSpan(int fromNodeIndex, int toNodeIndex)
+        {
+            if (trainPath == null || !trainPath.HighlightMainPathSpan(fromNodeIndex, toNodeIndex))
+                return false;
+
+            editorContext.Viewport?.SetTrackingPosition(trainPath.PathPoints[fromNodeIndex].Location);
+            return true;
+        }
+
+        protected void ClearPathHighlight()
+        {
+            if (trainPath == null)
+                return;
+
+            trainPath.ClearHighlightedSpan();
+            SelectPathItem(-1);
+        }
+
         protected void SelectPathItem(int index)
         {
             if (trainPath != null)
+            {
+                trainPath.ClearHighlightedSpan();
                 trainPath.SelectedNodeIndex = index;
+            }
         }
 
         protected virtual void Dispose(bool disposing)

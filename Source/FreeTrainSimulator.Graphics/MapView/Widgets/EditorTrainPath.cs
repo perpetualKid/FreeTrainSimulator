@@ -19,12 +19,17 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
         #endregion
 
         private Lookup<TrainPathPointBase, TrainPathSectionBase> pathSectionLookup;
+        private HashSet<int> highlightedSpanSourceNodeIndexes = new HashSet<int>();
 
         public int SelectedNodeIndex { get; set; } = -1;
 
         public int HiddenNodeIndex { get; set; } = -1;
 
         public TrainPathPointBase SelectedNode => SelectedNodeIndex >= 0 && SelectedNodeIndex < PathPoints.Count ? PathPoints[SelectedNodeIndex] : null;
+
+        internal bool HasHighlightedSpan => highlightedSpanSourceNodeIndexes.Count > 0;
+
+        internal bool IsSpanSourceNodeHighlighted(int nodeIndex) => highlightedSpanSourceNodeIndexes.Contains(nodeIndex);
 
         private record TrainPathSection : TrainPathSectionBase, IDrawable<VectorPrimitive>
         {
@@ -49,7 +54,9 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
 
             public virtual void Draw(IMapRenderer renderer, ColorVariation colorVariation = ColorVariation.None, double scaleFactor = 1)
             {
-                colorVariation = PathType switch
+                colorVariation = colorVariation == ColorVariation.ComplementHighlight
+                    ? colorVariation
+                    : PathType switch
                 {
                     PathSectionType.PassingPath => ColorVariation.Highlight,
                     _ => ColorVariation.None,
@@ -146,6 +153,40 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
                 ? new EditorPathPoint(PathModel.PathNodes[nodeIndex], TrackWorld)
                 : null;
         }
+
+        internal bool HighlightMainPathSpan(int fromNodeIndex, int toNodeIndex)
+        {
+            highlightedSpanSourceNodeIndexes.Clear();
+            if (fromNodeIndex < 0 || fromNodeIndex >= PathPoints.Count || toNodeIndex < 0 || toNodeIndex >= PathPoints.Count)
+                return false;
+
+            int currentNodeIndex = fromNodeIndex;
+            HashSet<int> visited = new HashSet<int>();
+            while (currentNodeIndex != toNodeIndex && visited.Add(currentNodeIndex))
+            {
+                TrainPathPointBase pathPoint = PathPoints[currentNodeIndex];
+                int nextNodeIndex = pathPoint.NextMainNode;
+                if (nextNodeIndex < 0 || nextNodeIndex >= PathPoints.Count)
+                {
+                    highlightedSpanSourceNodeIndexes.Clear();
+                    return false;
+                }
+
+                highlightedSpanSourceNodeIndexes.Add(currentNodeIndex);
+                currentNodeIndex = nextNodeIndex;
+            }
+
+            if (currentNodeIndex != toNodeIndex)
+            {
+                highlightedSpanSourceNodeIndexes.Clear();
+                return false;
+            }
+
+            SelectedNodeIndex = -1;
+            return highlightedSpanSourceNodeIndexes.Count > 0;
+        }
+
+        internal void ClearHighlightedSpan() => highlightedSpanSourceNodeIndexes.Clear();
 
         #region path editing
         internal EditorPathPoint AddPathPoint(EditorPathPoint pathPoint)
@@ -286,7 +327,10 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
         {
             foreach (TrainPathSection pathSection in PathSections)
             {
-                pathSection.Draw(renderer, colorVariation, scaleFactor);
+                if (pathSection is TrainPathSection editorSection && highlightedSpanSourceNodeIndexes.Contains(editorSection.SourceNodeIndex))
+                    pathSection.Draw(renderer, ColorVariation.ComplementHighlight, 3);
+                else
+                    pathSection.Draw(renderer, colorVariation, scaleFactor);
             }
             for (int i = 0; i < PathPoints.Count; i++)
             {

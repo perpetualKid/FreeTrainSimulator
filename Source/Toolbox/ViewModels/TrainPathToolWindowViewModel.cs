@@ -23,6 +23,8 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
         private TrainPathListItemViewModel selectedPath;
         private TrainPathNodeItemViewModel selectedNode;
         private TrainPathRouteCandidateItemViewModel selectedRouteCandidate;
+        private TrainPathDiagnosticItemViewModel selectedDiagnostic;
+        private int selectedTabIndex;
         private string snapshotSelectedPathId;
         private bool canUndo;
         private bool canRedo;
@@ -55,6 +57,7 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
             SavePathCommand = new RelayCommand(_ => toolWindow.SavePath(), _ => CanSavePath);
             ValidateAllPathsCommand = new RelayCommand(_ => ValidateAllPaths());
             AcceptRouteCandidateCommand = new RelayCommand(_ => AcceptRouteCandidate(), _ => CanAcceptRouteCandidate);
+            RepairDiagnosticCommand = new RelayCommand(_ => RepairDiagnostic(), _ => CanRepairDiagnostic);
         }
 
         /// <summary>
@@ -99,6 +102,9 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
         /// <summary>Equal-cost route candidates of the current path's ambiguous spans.</summary>
         public ObservableCollection<TrainPathRouteCandidateItemViewModel> RouteCandidates { get; } = new ObservableCollection<TrainPathRouteCandidateItemViewModel>();
 
+        /// <summary>Resolver diagnostics of the current path.</summary>
+        public ObservableCollection<TrainPathDiagnosticItemViewModel> Diagnostics { get; } = new ObservableCollection<TrainPathDiagnosticItemViewModel>();
+
         public RelayCommand UndoCommand { get; }
 
         public RelayCommand RedoCommand { get; }
@@ -127,7 +133,42 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
 
         public RelayCommand AcceptRouteCandidateCommand { get; }
 
+        public RelayCommand RepairDiagnosticCommand { get; }
+
         public bool CanAcceptRouteCandidate => SelectedRouteCandidate != null && !CanCancelMoveNode;
+
+        public bool CanRepairDiagnostic => SelectedDiagnostic?.CanRepair == true && !CanCancelMoveNode;
+
+        public int SelectedTabIndex
+        {
+            get => selectedTabIndex;
+            set => SetProperty(ref selectedTabIndex, value);
+        }
+
+        /// <summary>Currently selected resolver diagnostic.</summary>
+        public TrainPathDiagnosticItemViewModel SelectedDiagnostic
+        {
+            get => selectedDiagnostic;
+            set
+            {
+                if (!SetProperty(ref selectedDiagnostic, value))
+                    return;
+
+                RepairDiagnosticCommand.RaiseCanExecuteChanged();
+                if (suppressSelectionCommand)
+                    return;
+
+                if (value == null)
+                {
+                    toolWindow.HighlightDiagnosticTarget(-1, -1, -1);
+                    return;
+                }
+
+                toolWindow.HighlightDiagnosticTarget(value.NodeIndex, value.FromNodeIndex, value.ToNodeIndex);
+                if (value.IsAmbiguousRoute)
+                    NavigateToRouteCandidates(value);
+            }
+        }
 
         /// <summary>
         /// Currently selected route candidate. Selecting a candidate previews it on the map; clearing the
@@ -175,6 +216,7 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
                 {
                     CancelMoveNodeCommand.RaiseCanExecuteChanged();
                     MoveSelectedNodeCommand.RaiseCanExecuteChanged();
+                    RepairDiagnosticCommand.RaiseCanExecuteChanged();
                 }
             }
         }
@@ -308,6 +350,7 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
             UpdateSelectedNodeDetailRows();
             DebugToolWindowRowViewModel.Sync(Metadata, snapshot.Metadata);
             SyncRouteCandidates(snapshot.RouteCandidates);
+            SyncDiagnostics(snapshot.Diagnostics);
             CanUndo = snapshot.CanUndo;
             CanRedo = snapshot.CanRedo;
             CanSnapToTrack = snapshot.CanSnapToTrack;
@@ -325,6 +368,64 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
                 snapshotSelectedPathId = snapshot.SelectedPathId;
                 UpdateSelectedPathFromSnapshot();
             }
+        }
+
+        private void SyncDiagnostics(ImmutableArray<TrainPathDiagnosticRow> rows)
+        {
+            if (rows.IsDefault)
+                rows = ImmutableArray<TrainPathDiagnosticRow>.Empty;
+
+            TrainPathDiagnosticItemViewModel selected = SelectedDiagnostic;
+            for (int i = 0; i < rows.Length; i++)
+            {
+                if (i < Diagnostics.Count)
+                    Diagnostics[i].Update(rows[i]);
+                else
+                    Diagnostics.Add(new TrainPathDiagnosticItemViewModel(rows[i]));
+            }
+
+            for (int i = Diagnostics.Count - 1; i >= rows.Length; i--)
+                Diagnostics.RemoveAt(i);
+
+            if (selected != null && !Diagnostics.Contains(selected))
+                RestoreDiagnosticSelection(null);
+        }
+
+        private void RestoreDiagnosticSelection(TrainPathDiagnosticItemViewModel diagnostic)
+        {
+            suppressSelectionCommand = true;
+            try
+            {
+                SelectedDiagnostic = diagnostic;
+            }
+            finally
+            {
+                suppressSelectionCommand = false;
+            }
+        }
+
+        private void NavigateToRouteCandidates(TrainPathDiagnosticItemViewModel diagnostic)
+        {
+            TrainPathRouteCandidateItemViewModel candidate = RouteCandidates.FirstOrDefault(item =>
+                item.FromNodeIndex == diagnostic.FromNodeIndex && item.ToNodeIndex == diagnostic.ToNodeIndex);
+            if (candidate == null)
+            {
+                SetStatusMessage($"No route candidates are available for {diagnostic.Target}.", true);
+                return;
+            }
+
+            SelectedTabIndex = 3;
+            SelectedRouteCandidate = candidate;
+        }
+
+        private void RepairDiagnostic()
+        {
+            TrainPathDiagnosticItemViewModel diagnostic = SelectedDiagnostic;
+            if (diagnostic?.CanRepair != true)
+                return;
+
+            toolWindow.RepairDiagnosticNode(diagnostic.NodeIndex);
+            SetStatusMessage($"Repair node {diagnostic.NodeIndex} requested.", false);
         }
 
         private void MoveSelectedNode()

@@ -79,9 +79,9 @@ namespace FreeTrainSimulator.Toolbox
 
         protected override void Dispose(bool disposing)
         {
-            userCommandController.RemoveEvent(CommonUserCommand.PointerReleased, MouseReleasedLeft);
-            userCommandController.RemoveEvent(CommonUserCommand.AlternatePointerReleased, MouseReleasedRight);
-            userCommandController.RemoveEvent(CommonUserCommand.PointerDragged, MouseDragged);
+            userCommandController?.RemoveEvent(CommonUserCommand.PointerReleased, MouseReleasedLeft);
+            userCommandController?.RemoveEvent(CommonUserCommand.AlternatePointerReleased, MouseReleasedRight);
+            userCommandController?.RemoveEvent(CommonUserCommand.PointerDragged, MouseDragged);
 
             base.Dispose(disposing);
         }
@@ -389,6 +389,32 @@ namespace FreeTrainSimulator.Toolbox
         public PathEditResult RepairSelectedNode(int nodeIndex)
         {
             return ApplySelectedNodeEdit(nodeIndex, model => PathModelEditor.RepairNode(model, nodeIndex, RuntimeDataResolver.Instance.TrackWorld));
+        }
+
+        public bool CanRepairNode(int nodeIndex)
+        {
+            PathModel currentModel = TryGetEditablePathModel();
+            return currentModel != null && PathModelEditor.RepairNode(currentModel, nodeIndex, RuntimeDataResolver.Instance.TrackWorld).Success;
+        }
+
+        public void HighlightDiagnosticTarget(int nodeIndex, int fromNodeIndex, int toNodeIndex)
+        {
+            if (nodeIndex >= 0)
+            {
+                HighlightPathItem(nodeIndex);
+                return;
+            }
+
+            if (fromNodeIndex >= 0 && toNodeIndex >= 0 && HighlightPathSpan(fromNodeIndex, toNodeIndex))
+                return;
+
+            if (fromNodeIndex >= 0)
+            {
+                HighlightPathItem(fromNodeIndex);
+                return;
+            }
+
+            ClearPathHighlight();
         }
 
         /// <summary>

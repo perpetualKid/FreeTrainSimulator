@@ -5,6 +5,7 @@ using System.Windows.Threading;
 
 using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Models.Content;
+using FreeTrainSimulator.Runtime.Track;
 using FreeTrainSimulator.Toolbox.ToolWindows;
 using FreeTrainSimulator.Toolbox.ViewModels;
 
@@ -482,6 +483,67 @@ namespace Tests.FreeTrainSimulator.Toolbox
             Assert.AreEqual(6, candidate.ToNodeIndex);
             Assert.AreEqual(1, candidate.CandidateIndex);
             Assert.AreEqual("second", candidate.Description);
+        }
+
+        [TestMethod]
+        public void WhenNodeDiagnosticSelectedThenBridgeHighlightIsMarshaled()
+        {
+            int marshaledInvocations = 0;
+            TrainPathToolWindow bridge = CreateBridge(_ => marshaledInvocations++);
+            using (ToolWindowRefreshScheduler refreshScheduler = new ToolWindowRefreshScheduler(Dispatcher.CurrentDispatcher))
+            {
+                using (TrainPathToolWindowViewModel viewModel = new TrainPathToolWindowViewModel(bridge, refreshScheduler))
+                {
+                    viewModel.SelectedDiagnostic = new TrainPathDiagnosticItemViewModel(new TrainPathDiagnosticRow(
+                        PathRouteDiagnosticSeverity.Error, PathRouteDiagnosticCode.AnchorNotOnTrack, "Node is off track.",
+                        2, -1, -1, "Repair the node.", true));
+
+                    Assert.AreEqual(1, marshaledInvocations);
+                }
+            }
+        }
+
+        [TestMethod]
+        public void WhenAmbiguousDiagnosticSelectedThenMatchingRouteCandidateIsSelected()
+        {
+            TrainPathToolWindow bridge = CreateBridge(action => action());
+            using (ToolWindowRefreshScheduler refreshScheduler = new ToolWindowRefreshScheduler(Dispatcher.CurrentDispatcher))
+            {
+                using (TrainPathToolWindowViewModel viewModel = new TrainPathToolWindowViewModel(bridge, refreshScheduler))
+                {
+                    TrainPathRouteCandidateItemViewModel matchingCandidate = new TrainPathRouteCandidateItemViewModel(
+                        new TrainPathRouteCandidateRow(1, 4, 0, "matching"));
+                    viewModel.RouteCandidates.Add(new TrainPathRouteCandidateItemViewModel(new TrainPathRouteCandidateRow(0, 1, 0, "other")));
+                    viewModel.RouteCandidates.Add(matchingCandidate);
+
+                    viewModel.SelectedDiagnostic = new TrainPathDiagnosticItemViewModel(new TrainPathDiagnosticRow(
+                        PathRouteDiagnosticSeverity.Warning, PathRouteDiagnosticCode.AmbiguousRoute, "Several routes are available.",
+                        -1, 1, 4, "Choose a route candidate.", false));
+
+                    Assert.AreSame(matchingCandidate, viewModel.SelectedRouteCandidate);
+                    Assert.AreEqual(3, viewModel.SelectedTabIndex);
+                }
+            }
+        }
+
+        [TestMethod]
+        public void WhenRepairableDiagnosticSelectedThenRepairCommandMarshalsRepair()
+        {
+            int marshaledInvocations = 0;
+            TrainPathToolWindow bridge = CreateBridge(_ => marshaledInvocations++);
+            using (ToolWindowRefreshScheduler refreshScheduler = new ToolWindowRefreshScheduler(Dispatcher.CurrentDispatcher))
+            {
+                using (TrainPathToolWindowViewModel viewModel = new TrainPathToolWindowViewModel(bridge, refreshScheduler))
+                {
+                    viewModel.SelectedDiagnostic = new TrainPathDiagnosticItemViewModel(new TrainPathDiagnosticRow(
+                        PathRouteDiagnosticSeverity.Error, PathRouteDiagnosticCode.AnchorNotOnTrack, "Node is off track.",
+                        2, -1, -1, "Repair the node.", true));
+
+                    viewModel.RepairDiagnosticCommand.Execute(null);
+
+                    Assert.AreEqual(2, marshaledInvocations);
+                }
+            }
         }
 
         private static void SetCommandAvailability(TrainPathToolWindowViewModel viewModel, string fieldName, bool value)

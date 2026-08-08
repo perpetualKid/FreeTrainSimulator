@@ -172,6 +172,38 @@ namespace Tests.FreeTrainSimulator.Graphics.MapView.Widgets
         }
 
         [TestMethod]
+        public void WhenMainPathSpanHighlightedThenAllLinkedSourceSectionsAreHighlighted()
+        {
+            PathModel path = CreatePath(
+                NodeAt(0, PathNodeType.Start, nextMainNode: 1),
+                NodeAt(100, PathNodeType.Intermediate, nextMainNode: 2),
+                NodeAt(200, PathNodeType.End, nextMainNode: -1));
+            EditorTrainPath trainPath = new EditorTrainPath(path, CreateTrackWorld());
+
+            bool highlighted = trainPath.HighlightMainPathSpan(0, 2);
+
+            Assert.IsTrue(highlighted);
+            Assert.IsTrue(trainPath.IsSpanSourceNodeHighlighted(0));
+            Assert.IsTrue(trainPath.IsSpanSourceNodeHighlighted(1));
+            Assert.IsFalse(trainPath.IsSpanSourceNodeHighlighted(2));
+        }
+
+        [TestMethod]
+        public void WhenMainPathSpanTargetIsUnreachableThenSpanHighlightIsCleared()
+        {
+            PathModel path = CreatePath(
+                NodeAt(0, PathNodeType.Start, nextMainNode: 1),
+                NodeAt(100, PathNodeType.End, nextMainNode: -1),
+                NodeAt(200, PathNodeType.Intermediate, nextMainNode: -1));
+            EditorTrainPath trainPath = new EditorTrainPath(path, CreateTrackWorld());
+
+            bool highlighted = trainPath.HighlightMainPathSpan(0, 2);
+
+            Assert.IsFalse(highlighted);
+            Assert.IsFalse(trainPath.HasHighlightedSpan);
+        }
+
+        [TestMethod]
         public void WhenAddingPointAfterPreviewIntermediaryThenIntermediaryLinksToCommittedPoint()
         {
             // UpdatePathEndPoint temporarily inserts an intermediary junction preview when a segment crosses a

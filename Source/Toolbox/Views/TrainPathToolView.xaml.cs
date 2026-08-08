@@ -4,6 +4,8 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 
+using FreeTrainSimulator.Toolbox.ViewModels;
+
 namespace FreeTrainSimulator.Toolbox.Views
 {
     /// <summary>
@@ -16,6 +18,18 @@ namespace FreeTrainSimulator.Toolbox.Views
         public TrainPathToolView()
         {
             InitializeComponent();
+        }
+
+        private void PathEditorTabs_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (!IsLoaded || !IsVisible || e.Source != PathEditorTabs || PathEditorTabs.SelectedIndex < 0
+                || DataContext is not TrainPathToolWindowViewModel viewModel
+                || Mouse.LeftButton != MouseButtonState.Pressed && !PathEditorTabs.IsKeyboardFocusWithin)
+            {
+                return;
+            }
+
+            viewModel.SelectedTabIndex = PathEditorTabs.SelectedIndex;
         }
 
         private void WaitTimeTextBox_PreviewTextInput(object sender, TextCompositionEventArgs e)
