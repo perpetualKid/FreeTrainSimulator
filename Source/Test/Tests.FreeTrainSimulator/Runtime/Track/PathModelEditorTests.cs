@@ -18,6 +18,230 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
     public class PathModelEditorTests
     {
         [TestMethod]
+        public void WhenSetStartAnchorOnEmptyPathThenStartIsCreated()
+        {
+            PathModel path = new PathModel();
+            PathNode anchor = Anchor(10, 42);
+
+            PathEditResult result = PathModelEditor.SetStartAnchor(path, anchor, true);
+
+            Assert.IsTrue(result.Success);
+            Assert.AreEqual(PathNodeType.Start | PathNodeType.Junction, result.PathModel.PathNodes[0].NodeType);
+            Assert.AreEqual(42, result.PathModel.PathNodes[0].NodeIndex);
+            Assert.AreEqual(-1, result.PathModel.PathNodes[0].NextMainNode);
+            CollectionAssert.AreEqual(new[] { 0 }, result.ChangedNodeIndexes.ToArray());
+        }
+
+        [TestMethod]
+        public void WhenSetStartAnchorReplacesStartThenLinksArePreserved()
+        {
+            PathModel path = CreatePath(Node(PathNodeType.Start | PathNodeType.Invalid | PathNodeType.Intermediate, 2, 1));
+
+            PathEditResult result = PathModelEditor.SetStartAnchor(path, Anchor(20, 84), false);
+
+            Assert.IsTrue(result.Success);
+            Assert.AreEqual(PathNodeType.Start, result.PathModel.PathNodes[0].NodeType);
+            Assert.AreEqual(2, result.PathModel.PathNodes[0].NextMainNode);
+            Assert.AreEqual(1, result.PathModel.PathNodes[0].NextSidingNode);
+            Assert.AreEqual(84, result.PathModel.PathNodes[0].NodeIndex);
+        }
+
+        [TestMethod]
+        public void WhenSetStartAnchorReplacesAnnotatedStartThenIntentIsPreserved()
+        {
+            PathNodeWaitInfo waitInfo = new PathNodeWaitInfo { WaitTime = 30 };
+            PathNode start = Node(PathNodeType.Start | PathNodeType.Wait | PathNodeType.Reversal, -1) with { WaitInfo = waitInfo };
+            PathModel path = CreatePath(start);
+
+            PathEditResult result = PathModelEditor.SetStartAnchor(path, Anchor(20, 84), false);
+
+            Assert.AreEqual(PathNodeType.Start | PathNodeType.Wait | PathNodeType.Reversal, result.PathModel.PathNodes[0].NodeType);
+            Assert.AreSame(waitInfo, result.PathModel.PathNodes[0].WaitInfo);
+        }
+
+        [TestMethod]
+        public void WhenSetStartAnchorPrependsExistingPathThenAllLinksAreReindexed()
+        {
+            PathModel path = CreatePath(
+                Node(PathNodeType.Intermediate, 1, 2),
+                Node(PathNodeType.Intermediate, -1),
+                Node(PathNodeType.Intermediate, 1));
+
+            PathEditResult result = PathModelEditor.SetStartAnchor(path, Anchor(10, 42), false);
+
+            Assert.AreEqual(1, result.PathModel.PathNodes[0].NextMainNode);
+            Assert.AreEqual(2, result.PathModel.PathNodes[1].NextMainNode);
+            Assert.AreEqual(3, result.PathModel.PathNodes[1].NextSidingNode);
+            Assert.AreEqual(2, result.PathModel.PathNodes[3].NextMainNode);
+            CollectionAssert.AreEqual(new[] { 0, 1, 2, 3 }, result.ChangedNodeIndexes.ToArray());
+        }
+
+        [TestMethod]
+        public void WhenSetStartAnchorPrependsExistingPathThenInputModelIsUnchanged()
+        {
+            PathNode originalNode = Node(PathNodeType.Intermediate, -1);
+            PathModel path = CreatePath(originalNode);
+
+            PathEditResult result = PathModelEditor.SetStartAnchor(path, Anchor(10, 42), false);
+
+            Assert.AreNotSame(path, result.PathModel);
+            Assert.AreSame(originalNode, path.PathNodes[0]);
+            Assert.AreEqual(-1, path.PathNodes[0].NextMainNode);
+        }
+
+        [TestMethod]
+        public void WhenSetStartAnchorReceivesNullModelThenItThrows()
+        {
+            Assert.ThrowsExactly<System.ArgumentNullException>(() => PathModelEditor.SetStartAnchor(null, Anchor(10, 42), false));
+        }
+
+        [TestMethod]
+        public void WhenSetStartAnchorReceivesNullAnchorThenItThrows()
+        {
+            Assert.ThrowsExactly<System.ArgumentNullException>(() => PathModelEditor.SetStartAnchor(new PathModel(), null, false));
+        }
+
+        [TestMethod]
+        public void WhenSetEndAnchorAfterStartThenEndIsAppended()
+        {
+            PathModel path = CreatePath(Node(PathNodeType.Start, -1));
+
+            PathEditResult result = PathModelEditor.SetEndAnchor(path, Anchor(30, 126), true);
+
+            Assert.IsTrue(result.Success);
+            Assert.AreEqual(1, result.PathModel.PathNodes[0].NextMainNode);
+            Assert.AreEqual(PathNodeType.End | PathNodeType.Junction, result.PathModel.PathNodes[1].NodeType);
+            Assert.AreEqual(126, result.PathModel.PathNodes[1].NodeIndex);
+            CollectionAssert.AreEqual(new[] { 0, 1 }, result.ChangedNodeIndexes.ToArray());
+        }
+
+        [TestMethod]
+        public void WhenSetEndAnchorAppendsToMainTailThenInteriorNodesArePreserved()
+        {
+            PathNode interior = Node(PathNodeType.Intermediate, 2, 3);
+            PathModel path = CreatePath(
+                Node(PathNodeType.Start, 1),
+                interior,
+                Node(PathNodeType.Intermediate, -1),
+                Node(PathNodeType.Intermediate, -1));
+
+            PathEditResult result = PathModelEditor.SetEndAnchor(path, Anchor(30, 126), false);
+
+            Assert.AreSame(interior, result.PathModel.PathNodes[1]);
+            Assert.AreEqual(4, result.PathModel.PathNodes[2].NextMainNode);
+            Assert.AreEqual(3, result.PathModel.PathNodes[1].NextSidingNode);
+            CollectionAssert.AreEqual(new[] { 2, 4 }, result.ChangedNodeIndexes.ToArray());
+        }
+
+        [TestMethod]
+        public void WhenSetEndAnchorReplacesEndThenItIsTerminalOnMain()
+        {
+            PathModel path = CreatePath(
+                Node(PathNodeType.Start, 1),
+                Node(PathNodeType.End | PathNodeType.Invalid | PathNodeType.Intermediate | PathNodeType.Junction, 7));
+
+            PathEditResult result = PathModelEditor.SetEndAnchor(path, Anchor(30, 126), false);
+
+            Assert.IsTrue(result.Success);
+            Assert.AreEqual(PathNodeType.End, result.PathModel.PathNodes[1].NodeType);
+            Assert.AreEqual(-1, result.PathModel.PathNodes[1].NextMainNode);
+            CollectionAssert.AreEqual(new[] { 1 }, result.ChangedNodeIndexes.ToArray());
+        }
+
+        [TestMethod]
+        public void WhenSetEndAnchorReplacesAnnotatedEndThenIntentIsPreserved()
+        {
+            PathNodeWaitInfo waitInfo = new PathNodeWaitInfo { WaitTime = 45 };
+            PathNode end = Node(PathNodeType.End | PathNodeType.Wait | PathNodeType.Reversal, -1) with { WaitInfo = waitInfo };
+            PathModel path = CreatePath(Node(PathNodeType.Start, 1), end);
+
+            PathEditResult result = PathModelEditor.SetEndAnchor(path, Anchor(30, 126), false);
+
+            Assert.AreEqual(PathNodeType.End | PathNodeType.Wait | PathNodeType.Reversal, result.PathModel.PathNodes[1].NodeType);
+            Assert.AreSame(waitInfo, result.PathModel.PathNodes[1].WaitInfo);
+        }
+
+        [TestMethod]
+        public void WhenSetEndAnchorHasNoStartThenEditFails()
+        {
+            PathModel path = CreatePath(Node(PathNodeType.Intermediate, -1));
+
+            PathEditResult result = PathModelEditor.SetEndAnchor(path, Anchor(30, 126), false);
+
+            Assert.IsFalse(result.Success);
+            Assert.AreSame(path, result.PathModel);
+            StringAssert.Contains(result.Message, "start anchor");
+        }
+
+        [TestMethod]
+        public void WhenSetEndAnchorMainLinkIsOutOfRangeThenEditFails()
+        {
+            PathModel path = CreatePath(Node(PathNodeType.Start, 4));
+
+            PathEditResult result = PathModelEditor.SetEndAnchor(path, Anchor(30, 126), false);
+
+            Assert.IsFalse(result.Success);
+            Assert.AreSame(path, result.PathModel);
+            StringAssert.Contains(result.Message, "out-of-range main link 4");
+        }
+
+        [TestMethod]
+        public void WhenSetEndAnchorMainPathContainsCycleThenEditFails()
+        {
+            PathModel path = CreatePath(
+                Node(PathNodeType.Start, 1),
+                Node(PathNodeType.Intermediate, 0));
+
+            PathEditResult result = PathModelEditor.SetEndAnchor(path, Anchor(30, 126), false);
+
+            Assert.IsFalse(result.Success);
+            Assert.AreSame(path, result.PathModel);
+            StringAssert.Contains(result.Message, "cycle at node 0");
+        }
+
+        [TestMethod]
+        public void WhenSetEndAnchorAppendsAfterTailWithSidingThenBranchIsPreserved()
+        {
+            PathModel path = CreatePath(
+                Node(PathNodeType.Start, 1),
+                Node(PathNodeType.Intermediate, -1, 2),
+                Node(PathNodeType.Intermediate, -1));
+
+            PathEditResult result = PathModelEditor.SetEndAnchor(path, Anchor(30, 126), false);
+
+            Assert.IsTrue(result.Success);
+            Assert.AreEqual(3, result.PathModel.PathNodes[1].NextMainNode);
+            Assert.AreEqual(2, result.PathModel.PathNodes[1].NextSidingNode);
+        }
+
+        [TestMethod]
+        public void WhenSetEndAnchorReplacesEndWithSidingThenEditFails()
+        {
+            PathModel path = CreatePath(
+                Node(PathNodeType.Start, 1),
+                Node(PathNodeType.End, -1, 2),
+                Node(PathNodeType.Intermediate, -1));
+
+            PathEditResult result = PathModelEditor.SetEndAnchor(path, Anchor(30, 126), false);
+
+            Assert.IsFalse(result.Success);
+            Assert.AreSame(path, result.PathModel);
+            StringAssert.Contains(result.Message, "siding branch to node 2");
+        }
+
+        [TestMethod]
+        public void WhenSetEndAnchorReceivesNullModelThenItThrows()
+        {
+            Assert.ThrowsExactly<System.ArgumentNullException>(() => PathModelEditor.SetEndAnchor(null, Anchor(30, 126), false));
+        }
+
+        [TestMethod]
+        public void WhenSetEndAnchorReceivesNullAnchorThenItThrows()
+        {
+            Assert.ThrowsExactly<System.ArgumentNullException>(() => PathModelEditor.SetEndAnchor(new PathModel(), null, false));
+        }
+
+        [TestMethod]
         public void WhenAddEndOnLinearPathThenLastNodeBecomesEnd()
         {
             PathModel path = CreatePath(
@@ -753,7 +977,20 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
             return new ResolvedRouteCandidate(ImmutableArray<int>.Empty, ImmutableArray<int>.Empty, anchors, 10.0);
         }
 
-        private static PathNode Node(PathNodeType nodeType, int nextMainNode, int nextSidingNode = -1)
+        private static PathNode Anchor(float x, int nodeIndex)
+        {
+            return new PathNode(new WorldLocation(new Tile(0, 0), new Vector3(x, 0, 0)))
+            {
+                NodeIndex = nodeIndex,
+            };
+        }
+
+        private static PathNode Node(PathNodeType nodeType, int nextMainNode)
+        {
+            return Node(nodeType, nextMainNode, -1);
+        }
+
+        private static PathNode Node(PathNodeType nodeType, int nextMainNode, int nextSidingNode)
         {
             return new PathNode(new WorldLocation(new Tile(0, 0), Vector3.Zero))
             {

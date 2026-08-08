@@ -217,6 +217,21 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
         /// <summary>Whether the active node move has a valid preview that can be committed.</summary>
         public bool CanCommitMoveNode { get; init; }
 
+        /// <summary>Current guided map placement mode.</summary>
+        public PathEditorPlacementMode PlacementMode { get; init; }
+
+        /// <summary>Whether any map placement can be canceled.</summary>
+        public bool CanCancelPlacement { get; init; }
+
+        /// <summary>Whether the active placement has a valid track preview that can be committed.</summary>
+        public bool CanCommitPlacement { get; init; }
+
+        /// <summary>Whether start-anchor placement can begin.</summary>
+        public bool CanPlaceStartAnchor { get; init; }
+
+        /// <summary>Whether end-anchor placement can begin.</summary>
+        public bool CanPlaceEndAnchor { get; init; }
+
         /// <summary>An empty snapshot used before any path content is available.</summary>
         public static TrainPathSnapshot Empty { get; } = new TrainPathSnapshot
         {
@@ -232,6 +247,11 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
             CanSnapToTrack = false,
             CanCancelMoveNode = false,
             CanCommitMoveNode = false,
+            PlacementMode = PathEditorPlacementMode.None,
+            CanCancelPlacement = false,
+            CanCommitPlacement = false,
+            CanPlaceStartAnchor = false,
+            CanPlaceEndAnchor = false,
         };
     }
 
@@ -323,7 +343,9 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
                     && !snapshot.CanRedo
                     && !snapshot.CanSnapToTrack
                     && !snapshot.CanCancelMoveNode
-                    && !snapshot.CanCommitMoveNode;
+                    && !snapshot.CanCommitMoveNode
+                    && !snapshot.CanCancelPlacement
+                    && !snapshot.CanCommitPlacement;
                 if (snapshotIsPathsOnly && pathsSnapshotVersion == lastSnapshotVersion)
                     return;
 
@@ -334,10 +356,11 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
                 return;
             }
 
-            TrainPathBase currentPath = pathEditor.TrainPath;
-            PathModel currentPathModel = NormalizeTransientPathModel(pathEditor.TryCaptureCurrentPathModel() ?? currentPath?.PathModel);
+            TrainPathBase authoredPath = pathEditor.TrainPath;
+            TrainPathBase currentPath = pathEditor.TryCaptureRenderedPath();
+            PathModel currentPathModel = NormalizeTransientPathModel(pathEditor.TryCaptureCurrentPathModel() ?? authoredPath?.PathModel);
             ImmutableArray<TrainPathListRow> paths = BuildPaths(currentPathModel);
-            string selectedPathId = currentPath?.PathModel?.Id;
+            string selectedPathId = authoredPath?.PathModel?.Id;
             int nodeCount = currentPath?.PathPoints.Count ?? 0;
             int selectedNodeIndex = pathEditor.SelectedPathNodeIndex;
             bool canUndo = pathEditor.CanUndo;
@@ -345,6 +368,11 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
             bool canSnapToTrack = pathEditor.CanSnapToTrack;
             bool canCancelMoveNode = pathEditor.IsMovingNode;
             bool canCommitMoveNode = pathEditor.CanCommitMoveNode;
+            PathEditorPlacementMode placementMode = pathEditor.PlacementMode;
+            bool canCancelPlacement = pathEditor.IsPlacementActive;
+            bool canCommitPlacement = pathEditor.CanCommitPlacement;
+            bool canPlaceStartAnchor = pathEditor.CanPlaceStartAnchor;
+            bool canPlaceEndAnchor = pathEditor.CanPlaceEndAnchor;
 
             int currentSnapshotVersion = snapshotVersion;
 
@@ -360,6 +388,11 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
                 && canSnapToTrack == snapshot.CanSnapToTrack
                 && canCancelMoveNode == snapshot.CanCancelMoveNode
                 && canCommitMoveNode == snapshot.CanCommitMoveNode
+                && placementMode == snapshot.PlacementMode
+                && canCancelPlacement == snapshot.CanCancelPlacement
+                && canCommitPlacement == snapshot.CanCommitPlacement
+                && canPlaceStartAnchor == snapshot.CanPlaceStartAnchor
+                && canPlaceEndAnchor == snapshot.CanPlaceEndAnchor
                 && paths.SequenceEqual(snapshot.Paths))
             {
                 return;
@@ -383,6 +416,11 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
                 CanSnapToTrack = canSnapToTrack,
                 CanCancelMoveNode = canCancelMoveNode,
                 CanCommitMoveNode = canCommitMoveNode,
+                PlacementMode = placementMode,
+                CanCancelPlacement = canCancelPlacement,
+                CanCommitPlacement = canCommitPlacement,
+                CanPlaceStartAnchor = canPlaceStartAnchor,
+                CanPlaceEndAnchor = canPlaceEndAnchor,
             };
         }
 
@@ -426,6 +464,25 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
             });
         }
 
+        internal void StartNewPathAt(PathNode anchor, bool isJunction)
+        {
+            ArgumentNullException.ThrowIfNull(anchor);
+
+            gameThreadInvoker(() =>
+            {
+                CaptureTransientCurrentPath();
+                createPathAction();
+                PathEditor pathEditor = pathEditorAccessor();
+                if (pathEditor == null)
+                    return;
+
+                PathEditorCommandResult result = pathEditor.SetStartAnchorCommand(anchor, isJunction);
+                if (!result.Success)
+                    Trace.TraceWarning(result.Message);
+                MarkDirty();
+            });
+        }
+
         internal void HighlightDiagnosticTarget(int nodeIndex, int fromNodeIndex, int toNodeIndex)
             => InvokeEditorAction(pathEditor => pathEditor.HighlightDiagnosticTarget(nodeIndex, fromNodeIndex, toNodeIndex));
 
@@ -464,6 +521,22 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
 
         internal void CancelMoveNode() => ExecuteEditorCommand(pathEditor => pathEditor.CancelMoveNodeCommand());
 
+        internal void BeginStartAnchorPlacement()
+            => ExecuteEditorCommand(pathEditor => pathEditor.BeginStartAnchorPlacementCommand(), activateMapInputAction);
+
+        internal void BeginEndAnchorPlacement()
+            => ExecuteEditorCommand(pathEditor => pathEditor.BeginEndAnchorPlacementCommand(), activateMapInputAction);
+
+        internal void SetStartAnchor(PathNode anchor, bool isJunction)
+            => ExecuteEditorCommand(pathEditor => pathEditor.SetStartAnchorCommand(anchor, isJunction));
+
+        internal void SetEndAnchor(PathNode anchor, bool isJunction)
+            => ExecuteEditorCommand(pathEditor => pathEditor.SetEndAnchorCommand(anchor, isJunction));
+
+        internal void CancelPlacement() => ExecuteEditorCommand(pathEditor => pathEditor.CancelPlacementCommand());
+
+        internal void CommitPlacement() => ExecuteEditorCommand(pathEditor => pathEditor.CommitPlacementCommand());
+
         internal void RepairSelectedNode(int nodeIndex) => ExecuteEditorCommand(pathEditor => pathEditor.RepairSelectedNodeCommand(nodeIndex));
 
         internal void SetWaitPoint(int nodeIndex, int waitTimeSeconds) => ExecuteEditorCommand(pathEditor => pathEditor.SetWaitPointCommand(nodeIndex, waitTimeSeconds));
@@ -500,6 +573,25 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
             {
                 CaptureTransientCurrentPath();
                 createPathAction();
+                MarkDirty();
+            });
+        }
+
+        internal void StartNewPathPlacement()
+        {
+            gameThreadInvoker(() =>
+            {
+                CaptureTransientCurrentPath();
+                createPathAction();
+                PathEditor pathEditor = pathEditorAccessor();
+                if (pathEditor == null)
+                    return;
+
+                PathEditorCommandResult result = pathEditor.BeginStartAnchorPlacementCommand();
+                if (result.Success)
+                    activateMapInputAction();
+                else
+                    Trace.TraceWarning(result.Message);
                 MarkDirty();
             });
         }

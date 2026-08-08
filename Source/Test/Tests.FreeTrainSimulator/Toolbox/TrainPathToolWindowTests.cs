@@ -250,6 +250,56 @@ namespace Tests.FreeTrainSimulator.Toolbox
         }
 
         [TestMethod]
+        public void WhenBeginStartAnchorPlacementThenGameThreadInvokerIsCalled()
+        {
+            int invocations = 0;
+            TrainPathToolWindow trainPathToolWindow = CreateTrainPathToolWindow(_ => invocations++);
+
+            trainPathToolWindow.BeginStartAnchorPlacement();
+
+            Assert.AreEqual(1, invocations);
+        }
+
+        [TestMethod]
+        public void WhenBeginEndAnchorPlacementThenGameThreadInvokerIsCalled()
+        {
+            int invocations = 0;
+            TrainPathToolWindow trainPathToolWindow = CreateTrainPathToolWindow(_ => invocations++);
+
+            trainPathToolWindow.BeginEndAnchorPlacement();
+
+            Assert.AreEqual(1, invocations);
+        }
+
+        [TestMethod]
+        public void WhenCancelPlacementThenGameThreadInvokerIsCalled()
+        {
+            int invocations = 0;
+            TrainPathToolWindow trainPathToolWindow = CreateTrainPathToolWindow(_ => invocations++);
+
+            trainPathToolWindow.CancelPlacement();
+
+            Assert.AreEqual(1, invocations);
+        }
+
+        [TestMethod]
+        public void WhenStartNewPathPlacementThenCreateAndPlacementAreMarshaledTogether()
+        {
+            int invocations = 0;
+            int createActions = 0;
+            TrainPathToolWindow trainPathToolWindow = CreateTrainPathToolWindow(action =>
+            {
+                invocations++;
+                action();
+            }, () => createActions++, () => { });
+
+            trainPathToolWindow.StartNewPathPlacement();
+
+            Assert.AreEqual(1, invocations);
+            Assert.AreEqual(1, createActions);
+        }
+
+        [TestMethod]
         public void WhenSelectPathThenLoadPathActionIsCalled()
         {
             PathModelHeader loadedPath = null;

@@ -20,20 +20,73 @@ namespace Tests.FreeTrainSimulator.Toolbox
         public void WhenNodeMoveIsInProgressThenNodeMenuOnlyOffersCancelMove()
         {
             ImmutableArray<MapContextMenuItem> items = BuildForNode(
-                new TestPathPoint(PathNodeType.Intermediate), 2, true, new MapContextMenuState { IsMovingNode = true });
+                new TestPathPoint(PathNodeType.Intermediate), 2, true, new MapContextMenuState { IsPlacementActive = true });
 
             Assert.AreEqual(1, items.Length);
-            Assert.AreEqual(MapContextMenuAction.CancelMoveNode, items[0].Action);
+            Assert.AreEqual(MapContextMenuAction.CancelPlacement, items[0].Action);
         }
 
         [TestMethod]
         public void WhenNodeMoveIsInProgressThenMapMenuOnlyOffersCancelMove()
         {
             ImmutableArray<MapContextMenuItem> items = BuildForMap(
-                new MapContextMenuState { IsMovingNode = true, CanExtendPath = true, CanUndo = true });
+                new MapContextMenuState { IsPlacementActive = true, CanExtendPath = true, CanUndo = true });
 
             Assert.AreEqual(1, items.Length);
-            Assert.AreEqual(MapContextMenuAction.CancelMoveNode, items[0].Action);
+            Assert.AreEqual(MapContextMenuAction.CancelPlacement, items[0].Action);
+        }
+
+        [TestMethod]
+        public void WhenStartAnchorCanBePlacedThenMapMenuOffersSetStartHere()
+        {
+            PathNode anchor = PlacementAnchor();
+            ImmutableArray<MapContextMenuItem> items = BuildForMap(new MapContextMenuState { CanSetStartAnchor = true }, anchor);
+
+            Assert.Contains(MapContextMenuAction.SetStartHere, Actions(items));
+            Assert.AreSame(anchor, items.Single(item => item.Action == MapContextMenuAction.SetStartHere).PlacementAnchor);
+        }
+
+        [TestMethod]
+        public void WhenEndAnchorCannotBePlacedThenMapMenuOmitsSetEndHere()
+        {
+            ImmutableArray<MapContextMenuItem> items = BuildForMap(new MapContextMenuState { CanSetStartAnchor = true }, PlacementAnchor());
+
+            Assert.DoesNotContain(MapContextMenuAction.SetEndHere, Actions(items));
+        }
+
+        [TestMethod]
+        public void WhenNoEditablePathExistsThenMapMenuOffersStartNewPathHere()
+        {
+            PathNode anchor = PlacementAnchor();
+            ImmutableArray<MapContextMenuItem> items = BuildForMap(new MapContextMenuState { CanStartNewPath = true }, anchor);
+
+            Assert.Contains(MapContextMenuAction.StartNewPathHere, Actions(items));
+            Assert.AreSame(anchor, items.Single(item => item.Action == MapContextMenuAction.StartNewPathHere).PlacementAnchor);
+        }
+
+        [TestMethod]
+        public void WhenNoTrackAnchorExistsThenMapMenuOmitsEndpointHereActions()
+        {
+            ImmutableArray<MapContextMenuItem> items = BuildForMap(new MapContextMenuState
+            {
+                CanStartNewPath = true,
+                CanSetStartAnchor = true,
+                CanSetEndAnchor = true,
+            });
+
+            Assert.DoesNotContain(MapContextMenuAction.StartNewPathHere, Actions(items));
+            Assert.DoesNotContain(MapContextMenuAction.SetStartHere, Actions(items));
+            Assert.DoesNotContain(MapContextMenuAction.SetEndHere, Actions(items));
+        }
+
+        [TestMethod]
+        public void WhenPlacementIsActiveThenSpanMenuOnlyOffersCancelPlacement()
+        {
+            ImmutableArray<MapContextMenuItem> items = BuildForSpan(0, PlacementAnchor(),
+                ImmutableArray<ResolvedRouteCandidate>.Empty, new MapContextMenuState { IsPlacementActive = true });
+
+            Assert.AreEqual(1, items.Length);
+            Assert.AreEqual(MapContextMenuAction.CancelPlacement, items[0].Action);
         }
 
         [TestMethod]
@@ -191,10 +244,10 @@ namespace Tests.FreeTrainSimulator.Toolbox
                 CanStartNewPath = true,
             };
 
-            ImmutableArray<MapContextMenuItem> items = BuildForMap(state);
+            ImmutableArray<MapContextMenuItem> items = BuildForMap(state, PlacementAnchor());
 
             Assert.Contains(MapContextMenuAction.ExtendPath, Actions(items));
-            Assert.Contains(MapContextMenuAction.StartNewPath, Actions(items));
+            Assert.Contains(MapContextMenuAction.StartNewPathHere, Actions(items));
             Assert.DoesNotContain(MapContextMenuAction.SavePath, Actions(items));
             Assert.DoesNotContain(MapContextMenuAction.ReResolvePath, Actions(items));
         }

@@ -14,6 +14,8 @@ using FreeTrainSimulator.Common.Position;
 using FreeTrainSimulator.Graphics.MapView;
 using FreeTrainSimulator.Models.Content;
 using FreeTrainSimulator.Models.Shim;
+using FreeTrainSimulator.Models.Track;
+using FreeTrainSimulator.Runtime;
 using FreeTrainSimulator.Runtime.Track;
 using FreeTrainSimulator.Toolbox.ToolWindows;
 
@@ -102,10 +104,13 @@ namespace FreeTrainSimulator.Toolbox
             double tolerance = content.Scale > 0
                 ? nodeHitTestRadiusPixels / content.Scale
                 : 0;
+            PathNode contextAnchor = TryCreateContextAnchor(location);
 
             MapContextMenuActionBuilder.MapContextMenuState state = new MapContextMenuActionBuilder.MapContextMenuState
             {
-                IsMovingNode = editor.IsMovingNode,
+                IsPlacementActive = editor.IsPlacementActive,
+                CanSetStartAnchor = editor.CanPlaceStartAnchor,
+                CanSetEndAnchor = editor.CanPlaceEndAnchor,
                 CanUndo = editor.CanUndo,
                 CanRedo = editor.CanRedo,
                 CanExtendPath = editor.CanExtendPath,
@@ -118,7 +123,7 @@ namespace FreeTrainSimulator.Toolbox
             if (editor.TryGetPathNodeAt(location, tolerance, out int nodeIndex))
             {
                 items = MapContextMenuActionBuilder.BuildForNode(
-                    editor.TrainPath?.PathPoints[nodeIndex], nodeIndex, editor.CanMoveNode(nodeIndex), state);
+                    editor.TrainPath?.PathPoints[nodeIndex], nodeIndex, editor.CanMoveNode(nodeIndex), state, contextAnchor);
             }
             else if (editor.TryGetPathSpanAt(location, tolerance, out int fromNodeIndex, out PathNode placementAnchor))
             {
@@ -126,7 +131,7 @@ namespace FreeTrainSimulator.Toolbox
             }
             else
             {
-                items = MapContextMenuActionBuilder.BuildForMap(state);
+                items = MapContextMenuActionBuilder.BuildForMap(state, contextAnchor);
                 nodeIndex = -1;
             }
 
@@ -199,8 +204,8 @@ namespace FreeTrainSimulator.Toolbox
                 case MapContextMenuAction.MoveNode:
                     toolWindow.BeginMoveNode(nodeIndex);
                     break;
-                case MapContextMenuAction.CancelMoveNode:
-                    toolWindow.CancelMoveNode();
+                case MapContextMenuAction.CancelPlacement:
+                    toolWindow.CancelPlacement();
                     break;
                 case MapContextMenuAction.AddViaPoint:
                     if (placementAnchor == null)
@@ -238,6 +243,19 @@ namespace FreeTrainSimulator.Toolbox
                 case MapContextMenuAction.StartNewPath:
                     toolWindow.CreatePath();
                     break;
+                case MapContextMenuAction.StartNewPathHere:
+                    if (placementAnchor != null)
+                    {
+                        bool isJunction = RuntimeDataResolver.Instance.TrackWorld?.JunctionAt(placementAnchor.Location) != null;
+                        toolWindow.StartNewPathAt(placementAnchor, isJunction);
+                    }
+                    break;
+                case MapContextMenuAction.SetStartHere:
+                    ApplyContextAnchor(toolWindow, placementAnchor, true);
+                    break;
+                case MapContextMenuAction.SetEndHere:
+                    ApplyContextAnchor(toolWindow, placementAnchor, false);
+                    break;
                 case MapContextMenuAction.SavePath:
                     toolWindow.SavePath();
                     break;
@@ -251,6 +269,52 @@ namespace FreeTrainSimulator.Toolbox
                     Trace.TraceWarning($"Unsupported map context menu action {action}.");
                     break;
             }
+        }
+
+        private static void ApplyContextAnchor(TrainPathToolWindow toolWindow, PathNode anchor, bool isStart)
+        {
+            if (anchor == null)
+                return;
+
+            bool isJunction = RuntimeDataResolver.Instance.TrackWorld?.JunctionAt(anchor.Location) != null;
+            if (isStart)
+                toolWindow.SetStartAnchor(anchor, isJunction);
+            else
+                toolWindow.SetEndAnchor(anchor, isJunction);
+        }
+
+        private static PathNode TryCreateContextAnchor(in PointD location)
+        {
+            TrackWorld trackWorld = RuntimeDataResolver.Instance.TrackWorld;
+            if (trackWorld == null)
+                return null;
+
+            WorldLocation worldLocation = PointD.ToWorldLocation(location);
+            JunctionNode junction = trackWorld.JunctionAt(worldLocation);
+            if (junction != null)
+            {
+                return new PathNode(junction.Location)
+                {
+                    NodeIndex = junction.NodeIndex,
+                };
+            }
+
+            TrackDistanceDiagnostic nearest = trackWorld.NearestTrackDistance(location);
+            if (nearest == null || nearest.DistanceMeters > 1.0)
+                return null;
+
+            foreach (var geometry in trackWorld.SectionGeometry.Values)
+            {
+                if (geometry.Node.NodeIndex != nearest.TrackNodeIndex || geometry.SectionIndex != nearest.TrackVectorSectionIndex)
+                    continue;
+
+                return new PathNode(geometry.SnapToSection(worldLocation))
+                {
+                    NodeIndex = nearest.TrackNodeIndex,
+                };
+            }
+
+            return null;
         }
 
         private void MoveByKeyLeft(UserCommandArgs commandArgs)

@@ -10,7 +10,7 @@ namespace FreeTrainSimulator.Toolbox
 
         // Node scoped
         MoveNode,
-        CancelMoveNode,
+        CancelPlacement,
         RemoveViaPoint,
         ClearWaitPoint,
         SetReversalPoint,
@@ -26,6 +26,9 @@ namespace FreeTrainSimulator.Toolbox
         ExtendPath,
         ReResolvePath,
         StartNewPath,
+        StartNewPathHere,
+        SetStartHere,
+        SetEndHere,
         SavePath,
         Undo,
         Redo,

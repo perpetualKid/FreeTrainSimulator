@@ -6,6 +6,7 @@ using System.Windows.Threading;
 using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Models.Content;
 using FreeTrainSimulator.Runtime.Track;
+using FreeTrainSimulator.Toolbox;
 using FreeTrainSimulator.Toolbox.ToolWindows;
 using FreeTrainSimulator.Toolbox.ViewModels;
 
@@ -19,6 +20,59 @@ namespace Tests.FreeTrainSimulator.Toolbox
         private static TrainPathToolWindow CreateBridge(Action<Action> invoker)
         {
             return CreateBridge(invoker, () => { }, () => { });
+        }
+
+        [TestMethod]
+        public void WhenSetStartHereCommandExecutedThenBridgeCommandIsMarshaled()
+        {
+            int invocations = 0;
+            TrainPathToolWindow bridge = CreateBridge(_ => invocations++);
+            using ToolWindowRefreshScheduler refreshScheduler = new ToolWindowRefreshScheduler(Dispatcher.CurrentDispatcher);
+            using TrainPathToolWindowViewModel viewModel = new TrainPathToolWindowViewModel(bridge, refreshScheduler);
+            SetCommandAvailability(viewModel, "canPlaceStartAnchor", true);
+
+            viewModel.SetStartHereCommand.Execute(null);
+
+            Assert.AreEqual(1, invocations);
+            Assert.AreEqual("Select a valid track location for the start anchor.", viewModel.StatusMessage);
+        }
+
+        [TestMethod]
+        public void WhenSetEndHereCommandDisabledThenItCannotExecute()
+        {
+            TrainPathToolWindow bridge = CreateBridge(action => action());
+            using ToolWindowRefreshScheduler refreshScheduler = new ToolWindowRefreshScheduler(Dispatcher.CurrentDispatcher);
+            using TrainPathToolWindowViewModel viewModel = new TrainPathToolWindowViewModel(bridge, refreshScheduler);
+
+            Assert.IsFalse(viewModel.SetEndHereCommand.CanExecute(null));
+        }
+
+        [TestMethod]
+        public void WhenCommitPlacementCommandExecutedThenBridgeCommandIsMarshaled()
+        {
+            int invocations = 0;
+            TrainPathToolWindow bridge = CreateBridge(_ => invocations++);
+            using ToolWindowRefreshScheduler refreshScheduler = new ToolWindowRefreshScheduler(Dispatcher.CurrentDispatcher);
+            using TrainPathToolWindowViewModel viewModel = new TrainPathToolWindowViewModel(bridge, refreshScheduler);
+            SetCommandAvailability(viewModel, "canCommitPlacement", true);
+
+            viewModel.CommitPlacementCommand.Execute(null);
+
+            Assert.AreEqual(1, invocations);
+        }
+
+        [TestMethod]
+        public void WhenStartPlacementIsCanceledThenStatusIdentifiesStartAnchor()
+        {
+            TrainPathToolWindow bridge = CreateBridge(_ => { });
+            using ToolWindowRefreshScheduler refreshScheduler = new ToolWindowRefreshScheduler(Dispatcher.CurrentDispatcher);
+            using TrainPathToolWindowViewModel viewModel = new TrainPathToolWindowViewModel(bridge, refreshScheduler);
+            SetCommandAvailability(viewModel, "canCancelPlacement", true);
+            SetCommandAvailability(viewModel, "placementMode", PathEditorPlacementMode.StartAnchor);
+
+            viewModel.CancelPlacementCommand.Execute(null);
+
+            Assert.AreEqual("Start anchor placement canceled.", viewModel.StatusMessage);
         }
 
         private static TrainPathToolWindow CreateBridge(Action<Action> invoker, Action createPathAction, Action savePathAction)
@@ -546,7 +600,7 @@ namespace Tests.FreeTrainSimulator.Toolbox
             }
         }
 
-        private static void SetCommandAvailability(TrainPathToolWindowViewModel viewModel, string fieldName, bool value)
+        private static void SetCommandAvailability(TrainPathToolWindowViewModel viewModel, string fieldName, object value)
         {
             typeof(TrainPathToolWindowViewModel).GetField(fieldName, BindingFlags.Instance | BindingFlags.NonPublic).SetValue(viewModel, value);
         }

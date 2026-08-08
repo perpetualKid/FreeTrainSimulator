@@ -291,6 +291,24 @@
                             Content="Re-resolve Path"
                             Command="{Binding SnapToTrackCommand}"
                             ToolTip="Rebuild the whole path from its authored nodes using the path resolver. This may insert generated nodes and update links." />
+                    <Button Margin="0,0,6,4"
+                            Padding="8,2"
+                            Content="Set Start Here"
+                            Command="{Binding SetStartHereCommand}"
+                            ToolTip="Choose a track location for the authored start anchor" />
+                    <Button Margin="0,0,6,4"
+                            Padding="8,2"
+                            Content="Set End Here"
+                            Command="{Binding SetEndHereCommand}"
+                            ToolTip="Choose a track location for the authored end anchor and resolve the route" />
+                    <Button Margin="0,0,6,4"
+                            Padding="8,2"
+                            Content="Commit Placement"
+                            Command="{Binding CommitPlacementCommand}" />
+                    <Button Margin="0,0,6,4"
+                            Padding="8,2"
+                            Content="Cancel Placement"
+                            Command="{Binding CancelPlacementCommand}" />
                 </WrapPanel>
                 <ListView Grid.Row="1"
                           ItemsSource="{Binding Nodes}"

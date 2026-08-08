@@ -33,6 +33,11 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
         private bool canSavePath;
         private bool canCancelMoveNode;
         private bool canCommitMoveNode;
+        private bool canPlaceStartAnchor;
+        private bool canPlaceEndAnchor;
+        private bool canCancelPlacement;
+        private bool canCommitPlacement;
+        private PathEditorPlacementMode placementMode;
         private int? selectedNodeWaitTime;
         private bool suppressSelectionCommand;
         private bool suppressWaitTimeCommand;
@@ -49,6 +54,10 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
             MoveSelectedNodeCommand = new RelayCommand(_ => MoveSelectedNode(), _ => CanMoveSelectedNode);
             CommitMoveNodeCommand = new RelayCommand(_ => CommitMoveNode(), _ => CanCommitMoveNode);
             CancelMoveNodeCommand = new RelayCommand(_ => CancelMoveNode(), _ => CanCancelMoveNode);
+            SetStartHereCommand = new RelayCommand(_ => BeginStartAnchorPlacement(), _ => CanPlaceStartAnchor);
+            SetEndHereCommand = new RelayCommand(_ => BeginEndAnchorPlacement(), _ => CanPlaceEndAnchor);
+            CommitPlacementCommand = new RelayCommand(_ => CommitPlacement(), _ => CanCommitPlacement);
+            CancelPlacementCommand = new RelayCommand(_ => CancelPlacement(), _ => CanCancelPlacement);
             RepairSelectedNodeCommand = new RelayCommand(_ => RepairSelectedNode(), _ => CanRepairSelectedNode);
             ToggleReversalPointCommand = new RelayCommand(_ => ToggleReversalPoint(), _ => CanAnnotateSelectedNode);
             AddViaPointCommand = new RelayCommand(_ => AddViaPoint(), _ => CanAnnotateSelectedNode);
@@ -117,6 +126,14 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
 
         public RelayCommand CancelMoveNodeCommand { get; }
 
+        public RelayCommand SetStartHereCommand { get; }
+
+        public RelayCommand SetEndHereCommand { get; }
+
+        public RelayCommand CommitPlacementCommand { get; }
+
+        public RelayCommand CancelPlacementCommand { get; }
+
         public RelayCommand RepairSelectedNodeCommand { get; }
 
         public RelayCommand ToggleReversalPointCommand { get; }
@@ -135,9 +152,64 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
 
         public RelayCommand RepairDiagnosticCommand { get; }
 
-        public bool CanAcceptRouteCandidate => SelectedRouteCandidate != null && !CanCancelMoveNode;
+        public bool CanAcceptRouteCandidate => SelectedRouteCandidate != null && !CanCancelPlacement;
 
-        public bool CanRepairDiagnostic => SelectedDiagnostic?.CanRepair == true && !CanCancelMoveNode;
+        public bool CanRepairDiagnostic => SelectedDiagnostic?.CanRepair == true && !CanCancelPlacement;
+
+        public PathEditorPlacementMode PlacementMode
+        {
+            get => placementMode;
+            private set => SetProperty(ref placementMode, value);
+        }
+
+        public bool CanPlaceStartAnchor
+        {
+            get => canPlaceStartAnchor;
+            private set
+            {
+                if (SetProperty(ref canPlaceStartAnchor, value))
+                    SetStartHereCommand.RaiseCanExecuteChanged();
+            }
+        }
+
+        public bool CanPlaceEndAnchor
+        {
+            get => canPlaceEndAnchor;
+            private set
+            {
+                if (SetProperty(ref canPlaceEndAnchor, value))
+                    SetEndHereCommand.RaiseCanExecuteChanged();
+            }
+        }
+
+        public bool CanCancelPlacement
+        {
+            get => canCancelPlacement;
+            private set
+            {
+                if (SetProperty(ref canCancelPlacement, value))
+                {
+                    CancelPlacementCommand.RaiseCanExecuteChanged();
+                    MoveSelectedNodeCommand.RaiseCanExecuteChanged();
+                    RepairSelectedNodeCommand.RaiseCanExecuteChanged();
+                    ToggleReversalPointCommand.RaiseCanExecuteChanged();
+                    AddViaPointCommand.RaiseCanExecuteChanged();
+                    RemoveViaPointCommand.RaiseCanExecuteChanged();
+                    AcceptRouteCandidateCommand.RaiseCanExecuteChanged();
+                    RepairDiagnosticCommand.RaiseCanExecuteChanged();
+                }
+            }
+        }
+
+        public bool CanCommitPlacement
+        {
+            get => canCommitPlacement;
+            private set
+            {
+                if (SetProperty(ref canCommitPlacement, value))
+                    CommitPlacementCommand.RaiseCanExecuteChanged();
+            }
+        }
 
         public int SelectedTabIndex
         {
@@ -231,11 +303,11 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
             }
         }
 
-        public bool CanMoveSelectedNode => SelectedNode != null && !CanCancelMoveNode;
+        public bool CanMoveSelectedNode => SelectedNode != null && !CanCancelPlacement;
 
-        public bool CanRepairSelectedNode => SelectedNode != null && !CanCancelMoveNode;
+        public bool CanRepairSelectedNode => SelectedNode != null && !CanCancelPlacement;
 
-        public bool CanAnnotateSelectedNode => SelectedNode != null && !CanCancelMoveNode;
+        public bool CanAnnotateSelectedNode => SelectedNode != null && !CanCancelPlacement;
 
         public bool CanRedo
         {
@@ -357,10 +429,18 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
             bool wasMovingNode = CanCancelMoveNode;
             CanCancelMoveNode = snapshot.CanCancelMoveNode;
             CanCommitMoveNode = snapshot.CanCommitMoveNode;
+            PlacementMode = snapshot.PlacementMode;
+            CanPlaceStartAnchor = snapshot.CanPlaceStartAnchor;
+            CanPlaceEndAnchor = snapshot.CanPlaceEndAnchor;
+            bool wasPlacing = CanCancelPlacement;
+            CanCancelPlacement = snapshot.CanCancelPlacement;
+            CanCommitPlacement = snapshot.CanCommitPlacement;
             CanCreatePath = toolWindow.CanCreatePath;
             CanSavePath = toolWindow.CanSavePath;
 
             if (wasMovingNode && !CanCancelMoveNode && IsMoveGuidanceMessage(StatusMessage))
+                SetStatusMessage(string.Empty, false);
+            if (wasPlacing && !CanCancelPlacement && IsMoveGuidanceMessage(StatusMessage))
                 SetStatusMessage(string.Empty, false);
 
             if (!string.Equals(snapshotSelectedPathId, snapshot.SelectedPathId, StringComparison.Ordinal))
@@ -368,6 +448,36 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
                 snapshotSelectedPathId = snapshot.SelectedPathId;
                 UpdateSelectedPathFromSnapshot();
             }
+        }
+
+        private void BeginStartAnchorPlacement()
+        {
+            toolWindow.BeginStartAnchorPlacement();
+            SetStatusMessage("Select a valid track location for the start anchor.", false);
+        }
+
+        private void BeginEndAnchorPlacement()
+        {
+            toolWindow.BeginEndAnchorPlacement();
+            SetStatusMessage("Select a valid track location for the end anchor.", false);
+        }
+
+        private void CommitPlacement()
+        {
+            toolWindow.CommitPlacement();
+            SetStatusMessage("Commit placement requested.", false);
+        }
+
+        private void CancelPlacement()
+        {
+            PathEditorPlacementMode canceledMode = PlacementMode;
+            toolWindow.CancelPlacement();
+            SetStatusMessage(canceledMode switch
+            {
+                PathEditorPlacementMode.StartAnchor => "Start anchor placement canceled.",
+                PathEditorPlacementMode.EndAnchor => "End anchor placement canceled.",
+                _ => "Node move canceled.",
+            }, false);
         }
 
         private void SyncDiagnostics(ImmutableArray<TrainPathDiagnosticRow> rows)

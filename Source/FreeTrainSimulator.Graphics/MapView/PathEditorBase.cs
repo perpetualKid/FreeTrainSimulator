@@ -56,6 +56,9 @@ namespace FreeTrainSimulator.Graphics.MapView
             protected set => trainPath = value as EditorTrainPath;
         }
 
+        /// <summary>Path currently rendered on the map, preferring a non-persisted preview when present.</summary>
+        protected TrainPathBase RenderedPath => previewTrainPath ?? trainPath;
+
         /// <summary>Index of the path node selected on the map, or -1 when no node is selected.</summary>
         public int SelectedPathNodeIndex => trainPath?.SelectedNodeIndex ?? -1;
 

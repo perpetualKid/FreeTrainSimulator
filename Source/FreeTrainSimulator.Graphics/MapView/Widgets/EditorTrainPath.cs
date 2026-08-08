@@ -18,7 +18,7 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
         private bool editorUseIntermediaryPathPoint;
         #endregion
 
-        private Lookup<TrainPathPointBase, TrainPathSectionBase> pathSectionLookup;
+        private ILookup<TrainPathPointBase, TrainPathSectionBase> pathSectionLookup;
         private HashSet<int> highlightedSpanSourceNodeIndexes = new HashSet<int>();
 
         public int SelectedNodeIndex { get; set; } = -1;
@@ -133,7 +133,7 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
             }
 
             SetBounds();
-            pathSectionLookup = PathSections.Select(section => section as TrainPathSectionBase).ToLookup(section => section.PathItem, section => section) as Lookup<TrainPathPointBase, TrainPathSectionBase>;
+            pathSectionLookup = PathSections.Cast<TrainPathSectionBase>().ToLookup(section => section.PathItem);
 
             // When the path is reconstructed from a model (e.g. after undo/redo) with existing points, seed the
             // active editing anchor to the last point so a subsequent pointer move (UpdatePathEndPoint) extends

@@ -18,8 +18,12 @@ namespace FreeTrainSimulator.Toolbox
         /// </summary>
         internal readonly record struct MapContextMenuState
         {
-            /// <summary>Whether a node move is currently in progress.</summary>
-            public bool IsMovingNode { get; init; }
+            /// <summary>Whether a map placement operation is currently in progress.</summary>
+            public bool IsPlacementActive { get; init; }
+
+            public bool CanSetStartAnchor { get; init; }
+
+            public bool CanSetEndAnchor { get; init; }
 
             /// <summary>Whether an undo snapshot is available.</summary>
             public bool CanUndo { get; init; }
@@ -46,8 +50,15 @@ namespace FreeTrainSimulator.Toolbox
         /// </summary>
         public static ImmutableArray<MapContextMenuItem> BuildForNode(TrainPathPointBase node, int nodeIndex, bool canMoveNode, in MapContextMenuState state)
         {
-            if (state.IsMovingNode)
-                return ImmutableArray.Create(new MapContextMenuItem(MapContextMenuAction.CancelMoveNode, nodeIndex));
+            return BuildForNode(node, nodeIndex, canMoveNode, state, null);
+        }
+
+        /// <summary>Builds the node menu with a valid snapped context anchor for endpoint commands.</summary>
+        public static ImmutableArray<MapContextMenuItem> BuildForNode(TrainPathPointBase node, int nodeIndex, bool canMoveNode,
+            in MapContextMenuState state, PathNode placementAnchor)
+        {
+            if (state.IsPlacementActive)
+                return ImmutableArray.Create(new MapContextMenuItem(MapContextMenuAction.CancelPlacement, nodeIndex));
 
             if (node == null)
                 return ImmutableArray<MapContextMenuItem>.Empty;
@@ -56,6 +67,7 @@ namespace FreeTrainSimulator.Toolbox
 
             if (canMoveNode)
                 items.Add(new MapContextMenuItem(MapContextMenuAction.MoveNode, nodeIndex));
+            AddAnchorPlacementActions(items, state, placementAnchor);
 
             // Creating or editing a wait point is done by editing the Wait property. Keep the one-click clear
             // action here because removal remains useful directly on the map.
@@ -88,12 +100,13 @@ namespace FreeTrainSimulator.Toolbox
         {
             ArgumentNullException.ThrowIfNull(placementAnchor);
 
-            if (state.IsMovingNode)
-                return ImmutableArray.Create(new MapContextMenuItem(MapContextMenuAction.CancelMoveNode, fromNodeIndex));
+            if (state.IsPlacementActive)
+                return ImmutableArray.Create(new MapContextMenuItem(MapContextMenuAction.CancelPlacement, fromNodeIndex));
 
             ImmutableArray<MapContextMenuItem>.Builder items = ImmutableArray.CreateBuilder<MapContextMenuItem>();
 
             items.Add(new MapContextMenuItem(MapContextMenuAction.AddViaPoint, fromNodeIndex) { PlacementAnchor = placementAnchor });
+            AddAnchorPlacementActions(items, state, placementAnchor);
             items.Add(new MapContextMenuItem(MapContextMenuAction.RemoveRestOfPath, fromNodeIndex));
 
             if (!candidates.IsDefaultOrEmpty)
@@ -115,8 +128,17 @@ namespace FreeTrainSimulator.Toolbox
         /// </summary>
         public static ImmutableArray<MapContextMenuItem> BuildForMap(in MapContextMenuState state)
         {
-            if (state.IsMovingNode)
-                return ImmutableArray.Create(new MapContextMenuItem(MapContextMenuAction.CancelMoveNode));
+            return BuildForMap(state, null);
+        }
+
+        /// <summary>
+        /// Builds the map menu, attaching a snapped track anchor to endpoint commands when the context-menu
+        /// location is valid track.
+        /// </summary>
+        public static ImmutableArray<MapContextMenuItem> BuildForMap(in MapContextMenuState state, PathNode placementAnchor)
+        {
+            if (state.IsPlacementActive)
+                return ImmutableArray.Create(new MapContextMenuItem(MapContextMenuAction.CancelPlacement));
 
             ImmutableArray<MapContextMenuItem>.Builder items = ImmutableArray.CreateBuilder<MapContextMenuItem>();
 
@@ -124,13 +146,27 @@ namespace FreeTrainSimulator.Toolbox
                 items.Add(new MapContextMenuItem(MapContextMenuAction.ExtendPath));
             if (state.CanReResolvePath)
                 items.Add(new MapContextMenuItem(MapContextMenuAction.ReResolvePath));
-            if (state.CanStartNewPath)
-                items.Add(new MapContextMenuItem(MapContextMenuAction.StartNewPath));
+            AddAnchorPlacementActions(items, state, placementAnchor);
+            if (state.CanStartNewPath && placementAnchor != null)
+                items.Add(new MapContextMenuItem(state.CanSetStartAnchor
+                    ? MapContextMenuAction.StartNewPath
+                    : MapContextMenuAction.StartNewPathHere) { PlacementAnchor = placementAnchor });
             if (state.CanSavePath)
                 items.Add(new MapContextMenuItem(MapContextMenuAction.SavePath));
 
             AddHistoryActions(items, state);
             return Finalize(items);
+        }
+
+        private static void AddAnchorPlacementActions(ImmutableArray<MapContextMenuItem>.Builder items, in MapContextMenuState state, PathNode placementAnchor)
+        {
+            if (placementAnchor == null)
+                return;
+
+            if (state.CanSetStartAnchor)
+                items.Add(new MapContextMenuItem(MapContextMenuAction.SetStartHere) { PlacementAnchor = placementAnchor });
+            if (state.CanSetEndAnchor)
+                items.Add(new MapContextMenuItem(MapContextMenuAction.SetEndHere) { PlacementAnchor = placementAnchor });
         }
 
         // Undo/Redo are offered on every scope because they are the most frequently needed actions while

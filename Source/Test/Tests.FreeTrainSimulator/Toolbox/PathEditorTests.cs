@@ -112,6 +112,123 @@ namespace Tests.FreeTrainSimulator.Toolbox
         }
 
         [TestMethod]
+        public void WhenStartAnchorPlacementBeginsThenCommittedPathIsUnchanged()
+        {
+            PathModel source = CreateEditablePath();
+            using PathEditor editor = CreateEditor(source);
+
+            PathEditorCommandResult result = editor.BeginStartAnchorPlacementCommand();
+
+            Assert.IsTrue(result.Success);
+            Assert.IsTrue(editor.IsPlacingStartAnchor);
+            Assert.AreSequenceEqual(source.PathNodes, editor.TryCaptureCurrentPathModel().PathNodes);
+        }
+
+        [TestMethod]
+        public void WhenStartAnchorPlacementIsCanceledThenDirtyStateAndHistoryAreUnchanged()
+        {
+            PathModel source = CreateEditablePath();
+            using PathEditor editor = CreateEditor(source);
+            SetPrivateField(editor, "unsavedChanges", false);
+            _ = editor.BeginStartAnchorPlacementCommand();
+
+            bool canceled = editor.CancelPlacement();
+
+            Assert.IsTrue(canceled);
+            Assert.IsFalse(editor.HasUnsavedChanges);
+            Assert.IsFalse(editor.CanUndo);
+            Assert.AreSequenceEqual(source.PathNodes, editor.TryCaptureCurrentPathModel().PathNodes);
+        }
+
+        [TestMethod]
+        public void WhenStartAnchorPlacementIsCommittedThenOneUndoRestoresSource()
+        {
+            PathModel source = CreateEditablePath();
+            using PathEditor editor = CreateEditor(source);
+            _ = editor.BeginStartAnchorPlacementCommand();
+            PathEditResult preview = PathModelEditor.SetStartAnchor(source, CreateNodeAt(25, PathNodeType.None, -1), false);
+            SetPrivateField(editor, "movePreviewModel", preview.PathModel);
+
+            PathEditResult committed = editor.CommitPlacement();
+            bool undone = editor.Undo();
+
+            Assert.IsTrue(committed.Success);
+            Assert.IsTrue(undone);
+            Assert.AreSequenceEqual(source.PathNodes, editor.TryCaptureCurrentPathModel().PathNodes);
+            Assert.IsFalse(editor.CanUndo);
+        }
+
+        [TestMethod]
+        public void WhenUndoneStartAnchorPlacementIsRedoneThenPlacedAnchorReturns()
+        {
+            PathModel source = CreateEditablePath();
+            using PathEditor editor = CreateEditor(source);
+            _ = editor.BeginStartAnchorPlacementCommand();
+            PathEditResult preview = PathModelEditor.SetStartAnchor(source, CreateNodeAt(25, PathNodeType.None, -1), false);
+            SetPrivateField(editor, "movePreviewModel", preview.PathModel);
+            _ = editor.CommitPlacement();
+            _ = editor.Undo();
+
+            bool redone = editor.Redo();
+
+            Assert.IsTrue(redone);
+            Assert.AreEqual(preview.PathModel.PathNodes[0].Location, editor.TryCaptureCurrentPathModel().PathNodes[0].Location);
+        }
+
+        [TestMethod]
+        public void WhenEndAnchorPlacementCommitsThenAuthoredModelRemainsSnapshotSource()
+        {
+            PathModel source = new PathModel
+            {
+                Id = "partial-path",
+                Name = "Partial Path",
+                PathNodes = ImmutableArray.Create(CreateNodeAt(0, PathNodeType.Start, -1)),
+            };
+            using PathEditor editor = CreateEditor(source);
+            _ = editor.BeginEndAnchorPlacementCommand();
+            PathEditResult preview = PathModelEditor.SetEndAnchor(source, CreateNodeAt(100, PathNodeType.None, -1), false);
+            SetPrivateField(editor, "movePreviewModel", preview.PathModel);
+
+            PathEditResult committed = editor.CommitPlacement();
+
+            Assert.AreSame(committed.PathModel, editor.TryCaptureCurrentPathModel());
+            Assert.IsTrue(editor.HasUnsavedChanges);
+        }
+
+        [TestMethod]
+        public void WhenEndAnchorPlacementCommitsThenMissingEndDiagnosticIsCleared()
+        {
+            PathModel source = new PathModel
+            {
+                Id = "partial-path",
+                Name = "Partial Path",
+                PathNodes = ImmutableArray.Create(CreateNodeAt(0, PathNodeType.Start, -1)),
+            };
+            using PathEditor editor = CreateEditor(source);
+            _ = editor.BeginEndAnchorPlacementCommand();
+            PathEditResult preview = PathModelEditor.SetEndAnchor(source, CreateNodeAt(100, PathNodeType.None, -1), false);
+            SetPrivateField(editor, "movePreviewModel", preview.PathModel);
+            _ = editor.CommitPlacement();
+
+            PathRouteResolution resolution = editor.ResolveCurrent(editor.TryCaptureCurrentPathModel());
+
+            Assert.IsFalse(HasDiagnostic(resolution, PathRouteDiagnosticCode.MissingEndNode));
+        }
+
+        [TestMethod]
+        public void WhenStartAnchorIsSetDirectlyThenItCommitsWithoutPlacementMode()
+        {
+            PathModel source = CreateEditablePath();
+            using PathEditor editor = CreateEditor(source);
+
+            PathEditorCommandResult result = editor.SetStartAnchorCommand(CreateNodeAt(25, PathNodeType.None, -1), false);
+
+            Assert.IsTrue(result.Success);
+            Assert.IsFalse(editor.IsPlacementActive);
+            Assert.AreEqual(25f, editor.TryCaptureCurrentPathModel().PathNodes[0].Location.Location.X);
+        }
+
+        [TestMethod]
         public void WhenAnchoredViaPlacementBeginsThenInsertedNodeUsesProvidedAnchor()
         {
             PathModel source = CreateEditablePath();

@@ -371,7 +371,7 @@ namespace FreeTrainSimulator.Toolbox
             string caption = item.Action switch
             {
                 MapContextMenuAction.MoveNode => CatalogManager.Catalog.GetString("Move Node"),
-                MapContextMenuAction.CancelMoveNode => CatalogManager.Catalog.GetString("Cancel Move"),
+                MapContextMenuAction.CancelPlacement => CatalogManager.Catalog.GetString("Cancel Placement"),
                 MapContextMenuAction.AddViaPoint => CatalogManager.Catalog.GetString("Add Via Point Here"),
                 MapContextMenuAction.RemoveViaPoint => CatalogManager.Catalog.GetString("Remove Via Point"),
                 MapContextMenuAction.ClearWaitPoint => CatalogManager.Catalog.GetString("Clear Wait Point"),
@@ -383,6 +383,9 @@ namespace FreeTrainSimulator.Toolbox
                 MapContextMenuAction.ExtendPath => CatalogManager.Catalog.GetString("Extend Path"),
                 MapContextMenuAction.ReResolvePath => CatalogManager.Catalog.GetString("Re-resolve Path"),
                 MapContextMenuAction.StartNewPath => CatalogManager.Catalog.GetString("Start New Path"),
+                MapContextMenuAction.StartNewPathHere => CatalogManager.Catalog.GetString("Start New Path Here"),
+                MapContextMenuAction.SetStartHere => CatalogManager.Catalog.GetString("Set Start Here"),
+                MapContextMenuAction.SetEndHere => CatalogManager.Catalog.GetString("Set End Here"),
                 MapContextMenuAction.SavePath => CatalogManager.Catalog.GetString("Save Path"),
                 MapContextMenuAction.Undo => CatalogManager.Catalog.GetString("Undo"),
                 MapContextMenuAction.Redo => CatalogManager.Catalog.GetString("Redo"),

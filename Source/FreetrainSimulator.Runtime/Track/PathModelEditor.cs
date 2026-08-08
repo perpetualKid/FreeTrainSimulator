@@ -23,6 +23,96 @@ namespace FreeTrainSimulator.Runtime.Track
         private const double NearbyJunctionRepairDistanceMeters = 10.0;
 
         /// <summary>
+        /// Sets the authored start anchor. An existing start is replaced in place; otherwise the new start is
+        /// prepended and all absolute links are re-indexed.
+        /// </summary>
+        public static PathEditResult SetStartAnchor(PathModel pathModel, PathNode anchor, bool isJunction)
+        {
+            ArgumentNullException.ThrowIfNull(pathModel);
+            ArgumentNullException.ThrowIfNull(anchor);
+
+            ImmutableArray<PathNode> nodes = Nodes(pathModel);
+            int startIndex = IndexOfNodeType(nodes, PathNodeType.Start);
+            if (startIndex >= 0)
+            {
+                PathNode replacement = CreateEndpointNode(anchor, nodes[startIndex], PathNodeType.Start, isJunction,
+                    nodes[startIndex].NextMainNode, nodes[startIndex].NextSidingNode);
+                return PathEditResult.Succeeded($"Replaced start anchor at node {startIndex}.",
+                    pathModel with { PathNodes = nodes.SetItem(startIndex, replacement) },
+                    ImmutableArray.Create(startIndex));
+            }
+
+            if (nodes.IsEmpty)
+            {
+                PathNode start = CreateEndpointNode(anchor, null, PathNodeType.Start, isJunction, -1, -1);
+                return PathEditResult.Succeeded("Set start anchor at node 0.",
+                    pathModel with { PathNodes = ImmutableArray.Create(start) },
+                    ImmutableArray.Create(0));
+            }
+
+            ImmutableArray<PathNode>.Builder builder = ImmutableArray.CreateBuilder<PathNode>(nodes.Length + 1);
+            builder.Add(CreateEndpointNode(anchor, null, PathNodeType.Start, isJunction, 1, -1));
+            foreach (PathNode node in nodes)
+            {
+                builder.Add(node with
+                {
+                    NextMainNode = ShiftLink(node.NextMainNode, 0),
+                    NextSidingNode = ShiftLink(node.NextSidingNode, 0),
+                });
+            }
+
+            return PathEditResult.Succeeded("Prepended start anchor at node 0.",
+                pathModel with { PathNodes = builder.ToImmutable() },
+                Enumerable.Range(0, nodes.Length + 1).ToImmutableArray());
+        }
+
+        /// <summary>
+        /// Sets the authored end anchor. An existing terminal end is replaced in place; otherwise a new end is
+        /// appended to the safely reachable tail of the main chain.
+        /// </summary>
+        public static PathEditResult SetEndAnchor(PathModel pathModel, PathNode anchor, bool isJunction)
+        {
+            ArgumentNullException.ThrowIfNull(pathModel);
+            ArgumentNullException.ThrowIfNull(anchor);
+
+            ImmutableArray<PathNode> nodes = Nodes(pathModel);
+            int endIndex = IndexOfNodeType(nodes, PathNodeType.End);
+            if (endIndex >= 0)
+            {
+                PathNode existingEnd = nodes[endIndex];
+                if (existingEnd.NextSidingNode >= 0)
+                {
+                    return PathEditResult.Failed($"Cannot replace end node {endIndex} because it carries a siding branch to node {existingEnd.NextSidingNode}.", pathModel);
+                }
+                if (existingEnd.NextSidingNode < -1)
+                {
+                    return PathEditResult.Failed($"Cannot replace end node {endIndex} because its siding link {existingEnd.NextSidingNode} is invalid.", pathModel);
+                }
+
+                PathNode replacement = CreateEndpointNode(anchor, existingEnd, PathNodeType.End, isJunction, -1, -1);
+                return PathEditResult.Succeeded($"Replaced end anchor at node {endIndex}.",
+                    pathModel with { PathNodes = nodes.SetItem(endIndex, replacement) },
+                    ImmutableArray.Create(endIndex));
+            }
+
+            int startIndex = IndexOfNodeType(nodes, PathNodeType.Start);
+            if (startIndex < 0)
+                return PathEditResult.Failed("Cannot set an end anchor before a start anchor exists.", pathModel);
+
+            if (!TryFindMainTail(nodes, startIndex, out int tailIndex, out string failure))
+                return PathEditResult.Failed(failure, pathModel);
+
+            int appendedIndex = nodes.Length;
+            PathNode tail = nodes[tailIndex] with { NextMainNode = appendedIndex };
+            PathNode end = CreateEndpointNode(anchor, null, PathNodeType.End, isJunction, -1, -1);
+            ImmutableArray<PathNode> updatedNodes = nodes.SetItem(tailIndex, tail).Add(end);
+
+            return PathEditResult.Succeeded($"Appended end anchor at node {appendedIndex} after main-path tail {tailIndex}.",
+                pathModel with { PathNodes = updatedNodes },
+                ImmutableArray.Create(tailIndex, appendedIndex));
+        }
+
+        /// <summary>
         /// Marks the last node of a linear main path as the end node. Fails when a node is already the end,
         /// when the path is empty, or when there is no start node.
         /// </summary>
@@ -504,6 +594,52 @@ namespace FreeTrainSimulator.Runtime.Track
             return result.Success
                 ? PathEditResult.Succeeded($"Repaired node {nodeIndex} by snapping it to junction {junctionNode.NodeIndex}.", result.PathModel, result.ChangedNodeIndexes)
                 : result;
+        }
+
+        private static PathNode CreateEndpointNode(PathNode anchor, PathNode existingNode, PathNodeType endpointType,
+            bool isJunction, int nextMainNode, int nextSidingNode)
+        {
+            PathNodeType preservedIntent = existingNode?.NodeType & (PathNodeType.Wait | PathNodeType.Reversal) ?? PathNodeType.None;
+            return new PathNode(anchor.Location)
+            {
+                NodeType = endpointType | preservedIntent | (isJunction ? PathNodeType.Junction : PathNodeType.None),
+                NodeIndex = anchor.NodeIndex,
+                NextMainNode = nextMainNode,
+                NextSidingNode = nextSidingNode,
+                WaitInfo = existingNode?.WaitInfo,
+            };
+        }
+
+        private static bool TryFindMainTail(ImmutableArray<PathNode> nodes, int startIndex, out int tailIndex, out string failure)
+        {
+            bool[] visited = new bool[nodes.Length];
+            int currentIndex = startIndex;
+            while (true)
+            {
+                if (visited[currentIndex])
+                {
+                    tailIndex = -1;
+                    failure = $"Cannot set an end anchor because the main path contains a cycle at node {currentIndex}.";
+                    return false;
+                }
+
+                visited[currentIndex] = true;
+                int nextIndex = nodes[currentIndex].NextMainNode;
+                if (nextIndex == -1)
+                {
+                    tailIndex = currentIndex;
+                    failure = null;
+                    return true;
+                }
+                if (nextIndex < 0 || nextIndex >= nodes.Length)
+                {
+                    tailIndex = -1;
+                    failure = $"Cannot set an end anchor because node {currentIndex} has an out-of-range main link {nextIndex}.";
+                    return false;
+                }
+
+                currentIndex = nextIndex;
+            }
         }
 
         // Returns the authored nodes, normalizing a default ImmutableArray to empty.

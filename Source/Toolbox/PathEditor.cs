@@ -17,6 +17,14 @@ using FreeTrainSimulator.Runtime.Track;
 
 namespace FreeTrainSimulator.Toolbox
 {
+    internal enum PathEditorPlacementMode
+    {
+        None,
+        MoveNode,
+        StartAnchor,
+        EndAnchor,
+    }
+
     public class PathEditorChangedEventArgs : EventArgs
     {
         public TrainPathBase Path { get; }
@@ -44,6 +52,9 @@ namespace FreeTrainSimulator.Toolbox
         private PathModel moveSourceModel;
         private PathModel movePreviewModel;
         private PathNode movePreviewAnchor;
+        private PathEditorPlacementMode placementMode;
+        private bool placementSourceEditMode;
+        private bool placementSourceUnsavedChanges;
         private int pendingViaNodeIndex = -1;
         private PathModel pendingViaSourceModel;
         private bool pendingViaSourceEditMode;
@@ -56,9 +67,19 @@ namespace FreeTrainSimulator.Toolbox
 
         public bool CanRedo => redoHistory.Count > 0;
 
-        public bool IsMovingNode => movingNodeIndex >= 0;
+        public PathEditorPlacementMode PlacementMode => placementMode;
+
+        public bool IsPlacementActive => placementMode != PathEditorPlacementMode.None;
+
+        public bool IsMovingNode => placementMode == PathEditorPlacementMode.MoveNode && movingNodeIndex >= 0;
+
+        public bool IsPlacingStartAnchor => placementMode == PathEditorPlacementMode.StartAnchor;
+
+        public bool IsPlacingEndAnchor => placementMode == PathEditorPlacementMode.EndAnchor;
 
         public bool CanCommitMoveNode => IsMovingNode && movePreviewModel != null;
+
+        public bool CanCommitPlacement => IsPlacementActive && movePreviewModel != null;
 
         public bool HasUnsavedChanges => unsavedChanges;
 
@@ -246,6 +267,12 @@ namespace FreeTrainSimulator.Toolbox
         /// <summary><see langword="true"/> when the path has an end node to remove.</summary>
         public bool CanRemoveEnd => HasNodeType(snapshot => HasFlag(snapshot, PathNodeType.End));
 
+        public bool CanPlaceStartAnchor => !IsPlacementActive && TryGetEditablePathModel() != null;
+
+        public bool CanPlaceEndAnchor => !IsPlacementActive
+            && TryGetEditablePathModel() is PathModel currentModel
+            && HasFlag(currentModel, PathNodeType.Start);
+
         /// <summary>
         /// <see langword="true"/> when the current path can be snapped to track: it is in edit mode and has a
         /// start node. Passing branches are woven back into the generated path where they rejoin the main route;
@@ -265,6 +292,89 @@ namespace FreeTrainSimulator.Toolbox
 
         /// <summary>Removes the end node from the current path and records an undo snapshot. Returns the operation result.</summary>
         public PathEditResult RemoveEnd() => ApplyUndoableEdit(PathModelEditor.RemoveEnd);
+
+        public PathEditorCommandResult BeginStartAnchorPlacementCommand()
+        {
+            return BeginAnchorPlacement(PathEditorPlacementMode.StartAnchor)
+                ? PathEditorCommandResult.Succeeded("Select a valid track location for the start anchor.", currentPathModel)
+                : PathEditorCommandResult.Failed("Cannot place a start anchor in the current path.", currentPathModel);
+        }
+
+        public PathEditorCommandResult BeginEndAnchorPlacementCommand()
+        {
+            PathModel currentModel = TryGetEditablePathModel();
+            if (currentModel == null || !HasFlag(currentModel, PathNodeType.Start))
+                return PathEditorCommandResult.Failed("Set a start anchor before placing the end anchor.", currentModel);
+
+            return BeginAnchorPlacement(PathEditorPlacementMode.EndAnchor)
+                ? PathEditorCommandResult.Succeeded("Select a valid track location for the end anchor.", currentPathModel)
+                : PathEditorCommandResult.Failed("Cannot place an end anchor in the current path.", currentPathModel);
+        }
+
+        /// <summary>
+        /// Immediately commits an authored start anchor supplied by a map interaction. Unlike placement mode this
+        /// does not require a subsequent pointer move or click.
+        /// </summary>
+        public PathEditorCommandResult SetStartAnchorCommand(PathNode anchor, bool isJunction)
+        {
+            if (IsPlacementActive)
+                return PathEditorCommandResult.Failed("Cancel the active placement before setting the start anchor.", currentPathModel);
+
+            return ApplyEndpointAnchor(model => PathModelEditor.SetStartAnchor(model, anchor, isJunction));
+        }
+
+        /// <summary>
+        /// Immediately commits an authored end anchor supplied by a map interaction. Unlike placement mode this
+        /// does not require a subsequent pointer move or click.
+        /// </summary>
+        public PathEditorCommandResult SetEndAnchorCommand(PathNode anchor, bool isJunction)
+        {
+            if (IsPlacementActive)
+                return PathEditorCommandResult.Failed("Cancel the active placement before setting the end anchor.", currentPathModel);
+
+            return ApplyEndpointAnchor(model => PathModelEditor.SetEndAnchor(model, anchor, isJunction));
+        }
+
+        private PathEditorCommandResult ApplyEndpointAnchor(Func<PathModel, PathEditResult> edit)
+        {
+            PathEditResult result = ApplyUndoableEdit(edit);
+            if (result.Success)
+            {
+                PathGenerationResult generated = GenerateTrackSnappedPath(result.PathModel, TrackWorld);
+                if (generated.Success)
+                    SetPreviewPath(generated.PathModel);
+            }
+
+            return PathEditorCommandResult.FromPathEditResult(result);
+        }
+
+        private bool BeginAnchorPlacement(PathEditorPlacementMode mode)
+        {
+            PathModel currentModel = TryGetEditablePathModel();
+            if (currentModel == null || IsPlacementActive)
+                return false;
+
+            placementSourceEditMode = EditMode;
+            placementSourceUnsavedChanges = unsavedChanges;
+            if (!EditMode)
+            {
+                path = currentModel;
+                currentPathModel = currentModel;
+                RestorePath(currentModel, true);
+            }
+
+            placementMode = mode;
+            moveSourceModel = currentModel;
+            movePreviewModel = null;
+            movePreviewAnchor = null;
+            movingNodeIndex = mode == PathEditorPlacementMode.StartAnchor
+                ? IndexOfNodeType(currentModel, PathNodeType.Start, 0)
+                : IndexOfNodeType(currentModel, PathNodeType.End, currentModel.PathNodes.Length);
+            UseStandaloneActivePathPointPreview = true;
+            SelectPathItem(movingNodeIndex < currentModel.PathNodes.Length ? movingNodeIndex : -1);
+            OnPathUpdated?.Invoke(this, new PathEditorChangedEventArgs(TrainPath));
+            return true;
+        }
 
         /// <summary>
         /// Truncates the path after the node at <paramref name="nodeIndex"/>, marking it as the new end, and
@@ -677,9 +787,11 @@ namespace FreeTrainSimulator.Toolbox
         {
             PathModel currentModel = TryGetEditablePathModel();
             ImmutableArray<PathNode> nodes = currentModel?.PathNodes ?? ImmutableArray<PathNode>.Empty;
-            if (nodeIndex < 0 || nodeIndex >= nodes.Length)
+            if (nodeIndex < 0 || nodeIndex >= nodes.Length || IsPlacementActive)
                 return false;
 
+            placementSourceEditMode = EditMode;
+            placementSourceUnsavedChanges = unsavedChanges;
             if (!EditMode)
             {
                 path = currentModel;
@@ -687,6 +799,7 @@ namespace FreeTrainSimulator.Toolbox
                 RestorePath(currentModel, true);
             }
 
+            placementMode = PathEditorPlacementMode.MoveNode;
             movingNodeIndex = nodeIndex;
             moveSourceModel = currentModel;
             movePreviewModel = null;
@@ -712,7 +825,7 @@ namespace FreeTrainSimulator.Toolbox
 
         protected override void OnActivePathPointUpdated()
         {
-            if (IsMovingNode)
+            if (IsPlacementActive)
                 UpdateMovePreview();
         }
 
@@ -738,7 +851,13 @@ namespace FreeTrainSimulator.Toolbox
                 return;
 
             bool isJunction = candidate.JunctionNode != null || candidate.NodeType.Includes(PathNodeType.Junction);
-            PathEditResult result = PathModelEditor.MoveNode(moveSourceModel, movingNodeIndex, replacementAnchor, isJunction);
+            PathEditResult result = placementMode switch
+            {
+                PathEditorPlacementMode.MoveNode => PathModelEditor.MoveNode(moveSourceModel, movingNodeIndex, replacementAnchor, isJunction),
+                PathEditorPlacementMode.StartAnchor => PathModelEditor.SetStartAnchor(moveSourceModel, replacementAnchor, isJunction),
+                PathEditorPlacementMode.EndAnchor => PathModelEditor.SetEndAnchor(moveSourceModel, replacementAnchor, isJunction),
+                _ => PathEditResult.Failed("No path placement is active.", moveSourceModel),
+            };
             if (!result.Success)
             {
                 ClearMovePreview();
@@ -759,14 +878,19 @@ namespace FreeTrainSimulator.Toolbox
         }
 
         public bool CancelMoveNode()
+            => CancelPlacement();
+
+        public bool CancelPlacement()
         {
-            if (!IsMovingNode)
+            if (!IsPlacementActive)
                 return false;
 
             int movedNodeIndex = movingNodeIndex;
             PathModel viaSourceModel = pendingViaSourceModel;
             bool viaSourceEditMode = pendingViaSourceEditMode;
             bool viaSourceUnsavedChanges = pendingViaSourceUnsavedChanges;
+            bool sourceEditMode = placementSourceEditMode;
+            bool sourceUnsavedChanges = placementSourceUnsavedChanges;
             PathModel currentModel = TryGetEditablePathModel();
             ClearMoveNodeState();
             if (viaSourceModel != null)
@@ -781,8 +905,9 @@ namespace FreeTrainSimulator.Toolbox
             {
                 path = currentModel;
                 currentPathModel = currentModel;
-                RestorePath(currentModel, false);
-                SelectPathItem(movedNodeIndex);
+                RestorePath(currentModel, sourceEditMode);
+                unsavedChanges = sourceUnsavedChanges;
+                SelectPathItem(movedNodeIndex >= 0 && movedNodeIndex < currentModel.PathNodes.Length ? movedNodeIndex : -1);
             }
 
             OnPathUpdated?.Invoke(this, new PathEditorChangedEventArgs(TrainPath));
@@ -791,9 +916,20 @@ namespace FreeTrainSimulator.Toolbox
 
         public PathEditorCommandResult CancelMoveNodeCommand()
         {
-            return CancelMoveNode()
-                ? PathEditorCommandResult.Succeeded("Node move canceled.", currentPathModel)
-                : PathEditorCommandResult.Failed("No node move is active.", currentPathModel);
+            return CancelPlacementCommand();
+        }
+
+        public PathEditorCommandResult CancelPlacementCommand()
+        {
+            PathEditorPlacementMode canceledMode = placementMode;
+            return CancelPlacement()
+                ? PathEditorCommandResult.Succeeded(canceledMode switch
+                {
+                    PathEditorPlacementMode.StartAnchor => "Start anchor placement canceled.",
+                    PathEditorPlacementMode.EndAnchor => "End anchor placement canceled.",
+                    _ => "Node move canceled.",
+                }, currentPathModel)
+                : PathEditorCommandResult.Failed("No path placement is active.", currentPathModel);
         }
 
         // Captures the current authored path, runs the edit, and on success records an undo snapshot and
@@ -948,9 +1084,9 @@ namespace FreeTrainSimulator.Toolbox
 
         public void MouseReleasedLeft(UserCommandArgs userCommandArgs, KeyModifiers keyModifiers)
         {
-            if (IsMovingNode)
+            if (IsPlacementActive)
             {
-                PathEditResult result = CommitMoveNode();
+                PathEditResult result = CommitPlacement();
                 if (!result.Success)
                     Trace.TraceWarning($"Cannot commit moved path node: {result.Message}");
                 userCommandArgs.Handled = true;
@@ -1008,13 +1144,18 @@ namespace FreeTrainSimulator.Toolbox
         }
 
         public PathEditResult CommitMoveNode()
+            => CommitPlacement();
+
+        public PathEditResult CommitPlacement()
         {
             PathModel currentModel = TryGetEditablePathModel() ?? moveSourceModel;
             if (currentModel == null)
                 return PathEditResult.Failed("No editable path is currently loaded.", null);
+            if (!IsPlacementActive)
+                return PathEditResult.Failed("No path placement is active.", currentModel);
 
             PathModel committedModel = movePreviewModel;
-            PathEditResult result;
+            PathEditResult result = null;
             if (committedModel == null)
             {
                 TrainPathPointBase candidate = ActivePathPoint;
@@ -1023,13 +1164,20 @@ namespace FreeTrainSimulator.Toolbox
 
                 PathNode replacementAnchor = CreateReplacementAnchor(candidate);
                 bool isJunction = candidate.JunctionNode != null || candidate.NodeType.Includes(PathNodeType.Junction);
-                result = PathModelEditor.MoveNode(currentModel, movingNodeIndex, replacementAnchor, isJunction);
+                result = placementMode switch
+                {
+                    PathEditorPlacementMode.MoveNode => PathModelEditor.MoveNode(currentModel, movingNodeIndex, replacementAnchor, isJunction),
+                    PathEditorPlacementMode.StartAnchor => PathModelEditor.SetStartAnchor(currentModel, replacementAnchor, isJunction),
+                    PathEditorPlacementMode.EndAnchor => PathModelEditor.SetEndAnchor(currentModel, replacementAnchor, isJunction),
+                    _ => PathEditResult.Failed("No path placement is active.", currentModel),
+                };
                 if (!result.Success)
                     return result;
 
                 committedModel = result.PathModel;
             }
 
+            PathEditorPlacementMode committedMode = placementMode;
             int movedNodeIndex = movingNodeIndex;
             PathModel undoSnapshot = pendingViaSourceModel ?? currentModel;
             PushUndoSnapshot(undoSnapshot);
@@ -1038,15 +1186,35 @@ namespace FreeTrainSimulator.Toolbox
             path = committedModel;
             currentPathModel = committedModel;
             RestorePath(committedModel, false);
-            SelectPathItem(movedNodeIndex);
+            PathEditResult committedResult = committedMode switch
+            {
+                PathEditorPlacementMode.StartAnchor => PathEditResult.Succeeded("Start anchor placed.", committedModel, result?.ChangedNodeIndexes ?? ImmutableArray.Create(movedNodeIndex)),
+                PathEditorPlacementMode.EndAnchor => PathEditResult.Succeeded("End anchor placed.", committedModel, result?.ChangedNodeIndexes ?? ImmutableArray.Create(movedNodeIndex)),
+                _ => PathEditResult.Succeeded($"Moved node {movedNodeIndex}.", committedModel, ImmutableArray.Create(movedNodeIndex)),
+            };
+            int selectedIndex = committedMode == PathEditorPlacementMode.StartAnchor
+                ? IndexOfNodeType(committedModel, PathNodeType.Start, 0)
+                : committedMode == PathEditorPlacementMode.EndAnchor
+                    ? IndexOfNodeType(committedModel, PathNodeType.End, committedModel.PathNodes.Length - 1)
+                    : movedNodeIndex;
+            SelectPathItem(selectedIndex);
+            if (committedMode is PathEditorPlacementMode.StartAnchor or PathEditorPlacementMode.EndAnchor)
+            {
+                PathGenerationResult generated = GenerateTrackSnappedPath(committedModel, TrackWorld);
+                if (generated.Success)
+                    SetPreviewPath(generated.PathModel);
+            }
             OnPathUpdated?.Invoke(this, new PathEditorChangedEventArgs(TrainPath));
-            return PathEditResult.Succeeded($"Moved node {movedNodeIndex}.", committedModel, ImmutableArray.Create(movedNodeIndex));
+            return committedResult;
         }
 
         public PathEditorCommandResult CommitMoveNodeCommand()
         {
-            return PathEditorCommandResult.FromPathEditResult(CommitMoveNode());
+            return PathEditorCommandResult.FromPathEditResult(CommitPlacement());
         }
+
+        public PathEditorCommandResult CommitPlacementCommand()
+            => PathEditorCommandResult.FromPathEditResult(CommitPlacement());
 
         private static PathNode CreateReplacementAnchor(TrainPathPointBase candidate)
         {
@@ -1067,11 +1235,14 @@ namespace FreeTrainSimulator.Toolbox
 
         private void ClearMoveNodeState()
         {
+            placementMode = PathEditorPlacementMode.None;
             movingNodeIndex = -1;
             pendingViaNodeIndex = -1;
             pendingViaSourceModel = null;
             pendingViaSourceEditMode = false;
             pendingViaSourceUnsavedChanges = false;
+            placementSourceEditMode = false;
+            placementSourceUnsavedChanges = false;
             moveSourceModel = null;
             ClearMovePreview();
             UseStandaloneActivePathPointPreview = false;
@@ -1115,7 +1286,20 @@ namespace FreeTrainSimulator.Toolbox
 
         internal PathModel TryCaptureCurrentPathModel()
         {
-            return PreviewPathModel ?? TryGetEditablePathModel();
+            return TryGetEditablePathModel();
+        }
+
+        internal TrainPathBase TryCaptureRenderedPath() => RenderedPath;
+
+        private static int IndexOfNodeType(PathModel pathModel, PathNodeType nodeType, int fallback)
+        {
+            ImmutableArray<PathNode> nodes = pathModel?.PathNodes ?? ImmutableArray<PathNode>.Empty;
+            for (int i = 0; i < nodes.Length; i++)
+            {
+                if (nodes[i].NodeType.Includes(nodeType))
+                    return i;
+            }
+            return fallback;
         }
 
         private string BuildSnapshotContext()
