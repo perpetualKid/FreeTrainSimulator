@@ -16,6 +16,7 @@ namespace FreeTrainSimulator.Runtime.Track
         public int TrackNodeIndex { get; }
 
         public int MainRoute { get; }
+        public float OpeningAngle { get; }
 
 #pragma warning disable CA1033 // Interface methods should be callable by child types
         int IIndexedElement.Index => TrackNodeIndex;
@@ -28,6 +29,7 @@ namespace FreeTrainSimulator.Runtime.Track
 
             Direction = MathHelper.WrapAngle(junctionNode.Direction.Y + MathHelper.Pi);
             MainRoute = mainRouteNode;
+            OpeningAngle = junctionNode.OpeningAngle;
         }
 
         // find the direction angle of the facing (in) track 

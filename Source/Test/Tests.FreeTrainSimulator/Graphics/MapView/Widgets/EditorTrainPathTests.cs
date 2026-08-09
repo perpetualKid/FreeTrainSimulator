@@ -21,6 +21,62 @@ namespace Tests.FreeTrainSimulator.Graphics.MapView.Widgets
     public class EditorTrainPathTests
     {
         [TestMethod]
+        public void WhenFacingJunctionUsesPositiveMainRouteThenIconIsMirroredHorizontally()
+        {
+            bool flipHorizontal = EditorPathPoint.JunctionIconFlip(0.25f, true, true).FlipHorizontal;
+
+            Assert.IsTrue(flipHorizontal);
+        }
+
+        [TestMethod]
+        public void WhenFacingJunctionUsesPositiveDivergingRouteThenIconIsNotMirroredHorizontally()
+        {
+            bool flipHorizontal = EditorPathPoint.JunctionIconFlip(0.25f, false, true).FlipHorizontal;
+
+            Assert.IsFalse(flipHorizontal);
+        }
+
+        [TestMethod]
+        public void WhenTrailingJunctionUsesMainRouteThenIconIsMirroredVertically()
+        {
+            bool flipVertical = EditorPathPoint.JunctionIconFlip(0.25f, true, false).FlipVertical;
+
+            Assert.IsTrue(flipVertical);
+        }
+
+        [TestMethod]
+        public void WhenFacingJunctionUsesMainRouteThenIconIsNotMirroredVertically()
+        {
+            bool flipVertical = EditorPathPoint.JunctionIconFlip(0.25f, true, true).FlipVertical;
+
+            Assert.IsFalse(flipVertical);
+        }
+
+        [TestMethod]
+        public void WhenMainRouteIsProcessedThenItUpdatesPathPointDirection()
+        {
+            bool updateDirection = EditorTrainPath.ShouldUpdatePathPointDirection(PathSectionType.MainPath, 2);
+
+            Assert.IsTrue(updateDirection);
+        }
+
+        [TestMethod]
+        public void WhenPassingRouteHasMainRouteThenItDoesNotOverwritePathPointDirection()
+        {
+            bool updateDirection = EditorTrainPath.ShouldUpdatePathPointDirection(PathSectionType.PassingPath, 2);
+
+            Assert.IsFalse(updateDirection);
+        }
+
+        [TestMethod]
+        public void WhenPassingRouteHasNoMainRouteThenItProvidesFallbackPathPointDirection()
+        {
+            bool updateDirection = EditorTrainPath.ShouldUpdatePathPointDirection(PathSectionType.PassingPath, -1);
+
+            Assert.IsTrue(updateDirection);
+        }
+
+        [TestMethod]
         public void WhenPathHasStartAndDanglingNodeWithoutEndThenConstructionSucceeds()
         {
             // Start -> Intermediate with no End and no outgoing link on the last node: the dangling node must

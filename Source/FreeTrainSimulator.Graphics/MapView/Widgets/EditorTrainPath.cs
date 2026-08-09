@@ -4,6 +4,7 @@ using System.Linq;
 using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Position;
 using FreeTrainSimulator.Models.Content;
+using FreeTrainSimulator.Models.Track;
 using FreeTrainSimulator.Runtime.Track;
 
 using Microsoft.Xna.Framework;
@@ -100,8 +101,9 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
                     if (endPoint == null)
                         return;
 
-                    (startPoint as EditorPathPoint).UpdateDirectionTowards(endPoint, startPoint.ValidationResult == PathNodeInvalidReasons.None, startPoint.NodeType.Includes(PathNodeType.End));
                     List<TrainPathSectionBase> sections = InitializeSections(pathType, startPoint, endPoint).Sections;
+                    if (ShouldUpdatePathPointDirection(pathType, startPoint.NextMainNode))
+                        UpdatePathPointDirection(startPoint as EditorPathPoint, endPoint, sections, startPoint.NodeType.Includes(PathNodeType.End));
                     foreach (TrainPathSectionBase section in sections)
                     {
                         section.PathItem = startPoint;
@@ -273,11 +275,45 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
                 }
                 AddSections(sections);
 
-                pathPoint.UpdateDirectionTowards(PathPoints[^1], trackSegment != null, true);
-                (PathPoints[^1] as EditorPathPoint).UpdateDirectionTowards(pathPoint, trackSegment != null, false);
+                UpdatePathPointDirection(pathPoint, PathPoints[^1], sections, true);
+                UpdatePathPointDirection(PathPoints[^1] as EditorPathPoint, pathPoint, sections, false);
             }
 
             return pathPoint;
+        }
+
+        internal static bool ShouldUpdatePathPointDirection(PathSectionType pathType, int nextMainNode)
+        {
+            return pathType == PathSectionType.MainPath || nextMainNode < 0;
+        }
+
+        private void UpdatePathPointDirection(EditorPathPoint pathPoint, TrainPathPointBase nextPathPoint, IReadOnlyList<TrainPathSectionBase> routeSections, bool reverse)
+        {
+            if (pathPoint == null)
+                return;
+
+            TrainPathSectionBase adjacentSection = routeSections?.FirstOrDefault(section => section.PathType != PathSectionType.Invalid &&
+                (section.Location.DistanceSquared(pathPoint.Location) <= WorldLocation.ProximityTolerance ||
+                section.Vector.DistanceSquared(pathPoint.Location) <= WorldLocation.ProximityTolerance));
+            TrackSegmentBase adjacentSegment = adjacentSection?.SectionSegments.FirstOrDefault(segment => segment.TrackSegmentAt(pathPoint.Location));
+            if (adjacentSection == null || adjacentSegment == null)
+            {
+                pathPoint.UpdateDirectionTowards(nextPathPoint, pathPoint.ValidationResult == PathNodeInvalidReasons.None, reverse);
+                return;
+            }
+
+            PointD adjacentLocation = adjacentSegment.Location.DistanceSquared(pathPoint.Location) <= WorldLocation.ProximityTolerance
+                ? adjacentSegment.Vector
+                : adjacentSegment.Location;
+            TrackDirection routedDirection = adjacentSegment.TrackDirectionOnSegment(pathPoint.Location, adjacentLocation);
+            ConnectorType? connectorType = null;
+            if (pathPoint.JunctionNode != null)
+            {
+                TrackNodeConnectorIndex connectorIndex = TrackWorld.TrackDatabase.TrackNodeConnectors[pathPoint.JunctionNode.TrackNodeIndex];
+                connectorType = connectorIndex.TrackNodeConnectors.FirstOrDefault(connector => connector.Link == adjacentSection.TrackNodeIndex)?.ConnectorType;
+            }
+
+            pathPoint.UpdateDirectionTowards(nextPathPoint, true, reverse, adjacentSegment, routedDirection, connectorType);
         }
         #endregion
 

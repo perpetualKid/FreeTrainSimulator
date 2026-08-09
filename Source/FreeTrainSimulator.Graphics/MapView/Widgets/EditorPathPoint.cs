@@ -6,6 +6,7 @@ using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Position;
 using FreeTrainSimulator.Graphics.MapView.Shapes;
 using FreeTrainSimulator.Models.Content;
+using FreeTrainSimulator.Models.Track;
 using FreeTrainSimulator.Runtime.Track;
 
 using Microsoft.Xna.Framework;
@@ -16,6 +17,8 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
     {
         private protected BasicTextureType textureType;
         private protected float Direction;
+        private bool flipHorizontal;
+        private bool flipVertical;
 
         public override PathNodeType NodeType
         {
@@ -65,7 +68,8 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
                 _ => Color.Red,
             };
 
-            renderer.DrawTexture(textureType, renderer.WorldToScreenCoordinates(in Location), Direction, renderer.WorldToScreenSize(Size * scaleFactor), color);
+            renderer.DrawTexture(textureType, renderer.WorldToScreenCoordinates(in Location), Direction, renderer.WorldToScreenSize(Size * scaleFactor), color,
+                flipHorizontal, flipVertical);
         }
 
         internal void UpdateDirection(in PointD nextLocation)
@@ -76,8 +80,31 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
 
         internal void UpdateDirectionTowards(in TrainPathPointBase nextPathPoint, bool alongTrack, bool reverse)
         {
+            UpdateDirectionTowards(nextPathPoint, alongTrack, reverse, null, TrackDirection.Ahead, null);
+        }
+
+        internal void UpdateDirectionTowards(in TrainPathPointBase nextPathPoint, bool alongTrack, bool reverse, TrackSegmentBase routedSegment,
+            TrackDirection routedDirection, ConnectorType? connectorType)
+        {
             if (nextPathPoint == null)
                 return;
+
+            if (alongTrack && routedSegment != null)
+            {
+                if (reverse)
+                    routedDirection = routedDirection.Reverse();
+                Direction = routedSegment.DirectionAt(Location) + (routedDirection == TrackDirection.Reverse ? MathHelper.Pi : 0) + MathHelper.PiOver2;
+
+                if (JunctionNode != null && connectorType.HasValue)
+                {
+                    bool facing = reverse
+                        ? connectorType.Value == ConnectorType.InPin
+                        : connectorType.Value == ConnectorType.OutPin;
+                    bool usesMainRoute = routedSegment.TrackNodeIndex == JunctionNode.MainRoute;
+                    (flipHorizontal, flipVertical) = JunctionIconFlip(JunctionNode.OpeningAngle, usesMainRoute, facing);
+                }
+                return;
+            }
 
             if (alongTrack && nextPathPoint.ValidationResult == PathNodeInvalidReasons.None &&
                 !ConnectedSegments.IsDefaultOrEmpty && !nextPathPoint.ConnectedSegments.IsDefaultOrEmpty)
@@ -102,6 +129,12 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
                 PointD origin = nextPathPoint.Location - Location;
                 Direction = (float)Math.Atan2(origin.X, origin.Y) + (reverse ? MathHelper.Pi : 0);
             }
+        }
+
+        internal static (bool FlipHorizontal, bool FlipVertical) JunctionIconFlip(float openingAngle, bool usesMainRoute, bool facing)
+        {
+            bool flipForOpeningDirection = openingAngle > 0;
+            return (flipForOpeningDirection ^ !usesMainRoute ^ !facing, !facing);
         }
 
         private static BasicTextureType TextureFromNodeType(PathNodeType nodeType)

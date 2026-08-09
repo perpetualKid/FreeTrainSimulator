@@ -21,6 +21,8 @@ namespace FreeTrainSimulator.Graphics.MapView
 
         void DrawTexture(BasicTextureType texture, Vector2 point, double angle, float size, bool flipHorizontal, bool flipVertical, bool highlight);
 
+        void DrawTexture(BasicTextureType texture, Vector2 point, double angle, float size, Color color, bool flipHorizontal, bool flipVertical);
+
         void DrawTexture(BasicTextureType texture, Vector2 point, double angle, float size, Color color);
 
         void DrawText(Vector2 point, Color color, string text, System.Drawing.Font font, Vector2 scale, float angle,

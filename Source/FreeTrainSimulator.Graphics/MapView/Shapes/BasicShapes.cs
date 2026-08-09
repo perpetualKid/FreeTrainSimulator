@@ -101,6 +101,17 @@ namespace FreeTrainSimulator.Graphics.MapView.Shapes
         }
 
         /// <summary>
+        /// Draws a colored texture with optional horizontal and vertical mirroring.
+        /// </summary>
+        public void DrawTexture(BasicTextureType texture, Vector2 point, double angle, float size, Color color, bool flipHorizontal, bool flipVertical, SpriteBatch spriteBatch)
+        {
+            Vector2 scaledSize = size < 0 ? new Vector2(-size) : new Vector2(size / basicTextures[texture].Width);
+            SpriteEffects flipMode = (flipHorizontal ? SpriteEffects.FlipHorizontally : SpriteEffects.None) | (flipVertical ? SpriteEffects.FlipVertically : SpriteEffects.None);
+
+            spriteBatch.Draw(basicTextures[texture], point, null, color, (float)angle, textureOffsets[texture], scaledSize, flipMode, 0);
+        }
+
+        /// <summary>
         /// Draw one of the (predefined) textures at the given location with the given angle
         /// </summary>
         /// <param name="point">Location where to draw</param>

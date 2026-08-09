@@ -54,6 +54,11 @@ namespace FreeTrainSimulator.Graphics.MapView
             basicShapes.DrawTexture(texture, point, angle, size, flipHorizontal, flipVertical, highlight, spriteBatch);
         }
 
+        public void DrawTexture(BasicTextureType texture, Vector2 point, double angle, float size, Color color, bool flipHorizontal, bool flipVertical)
+        {
+            basicShapes.DrawTexture(texture, point, angle, size, color, flipHorizontal, flipVertical, spriteBatch);
+        }
+
         public void DrawTexture(BasicTextureType texture, Vector2 point, double angle, float size, Color color)
         {
             basicShapes.DrawTexture(texture, point, angle, size, color, spriteBatch);
