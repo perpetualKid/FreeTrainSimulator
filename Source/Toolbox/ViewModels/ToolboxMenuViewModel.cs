@@ -44,13 +44,13 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
             ShowAboutCommand = new RelayCommand(_ => menu.ShowAbout(), _ => Enabled);
             QuitCommand = new RelayCommand(_ => menu.Quit());
 
-            menu.ContentFoldersChanged += Menu_ContentFoldersChanged;
-            menu.RoutesChanged += Menu_RoutesChanged;
-            menu.PathsChanged += Menu_PathsChanged;
-            menu.SelectedFolderChanged += Menu_SelectedFolderChanged;
-            menu.SelectedRouteChanged += Menu_SelectedRouteChanged;
-            menu.SelectedPathChanged += Menu_SelectedPathChanged;
-            menu.EnabledChanged += Menu_EnabledChanged;
+            menu.ContentFoldersChanged += MenuContentFoldersChanged;
+            menu.RoutesChanged += MenuRoutesChanged;
+            menu.PathsChanged += MenuPathsChanged;
+            menu.SelectedFolderChanged += MenuSelectedFolderChanged;
+            menu.SelectedRouteChanged += MenuSelectedRouteChanged;
+            menu.SelectedPathChanged += MenuSelectedPathChanged;
+            menu.EnabledChanged += MenuEnabledChanged;
 
             // Pull any data that was populated before the view model subscribed.
             ReplaceContent(ContentFolders, menu.ContentFolders);
@@ -154,7 +154,7 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
                 menu.TogglePath(path);
         }
 
-        private void Menu_ContentFoldersChanged(object sender, EventArgs e)
+        private void MenuContentFoldersChanged(object sender, EventArgs e)
             => RunOnDispatcher(() =>
             {
                 ReplaceContent(ContentFolders, menu.ContentFolders);
@@ -163,7 +163,7 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
                 SyncSelectedFolderFromBridge();
             });
 
-        private void Menu_RoutesChanged(object sender, EventArgs e)
+        private void MenuRoutesChanged(object sender, EventArgs e)
             => RunOnDispatcher(() =>
             {
                 ReplaceContent(Routes, menu.Routes);
@@ -172,7 +172,7 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
                 SyncSelectedRouteFromBridge();
             });
 
-        private void Menu_PathsChanged(object sender, EventArgs e)
+        private void MenuPathsChanged(object sender, EventArgs e)
             => RunOnDispatcher(() =>
             {
                 ReplaceContent(Paths, menu.Paths);
@@ -181,21 +181,18 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
                 SyncSelectedPathFromBridge();
             });
 
-        private void Menu_SelectedFolderChanged(object sender, EventArgs e)
-            => RunOnDispatcher(SyncSelectedFolderFromBridge);
+        private void MenuSelectedFolderChanged(object sender, EventArgs e) => RunOnDispatcher(SyncSelectedFolderFromBridge);
 
-        private void Menu_SelectedRouteChanged(object sender, EventArgs e)
+        private void MenuSelectedRouteChanged(object sender, EventArgs e)
             => RunOnDispatcher(() =>
             {
                 SelectedRouteName = menu.SelectedRouteName;
                 SyncSelectedRouteFromBridge();
             });
 
-        private void Menu_SelectedPathChanged(object sender, EventArgs e)
-            => RunOnDispatcher(SyncSelectedPathFromBridge);
+        private void MenuSelectedPathChanged(object sender, EventArgs e) => RunOnDispatcher(SyncSelectedPathFromBridge);
 
-        private void Menu_EnabledChanged(object sender, EventArgs e)
-            => RunOnDispatcher(() => Enabled = menu.Enabled);
+        private void MenuEnabledChanged(object sender, EventArgs e) => RunOnDispatcher(() => Enabled = menu.Enabled);
 
         private void RunOnDispatcher(Action action)
         {
@@ -205,7 +202,7 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
             if (dispatcher.CheckAccess())
                 action();
             else
-                dispatcher.BeginInvoke(new Action(() =>
+                _ = dispatcher.BeginInvoke(new Action(() =>
                 {
                     if (!disposed)
                         action();
@@ -317,13 +314,13 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
                 return;
 
             disposed = true;
-            menu.ContentFoldersChanged -= Menu_ContentFoldersChanged;
-            menu.RoutesChanged -= Menu_RoutesChanged;
-            menu.PathsChanged -= Menu_PathsChanged;
-            menu.SelectedFolderChanged -= Menu_SelectedFolderChanged;
-            menu.SelectedRouteChanged -= Menu_SelectedRouteChanged;
-            menu.SelectedPathChanged -= Menu_SelectedPathChanged;
-            menu.EnabledChanged -= Menu_EnabledChanged;
+            menu.ContentFoldersChanged -= MenuContentFoldersChanged;
+            menu.RoutesChanged -= MenuRoutesChanged;
+            menu.PathsChanged -= MenuPathsChanged;
+            menu.SelectedFolderChanged -= MenuSelectedFolderChanged;
+            menu.SelectedRouteChanged -= MenuSelectedRouteChanged;
+            menu.SelectedPathChanged -= MenuSelectedPathChanged;
+            menu.EnabledChanged -= MenuEnabledChanged;
         }
     }
 }
