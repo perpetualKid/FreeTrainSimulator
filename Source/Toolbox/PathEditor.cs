@@ -215,8 +215,9 @@ namespace FreeTrainSimulator.Toolbox
             currentPathModel = newPath;
             ClearMoveNodeState();
             ClearHistory();
-            InitializePathEdit(newPath);
             unsavedChanges = true;
+            InitializeAnchorPathEdit(newPath);
+            _ = BeginAnchorPlacement(PathEditorPlacementMode.StartAnchor);
             OnPathChanged?.Invoke(this, new PathEditorChangedEventArgs(TrainPath));
         }
 
@@ -317,8 +318,21 @@ namespace FreeTrainSimulator.Toolbox
         /// </summary>
         public PathEditorCommandResult SetStartAnchorCommand(PathNode anchor, bool isJunction)
         {
+            ArgumentNullException.ThrowIfNull(anchor);
+
             if (IsPlacementActive)
-                return PathEditorCommandResult.Failed("Cancel the active placement before setting the start anchor.", currentPathModel);
+            {
+                if (!IsPlacingStartAnchor || moveSourceModel == null)
+                    return PathEditorCommandResult.Failed("Cancel the active placement before setting the start anchor.", currentPathModel);
+
+                PathEditResult placementResult = PathModelEditor.SetStartAnchor(moveSourceModel, anchor, isJunction);
+                if (!placementResult.Success)
+                    return PathEditorCommandResult.FromPathEditResult(placementResult);
+
+                movePreviewAnchor = anchor;
+                movePreviewModel = placementResult.PathModel;
+                return PathEditorCommandResult.FromPathEditResult(CommitPlacement());
+            }
 
             return ApplyEndpointAnchor(model => PathModelEditor.SetStartAnchor(model, anchor, isJunction));
         }
@@ -1086,10 +1100,15 @@ namespace FreeTrainSimulator.Toolbox
         {
             if (IsPlacementActive)
             {
-                PathEditResult result = CommitPlacement();
-                if (!result.Success)
-                    Trace.TraceWarning($"Cannot commit moved path node: {result.Message}");
-                userCommandArgs.Handled = true;
+                // Commit only on a genuine click; a drag is a map pan and must not drop the anchor at the
+                // drag-release location (mirrors the pointerDraggedSinceLeftPress guard in GameWindow.UserActivity).
+                if (!editorDragged)
+                {
+                    PathEditResult result = CommitPlacement();
+                    if (!result.Success)
+                        Trace.TraceWarning($"Cannot commit moved path node: {result.Message}");
+                    userCommandArgs.Handled = true;
+                }
                 editorDragged = false;
                 return;
             }
@@ -1180,6 +1199,8 @@ namespace FreeTrainSimulator.Toolbox
             PathEditorPlacementMode committedMode = placementMode;
             int movedNodeIndex = movingNodeIndex;
             PathModel undoSnapshot = pendingViaSourceModel ?? currentModel;
+            bool beginEndPlacement = committedMode == PathEditorPlacementMode.StartAnchor
+                && !HasFlag(undoSnapshot, PathNodeType.Start);
             PushUndoSnapshot(undoSnapshot);
             unsavedChanges = true;
             ClearMoveNodeState();
@@ -1204,6 +1225,8 @@ namespace FreeTrainSimulator.Toolbox
                 if (generated.Success)
                     SetPreviewPath(generated.PathModel);
             }
+            if (beginEndPlacement)
+                _ = BeginAnchorPlacement(PathEditorPlacementMode.EndAnchor);
             OnPathUpdated?.Invoke(this, new PathEditorChangedEventArgs(TrainPath));
             return committedResult;
         }

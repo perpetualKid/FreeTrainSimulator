@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading;
 
 using FreeTrainSimulator.Common;
+using FreeTrainSimulator.Common.Position;
 using FreeTrainSimulator.Models.Content;
 using FreeTrainSimulator.Models.Track;
 
@@ -16,6 +17,12 @@ namespace FreeTrainSimulator.Runtime.Track
     public static class PathRouteResolver
     {
         private const double CostEpsilon = 1e-6;
+
+        // The configured MaximumSparseSearchDistance is a floor, not a hard ceiling: two anchors that are far
+        // apart (a long but otherwise simple span) can legitimately need a route longer than the default cap.
+        // The effective cap is therefore expanded to allow a realistic detour relative to the straight-line
+        // distance between the anchors (curves, junction ladders), while still bounding pathological searches.
+        private const double SparseSearchDetourFactor = 3.0;
 
         /// <summary>
         /// Resolves and validates a path model.
@@ -490,7 +497,7 @@ namespace FreeTrainSimulator.Runtime.Track
             if (fromAnchor.TrackNodeIndex == toAnchor.TrackNodeIndex)
                 return BuildTrackRouteSearchResult(ImmutableArray.Create(fromAnchor.TrackNodeIndex), trackWorld, options, 0.0);
 
-            double maximumCost = options?.MaximumSparseSearchDistance ?? PathRouteResolverOptions.DefaultMaximumSparseSearchDistance;
+            double maximumCost = EffectiveSearchDistance(fromAnchor, toAnchor, options);
             int nodeCount = trackDatabase.TrackNodes.Length;
             double[] costs = Enumerable.Repeat(double.PositiveInfinity, nodeCount).ToArray();
             List<int>[] optimalPredecessors = new List<int>[nodeCount];
@@ -642,6 +649,16 @@ namespace FreeTrainSimulator.Runtime.Track
             }
 
             return 1.0;
+        }
+
+        // Computes the effective sparse-search cost cap. The configured distance is a floor that is expanded to
+        // allow a realistic detour relative to the straight-line separation of the anchors, so a long but simple
+        // span is not rejected by the default distance. Co-located anchors keep the configured distance.
+        private static double EffectiveSearchDistance(PathRouteAnchor fromAnchor, PathRouteAnchor toAnchor, PathRouteResolverOptions options)
+        {
+            double configured = options?.MaximumSparseSearchDistance ?? PathRouteResolverOptions.DefaultMaximumSparseSearchDistance;
+            double directDistance = Math.Sqrt(WorldLocation.GetDistanceSquared2D(fromAnchor.Location, toAnchor.Location));
+            return Math.Max(configured, directDistance * SparseSearchDetourFactor);
         }
 
         private sealed record TrackRouteSearchResult

@@ -417,6 +417,32 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
         }
 
         /// <summary>
+        /// Verifies that a long-but-simple span across a junction still resolves when the anchors are far apart,
+        /// because the configured search distance acts as a floor that is expanded by the anchor separation.
+        /// </summary>
+        [TestMethod]
+        public void ResolveWhenAnchorsAreFarApartThenSearchDistanceFloorIsExpanded()
+        {
+            TrackWorld trackWorld = CreateTrackWorld(
+                ImmutableArray.Create<TrackNodeBase>(null, CreateVectorNode(1), CreateVectorNode(2), CreateJunctionNode(3)),
+                ImmutableArray.Create(new TrackNodeConnectorIndex(), CreateConnectors(1, 3), CreateConnectors(2, 3), CreateConnectors(3, 1, 2)));
+            // A tiny configured distance would reject the route on its own; the far-apart stored locations expand
+            // the effective cap so the span resolves.
+            PathRouteResolverOptions options = new PathRouteResolverOptions(1.0, false, false, true, true);
+
+            PathModel pathModel = new PathModel()
+            {
+                PathNodes = ImmutableArray.Create(
+                    CreateNode(PathNodeType.Start, 1, -1, 1, new WorldLocation(new Tile(0, 0), Vector3.Zero)),
+                    CreateNode(PathNodeType.End, -1, -1, 2, new WorldLocation(new Tile(0, 0), new Vector3(300, 0, 0)))),
+            };
+
+            PathRouteResolution result = PathRouteResolver.Resolve(pathModel, trackWorld, options, TestContext.CancellationToken);
+
+            Assert.AreNotEqual(PathRouteSpanStatus.Unresolved, result.MainRoute.Spans[0].Status);
+        }
+
+        /// <summary>
         /// Verifies that a path node marked as a junction must actually be located on a junction.
         /// </summary>
         [TestMethod]

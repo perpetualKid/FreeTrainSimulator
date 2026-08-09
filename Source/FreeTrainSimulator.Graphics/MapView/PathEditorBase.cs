@@ -142,6 +142,16 @@ namespace FreeTrainSimulator.Graphics.MapView
             activePathPoint = new EditorPathPoint(PointD.None, PointD.None, PathNodeType.Start);
         }
 
+        /// <summary>Initializes an editable path without activating legacy interactive path extension.</summary>
+        protected void InitializeAnchorPathEdit(PathModel pathModel)
+        {
+            EditMode = true;
+            editorContext.ContentMode = ToolboxContentMode.EditPath;
+            trainPath = ((IPathEditorContextServicesAccessor)editorContext).Services.CreateEditorTrainPath(pathModel);
+            SetPreviewPath(null);
+            activePathPoint = null;
+        }
+
         /// <summary>
         /// Rebuilds the editor from <paramref name="pathModel"/> while preserving the supplied
         /// <paramref name="editMode"/>, used when restoring an undo/redo snapshot or applying a mutation so a

@@ -3,6 +3,7 @@ using System;
 using System.Reflection;
 
 using FreeTrainSimulator.Common;
+using FreeTrainSimulator.Common.Input;
 using FreeTrainSimulator.Common.Position;
 using FreeTrainSimulator.Graphics.MapView;
 using FreeTrainSimulator.Models.Content;
@@ -109,6 +110,75 @@ namespace Tests.FreeTrainSimulator.Toolbox
             TestTrainPath trainPath = new TestTrainPath(partialPath);
 
             Assert.IsNotNull(trainPath);
+        }
+
+        [TestMethod]
+        public void WhenNewPathIsInitializedThenStartAnchorPlacementIsActive()
+        {
+            using PathEditor editor = CreateNewEditor();
+
+            Assert.IsTrue(editor.IsPlacingStartAnchor);
+        }
+
+        [TestMethod]
+        public void WhenPointerMovesOverEmptyNewPathThenLegacyEndpointMutationDoesNotRun()
+        {
+            using PathEditor editor = CreateNewEditor();
+
+            editor.UpdatePointerLocation(new PointD(25, 0), null);
+
+            Assert.IsTrue(editor.IsPlacingStartAnchor);
+        }
+
+        [TestMethod]
+        public void WhenInitialStartAnchorPlacementIsCommittedThenEndAnchorPlacementBegins()
+        {
+            using PathEditor editor = CreateNewEditor();
+            PathModel source = editor.TryCaptureCurrentPathModel();
+            PathEditResult preview = PathModelEditor.SetStartAnchor(source, CreateNodeAt(25, PathNodeType.None, -1), false);
+            SetPrivateField(editor, "movePreviewModel", preview.PathModel);
+
+            _ = editor.CommitPlacement();
+
+            Assert.IsTrue(editor.IsPlacingEndAnchor);
+        }
+
+        [TestMethod]
+        public void WhenEndPlacementAfterInitialStartIsCanceledThenStartAnchorIsRetained()
+        {
+            using PathEditor editor = CreateNewEditor();
+            PathModel source = editor.TryCaptureCurrentPathModel();
+            PathEditResult preview = PathModelEditor.SetStartAnchor(source, CreateNodeAt(25, PathNodeType.None, -1), false);
+            SetPrivateField(editor, "movePreviewModel", preview.PathModel);
+            _ = editor.CommitPlacement();
+
+            _ = editor.CancelPlacement();
+
+            Assert.IsTrue(editor.TryCaptureCurrentPathModel().PathNodes[0].NodeType.Includes(PathNodeType.Start));
+        }
+
+        [TestMethod]
+        public void WhenInitialStartAnchorIsCommittedThenOneUndoRestoresEmptyPath()
+        {
+            using PathEditor editor = CreateNewEditor();
+            PathModel source = editor.TryCaptureCurrentPathModel();
+            PathEditResult preview = PathModelEditor.SetStartAnchor(source, CreateNodeAt(25, PathNodeType.None, -1), false);
+            SetPrivateField(editor, "movePreviewModel", preview.PathModel);
+            _ = editor.CommitPlacement();
+
+            _ = editor.Undo();
+
+            Assert.IsEmpty(editor.TryCaptureCurrentPathModel().PathNodes);
+        }
+
+        [TestMethod]
+        public void WhenNewPathStartIsSetDirectlyThenEndAnchorPlacementBegins()
+        {
+            using PathEditor editor = CreateNewEditor();
+
+            PathEditorCommandResult result = editor.SetStartAnchorCommand(CreateNodeAt(25, PathNodeType.None, -1), false);
+
+            Assert.IsTrue(result.Success && editor.IsPlacingEndAnchor);
         }
 
         [TestMethod]
@@ -226,6 +296,22 @@ namespace Tests.FreeTrainSimulator.Toolbox
             Assert.IsTrue(result.Success);
             Assert.IsFalse(editor.IsPlacementActive);
             Assert.AreEqual(25f, editor.TryCaptureCurrentPathModel().PathNodes[0].Location.Location.X);
+            Assert.IsTrue(editor.CanPlaceEndAnchor);
+        }
+
+        [TestMethod]
+        public void WhenPlacementReleaseFollowsADragThenAnchorIsNotCommitted()
+        {
+            // Panning the map during placement must not drop the anchor at the drag-release location.
+            using PathEditor editor = CreateNewEditor();
+            PathModel source = editor.TryCaptureCurrentPathModel();
+            PathEditResult preview = PathModelEditor.SetStartAnchor(source, CreateNodeAt(25, PathNodeType.None, -1), false);
+            SetPrivateField(editor, "movePreviewModel", preview.PathModel);
+
+            editor.MouseDragged(new UserCommandArgs(), KeyModifiers.None);
+            editor.MouseReleasedLeft(new UserCommandArgs(), KeyModifiers.None);
+
+            Assert.IsTrue(editor.IsPlacingStartAnchor);
         }
 
         [TestMethod]
@@ -504,10 +590,16 @@ namespace Tests.FreeTrainSimulator.Toolbox
 
         private static PathEditor CreateEditor(PathModel pathModel)
         {
+            PathEditor editor = CreateNewEditor();
+            typeof(PathEditor).GetMethod("RestoreSnapshot", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(editor, new object[] { pathModel });
+            return editor;
+        }
+
+        private static PathEditor CreateNewEditor()
+        {
             TrackWorld trackWorld = TrackWorldTestFixture.CreateSingleVectorNodeTrackWorld();
             PathEditor editor = new PathEditor(new TestPathEditorContext(trackWorld));
             editor.InitializeNewPath();
-            typeof(PathEditor).GetMethod("RestoreSnapshot", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(editor, new object[] { pathModel });
             return editor;
         }
 

@@ -65,9 +65,20 @@ namespace Tests.FreeTrainSimulator.Toolbox
         }
 
         [TestMethod]
-        public void WhenNoTrackAnchorExistsThenMapMenuOmitsEndpointHereActions()
+        public void WhenEditablePathExistsThenMapMenuStillOffersAnchoredStartNewPathHere()
         {
-            ImmutableArray<MapContextMenuItem> items = BuildForMap(new MapContextMenuState
+            PathNode anchor = PlacementAnchor();
+            ImmutableArray<MapContextMenuItem> items = BuildForMap(
+                new MapContextMenuState { CanStartNewPath = true, CanSetStartAnchor = true }, anchor);
+
+            MapContextMenuItem startNewPath = items.Single(item => item.Action == MapContextMenuAction.StartNewPathHere);
+            Assert.AreSame(anchor, startNewPath.PlacementAnchor);
+            Assert.DoesNotContain(MapContextMenuAction.StartNewPath, Actions(items));
+        }
+
+        [TestMethod]
+        public void WhenNoTrackAnchorExistsThenMapMenuOmitsEndpointHereActions()
+        {            ImmutableArray<MapContextMenuItem> items = BuildForMap(new MapContextMenuState
             {
                 CanStartNewPath = true,
                 CanSetStartAnchor = true,

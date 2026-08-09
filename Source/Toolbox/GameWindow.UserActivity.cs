@@ -104,7 +104,7 @@ namespace FreeTrainSimulator.Toolbox
             double tolerance = content.Scale > 0
                 ? nodeHitTestRadiusPixels / content.Scale
                 : 0;
-            PathNode contextAnchor = TryCreateContextAnchor(location);
+            PathNode contextAnchor = TryCreateContextAnchor(location, tolerance);
 
             MapContextMenuActionBuilder.MapContextMenuState state = new MapContextMenuActionBuilder.MapContextMenuState
             {
@@ -283,7 +283,7 @@ namespace FreeTrainSimulator.Toolbox
                 toolWindow.SetEndAnchor(anchor, isJunction);
         }
 
-        private static PathNode TryCreateContextAnchor(in PointD location)
+        private static PathNode TryCreateContextAnchor(in PointD location, double toleranceMeters)
         {
             TrackWorld trackWorld = RuntimeDataResolver.Instance.TrackWorld;
             if (trackWorld == null)
@@ -300,7 +300,7 @@ namespace FreeTrainSimulator.Toolbox
             }
 
             TrackDistanceDiagnostic nearest = trackWorld.NearestTrackDistance(location);
-            if (nearest == null || nearest.DistanceMeters > 1.0)
+            if (nearest == null || nearest.DistanceMeters > Math.Max(1.0, toleranceMeters))
                 return null;
 
             foreach (var geometry in trackWorld.SectionGeometry.Values)

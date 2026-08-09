@@ -148,9 +148,7 @@ namespace FreeTrainSimulator.Toolbox
                 items.Add(new MapContextMenuItem(MapContextMenuAction.ReResolvePath));
             AddAnchorPlacementActions(items, state, placementAnchor);
             if (state.CanStartNewPath && placementAnchor != null)
-                items.Add(new MapContextMenuItem(state.CanSetStartAnchor
-                    ? MapContextMenuAction.StartNewPath
-                    : MapContextMenuAction.StartNewPathHere) { PlacementAnchor = placementAnchor });
+                items.Add(new MapContextMenuItem(MapContextMenuAction.StartNewPathHere) { PlacementAnchor = placementAnchor });
             if (state.CanSavePath)
                 items.Add(new MapContextMenuItem(MapContextMenuAction.SavePath));
 
