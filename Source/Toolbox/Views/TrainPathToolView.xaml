@@ -76,9 +76,9 @@
                                     <Trigger Property="IsKeyboardFocused" Value="True">
                                         <Setter Property="Background" Value="White" />
                                         <Setter Property="BorderBrush" Value="#FF007ACC" />
-                                    <Setter Property="BorderThickness" Value="1" />
-                                    <!-- Compensate for the focus border so the text does not move when editing. -->
-                                    <Setter Property="Padding" Value="3,0" />
+                                        <Setter Property="BorderThickness" Value="1" />
+                                        <!-- Compensate for the focus border so the text does not move when editing. -->
+                                        <Setter Property="Padding" Value="3,0" />
                                     </Trigger>
                                 </Style.Triggers>
                             </Style>
@@ -486,12 +486,12 @@
                             <StackPanel Margin="3,2">
                                 <TextBlock FontWeight="SemiBold">
                                     <Run Text="Nodes " />
-                                    <Run Text="{Binding FromNodeIndex}" />
+                                    <Run Text="{Binding FromNodeIndex, Mode=OneWay}" />
                                     <Run Text="-" />
-                                    <Run Text="{Binding ToNodeIndex}" />
+                                    <Run Text="{Binding ToNodeIndex, Mode=OneWay}" />
                                 </TextBlock>
                                 <TextBlock Margin="0,2,0,0"
-                                           Text="{Binding Description}"
+                                           Text="{Binding Description, Mode=OneWay}"
                                            TextWrapping="Wrap" />
                             </StackPanel>
                         </DataTemplate>
