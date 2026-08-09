@@ -29,7 +29,7 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
             Assert.AreEqual(PathNodeType.Start | PathNodeType.Junction, result.PathModel.PathNodes[0].NodeType);
             Assert.AreEqual(42, result.PathModel.PathNodes[0].NodeIndex);
             Assert.AreEqual(-1, result.PathModel.PathNodes[0].NextMainNode);
-            CollectionAssert.AreEqual(new[] { 0 }, result.ChangedNodeIndexes.ToArray());
+            Assert.AreSequenceEqual(expectedArray0, result.ChangedNodeIndexes.ToArray());
         }
 
         [TestMethod]
@@ -73,7 +73,7 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
             Assert.AreEqual(2, result.PathModel.PathNodes[1].NextMainNode);
             Assert.AreEqual(3, result.PathModel.PathNodes[1].NextSidingNode);
             Assert.AreEqual(2, result.PathModel.PathNodes[3].NextMainNode);
-            CollectionAssert.AreEqual(new[] { 0, 1, 2, 3 }, result.ChangedNodeIndexes.ToArray());
+            Assert.AreSequenceEqual(expectedArray0123, result.ChangedNodeIndexes.ToArray());
         }
 
         [TestMethod]
@@ -101,6 +101,12 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
             Assert.ThrowsExactly<System.ArgumentNullException>(() => PathModelEditor.SetStartAnchor(new PathModel(), null, false));
         }
 
+        private static readonly int[] expectedArray01 = new[] { 0, 1 };
+        private static readonly int[] expectedArray24 = new[] { 2, 4 };
+        private static readonly int[] expectedArray1 = new[] { 1 };
+        private static readonly int[] expectedArray0 = new[] { 0 };
+        private static readonly int[] expectedArray0123 = new[] { 0, 1, 2, 3 };
+
         [TestMethod]
         public void WhenSetEndAnchorAfterStartThenEndIsAppended()
         {
@@ -112,7 +118,7 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
             Assert.AreEqual(1, result.PathModel.PathNodes[0].NextMainNode);
             Assert.AreEqual(PathNodeType.End | PathNodeType.Junction, result.PathModel.PathNodes[1].NodeType);
             Assert.AreEqual(126, result.PathModel.PathNodes[1].NodeIndex);
-            CollectionAssert.AreEqual(new[] { 0, 1 }, result.ChangedNodeIndexes.ToArray());
+            Assert.AreSequenceEqual(expectedArray01, result.ChangedNodeIndexes.ToArray());
         }
 
         [TestMethod]
@@ -130,7 +136,7 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
             Assert.AreSame(interior, result.PathModel.PathNodes[1]);
             Assert.AreEqual(4, result.PathModel.PathNodes[2].NextMainNode);
             Assert.AreEqual(3, result.PathModel.PathNodes[1].NextSidingNode);
-            CollectionAssert.AreEqual(new[] { 2, 4 }, result.ChangedNodeIndexes.ToArray());
+            Assert.AreSequenceEqual(expectedArray24, result.ChangedNodeIndexes.ToArray());
         }
 
         [TestMethod]
@@ -145,7 +151,7 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
             Assert.IsTrue(result.Success);
             Assert.AreEqual(PathNodeType.End, result.PathModel.PathNodes[1].NodeType);
             Assert.AreEqual(-1, result.PathModel.PathNodes[1].NextMainNode);
-            CollectionAssert.AreEqual(new[] { 1 }, result.ChangedNodeIndexes.ToArray());
+            Assert.AreSequenceEqual(expectedArray1, result.ChangedNodeIndexes.ToArray());
         }
 
         [TestMethod]
@@ -170,7 +176,7 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
 
             Assert.IsFalse(result.Success);
             Assert.AreSame(path, result.PathModel);
-            StringAssert.Contains(result.Message, "start anchor");
+            Assert.Contains("start anchor", result.Message);
         }
 
         [TestMethod]
@@ -182,7 +188,7 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
 
             Assert.IsFalse(result.Success);
             Assert.AreSame(path, result.PathModel);
-            StringAssert.Contains(result.Message, "out-of-range main link 4");
+            Assert.Contains("out-of-range main link 4", result.Message);
         }
 
         [TestMethod]
@@ -196,7 +202,7 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
 
             Assert.IsFalse(result.Success);
             Assert.AreSame(path, result.PathModel);
-            StringAssert.Contains(result.Message, "cycle at node 0");
+            Assert.Contains("cycle at node 0", result.Message);
         }
 
         [TestMethod]
@@ -226,7 +232,7 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
 
             Assert.IsFalse(result.Success);
             Assert.AreSame(path, result.PathModel);
-            StringAssert.Contains(result.Message, "siding branch to node 2");
+            Assert.Contains("siding branch to node 2", result.Message);
         }
 
         [TestMethod]
