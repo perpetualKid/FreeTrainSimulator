@@ -113,11 +113,11 @@ namespace Tests.FreeTrainSimulator.Toolbox
         }
 
         [TestMethod]
-        public void WhenNewPathIsInitializedThenStartAnchorPlacementIsActive()
+        public void WhenNewPathIsInitializedThenNoPlacementModeIsActive()
         {
             using PathEditor editor = CreateNewEditor();
 
-            Assert.IsTrue(editor.IsPlacingStartAnchor);
+            Assert.IsFalse(editor.IsPlacementActive);
         }
 
         [TestMethod]
@@ -127,13 +127,15 @@ namespace Tests.FreeTrainSimulator.Toolbox
 
             editor.UpdatePointerLocation(new PointD(25, 0), null);
 
-            Assert.IsTrue(editor.IsPlacingStartAnchor);
+            Assert.IsEmpty(editor.TryCaptureCurrentPathModel().PathNodes);
+            Assert.IsFalse(editor.IsPlacementActive);
         }
 
         [TestMethod]
         public void WhenInitialStartAnchorPlacementIsCommittedThenEndAnchorPlacementBegins()
         {
             using PathEditor editor = CreateNewEditor();
+            _ = editor.BeginStartAnchorPlacementCommand();
             PathModel source = editor.TryCaptureCurrentPathModel();
             PathEditResult preview = PathModelEditor.SetStartAnchor(source, CreateNodeAt(25, PathNodeType.None, -1), false);
             SetPrivateField(editor, "movePreviewModel", preview.PathModel);
@@ -147,6 +149,7 @@ namespace Tests.FreeTrainSimulator.Toolbox
         public void WhenEndPlacementAfterInitialStartIsCanceledThenStartAnchorIsRetained()
         {
             using PathEditor editor = CreateNewEditor();
+            _ = editor.BeginStartAnchorPlacementCommand();
             PathModel source = editor.TryCaptureCurrentPathModel();
             PathEditResult preview = PathModelEditor.SetStartAnchor(source, CreateNodeAt(25, PathNodeType.None, -1), false);
             SetPrivateField(editor, "movePreviewModel", preview.PathModel);
@@ -161,6 +164,7 @@ namespace Tests.FreeTrainSimulator.Toolbox
         public void WhenInitialStartAnchorIsCommittedThenOneUndoRestoresEmptyPath()
         {
             using PathEditor editor = CreateNewEditor();
+            _ = editor.BeginStartAnchorPlacementCommand();
             PathModel source = editor.TryCaptureCurrentPathModel();
             PathEditResult preview = PathModelEditor.SetStartAnchor(source, CreateNodeAt(25, PathNodeType.None, -1), false);
             SetPrivateField(editor, "movePreviewModel", preview.PathModel);
@@ -304,6 +308,7 @@ namespace Tests.FreeTrainSimulator.Toolbox
         {
             // Panning the map during placement must not drop the anchor at the drag-release location.
             using PathEditor editor = CreateNewEditor();
+            _ = editor.BeginStartAnchorPlacementCommand();
             PathModel source = editor.TryCaptureCurrentPathModel();
             PathEditResult preview = PathModelEditor.SetStartAnchor(source, CreateNodeAt(25, PathNodeType.None, -1), false);
             SetPrivateField(editor, "movePreviewModel", preview.PathModel);

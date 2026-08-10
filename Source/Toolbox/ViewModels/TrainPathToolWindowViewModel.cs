@@ -62,7 +62,7 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
             ToggleReversalPointCommand = new RelayCommand(_ => ToggleReversalPoint(), _ => CanAnnotateSelectedNode);
             AddViaPointCommand = new RelayCommand(_ => AddViaPoint(), _ => CanAnnotateSelectedNode);
             RemoveViaPointCommand = new RelayCommand(_ => RemoveViaPoint(), _ => CanAnnotateSelectedNode);
-            NewPathCommand = new RelayCommand(_ => toolWindow.CreatePath(), _ => CanCreatePath);
+            NewPathCommand = new RelayCommand(_ => NewPath(), _ => CanCreatePath);
             SavePathCommand = new RelayCommand(_ => toolWindow.SavePath(), _ => CanSavePath);
             ValidateAllPathsCommand = new RelayCommand(_ => ValidateAllPaths());
             AcceptRouteCandidateCommand = new RelayCommand(_ => AcceptRouteCandidate(), _ => CanAcceptRouteCandidate);
@@ -448,6 +448,12 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
                 snapshotSelectedPathId = snapshot.SelectedPathId;
                 UpdateSelectedPathFromSnapshot();
             }
+        }
+
+        private void NewPath()
+        {
+            toolWindow.CreatePath();
+            SetStatusMessage("Click track or right-click to set the start anchor.", false);
         }
 
         private void BeginStartAnchorPlacement()

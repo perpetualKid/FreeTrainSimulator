@@ -217,7 +217,6 @@ namespace FreeTrainSimulator.Toolbox
             ClearHistory();
             unsavedChanges = true;
             InitializeAnchorPathEdit(newPath);
-            _ = BeginAnchorPlacement(PathEditorPlacementMode.StartAnchor);
             OnPathChanged?.Invoke(this, new PathEditorChangedEventArgs(TrainPath));
         }
 
@@ -334,7 +333,13 @@ namespace FreeTrainSimulator.Toolbox
                 return PathEditorCommandResult.FromPathEditResult(CommitPlacement());
             }
 
-            return ApplyEndpointAnchor(model => PathModelEditor.SetStartAnchor(model, anchor, isJunction));
+            PathModel currentModel = TryGetEditablePathModel();
+            bool beginEndPlacement = currentModel != null && !HasFlag(currentModel, PathNodeType.Start);
+            PathEditorCommandResult result = ApplyEndpointAnchor(model => PathModelEditor.SetStartAnchor(model, anchor, isJunction));
+            if (result.Success && beginEndPlacement)
+                _ = BeginAnchorPlacement(PathEditorPlacementMode.EndAnchor);
+
+            return result;
         }
 
         /// <summary>

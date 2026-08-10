@@ -173,6 +173,19 @@ namespace Tests.FreeTrainSimulator.Toolbox
         }
 
         [TestMethod]
+        public void WhenNewPathCommandExecutedThenStartAnchorGuidanceIsShown()
+        {
+            TrainPathToolWindow bridge = CreateBridge(action => action(), () => { }, () => { });
+            using ToolWindowRefreshScheduler refreshScheduler = new ToolWindowRefreshScheduler(Dispatcher.CurrentDispatcher);
+            using TrainPathToolWindowViewModel viewModel = new TrainPathToolWindowViewModel(bridge, refreshScheduler);
+            SetCommandAvailability(viewModel, "canCreatePath", true);
+
+            viewModel.NewPathCommand.Execute(null);
+
+            Assert.AreEqual("Click track or right-click to set the start anchor.", viewModel.StatusMessage);
+        }
+
+        [TestMethod]
         public void WhenSavePathCommandExecutedThenBridgeSavePathIsMarshaled()
         {
             int invocations = 0;
