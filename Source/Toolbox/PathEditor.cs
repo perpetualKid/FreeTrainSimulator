@@ -356,16 +356,88 @@ namespace FreeTrainSimulator.Toolbox
 
         private PathEditorCommandResult ApplyEndpointAnchor(Func<PathModel, PathEditResult> edit)
         {
-            PathEditResult result = ApplyUndoableEdit(edit);
-            if (result.Success)
+            PathModel currentModel = TryGetEditablePathModel();
+            if (currentModel == null)
+                return PathEditorCommandResult.Failed("No editable path is currently loaded.", null);
+
+            PathSpanCommitResult spanCommit = ResolveAnchorSpan(currentModel, edit);
+            switch (spanCommit.Status)
             {
-                PathGenerationResult generated = GenerateTrackSnappedPath(result.PathModel, TrackWorld);
-                if (generated.Success)
-                    SetPreviewPath(generated.PathModel);
+                case PathSpanCommitStatus.Resolved:
+                    PathEditResult committed = ApplyUndoableEdit(_ => PathEditResult.Succeeded(spanCommit.Message, spanCommit.PathModel, spanCommit.ChangedNodeIndexes));
+                    return PathEditorCommandResult.FromPathEditResult(committed);
+                case PathSpanCommitStatus.Ambiguous:
+                    // Show the alternatives without authoring any of them; the user picks the intended route.
+                    SetPreviewPath(spanCommit.PathModel);
+                    OnPathUpdated?.Invoke(this, new PathEditorChangedEventArgs(TrainPath));
+                    return PathEditorCommandResult.Failed(spanCommit.Message, currentModel);
+                default:
+                    return PathEditorCommandResult.Failed(spanCommit.Message, currentModel);
+            }
+        }
+
+        #region unified span commit
+        // Single span-resolve-then-commit routine shared by every authored anchor mutation (start, end, move,
+        // via). The authored edit is applied to a tentative model only; the affected spans (those bounded by an
+        // edited node) are resolved and, when unambiguous, materialized into concrete nodes. Nothing is committed
+        // and no history is touched here: the caller commits the returned model exactly once.
+        private PathSpanCommitResult ResolveAnchorSpan(PathModel sourceModel, Func<PathModel, PathEditResult> anchorEdit)
+        {
+            ArgumentNullException.ThrowIfNull(sourceModel);
+            ArgumentNullException.ThrowIfNull(anchorEdit);
+
+            PathEditResult edit = anchorEdit(sourceModel);
+            return edit.Success
+                ? EvaluateSpanCommit(edit.PathModel, edit.ChangedNodeIndexes, edit.Message, sourceModel)
+                : PathSpanCommitResult.Failed(edit.Message, sourceModel);
+        }
+
+        // Resolves tentativeModel, inspects only the spans adjacent to changedNodeIndexes, and materializes the
+        // generated intermediaries when every affected span resolved to a single route.
+        private PathSpanCommitResult EvaluateSpanCommit(PathModel tentativeModel, ImmutableArray<int> changedNodeIndexes, string message, PathModel sourceModel)
+        {
+            PathRouteResolution resolution = PathRouteResolver.Resolve(tentativeModel, TrackWorld, PathRouteResolverOptions.Default, CancellationToken.None);
+            ImmutableArray<ResolvedPathSpan> affectedSpans = AffectedSpans(resolution, changedNodeIndexes);
+
+            ImmutableArray<ResolvedPathSpan> ambiguousSpans = affectedSpans
+                .Where(span => span.Status == PathRouteSpanStatus.Ambiguous || span.Candidates.Length > 1)
+                .ToImmutableArray();
+            if (!ambiguousSpans.IsEmpty)
+            {
+                return PathSpanCommitResult.Ambiguous(
+                    $"The affected span has {ambiguousSpans[0].Candidates.Length} equal-cost routes; choose a candidate or add a via point.",
+                    tentativeModel, ambiguousSpans);
             }
 
-            return PathEditorCommandResult.FromPathEditResult(result);
+            if (affectedSpans.Any(span => span.Status is PathRouteSpanStatus.Unresolved or PathRouteSpanStatus.NotResolved))
+            {
+                return PathSpanCommitResult.Unresolved(
+                    "The affected span could not be routed; click closer to the last anchor or add a via point.",
+                    sourceModel);
+            }
+
+            // Materialize the generated intermediaries so the committed model is the single persistence source.
+            PathGenerationResult generated = PathModelRouteGenerator.GeneratePath(tentativeModel, resolution, TrackWorld, PathRouteResolverOptions.Default);
+            return generated.Success
+                ? PathSpanCommitResult.Resolved(message, generated.PathModel, generated.ChangedNodeIndexes)
+                : PathSpanCommitResult.Resolved(message, tentativeModel, changedNodeIndexes);
         }
+
+        // Adjacency-based span boundaries: a span is affected when one of its bounding nodes was edited. Without
+        // any changed node (or resolved span) the whole route is considered affected.
+        private static ImmutableArray<ResolvedPathSpan> AffectedSpans(PathRouteResolution resolution, ImmutableArray<int> changedNodeIndexes)
+        {
+            ImmutableArray<ResolvedPathSpan> spans = resolution?.MainRoute?.Spans ?? ImmutableArray<ResolvedPathSpan>.Empty;
+            if (spans.IsDefaultOrEmpty)
+                return ImmutableArray<ResolvedPathSpan>.Empty;
+            if (changedNodeIndexes.IsDefaultOrEmpty)
+                return spans;
+
+            return spans
+                .Where(span => changedNodeIndexes.Contains(span.FromNodeIndex) || changedNodeIndexes.Contains(span.ToNodeIndex))
+                .ToImmutableArray();
+        }
+        #endregion
 
         private bool BeginAnchorPlacement(PathEditorPlacementMode mode)
         {
@@ -1204,6 +1276,16 @@ namespace FreeTrainSimulator.Toolbox
             PathEditorPlacementMode committedMode = placementMode;
             int movedNodeIndex = movingNodeIndex;
             PathModel undoSnapshot = pendingViaSourceModel ?? currentModel;
+
+            // Every placement commit funnels through the unified span-commit routine, so the affected span is
+            // resolved and materialized exactly like a directly authored anchor.
+            ImmutableArray<int> changedNodeIndexes = result?.ChangedNodeIndexes ?? ImmutableArray.Create(movedNodeIndex);
+            PathSpanCommitResult spanCommit = EvaluateSpanCommit(committedModel, changedNodeIndexes, "Placement committed.", undoSnapshot);
+            if (spanCommit.Status == PathSpanCommitStatus.Unresolved)
+                return PathEditResult.Failed(spanCommit.Message, currentModel);
+            if (spanCommit.Status == PathSpanCommitStatus.Resolved)
+                committedModel = spanCommit.PathModel;
+
             bool beginEndPlacement = committedMode == PathEditorPlacementMode.StartAnchor
                 && !HasFlag(undoSnapshot, PathNodeType.Start);
             PushUndoSnapshot(undoSnapshot);

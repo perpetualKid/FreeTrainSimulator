@@ -1,5 +1,6 @@
 using System.Collections.Immutable;
 using System;
+using System.Linq;
 using System.Reflection;
 
 using FreeTrainSimulator.Common;
@@ -118,6 +119,78 @@ namespace Tests.FreeTrainSimulator.Toolbox
             using PathEditor editor = CreateNewEditor();
 
             Assert.IsFalse(editor.IsPlacementActive);
+        }
+
+        [TestMethod]
+        public void WhenAffectedSpansAreSelectedThenOnlySpansBoundedByAnEditedNodeAreReturned()
+        {
+            PathRouteResolution resolution = CreateResolution(
+                new ResolvedPathSpan(0, 1, PathRouteSpanStatus.Resolved),
+                new ResolvedPathSpan(1, 2, PathRouteSpanStatus.Resolved),
+                new ResolvedPathSpan(2, 3, PathRouteSpanStatus.Resolved));
+
+            ImmutableArray<ResolvedPathSpan> affected = InvokeAffectedSpans(resolution, ImmutableArray.Create(2));
+
+            Assert.AreEqual(2, affected.Length);
+            Assert.IsTrue(affected.All(span => span.FromNodeIndex == 2 || span.ToNodeIndex == 2));
+        }
+
+        [TestMethod]
+        public void WhenNoNodeIsEditedThenAllSpansAreAffected()
+        {
+            PathRouteResolution resolution = CreateResolution(
+                new ResolvedPathSpan(0, 1, PathRouteSpanStatus.Resolved),
+                new ResolvedPathSpan(1, 2, PathRouteSpanStatus.Resolved));
+
+            ImmutableArray<ResolvedPathSpan> affected = InvokeAffectedSpans(resolution, ImmutableArray<int>.Empty);
+
+            Assert.AreEqual(2, affected.Length);
+        }
+
+        [TestMethod]
+        public void WhenEndAnchorSpanResolvesThenAnchorIsCommitted()
+        {
+            using PathEditor editor = CreateEditorWithStartAnchor();
+
+            PathEditorCommandResult result = editor.SetEndAnchorCommand(CreateNodeAt(100, PathNodeType.None, -1), false);
+
+            Assert.IsTrue(result.Success);
+            Assert.IsTrue(HasNodeType(editor.TryCaptureCurrentPathModel(), PathNodeType.End));
+        }
+
+        [TestMethod]
+        public void WhenEndAnchorSpanResolvesThenOneUndoRestoresTheStartOnlyPath()
+        {
+            using PathEditor editor = CreateEditorWithStartAnchor();
+            _ = editor.SetEndAnchorCommand(CreateNodeAt(100, PathNodeType.None, -1), false);
+
+            bool undone = editor.Undo();
+
+            Assert.IsTrue(undone);
+            Assert.IsFalse(HasNodeType(editor.TryCaptureCurrentPathModel(), PathNodeType.End));
+            Assert.IsFalse(editor.CanUndo);
+        }
+
+        [TestMethod]
+        public void WhenEndAnchorSpanCannotBeRoutedThenAnchorIsNotCommitted()
+        {
+            using PathEditor editor = CreateEditorWithStartAnchor();
+            PathModel beforeCommit = editor.TryCaptureCurrentPathModel();
+
+            PathEditorCommandResult result = editor.SetEndAnchorCommand(CreateUnroutableNode(), false);
+
+            Assert.IsFalse(result.Success);
+            Assert.AreSequenceEqual(beforeCommit.PathNodes, editor.TryCaptureCurrentPathModel().PathNodes);
+        }
+
+        [TestMethod]
+        public void WhenEndAnchorSpanCannotBeRoutedThenNoUndoSnapshotIsRecorded()
+        {
+            using PathEditor editor = CreateEditorWithStartAnchor();
+
+            _ = editor.SetEndAnchorCommand(CreateUnroutableNode(), false);
+
+            Assert.IsFalse(editor.CanUndo);
         }
 
         [TestMethod]
@@ -606,6 +679,47 @@ namespace Tests.FreeTrainSimulator.Toolbox
             PathEditor editor = new PathEditor(new TestPathEditorContext(trackWorld));
             editor.InitializeNewPath();
             return editor;
+        }
+
+        // A transient new path carrying only a committed start anchor, the state from which a span commit
+        // resolves last-anchor to target. The history is cleared so each test observes only its own snapshot.
+        private static PathEditor CreateEditorWithStartAnchor()
+        {
+            PathEditor editor = CreateNewEditor();
+            _ = editor.SetStartAnchorCommand(CreateNodeAt(0, PathNodeType.None, -1), false);
+            _ = editor.CancelPlacement();
+            typeof(PathEditor).GetMethod("ClearHistory", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(editor, null);
+            return editor;
+        }
+
+        // An anchor that cannot be anchored to track: its track node index does not exist and its location lies
+        // far away from any track, so the affected span stays unresolved.
+        private static PathNode CreateUnroutableNode()
+        {
+            return new PathNode(new WorldLocation(new Tile(0, 0), new Vector3(5000, 0, 0)))
+            {
+                NodeType = PathNodeType.None,
+                NodeIndex = 99,
+                NextMainNode = -1,
+                NextSidingNode = -1,
+            };
+        }
+
+        private static PathRouteResolution CreateResolution(params ResolvedPathSpan[] spans)
+        {
+            ResolvedPathRoute route = new ResolvedPathRoute(PathRouteBranchKind.Main, 0, spans[^1].ToNodeIndex, spans.ToImmutableArray());
+            return new PathRouteResolution(route, ImmutableArray<PathRouteDiagnostic>.Empty);
+        }
+
+        private static ImmutableArray<ResolvedPathSpan> InvokeAffectedSpans(PathRouteResolution resolution, ImmutableArray<int> changedNodeIndexes)
+        {
+            MethodInfo method = typeof(PathEditor).GetMethod("AffectedSpans", BindingFlags.Static | BindingFlags.NonPublic);
+            return (ImmutableArray<ResolvedPathSpan>)method.Invoke(null, new object[] { resolution, changedNodeIndexes });
+        }
+
+        private static bool HasNodeType(PathModel pathModel, PathNodeType nodeType)
+        {
+            return pathModel.PathNodes.Any(node => node.NodeType.Includes(nodeType));
         }
 
         private static PathModel CreateEditablePath()
