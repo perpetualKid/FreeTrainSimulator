@@ -8,6 +8,7 @@ using FreeTrainSimulator.Common.Input;
 using FreeTrainSimulator.Common.Position;
 using FreeTrainSimulator.Graphics.MapView;
 using FreeTrainSimulator.Models.Content;
+using FreeTrainSimulator.Models.Track;
 using FreeTrainSimulator.Runtime.Track;
 using FreeTrainSimulator.Toolbox;
 
@@ -156,6 +157,65 @@ namespace Tests.FreeTrainSimulator.Toolbox
 
             Assert.IsTrue(result.Success);
             Assert.IsTrue(HasNodeType(editor.TryCaptureCurrentPathModel(), PathNodeType.End));
+        }
+
+        [TestMethod]
+        public void WhenEndAnchorSpanIsAmbiguousThenCommittedPathAndHistoryRemainUnchanged()
+        {
+            PathModel source = CreateAmbiguousEndpointPath();
+            using PathEditor editor = CreateEditor(source, CreateAmbiguousTrackWorld());
+
+            PathEditorCommandResult result = editor.SetEndAnchorCommand(CreateNodeAt(200, PathNodeType.None, -1) with { NodeIndex = 2 }, false);
+
+            Assert.IsFalse(result.Success);
+            Assert.IsTrue(editor.HasPendingAmbiguousSpanCommit);
+            Assert.IsFalse(editor.CanUndo);
+            Assert.AreSequenceEqual(source.PathNodes, editor.TryCaptureCurrentPathModel().PathNodes);
+        }
+
+        [TestMethod]
+        public void WhenPendingAmbiguousCandidateIsPreviewedThenCommittedPathDoesNotChange()
+        {
+            using PathEditor editor = CreateEditor(CreateAmbiguousEndpointPath(), CreateAmbiguousTrackWorld());
+            _ = editor.SetEndAnchorCommand(CreateNodeAt(200, PathNodeType.None, -1) with { NodeIndex = 2 }, false);
+
+            PathEditResult result = editor.PreviewPendingRouteCandidate(0, 1);
+
+            Assert.IsTrue(result.Success);
+            Assert.IsTrue(editor.HasPendingAmbiguousSpanCommit);
+            Assert.IsFalse(HasNodeType(editor.TryCaptureCurrentPathModel(), PathNodeType.End));
+            Assert.IsFalse(editor.CanUndo);
+        }
+
+        [TestMethod]
+        public void WhenPendingAmbiguousCandidateIsAcceptedThenOneUndoRestoresTheSource()
+        {
+            using PathEditor editor = CreateEditor(CreateAmbiguousEndpointPath(), CreateAmbiguousTrackWorld());
+            _ = editor.SetEndAnchorCommand(CreateNodeAt(200, PathNodeType.None, -1) with { NodeIndex = 2 }, false);
+
+            PathEditResult result = editor.AcceptPendingRouteCandidate(0, 1);
+
+            Assert.IsTrue(result.Success);
+            Assert.IsFalse(editor.HasPendingAmbiguousSpanCommit);
+            Assert.IsTrue(HasNodeType(editor.TryCaptureCurrentPathModel(), PathNodeType.End));
+            Assert.IsTrue(editor.CanUndo);
+            Assert.IsTrue(editor.Undo());
+            Assert.IsFalse(HasNodeType(editor.TryCaptureCurrentPathModel(), PathNodeType.End));
+            Assert.IsFalse(editor.CanUndo);
+        }
+
+        [TestMethod]
+        public void WhenPendingAmbiguousCandidateIsCanceledThenSourceAndHistoryRemainUnchanged()
+        {
+            PathModel source = CreateAmbiguousEndpointPath();
+            using PathEditor editor = CreateEditor(source, CreateAmbiguousTrackWorld());
+            _ = editor.SetEndAnchorCommand(CreateNodeAt(200, PathNodeType.None, -1) with { NodeIndex = 2 }, false);
+
+            editor.CancelPendingRouteCandidate();
+
+            Assert.IsFalse(editor.HasPendingAmbiguousSpanCommit);
+            Assert.IsFalse(editor.CanUndo);
+            Assert.AreSequenceEqual(source.PathNodes, editor.TryCaptureCurrentPathModel().PathNodes);
         }
 
         [TestMethod]
@@ -668,7 +728,13 @@ namespace Tests.FreeTrainSimulator.Toolbox
 
         private static PathEditor CreateEditor(PathModel pathModel)
         {
-            PathEditor editor = CreateNewEditor();
+            return CreateEditor(pathModel, TrackWorldTestFixture.CreateSingleVectorNodeTrackWorld());
+        }
+
+        private static PathEditor CreateEditor(PathModel pathModel, TrackWorld trackWorld)
+        {
+            PathEditor editor = new PathEditor(new TestPathEditorContext(trackWorld));
+            editor.InitializeNewPath();
             typeof(PathEditor).GetMethod("RestoreSnapshot", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(editor, new object[] { pathModel });
             return editor;
         }
@@ -702,6 +768,50 @@ namespace Tests.FreeTrainSimulator.Toolbox
                 NodeIndex = 99,
                 NextMainNode = -1,
                 NextSidingNode = -1,
+            };
+        }
+
+        private static PathModel CreateAmbiguousEndpointPath()
+        {
+            return new PathModel()
+            {
+                PathNodes = ImmutableArray.Create(CreateNodeAt(100, PathNodeType.Start, -1)),
+            };
+        }
+
+        private static TrackWorld CreateAmbiguousTrackWorld()
+        {
+            TrackDatabase trackDatabase = new TrackDatabase()
+            {
+                TrackNodes = ImmutableArray.Create<TrackNodeBase>(null, CreateVectorNode(1), CreateVectorNode(2), CreateJunctionNode(3), CreateJunctionNode(4)),
+                TrackNodeConnectors = ImmutableArray.Create(new TrackNodeConnectorIndex(), CreateConnectors(1, 3, 4), CreateConnectors(2, 3, 4),
+                    CreateConnectors(3, 1, 2), CreateConnectors(4, 1, 2)),
+            };
+            TrackWorldTestFixture.InitializeTrackDatabase(trackDatabase);
+            TrackModel trackModel = new TrackModel() { TrackDatabase = trackDatabase };
+
+            return TrackWorld.Initialize(null, trackModel, new TrackSectionModel());
+        }
+
+        private static VectorNode CreateVectorNode(int nodeIndex)
+        {
+            WorldLocation start = new WorldLocation(new Tile(0, 0), new Vector3(nodeIndex * 100, 0, 0));
+            WorldLocation end = new WorldLocation(new Tile(0, 0), new Vector3((nodeIndex * 100) + 50, 0, 0));
+            return new VectorNode(start, new Tile(0, 0), end) { NodeIndex = nodeIndex };
+        }
+
+        private static JunctionNode CreateJunctionNode(int nodeIndex)
+        {
+            return new JunctionNode(new WorldLocation(new Tile(0, 0), new Vector3(nodeIndex * 100, 0, 0)),
+                new Tile(0, 0), Vector3.Zero) { NodeIndex = nodeIndex };
+        }
+
+        private static TrackNodeConnectorIndex CreateConnectors(int nodeIndex, params int[] linkedNodeIndexes)
+        {
+            return new TrackNodeConnectorIndex()
+            {
+                NodeIndex = nodeIndex,
+                TrackNodeConnectors = linkedNodeIndexes.Select(link => new TrackNodeConnector() { Link = link }).ToImmutableArray(),
             };
         }
 

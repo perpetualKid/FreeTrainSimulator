@@ -59,6 +59,7 @@ namespace FreeTrainSimulator.Toolbox
         private PathModel pendingViaSourceModel;
         private bool pendingViaSourceEditMode;
         private bool pendingViaSourceUnsavedChanges;
+        private PendingAmbiguousSpanCommit pendingAmbiguousSpanCommit;
         private bool unsavedChanges;
 
         public string PathId => path?.Id;
@@ -82,6 +83,11 @@ namespace FreeTrainSimulator.Toolbox
         public bool CanCommitPlacement => IsPlacementActive && movePreviewModel != null;
 
         public bool HasUnsavedChanges => unsavedChanges;
+
+        public bool HasPendingAmbiguousSpanCommit => pendingAmbiguousSpanCommit != null;
+
+        public ImmutableArray<ResolvedPathSpan> PendingAmbiguousSpans => pendingAmbiguousSpanCommit?.AmbiguousSpans
+            ?? ImmutableArray<ResolvedPathSpan>.Empty;
 
         internal event EventHandler<PathEditorChangedEventArgs> OnPathChanged;
 
@@ -367,9 +373,7 @@ namespace FreeTrainSimulator.Toolbox
                     PathEditResult committed = ApplyUndoableEdit(_ => PathEditResult.Succeeded(spanCommit.Message, spanCommit.PathModel, spanCommit.ChangedNodeIndexes));
                     return PathEditorCommandResult.FromPathEditResult(committed);
                 case PathSpanCommitStatus.Ambiguous:
-                    // Show the alternatives without authoring any of them; the user picks the intended route.
-                    SetPreviewPath(spanCommit.PathModel);
-                    OnPathUpdated?.Invoke(this, new PathEditorChangedEventArgs(TrainPath));
+                    BeginPendingAmbiguousSpanCommit(currentModel, spanCommit);
                     return PathEditorCommandResult.Failed(spanCommit.Message, currentModel);
                 default:
                     return PathEditorCommandResult.Failed(spanCommit.Message, currentModel);
@@ -406,7 +410,7 @@ namespace FreeTrainSimulator.Toolbox
             {
                 return PathSpanCommitResult.Ambiguous(
                     $"The affected span has {ambiguousSpans[0].Candidates.Length} equal-cost routes; choose a candidate or add a via point.",
-                    tentativeModel, ambiguousSpans);
+                    tentativeModel, ambiguousSpans, changedNodeIndexes);
             }
 
             if (affectedSpans.Any(span => span.Status is PathRouteSpanStatus.Unresolved or PathRouteSpanStatus.NotResolved))
@@ -436,6 +440,132 @@ namespace FreeTrainSimulator.Toolbox
             return spans
                 .Where(span => changedNodeIndexes.Contains(span.FromNodeIndex) || changedNodeIndexes.Contains(span.ToNodeIndex))
                 .ToImmutableArray();
+        }
+
+        private void BeginPendingAmbiguousSpanCommit(PathModel sourceModel, PathSpanCommitResult spanCommit)
+        {
+            pendingAmbiguousSpanCommit = new PendingAmbiguousSpanCommit(sourceModel, spanCommit.PathModel,
+                spanCommit.ChangedNodeIndexes, spanCommit.AmbiguousSpans);
+            SetPendingCandidatePreview();
+            OnPathUpdated?.Invoke(this, new PathEditorChangedEventArgs(TrainPath));
+        }
+
+        private void SetPendingCandidatePreview()
+        {
+            if (pendingAmbiguousSpanCommit == null)
+                return;
+
+            PathModel previewModel = BuildPendingCandidateModel(false, out string failure);
+            if (previewModel == null)
+            {
+                SetPreviewPath(pendingAmbiguousSpanCommit.TentativeModel);
+                Trace.TraceWarning($"Cannot materialize pending route candidate preview: {failure}");
+            }
+            else
+            {
+                SetPreviewPath(previewModel);
+            }
+        }
+
+        private PathModel BuildPendingCandidateModel(bool requireExplicitSelections, out string failure)
+        {
+            failure = null;
+            PathModel candidateModel = pendingAmbiguousSpanCommit.TentativeModel;
+            foreach (ResolvedPathSpan span in pendingAmbiguousSpanCommit.AmbiguousSpans.OrderByDescending(span => span.FromNodeIndex))
+            {
+                int candidateIndex;
+                if (!pendingAmbiguousSpanCommit.CandidateSelections.TryGetValue(span.FromNodeIndex, out candidateIndex))
+                {
+                    if (requireExplicitSelections)
+                    {
+                        failure = $"Select a route candidate for the span starting at node {span.FromNodeIndex}.";
+                        return null;
+                    }
+
+                    candidateIndex = 0;
+                }
+
+                if (candidateIndex < 0 || candidateIndex >= span.Candidates.Length)
+                {
+                    failure = $"No route candidate {candidateIndex} exists for the span starting at node {span.FromNodeIndex}.";
+                    return null;
+                }
+
+                PathEditResult applied = PathModelEditor.ApplyRouteCandidate(candidateModel, span.FromNodeIndex, span.Candidates[candidateIndex]);
+                if (!applied.Success)
+                {
+                    failure = applied.Message;
+                    return null;
+                }
+
+                candidateModel = applied.PathModel;
+            }
+
+            PathGenerationResult generated = GenerateTrackSnappedPath(candidateModel, TrackWorld);
+            if (!generated.Success)
+            {
+                failure = generated.Message;
+                return null;
+            }
+
+            return generated.PathModel;
+        }
+
+        public PathEditResult PreviewPendingRouteCandidate(int fromNodeIndex, int candidateIndex)
+        {
+            if (pendingAmbiguousSpanCommit == null)
+                return PathEditResult.Failed("No pending ambiguous route selection exists.", TryGetEditablePathModel());
+
+            ResolvedPathSpan span = pendingAmbiguousSpanCommit.AmbiguousSpans.FirstOrDefault(item => item.FromNodeIndex == fromNodeIndex);
+            if (span == null || candidateIndex < 0 || candidateIndex >= span.Candidates.Length)
+                return PathEditResult.Failed($"No route candidate {candidateIndex} exists for the span starting at node {fromNodeIndex}.", pendingAmbiguousSpanCommit.SourceModel);
+
+            pendingAmbiguousSpanCommit.CandidateSelections[fromNodeIndex] = candidateIndex;
+            PathModel previewModel = BuildPendingCandidateModel(false, out string failure);
+            if (previewModel == null)
+            {
+                pendingAmbiguousSpanCommit.CandidateSelections.Remove(fromNodeIndex);
+                return PathEditResult.Failed(failure, pendingAmbiguousSpanCommit.SourceModel);
+            }
+
+            SetPreviewPath(previewModel);
+            OnPathUpdated?.Invoke(this, new PathEditorChangedEventArgs(TrainPath));
+            return PathEditResult.Succeeded($"Previewing route candidate {candidateIndex} for the span starting at node {fromNodeIndex}.",
+                pendingAmbiguousSpanCommit.SourceModel, ImmutableArray<int>.Empty);
+        }
+
+        public PathEditResult AcceptPendingRouteCandidate(int fromNodeIndex, int candidateIndex)
+        {
+            PathEditResult preview = PreviewPendingRouteCandidate(fromNodeIndex, candidateIndex);
+            if (!preview.Success)
+                return preview;
+
+            PathModel materialized = BuildPendingCandidateModel(true, out string failure);
+            if (materialized == null)
+                return PathEditResult.Failed(failure, pendingAmbiguousSpanCommit.SourceModel);
+
+            PathModel sourceModel = pendingAmbiguousSpanCommit.SourceModel;
+            ImmutableArray<int> changedNodeIndexes = pendingAmbiguousSpanCommit.ChangedNodeIndexes;
+            pendingAmbiguousSpanCommit = null;
+            ClearMoveNodeState();
+            PushUndoSnapshot(sourceModel);
+            unsavedChanges = true;
+            path = materialized;
+            currentPathModel = materialized;
+            RestorePath(materialized, EditMode);
+            SelectPathItem(changedNodeIndexes.IsDefaultOrEmpty ? -1 : changedNodeIndexes[0]);
+            OnPathUpdated?.Invoke(this, new PathEditorChangedEventArgs(TrainPath));
+            return PathEditResult.Succeeded("Route candidate accepted.", materialized, changedNodeIndexes);
+        }
+
+        public void CancelPendingRouteCandidate()
+        {
+            if (pendingAmbiguousSpanCommit == null)
+                return;
+
+            pendingAmbiguousSpanCommit = null;
+            SetPreviewPath(null);
+            OnPathUpdated?.Invoke(this, new PathEditorChangedEventArgs(TrainPath));
         }
         #endregion
 
@@ -723,6 +853,9 @@ namespace FreeTrainSimulator.Toolbox
         /// </summary>
         public PathEditResult PreviewRouteCandidate(int fromNodeIndex, int candidateIndex)
         {
+            if (pendingAmbiguousSpanCommit != null)
+                return PreviewPendingRouteCandidate(fromNodeIndex, candidateIndex);
+
             PathEditResult result = BuildRouteCandidateModel(fromNodeIndex, candidateIndex);
             if (!result.Success)
                 return result;
@@ -738,6 +871,12 @@ namespace FreeTrainSimulator.Toolbox
             if (IsMovingNode)
                 return;
 
+            if (pendingAmbiguousSpanCommit != null)
+            {
+                CancelPendingRouteCandidate();
+                return;
+            }
+
             SetPreviewPath(null);
             OnPathUpdated?.Invoke(this, new PathEditorChangedEventArgs(TrainPath));
         }
@@ -748,6 +887,9 @@ namespace FreeTrainSimulator.Toolbox
         /// </summary>
         public PathEditResult AcceptRouteCandidate(int fromNodeIndex, int candidateIndex)
         {
+            if (pendingAmbiguousSpanCommit != null)
+                return AcceptPendingRouteCandidate(fromNodeIndex, candidateIndex);
+
             ResolvedRouteCandidate candidate = FindRouteCandidate(fromNodeIndex, candidateIndex);
             if (candidate == null)
                 return PathEditResult.Failed($"No route candidate {candidateIndex} exists for the span starting at node {fromNodeIndex}.", TryGetEditablePathModel());
@@ -975,6 +1117,8 @@ namespace FreeTrainSimulator.Toolbox
         {
             if (!IsPlacementActive)
                 return false;
+
+            pendingAmbiguousSpanCommit = null;
 
             int movedNodeIndex = movingNodeIndex;
             PathModel viaSourceModel = pendingViaSourceModel;
@@ -1283,6 +1427,11 @@ namespace FreeTrainSimulator.Toolbox
             PathSpanCommitResult spanCommit = EvaluateSpanCommit(committedModel, changedNodeIndexes, "Placement committed.", undoSnapshot);
             if (spanCommit.Status == PathSpanCommitStatus.Unresolved)
                 return PathEditResult.Failed(spanCommit.Message, currentModel);
+            if (spanCommit.Status == PathSpanCommitStatus.Ambiguous)
+            {
+                BeginPendingAmbiguousSpanCommit(undoSnapshot, spanCommit);
+                return PathEditResult.Failed(spanCommit.Message, currentModel);
+            }
             if (spanCommit.Status == PathSpanCommitStatus.Resolved)
                 committedModel = spanCommit.PathModel;
 

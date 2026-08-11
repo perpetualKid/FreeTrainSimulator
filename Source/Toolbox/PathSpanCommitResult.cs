@@ -75,10 +75,11 @@ namespace FreeTrainSimulator.Toolbox
         }
 
         /// <summary>Creates a result exposing the equal-cost candidates of an ambiguous affected span.</summary>
-        public static PathSpanCommitResult Ambiguous(string message, PathModel pathModel, ImmutableArray<ResolvedPathSpan> ambiguousSpans)
+        public static PathSpanCommitResult Ambiguous(string message, PathModel pathModel,
+            ImmutableArray<ResolvedPathSpan> ambiguousSpans, ImmutableArray<int> changedNodeIndexes)
         {
             return new PathSpanCommitResult(PathSpanCommitStatus.Ambiguous, message, pathModel,
-                ambiguousSpans, ImmutableArray<int>.Empty);
+                ambiguousSpans, changedNodeIndexes);
         }
 
         /// <summary>Creates a result for an edit whose affected span could not be routed.</summary>
