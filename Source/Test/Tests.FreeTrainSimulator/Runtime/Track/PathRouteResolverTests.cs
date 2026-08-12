@@ -539,14 +539,35 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
             PathModel pathModel = new PathModel()
             {
                 PathNodes = ImmutableArray.Create(
-                    CreateNode(PathNodeType.Start, 1, -1, 2, new WorldLocation(new Tile(0, 0), new Vector3(10, 0, 0))),
+                    CreateNode(PathNodeType.Start, 1, -1, 1, new WorldLocation(new Tile(0, 0), new Vector3(210, 0, 0))),
                     CreateNode(PathNodeType.End, -1, -1, 2, new WorldLocation(new Tile(0, 0), new Vector3(210, 0, 0)))),
             };
 
             PathRouteResolution result = PathRouteResolver.Resolve(pathModel, trackWorld, TestContext.CancellationToken);
 
             Assert.IsTrue(result.Diagnostics.Any(diagnostic => diagnostic.Code == PathRouteDiagnosticCode.AnchorLocationMismatch && diagnostic.NodeIndex == 0));
-            Assert.AreEqual(2, result.AuthoredNodeAnchors[0].TrackNodeIndex);
+            Assert.AreEqual(-1, result.AuthoredNodeAnchors[0].TrackNodeIndex);
+        }
+
+        /// <summary>
+        /// Verifies that a hybrid anchor whose stored location cannot be re-anchored remains unresolved instead of
+        /// silently continuing to use a stale indexed track node.
+        /// </summary>
+        [TestMethod]
+        public void ResolveWhenHybridAnchorLocationCannotBeReanchoredReturnsAnchorDiagnostic()
+        {
+            TrackWorld trackWorld = CreateInitializedTrackWorldWithTwoVectorNodes();
+            PathModel pathModel = new PathModel()
+            {
+                PathNodes = ImmutableArray.Create(
+                    CreateNode(PathNodeType.Start, 1, -1, 2, new WorldLocation(new Tile(0, 0), new Vector3(500, 0, 0))),
+                    CreateNode(PathNodeType.End, -1, -1, 2, new WorldLocation(new Tile(0, 0), new Vector3(210, 0, 0)))),
+            };
+
+            PathRouteResolution result = PathRouteResolver.Resolve(pathModel, trackWorld, TestContext.CancellationToken);
+
+            Assert.AreEqual(-1, result.AuthoredNodeAnchors[0].TrackNodeIndex);
+            Assert.IsTrue(result.Diagnostics.Any(diagnostic => diagnostic.Code == PathRouteDiagnosticCode.AnchorNotOnTrack && diagnostic.NodeIndex == 0));
         }
 
         /// <summary>

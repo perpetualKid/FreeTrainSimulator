@@ -42,6 +42,23 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
         }
 
         [TestMethod]
+        public void WhenGeneratedPathIsResolvedAgainThenMaterializationIsNearIdempotent()
+        {
+            TrackWorld trackWorld = CreateTrackWorld(
+                ImmutableArray.Create<TrackNodeBase>(null, CreateVectorNode(1), CreateVectorNode(2), CreateJunctionNode(3)),
+                ImmutableArray.Create(new TrackNodeConnectorIndex(), CreateConnectors(1, 3), CreateConnectors(2, 3), CreateConnectors(3, 1, 2)));
+            PathModel sourcePath = CreateSourcePath();
+            PathRouteResolution firstResolution = PathRouteResolver.Resolve(sourcePath, trackWorld, TestContext.CancellationToken);
+            PathGenerationResult firstGeneration = PathModelRouteGenerator.GenerateMainPath(sourcePath, firstResolution, trackWorld, PathRouteResolverOptions.Default);
+
+            PathRouteResolution secondResolution = PathRouteResolver.Resolve(firstGeneration.PathModel, trackWorld, TestContext.CancellationToken);
+            PathGenerationResult secondGeneration = PathModelRouteGenerator.GenerateMainPath(firstGeneration.PathModel, secondResolution, trackWorld, PathRouteResolverOptions.Default);
+
+            Assert.IsTrue(secondGeneration.Success);
+            Assert.AreSequenceEqual(firstGeneration.PathModel.PathNodes, secondGeneration.PathModel.PathNodes);
+        }
+
+        [TestMethod]
         public void WhenGeneratingPathThenMetadataIsPreserved()
         {
             TrackWorld trackWorld = CreateTrackWorld(

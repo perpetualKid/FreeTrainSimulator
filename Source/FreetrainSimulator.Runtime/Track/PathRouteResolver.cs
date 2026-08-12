@@ -296,13 +296,18 @@ namespace FreeTrainSimulator.Runtime.Track
                     {
                         if (locationTrackNodeIndex >= 0)
                         {
-                            trackVectorSectionIndex = locationTrackNodeIndex == node.NodeIndex ? locationTrackVectorSectionIndex : -1;
+                            // A valid index from a previous layout is not authoritative when the stored location
+                            // now resolves elsewhere. Re-snap to the location so reloads remain usable after track
+                            // database changes while retaining the mismatch diagnostic for callers.
+                            trackVectorSectionIndex = locationTrackVectorSectionIndex;
                             ambiguous = locationAmbiguous;
                         }
 
                         diagnostics.Add(new PathRouteDiagnostic(PathRouteDiagnosticSeverity.Warning, PathRouteDiagnosticCode.AnchorLocationMismatch,
                             FormatAnchorLocationMismatchMessage(authoredNodeIndex, node.NodeIndex, locationTrackNodeIndex),
                             authoredNodeIndex, "Review the path node location and stored track anchor before saving or repairing the path."));
+
+                        return locationTrackNodeIndex;
                     }
                 }
 
