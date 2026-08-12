@@ -123,6 +123,52 @@ namespace Tests.FreeTrainSimulator.Toolbox
         }
 
         [TestMethod]
+        public void WhenExtendPathBeginsThenExplicitResolverBackedModeIsActiveWithoutMutatingThePath()
+        {
+            PathModel source = CreateEditablePath();
+            using PathEditor editor = CreateEditor(source);
+
+            PathEditorCommandResult result = editor.ExtendPathCommand();
+
+            Assert.IsTrue(result.Success);
+            Assert.IsTrue(editor.IsExtendingPath);
+            Assert.IsFalse(editor.EditMode);
+            Assert.AreSequenceEqual(source.PathNodes, editor.TryCaptureCurrentPathModel().PathNodes);
+        }
+
+        [TestMethod]
+        public void WhenExtendPathIsDraggedThenPreviewedSpanIsNotCommitted()
+        {
+            PathModel source = CreateEditablePath();
+            using PathEditor editor = CreateEditor(source);
+            _ = editor.ExtendPathCommand();
+            PathEditResult preview = InvokeExtendPathToAnchor(source, CreateNodeAt(200, PathNodeType.None, -1));
+            SetPrivateField(editor, "movePreviewModel", preview.PathModel);
+
+            editor.MouseDragged(new UserCommandArgs(), KeyModifiers.None);
+            editor.MouseReleasedLeft(new UserCommandArgs(), KeyModifiers.None);
+
+            Assert.IsTrue(editor.IsExtendingPath);
+            Assert.AreSequenceEqual(source.PathNodes, editor.TryCaptureCurrentPathModel().PathNodes);
+        }
+
+        [TestMethod]
+        public void WhenExtendPathSpanIsCommittedThenTheNextSpanRemainsInExplicitExtendMode()
+        {
+            PathModel source = CreateEditablePath();
+            using PathEditor editor = CreateEditor(source);
+            _ = editor.ExtendPathCommand();
+            PathEditResult preview = InvokeExtendPathToAnchor(source, CreateNodeAt(200, PathNodeType.None, -1));
+            SetPrivateField(editor, "movePreviewModel", preview.PathModel);
+
+            PathEditResult committed = editor.CommitPlacement();
+
+            Assert.IsTrue(committed.Success);
+            Assert.IsTrue(editor.IsExtendingPath);
+            Assert.AreEqual(3, editor.TryCaptureCurrentPathModel().PathNodes.Length);
+        }
+
+        [TestMethod]
         public void WhenAffectedSpansAreSelectedThenOnlySpansBoundedByAnEditedNodeAreReturned()
         {
             PathRouteResolution resolution = CreateResolution(
@@ -825,6 +871,12 @@ namespace Tests.FreeTrainSimulator.Toolbox
         {
             MethodInfo method = typeof(PathEditor).GetMethod("AffectedSpans", BindingFlags.Static | BindingFlags.NonPublic);
             return (ImmutableArray<ResolvedPathSpan>)method.Invoke(null, new object[] { resolution, changedNodeIndexes });
+        }
+
+        private static PathEditResult InvokeExtendPathToAnchor(PathModel pathModel, PathNode anchor)
+        {
+            MethodInfo method = typeof(PathEditor).GetMethod("ExtendPathToAnchor", BindingFlags.Static | BindingFlags.NonPublic);
+            return (PathEditResult)method.Invoke(null, new object[] { pathModel, anchor, false });
         }
 
         private static bool HasNodeType(PathModel pathModel, PathNodeType nodeType)

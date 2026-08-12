@@ -23,6 +23,7 @@ namespace FreeTrainSimulator.Toolbox
         MoveNode,
         StartAnchor,
         EndAnchor,
+        ExtendPath,
     }
 
     public class PathEditorChangedEventArgs : EventArgs
@@ -52,6 +53,7 @@ namespace FreeTrainSimulator.Toolbox
         private PathModel moveSourceModel;
         private PathModel movePreviewModel;
         private PathNode movePreviewAnchor;
+        private PathSpanCommitResult movePreviewSpanCommit;
         private PathEditorPlacementMode placementMode;
         private bool placementSourceEditMode;
         private bool placementSourceUnsavedChanges;
@@ -77,6 +79,8 @@ namespace FreeTrainSimulator.Toolbox
         public bool IsPlacingStartAnchor => placementMode == PathEditorPlacementMode.StartAnchor;
 
         public bool IsPlacingEndAnchor => placementMode == PathEditorPlacementMode.EndAnchor;
+
+        public bool IsExtendingPath => placementMode == PathEditorPlacementMode.ExtendPath;
 
         public bool CanCommitMoveNode => IsMovingNode && movePreviewModel != null;
 
@@ -581,7 +585,7 @@ namespace FreeTrainSimulator.Toolbox
             {
                 path = currentModel;
                 currentPathModel = currentModel;
-                RestorePath(currentModel, true);
+                RestorePath(currentModel, false);
             }
 
             placementMode = mode;
@@ -648,9 +652,8 @@ namespace FreeTrainSimulator.Toolbox
         public bool CanExtendPath => TrainPath != null && !EditMode && !IsMovingNode;
 
         /// <summary>
-        /// Resumes interactive appending on the current path. When the path already ends with an end node, that
-        /// node is demoted to an intermediate node (as a single undoable step) so appending continues beyond it;
-        /// the user then clicks to add points and double-clicks to set the new end.
+        /// Starts resolver-backed interactive appending on the current path. Each click commits one resolved span
+        /// and keeps Extend Path active for the next span.
         /// </summary>
         public PathEditorCommandResult ExtendPathCommand()
         {
@@ -658,23 +661,19 @@ namespace FreeTrainSimulator.Toolbox
             if (currentModel == null)
                 return PathEditorCommandResult.Failed("No editable path is currently loaded.", null);
 
-            PathModel extendedModel = currentModel;
-            if (HasFlag(currentModel, PathNodeType.End))
-            {
-                PathEditResult removeEnd = PathModelEditor.RemoveEnd(currentModel);
-                if (!removeEnd.Success)
-                    return PathEditorCommandResult.FromPathEditResult(removeEnd);
+            if (!HasFlag(currentModel, PathNodeType.End))
+                return PathEditorCommandResult.Failed("Set an end anchor before extending the path.", currentModel);
 
-                extendedModel = removeEnd.PathModel;
-                PushUndoSnapshot(currentModel);
-                unsavedChanges = true;
+            if (EditMode)
+            {
+                path = currentModel;
+                currentPathModel = currentModel;
+                RestorePath(currentModel, false);
             }
 
-            path = extendedModel;
-            currentPathModel = extendedModel;
-            RestorePath(extendedModel, true);
-            OnPathUpdated?.Invoke(this, new PathEditorChangedEventArgs(TrainPath));
-            return PathEditorCommandResult.Succeeded("Click to append path points; double-click to set the new end.", extendedModel);
+            return BeginAnchorPlacement(PathEditorPlacementMode.ExtendPath)
+                ? PathEditorCommandResult.Succeeded("Click a track location to extend the path; each click resolves the next span.", currentPathModel)
+                : PathEditorCommandResult.Failed("Cannot extend the current path.", currentPathModel);
         }
 
         public bool CanMoveNode(int nodeIndex)
@@ -1037,6 +1036,7 @@ namespace FreeTrainSimulator.Toolbox
             moveSourceModel = currentModel;
             movePreviewModel = null;
             movePreviewAnchor = null;
+            movePreviewSpanCommit = null;
             UseStandaloneActivePathPointPreview = true;
             if (!InitializeActivePathPointPreview(nodeIndex))
             {
@@ -1089,6 +1089,7 @@ namespace FreeTrainSimulator.Toolbox
                 PathEditorPlacementMode.MoveNode => PathModelEditor.MoveNode(moveSourceModel, movingNodeIndex, replacementAnchor, isJunction),
                 PathEditorPlacementMode.StartAnchor => PathModelEditor.SetStartAnchor(moveSourceModel, replacementAnchor, isJunction),
                 PathEditorPlacementMode.EndAnchor => PathModelEditor.SetEndAnchor(moveSourceModel, replacementAnchor, isJunction),
+                PathEditorPlacementMode.ExtendPath => ExtendPathToAnchor(moveSourceModel, replacementAnchor, isJunction),
                 _ => PathEditResult.Failed("No path placement is active.", moveSourceModel),
             };
             if (!result.Success)
@@ -1097,8 +1098,17 @@ namespace FreeTrainSimulator.Toolbox
                 return;
             }
 
+            PathSpanCommitResult spanCommit = EvaluateSpanCommit(result.PathModel, result.ChangedNodeIndexes,
+                "Extend path preview.", moveSourceModel);
+            if (spanCommit.Status == PathSpanCommitStatus.Unresolved)
+            {
+                ClearMovePreview();
+                return;
+            }
+
             movePreviewAnchor = replacementAnchor;
-            movePreviewModel = result.PathModel;
+            movePreviewSpanCommit = spanCommit;
+            movePreviewModel = spanCommit.PathModel;
             SetPreviewPath(movePreviewModel);
             OnPathUpdated?.Invoke(this, new PathEditorChangedEventArgs(TrainPath));
         }
@@ -1107,6 +1117,7 @@ namespace FreeTrainSimulator.Toolbox
         {
             movePreviewAnchor = null;
             movePreviewModel = null;
+            movePreviewSpanCommit = null;
             SetPreviewPath(null);
         }
 
@@ -1409,6 +1420,7 @@ namespace FreeTrainSimulator.Toolbox
                     PathEditorPlacementMode.MoveNode => PathModelEditor.MoveNode(currentModel, movingNodeIndex, replacementAnchor, isJunction),
                     PathEditorPlacementMode.StartAnchor => PathModelEditor.SetStartAnchor(currentModel, replacementAnchor, isJunction),
                     PathEditorPlacementMode.EndAnchor => PathModelEditor.SetEndAnchor(currentModel, replacementAnchor, isJunction),
+                    PathEditorPlacementMode.ExtendPath => ExtendPathToAnchor(currentModel, replacementAnchor, isJunction),
                     _ => PathEditResult.Failed("No path placement is active.", currentModel),
                 };
                 if (!result.Success)
@@ -1424,7 +1436,8 @@ namespace FreeTrainSimulator.Toolbox
             // Every placement commit funnels through the unified span-commit routine, so the affected span is
             // resolved and materialized exactly like a directly authored anchor.
             ImmutableArray<int> changedNodeIndexes = result?.ChangedNodeIndexes ?? ImmutableArray.Create(movedNodeIndex);
-            PathSpanCommitResult spanCommit = EvaluateSpanCommit(committedModel, changedNodeIndexes, "Placement committed.", undoSnapshot);
+            PathSpanCommitResult spanCommit = movePreviewSpanCommit
+                ?? EvaluateSpanCommit(committedModel, changedNodeIndexes, "Placement committed.", undoSnapshot);
             if (spanCommit.Status == PathSpanCommitStatus.Unresolved)
                 return PathEditResult.Failed(spanCommit.Message, currentModel);
             if (spanCommit.Status == PathSpanCommitStatus.Ambiguous)
@@ -1447,6 +1460,7 @@ namespace FreeTrainSimulator.Toolbox
             {
                 PathEditorPlacementMode.StartAnchor => PathEditResult.Succeeded("Start anchor placed.", committedModel, result?.ChangedNodeIndexes ?? ImmutableArray.Create(movedNodeIndex)),
                 PathEditorPlacementMode.EndAnchor => PathEditResult.Succeeded("End anchor placed.", committedModel, result?.ChangedNodeIndexes ?? ImmutableArray.Create(movedNodeIndex)),
+                PathEditorPlacementMode.ExtendPath => PathEditResult.Succeeded("Path span extended.", committedModel, spanCommit.ChangedNodeIndexes),
                 _ => PathEditResult.Succeeded($"Moved node {movedNodeIndex}.", committedModel, ImmutableArray.Create(movedNodeIndex)),
             };
             int selectedIndex = committedMode == PathEditorPlacementMode.StartAnchor
@@ -1463,8 +1477,19 @@ namespace FreeTrainSimulator.Toolbox
             }
             if (beginEndPlacement)
                 _ = BeginAnchorPlacement(PathEditorPlacementMode.EndAnchor);
+            else if (committedMode == PathEditorPlacementMode.ExtendPath)
+                _ = BeginAnchorPlacement(PathEditorPlacementMode.ExtendPath);
             OnPathUpdated?.Invoke(this, new PathEditorChangedEventArgs(TrainPath));
             return committedResult;
+        }
+
+        private static PathEditResult ExtendPathToAnchor(PathModel pathModel, PathNode anchor, bool isJunction)
+        {
+            PathEditResult removeEnd = PathModelEditor.RemoveEnd(pathModel);
+            if (!removeEnd.Success)
+                return removeEnd;
+
+            return PathModelEditor.SetEndAnchor(removeEnd.PathModel, anchor, isJunction);
         }
 
         public PathEditorCommandResult CommitMoveNodeCommand()
