@@ -211,7 +211,10 @@ namespace FreeTrainSimulator.Toolbox
                     if (placementAnchor == null)
                         toolWindow.BeginViaPointPlacement(nodeIndex);
                     else
-                        toolWindow.BeginViaPointPlacementAt(nodeIndex, placementAnchor);
+                    {
+                        bool isJunction = RuntimeDataResolver.Instance.TrackWorld?.JunctionAt(placementAnchor.Location) != null;
+                        toolWindow.AddViaPointHere(nodeIndex, placementAnchor, isJunction);
+                    }
                     break;
                 case MapContextMenuAction.RemoveViaPoint:
                     toolWindow.RemoveViaPoint(nodeIndex);

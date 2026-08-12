@@ -551,6 +551,40 @@ namespace Tests.FreeTrainSimulator.Toolbox
         }
 
         [TestMethod]
+        public void WhenViaPointIsAddedHereThenBothAdjacentSpansAreCommittedAsOneUndoableEdit()
+        {
+            PathModel source = CreateEditablePath();
+            using PathEditor editor = CreateEditor(source);
+
+            PathEditorCommandResult result = editor.AddViaPointHereCommand(0, CreateNodeAt(50, PathNodeType.None, -1), false);
+
+            Assert.IsTrue(result.Success);
+            Assert.AreEqual(3, editor.TryCaptureCurrentPathModel().PathNodes.Length);
+            Assert.IsTrue(editor.Undo());
+            Assert.AreSequenceEqual(source.PathNodes, editor.TryCaptureCurrentPathModel().PathNodes);
+        }
+
+        [TestMethod]
+        public void WhenViaPointSplitHasEqualCostRoutesThenCandidatesAreExposedWithoutCommitting()
+        {
+            PathModel source = new PathModel()
+            {
+                PathNodes = ImmutableArray.Create(
+                    CreateNodeAt(100, PathNodeType.Start, 1) with { NodeIndex = 1 },
+                    CreateNodeAt(400, PathNodeType.End, -1) with { NodeIndex = 4 }),
+            };
+            using PathEditor editor = CreateEditor(source, CreateAmbiguousTrackWorld());
+
+            PathEditorCommandResult result = editor.AddViaPointHereCommand(0,
+                CreateNodeAt(300, PathNodeType.None, -1) with { NodeIndex = 3 }, true);
+
+            Assert.IsFalse(result.Success);
+            Assert.IsTrue(editor.HasPendingAmbiguousSpanCommit);
+            Assert.IsFalse(editor.CanUndo);
+            Assert.AreSequenceEqual(source.PathNodes, editor.TryCaptureCurrentPathModel().PathNodes);
+        }
+
+        [TestMethod]
         public void WhenPathHasEndButNoStartThenTrainPathConstructionSucceeds()
         {
             PathModel partialPath = new PathModel()

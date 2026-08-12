@@ -561,6 +561,9 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
         internal void BeginViaPointPlacementAt(int afterNodeIndex, PathNode anchor)
             => ExecuteEditorCommand(pathEditor => pathEditor.BeginViaPointPlacementAtCommand(afterNodeIndex, anchor), activateMapInputAction);
 
+        internal void AddViaPointHere(int afterNodeIndex, PathNode anchor, bool isJunction)
+            => ExecuteEditorCommand(pathEditor => pathEditor.AddViaPointHereCommand(afterNodeIndex, anchor, isJunction));
+
         internal void RemoveViaPoint(int nodeIndex) => ExecuteEditorCommand(pathEditor => pathEditor.RemoveViaPointCommand(nodeIndex));
 
         internal void PreviewRouteCandidate(int fromNodeIndex, int candidateIndex) => ExecuteEditorCommand(pathEditor => pathEditor.PreviewRouteCandidateCommand(fromNodeIndex, candidateIndex));

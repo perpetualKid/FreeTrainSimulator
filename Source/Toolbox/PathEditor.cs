@@ -824,6 +824,35 @@ namespace FreeTrainSimulator.Toolbox
             return result;
         }
 
+        /// <summary>
+        /// Inserts a via anchor at a snapped map location, resolves both spans adjacent to it, and commits the
+        /// materialized result as one undoable edit. Ambiguous spans are previewed for candidate selection and do
+        /// not change the committed path.
+        /// </summary>
+        public PathEditorCommandResult AddViaPointHereCommand(int afterNodeIndex, PathNode anchor, bool isJunction)
+        {
+            ArgumentNullException.ThrowIfNull(anchor);
+
+            PathModel currentModel = TryGetEditablePathModel();
+            if (currentModel == null)
+                return PathEditorCommandResult.Failed("No editable path is currently loaded.", null);
+
+            PathSpanCommitResult spanCommit = ResolveAnchorSpan(currentModel,
+                model => PathModelEditor.InsertViaPoint(model, afterNodeIndex, anchor, isJunction));
+            switch (spanCommit.Status)
+            {
+                case PathSpanCommitStatus.Resolved:
+                    PathEditResult committed = ApplyUndoableEdit(_ => PathEditResult.Succeeded(
+                        "Via point added and adjacent spans resolved.", spanCommit.PathModel, spanCommit.ChangedNodeIndexes));
+                    return PathEditorCommandResult.FromPathEditResult(committed);
+                case PathSpanCommitStatus.Ambiguous:
+                    BeginPendingAmbiguousSpanCommit(currentModel, spanCommit);
+                    return PathEditorCommandResult.Failed(spanCommit.Message, currentModel);
+                default:
+                    return PathEditorCommandResult.Failed(spanCommit.Message, currentModel);
+            }
+        }
+
         /// <summary>Removes the via point at <paramref name="nodeIndex"/> and records an undo snapshot.</summary>
         public PathEditResult RemoveViaPoint(int nodeIndex)
         {
