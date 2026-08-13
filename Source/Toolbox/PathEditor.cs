@@ -62,6 +62,8 @@ namespace FreeTrainSimulator.Toolbox
         private bool pendingViaSourceEditMode;
         private bool pendingViaSourceUnsavedChanges;
         private PendingAmbiguousSpanCommit pendingAmbiguousSpanCommit;
+        private int previewedRouteCandidateFromNodeIndex = -1;
+        private int previewedRouteCandidateIndex = -1;
         private bool unsavedChanges;
 
         public string PathId => path?.Id;
@@ -89,6 +91,8 @@ namespace FreeTrainSimulator.Toolbox
         public bool HasUnsavedChanges => unsavedChanges;
 
         public bool HasPendingAmbiguousSpanCommit => pendingAmbiguousSpanCommit != null;
+
+        public bool CanCancelPathInteraction => IsPlacementActive || pendingAmbiguousSpanCommit != null || previewedRouteCandidateFromNodeIndex >= 0;
 
         public ImmutableArray<ResolvedPathSpan> PendingAmbiguousSpans => pendingAmbiguousSpanCommit?.AmbiguousSpans
             ?? ImmutableArray<ResolvedPathSpan>.Empty;
@@ -882,13 +886,19 @@ namespace FreeTrainSimulator.Toolbox
         public PathEditResult PreviewRouteCandidate(int fromNodeIndex, int candidateIndex)
         {
             if (pendingAmbiguousSpanCommit != null)
-                return PreviewPendingRouteCandidate(fromNodeIndex, candidateIndex);
+            {
+                PathEditResult pendingResult = PreviewPendingRouteCandidate(fromNodeIndex, candidateIndex);
+                if (pendingResult.Success)
+                    SetPreviewedRouteCandidate(fromNodeIndex, candidateIndex);
+                return pendingResult;
+            }
 
             PathEditResult result = BuildRouteCandidateModel(fromNodeIndex, candidateIndex);
             if (!result.Success)
                 return result;
 
             SetPreviewPath(result.PathModel);
+            SetPreviewedRouteCandidate(fromNodeIndex, candidateIndex);
             OnPathUpdated?.Invoke(this, new PathEditorChangedEventArgs(TrainPath));
             return result;
         }
@@ -906,6 +916,7 @@ namespace FreeTrainSimulator.Toolbox
             }
 
             SetPreviewPath(null);
+            ClearPreviewedRouteCandidate();
             OnPathUpdated?.Invoke(this, new PathEditorChangedEventArgs(TrainPath));
         }
 
@@ -916,7 +927,12 @@ namespace FreeTrainSimulator.Toolbox
         public PathEditResult AcceptRouteCandidate(int fromNodeIndex, int candidateIndex)
         {
             if (pendingAmbiguousSpanCommit != null)
-                return AcceptPendingRouteCandidate(fromNodeIndex, candidateIndex);
+            {
+                PathEditResult pendingResult = AcceptPendingRouteCandidate(fromNodeIndex, candidateIndex);
+                if (pendingResult.Success)
+                    ClearPreviewedRouteCandidate();
+                return pendingResult;
+            }
 
             ResolvedRouteCandidate candidate = FindRouteCandidate(fromNodeIndex, candidateIndex);
             if (candidate == null)
@@ -924,7 +940,10 @@ namespace FreeTrainSimulator.Toolbox
 
             PathEditResult result = ApplySelectedNodeEdit(fromNodeIndex, model => PathModelEditor.ApplyRouteCandidate(model, fromNodeIndex, candidate));
             if (result.Success)
+            {
                 SetPreviewPath(null);
+                ClearPreviewedRouteCandidate();
+            }
 
             return result;
         }
@@ -940,6 +959,82 @@ namespace FreeTrainSimulator.Toolbox
         public PathEditorCommandResult AcceptRouteCandidateCommand(int fromNodeIndex, int candidateIndex)
         {
             return PathEditorCommandResult.FromPathEditResult(AcceptRouteCandidate(fromNodeIndex, candidateIndex));
+        }
+
+        public PathEditorCommandResult CycleRouteCandidateCommand(int direction)
+        {
+            if (direction == 0)
+                return PathEditorCommandResult.Failed("A route candidate direction is required.", currentPathModel);
+
+            int fromNodeIndex = previewedRouteCandidateFromNodeIndex;
+            int candidateIndex = previewedRouteCandidateIndex;
+            ImmutableArray<ResolvedRouteCandidate> candidates = GetSpanCandidates(fromNodeIndex);
+            if (candidates.IsDefaultOrEmpty)
+            {
+                fromNodeIndex = SelectedPathNodeIndex;
+                candidates = GetSpanCandidates(fromNodeIndex);
+                candidateIndex = -1;
+            }
+
+            if (candidates.IsDefaultOrEmpty && pendingAmbiguousSpanCommit != null)
+            {
+                ResolvedPathSpan span = pendingAmbiguousSpanCommit.AmbiguousSpans.FirstOrDefault();
+                if (span != null)
+                {
+                    fromNodeIndex = span.FromNodeIndex;
+                    candidates = span.Candidates;
+                    candidateIndex = -1;
+                }
+            }
+
+            if (candidates.IsDefaultOrEmpty)
+                return PathEditorCommandResult.Failed("No route candidates are available.", currentPathModel);
+
+            int nextCandidateIndex = candidateIndex < 0
+                ? direction > 0 ? 0 : candidates.Length - 1
+                : (candidateIndex + (direction > 0 ? 1 : candidates.Length - 1)) % candidates.Length;
+            return PreviewRouteCandidateCommand(fromNodeIndex, nextCandidateIndex);
+        }
+
+        public PathEditorCommandResult AcceptPreviewedRouteCandidateCommand()
+        {
+            if (previewedRouteCandidateFromNodeIndex < 0 || previewedRouteCandidateIndex < 0)
+                return PathEditorCommandResult.Failed("Preview a route candidate before accepting it.", currentPathModel);
+
+            return AcceptRouteCandidateCommand(previewedRouteCandidateFromNodeIndex, previewedRouteCandidateIndex);
+        }
+
+        public PathEditorCommandResult CancelPathInteractionCommand()
+        {
+            if (pendingAmbiguousSpanCommit != null)
+            {
+                CancelPendingRouteCandidate();
+                ClearPreviewedRouteCandidate();
+                return PathEditorCommandResult.Succeeded("Route candidate selection canceled.", currentPathModel);
+            }
+
+            if (IsPlacementActive)
+                return CancelPlacementCommand();
+
+            if (previewedRouteCandidateFromNodeIndex >= 0)
+            {
+                ClearRouteCandidatePreview();
+                return PathEditorCommandResult.Succeeded("Route candidate preview canceled.", currentPathModel);
+            }
+
+            return PathEditorCommandResult.Failed("No path interaction is active.", currentPathModel);
+        }
+
+        private void SetPreviewedRouteCandidate(int fromNodeIndex, int candidateIndex)
+        {
+            previewedRouteCandidateFromNodeIndex = fromNodeIndex;
+            previewedRouteCandidateIndex = candidateIndex;
+        }
+
+        private void ClearPreviewedRouteCandidate()
+        {
+            previewedRouteCandidateFromNodeIndex = -1;
+            previewedRouteCandidateIndex = -1;
         }
 
         // Builds (but does not commit) the authored path that results from choosing a candidate.
@@ -1159,6 +1254,7 @@ namespace FreeTrainSimulator.Toolbox
                 return false;
 
             pendingAmbiguousSpanCommit = null;
+            ClearPreviewedRouteCandidate();
 
             int movedNodeIndex = movingNodeIndex;
             PathModel viaSourceModel = pendingViaSourceModel;

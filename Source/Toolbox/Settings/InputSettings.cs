@@ -34,6 +34,14 @@ namespace FreeTrainSimulator.Toolbox.Settings
                 UserCommand.DisplaySettingsWindow => new UserCommandModifiableKeyInput(Keys.F10, windowTab),
                 UserCommand.DisplayLogWindow => new UserCommandModifiableKeyInput(Keys.F11, windowTab),
                 UserCommand.DisplayTrainPathWindow => new UserCommandModifiableKeyInput(Keys.F8, windowTab),
+                UserCommand.PathEditorUndo => new UserCommandKeyInput(Keys.Z, KeyModifiers.Control),
+                UserCommand.PathEditorRedo => new UserCommandKeyInput(Keys.Y, KeyModifiers.Control),
+                UserCommand.PathEditorAlternateRedo => new UserCommandKeyInput(Keys.Z, KeyModifiers.Control | KeyModifiers.Shift),
+                UserCommand.RemoveSelectedViaPoint => new UserCommandKeyInput(Keys.Delete),
+                UserCommand.CommitPathPlacement => new UserCommandKeyInput(Keys.Enter),
+                UserCommand.NextRouteCandidate => new UserCommandKeyInput(Keys.Tab),
+                UserCommand.PreviousRouteCandidate => new UserCommandKeyInput(Keys.Tab, KeyModifiers.Shift),
+                UserCommand.AcceptRouteCandidate => new UserCommandKeyInput(Keys.Space),
                 _ => throw new System.InvalidCastException(),
             };
         });

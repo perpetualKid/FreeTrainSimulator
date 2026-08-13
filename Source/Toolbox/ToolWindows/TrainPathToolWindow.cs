@@ -507,6 +507,17 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
 
         internal void Redo() => InvokeEditorMutation(pathEditor => pathEditor.Redo());
 
+        internal void CancelPathInteraction() => ExecuteEditorCommand(pathEditor => pathEditor.CancelPathInteractionCommand());
+
+        internal void RemoveSelectedViaPoint()
+            => ExecuteEditorCommand(pathEditor => pathEditor.RemoveViaPointCommand(pathEditor.SelectedPathNodeIndex));
+
+        internal void CycleRouteCandidate(int direction)
+            => ExecuteEditorCommand(pathEditor => pathEditor.CycleRouteCandidateCommand(direction));
+
+        internal void AcceptPreviewedRouteCandidate()
+            => ExecuteEditorCommand(pathEditor => pathEditor.AcceptPreviewedRouteCandidateCommand());
+
         internal void SnapToTrack() => ExecuteEditorCommand(pathEditor => pathEditor.ReResolvePathCommand());
 
         internal void ExtendPath() => ExecuteEditorCommand(pathEditor => pathEditor.ExtendPathCommand(), activateMapInputAction);

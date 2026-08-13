@@ -803,7 +803,15 @@ namespace FreeTrainSimulator.Toolbox
             userCommandController.AddEvent(CommonUserCommand.AlternatePointerPressed, RequestMapContextMenu);
             userCommandController.AddEvent(CommonUserCommand.PointerPressed, BeginPointerInteraction);
             userCommandController.AddEvent(CommonUserCommand.PointerReleased, CommitPendingNodeMove);
-            userCommandController.AddEvent(UserCommand.Cancel, KeyEventType.KeyPressed, CancelPendingNodeMove);
+            userCommandController.AddEvent(UserCommand.Cancel, KeyEventType.KeyPressed, CancelPathEditorInteraction);
+            userCommandController.AddEvent(UserCommand.PathEditorUndo, KeyEventType.KeyPressed, UndoPathEditor);
+            userCommandController.AddEvent(UserCommand.PathEditorRedo, KeyEventType.KeyPressed, RedoPathEditor);
+            userCommandController.AddEvent(UserCommand.PathEditorAlternateRedo, KeyEventType.KeyPressed, RedoPathEditor);
+            userCommandController.AddEvent(UserCommand.RemoveSelectedViaPoint, KeyEventType.KeyPressed, RemoveSelectedViaPoint);
+            userCommandController.AddEvent(UserCommand.CommitPathPlacement, KeyEventType.KeyPressed, CommitPathPlacement);
+            userCommandController.AddEvent(UserCommand.NextRouteCandidate, KeyEventType.KeyPressed, NextRouteCandidate);
+            userCommandController.AddEvent(UserCommand.PreviousRouteCandidate, KeyEventType.KeyPressed, PreviousRouteCandidate);
+            userCommandController.AddEvent(UserCommand.AcceptRouteCandidate, KeyEventType.KeyPressed, AcceptRouteCandidate);
             userCommandController.AddEvent(UserCommand.DisplayLocationWindow, KeyEventType.KeyPressed, (UserCommandArgs userCommandArgs) =>
             {
                 if (userCommandArgs is ModifiableKeyCommandArgs keyCommandArgs && (keyCommandArgs.AdditionalModifiers & KeyModifiers.Shift) == KeyModifiers.Shift)

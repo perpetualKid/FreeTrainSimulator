@@ -188,6 +188,64 @@ namespace FreeTrainSimulator.Toolbox
                 userCommandArgs.Handled = true;
         }
 
+        private void CancelPathEditorInteraction(UserCommandArgs userCommandArgs)
+        {
+            if (pathEditor?.CanCancelPathInteraction != true)
+                return;
+
+            ExecutePathEditorKeyboardAction(userCommandArgs, toolWindow => toolWindow.CancelPathInteraction());
+        }
+
+        private void UndoPathEditor(UserCommandArgs userCommandArgs)
+        {
+            ExecutePathEditorKeyboardAction(userCommandArgs, toolWindow => toolWindow.Undo());
+        }
+
+        private void RedoPathEditor(UserCommandArgs userCommandArgs)
+        {
+            ExecutePathEditorKeyboardAction(userCommandArgs, toolWindow => toolWindow.Redo());
+        }
+
+        private void RemoveSelectedViaPoint(UserCommandArgs userCommandArgs)
+        {
+            ExecutePathEditorKeyboardAction(userCommandArgs, toolWindow => toolWindow.RemoveSelectedViaPoint());
+        }
+
+        private void CommitPathPlacement(UserCommandArgs userCommandArgs)
+        {
+            PathEditor editor = pathEditor;
+            if (editor?.CanCommitPlacement != true)
+                return;
+
+            ExecutePathEditorKeyboardAction(userCommandArgs, toolWindow => toolWindow.CommitPlacement());
+        }
+
+        private void NextRouteCandidate(UserCommandArgs userCommandArgs)
+        {
+            ExecutePathEditorKeyboardAction(userCommandArgs, toolWindow => toolWindow.CycleRouteCandidate(1));
+        }
+
+        private void PreviousRouteCandidate(UserCommandArgs userCommandArgs)
+        {
+            ExecutePathEditorKeyboardAction(userCommandArgs, toolWindow => toolWindow.CycleRouteCandidate(-1));
+        }
+
+        private void AcceptRouteCandidate(UserCommandArgs userCommandArgs)
+        {
+            ExecutePathEditorKeyboardAction(userCommandArgs, toolWindow => toolWindow.AcceptPreviewedRouteCandidate());
+        }
+
+        private void ExecutePathEditorKeyboardAction(UserCommandArgs userCommandArgs, Action<TrainPathToolWindow> action)
+        {
+            TrainPathToolWindow toolWindow = hostedTrainPathToolWindow;
+            if (toolWindow == null)
+                return;
+
+            action(toolWindow);
+            userCommandArgs.Handled = true;
+            FocusHostedWindow();
+        }
+
         /// <summary>
         /// Applies a node-related action selected from the map context menu. Routed through the train path tool
         /// window rather than the path editor directly, so its node list, status message and dirty state stay in

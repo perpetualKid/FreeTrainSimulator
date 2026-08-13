@@ -169,6 +169,22 @@ namespace Tests.FreeTrainSimulator.Toolbox
         }
 
         [TestMethod]
+        public void WhenPlacementPreviewIsCommittedThroughTheKeyboardCommandThenItMaterializesOnce()
+        {
+            PathModel source = CreateEditablePath();
+            using PathEditor editor = CreateEditor(source);
+            _ = editor.ExtendPathCommand();
+            PathEditResult preview = InvokeExtendPathToAnchor(source, CreateNodeAt(200, PathNodeType.None, -1));
+            SetPrivateField(editor, "movePreviewModel", preview.PathModel);
+
+            PathEditorCommandResult result = editor.CommitPlacementCommand();
+
+            Assert.IsTrue(result.Success);
+            Assert.AreEqual(3, editor.TryCaptureCurrentPathModel().PathNodes.Length);
+            Assert.IsTrue(editor.CanUndo);
+        }
+
+        [TestMethod]
         public void WhenAffectedSpansAreSelectedThenOnlySpansBoundedByAnEditedNodeAreReturned()
         {
             PathRouteResolution resolution = CreateResolution(
@@ -231,6 +247,35 @@ namespace Tests.FreeTrainSimulator.Toolbox
             Assert.IsTrue(editor.HasPendingAmbiguousSpanCommit);
             Assert.IsFalse(HasNodeType(editor.TryCaptureCurrentPathModel(), PathNodeType.End));
             Assert.IsFalse(editor.CanUndo);
+        }
+
+        [TestMethod]
+        public void WhenRouteCandidatesAreCycledThenSpaceEquivalentAcceptsThePreviewedCandidate()
+        {
+            using PathEditor editor = CreateEditor(CreateAmbiguousEndpointPath(), CreateAmbiguousTrackWorld());
+            _ = editor.SetEndAnchorCommand(CreateNodeAt(200, PathNodeType.None, -1) with { NodeIndex = 2 }, false);
+
+            PathEditorCommandResult cycleResult = editor.CycleRouteCandidateCommand(1);
+            PathEditorCommandResult acceptResult = editor.AcceptPreviewedRouteCandidateCommand();
+
+            Assert.IsTrue(cycleResult.Success);
+            Assert.IsTrue(acceptResult.Success);
+            Assert.IsTrue(HasNodeType(editor.TryCaptureCurrentPathModel(), PathNodeType.End));
+            Assert.IsTrue(editor.CanUndo);
+        }
+
+        [TestMethod]
+        public void WhenPendingRouteCandidateSelectionIsCanceledThenEscapeEquivalentLeavesSourceUnchanged()
+        {
+            PathModel source = CreateAmbiguousEndpointPath();
+            using PathEditor editor = CreateEditor(source, CreateAmbiguousTrackWorld());
+            _ = editor.SetEndAnchorCommand(CreateNodeAt(200, PathNodeType.None, -1) with { NodeIndex = 2 }, false);
+
+            PathEditorCommandResult result = editor.CancelPathInteractionCommand();
+
+            Assert.IsTrue(result.Success);
+            Assert.IsFalse(editor.HasPendingAmbiguousSpanCommit);
+            Assert.AreSequenceEqual(source.PathNodes, editor.TryCaptureCurrentPathModel().PathNodes);
         }
 
         [TestMethod]
