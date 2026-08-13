@@ -869,7 +869,7 @@ namespace FreeTrainSimulator.Toolbox
             if (currentModel == null)
                 return ImmutableArray<ResolvedPathSpan>.Empty;
 
-            PathRouteResolution resolution = PathRouteResolver.Resolve(currentModel, RuntimeDataResolver.Instance.TrackWorld, CancellationToken.None);
+            PathRouteResolution resolution = ResolveCurrent(currentModel);
             return resolution.MainRoute == null || resolution.MainRoute.Spans.IsDefaultOrEmpty
                 ? ImmutableArray<ResolvedPathSpan>.Empty
                 : resolution.MainRoute.Spans.Where(span => span.Candidates.Length > 1).ToImmutableArray();

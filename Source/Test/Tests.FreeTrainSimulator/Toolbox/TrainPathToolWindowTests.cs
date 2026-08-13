@@ -7,12 +7,14 @@ using System.Threading.Tasks;
 
 using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Position;
+using FreeTrainSimulator.Graphics.MapView;
 using FreeTrainSimulator.Models.Content;
 using FreeTrainSimulator.Runtime.Track;
 using FreeTrainSimulator.Toolbox;
 using FreeTrainSimulator.Toolbox.ToolWindows;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Microsoft.Xna.Framework;
 
 using Tests.FreeTrainSimulator.Common;
 
@@ -551,6 +553,27 @@ namespace Tests.FreeTrainSimulator.Toolbox
         }
 
         [TestMethod]
+        public void WhenGeneratedPreviewIsActiveThenSnapshotRowsUseAuthoredNodeIndices()
+        {
+            PathModel authoredPath = CreatePathModel(PathNodeType.Start, PathNodeType.End);
+            PathModel previewPath = CreatePathModel(PathNodeType.Start, PathNodeType.Intermediate, PathNodeType.End);
+            using PathEditor editor = new PathEditor(new TestPathEditorContext(CreateInitializedTrackWorld()));
+            editor.InitializeNewPath();
+            typeof(PathEditor).GetMethod("RestoreSnapshot", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(editor, new object[] { authoredPath });
+            typeof(PathEditor).GetMethod("SetPreviewPath", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(editor, new object[] { previewPath });
+            TrainPathToolWindow trainPathToolWindow = new TrainPathToolWindow(() => editor, () => null, action => action(), () => { }, () => { }, _ => { }, () => { }, () => { })
+            {
+                Active = true,
+            };
+
+            trainPathToolWindow.RefreshSnapshot();
+
+            TrainPathSnapshot snapshot = trainPathToolWindow.CaptureTrainPathSnapshot();
+            Assert.AreEqual(authoredPath.PathNodes.Length, snapshot.Nodes.Length);
+            Assert.AreEqual(authoredPath.PathNodes.Length.ToString(), snapshot.Metadata.Single(row => row.Name == "Node Count").Value);
+        }
+
+        [TestMethod]
         public void WhenPathPointHasDefaultConnectivityThenToPathModelThrowsInvalidOperationException()
         {
             TestTrainPath trainPath = new TestTrainPath(new PathModel
@@ -645,6 +668,48 @@ namespace Tests.FreeTrainSimulator.Toolbox
             public Task<ImmutableArray<PathModelHeader>> GetPaths() => Task.FromResult(paths);
 
             public Task<ImmutableArray<PathModelHeader>> ValidateAllPaths() => Task.FromResult(paths);
+        }
+
+        private static PathModel CreatePathModel(params PathNodeType[] nodeTypes)
+        {
+            ImmutableArray<PathNode>.Builder nodes = ImmutableArray.CreateBuilder<PathNode>(nodeTypes.Length);
+            for (int i = 0; i < nodeTypes.Length; i++)
+            {
+                nodes.Add(new PathNode(new WorldLocation(new Tile(0, 0), new Vector3(i * 100, 0, 0)))
+                {
+                    NodeType = nodeTypes[i],
+                    NodeIndex = 1,
+                    NextMainNode = i == nodeTypes.Length - 1 ? -1 : i + 1,
+                    NextSidingNode = -1,
+                });
+            }
+
+            return new PathModel
+            {
+                Id = "test-path",
+                Name = "Test Path",
+                PathNodes = nodes.ToImmutable(),
+            };
+        }
+
+        private sealed class TestPathEditorContext : IPathEditorContext, IPathEditorContextServicesAccessor
+        {
+            private readonly IPathEditorServices services;
+
+            public IMapRenderer Renderer => null;
+
+            public IMapViewport Viewport => null;
+
+            public ToolboxContentMode ContentMode { get; set; }
+
+            public PathEditorBase PathEditor { get; set; }
+
+            IPathEditorServices IPathEditorContextServicesAccessor.Services => services;
+
+            public TestPathEditorContext(TrackWorld trackWorld)
+            {
+                services = new PathEditorServices(trackWorld);
+            }
         }
 
         private static TrackWorld CreateInitializedTrackWorld() => TrackWorldTestFixture.CreateSingleVectorNodeTrackWorld();

@@ -357,11 +357,10 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
             }
 
             TrainPathBase authoredPath = pathEditor.TrainPath;
-            TrainPathBase currentPath = pathEditor.TryCaptureRenderedPath();
             PathModel currentPathModel = NormalizeTransientPathModel(pathEditor.TryCaptureCurrentPathModel() ?? authoredPath?.PathModel);
             ImmutableArray<TrainPathListRow> paths = BuildPaths(currentPathModel);
             string selectedPathId = authoredPath?.PathModel?.Id;
-            int nodeCount = currentPath?.PathPoints.Count ?? 0;
+            int nodeCount = authoredPath?.PathPoints.Count ?? 0;
             int selectedNodeIndex = pathEditor.SelectedPathNodeIndex;
             bool canUndo = pathEditor.CanUndo;
             bool canRedo = pathEditor.CanRedo;
@@ -406,15 +405,9 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
             {
                 Paths = paths,
                 SelectedPathId = selectedPathId,
-                // TODO(path-editor issue 3): Nodes come from the rendered/generated preview path while
-                // Diagnostics, RouteCandidates and SelectedNodeIndex are derived from the authored model. During an
-                // active end-anchor preview the generated node count/indices can differ from the authored nodes, so
-                // a diagnostic/selection node index may not line up with the displayed rows. Safe (no crash) but can
-                // mislead highlighting; revisit by only publishing generated rows for committed deterministic state
-                // or by carrying a distinct index space for preview rows.
-                Nodes = BuildNodes(currentPath),
+                Nodes = BuildNodes(authoredPath),
                 SelectedNodeIndex = selectedNodeIndex,
-                Metadata = BuildMetadata(pathEditor, currentPath),
+                Metadata = BuildMetadata(pathEditor, authoredPath),
                 RouteCandidates = BuildRouteCandidates(pathEditor),
                 Diagnostics = BuildResolverDiagnostics(pathEditor.ResolveCurrent(currentPathModel), pathEditor),
                 CanUndo = canUndo,
