@@ -24,7 +24,10 @@ namespace FreeTrainSimulator.Toolbox
         RouteThroughJunctionExit,
 
         // Path scoped
-        ExtendPath,
+        ContinuePath,
+        AddRoutePointHere,
+        FinishPathHere,
+        FinishPath,
         ReResolvePath,
         StartNewPath,
         StartNewPathHere,

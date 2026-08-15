@@ -302,6 +302,31 @@ namespace Tests.FreeTrainSimulator.Toolbox
         }
 
         [TestMethod]
+        public void WhenNewPathIsActiveThenCancelNewPathUnloadsIt()
+        {
+            using PathEditor editor = new(new TestPathEditorContext(CreateInitializedTrackWorld()));
+            editor.InitializeNewPath();
+            int unloadActions = 0;
+            TrainPathToolWindow trainPathToolWindow = new(() => editor, () => null, action => action(), () => { }, () => { }, _ => { }, () => unloadActions++, () => { });
+
+            trainPathToolWindow.CancelNewPath();
+
+            Assert.AreEqual(1, unloadActions);
+        }
+
+        [TestMethod]
+        public void WhenSavedPathIsActiveThenCancelNewPathDoesNotUnloadIt()
+        {
+            using PathEditor editor = new(new TestPathEditorContext(CreateInitializedTrackWorld()));
+            int unloadActions = 0;
+            TrainPathToolWindow trainPathToolWindow = new(() => editor, () => null, action => action(), () => { }, () => { }, _ => { }, () => unloadActions++, () => { });
+
+            trainPathToolWindow.CancelNewPath();
+
+            Assert.AreEqual(0, unloadActions);
+        }
+
+        [TestMethod]
         public void WhenSelectPathThenLoadPathActionIsCalled()
         {
             PathModelHeader loadedPath = null;

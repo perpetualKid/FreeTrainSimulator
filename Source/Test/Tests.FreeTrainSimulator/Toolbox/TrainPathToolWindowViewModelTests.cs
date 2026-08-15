@@ -173,7 +173,7 @@ namespace Tests.FreeTrainSimulator.Toolbox
         }
 
         [TestMethod]
-        public void WhenNewPathCommandExecutedThenStartAnchorGuidanceIsShown()
+        public void WhenNewPathCommandExecutedThenProgressiveRouteGuidanceIsShown()
         {
             TrainPathToolWindow bridge = CreateBridge(action => action(), () => { }, () => { });
             using ToolWindowRefreshScheduler refreshScheduler = new ToolWindowRefreshScheduler(Dispatcher.CurrentDispatcher);
@@ -182,7 +182,7 @@ namespace Tests.FreeTrainSimulator.Toolbox
 
             viewModel.NewPathCommand.Execute(null);
 
-            Assert.AreEqual("Click track or right-click to set the start anchor.", viewModel.StatusMessage);
+            Assert.AreEqual("Set the start, then add route points and explicitly finish the path.", viewModel.StatusMessage);
         }
 
         [TestMethod]

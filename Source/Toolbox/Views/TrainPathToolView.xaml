@@ -186,7 +186,33 @@
                             Margin="0,0,6,4"
                             Content="New Path"
                             Command="{Binding NewPathCommand}"
-                            ToolTip="Start editing a new path for the current route" />
+                             ToolTip="Start editing a new path for the current route">
+                        <Button.Style>
+                            <Style TargetType="Button">
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding CanCancelNewPath}" Value="True">
+                                        <Setter Property="Visibility" Value="Collapsed" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Button.Style>
+                    </Button>
+                    <Button Padding="8,2"
+                             Margin="0,0,6,4"
+                             Content="Cancel New Path"
+                             Command="{Binding CancelNewPathCommand}"
+                             ToolTip="Cancel the active unsaved new path">
+                        <Button.Style>
+                            <Style TargetType="Button">
+                                <Setter Property="Visibility" Value="Collapsed" />
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding CanCancelNewPath}" Value="True">
+                                        <Setter Property="Visibility" Value="Visible" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Button.Style>
+                    </Button>
                     <Button Margin="0,0,6,4"
                             Padding="8,2"
                             Content="Save Path"
@@ -302,8 +328,18 @@
                             Command="{Binding SetEndHereCommand}"
                             ToolTip="Choose a track location for the authored end anchor and resolve the route" />
                     <Button Margin="0,0,6,4"
+                             Padding="8,2"
+                             Content="Continue Path"
+                             Command="{Binding ContinuePathCommand}"
+                             ToolTip="Continue building the path by adding route points on the map" />
+                    <Button Margin="0,0,6,4"
+                             Padding="8,2"
+                             Content="Finish Path"
+                             Command="{Binding FinishPathCommand}"
+                             ToolTip="Finish route building at the last committed route point" />
+                    <Button Margin="0,0,6,4"
                             Padding="8,2"
-                            Content="Commit Placement"
+                             Content="Add Route Point"
                             Command="{Binding CommitPlacementCommand}" />
                     <Button Margin="0,0,6,4"
                             Padding="8,2"

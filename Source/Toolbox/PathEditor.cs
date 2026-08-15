@@ -23,7 +23,7 @@ namespace FreeTrainSimulator.Toolbox
         MoveNode,
         StartAnchor,
         EndAnchor,
-        ExtendPath,
+        BuildRoute,
     }
 
     public class PathEditorChangedEventArgs : EventArgs
@@ -38,6 +38,8 @@ namespace FreeTrainSimulator.Toolbox
 
     internal sealed class PathEditor : PathEditorBase
     {
+        internal const string NewPathId = "<New Path>";
+
         private readonly UserCommandController<UserCommand> userCommandController;
         private readonly Stack<PathModel> undoHistory = new Stack<PathModel>();
         private readonly Stack<PathModel> redoHistory = new Stack<PathModel>();
@@ -81,13 +83,16 @@ namespace FreeTrainSimulator.Toolbox
 
         public bool IsPlacingEndAnchor => placementMode == PathEditorPlacementMode.EndAnchor;
 
-        public bool IsExtendingPath => placementMode == PathEditorPlacementMode.ExtendPath;
+        public bool IsBuildingRoute => placementMode == PathEditorPlacementMode.BuildRoute;
 
         public bool CanCommitMoveNode => IsMovingNode && movePreviewModel != null;
 
         public bool CanCommitPlacement => IsPlacementActive && movePreviewModel != null;
 
         public bool HasUnsavedChanges => unsavedChanges;
+
+        /// <summary><see langword="true"/> when the editor contains the unsaved path created by New Path.</summary>
+        public bool IsNewPath => string.Equals(currentPathModel?.Id, NewPathId, StringComparison.Ordinal);
 
         public bool HasPendingAmbiguousSpanCommit => pendingAmbiguousSpanCommit != null;
 
@@ -217,8 +222,8 @@ namespace FreeTrainSimulator.Toolbox
         {
             PathModel newPath = new PathModel()
             {
-                Id = "<New Path>",
-                Name = "<New Path>",
+                Id = NewPathId,
+                Name = NewPathId,
                 Start = "Start",
                 End = "End",
                 PlayerPath = true,
@@ -346,12 +351,58 @@ namespace FreeTrainSimulator.Toolbox
             }
 
             PathModel currentModel = TryGetEditablePathModel();
-            bool beginEndPlacement = currentModel != null && !HasFlag(currentModel, PathNodeType.Start);
+            bool beginRouteBuilding = currentModel != null && !HasFlag(currentModel, PathNodeType.Start);
             PathEditorCommandResult result = ApplyEndpointAnchor(model => PathModelEditor.SetStartAnchor(model, anchor, isJunction));
-            if (result.Success && beginEndPlacement)
-                _ = BeginAnchorPlacement(PathEditorPlacementMode.EndAnchor);
+            if (result.Success && beginRouteBuilding)
+                _ = BeginAnchorPlacement(PathEditorPlacementMode.BuildRoute);
 
             return result;
+        }
+
+        /// <summary>Finishes progressive route building at the last committed route point.</summary>
+        public PathEditorCommandResult FinishPathCommand()
+        {
+            PathModel currentModel = TryGetEditablePathModel();
+            if (!IsBuildingRoute || currentModel == null || !HasFlag(currentModel, PathNodeType.End))
+                return PathEditorCommandResult.Failed("Add at least one route point before finishing the path.", currentModel);
+
+            ClearMoveNodeState();
+            path = currentModel;
+            currentPathModel = currentModel;
+            RestorePath(currentModel, false);
+            OnPathUpdated?.Invoke(this, new PathEditorChangedEventArgs(TrainPath));
+            return PathEditorCommandResult.Succeeded("Path finished.", currentModel);
+        }
+
+        /// <summary>Commits the current route-point preview as the final endpoint and finishes route building.</summary>
+        public PathEditorCommandResult FinishPathHereCommand()
+        {
+            if (!IsBuildingRoute)
+                return PathEditorCommandResult.Failed("Route building is not active.", currentPathModel);
+
+            return PathEditorCommandResult.FromPathEditResult(CommitPlacement(false));
+        }
+
+        public PathEditorCommandResult AddRoutePointHereCommand(PathNode anchor, bool isJunction, bool finishPath)
+        {
+            ArgumentNullException.ThrowIfNull(anchor);
+
+            if (!IsBuildingRoute || moveSourceModel == null)
+                return PathEditorCommandResult.Failed("Route building is not active.", currentPathModel);
+
+            PathEditResult routePoint = AddRoutePoint(moveSourceModel, anchor, isJunction);
+            if (!routePoint.Success)
+                return PathEditorCommandResult.FromPathEditResult(routePoint);
+
+            movePreviewAnchor = anchor;
+            movePreviewModel = routePoint.PathModel;
+            movePreviewSpanCommit = EvaluateSpanCommit(routePoint.PathModel, routePoint.ChangedNodeIndexes,
+                "Route point added.", moveSourceModel);
+            if (movePreviewSpanCommit.Status == PathSpanCommitStatus.Unresolved)
+                return PathEditorCommandResult.Failed(movePreviewSpanCommit.Message, currentPathModel);
+
+            movePreviewModel = movePreviewSpanCommit.PathModel;
+            return PathEditorCommandResult.FromPathEditResult(CommitPlacement(!finishPath));
         }
 
         /// <summary>
@@ -448,10 +499,11 @@ namespace FreeTrainSimulator.Toolbox
                 .ToImmutableArray();
         }
 
-        private void BeginPendingAmbiguousSpanCommit(PathModel sourceModel, PathSpanCommitResult spanCommit)
+        private void BeginPendingAmbiguousSpanCommit(PathModel sourceModel, PathSpanCommitResult spanCommit,
+            bool resumeRouteBuilding = false)
         {
             pendingAmbiguousSpanCommit = new PendingAmbiguousSpanCommit(sourceModel, spanCommit.PathModel,
-                spanCommit.ChangedNodeIndexes, spanCommit.AmbiguousSpans);
+                spanCommit.ChangedNodeIndexes, spanCommit.AmbiguousSpans, resumeRouteBuilding);
             SetPendingCandidatePreview();
             OnPathUpdated?.Invoke(this, new PathEditorChangedEventArgs(TrainPath));
         }
@@ -552,6 +604,7 @@ namespace FreeTrainSimulator.Toolbox
 
             PathModel sourceModel = pendingAmbiguousSpanCommit.SourceModel;
             ImmutableArray<int> changedNodeIndexes = pendingAmbiguousSpanCommit.ChangedNodeIndexes;
+            bool resumeRouteBuilding = pendingAmbiguousSpanCommit.ResumeRouteBuilding;
             pendingAmbiguousSpanCommit = null;
             ClearMoveNodeState();
             PushUndoSnapshot(sourceModel);
@@ -560,6 +613,8 @@ namespace FreeTrainSimulator.Toolbox
             currentPathModel = materialized;
             RestorePath(materialized, EditMode);
             SelectPathItem(changedNodeIndexes.IsDefaultOrEmpty ? -1 : changedNodeIndexes[0]);
+            if (resumeRouteBuilding)
+                _ = BeginAnchorPlacement(PathEditorPlacementMode.BuildRoute);
             OnPathUpdated?.Invoke(this, new PathEditorChangedEventArgs(TrainPath));
             return PathEditResult.Succeeded("Route candidate accepted.", materialized, changedNodeIndexes);
         }
@@ -655,13 +710,13 @@ namespace FreeTrainSimulator.Toolbox
         /// <summary>
         /// Whether the current path can be appended to interactively.
         /// </summary>
-        public bool CanExtendPath => TrainPath != null && !EditMode && !IsMovingNode;
+        public bool CanContinuePath => TrainPath != null && !EditMode && !IsMovingNode;
 
         /// <summary>
         /// Starts resolver-backed interactive appending on the current path. Each click commits one resolved span
-        /// and keeps Extend Path active for the next span.
+        /// and keeps Build Route active for the next route point.
         /// </summary>
-        public PathEditorCommandResult ExtendPathCommand()
+        public PathEditorCommandResult ContinuePathCommand()
         {
             PathModel currentModel = TryGetEditablePathModel();
             if (currentModel == null)
@@ -677,9 +732,9 @@ namespace FreeTrainSimulator.Toolbox
                 RestorePath(currentModel, false);
             }
 
-            return BeginAnchorPlacement(PathEditorPlacementMode.ExtendPath)
-                ? PathEditorCommandResult.Succeeded("Click a track location to extend the path; each click resolves the next span.", currentPathModel)
-                : PathEditorCommandResult.Failed("Cannot extend the current path.", currentPathModel);
+            return BeginAnchorPlacement(PathEditorPlacementMode.BuildRoute)
+                ? PathEditorCommandResult.Succeeded("Click a track location to add the next route point.", currentPathModel)
+                : PathEditorCommandResult.Failed("Cannot continue the current path.", currentPathModel);
         }
 
         public bool CanMoveNode(int nodeIndex)
@@ -1215,7 +1270,7 @@ namespace FreeTrainSimulator.Toolbox
                 PathEditorPlacementMode.MoveNode => PathModelEditor.MoveNode(moveSourceModel, movingNodeIndex, replacementAnchor, isJunction),
                 PathEditorPlacementMode.StartAnchor => PathModelEditor.SetStartAnchor(moveSourceModel, replacementAnchor, isJunction),
                 PathEditorPlacementMode.EndAnchor => PathModelEditor.SetEndAnchor(moveSourceModel, replacementAnchor, isJunction),
-                PathEditorPlacementMode.ExtendPath => ExtendPathToAnchor(moveSourceModel, replacementAnchor, isJunction),
+                PathEditorPlacementMode.BuildRoute => AddRoutePoint(moveSourceModel, replacementAnchor, isJunction),
                 _ => PathEditResult.Failed("No path placement is active.", moveSourceModel),
             };
             if (!result.Success)
@@ -1225,7 +1280,7 @@ namespace FreeTrainSimulator.Toolbox
             }
 
             PathSpanCommitResult spanCommit = EvaluateSpanCommit(result.PathModel, result.ChangedNodeIndexes,
-                "Extend path preview.", moveSourceModel);
+                "Route point preview.", moveSourceModel);
             if (spanCommit.Status == PathSpanCommitStatus.Unresolved)
             {
                 ClearMovePreview();
@@ -1504,7 +1559,9 @@ namespace FreeTrainSimulator.Toolbox
         public PathEditResult CommitMoveNode()
             => CommitPlacement();
 
-        public PathEditResult CommitPlacement()
+        public PathEditResult CommitPlacement() => CommitPlacement(true);
+
+        private PathEditResult CommitPlacement(bool continueRouteBuilding)
         {
             PathModel currentModel = TryGetEditablePathModel() ?? moveSourceModel;
             if (currentModel == null)
@@ -1527,7 +1584,7 @@ namespace FreeTrainSimulator.Toolbox
                     PathEditorPlacementMode.MoveNode => PathModelEditor.MoveNode(currentModel, movingNodeIndex, replacementAnchor, isJunction),
                     PathEditorPlacementMode.StartAnchor => PathModelEditor.SetStartAnchor(currentModel, replacementAnchor, isJunction),
                     PathEditorPlacementMode.EndAnchor => PathModelEditor.SetEndAnchor(currentModel, replacementAnchor, isJunction),
-                    PathEditorPlacementMode.ExtendPath => ExtendPathToAnchor(currentModel, replacementAnchor, isJunction),
+                    PathEditorPlacementMode.BuildRoute => AddRoutePoint(currentModel, replacementAnchor, isJunction),
                     _ => PathEditResult.Failed("No path placement is active.", currentModel),
                 };
                 if (!result.Success)
@@ -1549,13 +1606,14 @@ namespace FreeTrainSimulator.Toolbox
                 return PathEditResult.Failed(spanCommit.Message, currentModel);
             if (spanCommit.Status == PathSpanCommitStatus.Ambiguous)
             {
-                BeginPendingAmbiguousSpanCommit(undoSnapshot, spanCommit);
+                BeginPendingAmbiguousSpanCommit(undoSnapshot, spanCommit,
+                    committedMode == PathEditorPlacementMode.BuildRoute && continueRouteBuilding);
                 return PathEditResult.Failed(spanCommit.Message, currentModel);
             }
             if (spanCommit.Status == PathSpanCommitStatus.Resolved)
                 committedModel = spanCommit.PathModel;
 
-            bool beginEndPlacement = committedMode == PathEditorPlacementMode.StartAnchor
+            bool beginRouteBuilding = committedMode == PathEditorPlacementMode.StartAnchor
                 && !HasFlag(undoSnapshot, PathNodeType.Start);
             PushUndoSnapshot(undoSnapshot);
             unsavedChanges = true;
@@ -1567,7 +1625,7 @@ namespace FreeTrainSimulator.Toolbox
             {
                 PathEditorPlacementMode.StartAnchor => PathEditResult.Succeeded("Start anchor placed.", committedModel, result?.ChangedNodeIndexes ?? ImmutableArray.Create(movedNodeIndex)),
                 PathEditorPlacementMode.EndAnchor => PathEditResult.Succeeded("End anchor placed.", committedModel, result?.ChangedNodeIndexes ?? ImmutableArray.Create(movedNodeIndex)),
-                PathEditorPlacementMode.ExtendPath => PathEditResult.Succeeded("Path span extended.", committedModel, spanCommit.ChangedNodeIndexes),
+                PathEditorPlacementMode.BuildRoute => PathEditResult.Succeeded("Route point added.", committedModel, spanCommit.ChangedNodeIndexes),
                 _ => PathEditResult.Succeeded($"Moved node {movedNodeIndex}.", committedModel, ImmutableArray.Create(movedNodeIndex)),
             };
             int selectedIndex = committedMode == PathEditorPlacementMode.StartAnchor
@@ -1582,16 +1640,19 @@ namespace FreeTrainSimulator.Toolbox
                 if (generated.Success)
                     SetPreviewPath(generated.PathModel);
             }
-            if (beginEndPlacement)
-                _ = BeginAnchorPlacement(PathEditorPlacementMode.EndAnchor);
-            else if (committedMode == PathEditorPlacementMode.ExtendPath)
-                _ = BeginAnchorPlacement(PathEditorPlacementMode.ExtendPath);
+            if (beginRouteBuilding)
+                _ = BeginAnchorPlacement(PathEditorPlacementMode.BuildRoute);
+            else if (committedMode == PathEditorPlacementMode.BuildRoute && continueRouteBuilding)
+                _ = BeginAnchorPlacement(PathEditorPlacementMode.BuildRoute);
             OnPathUpdated?.Invoke(this, new PathEditorChangedEventArgs(TrainPath));
             return committedResult;
         }
 
-        private static PathEditResult ExtendPathToAnchor(PathModel pathModel, PathNode anchor, bool isJunction)
+        private static PathEditResult AddRoutePoint(PathModel pathModel, PathNode anchor, bool isJunction)
         {
+            if (!HasFlag(pathModel, PathNodeType.End))
+                return PathModelEditor.SetEndAnchor(pathModel, anchor, isJunction);
+
             PathEditResult removeEnd = PathModelEditor.RemoveEnd(pathModel);
             if (!removeEnd.Success)
                 return removeEnd;

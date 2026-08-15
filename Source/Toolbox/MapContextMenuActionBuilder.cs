@@ -21,6 +21,12 @@ namespace FreeTrainSimulator.Toolbox
             /// <summary>Whether a map placement operation is currently in progress.</summary>
             public bool IsPlacementActive { get; init; }
 
+            /// <summary>Whether progressive route building is currently in progress.</summary>
+            public bool IsBuildingRoute { get; init; }
+
+            /// <summary>Whether route building has a committed provisional endpoint and can be finished.</summary>
+            public bool CanFinishPath { get; init; }
+
             public bool CanSetStartAnchor { get; init; }
 
             public bool CanSetEndAnchor { get; init; }
@@ -32,7 +38,7 @@ namespace FreeTrainSimulator.Toolbox
             public bool CanRedo { get; init; }
 
             /// <summary>Whether a path is loaded and can be appended to.</summary>
-            public bool CanExtendPath { get; init; }
+            public bool CanContinuePath { get; init; }
 
             /// <summary>Whether a path is loaded and can be re-resolved.</summary>
             public bool CanReResolvePath { get; init; }
@@ -42,6 +48,9 @@ namespace FreeTrainSimulator.Toolbox
 
             /// <summary>Whether a new path can be started.</summary>
             public bool CanStartNewPath { get; init; }
+
+            /// <summary>Whether the active path is the unsaved model created by New Path.</summary>
+            public bool IsNewPath { get; init; }
         }
 
         /// <summary>
@@ -58,7 +67,7 @@ namespace FreeTrainSimulator.Toolbox
             in MapContextMenuState state, PathNode placementAnchor)
         {
             if (state.IsPlacementActive)
-                return ImmutableArray.Create(new MapContextMenuItem(MapContextMenuAction.CancelPlacement, nodeIndex));
+                return BuildPlacementActions(state, placementAnchor, nodeIndex);
 
             if (node == null)
                 return ImmutableArray<MapContextMenuItem>.Empty;
@@ -110,7 +119,7 @@ namespace FreeTrainSimulator.Toolbox
             ArgumentNullException.ThrowIfNull(placementAnchor);
 
             if (state.IsPlacementActive)
-                return ImmutableArray.Create(new MapContextMenuItem(MapContextMenuAction.CancelPlacement, fromNodeIndex));
+                return BuildPlacementActions(state, placementAnchor, fromNodeIndex);
 
             ImmutableArray<MapContextMenuItem>.Builder items = ImmutableArray.CreateBuilder<MapContextMenuItem>();
 
@@ -166,21 +175,40 @@ namespace FreeTrainSimulator.Toolbox
         public static ImmutableArray<MapContextMenuItem> BuildForMap(in MapContextMenuState state, PathNode placementAnchor)
         {
             if (state.IsPlacementActive)
-                return ImmutableArray.Create(new MapContextMenuItem(MapContextMenuAction.CancelPlacement));
+                return BuildPlacementActions(state, placementAnchor, -1);
 
             ImmutableArray<MapContextMenuItem>.Builder items = ImmutableArray.CreateBuilder<MapContextMenuItem>();
 
-            if (state.CanExtendPath)
-                items.Add(new MapContextMenuItem(MapContextMenuAction.ExtendPath));
-            if (state.CanReResolvePath)
+            if (state.CanContinuePath)
+                items.Add(new MapContextMenuItem(MapContextMenuAction.ContinuePath));
+            if (state.CanReResolvePath && !state.IsNewPath)
                 items.Add(new MapContextMenuItem(MapContextMenuAction.ReResolvePath));
             AddAnchorPlacementActions(items, state, placementAnchor);
-            if (state.CanStartNewPath && placementAnchor != null)
+            if (state.CanStartNewPath && !state.IsNewPath && placementAnchor != null)
                 items.Add(new MapContextMenuItem(MapContextMenuAction.StartNewPathHere) { PlacementAnchor = placementAnchor });
             if (state.CanSavePath)
                 items.Add(new MapContextMenuItem(MapContextMenuAction.SavePath));
 
             AddHistoryActions(items, state);
+            return Finalize(items);
+        }
+
+        private static ImmutableArray<MapContextMenuItem> BuildPlacementActions(in MapContextMenuState state,
+            PathNode placementAnchor, int nodeIndex)
+        {
+            if (!state.IsBuildingRoute)
+                return ImmutableArray.Create(new MapContextMenuItem(MapContextMenuAction.CancelPlacement, nodeIndex));
+
+            ImmutableArray<MapContextMenuItem>.Builder items = ImmutableArray.CreateBuilder<MapContextMenuItem>();
+            if (placementAnchor != null)
+            {
+                items.Add(new MapContextMenuItem(MapContextMenuAction.AddRoutePointHere, nodeIndex) { PlacementAnchor = placementAnchor });
+                items.Add(new MapContextMenuItem(MapContextMenuAction.FinishPathHere, nodeIndex) { PlacementAnchor = placementAnchor });
+            }
+            if (state.CanFinishPath)
+                items.Add(new MapContextMenuItem(MapContextMenuAction.FinishPath, nodeIndex));
+            AddSeparator(items);
+            items.Add(new MapContextMenuItem(MapContextMenuAction.CancelPlacement, nodeIndex));
             return Finalize(items);
         }
 

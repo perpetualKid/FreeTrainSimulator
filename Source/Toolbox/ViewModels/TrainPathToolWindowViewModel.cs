@@ -31,6 +31,9 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
         private bool canSnapToTrack;
         private bool canCreatePath;
         private bool canSavePath;
+        private bool canCancelNewPath;
+        private bool isBuildingRoute;
+        private bool canFinishPath;
         private bool canCancelMoveNode;
         private bool canCommitMoveNode;
         private bool canPlaceStartAnchor;
@@ -63,6 +66,9 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
             AddViaPointCommand = new RelayCommand(_ => AddViaPoint(), _ => CanAnnotateSelectedNode);
             RemoveViaPointCommand = new RelayCommand(_ => RemoveViaPoint(), _ => CanAnnotateSelectedNode);
             NewPathCommand = new RelayCommand(_ => NewPath(), _ => CanCreatePath);
+            CancelNewPathCommand = new RelayCommand(_ => CancelNewPath(), _ => CanCancelNewPath);
+            ContinuePathCommand = new RelayCommand(_ => ContinuePath(), _ => CanContinuePath);
+            FinishPathCommand = new RelayCommand(_ => FinishPath(), _ => CanFinishPath);
             SavePathCommand = new RelayCommand(_ => toolWindow.SavePath(), _ => CanSavePath);
             ValidateAllPathsCommand = new RelayCommand(_ => ValidateAllPaths());
             AcceptRouteCandidateCommand = new RelayCommand(_ => AcceptRouteCandidate(), _ => CanAcceptRouteCandidate);
@@ -144,6 +150,12 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
 
         public RelayCommand NewPathCommand { get; }
 
+        public RelayCommand CancelNewPathCommand { get; }
+
+        public RelayCommand ContinuePathCommand { get; }
+
+        public RelayCommand FinishPathCommand { get; }
+
         public RelayCommand SavePathCommand { get; }
 
         public RelayCommand ValidateAllPathsCommand { get; }
@@ -160,6 +172,38 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
         {
             get => placementMode;
             private set => SetProperty(ref placementMode, value);
+        }
+
+        public bool IsBuildingRoute
+        {
+            get => isBuildingRoute;
+            private set
+            {
+                if (SetProperty(ref isBuildingRoute, value))
+                    ContinuePathCommand.RaiseCanExecuteChanged();
+            }
+        }
+
+        public bool CanContinuePath => CanSavePath && !CanCancelPlacement;
+
+        public bool CanFinishPath
+        {
+            get => canFinishPath;
+            private set
+            {
+                if (SetProperty(ref canFinishPath, value))
+                    FinishPathCommand.RaiseCanExecuteChanged();
+            }
+        }
+
+        public bool CanCancelNewPath
+        {
+            get => canCancelNewPath;
+            private set
+            {
+                if (SetProperty(ref canCancelNewPath, value))
+                    CancelNewPathCommand.RaiseCanExecuteChanged();
+            }
         }
 
         public bool CanPlaceStartAnchor
@@ -190,6 +234,7 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
                 if (SetProperty(ref canCancelPlacement, value))
                 {
                     CancelPlacementCommand.RaiseCanExecuteChanged();
+                    ContinuePathCommand.RaiseCanExecuteChanged();
                     MoveSelectedNodeCommand.RaiseCanExecuteChanged();
                     RepairSelectedNodeCommand.RaiseCanExecuteChanged();
                     ToggleReversalPointCommand.RaiseCanExecuteChanged();
@@ -345,7 +390,10 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
             private set
             {
                 if (SetProperty(ref canSavePath, value))
+                {
                     SavePathCommand.RaiseCanExecuteChanged();
+                    ContinuePathCommand.RaiseCanExecuteChanged();
+                }
             }
         }
 
@@ -437,6 +485,9 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
             CanCommitPlacement = snapshot.CanCommitPlacement;
             CanCreatePath = toolWindow.CanCreatePath;
             CanSavePath = toolWindow.CanSavePath;
+            CanCancelNewPath = snapshot.CanCancelNewPath;
+            IsBuildingRoute = snapshot.IsBuildingRoute;
+            CanFinishPath = snapshot.CanFinishPath;
 
             if (wasMovingNode && !CanCancelMoveNode && IsMoveGuidanceMessage(StatusMessage))
                 SetStatusMessage(string.Empty, false);
@@ -450,10 +501,28 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
             }
         }
 
+        private void ContinuePath()
+        {
+            toolWindow.ContinuePath();
+            SetStatusMessage("Click track to add route points; finish explicitly when the path is complete.", false);
+        }
+
+        private void FinishPath()
+        {
+            toolWindow.FinishPath();
+            SetStatusMessage("Path finished.", false);
+        }
+
+        private void CancelNewPath()
+        {
+            toolWindow.CancelNewPath();
+            SetStatusMessage("New path canceled.", false);
+        }
+
         private void NewPath()
         {
             toolWindow.CreatePath();
-            SetStatusMessage("Click track or right-click to set the start anchor.", false);
+            SetStatusMessage("Set the start, then add route points and explicitly finish the path.", false);
         }
 
         private void BeginStartAnchorPlacement()
@@ -471,7 +540,7 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
         private void CommitPlacement()
         {
             toolWindow.CommitPlacement();
-            SetStatusMessage("Commit placement requested.", false);
+            SetStatusMessage(IsBuildingRoute ? "Route point added; select the next point or finish the path." : "Placement committed.", false);
         }
 
         private void CancelPlacement()
@@ -482,6 +551,7 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
             {
                 PathEditorPlacementMode.StartAnchor => "Start anchor placement canceled.",
                 PathEditorPlacementMode.EndAnchor => "End anchor placement canceled.",
+                PathEditorPlacementMode.BuildRoute => "Current route-point placement canceled; committed points were retained.",
                 _ => "Node move canceled.",
             }, false);
         }
@@ -597,7 +667,7 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
                 return;
 
             toolWindow.BeginViaPointPlacement(SelectedNode.Index);
-            SetStatusMessage($"Select a track location for the new via point after node {SelectedNode.Index}.", false);
+            SetStatusMessage($"Select a track location to insert a via point after node {SelectedNode.Index}.", false);
         }
 
         private void RemoveViaPoint()

@@ -13,15 +13,18 @@ namespace FreeTrainSimulator.Toolbox
         public ImmutableArray<int> ChangedNodeIndexes { get; }
         public ImmutableArray<ResolvedPathSpan> AmbiguousSpans { get; }
         public Dictionary<int, int> CandidateSelections { get; }
+        public bool ResumeRouteBuilding { get; }
 
         public PendingAmbiguousSpanCommit(PathModel sourceModel, PathModel tentativeModel,
-            ImmutableArray<int> changedNodeIndexes, ImmutableArray<ResolvedPathSpan> ambiguousSpans)
+            ImmutableArray<int> changedNodeIndexes, ImmutableArray<ResolvedPathSpan> ambiguousSpans,
+            bool resumeRouteBuilding = false)
         {
             SourceModel = sourceModel;
             TentativeModel = tentativeModel;
             ChangedNodeIndexes = changedNodeIndexes;
             AmbiguousSpans = ambiguousSpans;
             CandidateSelections = new Dictionary<int, int>();
+            ResumeRouteBuilding = resumeRouteBuilding;
         }
     }
 }

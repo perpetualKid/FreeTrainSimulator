@@ -123,48 +123,95 @@ namespace Tests.FreeTrainSimulator.Toolbox
         }
 
         [TestMethod]
-        public void WhenExtendPathBeginsThenExplicitResolverBackedModeIsActiveWithoutMutatingThePath()
+        public void WhenNewPathIsInitializedThenItIsIdentifiedAsDiscardable()
+        {
+            using PathEditor editor = CreateNewEditor();
+
+            Assert.IsTrue(editor.IsNewPath);
+        }
+
+        [TestMethod]
+        public void WhenInitialStartAnchorIsCommittedThenBuildRouteBegins()
+        {
+            using PathEditor editor = CreateNewEditor();
+
+            PathEditorCommandResult result = editor.SetStartAnchorCommand(CreateNodeAt(0, PathNodeType.None, -1), false);
+
+            Assert.IsTrue(result.Success);
+            Assert.IsTrue(editor.IsBuildingRoute);
+        }
+
+        [TestMethod]
+        public void WhenBuildRouteIsCanceledThenCommittedRoutePointsAreRetained()
+        {
+            PathModel source = CreateEditablePath();
+            using PathEditor editor = CreateEditor(source);
+            _ = editor.ContinuePathCommand();
+
+            bool canceled = editor.CancelPlacement();
+
+            Assert.IsTrue(canceled);
+            Assert.IsFalse(editor.IsBuildingRoute);
+            Assert.AreSequenceEqual(source.PathNodes, editor.TryCaptureCurrentPathModel().PathNodes);
+        }
+
+        [TestMethod]
+        public void WhenBuildRouteIsFinishedThenProvisionalEndIsRetained()
+        {
+            PathModel source = CreateEditablePath();
+            using PathEditor editor = CreateEditor(source);
+            _ = editor.ContinuePathCommand();
+
+            PathEditorCommandResult result = editor.FinishPathCommand();
+
+            Assert.IsTrue(result.Success);
+            Assert.IsFalse(editor.IsBuildingRoute);
+            Assert.AreSequenceEqual(source.PathNodes, editor.TryCaptureCurrentPathModel().PathNodes);
+        }
+
+        [TestMethod]
+        public void WhenContinuePathBeginsThenBuildRouteModeIsActiveWithoutMutatingThePath()
         {
             PathModel source = CreateEditablePath();
             using PathEditor editor = CreateEditor(source);
 
-            PathEditorCommandResult result = editor.ExtendPathCommand();
+            PathEditorCommandResult result = editor.ContinuePathCommand();
 
             Assert.IsTrue(result.Success);
-            Assert.IsTrue(editor.IsExtendingPath);
+            Assert.IsTrue(editor.IsBuildingRoute);
             Assert.IsFalse(editor.EditMode);
             Assert.AreSequenceEqual(source.PathNodes, editor.TryCaptureCurrentPathModel().PathNodes);
         }
 
         [TestMethod]
-        public void WhenExtendPathIsDraggedThenPreviewedSpanIsNotCommitted()
+        public void WhenBuildRouteIsDraggedThenPreviewedRoutePointIsNotCommitted()
         {
             PathModel source = CreateEditablePath();
             using PathEditor editor = CreateEditor(source);
-            _ = editor.ExtendPathCommand();
-            PathEditResult preview = InvokeExtendPathToAnchor(source, CreateNodeAt(200, PathNodeType.None, -1));
+            _ = editor.ContinuePathCommand();
+            PathEditResult preview = InvokeAddRoutePoint(source, CreateNodeAt(200, PathNodeType.None, -1));
             SetPrivateField(editor, "movePreviewModel", preview.PathModel);
 
             editor.MouseDragged(new UserCommandArgs(), KeyModifiers.None);
             editor.MouseReleasedLeft(new UserCommandArgs(), KeyModifiers.None);
 
-            Assert.IsTrue(editor.IsExtendingPath);
+            Assert.IsTrue(editor.IsBuildingRoute);
             Assert.AreSequenceEqual(source.PathNodes, editor.TryCaptureCurrentPathModel().PathNodes);
         }
 
         [TestMethod]
-        public void WhenExtendPathSpanIsCommittedThenTheNextSpanRemainsInExplicitExtendMode()
+        public void WhenRoutePointIsCommittedThenBuildRouteRemainsActive()
         {
             PathModel source = CreateEditablePath();
             using PathEditor editor = CreateEditor(source);
-            _ = editor.ExtendPathCommand();
-            PathEditResult preview = InvokeExtendPathToAnchor(source, CreateNodeAt(200, PathNodeType.None, -1));
+            _ = editor.ContinuePathCommand();
+            PathEditResult preview = InvokeAddRoutePoint(source, CreateNodeAt(200, PathNodeType.None, -1));
             SetPrivateField(editor, "movePreviewModel", preview.PathModel);
 
             PathEditResult committed = editor.CommitPlacement();
 
             Assert.IsTrue(committed.Success);
-            Assert.IsTrue(editor.IsExtendingPath);
+            Assert.IsTrue(editor.IsBuildingRoute);
             Assert.AreEqual(3, editor.TryCaptureCurrentPathModel().PathNodes.Length);
         }
 
@@ -173,8 +220,8 @@ namespace Tests.FreeTrainSimulator.Toolbox
         {
             PathModel source = CreateEditablePath();
             using PathEditor editor = CreateEditor(source);
-            _ = editor.ExtendPathCommand();
-            PathEditResult preview = InvokeExtendPathToAnchor(source, CreateNodeAt(200, PathNodeType.None, -1));
+            _ = editor.ContinuePathCommand();
+            PathEditResult preview = InvokeAddRoutePoint(source, CreateNodeAt(200, PathNodeType.None, -1));
             SetPrivateField(editor, "movePreviewModel", preview.PathModel);
 
             PathEditorCommandResult result = editor.CommitPlacementCommand();
@@ -367,7 +414,7 @@ namespace Tests.FreeTrainSimulator.Toolbox
         }
 
         [TestMethod]
-        public void WhenInitialStartAnchorPlacementIsCommittedThenEndAnchorPlacementBegins()
+        public void WhenInitialStartAnchorPlacementIsCommittedThenBuildRouteBegins()
         {
             using PathEditor editor = CreateNewEditor();
             _ = editor.BeginStartAnchorPlacementCommand();
@@ -377,11 +424,11 @@ namespace Tests.FreeTrainSimulator.Toolbox
 
             _ = editor.CommitPlacement();
 
-            Assert.IsTrue(editor.IsPlacingEndAnchor);
+            Assert.IsTrue(editor.IsBuildingRoute);
         }
 
         [TestMethod]
-        public void WhenEndPlacementAfterInitialStartIsCanceledThenStartAnchorIsRetained()
+        public void WhenRouteBuildingAfterInitialStartIsCanceledThenStartAnchorIsRetained()
         {
             using PathEditor editor = CreateNewEditor();
             _ = editor.BeginStartAnchorPlacementCommand();
@@ -411,13 +458,13 @@ namespace Tests.FreeTrainSimulator.Toolbox
         }
 
         [TestMethod]
-        public void WhenNewPathStartIsSetDirectlyThenEndAnchorPlacementBegins()
+        public void WhenNewPathStartIsSetDirectlyThenBuildRouteBegins()
         {
             using PathEditor editor = CreateNewEditor();
 
             PathEditorCommandResult result = editor.SetStartAnchorCommand(CreateNodeAt(25, PathNodeType.None, -1), false);
 
-            Assert.IsTrue(result.Success && editor.IsPlacingEndAnchor);
+            Assert.IsTrue(result.Success && editor.IsBuildingRoute);
         }
 
         [TestMethod]
@@ -993,9 +1040,9 @@ namespace Tests.FreeTrainSimulator.Toolbox
             return (ImmutableArray<ResolvedPathSpan>)method.Invoke(null, new object[] { resolution, changedNodeIndexes });
         }
 
-        private static PathEditResult InvokeExtendPathToAnchor(PathModel pathModel, PathNode anchor)
+        private static PathEditResult InvokeAddRoutePoint(PathModel pathModel, PathNode anchor)
         {
-            MethodInfo method = typeof(PathEditor).GetMethod("ExtendPathToAnchor", BindingFlags.Static | BindingFlags.NonPublic);
+            MethodInfo method = typeof(PathEditor).GetMethod("AddRoutePoint", BindingFlags.Static | BindingFlags.NonPublic);
             return (PathEditResult)method.Invoke(null, new object[] { pathModel, anchor, false });
         }
 

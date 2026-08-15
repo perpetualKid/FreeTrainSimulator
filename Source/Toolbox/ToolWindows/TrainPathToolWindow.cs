@@ -232,6 +232,15 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
         /// <summary>Whether end-anchor placement can begin.</summary>
         public bool CanPlaceEndAnchor { get; init; }
 
+        /// <summary>Whether the active unsaved New Path model can be canceled.</summary>
+        public bool CanCancelNewPath { get; init; }
+
+        /// <summary>Whether progressive route building is active.</summary>
+        public bool IsBuildingRoute { get; init; }
+
+        /// <summary>Whether route building can finish at its last committed point.</summary>
+        public bool CanFinishPath { get; init; }
+
         /// <summary>An empty snapshot used before any path content is available.</summary>
         public static TrainPathSnapshot Empty { get; } = new TrainPathSnapshot
         {
@@ -372,6 +381,9 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
             bool canCommitPlacement = pathEditor.CanCommitPlacement;
             bool canPlaceStartAnchor = pathEditor.CanPlaceStartAnchor;
             bool canPlaceEndAnchor = pathEditor.CanPlaceEndAnchor;
+            bool canCancelNewPath = pathEditor.IsNewPath;
+            bool isBuildingRoute = pathEditor.IsBuildingRoute;
+            bool canFinishPath = isBuildingRoute && pathEditor.CanRemoveEnd;
 
             int currentSnapshotVersion = snapshotVersion;
 
@@ -392,6 +404,9 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
                 && canCommitPlacement == snapshot.CanCommitPlacement
                 && canPlaceStartAnchor == snapshot.CanPlaceStartAnchor
                 && canPlaceEndAnchor == snapshot.CanPlaceEndAnchor
+                && canCancelNewPath == snapshot.CanCancelNewPath
+                && isBuildingRoute == snapshot.IsBuildingRoute
+                && canFinishPath == snapshot.CanFinishPath
                 && paths.SequenceEqual(snapshot.Paths))
             {
                 return;
@@ -420,6 +435,9 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
                 CanCommitPlacement = canCommitPlacement,
                 CanPlaceStartAnchor = canPlaceStartAnchor,
                 CanPlaceEndAnchor = canPlaceEndAnchor,
+                CanCancelNewPath = canCancelNewPath,
+                IsBuildingRoute = isBuildingRoute,
+                CanFinishPath = canFinishPath,
             };
         }
 
@@ -520,7 +538,12 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
 
         internal void SnapToTrack() => ExecuteEditorCommand(pathEditor => pathEditor.ReResolvePathCommand());
 
-        internal void ExtendPath() => ExecuteEditorCommand(pathEditor => pathEditor.ExtendPathCommand(), activateMapInputAction);
+        internal void ContinuePath() => ExecuteEditorCommand(pathEditor => pathEditor.ContinuePathCommand(), activateMapInputAction);
+
+        internal void AddRoutePointHere(PathNode anchor, bool isJunction, bool finishPath)
+            => ExecuteEditorCommand(pathEditor => pathEditor.AddRoutePointHereCommand(anchor, isJunction, finishPath));
+
+        internal void FinishPath() => ExecuteEditorCommand(pathEditor => pathEditor.FinishPathCommand());
 
         internal void BeginMoveNode(int nodeIndex)
         {
@@ -580,12 +603,31 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
 
         internal bool CanSavePath => pathEditorAccessor()?.TrainPath != null;
 
+        internal bool CanCancelNewPath => pathEditorAccessor()?.IsNewPath == true;
+
         internal void CreatePath()
         {
             gameThreadInvoker(() =>
             {
                 CaptureTransientCurrentPath();
                 createPathAction();
+                MarkDirty();
+            });
+        }
+
+        /// <summary>
+        /// Cancels the active unsaved New Path model. Persisted paths and their transient edits are unaffected.
+        /// </summary>
+        internal void CancelNewPath()
+        {
+            gameThreadInvoker(() =>
+            {
+                PathEditor pathEditor = pathEditorAccessor();
+                if (pathEditor?.IsNewPath != true)
+                    return;
+
+                transientPaths.Remove(PathEditor.NewPathId);
+                unloadPathAction();
                 MarkDirty();
             });
         }

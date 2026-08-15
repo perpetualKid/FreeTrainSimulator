@@ -112,14 +112,17 @@ namespace FreeTrainSimulator.Toolbox
             MapContextMenuActionBuilder.MapContextMenuState state = new MapContextMenuActionBuilder.MapContextMenuState
             {
                 IsPlacementActive = editor.IsPlacementActive,
+                IsBuildingRoute = editor.IsBuildingRoute,
+                CanFinishPath = editor.IsBuildingRoute && (editor.TryCaptureCurrentPathModel()?.PathNodes.Length ?? 0) > 1,
                 CanSetStartAnchor = editor.CanPlaceStartAnchor,
                 CanSetEndAnchor = editor.CanPlaceEndAnchor,
                 CanUndo = editor.CanUndo,
                 CanRedo = editor.CanRedo,
-                CanExtendPath = editor.CanExtendPath,
+                CanContinuePath = editor.CanContinuePath,
                 CanReResolvePath = editor.TrainPath != null,
                 CanSavePath = hostedTrainPathToolWindow?.CanSavePath == true,
                 CanStartNewPath = hostedTrainPathToolWindow?.CanCreatePath == true,
+                IsNewPath = editor.IsNewPath,
             };
 
             ImmutableArray<MapContextMenuItem> items;
@@ -300,8 +303,17 @@ namespace FreeTrainSimulator.Toolbox
                 case MapContextMenuAction.RouteThroughJunctionExit:
                     toolWindow.AcceptRouteCandidate(nodeIndex, candidateIndex);
                     break;
-                case MapContextMenuAction.ExtendPath:
-                    toolWindow.ExtendPath();
+                case MapContextMenuAction.ContinuePath:
+                    toolWindow.ContinuePath();
+                    break;
+                case MapContextMenuAction.AddRoutePointHere:
+                    ApplyRoutePoint(toolWindow, placementAnchor, false);
+                    break;
+                case MapContextMenuAction.FinishPathHere:
+                    ApplyRoutePoint(toolWindow, placementAnchor, true);
+                    break;
+                case MapContextMenuAction.FinishPath:
+                    toolWindow.FinishPath();
                     break;
                 case MapContextMenuAction.ReResolvePath:
                     toolWindow.SnapToTrack();
@@ -335,6 +347,15 @@ namespace FreeTrainSimulator.Toolbox
                     Trace.TraceWarning($"Unsupported map context menu action {action}.");
                     break;
             }
+        }
+
+        private static void ApplyRoutePoint(TrainPathToolWindow toolWindow, PathNode anchor, bool finishPath)
+        {
+            if (anchor == null)
+                return;
+
+            bool isJunction = RuntimeDataResolver.Instance.TrackWorld?.JunctionAt(anchor.Location) != null;
+            toolWindow.AddRoutePointHere(anchor, isJunction, finishPath);
         }
 
         private static void ApplyContextAnchor(TrainPathToolWindow toolWindow, PathNode anchor, bool isStart)
