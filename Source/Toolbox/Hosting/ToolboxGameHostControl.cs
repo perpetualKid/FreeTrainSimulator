@@ -341,10 +341,10 @@ namespace FreeTrainSimulator.Toolbox.Hosting
         /// Persists the hosted game's live settings model together with the latest WPF dock layout and shell
         /// window placement.
         /// </summary>
-        internal Task SaveHostedSettingsAsync(string dockLayoutXml, WindowPlacementSettings windowPlacement)
+        internal Task SaveHostedSettingsAsync(string dockLayoutJson, WindowPlacementSettings windowPlacement)
         {
             GameWindow game = gameWindow;
-            return game == null ? Task.CompletedTask : game.SaveHostedSettingsAsync(dockLayoutXml, windowPlacement);
+            return game == null ? Task.CompletedTask : game.SaveHostedSettingsAsync(dockLayoutJson, windowPlacement);
         }
 
         /// <summary>
