@@ -7,11 +7,11 @@
 	</PropertyGroup>
 	<ItemGroup>
 		<PackageReference Include="MemoryPack" Version="1.21.4" />
-		<PackageReference Include="MonoGame.Framework.WindowsDX" Version="3.8.5" />
+		<PackageReference Include="MonoGame.Framework.WindowsDX" Version="3.8.5.1" />
 		<PackageReference Include="RailDriver" Version="10.1.1" />
-		<PackageReference Include="System.IO.Hashing" Version="10.0.10" />
-		<PackageReference Include="System.Management" Version="10.0.10" />
+		<PackageReference Include="System.IO.Hashing" Version="10.0.11" />
+		<PackageReference Include="System.Management" Version="10.0.11" />
 		<PackageReference Include="GetText.NET" Version="11.0.10-preview.1" />
-		<PackageReference Include="NuGet.Versioning" Version="7.6.0" />
+		<PackageReference Include="NuGet.Versioning" Version="7.9.0" />
 	</ItemGroup>
 </Project>

@@ -11,7 +11,7 @@
 		<None Remove="Common\**" />
 	</ItemGroup>
 	<ItemGroup>
-		<PackageReference Include="MonoGame.Framework.WindowsDX" Version="3.8.5" />
+		<PackageReference Include="MonoGame.Framework.WindowsDX" Version="3.8.5.1" />
 		<PackageReference Include="MagicOnion.Client" Version="7.10.2" />
 		<PackageReference Include="MagicOnion.Serialization.MemoryPack" Version="7.10.1-preview" />
 	</ItemGroup>

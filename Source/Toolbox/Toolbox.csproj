@@ -11,10 +11,11 @@
     <Configurations>Debug;Release;CodeAnalysis;UpdateContentVersion</Configurations>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Dirkster.AvalonDock" Version="4.74.1" />
+    <PackageReference Include="Dirkster.AvalonDock" Version="5.0.0" />
+    <PackageReference Include="Dirkster.AvalonDock.Serializer.Json" Version="5.0.0" />
     <PackageReference Include="GetText.NET" Version="11.0.10-preview.1" />
     <PackageReference Include="GetText.NET.Wpf" Version="11.0.10-preview.1" />
-    <PackageReference Include="MonoGame.Framework.WindowsDX" Version="3.8.5" />
+    <PackageReference Include="MonoGame.Framework.WindowsDX" Version="3.8.5.1" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\FreeTrainSimulator.Common\FreeTrainSimulator.Common.csproj" />

@@ -3,14 +3,14 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Text;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
-using System.Xaml;
-using System.Xml.Linq;
 
 using AvalonDock.Layout;
-using AvalonDock.Layout.Serialization;
+using AvalonDock.Serializer.Json;
 
 using FreeTrainSimulator.Common.Info;
 using FreeTrainSimulator.Models.Settings;
@@ -39,7 +39,7 @@ namespace FreeTrainSimulator.Toolbox
         private readonly MainWindowViewModel viewModel = new MainWindowViewModel();
         private ProfileModel currentProfile;
         private ProfileToolboxSettingsModel toolboxSettings;
-        private string defaultDockLayoutXml;
+        private string defaultDockLayoutJson;
         private bool isShuttingDown;
         private bool shutdownCompleted;
         private bool disposed;
@@ -609,20 +609,21 @@ namespace FreeTrainSimulator.Toolbox
                 currentProfile = await currentProfile.Current(CancellationToken.None).ConfigureAwait(true);
                 toolboxSettings = await currentProfile.LoadSettingsModel<ProfileToolboxSettingsModel>(CancellationToken.None).ConfigureAwait(true);
 
-                if (string.IsNullOrWhiteSpace(toolboxSettings.DockLayoutXml))
+                if (string.IsNullOrWhiteSpace(toolboxSettings.DockLayoutJson))
                     return;
 
-                if (IsMapDocumentFloating(toolboxSettings.DockLayoutXml))
+                DeserializeDockLayout(toolboxSettings.DockLayoutJson);
+
+                if (IsMapDocumentFloating())
                 {
                     Trace.TraceWarning("Skipping persisted dock layout because it restores MapViewDocument as a floating window.");
-                    toolboxSettings.DockLayoutXml = null;
+                    toolboxSettings.DockLayoutJson = null;
                     toolboxSettings = await currentProfile.UpdateSettingsModel(toolboxSettings, CancellationToken.None).ConfigureAwait(true);
+                    ResetDockLayoutToDefault();
                     return;
                 }
-
-                DeserializeDockLayout(toolboxSettings.DockLayoutXml);
             }
-            catch (Exception ex) when (ex is IOException || ex is InvalidOperationException || ex is XamlParseException)
+            catch (Exception ex) when (ex is IOException || ex is InvalidOperationException || ex is JsonException)
             {
                 Trace.TraceError($"Failed to load dock layout: {ex.Message}");
             }
@@ -641,12 +642,12 @@ namespace FreeTrainSimulator.Toolbox
 
         private void CaptureDefaultDockLayout()
         {
-            if (defaultDockLayoutXml is not null)
+            if (defaultDockLayoutJson is not null)
                 return;
 
             try
             {
-                defaultDockLayoutXml = SerializeDockLayout();
+                defaultDockLayoutJson = SerializeDockLayout();
             }
             catch (Exception ex) when (ex is IOException || ex is InvalidOperationException)
             {
@@ -656,17 +657,18 @@ namespace FreeTrainSimulator.Toolbox
 
         private string SerializeDockLayout()
         {
-            XmlLayoutSerializer serializer = new XmlLayoutSerializer(DockingManager);
-            using StringWriter stringWriter = new StringWriter();
-            serializer.Serialize(stringWriter);
-            return stringWriter.ToString();
+            using MemoryStream stream = new MemoryStream();
+            JsonLayoutSerializer serializer = new JsonLayoutSerializer(DockingManager);
+            serializer.Serialize(stream);
+            return Encoding.UTF8.GetString(stream.ToArray());
         }
 
-        private void DeserializeDockLayout(string layoutXml)
+        private void DeserializeDockLayout(string layoutJson)
         {
-            XmlLayoutSerializer serializer = new XmlLayoutSerializer(DockingManager);
-            using StringReader stringReader = new StringReader(layoutXml);
-            serializer.Deserialize(stringReader);
+            byte[] layoutBytes = Encoding.UTF8.GetBytes(layoutJson);
+            using MemoryStream stream = new MemoryStream(layoutBytes, writable: false);
+            JsonLayoutSerializer serializer = new JsonLayoutSerializer(DockingManager);
+            serializer.Deserialize(stream);
         }
 
         private async Task SaveDockLayoutAsync()
@@ -676,10 +678,10 @@ namespace FreeTrainSimulator.Toolbox
                 if (toolboxSettings is null)
                     return;
 
-                string dockLayoutXml = SerializeDockLayout();
-                toolboxSettings.DockLayoutXml = dockLayoutXml;
+                string dockLayoutJson = SerializeDockLayout();
+                toolboxSettings.DockLayoutJson = dockLayoutJson;
                 WindowBoundsManager.SaveBoundsToSettings(this, toolboxSettings);
-                await MapHost.SaveHostedSettingsAsync(dockLayoutXml, toolboxSettings.WindowPlacements).ConfigureAwait(true);
+                await MapHost.SaveHostedSettingsAsync(dockLayoutJson, toolboxSettings.WindowPlacements).ConfigureAwait(true);
             }
             catch (Exception ex) when (ex is not ObjectDisposedException)
             {
@@ -723,19 +725,19 @@ namespace FreeTrainSimulator.Toolbox
         // anchorables and re-syncing their visibility flags/lifecycles.
         private void ResetDockLayoutToDefault()
         {
-            if (string.IsNullOrWhiteSpace(defaultDockLayoutXml))
+            if (string.IsNullOrWhiteSpace(defaultDockLayoutJson))
                 return;
 
             try
             {
                 UnhookToolWindowAnchorables();
-                DeserializeDockLayout(defaultDockLayoutXml);
+                DeserializeDockLayout(defaultDockLayoutJson);
                 HookToolWindowAnchorables();
                 SelectRouteToolByDefault();
                 UpdateAllToolWindowLifecycles();
                 UpdateHostedInputCapture();
             }
-            catch (Exception ex) when (ex is IOException || ex is InvalidOperationException || ex is XamlParseException)
+            catch (Exception ex) when (ex is IOException || ex is InvalidOperationException || ex is JsonException)
             {
                 Trace.TraceError($"Failed to reset dock layout: {ex.Message}");
             }
@@ -751,37 +753,14 @@ namespace FreeTrainSimulator.Toolbox
             routeAnchorable.IsActive = true;
         }
 
-        private static bool IsMapDocumentFloating(string layoutXml)
+        private bool IsMapDocumentFloating()
+
         {
-            try
-            {
-                XDocument layout = XDocument.Parse(layoutXml);
+            LayoutDocument mapDocument = DockingManager.Layout?.Descendents()
+                .OfType<LayoutDocument>()
+                .FirstOrDefault(document => string.Equals(document.ContentId, "MapViewDocument", StringComparison.Ordinal));
 
-                foreach (XElement document in layout.Descendants().Where(element => element.Name.LocalName == "LayoutDocument"))
-                {
-                    if (!string.Equals((string)document.Attribute("ContentId"), "MapViewDocument", StringComparison.Ordinal))
-                        continue;
-
-                    if (string.Equals((string)document.Attribute("IsFloating"), "True", StringComparison.OrdinalIgnoreCase))
-                        return true;
-
-                    for (XElement parent = document.Parent; parent != null; parent = parent.Parent)
-                    {
-                        if (parent.Name.LocalName == "LayoutFloatingWindow")
-                            return true;
-                    }
-
-                    return false;
-                }
-
-                // Missing map document in persisted layout is treated as invalid.
-                return true;
-            }
-            catch (Exception ex) when (ex is not System.Xml.XmlException)
-            {
-                Trace.TraceError($"Failed to parse dock layout XML: {ex.Message}");
-                return true;
-            }
+            return mapDocument is null || mapDocument.IsFloating;
         }
 
         private async Task ShutdownAsync()
