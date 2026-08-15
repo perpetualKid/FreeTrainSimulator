@@ -46,8 +46,7 @@ namespace FreeTrainSimulator.Toolbox
         private readonly PathRouteResolutionCache resolutionCache = new PathRouteResolutionCache();
         private PathModelHeader path;
         private PathModel currentPathModel;
-        private long lastPathClickTick;
-        private bool validPointAdded;
+
         private bool editorDragged;
         private int movingNodeIndex = -1;
         private PathModel moveSourceModel;
@@ -100,7 +99,6 @@ namespace FreeTrainSimulator.Toolbox
         internal event EventHandler<PathEditorChangedEventArgs> OnPathChanged;
 
         internal event EventHandler<PathEditorChangedEventArgs> OnPathUpdated;
-        private readonly int doubleClickInterval = System.Windows.Forms.SystemInformation.DoubleClickTime;
 
         internal PathEditor(IPathEditorContext editorContext) : base(editorContext) { }
 
@@ -121,7 +119,7 @@ namespace FreeTrainSimulator.Toolbox
             base.Dispose(disposing);
         }
 
-        public async Task<bool> InitializePathAsync(PathModelHeader path, CancellationToken cancellationToken = default)
+        public async Task<bool> InitializePathAsync(PathModelHeader path, CancellationToken cancellationToken)
         {
             try
             {
@@ -617,9 +615,13 @@ namespace FreeTrainSimulator.Toolbox
         }
 
         /// <summary>
-        /// Resolves the current authored path and rebuilds it along the resolved track anchors, weaving any
-        /// resolved passing branches back into the generated graph, and records an undo snapshot. Refuses paths
-        /// that the resolver cannot resolve or whose passing shapes the generator cannot represent; the reason is
+        /// Re-resolves the whole path against the current track: every node is re-anchored through its hybrid
+        /// anchor (stored track node index first, stored location when that index no longer matches the layout),
+        /// and the route is rebuilt along the resolved anchors, weaving any resolved passing branches back into
+        /// the generated graph. This is the whole-path counterpart to <see cref="RepairSelectedNode"/>: where
+        /// that repairs a single node, this performs the legacy "fix broken path" operation for the entire path.
+        /// On an unchanged layout it is near-idempotent (no node churn). Records an undo snapshot. Refuses paths
+        /// the resolver cannot resolve or whose passing shapes the generator cannot represent; the reason is
         /// returned in the result.
         /// </summary>
         public PathEditResult SnapToTrack()
@@ -1345,9 +1347,13 @@ namespace FreeTrainSimulator.Toolbox
             return false;
         }
 
-        // Resolves the model and rebuilds its route along track anchors, weaving any resolved passing branches
-        // back into the generated graph. On resolver/generation failure (including passing shapes the generator
-        // cannot represent, such as non-rejoining branches) the original model is returned unchanged with the reason.
+        // Re-snaps the model to the current track and rebuilds its route, weaving any resolved passing branches
+        // back into the generated graph. This is the whole-path "fix broken path" operation: each node is
+        // re-anchored via its hybrid anchor (stored track node index first, stored location when that index no
+        // longer matches the layout, see PathRouteResolver.ResolveTrackNodeIndex), so a path stays usable after
+        // the underlying track database changed. On resolver/generation failure (including passing shapes the
+        // generator cannot represent, such as non-rejoining branches) the original model is returned unchanged
+        // with the reason.
         internal static PathEditResult SnapPathToTrack(PathModel model, TrackWorld trackWorld)
         {
             PathGenerationResult generation = GenerateTrackSnappedPath(model, trackWorld);
@@ -1470,30 +1476,6 @@ namespace FreeTrainSimulator.Toolbox
                 return;
             }
 
-            if (EditMode && !editorDragged)
-            {
-                PathModel undoSnapshot = currentPathModel;
-                bool changed;
-                if (Environment.TickCount64 - lastPathClickTick < doubleClickInterval && validPointAdded) //considered as double click
-                {
-                    changed = AddPathEndPoint();
-                }
-                else
-                {
-                    changed = AddPathPoint();
-                    validPointAdded = changed;
-                }
-                if (changed)
-                {
-                    currentPathModel = TryCaptureSnapshot() ?? currentPathModel;
-                    PushUndoSnapshot(undoSnapshot);
-                }
-                if (changed)
-                    unsavedChanges = true;
-                lastPathClickTick = Environment.TickCount64;
-                OnPathUpdated?.Invoke(this, new PathEditorChangedEventArgs(TrainPath));
-                userCommandArgs.Handled = true;
-            }
             editorDragged = false;
         }
 
@@ -1713,10 +1695,10 @@ namespace FreeTrainSimulator.Toolbox
 
         private string BuildSnapshotContext()
         {
-            return BuildSnapshotContext(path, TrainPath, EditMode, CanUndo, CanRedo, validPointAdded, editorDragged);
+            return BuildSnapshotContext(path, TrainPath, EditMode, CanUndo, CanRedo, editorDragged);
         }
 
-        internal static string BuildSnapshotContext(PathModelHeader path, TrainPathBase trainPath, bool editMode, bool canUndo, bool canRedo, bool validPointAdded, bool editorDragged)
+        internal static string BuildSnapshotContext(PathModelHeader path, TrainPathBase trainPath, bool editMode, bool canUndo, bool canRedo, bool editorDragged)
         {
             int pointCount = trainPath?.PathPoints.Count ?? 0;
             string invalidPoints = trainPath == null
@@ -1732,7 +1714,7 @@ namespace FreeTrainSimulator.Toolbox
 
             return $"PathId='{path?.Id ?? "<none>"}', PathName='{path?.Name ?? "<none>"}', EditMode={editMode}, "
                 + $"PointCount={pointCount}, InvalidPoints={invalidPoints}, CanUndo={canUndo}, CanRedo={canRedo}, "
-                + $"ValidPointAdded={validPointAdded}, EditorDragged={editorDragged}";
+                + $"EditorDragged={editorDragged}";
         }
 
         private static string FormatInvalidPointState(TrainPathPointBase point)
@@ -1767,7 +1749,6 @@ namespace FreeTrainSimulator.Toolbox
             currentPathModel = snapshot;
             RestorePath(snapshot, EditMode);
             ClearMoveNodeState();
-            validPointAdded = false;
             editorDragged = false;
         }
 

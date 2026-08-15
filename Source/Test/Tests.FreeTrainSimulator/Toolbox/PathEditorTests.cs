@@ -75,7 +75,7 @@ namespace Tests.FreeTrainSimulator.Toolbox
             TestTrainPath trainPath = new TestTrainPath(new PathModel());
             trainPath.PathPoints.Add(new TestTrainPathPoint(PathNodeType.Start));
 
-            string context = PathEditor.BuildSnapshotContext(path, trainPath, true, false, true, false, false);
+            string context = PathEditor.BuildSnapshotContext(path, trainPath, true, false, true, false);
 
             Assert.Contains("PathId='path-1'", context);
             Assert.Contains("PathName='Path 1'", context);
@@ -88,7 +88,7 @@ namespace Tests.FreeTrainSimulator.Toolbox
         [TestMethod]
         public void WhenSnapshotContextHasNoTrainPathThenInvalidPointsAreNone()
         {
-            string context = PathEditor.BuildSnapshotContext(null, null, false, false, false, false, true);
+            string context = PathEditor.BuildSnapshotContext(null, null, false, false, false, true);
 
             Assert.Contains("PathId='<none>'", context);
             Assert.Contains("PathName='<none>'", context);
@@ -665,6 +665,22 @@ namespace Tests.FreeTrainSimulator.Toolbox
 
             Assert.IsFalse(result.Success);
             Assert.AreSame(pathModel, result.PathModel);
+        }
+
+        [TestMethod]
+        public void WhenLayoutIsUnchangedThenReResolveIsNearIdempotent()
+        {
+            // Re-resolve is a whole-path re-snap ("fix broken path"). On an unchanged layout it must not churn
+            // the node graph: snapping an already-snapped path has to produce the same nodes again.
+            TrackWorld trackWorld = TrackWorldTestFixture.CreateSingleVectorNodeTrackWorld();
+            PathModel source = CreateEditablePath();
+
+            PathEditResult first = PathEditor.SnapPathToTrack(source, trackWorld);
+            PathEditResult second = PathEditor.SnapPathToTrack(first.PathModel, trackWorld);
+
+            Assert.IsTrue(first.Success);
+            Assert.IsTrue(second.Success);
+            Assert.AreSequenceEqual(first.PathModel.PathNodes, second.PathModel.PathNodes);
         }
 
         [TestMethod]

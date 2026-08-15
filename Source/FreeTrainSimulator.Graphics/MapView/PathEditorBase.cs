@@ -133,15 +133,6 @@ namespace FreeTrainSimulator.Graphics.MapView
             }
         }
 
-        protected void InitializePathEdit(PathModel pathModel)
-        {
-            EditMode = true;
-            editorContext.ContentMode = ToolboxContentMode.EditPath;
-            trainPath = ((IPathEditorContextServicesAccessor)editorContext).Services.CreateEditorTrainPath(pathModel);
-            SetPreviewPath(null);
-            activePathPoint = new EditorPathPoint(PointD.None, PointD.None, PathNodeType.Start);
-        }
-
         /// <summary>Initializes an editable path without activating legacy interactive path extension.</summary>
         protected void InitializeAnchorPathEdit(PathModel pathModel)
         {
@@ -172,40 +163,12 @@ namespace FreeTrainSimulator.Graphics.MapView
             return trainPath?.ToPathModel(pathModelHeader);
         }
 
-        protected bool AddPathEndPoint()
-        {
-            if (trainPath?.PathPoints.Count > 1 && IsValidActivePathPoint()
-                && trainPath.PathPoints[^1] is EditorPathPoint endPoint)
-            {
-                activePathPoint = endPoint;
-                activePathPoint.UpdateDirectionTowards(trainPath.PathPoints[^2], true, true);
-                trainPath.PathPoints[^1] = activePathPoint with { NodeType = PathNodeType.End };
-
-                activePathPoint = null;
-                editorContext.ContentMode = ToolboxContentMode.ViewPath;
-                EditMode = false;
-
-                return true;
-            }
-            return false;
-        }
-
-        protected bool AddPathPoint()
-        {
-            EditorPathPoint currentItem = activePathPoint;
-            return trainPath != null && IsValidActivePathPoint() && (activePathPoint = trainPath.AddPathPoint(activePathPoint)) != currentItem;
-        }
-
         protected bool RemovePathPoint()
         {
             EditorPathPoint currentItem = activePathPoint;
             return trainPath != null && activePathPoint != null && activePathPoint.ValidationResult == PathNodeInvalidReasons.None && (activePathPoint = trainPath.RemovePathPoint(activePathPoint)) != currentItem;
         }
 
-        private bool IsValidActivePathPoint()
-        {
-            return activePathPoint != null && activePathPoint.ValidationResult == PathNodeInvalidReasons.None && !activePathPoint.ConnectedSegments.IsDefaultOrEmpty;
-        }
         #endregion
 
         public void HighlightPathItem(int index)

@@ -285,7 +285,7 @@ namespace FreeTrainSimulator.Toolbox
 
         internal Task UnloadPathAsync()
         {
-            return pathEditor?.InitializePathAsync(null) ?? Task.CompletedTask;
+            return pathEditor?.InitializePathAsync(null, CancellationToken.None) ?? Task.CompletedTask;
         }
     }
 }
