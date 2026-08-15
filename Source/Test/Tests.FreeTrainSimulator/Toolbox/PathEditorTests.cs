@@ -222,6 +222,17 @@ namespace Tests.FreeTrainSimulator.Toolbox
         }
 
         [TestMethod]
+        public void WhenEndAnchorIsBeyondJunctionThenCommitMaterializesTheTargetSideExit()
+        {
+            using PathEditor editor = CreateEditor(CreateAmbiguousEndpointPath(), CreateTargetSideTrackWorld());
+
+            PathEditorCommandResult result = editor.SetEndAnchorCommand(CreateNodeAt(200, PathNodeType.None, -1) with { NodeIndex = 2 }, false);
+
+            Assert.IsTrue(result.Success);
+            Assert.IsTrue(editor.TryCaptureCurrentPathModel().PathNodes.Any(node => node.NodeIndex == 3));
+        }
+
+        [TestMethod]
         public void WhenEndAnchorSpanIsAmbiguousThenCommittedPathAndHistoryRemainUnchanged()
         {
             PathModel source = CreateAmbiguousEndpointPath();
@@ -911,6 +922,20 @@ namespace Tests.FreeTrainSimulator.Toolbox
                 TrackNodes = ImmutableArray.Create<TrackNodeBase>(null, CreateVectorNode(1), CreateVectorNode(2), CreateJunctionNode(3), CreateJunctionNode(4)),
                 TrackNodeConnectors = ImmutableArray.Create(new TrackNodeConnectorIndex(), CreateConnectors(1, 3, 4), CreateConnectors(2, 3, 4),
                     CreateConnectors(3, 1, 2), CreateConnectors(4, 1, 2)),
+            };
+            TrackWorldTestFixture.InitializeTrackDatabase(trackDatabase);
+            TrackModel trackModel = new TrackModel() { TrackDatabase = trackDatabase };
+
+            return TrackWorld.Initialize(null, trackModel, new TrackSectionModel());
+        }
+
+        private static TrackWorld CreateTargetSideTrackWorld()
+        {
+            TrackDatabase trackDatabase = new TrackDatabase()
+            {
+                TrackNodes = ImmutableArray.Create<TrackNodeBase>(null, CreateVectorNode(1), CreateVectorNode(2), CreateJunctionNode(3), CreateJunctionNode(4), CreateVectorNode(5)),
+                TrackNodeConnectors = ImmutableArray.Create(new TrackNodeConnectorIndex(), CreateConnectors(1, 3, 4), CreateConnectors(2, 3),
+                    CreateConnectors(3, 1, 2), CreateConnectors(4, 1, 5), CreateConnectors(5, 4)),
             };
             TrackWorldTestFixture.InitializeTrackDatabase(trackDatabase);
             TrackModel trackModel = new TrackModel() { TrackDatabase = trackDatabase };

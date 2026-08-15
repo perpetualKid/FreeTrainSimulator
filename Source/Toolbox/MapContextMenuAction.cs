@@ -21,6 +21,7 @@ namespace FreeTrainSimulator.Toolbox
         AddViaPoint,
         RemoveRestOfPath,
         SelectRouteCandidate,
+        RouteThroughJunctionExit,
 
         // Path scoped
         ExtendPath,

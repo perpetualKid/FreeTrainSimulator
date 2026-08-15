@@ -105,6 +105,9 @@ namespace FreeTrainSimulator.Toolbox
                 ? nodeHitTestRadiusPixels / content.Scale
                 : 0;
             PathNode contextAnchor = TryCreateContextAnchor(location, tolerance);
+            JunctionNode contextJunction = contextAnchor == null
+                ? null
+                : RuntimeDataResolver.Instance.TrackWorld?.JunctionAt(contextAnchor.Location);
 
             MapContextMenuActionBuilder.MapContextMenuState state = new MapContextMenuActionBuilder.MapContextMenuState
             {
@@ -127,7 +130,8 @@ namespace FreeTrainSimulator.Toolbox
             }
             else if (editor.TryGetPathSpanAt(location, tolerance, out int fromNodeIndex, out PathNode placementAnchor))
             {
-                items = MapContextMenuActionBuilder.BuildForSpan(fromNodeIndex, placementAnchor, editor.GetSpanCandidates(fromNodeIndex), state);
+                items = MapContextMenuActionBuilder.BuildForSpan(fromNodeIndex, placementAnchor, editor.GetSpanCandidates(fromNodeIndex),
+                    contextJunction?.NodeIndex ?? -1, state);
             }
             else
             {
@@ -293,6 +297,7 @@ namespace FreeTrainSimulator.Toolbox
                     toolWindow.RemoveRestOfPath(nodeIndex);
                     break;
                 case MapContextMenuAction.SelectRouteCandidate:
+                case MapContextMenuAction.RouteThroughJunctionExit:
                     toolWindow.AcceptRouteCandidate(nodeIndex, candidateIndex);
                     break;
                 case MapContextMenuAction.ExtendPath:

@@ -247,6 +247,20 @@ namespace Tests.FreeTrainSimulator.Toolbox
         }
 
         [TestMethod]
+        public void WhenAmbiguousSpanIsRightClickedAtJunctionThenOnlyMatchingExitIsOffered()
+        {
+            ImmutableArray<ResolvedRouteCandidate> candidates = ImmutableArray.Create(
+                Candidate(1, 3, 2),
+                Candidate(1, 4, 2));
+
+            ImmutableArray<MapContextMenuItem> items = BuildForSpan(1, PlacementAnchor(), candidates, 3, default);
+
+            MapContextMenuItem exit = items.Single(item => item.Action == MapContextMenuAction.RouteThroughJunctionExit);
+            Assert.AreEqual(0, exit.CandidateIndex);
+            Assert.AreEqual("2", exit.Detail);
+        }
+
+        [TestMethod]
         public void WhenMapMenuIsBuiltThenOnlyAvailablePathActionsAreOffered()
         {
             MapContextMenuState state = new MapContextMenuState

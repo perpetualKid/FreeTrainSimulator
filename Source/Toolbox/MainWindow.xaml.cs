@@ -380,6 +380,7 @@ namespace FreeTrainSimulator.Toolbox
                 MapContextMenuAction.RepairNode => CatalogManager.Catalog.GetString("Repair Node"),
                 MapContextMenuAction.RemoveRestOfPath => CatalogManager.Catalog.GetString("Remove Rest of Path"),
                 MapContextMenuAction.SelectRouteCandidate => CatalogManager.Catalog.GetString("Use Route"),
+                MapContextMenuAction.RouteThroughJunctionExit => CatalogManager.Catalog.GetString("Route Through Exit"),
                 MapContextMenuAction.ExtendPath => CatalogManager.Catalog.GetString("Extend Path"),
                 MapContextMenuAction.ReResolvePath => CatalogManager.Catalog.GetString("Re-resolve Path"),
                 MapContextMenuAction.StartNewPath => CatalogManager.Catalog.GetString("Start New Path"),

@@ -206,6 +206,26 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
             Assert.AreSequenceEqual(expectedArray12, result.MainRoute.Spans[0].TrackVectorNodeIndexes.ToArray());
         }
 
+        [TestMethod]
+        public void ResolveWhenTargetIsBeyondJunctionThenSelectsTheTargetSideExit()
+        {
+            TrackWorld trackWorld = CreateTrackWorld(
+                ImmutableArray.Create<TrackNodeBase>(null, CreateVectorNode(1), CreateVectorNode(2), CreateJunctionNode(3), CreateJunctionNode(4), CreateVectorNode(5)),
+                ImmutableArray.Create(new TrackNodeConnectorIndex(), CreateConnectors(1, 3, 4), CreateConnectors(2, 3),
+                    CreateConnectors(3, 1, 2), CreateConnectors(4, 1, 5), CreateConnectors(5, 4)));
+            PathModel pathModel = new PathModel()
+            {
+                PathNodes = ImmutableArray.Create(
+                    CreateNode(PathNodeType.Start, 1, nodeIndex: 1),
+                    CreateNode(PathNodeType.End, -1, nodeIndex: 2)),
+            };
+
+            PathRouteResolution result = PathRouteResolver.Resolve(pathModel, trackWorld, TestContext.CancellationToken);
+
+            Assert.AreEqual(PathRouteSpanStatus.Resolved, result.MainRoute.Spans[0].Status);
+            Assert.AreSequenceEqual(expectedArray132, result.MainRoute.Spans[0].Candidates.Single().RouteNodeIndexes.ToArray());
+        }
+
         /// <summary>
         /// Verifies that a single intermediary vector node resolves as a deterministic dense span.
         /// </summary>

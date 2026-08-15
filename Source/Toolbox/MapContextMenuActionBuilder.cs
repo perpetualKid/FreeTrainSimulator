@@ -98,6 +98,15 @@ namespace FreeTrainSimulator.Toolbox
         public static ImmutableArray<MapContextMenuItem> BuildForSpan(int fromNodeIndex, PathNode placementAnchor,
             ImmutableArray<ResolvedRouteCandidate> candidates, in MapContextMenuState state)
         {
+            return BuildForSpan(fromNodeIndex, placementAnchor, candidates, -1, state);
+        }
+
+        /// <summary>
+        /// Builds the span menu with explicit exit choices when the context location is a junction.
+        /// </summary>
+        public static ImmutableArray<MapContextMenuItem> BuildForSpan(int fromNodeIndex, PathNode placementAnchor,
+            ImmutableArray<ResolvedRouteCandidate> candidates, int junctionNodeIndex, in MapContextMenuState state)
+        {
             ArgumentNullException.ThrowIfNull(placementAnchor);
 
             if (state.IsPlacementActive)
@@ -112,6 +121,7 @@ namespace FreeTrainSimulator.Toolbox
             if (!candidates.IsDefaultOrEmpty)
             {
                 AddSeparator(items);
+                AddJunctionExitActions(items, fromNodeIndex, candidates, junctionNodeIndex);
                 for (int i = 0; i < candidates.Length; i++)
                 {
                     items.Add(new MapContextMenuItem(MapContextMenuAction.SelectRouteCandidate, fromNodeIndex, i,
@@ -121,6 +131,24 @@ namespace FreeTrainSimulator.Toolbox
 
             AddHistoryActions(items, state);
             return Finalize(items);
+        }
+
+        private static void AddJunctionExitActions(ImmutableArray<MapContextMenuItem>.Builder items, int fromNodeIndex,
+            ImmutableArray<ResolvedRouteCandidate> candidates, int junctionNodeIndex)
+        {
+            if (junctionNodeIndex < 0)
+                return;
+
+            for (int candidateIndex = 0; candidateIndex < candidates.Length; candidateIndex++)
+            {
+                ImmutableArray<int> routeNodeIndexes = candidates[candidateIndex].RouteNodeIndexes;
+                int junctionRouteIndex = routeNodeIndexes.IndexOf(junctionNodeIndex);
+                if (junctionRouteIndex < 0 || junctionRouteIndex == routeNodeIndexes.Length - 1)
+                    continue;
+
+                items.Add(new MapContextMenuItem(MapContextMenuAction.RouteThroughJunctionExit, fromNodeIndex,
+                    candidateIndex, routeNodeIndexes[junctionRouteIndex + 1].ToString()));
+            }
         }
 
         /// <summary>
