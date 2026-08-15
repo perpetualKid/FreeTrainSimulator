@@ -40,6 +40,12 @@ namespace FreeTrainSimulator.Graphics.MapView
             return activePathPoint != null;
         }
 
+        /// <summary>Enables pointer updates while a resolver-backed placement is active outside legacy edit mode.</summary>
+        protected void ActivatePathPlacementInput()
+        {
+            editorContext.ContentMode = ToolboxContentMode.EditPath;
+        }
+
         protected bool TryGetRenderedMainPathSpanAt(in PointD location, double toleranceWorldUnits, out int fromNodeIndex, out PathNode placementAnchor)
         {
             if (trainPath != null)
@@ -81,8 +87,11 @@ namespace FreeTrainSimulator.Graphics.MapView
 
             // if a tracksegment is nearby, snap to the segment
             PointD snapLocation = nearestSegment?.SnapToSegment(location) ?? location;
-            Runtime.Track.JunctionNodeBase junction;
-            if ((junction = TrackWorld.JunctionNodeBaseAt(snapLocation)) != null) //if within junction proximity, snap to the junction
+            Runtime.Track.JunctionNodeBase junction = null;
+            // A selected segment carries the exact vector-node/section identity needed by resolver-backed
+            // placement. Replacing it with a generic junction candidate near a junction exposes every connected
+            // segment and can abruptly switch the preview to the opposite side of a loop.
+            if (nearestSegment == null && (junction = TrackWorld.JunctionNodeBaseAt(snapLocation)) != null)
                 snapLocation = junction.Location;
 
             activePathPoint = UseStandaloneActivePathPointPreview

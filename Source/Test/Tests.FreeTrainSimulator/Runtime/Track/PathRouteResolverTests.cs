@@ -226,6 +226,111 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
             Assert.AreSequenceEqual(expectedArray132, result.MainRoute.Spans[0].Candidates.Single().RouteNodeIndexes.ToArray());
         }
 
+        [TestMethod]
+        public void ResolveWhenShorterRouteCrossesSameJunctionSideThenKeepsIncomingDirection()
+        {
+            TrackWorld trackWorld = CreateTrackWorld(
+                ImmutableArray.Create<TrackNodeBase>(null, CreateVectorNode(1), CreateVectorNode(2), CreateVectorNode(3), CreateJunctionNode(4), CreateVectorNode(5)),
+                ImmutableArray.Create(
+                    new TrackNodeConnectorIndex(),
+                    CreateTypedConnectors(1, (4, ConnectorType.InPin), (3, ConnectorType.OutPin)),
+                    CreateTypedConnectors(2, (4, ConnectorType.InPin), (3, ConnectorType.InPin)),
+                    CreateTypedConnectors(3, (1, ConnectorType.InPin), (2, ConnectorType.OutPin)),
+                    CreateTypedConnectors(4, (1, ConnectorType.InPin), (2, ConnectorType.InPin), (5, ConnectorType.OutPin)),
+                    CreateTypedConnectors(5, (4, ConnectorType.InPin))));
+            PathModel pathModel = new PathModel
+            {
+                PathNodes = ImmutableArray.Create(
+                    CreateNode(PathNodeType.Start, 1, nodeIndex: 1),
+                    CreateNode(PathNodeType.End, -1, nodeIndex: 2)),
+            };
+
+            PathRouteResolution result = PathRouteResolver.Resolve(pathModel, trackWorld, TestContext.CancellationToken);
+
+            Assert.AreSequenceEqual(new[] { 1, 3, 2 }, result.MainRoute.Spans[0].Candidates.Single().RouteNodeIndexes.ToArray());
+            PathGenerationResult generated = PathModelRouteGenerator.GeneratePath(pathModel, result, trackWorld, PathRouteResolverOptions.Default);
+            Assert.IsTrue(generated.Success);
+            Assert.AreSequenceEqual(new[] { 1, 3, 2 }, generated.PathModel.PathNodes.Select(node => node.NodeIndex).ToArray());
+        }
+
+        [TestMethod]
+        public void ResolveWhenLoopEndsShareJunctionThenIncomingAnchorOrderSelectsClockwiseEnd()
+        {
+            TrackWorld trackWorld = CreateInitializedLoopTrackWorld();
+            PathModel pathModel = new PathModel
+            {
+                PathNodes = ImmutableArray.Create(
+                    CreateNode(PathNodeType.Start, 1, -1, 1, new WorldLocation(new Tile(0, 0), new Vector3(100, 0, 25))),
+                    CreateNode(PathNodeType.Intermediate, 2, -1, 1, new WorldLocation(new Tile(0, 0), new Vector3(50, 0, 100))),
+                    CreateNode(PathNodeType.End, -1, -1, 2, new WorldLocation(new Tile(0, 0), new Vector3(-50, 0, 0)))),
+            };
+
+            PathRouteResolution result = PathRouteResolver.Resolve(pathModel, trackWorld, TestContext.CancellationToken);
+
+            PathRouteAnchor directionalAnchor = result.MainRoute.Spans[1].GeneratedIntermediaryAnchors
+                .FirstOrDefault(anchor => anchor.TrackNodeIndex == 1 && anchor.TrackVectorSectionIndex == 3);
+            Assert.IsNotNull(directionalAnchor);
+            PathGenerationResult generated = PathModelRouteGenerator.GeneratePath(pathModel, result, trackWorld, PathRouteResolverOptions.Default);
+            Assert.IsTrue(generated.Success);
+            Assert.IsTrue(generated.PathModel.PathNodes.Any(node => node.NodeIndex == 1 && node.Location == directionalAnchor.Location));
+            PathRouteResolution roundTrip = PathRouteResolver.Resolve(generated.PathModel, trackWorld, TestContext.CancellationToken);
+            Assert.IsTrue(roundTrip.MainRoute.Spans.Any(span => span.GeneratedIntermediaryAnchors
+                .Any(anchor => anchor.TrackNodeIndex == 1 && anchor.TrackVectorSectionIndex == 3)));
+        }
+
+        [TestMethod]
+        public void ResolveWhenLoopRoutePointIsReversalThenSelectsOppositeVectorEnd()
+        {
+            TrackWorld trackWorld = CreateInitializedLoopTrackWorld();
+            PathModel pathModel = new PathModel
+            {
+                PathNodes = ImmutableArray.Create(
+                    CreateNode(PathNodeType.Start, 1, -1, 1, new WorldLocation(new Tile(0, 0), new Vector3(100, 0, 25))),
+                    CreateNode(PathNodeType.Intermediate | PathNodeType.Reversal, 2, -1, 1, new WorldLocation(new Tile(0, 0), new Vector3(50, 0, 100))),
+                    CreateNode(PathNodeType.End, -1, -1, 2, new WorldLocation(new Tile(0, 0), new Vector3(-50, 0, 0)))),
+            };
+
+            PathRouteResolution result = PathRouteResolver.Resolve(pathModel, trackWorld, TestContext.CancellationToken);
+
+            PathRouteAnchor directionalAnchor = result.MainRoute.Spans[1].GeneratedIntermediaryAnchors
+                .FirstOrDefault(anchor => anchor.TrackNodeIndex == 1 && anchor.TrackVectorSectionIndex == 0);
+            Assert.IsNotNull(directionalAnchor);
+        }
+
+        [TestMethod]
+        public void ResolveWhenAheadLoopTargetSnapsBehindCurrentPointThenSpanIsUnresolved()
+        {
+            TrackWorld trackWorld = CreateInitializedLoopTrackWorld();
+            PathModel pathModel = new PathModel
+            {
+                PathNodes = ImmutableArray.Create(
+                    CreateNode(PathNodeType.Start, 1, -1, 1, new WorldLocation(new Tile(0, 0), new Vector3(100, 0, 25))),
+                    CreateNode(PathNodeType.Intermediate, 2, -1, 1, new WorldLocation(new Tile(0, 0), new Vector3(50, 0, 100))),
+                    CreateNode(PathNodeType.End, -1, -1, 1, new WorldLocation(new Tile(0, 0), new Vector3(25, 0, 0)))),
+            };
+
+            PathRouteResolution result = PathRouteResolver.Resolve(pathModel, trackWorld, TestContext.CancellationToken);
+
+            Assert.AreEqual(PathRouteSpanStatus.Unresolved, result.MainRoute.Spans[1].Status);
+        }
+
+        [TestMethod]
+        public void ResolveWhenLoopPointIsExplicitReversalThenBehindTargetIsResolved()
+        {
+            TrackWorld trackWorld = CreateInitializedLoopTrackWorld();
+            PathModel pathModel = new PathModel
+            {
+                PathNodes = ImmutableArray.Create(
+                    CreateNode(PathNodeType.Start, 1, -1, 1, new WorldLocation(new Tile(0, 0), new Vector3(100, 0, 25))),
+                    CreateNode(PathNodeType.Intermediate | PathNodeType.Reversal, 2, -1, 1, new WorldLocation(new Tile(0, 0), new Vector3(50, 0, 100))),
+                    CreateNode(PathNodeType.End, -1, -1, 1, new WorldLocation(new Tile(0, 0), new Vector3(25, 0, 0)))),
+            };
+
+            PathRouteResolution result = PathRouteResolver.Resolve(pathModel, trackWorld, TestContext.CancellationToken);
+
+            Assert.AreEqual(PathRouteSpanStatus.Resolved, result.MainRoute.Spans[1].Status);
+        }
+
         /// <summary>
         /// Verifies that a single intermediary vector node resolves as a deterministic dense span.
         /// </summary>
@@ -248,6 +353,19 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
 
             Assert.AreEqual(PathRouteSpanStatus.Resolved, result.MainRoute.Spans[0].Status);
             Assert.AreSequenceEqual(expectedArray152, result.MainRoute.Spans[0].TrackVectorNodeIndexes.ToArray());
+        }
+
+        private static TrackNodeConnectorIndex CreateTypedConnectors(int nodeIndex, params (int Link, ConnectorType Type)[] connectors)
+        {
+            return new TrackNodeConnectorIndex
+            {
+                NodeIndex = nodeIndex,
+                TrackNodeConnectors = connectors.Select(connector => new TrackNodeConnector
+                {
+                    Link = connector.Link,
+                    ConnectorType = connector.Type,
+                }).ToImmutableArray(),
+            };
         }
 
         /// <summary>
@@ -761,6 +879,72 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
             };
 
             return TrackWorld.Initialize(null, trackModel, trackSectionModel);
+        }
+
+        private static TrackWorld CreateInitializedLoopTrackWorld()
+        {
+            WorldLocation junctionLocation = new(new Tile(0, 0), Vector3.Zero);
+            VectorNode loop = new(junctionLocation, new Tile(0, 0), junctionLocation)
+            {
+                NodeIndex = 1,
+                VectorSections = ImmutableArray.Create(
+                    CreateSection(0, 0, 100, 0, MathHelper.PiOver2),
+                    CreateSection(100, 0, 100, 100, 0),
+                    CreateSection(100, 100, 0, 100, -MathHelper.PiOver2),
+                    CreateSection(0, 100, 0, 0, MathHelper.Pi)),
+            };
+            VectorNode exit = new(junctionLocation, new Tile(0, 0), new WorldLocation(new Tile(0, 0), new Vector3(-100, 0, 0)))
+            {
+                NodeIndex = 2,
+                VectorSections = ImmutableArray.Create(CreateSection(0, 0, -100, 0, -MathHelper.PiOver2)),
+            };
+            JunctionNode junction = CreateJunctionNode(3);
+            TrackDatabase trackDatabase = new()
+            {
+                TrackNodes = ImmutableArray.Create<TrackNodeBase>(null, loop, exit, junction),
+                TrackNodeConnectors = ImmutableArray.Create(
+                    new TrackNodeConnectorIndex(),
+                    CreateDirectionalConnectors(1, (3, TrackDirection.Reverse), (3, TrackDirection.Ahead)),
+                    CreateDirectionalConnectors(2, (3, TrackDirection.Reverse)),
+                    CreateDirectionalConnectors(3, (1, TrackDirection.Reverse), (1, TrackDirection.Ahead), (2, TrackDirection.Reverse))),
+            };
+            InitializeTrackDatabase(trackDatabase);
+            TrackModel trackModel = new() { TrackDatabase = trackDatabase };
+            TrackSectionModel trackSectionModel = new()
+            {
+                TrackSections = ImmutableDictionary<int, TrackSection>.Empty.Add(1, new TrackSection
+                {
+                    SectionIndex = 1,
+                    Gauge = 1.435f,
+                    Length = 100,
+                }),
+            };
+            return TrackWorld.Initialize(null, trackModel, trackSectionModel);
+        }
+
+        private static VectorSectionNode CreateSection(float startX, float startZ, float endX, float endZ, float direction)
+        {
+            return new VectorSectionNode(
+                new WorldLocation(new Tile(0, 0), new Vector3(startX, 0, startZ)),
+                new Tile(0, 0),
+                new Vector3(0, direction, 0),
+                new WorldLocation(new Tile(0, 0), new Vector3(endX, 0, endZ)))
+            {
+                NodeIndex = 1,
+            };
+        }
+
+        private static TrackNodeConnectorIndex CreateDirectionalConnectors(int nodeIndex, params (int Link, TrackDirection Direction)[] connectors)
+        {
+            return new TrackNodeConnectorIndex
+            {
+                NodeIndex = nodeIndex,
+                TrackNodeConnectors = connectors.Select(connector => new TrackNodeConnector
+                {
+                    Link = connector.Link,
+                    Direction = connector.Direction,
+                }).ToImmutableArray(),
+            };
         }
 
         private static void InitializeTrackDatabase(TrackDatabase trackDatabase)

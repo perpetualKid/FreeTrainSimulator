@@ -216,6 +216,95 @@ namespace Tests.FreeTrainSimulator.Toolbox
         }
 
         [TestMethod]
+        public void WhenRoutePointIsCommittedThenPreviousEndpointBecomesIntermediate()
+        {
+            PathModel source = CreateEditablePath();
+
+            PathEditResult result = InvokeAddRoutePoint(source, CreateNodeAt(200, PathNodeType.None, -1));
+
+            Assert.IsTrue(result.PathModel.PathNodes[1].NodeType.Includes(PathNodeType.Intermediate));
+            Assert.IsFalse(result.PathModel.PathNodes[1].NodeType.Includes(PathNodeType.End));
+        }
+
+        [TestMethod]
+        public void WhenBuildRouteContinuesThenGeneratedDisplayNodesAreNotReusedAsAuthoredPoints()
+        {
+            PathModel materialized = new PathModel
+            {
+                Id = "materialized",
+                PathNodes = ImmutableArray.Create(
+                    CreateNodeAt(0, PathNodeType.Start, 1),
+                    CreateNodeAt(25, PathNodeType.Intermediate, 2),
+                    CreateNodeAt(50, PathNodeType.Intermediate, 3),
+                    CreateNodeAt(100, PathNodeType.End, -1)),
+            };
+            PathModel authored = new PathModel(materialized)
+            {
+                PathNodes = ImmutableArray.Create(
+                    CreateNodeAt(0, PathNodeType.Start, 1),
+                    CreateNodeAt(100, PathNodeType.End, -1)),
+            };
+            using PathEditor editor = CreateEditor(materialized);
+            SetPrivateField(editor, "routeAuthoringModel", authored);
+
+            PathEditorCommandResult result = editor.ContinuePathCommand();
+
+            PathModel moveSource = (PathModel)typeof(PathEditor).GetField("moveSourceModel", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(editor);
+            Assert.IsTrue(result.Success);
+            Assert.AreEqual(2, moveSource.PathNodes.Length);
+        }
+
+        [TestMethod]
+        public void WhenBuildRouteBeginsThenPointerInputModeRemainsActive()
+        {
+            TestPathEditorContext context = new(CreateInitializedTrackWorld());
+            using PathEditor editor = new(context);
+            editor.InitializeNewPath();
+            _ = editor.SetStartAnchorCommand(CreateNodeAt(0, PathNodeType.None, -1), false);
+
+            Assert.AreEqual(ToolboxContentMode.EditPath, context.ContentMode);
+        }
+
+        [TestMethod]
+        public void WhenPointerHasNearestTrackSegmentThenPreviewKeepsSegmentAnchor()
+        {
+            TrackWorld trackWorld = CreateInitializedTrackWorld();
+            TestPathEditorContext context = new(trackWorld);
+            using PathEditor editor = new(context);
+            editor.InitializeNewPath();
+            TestTrackSegment segment = new(new PointD(0, 0), new PointD(100, 0));
+
+            editor.UpdatePointerLocation(segment.Location, segment);
+
+            TrainPathPointBase activePoint = (TrainPathPointBase)typeof(PathEditorBase)
+                .GetProperty("ActivePathPoint", BindingFlags.Instance | BindingFlags.NonPublic)
+                .GetValue(editor);
+            Assert.AreSame(segment, activePoint.ConnectedSegments.Single());
+        }
+
+        [TestMethod]
+        public void WhenLaterHoverIsUnresolvedThenLastValidPreviewRemainsCommittable()
+        {
+            PathModel source = CreateEditablePath();
+            using PathEditor editor = CreateEditor(source);
+            _ = editor.ContinuePathCommand();
+            PathEditResult preview = InvokeAddRoutePoint(source, CreateNodeAt(200, PathNodeType.None, -1));
+            SetPrivateField(editor, "movePreviewModel", preview.PathModel);
+
+            editor.UpdatePointerLocation(PointD.None, null);
+
+            Assert.IsTrue(editor.CanCommitPlacement);
+        }
+
+        private sealed record TestTrackSegment : TrackSegmentBase
+        {
+            public TestTrackSegment(in PointD start, in PointD end)
+                : base(start, end)
+            {
+            }
+        }
+
+        [TestMethod]
         public void WhenPlacementPreviewIsCommittedThroughTheKeyboardCommandThenItMaterializesOnce()
         {
             PathModel source = CreateEditablePath();
@@ -255,6 +344,50 @@ namespace Tests.FreeTrainSimulator.Toolbox
             ImmutableArray<ResolvedPathSpan> affected = InvokeAffectedSpans(resolution, ImmutableArray<int>.Empty);
 
             Assert.AreEqual(2, affected.Length);
+        }
+
+        [TestMethod]
+        public void WhenAffectedSpanRetracesCommittedRouteThenImplicitRouteBackIsDetected()
+        {
+            // Both adjacent spans are reported as affected when a route point is appended, so the check must
+            // compare each affected span against the edges of the spans preceding it, not against all spans.
+            PathModel pathModel = new PathModel
+            {
+                PathNodes = ImmutableArray.Create(
+                    CreateNode(PathNodeType.Start, 1),
+                    CreateNode(PathNodeType.Intermediate, 2),
+                    CreateNode(PathNodeType.End, -1)),
+            };
+            ResolvedPathSpan outgoing = new(0, 1, PathRouteSpanStatus.Resolved,
+                ImmutableArray.Create(9, 3, 7, 4, 5));
+            ResolvedPathSpan returning = new(1, 2, PathRouteSpanStatus.Resolved,
+                ImmutableArray.Create(5, 4, 7, 3, 9));
+            ImmutableArray<ResolvedPathSpan> spans = ImmutableArray.Create(outgoing, returning);
+
+            bool routeBack = PathEditor.HasImplicitRouteBack(pathModel, spans, spans);
+
+            Assert.IsTrue(routeBack);
+        }
+
+        [TestMethod]
+        public void WhenAffectedSpanStartsAtReversalThenRouteBackIsAllowed()
+        {
+            PathModel pathModel = new PathModel
+            {
+                PathNodes = ImmutableArray.Create(
+                    CreateNode(PathNodeType.Start, 1),
+                    CreateNode(PathNodeType.Intermediate | PathNodeType.Reversal, 2),
+                    CreateNode(PathNodeType.End, -1)),
+            };
+            ResolvedPathSpan committed = new(0, 1, PathRouteSpanStatus.Resolved,
+                ImmutableArray.Create(9, 3, 7, 4, 5));
+            ResolvedPathSpan affected = new(1, 2, PathRouteSpanStatus.Resolved,
+                ImmutableArray.Create(5, 4, 7, 3, 9));
+
+            bool routeBack = PathEditor.HasImplicitRouteBack(pathModel,
+                ImmutableArray.Create(committed, affected), ImmutableArray.Create(affected));
+
+            Assert.IsFalse(routeBack);
         }
 
         [TestMethod]
@@ -455,16 +588,6 @@ namespace Tests.FreeTrainSimulator.Toolbox
             _ = editor.Undo();
 
             Assert.IsEmpty(editor.TryCaptureCurrentPathModel().PathNodes);
-        }
-
-        [TestMethod]
-        public void WhenNewPathStartIsSetDirectlyThenBuildRouteBegins()
-        {
-            using PathEditor editor = CreateNewEditor();
-
-            PathEditorCommandResult result = editor.SetStartAnchorCommand(CreateNodeAt(25, PathNodeType.None, -1), false);
-
-            Assert.IsTrue(result.Success && editor.IsBuildingRoute);
         }
 
         [TestMethod]
@@ -1044,6 +1167,68 @@ namespace Tests.FreeTrainSimulator.Toolbox
         {
             MethodInfo method = typeof(PathEditor).GetMethod("AddRoutePoint", BindingFlags.Static | BindingFlags.NonPublic);
             return (PathEditResult)method.Invoke(null, new object[] { pathModel, anchor, false });
+        }
+
+        [TestMethod]
+        public void WhenPathHasEndThenPrecedingEndNodeIsTheLastCommittedRoutePoint()
+        {
+            // The automatic reversal marks the route point committed just before the end anchor, which is the
+            // node linking to it on the main chain rather than simply the second-to-last array entry.
+            PathModel pathModel = new PathModel
+            {
+                PathNodes = ImmutableArray.Create(
+                    CreateNodeAt(0, PathNodeType.Start, 2),
+                    CreateNodeAt(100, PathNodeType.End, -1),
+                    CreateNodeAt(50, PathNodeType.Intermediate, 1)),
+            };
+
+            int precedingIndex = InvokePrecedingEndNodeIndex(pathModel);
+
+            Assert.AreEqual(2, precedingIndex);
+        }
+
+        [TestMethod]
+        public void WhenPathHasNoEndThenPrecedingEndNodeIsNotFound()
+        {
+            PathModel pathModel = new PathModel
+            {
+                PathNodes = ImmutableArray.Create(CreateNodeAt(0, PathNodeType.Start, -1)),
+            };
+
+            int precedingIndex = InvokePrecedingEndNodeIndex(pathModel);
+
+            Assert.AreEqual(-1, precedingIndex);
+        }
+
+        [TestMethod]
+        public void WhenBuildingRouteThenAutomaticReversalIsAllowed()
+        {
+            Assert.IsTrue(InvokeAllowsAutomaticReversal(PathEditorPlacementMode.BuildRoute));
+        }
+
+        [TestMethod]
+        public void WhenSettingEndAnchorThenAutomaticReversalIsAllowed()
+        {
+            Assert.IsTrue(InvokeAllowsAutomaticReversal(PathEditorPlacementMode.EndAnchor));
+        }
+
+        [TestMethod]
+        public void WhenMovingNodeThenAutomaticReversalIsNotAllowed()
+        {
+            // Repositioning an existing node must not silently turn it into a reversal.
+            Assert.IsFalse(InvokeAllowsAutomaticReversal(PathEditorPlacementMode.MoveNode));
+        }
+
+        private static int InvokePrecedingEndNodeIndex(PathModel pathModel)
+        {
+            MethodInfo method = typeof(PathEditor).GetMethod("PrecedingEndNodeIndex", BindingFlags.Static | BindingFlags.NonPublic);
+            return (int)method.Invoke(null, new object[] { pathModel });
+        }
+
+        private static bool InvokeAllowsAutomaticReversal(PathEditorPlacementMode mode)
+        {
+            MethodInfo method = typeof(PathEditor).GetMethod("AllowsAutomaticReversal", BindingFlags.Static | BindingFlags.NonPublic);
+            return (bool)method.Invoke(null, new object[] { mode });
         }
 
         private static bool HasNodeType(PathModel pathModel, PathNodeType nodeType)

@@ -99,7 +99,11 @@ namespace FreeTrainSimulator.Runtime.Track
                         sections.Add(section);
                         break;
                     default:
-                        nodeSegment = trackSegments.Where(s => s.TrackNodeIndex == (start.JunctionNode ?? end.JunctionNode).MainRoute).FirstOrDefault();
+                        JunctionNodeBase junctionNode = start.JunctionNode ?? end.JunctionNode;
+                        // if neither end is a junction, there is no main route to prefer, so just take the first shared segment
+                        nodeSegment = junctionNode == null
+                            ? trackSegments[0]
+                            : trackSegments.Where(s => s.TrackNodeIndex == junctionNode.MainRoute).FirstOrDefault();
                         if (nodeSegment == null)
                         {
                             section = InitializeSection(start.Location, end.Location) as TrainPathSectionBase;

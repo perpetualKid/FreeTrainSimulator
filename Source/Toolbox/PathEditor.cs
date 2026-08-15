@@ -52,6 +52,8 @@ namespace FreeTrainSimulator.Toolbox
         private bool editorDragged;
         private int movingNodeIndex = -1;
         private PathModel moveSourceModel;
+        private PathModel routeAuthoringModel;
+        private PathModel movePreviewAuthoringModel;
         private PathModel movePreviewModel;
         private PathNode movePreviewAnchor;
         private PathSpanCommitResult movePreviewSpanCommit;
@@ -136,6 +138,7 @@ namespace FreeTrainSimulator.Toolbox
 
                 this.path = pathModel ?? path;
                 currentPathModel = pathModel;
+                routeAuthoringModel = null;
 
                 if (pathModel != null && !CanInitializePath(pathModel, out PathRouteResolution resolution))
                 {
@@ -367,6 +370,7 @@ namespace FreeTrainSimulator.Toolbox
                 return PathEditorCommandResult.Failed("Add at least one route point before finishing the path.", currentModel);
 
             ClearMoveNodeState();
+            routeAuthoringModel = null;
             path = currentModel;
             currentPathModel = currentModel;
             RestorePath(currentModel, false);
@@ -395,9 +399,9 @@ namespace FreeTrainSimulator.Toolbox
                 return PathEditorCommandResult.FromPathEditResult(routePoint);
 
             movePreviewAnchor = anchor;
-            movePreviewModel = routePoint.PathModel;
+            movePreviewAuthoringModel = routePoint.PathModel;
             movePreviewSpanCommit = EvaluateSpanCommit(routePoint.PathModel, routePoint.ChangedNodeIndexes,
-                "Route point added.", moveSourceModel);
+                "Route point added.", moveSourceModel, true);
             if (movePreviewSpanCommit.Status == PathSpanCommitStatus.Unresolved)
                 return PathEditorCommandResult.Failed(movePreviewSpanCommit.Message, currentPathModel);
 
@@ -423,7 +427,7 @@ namespace FreeTrainSimulator.Toolbox
             if (currentModel == null)
                 return PathEditorCommandResult.Failed("No editable path is currently loaded.", null);
 
-            PathSpanCommitResult spanCommit = ResolveAnchorSpan(currentModel, edit);
+            PathSpanCommitResult spanCommit = ResolveAnchorSpan(currentModel, edit, true);
             switch (spanCommit.Status)
             {
                 case PathSpanCommitStatus.Resolved:
@@ -443,19 +447,30 @@ namespace FreeTrainSimulator.Toolbox
         // edited node) are resolved and, when unambiguous, materialized into concrete nodes. Nothing is committed
         // and no history is touched here: the caller commits the returned model exactly once.
         private PathSpanCommitResult ResolveAnchorSpan(PathModel sourceModel, Func<PathModel, PathEditResult> anchorEdit)
+            => ResolveAnchorSpan(sourceModel, anchorEdit, false);
+
+        private PathSpanCommitResult ResolveAnchorSpan(PathModel sourceModel, Func<PathModel, PathEditResult> anchorEdit,
+            bool allowAutomaticReversal)
         {
             ArgumentNullException.ThrowIfNull(sourceModel);
             ArgumentNullException.ThrowIfNull(anchorEdit);
 
             PathEditResult edit = anchorEdit(sourceModel);
             return edit.Success
-                ? EvaluateSpanCommit(edit.PathModel, edit.ChangedNodeIndexes, edit.Message, sourceModel)
+                ? EvaluateSpanCommit(edit.PathModel, edit.ChangedNodeIndexes, edit.Message, sourceModel, allowAutomaticReversal)
                 : PathSpanCommitResult.Failed(edit.Message, sourceModel);
         }
 
         // Resolves tentativeModel, inspects only the spans adjacent to changedNodeIndexes, and materializes the
         // generated intermediaries when every affected span resolved to a single route.
         private PathSpanCommitResult EvaluateSpanCommit(PathModel tentativeModel, ImmutableArray<int> changedNodeIndexes, string message, PathModel sourceModel)
+            => EvaluateSpanCommit(tentativeModel, changedNodeIndexes, message, sourceModel, false);
+
+        // allowAutomaticReversal is set by the endpoint-authoring commands (route building, Set End Here). When the
+        // requested target only fails because it lies behind the current direction of travel, retry once with the
+        // preceding route point marked as a reversal, which is what the user means by clicking back along the path.
+        private PathSpanCommitResult EvaluateSpanCommit(PathModel tentativeModel, ImmutableArray<int> changedNodeIndexes, string message,
+            PathModel sourceModel, bool allowAutomaticReversal)
         {
             PathRouteResolution resolution = PathRouteResolver.Resolve(tentativeModel, TrackWorld, PathRouteResolverOptions.Default, CancellationToken.None);
             ImmutableArray<ResolvedPathSpan> affectedSpans = AffectedSpans(resolution, changedNodeIndexes);
@@ -472,9 +487,18 @@ namespace FreeTrainSimulator.Toolbox
 
             if (affectedSpans.Any(span => span.Status is PathRouteSpanStatus.Unresolved or PathRouteSpanStatus.NotResolved))
             {
-                return PathSpanCommitResult.Unresolved(
-                    "The affected span could not be routed; click closer to the last anchor or add a via point.",
-                    sourceModel);
+                return TryReverseAndResolve(tentativeModel, changedNodeIndexes, message, sourceModel, allowAutomaticReversal)
+                    ?? PathSpanCommitResult.Unresolved(
+                        "The affected span could not be routed; click closer to the last anchor or add a via point.",
+                        sourceModel);
+            }
+
+            if (HasImplicitRouteBack(tentativeModel, resolution.MainRoute?.Spans ?? ImmutableArray<ResolvedPathSpan>.Empty, affectedSpans))
+            {
+                return TryReverseAndResolve(tentativeModel, changedNodeIndexes, message, sourceModel, allowAutomaticReversal)
+                    ?? PathSpanCommitResult.Unresolved(
+                        "The affected span reverses over the existing route; mark the route point as a reversal before routing back.",
+                        sourceModel);
             }
 
             // Materialize the generated intermediaries so the committed model is the single persistence source.
@@ -482,6 +506,98 @@ namespace FreeTrainSimulator.Toolbox
             return generated.Success
                 ? PathSpanCommitResult.Resolved(message, generated.PathModel, generated.ChangedNodeIndexes)
                 : PathSpanCommitResult.Resolved(message, tentativeModel, changedNodeIndexes);
+        }
+
+        // Marks the route point preceding the end anchor as a reversal and re-evaluates. Returns null when the
+        // reversal is not applicable (no preceding point, or it is a junction/terminus) or still does not resolve,
+        // so the caller reports its original failure.
+        private PathSpanCommitResult TryReverseAndResolve(PathModel tentativeModel, ImmutableArray<int> changedNodeIndexes,
+            string message, PathModel sourceModel, bool allowAutomaticReversal)
+        {
+            if (!allowAutomaticReversal)
+                return null;
+
+            int reversalNodeIndex = PrecedingEndNodeIndex(tentativeModel);
+            if (reversalNodeIndex < 0)
+                return null;
+
+            PathEditResult reversal = PathModelEditor.SetReversalPoint(tentativeModel, reversalNodeIndex);
+            if (!reversal.Success)
+                return null;
+
+            ImmutableArray<int> reversalChangedNodes = changedNodeIndexes.Contains(reversalNodeIndex)
+                ? changedNodeIndexes
+                : changedNodeIndexes.Add(reversalNodeIndex);
+            PathSpanCommitResult result = EvaluateSpanCommit(reversal.PathModel, reversalChangedNodes,
+                $"{message} Reversal added at node {reversalNodeIndex}.", sourceModel, false);
+
+            return result.Success ? result : null;
+        }
+
+        // The node linking to the end anchor on the main chain, i.e. the route point committed just before it.
+        private static int PrecedingEndNodeIndex(PathModel pathModel)
+        {
+            ImmutableArray<PathNode> nodes = pathModel?.PathNodes ?? ImmutableArray<PathNode>.Empty;
+            int endIndex = -1;
+            for (int i = 0; i < nodes.Length; i++)
+            {
+                if (nodes[i].NodeType.Includes(PathNodeType.End))
+                {
+                    endIndex = i;
+                    break;
+                }
+            }
+            if (endIndex < 0)
+                return -1;
+
+            for (int i = 0; i < nodes.Length; i++)
+            {
+                if (nodes[i].NextMainNode == endIndex)
+                    return i;
+            }
+
+            return -1;
+        }
+
+        internal static bool HasImplicitRouteBack(PathModel pathModel, ImmutableArray<ResolvedPathSpan> allSpans,
+            ImmutableArray<ResolvedPathSpan> affectedSpans)
+        {
+            if (pathModel == null || allSpans.IsDefaultOrEmpty || affectedSpans.IsDefaultOrEmpty)
+                return false;
+
+            HashSet<(int From, int To)> precedingEdges = new();
+            foreach (ResolvedPathSpan span in allSpans)
+            {
+                if (affectedSpans.Contains(span) &&
+                    !(span.FromNodeIndex >= 0 && span.FromNodeIndex < pathModel.PathNodes.Length &&
+                    pathModel.PathNodes[span.FromNodeIndex].NodeType.Includes(PathNodeType.Reversal)))
+                {
+                    ImmutableArray<int> route = PrimaryRoute(span);
+                    for (int i = 1; i < route.Length; i++)
+                    {
+                        if (precedingEdges.Contains((route[i], route[i - 1])))
+                            return true;
+                    }
+                }
+
+                AddRouteEdges(precedingEdges, span);
+            }
+
+            return false;
+        }
+
+        private static void AddRouteEdges(HashSet<(int From, int To)> edges, ResolvedPathSpan span)
+        {
+            ImmutableArray<int> route = PrimaryRoute(span);
+            for (int i = 1; i < route.Length; i++)
+                edges.Add((route[i - 1], route[i]));
+        }
+
+        private static ImmutableArray<int> PrimaryRoute(ResolvedPathSpan span)
+        {
+            return span.Candidates.IsDefaultOrEmpty
+                ? span.TrackVectorNodeIndexes
+                : span.Candidates[0].RouteNodeIndexes;
         }
 
         // Adjacency-based span boundaries: a span is affected when one of its bounding nodes was edited. Without
@@ -646,13 +762,19 @@ namespace FreeTrainSimulator.Toolbox
             }
 
             placementMode = mode;
-            moveSourceModel = currentModel;
+            if (mode == PathEditorPlacementMode.BuildRoute)
+                routeAuthoringModel ??= currentModel;
+            moveSourceModel = mode == PathEditorPlacementMode.BuildRoute ? routeAuthoringModel : currentModel;
             movePreviewModel = null;
+            movePreviewAuthoringModel = null;
             movePreviewAnchor = null;
             movingNodeIndex = mode == PathEditorPlacementMode.StartAnchor
                 ? IndexOfNodeType(currentModel, PathNodeType.Start, 0)
                 : IndexOfNodeType(currentModel, PathNodeType.End, currentModel.PathNodes.Length);
             UseStandaloneActivePathPointPreview = true;
+            ActivatePathPlacementInput();
+            if (mode == PathEditorPlacementMode.BuildRoute && movingNodeIndex < currentModel.PathNodes.Length)
+                _ = InitializeActivePathPointPreview(movingNodeIndex);
             SelectPathItem(movingNodeIndex < currentModel.PathNodes.Length ? movingNodeIndex : -1);
             OnPathUpdated?.Invoke(this, new PathEditorChangedEventArgs(TrainPath));
             return true;
@@ -1254,7 +1376,7 @@ namespace FreeTrainSimulator.Toolbox
             TrainPathPointBase candidate = ActivePathPoint;
             if (candidate == null || candidate.ValidationResult != PathNodeInvalidReasons.None || candidate.ConnectedSegments.IsDefaultOrEmpty)
             {
-                // Keep the last valid preview available for Commit Move. The current hover candidate may be
+                // Keep the last valid preview available for Commit Move.
                 // off-track (or the pointer may have moved over WPF chrome), but that should not discard the
                 // last valid target the user previewed.
                 return;
@@ -1275,19 +1397,21 @@ namespace FreeTrainSimulator.Toolbox
             };
             if (!result.Success)
             {
-                ClearMovePreview();
+                // Preserve the last valid preview. A transient invalid hover near overlapping junction geometry
+                // must not erase the route point the user can still see and intends to commit.
                 return;
             }
 
             PathSpanCommitResult spanCommit = EvaluateSpanCommit(result.PathModel, result.ChangedNodeIndexes,
-                "Route point preview.", moveSourceModel);
+                "Route point preview.", moveSourceModel, AllowsAutomaticReversal(placementMode));
             if (spanCommit.Status == PathSpanCommitStatus.Unresolved)
             {
-                ClearMovePreview();
+                // Keep the last resolved preview committable while the pointer crosses an unresolved sliver.
                 return;
             }
 
             movePreviewAnchor = replacementAnchor;
+            movePreviewAuthoringModel = placementMode == PathEditorPlacementMode.BuildRoute ? result.PathModel : null;
             movePreviewSpanCommit = spanCommit;
             movePreviewModel = spanCommit.PathModel;
             SetPreviewPath(movePreviewModel);
@@ -1320,7 +1444,10 @@ namespace FreeTrainSimulator.Toolbox
             bool sourceEditMode = placementSourceEditMode;
             bool sourceUnsavedChanges = placementSourceUnsavedChanges;
             PathModel currentModel = TryGetEditablePathModel();
+            bool canceledBuildRoute = IsBuildingRoute;
             ClearMoveNodeState();
+            if (canceledBuildRoute)
+                routeAuthoringModel = null;
             if (viaSourceModel != null)
             {
                 path = viaSourceModel;
@@ -1570,6 +1697,7 @@ namespace FreeTrainSimulator.Toolbox
                 return PathEditResult.Failed("No path placement is active.", currentModel);
 
             PathModel committedModel = movePreviewModel;
+            PathModel committedAuthoringModel = movePreviewAuthoringModel;
             PathEditResult result = null;
             if (committedModel == null)
             {
@@ -1591,6 +1719,8 @@ namespace FreeTrainSimulator.Toolbox
                     return result;
 
                 committedModel = result.PathModel;
+                if (placementMode == PathEditorPlacementMode.BuildRoute)
+                    committedAuthoringModel = result.PathModel;
             }
 
             PathEditorPlacementMode committedMode = placementMode;
@@ -1601,7 +1731,8 @@ namespace FreeTrainSimulator.Toolbox
             // resolved and materialized exactly like a directly authored anchor.
             ImmutableArray<int> changedNodeIndexes = result?.ChangedNodeIndexes ?? ImmutableArray.Create(movedNodeIndex);
             PathSpanCommitResult spanCommit = movePreviewSpanCommit
-                ?? EvaluateSpanCommit(committedModel, changedNodeIndexes, "Placement committed.", undoSnapshot);
+                ?? EvaluateSpanCommit(committedModel, changedNodeIndexes, "Placement committed.", undoSnapshot,
+                    AllowsAutomaticReversal(placementMode));
             if (spanCommit.Status == PathSpanCommitStatus.Unresolved)
                 return PathEditResult.Failed(spanCommit.Message, currentModel);
             if (spanCommit.Status == PathSpanCommitStatus.Ambiguous)
@@ -1620,6 +1751,8 @@ namespace FreeTrainSimulator.Toolbox
             ClearMoveNodeState();
             path = committedModel;
             currentPathModel = committedModel;
+            if (committedMode == PathEditorPlacementMode.BuildRoute)
+                routeAuthoringModel = committedAuthoringModel;
             RestorePath(committedModel, false);
             PathEditResult committedResult = committedMode switch
             {
@@ -1647,6 +1780,12 @@ namespace FreeTrainSimulator.Toolbox
             OnPathUpdated?.Invoke(this, new PathEditorChangedEventArgs(TrainPath));
             return committedResult;
         }
+
+        // Only the endpoint-authoring modes advance the route forward, so only they can meaningfully interpret a
+        // backwards click as a reversal. Moving an existing node keeps rejecting, because a reversal there would
+        // silently change the meaning of a node the user only intended to reposition.
+        private static bool AllowsAutomaticReversal(PathEditorPlacementMode mode)
+            => mode is PathEditorPlacementMode.BuildRoute or PathEditorPlacementMode.EndAnchor;
 
         private static PathEditResult AddRoutePoint(PathModel pathModel, PathNode anchor, bool isJunction)
         {
@@ -1696,6 +1835,7 @@ namespace FreeTrainSimulator.Toolbox
             placementSourceEditMode = false;
             placementSourceUnsavedChanges = false;
             moveSourceModel = null;
+            movePreviewAuthoringModel = null;
             ClearMovePreview();
             UseStandaloneActivePathPointPreview = false;
             SetHiddenPathNodeIndex(-1);

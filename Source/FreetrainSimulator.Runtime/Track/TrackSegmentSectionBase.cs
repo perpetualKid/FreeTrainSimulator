@@ -101,7 +101,10 @@ namespace FreeTrainSimulator.Runtime.Track
             TrackNodeIndex = trackNodeIndex;
 
             TrackSegmentBase startSegment = ResolveSegment(trackWorld, trackNodeIndex, start);
-            TrackSegmentBase endSegment = ResolveSegment(trackWorld, trackNodeIndex, end);
+            TrackSegmentBase endSegment = ResolveSegment(trackWorld, trackNodeIndex, end,
+                startSegment?.TrackVectorSectionIndex);
+            if (startSegment != null && endSegment != null)
+                startSegment = ResolveSegment(trackWorld, trackNodeIndex, start, endSegment.TrackVectorSectionIndex);
 
             if (startSegment == null || endSegment == null)
             {
@@ -162,18 +165,30 @@ namespace FreeTrainSimulator.Runtime.Track
         /// Resolves the <see cref="TrackSegmentBase"/> at a specific point within a track node,
         /// using the 2D perpendicular distance test on each segment of the node's <see cref="TrackSegmentSection"/>.
         /// </summary>
-        private static TrackSegmentBase ResolveSegment(TrackWorld trackWorld, int trackNodeIndex, in PointD location)
+        private static TrackSegmentBase ResolveSegment(TrackWorld trackWorld, int trackNodeIndex, in PointD location,
+            int? preferredSectionIndex = null)
         {
             TrackSegmentSection segmentSection = trackNodeIndex >= 0 && trackNodeIndex < trackWorld.SegmentSections.Length
                 ? trackWorld.SegmentSections[trackNodeIndex] : null;
             if (segmentSection == null)
                 return null;
+            TrackSegmentBase bestMatch = null;
+            int bestSectionDistance = int.MaxValue;
             foreach (TrackSegmentBase segment in segmentSection.SectionSegments)
             {
-                if (segment.TrackSegmentAt(location))
-                    return segment;
+                if (!segment.TrackSegmentAt(location))
+                    continue;
+
+                int sectionDistance = preferredSectionIndex.HasValue
+                    ? Math.Abs(segment.TrackVectorSectionIndex - preferredSectionIndex.Value)
+                    : 0;
+                if (bestMatch == null || sectionDistance < bestSectionDistance)
+                {
+                    bestMatch = segment;
+                    bestSectionDistance = sectionDistance;
+                }
             }
-            return null;
+            return bestMatch;
         }
 #pragma warning restore CA2214 // Do not call overridable methods in constructors
 
