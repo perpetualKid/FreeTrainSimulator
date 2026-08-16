@@ -216,6 +216,22 @@ namespace Tests.FreeTrainSimulator.Toolbox
         }
 
         [TestMethod]
+        public void WhenBuildRouteIsDoubleClickedThenPathFinishesWithoutCommittingDuplicatePoint()
+        {
+            PathModel source = CreateEditablePath();
+            using PathEditor editor = CreateEditor(source);
+            _ = editor.ContinuePathCommand();
+            PathEditResult preview = InvokeAddRoutePoint(source, CreateNodeAt(200, PathNodeType.None, -1));
+            SetPrivateField(editor, "movePreviewModel", preview.PathModel);
+            SetPrivateField(editor, "lastRoutePointClickTick", Environment.TickCount64);
+
+            editor.MouseReleasedLeft(new PointerCommandArgs(), KeyModifiers.None);
+
+            Assert.IsFalse(editor.IsBuildingRoute);
+            Assert.AreSequenceEqual(source.PathNodes, editor.TryCaptureCurrentPathModel().PathNodes);
+        }
+
+        [TestMethod]
         public void WhenRoutePointIsCommittedThenPreviousEndpointBecomesIntermediate()
         {
             PathModel source = CreateEditablePath();

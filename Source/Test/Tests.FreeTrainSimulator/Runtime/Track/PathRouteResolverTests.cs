@@ -227,6 +227,33 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
         }
 
         [TestMethod]
+        public void ResolveWhenGeneratedVectorAndJunctionAnchorsShareLocationThenKeepsOnlyJunction()
+        {
+            VectorNode coLocatedVector = CreateVectorNode(2);
+            JunctionNode coLocatedJunction = new JunctionNode(coLocatedVector.Location, new Tile(0, 0), Vector3.Zero)
+            {
+                NodeIndex = 3,
+            };
+            TrackWorld trackWorld = CreateTrackWorld(
+                ImmutableArray.Create<TrackNodeBase>(null, CreateVectorNode(1), coLocatedVector, coLocatedJunction, CreateVectorNode(4)),
+                ImmutableArray.Create(new TrackNodeConnectorIndex(), CreateConnectors(1, 2), CreateConnectors(2, 1, 3),
+                    CreateConnectors(3, 2, 4), CreateConnectors(4, 3)));
+            PathModel pathModel = new PathModel
+            {
+                PathNodes = ImmutableArray.Create(
+                    CreateNode(PathNodeType.Start, 1, nodeIndex: 1),
+                    CreateNode(PathNodeType.End, -1, nodeIndex: 4)),
+            };
+
+            PathRouteResolution resolution = PathRouteResolver.Resolve(pathModel, trackWorld, TestContext.CancellationToken);
+            PathGenerationResult generated = PathModelRouteGenerator.GeneratePath(
+                pathModel, resolution, trackWorld, PathRouteResolverOptions.Default);
+
+            Assert.IsTrue(generated.Success);
+            Assert.AreSequenceEqual(new[] { 1, 3, 4 }, generated.PathModel.PathNodes.Select(node => node.NodeIndex).ToArray());
+        }
+
+        [TestMethod]
         public void ResolveWhenShorterRouteCrossesSameJunctionSideThenKeepsIncomingDirection()
         {
             TrackWorld trackWorld = CreateTrackWorld(

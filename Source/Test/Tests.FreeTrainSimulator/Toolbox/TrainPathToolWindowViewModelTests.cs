@@ -153,7 +153,7 @@ namespace Tests.FreeTrainSimulator.Toolbox
         }
 
         [TestMethod]
-        public void WhenNewPathCommandExecutedThenBridgeCreatePathIsMarshaled()
+        public void WhenNewPathCommandExecutedThenStartPlacementIsMarshaled()
         {
             int invocations = 0;
             int createActions = 0;
@@ -182,7 +182,7 @@ namespace Tests.FreeTrainSimulator.Toolbox
 
             viewModel.NewPathCommand.Execute(null);
 
-            Assert.AreEqual("Set the start, then add route points and explicitly finish the path.", viewModel.StatusMessage);
+            Assert.AreEqual("Click track to set the start; continue clicking to add route points, then double-click to finish.", viewModel.StatusMessage);
         }
 
         [TestMethod]

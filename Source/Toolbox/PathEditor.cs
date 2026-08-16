@@ -46,10 +46,12 @@ namespace FreeTrainSimulator.Toolbox
         // One resolution per path model instance, shared by the persisted validation state and by consumers such
         // as the train path tool window, so an edit resolves the path exactly once.
         private readonly PathRouteResolutionCache resolutionCache = new PathRouteResolutionCache();
+        private const long DoubleClickIntervalMilliseconds = 500;
         private PathModelHeader path;
         private PathModel currentPathModel;
 
         private bool editorDragged;
+        private long lastRoutePointClickTick;
         private int movingNodeIndex = -1;
         private PathModel moveSourceModel;
         private PathModel routeAuthoringModel;
@@ -1649,9 +1651,22 @@ namespace FreeTrainSimulator.Toolbox
                 // drag-release location (mirrors the pointerDraggedSinceLeftPress guard in GameWindow.UserActivity).
                 if (!editorDragged)
                 {
-                    PathEditResult result = CommitPlacement();
-                    if (!result.Success)
-                        Trace.TraceWarning($"Cannot commit moved path node: {result.Message}");
+                    long clickTick = Environment.TickCount64;
+                    if (IsBuildingRoute && clickTick - lastRoutePointClickTick <= DoubleClickIntervalMilliseconds)
+                    {
+                        PathEditorCommandResult result = FinishPathCommand();
+                        if (!result.Success)
+                            Trace.TraceWarning($"Cannot finish path: {result.Message}");
+                        lastRoutePointClickTick = 0;
+                    }
+                    else
+                    {
+                        PathEditResult result = CommitPlacement();
+                        if (!result.Success)
+                            Trace.TraceWarning($"Cannot commit moved path node: {result.Message}");
+                        else if (IsBuildingRoute)
+                            lastRoutePointClickTick = clickTick;
+                    }
                     userCommandArgs.Handled = true;
                 }
                 editorDragged = false;
@@ -1836,6 +1851,7 @@ namespace FreeTrainSimulator.Toolbox
             placementSourceUnsavedChanges = false;
             moveSourceModel = null;
             movePreviewAuthoringModel = null;
+            lastRoutePointClickTick = 0;
             ClearMovePreview();
             UseStandaloneActivePathPointPreview = false;
             SetHiddenPathNodeIndex(-1);

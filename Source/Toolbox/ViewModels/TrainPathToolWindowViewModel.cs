@@ -521,8 +521,8 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
 
         private void NewPath()
         {
-            toolWindow.CreatePath();
-            SetStatusMessage("Set the start, then add route points and explicitly finish the path.", false);
+            toolWindow.StartNewPathPlacement();
+            SetStatusMessage("Click track to set the start; continue clicking to add route points, then double-click to finish.", false);
         }
 
         private void BeginStartAnchorPlacement()

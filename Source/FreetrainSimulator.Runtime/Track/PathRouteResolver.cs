@@ -742,10 +742,27 @@ namespace FreeTrainSimulator.Runtime.Track
                     trackVectorNodeIndexes.Add(trackNodeIndex);
 
                 if (options.IncludeGeneratedIntermediaryNodes && i > 0 && i < routeNodeIndexes.Length - 1)
-                    generatedAnchors.Add(new PathRouteAnchor(-1, trackNode.Location, PathNodeType.Intermediate, trackNodeIndex, -1));
+                    AddGeneratedRouteAnchor(generatedAnchors,
+                        new PathRouteAnchor(-1, trackNode.Location, PathNodeType.Intermediate, trackNodeIndex, -1),
+                        trackDatabase);
             }
 
             return new ResolvedRouteCandidate(routeNodeIndexes, trackVectorNodeIndexes.ToImmutable(), generatedAnchors.ToImmutable(), cost);
+        }
+
+        private static void AddGeneratedRouteAnchor(ImmutableArray<PathRouteAnchor>.Builder anchors,
+            PathRouteAnchor anchor, TrackDatabase trackDatabase)
+        {
+            if (anchors.Count == 0 || anchors[^1].TrackVectorSectionIndex >= 0 || anchors[^1].Location != anchor.Location)
+            {
+                anchors.Add(anchor);
+                return;
+            }
+
+            bool previousIsJunction = trackDatabase.TrackNodes[anchors[^1].TrackNodeIndex] is JunctionNode;
+            bool currentIsJunction = trackDatabase.TrackNodes[anchor.TrackNodeIndex] is JunctionNode;
+            if (!previousIsJunction && currentIsJunction)
+                anchors[^1] = anchor;
         }
 
         // Lexicographic order over the traversed track node indexes, giving a stable candidate order.
