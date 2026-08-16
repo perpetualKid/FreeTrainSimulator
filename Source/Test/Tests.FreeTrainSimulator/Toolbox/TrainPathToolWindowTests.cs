@@ -595,7 +595,7 @@ namespace Tests.FreeTrainSimulator.Toolbox
 
             TrainPathSnapshot snapshot = trainPathToolWindow.CaptureTrainPathSnapshot();
             Assert.AreEqual(authoredPath.PathNodes.Length, snapshot.Nodes.Length);
-            Assert.AreEqual(authoredPath.PathNodes.Length.ToString(), snapshot.Metadata.Single(row => row.Name == "Node Count").Value);
+            Assert.AreEqual(authoredPath.PathNodes.Length.ToString(System.Globalization.CultureInfo.InvariantCulture), snapshot.Metadata.Single(row => row.Name == "Node Count").Value);
         }
 
         [TestMethod]

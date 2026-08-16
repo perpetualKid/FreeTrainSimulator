@@ -142,8 +142,7 @@ namespace FreeTrainSimulator.Toolbox
             return Finalize(items);
         }
 
-        private static void AddJunctionExitActions(ImmutableArray<MapContextMenuItem>.Builder items, int fromNodeIndex,
-            ImmutableArray<ResolvedRouteCandidate> candidates, int junctionNodeIndex)
+        private static void AddJunctionExitActions(ImmutableArray<MapContextMenuItem>.Builder items, int fromNodeIndex, ImmutableArray<ResolvedRouteCandidate> candidates, int junctionNodeIndex)
         {
             if (junctionNodeIndex < 0)
                 return;
@@ -155,8 +154,7 @@ namespace FreeTrainSimulator.Toolbox
                 if (junctionRouteIndex < 0 || junctionRouteIndex == routeNodeIndexes.Length - 1)
                     continue;
 
-                items.Add(new MapContextMenuItem(MapContextMenuAction.RouteThroughJunctionExit, fromNodeIndex,
-                    candidateIndex, routeNodeIndexes[junctionRouteIndex + 1].ToString()));
+                items.Add(new MapContextMenuItem(MapContextMenuAction.RouteThroughJunctionExit, fromNodeIndex, candidateIndex, routeNodeIndexes[junctionRouteIndex + 1].ToString(System.Globalization.CultureInfo.InvariantCulture)));
             }
         }
 

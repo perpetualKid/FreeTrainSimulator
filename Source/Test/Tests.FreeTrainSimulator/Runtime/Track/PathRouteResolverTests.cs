@@ -250,7 +250,7 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
                 pathModel, resolution, trackWorld, PathRouteResolverOptions.Default);
 
             Assert.IsTrue(generated.Success);
-            Assert.AreSequenceEqual(new[] { 1, 3, 4 }, generated.PathModel.PathNodes.Select(node => node.NodeIndex).ToArray());
+            Assert.AreSequenceEqual(expectedArray134, generated.PathModel.PathNodes.Select(node => node.NodeIndex).ToArray());
         }
 
         [TestMethod]
@@ -274,10 +274,10 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
 
             PathRouteResolution result = PathRouteResolver.Resolve(pathModel, trackWorld, TestContext.CancellationToken);
 
-            Assert.AreSequenceEqual(new[] { 1, 3, 2 }, result.MainRoute.Spans[0].Candidates.Single().RouteNodeIndexes.ToArray());
+            Assert.AreSequenceEqual(expectedArray132, result.MainRoute.Spans[0].Candidates.Single().RouteNodeIndexes.ToArray());
             PathGenerationResult generated = PathModelRouteGenerator.GeneratePath(pathModel, result, trackWorld, PathRouteResolverOptions.Default);
             Assert.IsTrue(generated.Success);
-            Assert.AreSequenceEqual(new[] { 1, 3, 2 }, generated.PathModel.PathNodes.Select(node => node.NodeIndex).ToArray());
+            Assert.AreSequenceEqual(expectedArray132, generated.PathModel.PathNodes.Select(node => node.NodeIndex).ToArray());
         }
 
         [TestMethod]
@@ -1030,5 +1030,6 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
         private static readonly int[] expectedArray152 = new[] { 1, 5, 2 };
         private static readonly int[] expectedArray132 = new[] { 1, 3, 2 };
         private static readonly int[] expectedArray142 = new[] { 1, 4, 2 };
+        private static readonly int[] expectedArray134 = new[] { 1, 3, 4 };
     }
 }
