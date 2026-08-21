@@ -413,7 +413,7 @@ namespace Tests.FreeTrainSimulator.Toolbox
 
             PathEditorCommandResult result = editor.SetEndAnchorCommand(CreateNodeAt(100, PathNodeType.None, -1), false);
 
-            Assert.IsTrue(result.Success);
+            Assert.IsTrue(result.Success, result.Message);
             Assert.IsTrue(HasNodeType(editor.TryCaptureCurrentPathModel(), PathNodeType.End));
         }
 
@@ -454,6 +454,27 @@ namespace Tests.FreeTrainSimulator.Toolbox
             Assert.IsTrue(editor.HasPendingAmbiguousSpanCommit);
             Assert.IsFalse(HasNodeType(editor.TryCaptureCurrentPathModel(), PathNodeType.End));
             Assert.IsFalse(editor.CanUndo);
+        }
+
+        [TestMethod]
+        public void WhenSpanGenerationFailsThenCommittedStateAndHistoryRemainUnchanged()
+        {
+            PathModel source = CreateNonRejoiningPassingPath();
+            using PathEditor editor = CreateEditor(source);
+            _ = editor.SetWaitPointCommand(1, 10);
+            _ = editor.Undo();
+            SetPrivateField(editor, "unsavedChanges", false);
+            PathModel committedModel = editor.TryCaptureCurrentPathModel();
+            bool canUndo = editor.CanUndo;
+            bool canRedo = editor.CanRedo;
+
+            PathEditorCommandResult result = editor.SetEndAnchorCommand(CreateNodeAt(90, PathNodeType.None, -1), false);
+
+            Assert.IsFalse(result.Success);
+            Assert.AreSame(committedModel, editor.TryCaptureCurrentPathModel());
+            Assert.IsFalse(editor.HasUnsavedChanges);
+            Assert.AreEqual(canUndo, editor.CanUndo);
+            Assert.AreEqual(canRedo, editor.CanRedo);
         }
 
         [TestMethod]
@@ -1001,6 +1022,20 @@ namespace Tests.FreeTrainSimulator.Toolbox
             {
                 NodeType = nodeType,
                 NextMainNode = nextMainNode,
+            };
+        }
+
+        private static PathModel CreateNonRejoiningPassingPath()
+        {
+            return new PathModel
+            {
+                Id = "broken-passing-path",
+                Name = "Broken Passing Path",
+                PathNodes = ImmutableArray.Create(
+                    CreateNodeAt(0, PathNodeType.Start, 1) with { NextSidingNode = 2 },
+                    CreateNodeAt(50, PathNodeType.Intermediate, 3),
+                    CreateNodeAt(25, PathNodeType.Intermediate, -1),
+                    CreateNodeAt(100, PathNodeType.End, -1)),
             };
         }
 

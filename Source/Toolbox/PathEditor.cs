@@ -204,7 +204,7 @@ namespace FreeTrainSimulator.Toolbox
         /// </summary>
         internal PathRouteResolution ResolveCurrent(PathModel pathModel)
         {
-            return resolutionCache.Resolve(pathModel, RuntimeDataResolver.Instance?.TrackWorld);
+            return resolutionCache.Resolve(pathModel, TrackWorld);
         }
 
         private static async Task<bool> CanInitializePathAsync(PathModelHeader path, CancellationToken cancellationToken)
@@ -477,6 +477,13 @@ namespace FreeTrainSimulator.Toolbox
             PathRouteResolution resolution = PathRouteResolver.Resolve(tentativeModel, TrackWorld, PathRouteResolverOptions.Default, CancellationToken.None);
             ImmutableArray<ResolvedPathSpan> affectedSpans = AffectedSpans(resolution, changedNodeIndexes);
 
+            if (affectedSpans.IsEmpty)
+            {
+                return CanCommitStandaloneStartAnchor(tentativeModel, changedNodeIndexes)
+                    ? PathSpanCommitResult.Resolved(message, tentativeModel, changedNodeIndexes)
+                    : PathSpanCommitResult.Unresolved("The edit did not produce a route span that can be materialized.", sourceModel);
+            }
+
             ImmutableArray<ResolvedPathSpan> ambiguousSpans = affectedSpans
                 .Where(span => span.Status == PathRouteSpanStatus.Ambiguous || span.Candidates.Length > 1)
                 .ToImmutableArray();
@@ -504,10 +511,10 @@ namespace FreeTrainSimulator.Toolbox
             }
 
             // Materialize the generated intermediaries so the committed model is the single persistence source.
-            PathGenerationResult generated = PathModelRouteGenerator.GeneratePath(tentativeModel, resolution, TrackWorld, PathRouteResolverOptions.Default);
-            return generated.Success
-                ? PathSpanCommitResult.Resolved(message, generated.PathModel, generated.ChangedNodeIndexes)
-                : PathSpanCommitResult.Resolved(message, tentativeModel, changedNodeIndexes);
+            PathPersistenceValidationResult materialization = PathPersistenceValidationPolicy.MaterializeResolvedPath(tentativeModel, resolution, TrackWorld);
+            return materialization.PersistenceAllowed
+                ? PathSpanCommitResult.Resolved(message, materialization.PathModel, materialization.ChangedNodeIndexes)
+                : PathSpanCommitResult.Unresolved(materialization.FailureMessage, sourceModel);
         }
 
         // Marks the route point preceding the end anchor as a reversal and re-evaluates. Returns null when the
@@ -534,6 +541,17 @@ namespace FreeTrainSimulator.Toolbox
                 $"{message} Reversal added at node {reversalNodeIndex}.", sourceModel, false);
 
             return result.Success ? result : null;
+        }
+
+        private static bool CanCommitStandaloneStartAnchor(PathModel pathModel, ImmutableArray<int> changedNodeIndexes)
+        {
+            ImmutableArray<PathNode> nodes = pathModel.PathNodes.IsDefault ? ImmutableArray<PathNode>.Empty : pathModel.PathNodes;
+            return nodes.Length == 1
+                && changedNodeIndexes.Length == 1
+                && changedNodeIndexes[0] == 0
+                && nodes[0].NodeType.Includes(PathNodeType.Start)
+                && nodes[0].NextMainNode == -1
+                && nodes[0].NextSidingNode == -1;
         }
 
         // The node linking to the end anchor on the main chain, i.e. the route point committed just before it.
@@ -903,13 +921,13 @@ namespace FreeTrainSimulator.Toolbox
 
         public PathEditResult RepairSelectedNode(int nodeIndex)
         {
-            return ApplySelectedNodeEdit(nodeIndex, model => PathModelEditor.RepairNode(model, nodeIndex, RuntimeDataResolver.Instance.TrackWorld));
+            return ApplySelectedNodeEdit(nodeIndex, model => PathModelEditor.RepairNode(model, nodeIndex, TrackWorld));
         }
 
         public bool CanRepairNode(int nodeIndex)
         {
             PathModel currentModel = TryGetEditablePathModel();
-            return currentModel != null && PathModelEditor.RepairNode(currentModel, nodeIndex, RuntimeDataResolver.Instance.TrackWorld).Success;
+            return currentModel != null && PathModelEditor.RepairNode(currentModel, nodeIndex, TrackWorld).Success;
         }
 
         public void HighlightDiagnosticTarget(int nodeIndex, int fromNodeIndex, int toNodeIndex)
@@ -1552,28 +1570,60 @@ namespace FreeTrainSimulator.Toolbox
         internal static PathGenerationResult GenerateTrackSnappedPath(PathModel model, TrackWorld trackWorld)
         {
             PathRouteResolution resolution = PathRouteResolver.Resolve(model, trackWorld, PathRouteResolverOptions.Default, CancellationToken.None);
-            return PathModelRouteGenerator.GeneratePath(model, resolution, trackWorld, PathRouteResolverOptions.Default);
+            PathPersistenceValidationResult materialization = PathPersistenceValidationPolicy.MaterializeResolvedPath(model, resolution, trackWorld);
+            return materialization.PersistenceAllowed
+                ? PathGenerationResult.Succeeded("Path generated.", materialization.PathModel, materialization.Diagnostics, materialization.ChangedNodeIndexes)
+                : PathGenerationResult.Failed(materialization.FailureMessage, model, materialization.Diagnostics);
         }
         #endregion
 
-        public async Task SavePath(PathModelHeader pathDetails)
+        public async Task<PathPersistenceValidationResult> SavePath(PathModelHeader pathDetails)
         {
+            ArgumentNullException.ThrowIfNull(pathDetails);
+
             PathModel pathModel = new PathModel(pathDetails) { PathNodes = currentPathModel?.PathNodes ?? ImmutableArray<PathNode>.Empty };
-
-            // Editor-saved paths are always normalized to track (guard-and-refuse preserves passing-branch paths).
-            pathModel = TrySnapForSave(pathModel);
-
-            // Stamp the validation state from the model that will actually be persisted so the header is self-describing.
-            pathModel = pathModel with { ValidationState = ResolveValidationState(pathModel, RuntimeDataResolver.Instance.TrackWorld) };
 
             // The toolbox registers RuntimeDataResolver process-wide only (RuntimeDataResolver.Initialize
             // passes game: null), so Instance is the single authoritative resolver here; a game-scoped
             // GameInstance(game) lookup would resolve to the same object.
-            pathModel = await RuntimeDataResolver.Instance.RouteData.Save(pathModel).ConfigureAwait(false);
+            PathPersistenceValidationResult validation = await SaveValidatedPath(pathModel, RuntimeDataResolver.Instance.RouteData,
+                RuntimeDataResolver.Instance.TrackWorld).ConfigureAwait(false);
+            if (!validation.PersistenceAllowed)
+                return validation;
+
+            pathModel = validation.PathModel;
             path = pathModel;
             currentPathModel = pathModel;
             unsavedChanges = false;
             OnPathChanged?.Invoke(this, new PathEditorChangedEventArgs(TrainPath));
+            return validation;
+        }
+
+        internal PathPersistenceValidationResult ValidateCurrentPathForPersistence()
+        {
+            PathModel pathModel = TryGetEditablePathModel();
+            if (pathModel == null)
+            {
+                return new PathPersistenceValidationResult(false, null, null, default, default,
+                    "No editable path is currently loaded.", null);
+            }
+
+            return PathPersistenceValidationPolicy.ValidateForPersistence(pathModel, ResolveCurrent(pathModel), TrackWorld);
+        }
+
+        internal static async Task<PathPersistenceValidationResult> SaveValidatedPath(PathModel pathModel, RouteModel routeData, TrackWorld trackWorld)
+        {
+            ArgumentNullException.ThrowIfNull(pathModel);
+            ArgumentNullException.ThrowIfNull(routeData);
+
+            PathPersistenceValidationResult validation = PathPersistenceValidationPolicy.ValidateForPersistence(pathModel, trackWorld);
+            if (!validation.PersistenceAllowed)
+                return validation;
+
+            PathModel validatedModel = validation.PathModel with { ValidationState = ResolveValidationState(validation.Resolution) };
+            PathModel savedModel = await routeData.Save(validatedModel).ConfigureAwait(false);
+            return new PathPersistenceValidationResult(true, savedModel, validation.Resolution, validation.Diagnostics,
+                validation.ChangedNodeIndexes, null, null);
         }
 
         /// <summary>
@@ -1623,19 +1673,6 @@ namespace FreeTrainSimulator.Toolbox
                 Trace.TraceInformation($"Validated {revalidatedCount} path(s) for route '{routeModel.Id}'; {invalidCount} invalid.");
 
             return invalidCount;
-        }
-
-        // Attempts to snap the model to track before saving. Passing branches that rejoin the main route are
-        // woven into the generated path; paths that fail to resolve or whose passing shapes the generator cannot
-        // represent are saved as authored (never dropping data), with the reason traced.
-        private static PathModel TrySnapForSave(PathModel pathModel)
-        {
-            PathGenerationResult snapped = GenerateTrackSnappedPath(pathModel, RuntimeDataResolver.Instance.TrackWorld);
-            if (snapped.Success)
-                return snapped.PathModel;
-
-            Trace.TraceWarning($"Snap-to-track on save skipped for path '{pathModel.Id}': {snapped.Message}");
-            return pathModel;
         }
 
         public void MouseDragged(UserCommandArgs userCommandArgs, KeyModifiers keyModifiers)

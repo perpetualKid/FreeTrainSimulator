@@ -381,12 +381,64 @@ namespace Tests.FreeTrainSimulator.Toolbox
         {
             int invocations = 0;
             int saveActions = 0;
-            TrainPathToolWindow trainPathToolWindow = CreateTrainPathToolWindow(action => { invocations++; action(); }, () => { }, () => saveActions++);
+            using PathEditor editor = CreatePathEditor(CreatePathModel(PathNodeType.Start, PathNodeType.End));
+            TrainPathToolWindow trainPathToolWindow = new TrainPathToolWindow(() => editor, () => null,
+                action => { invocations++; action(); }, () => { }, () => saveActions++, _ => { }, () => { }, () => { });
 
             trainPathToolWindow.SavePath();
 
             Assert.AreEqual(1, invocations);
             Assert.AreEqual(1, saveActions);
+        }
+
+        [TestMethod]
+        public void WhenSaveValidationIsBlockedThenSaveActionIsNotInvokedAndDiagnosticIsExposed()
+        {
+            int saveActions = 0;
+            PathModel invalidPath = CreatePathModel(PathNodeType.Start | PathNodeType.Junction, PathNodeType.Intermediate, PathNodeType.End);
+            using PathEditor editor = CreatePathEditor(invalidPath);
+            _ = editor.SetWaitPointCommand(1, 10);
+            _ = editor.Undo();
+            typeof(PathEditor).GetField("unsavedChanges", BindingFlags.Instance | BindingFlags.NonPublic).SetValue(editor, false);
+            PathModel committedModel = editor.TryCaptureCurrentPathModel();
+            bool canUndo = editor.CanUndo;
+            bool canRedo = editor.CanRedo;
+            TrainPathToolWindow trainPathToolWindow = new TrainPathToolWindow(() => editor, () => null,
+                action => action(), () => { }, () => saveActions++, _ => { }, () => { }, () => { })
+            {
+                Active = true,
+            };
+
+            trainPathToolWindow.SavePath();
+            trainPathToolWindow.RefreshSnapshot();
+
+            TrainPathSnapshot snapshot = trainPathToolWindow.CaptureTrainPathSnapshot();
+            Assert.AreEqual(0, saveActions);
+            Assert.IsFalse(string.IsNullOrWhiteSpace(snapshot.BlockedSaveMessage));
+            Assert.AreEqual(PathRouteDiagnosticCode.NoJunctionNode, snapshot.BlockedSaveDiagnostic?.Code);
+            Assert.AreSame(committedModel, editor.TryCaptureCurrentPathModel());
+            Assert.IsFalse(editor.HasUnsavedChanges);
+            Assert.AreEqual(canUndo, editor.CanUndo);
+            Assert.AreEqual(canRedo, editor.CanRedo);
+        }
+
+        [TestMethod]
+        public void WhenPostDialogSaveIsBlockedThenFeedbackIsPublishedForTheCurrentEditorModel()
+        {
+            PathModel invalidPath = CreatePathModel(PathNodeType.Start | PathNodeType.Junction, PathNodeType.Intermediate, PathNodeType.End);
+            using PathEditor editor = CreatePathEditor(invalidPath);
+            PathModel saveModel = new PathModel(invalidPath) { Name = "Updated Path Name" };
+            PathPersistenceValidationResult validation = PathPersistenceValidationPolicy.ValidateForPersistence(saveModel, CreateInitializedTrackWorld());
+            TrainPathToolWindow trainPathToolWindow = new TrainPathToolWindow(() => editor, () => null,
+                action => action(), () => { }, () => { }, _ => { }, () => { }, () => { })
+            {
+                Active = true,
+            };
+
+            trainPathToolWindow.ReportBlockedSave(validation, editor.TryCaptureCurrentPathModel());
+            trainPathToolWindow.RefreshSnapshot();
+
+            Assert.IsFalse(string.IsNullOrWhiteSpace(trainPathToolWindow.CaptureTrainPathSnapshot().BlockedSaveMessage));
         }
 
         [TestMethod]
@@ -715,6 +767,14 @@ namespace Tests.FreeTrainSimulator.Toolbox
                 Name = "Test Path",
                 PathNodes = nodes.ToImmutable(),
             };
+        }
+
+        private static PathEditor CreatePathEditor(PathModel pathModel)
+        {
+            PathEditor editor = new PathEditor(new TestPathEditorContext(CreateInitializedTrackWorld()));
+            editor.InitializeNewPath();
+            typeof(PathEditor).GetMethod("RestoreSnapshot", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(editor, new object[] { pathModel });
+            return editor;
         }
 
         private sealed class TestPathEditorContext : IPathEditorContext, IPathEditorContextServicesAccessor

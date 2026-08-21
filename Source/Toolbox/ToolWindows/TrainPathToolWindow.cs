@@ -202,6 +202,15 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
         /// <summary>Resolver diagnostics of the currently edited path.</summary>
         public ImmutableArray<TrainPathDiagnosticRow> Diagnostics { get; init; }
 
+        /// <summary>Actionable feedback from the latest blocked save request.</summary>
+        public string BlockedSaveMessage { get; init; }
+
+        /// <summary>Diagnostic to focus for the latest blocked save request, when available.</summary>
+        public TrainPathDiagnosticRow? BlockedSaveDiagnostic { get; init; }
+
+        /// <summary>Version incremented for each blocked save request.</summary>
+        public int BlockedSaveFeedbackVersion { get; init; }
+
         /// <summary>Whether an undo step is available.</summary>
         public bool CanUndo { get; init; }
 
@@ -251,6 +260,9 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
             Metadata = ImmutableArray<ToolWindowRow>.Empty,
             RouteCandidates = ImmutableArray<TrainPathRouteCandidateRow>.Empty,
             Diagnostics = ImmutableArray<TrainPathDiagnosticRow>.Empty,
+            BlockedSaveMessage = null,
+            BlockedSaveDiagnostic = null,
+            BlockedSaveFeedbackVersion = 0,
             CanUndo = false,
             CanRedo = false,
             CanSnapToTrack = false,
@@ -295,6 +307,9 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
         private int lastNodeCount = -1;
         private int snapshotVersion;
         private int lastSnapshotVersion = -1;
+        private PathPersistenceValidationResult blockedSaveValidation;
+        private PathModel blockedSaveSourceModel;
+        private int blockedSaveFeedbackVersion;
 
         internal TrainPathToolWindow(Func<PathEditor> pathEditorAccessor, Func<ITrainPathToolingContext> toolingContextAccessor,
             Action<Action> gameThreadInvoker, Action createPathAction, Action savePathAction, Action<PathModelHeader> loadPathAction,
@@ -339,6 +354,8 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
             PathEditor pathEditor = pathEditorAccessor();
             if (pathEditor == null)
             {
+                ClearBlockedSaveFeedback();
+
                 // No edit session is active, but the available-paths list (and its validation markers) must
                 // still be shown and refreshed, e.g. after loading a route or running "Validate All". The path
                 // list only changes when UpdatePaths/InvalidatePaths bump snapshotVersion, so rebuild the
@@ -366,7 +383,11 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
             }
 
             TrainPathBase authoredPath = pathEditor.TrainPath;
-            PathModel currentPathModel = NormalizeTransientPathModel(pathEditor.TryCaptureCurrentPathModel() ?? authoredPath?.PathModel);
+            PathModel editorPathModel = pathEditor.TryCaptureCurrentPathModel() ?? authoredPath?.PathModel;
+            if (blockedSaveValidation != null && !ReferenceEquals(blockedSaveSourceModel, editorPathModel))
+                ClearBlockedSaveFeedback();
+
+            PathModel currentPathModel = NormalizeTransientPathModel(editorPathModel);
             ImmutableArray<TrainPathListRow> paths = BuildPaths(currentPathModel);
             string selectedPathId = authoredPath?.PathModel?.Id;
             int nodeCount = authoredPath?.PathPoints.Count ?? 0;
@@ -407,6 +428,7 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
                 && canCancelNewPath == snapshot.CanCancelNewPath
                 && isBuildingRoute == snapshot.IsBuildingRoute
                 && canFinishPath == snapshot.CanFinishPath
+                && blockedSaveFeedbackVersion == snapshot.BlockedSaveFeedbackVersion
                 && paths.SequenceEqual(snapshot.Paths))
             {
                 return;
@@ -415,6 +437,7 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
             lastPathId = selectedPathId;
             lastNodeCount = nodeCount;
             lastSnapshotVersion = currentSnapshotVersion;
+            ImmutableArray<TrainPathDiagnosticRow> diagnostics = BuildResolverDiagnostics(pathEditor.ResolveCurrent(currentPathModel), pathEditor);
 
             snapshot = new TrainPathSnapshot
             {
@@ -424,7 +447,10 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
                 SelectedNodeIndex = selectedNodeIndex,
                 Metadata = BuildMetadata(pathEditor, authoredPath),
                 RouteCandidates = BuildRouteCandidates(pathEditor),
-                Diagnostics = BuildResolverDiagnostics(pathEditor.ResolveCurrent(currentPathModel), pathEditor),
+                Diagnostics = diagnostics,
+                BlockedSaveMessage = blockedSaveValidation?.FailureMessage,
+                BlockedSaveDiagnostic = FindDiagnosticRow(diagnostics, blockedSaveValidation?.HighestActionableDiagnostic),
+                BlockedSaveFeedbackVersion = blockedSaveFeedbackVersion,
                 CanUndo = canUndo,
                 CanRedo = canRedo,
                 CanSnapToTrack = canSnapToTrack,
@@ -653,7 +679,44 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
 
         internal void SavePath()
         {
-            gameThreadInvoker(savePathAction);
+            gameThreadInvoker(() =>
+            {
+                PathEditor pathEditor = pathEditorAccessor();
+                if (pathEditor == null)
+                    return;
+
+                PathPersistenceValidationResult validation = pathEditor.ValidateCurrentPathForPersistence();
+                if (!validation.PersistenceAllowed)
+                {
+                    ReportBlockedSave(validation, pathEditor.TryCaptureCurrentPathModel());
+                    return;
+                }
+
+                ClearBlockedSaveFeedback();
+                savePathAction();
+                MarkDirty();
+            });
+        }
+
+        internal void ReportBlockedSave(PathPersistenceValidationResult validation, PathModel sourceModel)
+        {
+            ArgumentNullException.ThrowIfNull(validation);
+            ArgumentNullException.ThrowIfNull(sourceModel);
+
+            blockedSaveValidation = validation;
+            blockedSaveSourceModel = sourceModel;
+            blockedSaveFeedbackVersion++;
+            MarkDirty();
+        }
+
+        private void ClearBlockedSaveFeedback()
+        {
+            if (blockedSaveValidation == null)
+                return;
+
+            blockedSaveValidation = null;
+            blockedSaveSourceModel = null;
+            blockedSaveFeedbackVersion++;
         }
 
         private void ExecuteEditorCommand(Func<PathEditor, PathEditorCommandResult> command, Action onSuccess = null)
@@ -782,6 +845,25 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
             return builder.ToImmutable();
         }
 
+        private static TrainPathDiagnosticRow? FindDiagnosticRow(ImmutableArray<TrainPathDiagnosticRow> diagnostics, PathRouteDiagnostic diagnostic)
+        {
+            if (diagnostic == null)
+                return null;
+
+            foreach (TrainPathDiagnosticRow row in diagnostics)
+            {
+                if (row.Code == diagnostic.Code
+                    && row.NodeIndex == diagnostic.NodeIndex
+                    && row.FromNodeIndex == diagnostic.FromNodeIndex
+                    && row.ToNodeIndex == diagnostic.ToNodeIndex)
+                {
+                    return row;
+                }
+            }
+
+            return null;
+        }
+
         private static ImmutableArray<TrainPathNodeRow> BuildNodes(TrainPathBase currentPath)
         {
             if (currentPath == null)
@@ -893,6 +975,7 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
         /// </summary>
         internal void InvalidatePaths()
         {
+            ClearBlockedSaveFeedback();
             cachedPaths = ImmutableArray<PathModelHeader>.Empty;
             transientPaths.Clear();
             lastPathId = null;

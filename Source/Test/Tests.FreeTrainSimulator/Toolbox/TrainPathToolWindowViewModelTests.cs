@@ -200,7 +200,7 @@ namespace Tests.FreeTrainSimulator.Toolbox
                     trainPathToolWindowViewModel.SavePathCommand.Execute(null);
 
                     Assert.AreEqual(1, invocations);
-                    Assert.AreEqual(1, saveActions);
+                    Assert.AreEqual(0, saveActions);
                 }
             }
         }
@@ -223,6 +223,31 @@ namespace Tests.FreeTrainSimulator.Toolbox
                     Assert.Contains("node 2", trainPathToolWindowViewModel.StatusMessage);
                 }
             }
+        }
+
+        [TestMethod]
+        public void WhenSaveIsBlockedThenActionableDiagnosticIsSelectedAndStatusIsShown()
+        {
+            TrainPathDiagnosticRow diagnostic = new TrainPathDiagnosticRow(
+                PathRouteDiagnosticSeverity.Error, PathRouteDiagnosticCode.AnchorNotOnTrack, "Node is off track.",
+                2, -1, -1, "Move the node onto track.", true);
+            TrainPathToolWindow bridge = CreateBridge(action => action());
+            SetBridgeSnapshot(bridge, TrainPathSnapshot.Empty with
+            {
+                Diagnostics = [diagnostic],
+                BlockedSaveMessage = "Path cannot be saved because a node is off track.",
+                BlockedSaveDiagnostic = diagnostic,
+                BlockedSaveFeedbackVersion = 1,
+            });
+            using ToolWindowRefreshScheduler refreshScheduler = new ToolWindowRefreshScheduler(Dispatcher.CurrentDispatcher);
+            using TrainPathToolWindowViewModel viewModel = new TrainPathToolWindowViewModel(bridge, refreshScheduler);
+
+            viewModel.Start();
+
+            Assert.IsTrue(viewModel.StatusMessageIsWarning);
+            Assert.AreEqual("Path cannot be saved because a node is off track.", viewModel.StatusMessage);
+            Assert.AreEqual(2, viewModel.SelectedTabIndex);
+            Assert.AreEqual(PathRouteDiagnosticCode.AnchorNotOnTrack, viewModel.SelectedDiagnostic?.Code);
         }
 
         [TestMethod]
@@ -616,6 +641,11 @@ namespace Tests.FreeTrainSimulator.Toolbox
         private static void SetCommandAvailability(TrainPathToolWindowViewModel viewModel, string fieldName, object value)
         {
             typeof(TrainPathToolWindowViewModel).GetField(fieldName, BindingFlags.Instance | BindingFlags.NonPublic).SetValue(viewModel, value);
+        }
+
+        private static void SetBridgeSnapshot(TrainPathToolWindow bridge, TrainPathSnapshot snapshot)
+        {
+            typeof(TrainPathToolWindow).GetField("snapshot", BindingFlags.Instance | BindingFlags.NonPublic).SetValue(bridge, snapshot);
         }
     }
 }

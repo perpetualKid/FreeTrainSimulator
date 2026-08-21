@@ -575,7 +575,14 @@ namespace FreeTrainSimulator.Toolbox
 
             try
             {
-                await editor.SavePath(pathDetails).ConfigureAwait(true);
+                PathPersistenceValidationResult validation = await editor.SavePath(pathDetails).ConfigureAwait(true);
+                if (!validation.PersistenceAllowed)
+                {
+                    Trace.TraceWarning(validation.FailureMessage);
+                    hostedTrainPathToolWindow?.ReportBlockedSave(validation, editor.TryCaptureCurrentPathModel());
+                    return;
+                }
+
                 ImmutableArray<PathModelHeader> paths = await route.GetRoutePaths(ctsProfileLoading?.Token ?? CancellationToken.None).ConfigureAwait(true);
                 menu.PopulatePaths(paths);
                 hostedTrainPathToolWindow?.UpdatePaths(paths);

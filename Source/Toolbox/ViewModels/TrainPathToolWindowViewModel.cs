@@ -44,6 +44,8 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
         private int? selectedNodeWaitTime;
         private bool suppressSelectionCommand;
         private bool suppressWaitTimeCommand;
+        private int blockedSaveFeedbackVersion;
+        private string blockedSaveStatusMessage;
 
         public TrainPathToolWindowViewModel(TrainPathToolWindow toolWindow, ToolWindowRefreshScheduler scheduler)
             : base(scheduler, ToolWindowRefreshScheduler.BaseInterval)
@@ -471,6 +473,7 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
             DebugToolWindowRowViewModel.Sync(Metadata, snapshot.Metadata);
             SyncRouteCandidates(snapshot.RouteCandidates);
             SyncDiagnostics(snapshot.Diagnostics);
+            ApplyBlockedSaveFeedback(snapshot);
             CanUndo = snapshot.CanUndo;
             CanRedo = snapshot.CanRedo;
             CanSnapToTrack = snapshot.CanSnapToTrack;
@@ -499,6 +502,33 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
                 snapshotSelectedPathId = snapshot.SelectedPathId;
                 UpdateSelectedPathFromSnapshot();
             }
+        }
+
+        private void ApplyBlockedSaveFeedback(TrainPathSnapshot snapshot)
+        {
+            if (snapshot.BlockedSaveFeedbackVersion == blockedSaveFeedbackVersion)
+                return;
+
+            blockedSaveFeedbackVersion = snapshot.BlockedSaveFeedbackVersion;
+            if (string.IsNullOrWhiteSpace(snapshot.BlockedSaveMessage))
+            {
+                if (string.Equals(StatusMessage, blockedSaveStatusMessage, StringComparison.Ordinal))
+                    SetStatusMessage(string.Empty, false);
+                blockedSaveStatusMessage = null;
+                return;
+            }
+
+            blockedSaveStatusMessage = snapshot.BlockedSaveMessage;
+            SetStatusMessage(snapshot.BlockedSaveMessage, true);
+            SelectedTabIndex = 2;
+
+            if (snapshot.BlockedSaveDiagnostic is not TrainPathDiagnosticRow diagnostic)
+                return;
+
+            SelectedDiagnostic = Diagnostics.FirstOrDefault(item => item.Code == diagnostic.Code
+                && item.NodeIndex == diagnostic.NodeIndex
+                && item.FromNodeIndex == diagnostic.FromNodeIndex
+                && item.ToNodeIndex == diagnostic.ToNodeIndex);
         }
 
         private void ContinuePath()
