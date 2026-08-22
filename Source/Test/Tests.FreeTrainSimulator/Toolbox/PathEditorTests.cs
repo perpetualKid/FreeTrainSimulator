@@ -2,6 +2,8 @@ using System.Collections.Immutable;
 using System;
 using System.Linq;
 using System.Reflection;
+using System.Threading;
+using System.Threading.Tasks;
 
 using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Input;
@@ -891,6 +893,120 @@ namespace Tests.FreeTrainSimulator.Toolbox
         }
 
         [TestMethod]
+        public async Task WhenSaveCompletesAfterANewerEditThenTheNewerModelRemainsDirty()
+        {
+            PathModel source = CreateEditablePath();
+            using PathEditor editor = CreateEditor(source);
+            PathPersistenceValidationResult saved = new(true, source with { Name = "Saved Path" }, null, default, default, null, null);
+            TaskCompletionSource<PathPersistenceValidationResult> persistence = new(TaskCreationOptions.RunContinuationsAsynchronously);
+            PathSaveOperation operation = CreatePendingSaveOperation(editor, source, persistence.Task);
+
+            PathEditorCommandResult edit = editor.SetStartAnchorCommand(CreateNodeAt(25, PathNodeType.None, -1), false);
+            PathModel newerModel = editor.TryCaptureCurrentPathModel();
+            PathModelHeader activeHeader = typeof(PathEditor).GetField("path", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(editor) as PathModelHeader;
+            bool canUndo = editor.CanUndo;
+            int pathChangedEvents = 0;
+            editor.OnPathChanged += (_, _) => pathChangedEvents++;
+            persistence.SetResult(saved);
+            _ = await PathSaveOperationConsumer.ConsumeAsync(editor, operation, action => action());
+
+            Assert.IsTrue(edit.Success);
+            Assert.AreSame(newerModel, editor.TryCaptureCurrentPathModel());
+            Assert.IsTrue(editor.HasUnsavedChanges);
+            Assert.AreEqual(canUndo, editor.CanUndo);
+            Assert.AreSame(activeHeader, typeof(PathEditor).GetField("path", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(editor));
+            Assert.AreEqual(0, pathChangedEvents);
+            Assert.IsFalse(editor.IsSaveInProgress);
+        }
+
+        [TestMethod]
+        public async Task WhenRejectedDuplicateSaveIsConsumedThenItCannotClearTheActiveSaveOrPermitAThirdSave()
+        {
+            PathModel source = CreateEditablePath();
+            using PathEditor editor = CreateEditor(source);
+            TaskCompletionSource<PathPersistenceValidationResult> firstPersistence = new(TaskCreationOptions.RunContinuationsAsynchronously);
+            PathSaveOperation first = CreatePendingSaveOperation(editor, source, firstPersistence.Task);
+            PathSaveOperation duplicate = editor.BeginSave(source);
+
+            PathPersistenceValidationResult duplicateResult = await PathSaveOperationConsumer.ConsumeAsync(editor, duplicate, action => action());
+            PathSaveOperation third = editor.BeginSave(source);
+
+            Assert.IsTrue(editor.IsSaveInProgress);
+            Assert.IsFalse(duplicateResult.PersistenceAllowed);
+            Assert.IsFalse(third.Acquired);
+
+            firstPersistence.SetResult(new PathPersistenceValidationResult(true, source, null, default, default, null, null));
+            _ = await PathSaveOperationConsumer.ConsumeAsync(editor, first, action => action());
+
+            Assert.IsFalse(editor.IsSaveInProgress);
+        }
+
+        [TestMethod]
+        public async Task WhenPersistenceThrowsUnexpectedExceptionThenSaveAvailabilityAndEditorStateAreRestored()
+        {
+            PathModel source = CreateEditablePath();
+            using PathEditor editor = CreateEditor(source);
+            _ = editor.SetStartAnchorCommand(CreateNodeAt(25, PathNodeType.None, -1), false);
+            PathModel committedModel = editor.TryCaptureCurrentPathModel();
+            bool dirty = editor.HasUnsavedChanges;
+            bool canUndo = editor.CanUndo;
+            bool canRedo = editor.CanRedo;
+            PathSaveOperation operation = CreatePendingSaveOperation(editor, committedModel,
+                Task.FromException<PathPersistenceValidationResult>(new NotSupportedException("Test persistence failure.")));
+
+            await PathSaveOperationConsumer.ConsumeAsync(editor, operation, action => action()).ContinueWith(completedSave =>
+            {
+                Assert.IsTrue(completedSave.IsFaulted);
+            });
+
+            Assert.IsFalse(editor.IsSaveInProgress);
+            Assert.AreSame(committedModel, editor.TryCaptureCurrentPathModel());
+            Assert.AreEqual(dirty, editor.HasUnsavedChanges);
+            Assert.AreEqual(canUndo, editor.CanUndo);
+            Assert.AreEqual(canRedo, editor.CanRedo);
+        }
+
+        [TestMethod]
+        public async Task WhenSaveResultIsConsumedThenEditorCompletionRunsThroughTheGameThreadBridge()
+        {
+            PathModel source = CreateEditablePath();
+            using PathEditor editor = CreateEditor(source);
+            int bridgeThreadId = -1;
+            int completionThreadId = -1;
+            editor.OnPathChanged += (_, _) => completionThreadId = Environment.CurrentManagedThreadId;
+            PathModel capturedSource = editor.TryCaptureCurrentPathModel();
+            PathSaveOperation operation = CreatePendingSaveOperation(editor, capturedSource,
+                Task.FromResult(new PathPersistenceValidationResult(true, capturedSource, null, default, default, null, null)));
+
+            _ = await PathSaveOperationConsumer.ConsumeAsync(editor, operation, async action =>
+            {
+                bridgeThreadId = Environment.CurrentManagedThreadId;
+                await action();
+            });
+
+            Assert.AreEqual(bridgeThreadId, completionThreadId);
+        }
+
+        [TestMethod]
+        public void WhenWarningOnlyPathIsReResolvedThenItUsesTheSaveValidationPolicy()
+        {
+            PathModel source = new PathModel()
+            {
+                PathNodes = ImmutableArray.Create(
+                    CreateNodeAt(100, PathNodeType.Start, 1) with { NodeIndex = 1 },
+                    CreateNodeAt(400, PathNodeType.End, -1) with { NodeIndex = 4 }),
+            };
+            TrackWorld trackWorld = CreateAmbiguousTrackWorld();
+
+            PathPersistenceValidationResult saveValidation = PathPersistenceValidationPolicy.ValidateForPersistence(source, trackWorld);
+            PathEditResult reResolved = PathEditor.SnapPathToTrack(source, trackWorld);
+
+            Assert.IsTrue(saveValidation.PersistenceAllowed);
+            Assert.IsTrue(reResolved.Success);
+            Assert.AreSequenceEqual(saveValidation.PathModel.PathNodes, reResolved.PathModel.PathNodes);
+        }
+
+        [TestMethod]
         public void WhenPathHasPassingBranchThenSnapToTrackNoLongerRefusesForPassingBranches()
         {
             // The passing-branch guard was lifted: snapping now defers to path generation, which weaves passing
@@ -1313,6 +1429,14 @@ namespace Tests.FreeTrainSimulator.Toolbox
         private static void SetPrivateField(PathEditor editor, string fieldName, object value)
         {
             typeof(PathEditor).GetField(fieldName, BindingFlags.Instance | BindingFlags.NonPublic).SetValue(editor, value);
+        }
+
+        private static PathSaveOperation CreatePendingSaveOperation(PathEditor editor, PathModel sourceModel,
+            Task<PathPersistenceValidationResult> persistenceTask)
+        {
+            PathSaveOperation operation = new PathSaveOperation(true, sourceModel, sourceModel.Id, persistenceTask);
+            SetPrivateField(editor, "activeSaveOperation", operation);
+            return operation;
         }
 
         private sealed class TestPathEditorContext : IPathEditorContext, IPathEditorContextServicesAccessor

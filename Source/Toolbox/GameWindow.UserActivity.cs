@@ -47,6 +47,7 @@ namespace FreeTrainSimulator.Toolbox
 
         // Pointer radius, in screen pixels, used to hit test path nodes on the map surface.
         private const int nodeHitTestRadiusPixels = 10;
+        private long pathListRefreshVersion;
 
         /// <summary>
         /// Raised on the game thread when the user requests the map context menu. The WPF shell re-raises this
@@ -575,17 +576,32 @@ namespace FreeTrainSimulator.Toolbox
 
             try
             {
-                PathPersistenceValidationResult validation = await editor.SavePath(pathDetails).ConfigureAwait(true);
+                PathSaveOperation operation = editor.BeginSave(pathDetails);
+                PathPersistenceValidationResult validation = await PathSaveOperationConsumer.ConsumeAsync(editor, operation,
+                    InvokeOnGameThreadAsync).ConfigureAwait(false);
+
                 if (!validation.PersistenceAllowed)
                 {
                     Trace.TraceWarning(validation.FailureMessage);
-                    hostedTrainPathToolWindow?.ReportBlockedSave(validation, editor.TryCaptureCurrentPathModel());
+                    await InvokeOnGameThreadAsync(() =>
+                    {
+                        hostedTrainPathToolWindow?.ReportBlockedSave(validation, editor.TryCaptureCurrentPathModel());
+                        return Task.CompletedTask;
+                    }).ConfigureAwait(false);
                     return;
                 }
 
-                ImmutableArray<PathModelHeader> paths = await route.GetRoutePaths(ctsProfileLoading?.Token ?? CancellationToken.None).ConfigureAwait(true);
-                menu.PopulatePaths(paths);
-                hostedTrainPathToolWindow?.UpdatePaths(paths);
+                long refreshVersion = Interlocked.Increment(ref pathListRefreshVersion);
+                ImmutableArray<PathModelHeader> paths = await route.GetRoutePaths(ctsProfileLoading?.Token ?? CancellationToken.None).ConfigureAwait(false);
+                await InvokeOnGameThreadAsync(() =>
+                {
+                    if (refreshVersion == Interlocked.Read(ref pathListRefreshVersion))
+                    {
+                        menu.PopulatePaths(paths);
+                        hostedTrainPathToolWindow?.UpdatePaths(paths);
+                    }
+                    return Task.CompletedTask;
+                }).ConfigureAwait(false);
             }
             catch (OperationCanceledException ex)
             {

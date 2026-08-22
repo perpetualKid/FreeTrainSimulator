@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Position;
 using FreeTrainSimulator.Models.Content;
+using FreeTrainSimulator.Models.Handler;
 using FreeTrainSimulator.Models.Shim;
 using FreeTrainSimulator.Models.Track;
 using FreeTrainSimulator.Runtime.Track;
@@ -145,6 +146,29 @@ namespace Tests.FreeTrainSimulator.Toolbox
             Assert.IsFalse(result.PersistenceAllowed);
             Assert.AreEqual(persisted.Name, reloaded.Name);
             Assert.AreSequenceEqual(persisted.PathNodes, reloaded.PathNodes);
+        }
+
+        [TestMethod]
+        public async Task WhenAtomicReplacementFailsThenExistingPersistedBytesAreUnchanged()
+        {
+            RouteModel route = CreateRoute();
+            PathModel persisted = CreateLinearPath("atomic-replacement-path");
+            _ = await route.Save(persisted).ConfigureAwait(false);
+            string targetFileName = ModelFileResolver<PathModelHeader>.FilePath(persisted) + ContentHandlerBase<PathModelHeader>.SaveStateExtension;
+            byte[] originalBytes = await File.ReadAllBytesAsync(targetFileName).ConfigureAwait(false);
+            PathModel replacement = persisted with { Name = "Replacement That Must Not Persist" };
+
+            using (FileStream targetLock = new FileStream(targetFileName, FileMode.Open, FileAccess.Read, FileShare.Read))
+            {
+                await route.Save(replacement).ContinueWith(completedSave =>
+                {
+                    Assert.IsTrue(completedSave.IsFaulted);
+                    Assert.IsTrue(completedSave.Exception?.InnerException is IOException or UnauthorizedAccessException);
+                });
+            }
+
+            byte[] persistedBytes = await File.ReadAllBytesAsync(targetFileName).ConfigureAwait(false);
+            Assert.AreSequenceEqual(originalBytes, persistedBytes);
         }
 
         private static async Task<RouteModelHeader> SeedRouteWithPathsAsync()

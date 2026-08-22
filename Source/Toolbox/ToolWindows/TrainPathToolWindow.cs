@@ -627,7 +627,14 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
 
         internal bool CanCreatePath => toolingContextAccessor() != null;
 
-        internal bool CanSavePath => pathEditorAccessor()?.TrainPath != null;
+        internal bool CanSavePath
+        {
+            get
+            {
+                PathEditor pathEditor = pathEditorAccessor();
+                return pathEditor?.TrainPath != null && !pathEditor.IsSaveInProgress;
+            }
+        }
 
         internal bool CanCancelNewPath => pathEditorAccessor()?.IsNewPath == true;
 

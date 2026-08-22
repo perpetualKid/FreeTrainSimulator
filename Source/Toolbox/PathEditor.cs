@@ -70,6 +70,7 @@ namespace FreeTrainSimulator.Toolbox
         private int previewedRouteCandidateFromNodeIndex = -1;
         private int previewedRouteCandidateIndex = -1;
         private bool unsavedChanges;
+        private PathSaveOperation activeSaveOperation;
 
         public string PathId => path?.Id;
 
@@ -94,6 +95,9 @@ namespace FreeTrainSimulator.Toolbox
         public bool CanCommitPlacement => IsPlacementActive && movePreviewModel != null;
 
         public bool HasUnsavedChanges => unsavedChanges;
+
+        /// <summary>Whether persistence is currently running for the captured editor model.</summary>
+        public bool IsSaveInProgress => activeSaveOperation != null;
 
         /// <summary><see langword="true"/> when the editor contains the unsaved path created by New Path.</summary>
         public bool IsNewPath => string.Equals(currentPathModel?.Id, NewPathId, StringComparison.Ordinal);
@@ -1564,39 +1568,81 @@ namespace FreeTrainSimulator.Toolbox
                 : PathEditResult.Failed(generation.Message, model);
         }
 
-        // Resolves the model with default options and rebuilds its route via the generator, populating track
-        // anchors, inserting generated intermediary nodes, and weaving resolved passing branches. Shared by
-        // SnapToTrack and snap-on-save.
+        // Resolves and rebuilds the model using the same materialization policy as normal persistence, including
+        // deterministic tie-breaking for warning-only ambiguous spans. Shared by SnapToTrack and snap-on-save.
         internal static PathGenerationResult GenerateTrackSnappedPath(PathModel model, TrackWorld trackWorld)
         {
-            PathRouteResolution resolution = PathRouteResolver.Resolve(model, trackWorld, PathRouteResolverOptions.Default, CancellationToken.None);
-            PathPersistenceValidationResult materialization = PathPersistenceValidationPolicy.MaterializeResolvedPath(model, resolution, trackWorld);
+            PathPersistenceValidationResult materialization = PathPersistenceValidationPolicy.ValidateForPersistence(model, trackWorld);
             return materialization.PersistenceAllowed
                 ? PathGenerationResult.Succeeded("Path generated.", materialization.PathModel, materialization.Diagnostics, materialization.ChangedNodeIndexes)
                 : PathGenerationResult.Failed(materialization.FailureMessage, model, materialization.Diagnostics);
         }
         #endregion
 
-        public async Task<PathPersistenceValidationResult> SavePath(PathModelHeader pathDetails)
+        internal PathSaveOperation BeginSave(PathModelHeader pathDetails)
         {
             ArgumentNullException.ThrowIfNull(pathDetails);
 
-            PathModel pathModel = new PathModel(pathDetails) { PathNodes = currentPathModel?.PathNodes ?? ImmutableArray<PathNode>.Empty };
+            if (activeSaveOperation != null)
+            {
+                return new PathSaveOperation(false, currentPathModel, currentPathModel?.Id, Task.FromResult(new PathPersistenceValidationResult(false,
+                    currentPathModel, null, default, default, "A save is already in progress for this path.", null)));
+            }
 
+            PathModel sourceModel = currentPathModel;
+            PathModel pathModel = new PathModel(pathDetails) { PathNodes = sourceModel?.PathNodes ?? ImmutableArray<PathNode>.Empty };
+            PathSaveOperation operation = new PathSaveOperation(true, sourceModel, sourceModel?.Id, PersistSaveAsync(pathModel));
+            activeSaveOperation = operation;
+            return operation;
+        }
+
+        private static async Task<PathPersistenceValidationResult> PersistSaveAsync(PathModel pathModel)
+        {
             // The toolbox registers RuntimeDataResolver process-wide only (RuntimeDataResolver.Initialize
             // passes game: null), so Instance is the single authoritative resolver here; a game-scoped
             // GameInstance(game) lookup would resolve to the same object.
-            PathPersistenceValidationResult validation = await SaveValidatedPath(pathModel, RuntimeDataResolver.Instance.RouteData,
+            return await SaveValidatedPath(pathModel, RuntimeDataResolver.Instance.RouteData,
                 RuntimeDataResolver.Instance.TrackWorld).ConfigureAwait(false);
-            if (!validation.PersistenceAllowed)
-                return validation;
+        }
 
-            pathModel = validation.PathModel;
-            path = pathModel;
-            currentPathModel = pathModel;
+        /// <summary>
+        /// Completes the current save on the game thread. A save result only replaces the editor model when the
+        /// captured source is still current; mutations committed while I/O was pending remain dirty.
+        /// </summary>
+        internal bool CompleteSave(PathSaveOperation operation, PathPersistenceValidationResult validation)
+        {
+            ArgumentNullException.ThrowIfNull(operation);
+            ArgumentNullException.ThrowIfNull(validation);
+
+            if (!ReferenceEquals(activeSaveOperation, operation))
+                return false;
+
+            activeSaveOperation = null;
+
+            if (!validation.PersistenceAllowed)
+                return true;
+
+            if (!ReferenceEquals(currentPathModel, operation.SourceModel))
+                return true;
+
+            path = validation.PathModel;
+            currentPathModel = validation.PathModel;
             unsavedChanges = false;
+
             OnPathChanged?.Invoke(this, new PathEditorChangedEventArgs(TrainPath));
-            return validation;
+            return true;
+        }
+
+        /// <summary>Clears the pending save after a persistence failure on the game thread.</summary>
+        internal bool CancelSave(PathSaveOperation operation)
+        {
+            ArgumentNullException.ThrowIfNull(operation);
+
+            if (!ReferenceEquals(activeSaveOperation, operation))
+                return false;
+
+            activeSaveOperation = null;
+            return true;
         }
 
         internal PathPersistenceValidationResult ValidateCurrentPathForPersistence()
