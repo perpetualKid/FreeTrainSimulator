@@ -651,6 +651,34 @@ namespace Tests.FreeTrainSimulator.Toolbox
         }
 
         [TestMethod]
+        public void WhenFatalPathIsLoadedThenSnapshotShowsRepairModeRawNodesAndDiagnostics()
+        {
+            PathModel fatalPath = CreatePathModel(PathNodeType.Start);
+            using PathEditor editor = CreatePathEditor(fatalPath);
+            TrainPathToolWindow trainPathToolWindow = new TrainPathToolWindow(() => editor, () => null, action => action(), () => { }, () => { }, _ => { }, () => { }, () => { })
+            {
+                Active = true,
+            };
+
+            trainPathToolWindow.HighlightNode(0);
+            trainPathToolWindow.RefreshSnapshot();
+
+            TrainPathSnapshot snapshot = trainPathToolWindow.CaptureTrainPathSnapshot();
+            Assert.IsTrue(snapshot.IsRepairMode);
+            Assert.HasCount(1, snapshot.Nodes);
+            Assert.AreEqual(0, snapshot.SelectedNodeIndex);
+            Assert.IsTrue(snapshot.CanMoveSelectedNode);
+            Assert.AreEqual(fatalPath.PathNodes[0].NodeIndex, snapshot.Nodes[0].TrackNodeIndex);
+            Assert.IsFalse(snapshot.Diagnostics.IsEmpty);
+            Assert.IsTrue(snapshot.RouteCandidates.IsEmpty);
+            Assert.AreEqual("Repair", snapshot.Metadata.Single(row => row.Name == "Editor Mode").Value);
+            Assert.AreEqual("Not constructed", snapshot.Metadata.Single(row => row.Name == "Runtime Route").Value);
+
+            trainPathToolWindow.RefreshSnapshot();
+            Assert.AreEqual(0, trainPathToolWindow.CaptureTrainPathSnapshot().SelectedNodeIndex);
+        }
+
+        [TestMethod]
         public void WhenPathPointHasDefaultConnectivityThenToPathModelThrowsInvalidOperationException()
         {
             TestTrainPath trainPath = new TestTrainPath(new PathModel

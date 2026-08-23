@@ -67,6 +67,101 @@ namespace Tests.FreeTrainSimulator.Toolbox
         }
 
         [TestMethod]
+        public async Task WhenEmptyPathIsLoadedThenEditorEntersRepairModeWithoutRuntimePath()
+        {
+            PathModel source = new PathModel { Id = "empty", Name = "Empty", PathNodes = ImmutableArray<PathNode>.Empty };
+            using PathEditor editor = new PathEditor(new TestPathEditorContext(TrackWorldTestFixture.CreateSingleVectorNodeTrackWorld()));
+
+            bool initialized = await editor.InitializePathAsync(source, CancellationToken.None);
+
+            Assert.IsTrue(initialized);
+            Assert.IsTrue(editor.IsRepairMode);
+            Assert.AreSame(source, editor.TryCaptureCurrentPathModel());
+            Assert.IsNull(editor.TrainPath);
+        }
+
+        [TestMethod]
+        public async Task WhenCyclicPathIsLoadedThenEditorEntersRepairModeWithoutRuntimePath()
+        {
+            PathModel source = new PathModel
+            {
+                Id = "cycle",
+                PathNodes = ImmutableArray.Create(CreateNode(PathNodeType.Start, 1), CreateNode(PathNodeType.Intermediate, 0), CreateNode(PathNodeType.End, -1)),
+            };
+            using PathEditor editor = new PathEditor(new TestPathEditorContext(TrackWorldTestFixture.CreateSingleVectorNodeTrackWorld()));
+
+            bool initialized = await editor.InitializePathAsync(source, CancellationToken.None);
+
+            Assert.IsTrue(initialized);
+            Assert.IsTrue(editor.IsRepairMode);
+            Assert.IsNull(editor.TrainPath);
+        }
+
+        [TestMethod]
+        public async Task WhenRepairAddsMissingEndThenEditorTransitionsToNormalModeAndUndoRestoresRepairMode()
+        {
+            PathModel source = new PathModel
+            {
+                Id = "missing-end",
+                PathNodes = ImmutableArray.Create(CreateNodeAt(0, PathNodeType.Start, -1)),
+            };
+            using PathEditor editor = new PathEditor(new TestPathEditorContext(TrackWorldTestFixture.CreateSingleVectorNodeTrackWorld()));
+            Assert.IsTrue(await editor.InitializePathAsync(source, CancellationToken.None));
+            editor.SelectAuthoredNode(0);
+            Assert.AreEqual(0, editor.SelectedAuthoredNodeIndex);
+
+            PathEditorCommandResult repair = editor.SetEndAnchorCommand(CreateNodeAt(100, PathNodeType.None, -1), false);
+
+            Assert.IsTrue(repair.Success);
+            Assert.IsFalse(editor.IsRepairMode);
+            Assert.IsNotNull(editor.TrainPath);
+            Assert.AreEqual(0, editor.SelectedAuthoredNodeIndex);
+            Assert.IsTrue(editor.HasUnsavedChanges);
+            Assert.IsTrue(editor.CanUndo);
+
+            Assert.IsTrue(editor.Undo());
+            Assert.IsTrue(editor.IsRepairMode);
+            Assert.IsNull(editor.TrainPath);
+            Assert.AreEqual(0, editor.SelectedAuthoredNodeIndex);
+            Assert.IsTrue(editor.Redo());
+            Assert.IsFalse(editor.IsRepairMode);
+        }
+
+        [TestMethod]
+        public async Task WhenPathHasInvalidLinkThenEditorEntersRepairModeWithoutRuntimePath()
+        {
+            PathModel source = new PathModel
+            {
+                Id = "invalid-link",
+                PathNodes = ImmutableArray.Create(CreateNode(PathNodeType.Start, 9), CreateNode(PathNodeType.End, -1)),
+            };
+            using PathEditor editor = new PathEditor(new TestPathEditorContext(TrackWorldTestFixture.CreateSingleVectorNodeTrackWorld()));
+
+            bool initialized = await editor.InitializePathAsync(source, CancellationToken.None);
+
+            Assert.IsTrue(initialized);
+            Assert.IsTrue(editor.IsRepairMode);
+            Assert.IsNull(editor.TrainPath);
+        }
+
+        [TestMethod]
+        public async Task WhenPathHasNoEndThenEditorEntersRepairModeWithoutRuntimePath()
+        {
+            PathModel source = new PathModel
+            {
+                Id = "missing-end",
+                PathNodes = ImmutableArray.Create(CreateNode(PathNodeType.Start, -1)),
+            };
+            using PathEditor editor = new PathEditor(new TestPathEditorContext(TrackWorldTestFixture.CreateSingleVectorNodeTrackWorld()));
+
+            bool initialized = await editor.InitializePathAsync(source, CancellationToken.None);
+
+            Assert.IsTrue(initialized);
+            Assert.IsTrue(editor.IsRepairMode);
+            Assert.IsNull(editor.TrainPath);
+        }
+
+        [TestMethod]
         public void WhenSnapshotContextHasDefaultConnectivityThenInvalidPointDetailsAreIncluded()
         {
             PathModelHeader path = new PathModelHeader()

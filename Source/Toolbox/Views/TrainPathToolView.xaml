@@ -73,6 +73,9 @@
                                     <DataTrigger Binding="{Binding Name}" Value="Wait">
                                         <Setter Property="Visibility" Value="Visible" />
                                     </DataTrigger>
+                                    <DataTrigger Binding="{Binding DataContext.IsRepairMode, RelativeSource={RelativeSource AncestorType=UserControl}}" Value="True">
+                                        <Setter Property="IsEnabled" Value="False" />
+                                    </DataTrigger>
                                     <Trigger Property="IsKeyboardFocused" Value="True">
                                         <Setter Property="Background" Value="White" />
                                         <Setter Property="BorderBrush" Value="#FF007ACC" />
@@ -182,6 +185,23 @@
                 <WrapPanel Grid.Row="0"
                            HorizontalAlignment="Left"
                            Margin="0,0,0,6">
+                    <TextBlock Margin="0,2,8,6"
+                               Padding="6,2"
+                               Background="Moccasin"
+                               Foreground="DarkRed"
+                               FontWeight="Bold"
+                               Text="Repair mode: runtime route rendering is disabled. Inspect diagnostics and repair authored nodes.">
+                        <TextBlock.Style>
+                            <Style TargetType="TextBlock">
+                                <Setter Property="Visibility" Value="Collapsed" />
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding IsRepairMode}" Value="True">
+                                        <Setter Property="Visibility" Value="Visible" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </TextBlock.Style>
+                    </TextBlock>
                     <Button Padding="8,2"
                             Margin="0,0,6,4"
                             Content="New Path"
@@ -312,6 +332,54 @@
                             Padding="8,2"
                             Content="Redo"
                             Command="{Binding RedoCommand}" />
+                    <Button Margin="0,0,6,4"
+                            Padding="8,2"
+                            Content="Move Selected Node"
+                            Command="{Binding MoveSelectedNodeCommand}"
+                            ToolTip="Move the selected authored node to a safe track location.">
+                        <Button.Style>
+                            <Style TargetType="Button">
+                                <Setter Property="Visibility" Value="Collapsed" />
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding AreRepairNodeActionsVisible}" Value="True">
+                                        <Setter Property="Visibility" Value="Visible" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Button.Style>
+                    </Button>
+                    <Button Margin="0,0,6,4"
+                            Padding="8,2"
+                            Content="Repair Selected Node"
+                            Command="{Binding RepairSelectedNodeCommand}"
+                            ToolTip="Apply the available safe repair to the selected authored node.">
+                        <Button.Style>
+                            <Style TargetType="Button">
+                                <Setter Property="Visibility" Value="Collapsed" />
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding AreRepairNodeActionsVisible}" Value="True">
+                                        <Setter Property="Visibility" Value="Visible" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Button.Style>
+                    </Button>
+                    <Button Margin="0,0,6,4"
+                            Padding="8,2"
+                            Content="Remove Via Point"
+                            Command="{Binding RemoveViaPointCommand}"
+                            ToolTip="Remove the selected authored via point when it can be safely relinked.">
+                        <Button.Style>
+                            <Style TargetType="Button">
+                                <Setter Property="Visibility" Value="Collapsed" />
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding AreRepairNodeActionsVisible}" Value="True">
+                                        <Setter Property="Visibility" Value="Visible" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Button.Style>
+                    </Button>
                     <Button Margin="0,0,6,4"
                             Padding="8,2"
                             Content="Re-resolve Path"

@@ -202,6 +202,9 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
         /// <summary>Resolver diagnostics of the currently edited path.</summary>
         public ImmutableArray<TrainPathDiagnosticRow> Diagnostics { get; init; }
 
+        /// <summary>Whether the current path is loaded without runtime route or renderer state for safe repair.</summary>
+        public bool IsRepairMode { get; init; }
+
         /// <summary>Actionable feedback from the latest blocked save request.</summary>
         public string BlockedSaveMessage { get; init; }
 
@@ -241,6 +244,15 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
         /// <summary>Whether end-anchor placement can begin.</summary>
         public bool CanPlaceEndAnchor { get; init; }
 
+        /// <summary>Whether the selected authored node can be moved safely.</summary>
+        public bool CanMoveSelectedNode { get; init; }
+
+        /// <summary>Whether the selected authored node has an applicable safe repair.</summary>
+        public bool CanRepairSelectedNode { get; init; }
+
+        /// <summary>Whether the selected authored node can be removed as a via point.</summary>
+        public bool CanRemoveSelectedViaPoint { get; init; }
+
         /// <summary>Whether the active unsaved New Path model can be canceled.</summary>
         public bool CanCancelNewPath { get; init; }
 
@@ -260,6 +272,7 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
             Metadata = ImmutableArray<ToolWindowRow>.Empty,
             RouteCandidates = ImmutableArray<TrainPathRouteCandidateRow>.Empty,
             Diagnostics = ImmutableArray<TrainPathDiagnosticRow>.Empty,
+            IsRepairMode = false,
             BlockedSaveMessage = null,
             BlockedSaveDiagnostic = null,
             BlockedSaveFeedbackVersion = 0,
@@ -273,6 +286,9 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
             CanCommitPlacement = false,
             CanPlaceStartAnchor = false,
             CanPlaceEndAnchor = false,
+            CanMoveSelectedNode = false,
+            CanRepairSelectedNode = false,
+            CanRemoveSelectedViaPoint = false,
         };
     }
 
@@ -389,9 +405,10 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
 
             PathModel currentPathModel = NormalizeTransientPathModel(editorPathModel);
             ImmutableArray<TrainPathListRow> paths = BuildPaths(currentPathModel);
-            string selectedPathId = authoredPath?.PathModel?.Id;
-            int nodeCount = authoredPath?.PathPoints.Count ?? 0;
-            int selectedNodeIndex = pathEditor.SelectedPathNodeIndex;
+            bool isRepairMode = pathEditor.IsRepairMode;
+            string selectedPathId = currentPathModel?.Id;
+            int nodeCount = isRepairMode ? currentPathModel?.PathNodes.Length ?? 0 : authoredPath?.PathPoints.Count ?? 0;
+            int selectedNodeIndex = pathEditor.SelectedAuthoredNodeIndex;
             bool canUndo = pathEditor.CanUndo;
             bool canRedo = pathEditor.CanRedo;
             bool canSnapToTrack = pathEditor.CanSnapToTrack;
@@ -402,6 +419,9 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
             bool canCommitPlacement = pathEditor.CanCommitPlacement;
             bool canPlaceStartAnchor = pathEditor.CanPlaceStartAnchor;
             bool canPlaceEndAnchor = pathEditor.CanPlaceEndAnchor;
+            bool canMoveSelectedNode = pathEditor.CanMoveNode(selectedNodeIndex);
+            bool canRepairSelectedNode = pathEditor.CanRepairNode(selectedNodeIndex);
+            bool canRemoveSelectedViaPoint = pathEditor.CanRemoveViaPoint(selectedNodeIndex);
             bool canCancelNewPath = pathEditor.IsNewPath;
             bool isBuildingRoute = pathEditor.IsBuildingRoute;
             bool canFinishPath = isBuildingRoute && pathEditor.CanRemoveEnd;
@@ -425,9 +445,13 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
                 && canCommitPlacement == snapshot.CanCommitPlacement
                 && canPlaceStartAnchor == snapshot.CanPlaceStartAnchor
                 && canPlaceEndAnchor == snapshot.CanPlaceEndAnchor
+                && canMoveSelectedNode == snapshot.CanMoveSelectedNode
+                && canRepairSelectedNode == snapshot.CanRepairSelectedNode
+                && canRemoveSelectedViaPoint == snapshot.CanRemoveSelectedViaPoint
                 && canCancelNewPath == snapshot.CanCancelNewPath
                 && isBuildingRoute == snapshot.IsBuildingRoute
                 && canFinishPath == snapshot.CanFinishPath
+                && isRepairMode == snapshot.IsRepairMode
                 && blockedSaveFeedbackVersion == snapshot.BlockedSaveFeedbackVersion
                 && paths.SequenceEqual(snapshot.Paths))
             {
@@ -437,17 +461,19 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
             lastPathId = selectedPathId;
             lastNodeCount = nodeCount;
             lastSnapshotVersion = currentSnapshotVersion;
-            ImmutableArray<TrainPathDiagnosticRow> diagnostics = BuildResolverDiagnostics(pathEditor.ResolveCurrent(currentPathModel), pathEditor);
+            PathRouteResolution resolution = currentPathModel == null ? null : pathEditor.ResolveCurrent(currentPathModel);
+            ImmutableArray<TrainPathDiagnosticRow> diagnostics = BuildResolverDiagnostics(resolution, pathEditor);
 
             snapshot = new TrainPathSnapshot
             {
                 Paths = paths,
                 SelectedPathId = selectedPathId,
-                Nodes = BuildNodes(authoredPath),
+                Nodes = isRepairMode ? BuildAuthoredNodes(currentPathModel, resolution) : BuildNodes(authoredPath),
                 SelectedNodeIndex = selectedNodeIndex,
-                Metadata = BuildMetadata(pathEditor, authoredPath),
-                RouteCandidates = BuildRouteCandidates(pathEditor),
+                Metadata = BuildMetadata(pathEditor, authoredPath, currentPathModel, isRepairMode),
+                RouteCandidates = isRepairMode ? ImmutableArray<TrainPathRouteCandidateRow>.Empty : BuildRouteCandidates(pathEditor),
                 Diagnostics = diagnostics,
+                IsRepairMode = isRepairMode,
                 BlockedSaveMessage = blockedSaveValidation?.FailureMessage,
                 BlockedSaveDiagnostic = FindDiagnosticRow(diagnostics, blockedSaveValidation?.HighestActionableDiagnostic),
                 BlockedSaveFeedbackVersion = blockedSaveFeedbackVersion,
@@ -461,6 +487,9 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
                 CanCommitPlacement = canCommitPlacement,
                 CanPlaceStartAnchor = canPlaceStartAnchor,
                 CanPlaceEndAnchor = canPlaceEndAnchor,
+                CanMoveSelectedNode = canMoveSelectedNode,
+                CanRepairSelectedNode = canRepairSelectedNode,
+                CanRemoveSelectedViaPoint = canRemoveSelectedViaPoint,
                 CanCancelNewPath = canCancelNewPath,
                 IsBuildingRoute = isBuildingRoute,
                 CanFinishPath = canFinishPath,
@@ -540,10 +569,7 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
         {
             InvokeEditorAction(pathEditor =>
             {
-                if (pathEditor.TrainPath == null)
-                    return;
-
-                pathEditor.HighlightPathItem(index);
+                pathEditor.SelectAuthoredNode(index);
             });
         }
 
@@ -554,7 +580,7 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
         internal void CancelPathInteraction() => ExecuteEditorCommand(pathEditor => pathEditor.CancelPathInteractionCommand());
 
         internal void RemoveSelectedViaPoint()
-            => ExecuteEditorCommand(pathEditor => pathEditor.RemoveViaPointCommand(pathEditor.SelectedPathNodeIndex));
+            => ExecuteEditorCommand(pathEditor => pathEditor.RemoveViaPointCommand(pathEditor.SelectedAuthoredNodeIndex));
 
         internal void CycleRouteCandidate(int direction)
             => ExecuteEditorCommand(pathEditor => pathEditor.CycleRouteCandidateCommand(direction));
@@ -852,6 +878,25 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
             return builder.ToImmutable();
         }
 
+        private static ImmutableArray<TrainPathNodeRow> BuildAuthoredNodes(PathModel pathModel, PathRouteResolution resolution)
+        {
+            if (pathModel == null)
+                return ImmutableArray<TrainPathNodeRow>.Empty;
+
+            ImmutableArray<TrainPathNodeRow>.Builder builder = ImmutableArray.CreateBuilder<TrainPathNodeRow>(pathModel.PathNodes.Length);
+            for (int i = 0; i < pathModel.PathNodes.Length; i++)
+            {
+                PathNode node = pathModel.PathNodes[i];
+                string validation = string.Join("; ", resolution?.Diagnostics
+                    .Where(diagnostic => diagnostic.NodeIndex == i || diagnostic.FromNodeIndex == i || diagnostic.ToNodeIndex == i)
+                    .Select(diagnostic => diagnostic.Message) ?? Enumerable.Empty<string>());
+                builder.Add(new TrainPathNodeRow(i, node.NodeType, string.IsNullOrEmpty(validation), node.NodeIndex,
+                    node.NextMainNode, node.NextSidingNode, node.WaitInfo?.WaitTime, validation, null, null, null));
+            }
+
+            return builder.ToImmutable();
+        }
+
         private static TrainPathDiagnosticRow? FindDiagnosticRow(ImmutableArray<TrainPathDiagnosticRow> diagnostics, PathRouteDiagnostic diagnostic)
         {
             if (diagnostic == null)
@@ -910,21 +955,31 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
             return builder.ToImmutable();
         }
 
-        private ImmutableArray<ToolWindowRow> BuildMetadata(PathEditor pathEditor, TrainPathBase currentPath)
+        private ImmutableArray<ToolWindowRow> BuildMetadata(PathEditor pathEditor, TrainPathBase currentPath, PathModel currentPathModel, bool isRepairMode)
         {
-            if (currentPath?.PathModel == null)
+            PathModel pathModel = currentPath?.PathModel ?? currentPathModel;
+            if (pathModel == null)
                 return ImmutableArray<ToolWindowRow>.Empty;
 
             ITrainPathToolingContext toolingContext = toolingContextAccessor();
             bool metricUnits = toolingContext?.UseMetricUnits ?? true;
             ImmutableArray<ToolWindowRow>.Builder builder = ImmutableArray.CreateBuilder<ToolWindowRow>();
-            builder.Add(new ToolWindowRow { Name = "Path ID", Value = currentPath.PathModel.Id });
-            builder.Add(new ToolWindowRow { Name = "Path Name", Value = currentPath.PathModel.Name });
-            builder.Add(new ToolWindowRow { Name = "Start", Value = currentPath.PathModel.Start });
-            builder.Add(new ToolWindowRow { Name = "End", Value = currentPath.PathModel.End });
-            builder.Add(new ToolWindowRow { Name = "Player Path", Value = FormatStrings.FormatYesNo(currentPath.PathModel.PlayerPath) });
-            builder.Add(new ToolWindowRow { Name = "Path Length", Value = FormatStrings.FormatDistanceDisplay(currentPath.Length, metricUnits, 1000) });
-            builder.AddRange(BuildEditorStateMetadata(currentPath));
+            builder.Add(new ToolWindowRow { Name = "Editor Mode", Value = isRepairMode ? "Repair" : "Normal", Color = isRepairMode ? DrawingColor.OrangeRed : null, Bold = isRepairMode });
+            builder.Add(new ToolWindowRow { Name = "Path ID", Value = pathModel.Id });
+            builder.Add(new ToolWindowRow { Name = "Path Name", Value = pathModel.Name });
+            builder.Add(new ToolWindowRow { Name = "Start", Value = pathModel.Start });
+            builder.Add(new ToolWindowRow { Name = "End", Value = pathModel.End });
+            builder.Add(new ToolWindowRow { Name = "Player Path", Value = FormatStrings.FormatYesNo(pathModel.PlayerPath) });
+            if (!isRepairMode)
+            {
+                builder.Add(new ToolWindowRow { Name = "Path Length", Value = FormatStrings.FormatDistanceDisplay(currentPath.Length, metricUnits, 1000) });
+                builder.AddRange(BuildEditorStateMetadata(currentPath));
+            }
+            else
+            {
+                builder.Add(new ToolWindowRow { Name = "Authored Node Count", Value = pathModel.PathNodes.Length.ToString(System.Globalization.CultureInfo.InvariantCulture) });
+                builder.Add(new ToolWindowRow { Name = "Runtime Route", Value = "Not constructed", Color = DrawingColor.OrangeRed, Bold = true });
+            }
             builder.AddRange(BuildEditorHistoryMetadata(pathEditor?.CanUndo == true, pathEditor?.CanRedo == true));
             return builder.ToImmutable();
         }

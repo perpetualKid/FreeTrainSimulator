@@ -98,6 +98,49 @@ namespace Tests.FreeTrainSimulator.Toolbox
         }
 
         [TestMethod]
+        public void WhenRepairModeSnapshotIsAppliedThenUnsafeRouteCommandsAreDisabledAndSafeNodeRemovalRemainsEnabled()
+        {
+            TrainPathToolWindow bridge = CreateBridge(action => action());
+            SetBridgeSnapshot(bridge, TrainPathSnapshot.Empty with
+            {
+                IsRepairMode = true,
+                Nodes = System.Collections.Immutable.ImmutableArray.Create(new TrainPathNodeRow(0, PathNodeType.Intermediate, false, 1, -1, -1, null, "Broken link.")),
+                SelectedNodeIndex = 0,
+                CanMoveSelectedNode = true,
+                CanRepairSelectedNode = true,
+                CanRemoveSelectedViaPoint = true,
+            });
+            using ToolWindowRefreshScheduler refreshScheduler = new ToolWindowRefreshScheduler(Dispatcher.CurrentDispatcher);
+            using TrainPathToolWindowViewModel viewModel = new TrainPathToolWindowViewModel(bridge, refreshScheduler);
+            viewModel.RouteCandidates.Add(new TrainPathRouteCandidateItemViewModel(new TrainPathRouteCandidateRow(0, 1, 0, "unsafe")));
+            viewModel.SelectedRouteCandidate = viewModel.RouteCandidates[0];
+
+            typeof(TrainPathToolWindowViewModel).GetMethod("Refresh", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(viewModel, null);
+
+            Assert.IsTrue(viewModel.IsRepairMode);
+            Assert.IsTrue(viewModel.AreRepairNodeActionsVisible);
+            Assert.IsFalse(viewModel.AcceptRouteCandidateCommand.CanExecute(null));
+            Assert.IsFalse(viewModel.AddViaPointCommand.CanExecute(null));
+            Assert.IsTrue(viewModel.MoveSelectedNodeCommand.CanExecute(null));
+            Assert.IsTrue(viewModel.RepairSelectedNodeCommand.CanExecute(null));
+            Assert.IsTrue(viewModel.RemoveViaPointCommand.CanExecute(null));
+        }
+
+        [TestMethod]
+        public void WhenNormalModeSnapshotIsAppliedThenRepairNodeActionsAreNotVisible()
+        {
+            TrainPathToolWindow bridge = CreateBridge(action => action());
+            SetBridgeSnapshot(bridge, TrainPathSnapshot.Empty);
+            using ToolWindowRefreshScheduler refreshScheduler = new ToolWindowRefreshScheduler(Dispatcher.CurrentDispatcher);
+            using TrainPathToolWindowViewModel viewModel = new TrainPathToolWindowViewModel(bridge, refreshScheduler);
+
+            typeof(TrainPathToolWindowViewModel).GetMethod("Refresh", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(viewModel, null);
+
+            Assert.IsFalse(viewModel.IsRepairMode);
+            Assert.IsFalse(viewModel.AreRepairNodeActionsVisible);
+        }
+
+        [TestMethod]
         public void WhenSelectedPathClearedThenBridgeSelectPathIsMarshaled()
         {
             int invocations = 0;

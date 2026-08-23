@@ -20,7 +20,7 @@ namespace FreeTrainSimulator.Models.Handler
     /// domain-specific loading and query logic.
     /// </summary>
     /// <typeparam name="TModel">The model type managed by this handler.</typeparam>
-    public abstract class   ContentHandlerBase<TModel> where TModel : ModelBase
+    public abstract class ContentHandlerBase<TModel> where TModel : ModelBase
     {
         public const string SaveStateExtension = FileNameExtensions.SaveFile;
 
@@ -78,40 +78,20 @@ namespace FreeTrainSimulator.Models.Handler
 
             model.RefreshModel();
 
-            string targetDirectory = Path.GetDirectoryName(targetFileName);
-            string temporaryFileName = Path.Combine(targetDirectory,
-                $".{Path.GetFileName(targetFileName)}.{Guid.NewGuid():N}.tmp");
-
             try
             {
-                _ = Directory.CreateDirectory(targetDirectory);
+                _ = Directory.CreateDirectory(Path.GetDirectoryName(targetFileName));
 
-                using (FileStream saveFile = new FileStream(temporaryFileName, FileMode.CreateNew, FileAccess.Write, FileShare.None,
-                    4096, FileOptions.Asynchronous | FileOptions.WriteThrough))
+                using (FileStream saveFile = new FileStream(targetFileName, FileMode.Create, FileAccess.Write))
                 {
                     await MemoryPackSerializer.SerializeAsync(saveFile, model, null, cancellationToken).ConfigureAwait(false);
                     await saveFile.FlushAsync(cancellationToken).ConfigureAwait(false);
-                    saveFile.Flush(true);
                 }
-
-                File.Move(temporaryFileName, targetFileName, true);
             }
             catch (Exception ex)
             {
                 Trace.TraceError(ex.Message);
                 throw;
-            }
-            finally
-            {
-                try
-                {
-                    if (File.Exists(temporaryFileName))
-                        File.Delete(temporaryFileName);
-                }
-                catch (Exception cleanupException)
-                {
-                    Trace.TraceWarning($"Failed to clean up temporary model file '{temporaryFileName}': {cleanupException.Message}");
-                }
             }
             return model;
         }

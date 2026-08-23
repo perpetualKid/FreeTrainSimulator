@@ -71,6 +71,9 @@ namespace FreeTrainSimulator.Toolbox
         private int previewedRouteCandidateIndex = -1;
         private bool unsavedChanges;
         private PathSaveOperation activeSaveOperation;
+        private bool repairMode;
+        private PathNode selectedAuthoredNode;
+        private int selectedAuthoredNodeIndex = -1;
 
         public string PathId => path?.Id;
 
@@ -95,6 +98,12 @@ namespace FreeTrainSimulator.Toolbox
         public bool CanCommitPlacement => IsPlacementActive && movePreviewModel != null;
 
         public bool HasUnsavedChanges => unsavedChanges;
+
+        /// <summary>Whether the authored model has fatal resolver diagnostics and is loaded without runtime route state.</summary>
+        public bool IsRepairMode => repairMode;
+
+        /// <summary>Index of the selected authored node, including while no runtime path is constructed.</summary>
+        public int SelectedAuthoredNodeIndex => selectedAuthoredNodeIndex;
 
         /// <summary>Whether persistence is currently running for the captured editor model.</summary>
         public bool IsSaveInProgress => activeSaveOperation != null;
@@ -145,21 +154,23 @@ namespace FreeTrainSimulator.Toolbox
                 this.path = pathModel ?? path;
                 currentPathModel = pathModel;
                 routeAuthoringModel = null;
-
-                if (pathModel != null && !CanInitializePath(pathModel, out PathRouteResolution resolution))
-                {
-                    string diagnostics = string.Join("; ", resolution.Diagnostics
-                        .Where(diagnostic => diagnostic.Severity == PathRouteDiagnosticSeverity.Fatal)
-                        .Select(diagnostic => $"{diagnostic.Code}: {diagnostic.Message}"));
-                    Trace.TraceWarning($"Path editor cannot open path '{path.Id}' because the path content has fatal route diagnostics. {diagnostics}");
-                    return false;
-                }
+                ClearAuthoredNodeSelection();
 
                 ClearMoveNodeState();
                 ClearHistory();
-                await InitializePathModelAsync(pathModel, cancellationToken).ConfigureAwait(false);
                 currentPathModel = pathModel;
                 unsavedChanges = false;
+                if (pathModel != null && !CanInitializePath(pathModel, TrackWorld, out PathRouteResolution resolution))
+                {
+                    repairMode = true;
+                    ClearRuntimePathState(true);
+                    Trace.TraceWarning($"Path editor opened path '{path.Id}' in repair mode because the path content has fatal route diagnostics.");
+                }
+                else
+                {
+                    repairMode = false;
+                    await InitializePathModelAsync(pathModel, cancellationToken).ConfigureAwait(false);
+                }
                 OnPathChanged?.Invoke(this, new PathEditorChangedEventArgs(TrainPath));
                 return true;
             }
@@ -239,6 +250,8 @@ namespace FreeTrainSimulator.Toolbox
             };
             path = newPath;
             currentPathModel = newPath;
+            repairMode = false;
+            ClearAuthoredNodeSelection();
             ClearMoveNodeState();
             ClearHistory();
             unsavedChanges = true;
@@ -778,7 +791,7 @@ namespace FreeTrainSimulator.Toolbox
 
             placementSourceEditMode = EditMode;
             placementSourceUnsavedChanges = unsavedChanges;
-            if (!EditMode)
+            if (!EditMode && !repairMode)
             {
                 path = currentModel;
                 currentPathModel = currentModel;
@@ -887,7 +900,7 @@ namespace FreeTrainSimulator.Toolbox
         {
             PathModel currentModel = TryGetEditablePathModel();
             ImmutableArray<PathNode> nodes = currentModel?.PathNodes ?? ImmutableArray<PathNode>.Empty;
-            return nodeIndex >= 0 && nodeIndex < nodes.Length;
+            return !IsPlacementActive && nodeIndex >= 0 && nodeIndex < nodes.Length;
         }
 
         /// <summary>
@@ -934,11 +947,34 @@ namespace FreeTrainSimulator.Toolbox
             return currentModel != null && PathModelEditor.RepairNode(currentModel, nodeIndex, TrackWorld).Success;
         }
 
+        public bool CanRemoveViaPoint(int nodeIndex)
+        {
+            PathModel currentModel = TryGetEditablePathModel();
+            return currentModel != null && PathModelEditor.RemoveViaPoint(currentModel, nodeIndex).Success;
+        }
+
+        public void SelectAuthoredNode(int nodeIndex)
+        {
+            ImmutableArray<PathNode> nodes = currentPathModel?.PathNodes ?? ImmutableArray<PathNode>.Empty;
+            if (nodeIndex < 0 || nodeIndex >= nodes.Length)
+            {
+                ClearAuthoredNodeSelection();
+                if (!repairMode)
+                    ClearPathHighlight();
+                return;
+            }
+
+            selectedAuthoredNodeIndex = nodeIndex;
+            selectedAuthoredNode = nodes[nodeIndex];
+            if (!repairMode)
+                SelectPathItem(nodeIndex);
+        }
+
         public void HighlightDiagnosticTarget(int nodeIndex, int fromNodeIndex, int toNodeIndex)
         {
             if (nodeIndex >= 0)
             {
-                HighlightPathItem(nodeIndex);
+                SelectAuthoredNode(nodeIndex);
                 return;
             }
 
@@ -947,11 +983,11 @@ namespace FreeTrainSimulator.Toolbox
 
             if (fromNodeIndex >= 0)
             {
-                HighlightPathItem(fromNodeIndex);
+                SelectAuthoredNode(fromNodeIndex);
                 return;
             }
 
-            ClearPathHighlight();
+            SelectAuthoredNode(-1);
         }
 
         /// <summary>
@@ -1332,7 +1368,7 @@ namespace FreeTrainSimulator.Toolbox
             PushUndoSnapshot(currentModel);
             unsavedChanges = true;
             RestoreSnapshot(result.PathModel);
-            SelectPathItem(nodeIndex);
+            SelectAuthoredNode(nodeIndex);
             OnPathUpdated?.Invoke(this, new PathEditorChangedEventArgs(TrainPath));
             return result;
         }
@@ -1365,14 +1401,23 @@ namespace FreeTrainSimulator.Toolbox
             movePreviewAnchor = null;
             movePreviewSpanCommit = null;
             UseStandaloneActivePathPointPreview = true;
-            if (!InitializeActivePathPointPreview(nodeIndex))
+            bool initializedPreview = repairMode
+                ? InitializeRepairMovePreview()
+                : InitializeActivePathPointPreview(nodeIndex);
+            if (!initializedPreview)
             {
                 ClearMoveNodeState();
                 return false;
             }
             SetHiddenPathNodeIndex(nodeIndex);
-            SelectPathItem(nodeIndex);
+            SelectAuthoredNode(nodeIndex);
             OnPathUpdated?.Invoke(this, new PathEditorChangedEventArgs(TrainPath));
+            return true;
+        }
+
+        private bool InitializeRepairMovePreview()
+        {
+            InitializeStandalonePathPointPreview();
             return true;
         }
 
@@ -1423,6 +1468,16 @@ namespace FreeTrainSimulator.Toolbox
             {
                 // Preserve the last valid preview. A transient invalid hover near overlapping junction geometry
                 // must not erase the route point the user can still see and intends to commit.
+                return;
+            }
+
+            if (repairMode)
+            {
+                movePreviewAnchor = replacementAnchor;
+                movePreviewAuthoringModel = null;
+                movePreviewSpanCommit = null;
+                movePreviewModel = result.PathModel;
+                OnPathUpdated?.Invoke(this, new PathEditorChangedEventArgs(TrainPath));
                 return;
             }
 
@@ -1825,6 +1880,16 @@ namespace FreeTrainSimulator.Toolbox
             int movedNodeIndex = movingNodeIndex;
             PathModel undoSnapshot = pendingViaSourceModel ?? currentModel;
 
+            if (repairMode)
+            {
+                PushUndoSnapshot(undoSnapshot);
+                unsavedChanges = true;
+                ClearMoveNodeState();
+                RestoreSnapshot(committedModel);
+                OnPathUpdated?.Invoke(this, new PathEditorChangedEventArgs(TrainPath));
+                return PathEditResult.Succeeded($"Moved node {movedNodeIndex}.", currentPathModel, ImmutableArray.Create(movedNodeIndex));
+            }
+
             // Every placement commit funnels through the unified span-commit routine, so the affected span is
             // resolved and materialized exactly like a directly authored anchor.
             ImmutableArray<int> changedNodeIndexes = result?.ChangedNodeIndexes ?? ImmutableArray.Create(movedNodeIndex);
@@ -1980,7 +2045,45 @@ namespace FreeTrainSimulator.Toolbox
             return TryGetEditablePathModel();
         }
 
-        internal TrainPathBase TryCaptureRenderedPath() => RenderedPath;
+        private void ClearAuthoredNodeSelection()
+        {
+            selectedAuthoredNode = null;
+            selectedAuthoredNodeIndex = -1;
+        }
+
+        private void ReconcileAuthoredNodeSelection(PathModel snapshot)
+        {
+            ImmutableArray<PathNode> nodes = snapshot?.PathNodes ?? ImmutableArray<PathNode>.Empty;
+            if (nodes.IsEmpty)
+            {
+                ClearAuthoredNodeSelection();
+                return;
+            }
+
+            int selectedIndex = -1;
+            if (selectedAuthoredNode != null)
+            {
+                for (int i = 0; i < nodes.Length; i++)
+                {
+                    if (ReferenceEquals(nodes[i], selectedAuthoredNode))
+                    {
+                        selectedIndex = i;
+                        break;
+                    }
+                }
+            }
+
+            if (selectedIndex < 0 && selectedAuthoredNodeIndex >= 0)
+                selectedIndex = Math.Min(selectedAuthoredNodeIndex, nodes.Length - 1);
+
+            if (selectedIndex < 0)
+                return;
+
+            selectedAuthoredNodeIndex = selectedIndex;
+            selectedAuthoredNode = nodes[selectedIndex];
+            if (!repairMode)
+                SelectPathItem(selectedIndex);
+        }
 
         private static int IndexOfNodeType(PathModel pathModel, PathNodeType nodeType, int fallback)
         {
@@ -2047,7 +2150,12 @@ namespace FreeTrainSimulator.Toolbox
             // silently switch a path that was opened for viewing into edit mode.
             path = snapshot;
             currentPathModel = snapshot;
-            RestorePath(snapshot, EditMode);
+            repairMode = ResolveCurrent(snapshot)?.HighestSeverity == PathRouteDiagnosticSeverity.Fatal;
+            if (repairMode)
+                ClearRuntimePathState(true);
+            else
+                RestorePath(snapshot, EditMode);
+            ReconcileAuthoredNodeSelection(snapshot);
             ClearMoveNodeState();
             editorDragged = false;
         }

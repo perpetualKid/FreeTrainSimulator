@@ -46,6 +46,11 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
         private bool suppressWaitTimeCommand;
         private int blockedSaveFeedbackVersion;
         private string blockedSaveStatusMessage;
+        private bool isRepairMode;
+        private bool canMoveSelectedNode;
+        private bool canRepairSelectedNode;
+        private bool canRemoveSelectedViaPoint;
+        private int selectedNodeCapabilityIndex = -1;
 
         public TrainPathToolWindowViewModel(TrainPathToolWindow toolWindow, ToolWindowRefreshScheduler scheduler)
             : base(scheduler, ToolWindowRefreshScheduler.BaseInterval)
@@ -65,8 +70,8 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
             CancelPlacementCommand = new RelayCommand(_ => CancelPlacement(), _ => CanCancelPlacement);
             RepairSelectedNodeCommand = new RelayCommand(_ => RepairSelectedNode(), _ => CanRepairSelectedNode);
             ToggleReversalPointCommand = new RelayCommand(_ => ToggleReversalPoint(), _ => CanAnnotateSelectedNode);
-            AddViaPointCommand = new RelayCommand(_ => AddViaPoint(), _ => CanAnnotateSelectedNode);
-            RemoveViaPointCommand = new RelayCommand(_ => RemoveViaPoint(), _ => CanAnnotateSelectedNode);
+            AddViaPointCommand = new RelayCommand(_ => AddViaPoint(), _ => CanAddViaPoint);
+            RemoveViaPointCommand = new RelayCommand(_ => RemoveViaPoint(), _ => CanRemoveViaPoint);
             NewPathCommand = new RelayCommand(_ => NewPath(), _ => CanCreatePath);
             CancelNewPathCommand = new RelayCommand(_ => CancelNewPath(), _ => CanCancelNewPath);
             ContinuePathCommand = new RelayCommand(_ => ContinuePath(), _ => CanContinuePath);
@@ -166,9 +171,30 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
 
         public RelayCommand RepairDiagnosticCommand { get; }
 
-        public bool CanAcceptRouteCandidate => SelectedRouteCandidate != null && !CanCancelPlacement;
+        public bool CanAcceptRouteCandidate => !IsRepairMode && SelectedRouteCandidate != null && !CanCancelPlacement;
 
         public bool CanRepairDiagnostic => SelectedDiagnostic?.CanRepair == true && !CanCancelPlacement;
+
+        /// <summary>Whether the selected path has fatal diagnostics and is safely loaded as raw authored data.</summary>
+        public bool IsRepairMode
+        {
+            get => isRepairMode;
+            private set
+            {
+                if (!SetProperty(ref isRepairMode, value))
+                    return;
+
+                OnPropertyChanged(nameof(AreRepairNodeActionsVisible));
+                AcceptRouteCandidateCommand.RaiseCanExecuteChanged();
+                AddViaPointCommand.RaiseCanExecuteChanged();
+                RemoveViaPointCommand.RaiseCanExecuteChanged();
+                ToggleReversalPointCommand.RaiseCanExecuteChanged();
+                ContinuePathCommand.RaiseCanExecuteChanged();
+            }
+        }
+
+        /// <summary>Whether repair-only selected-node actions should be presented in the Path Nodes toolbar.</summary>
+        public bool AreRepairNodeActionsVisible => IsRepairMode;
 
         public PathEditorPlacementMode PlacementMode
         {
@@ -186,7 +212,7 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
             }
         }
 
-        public bool CanContinuePath => CanSavePath && !CanCancelPlacement;
+        public bool CanContinuePath => !IsRepairMode && CanSavePath && !CanCancelPlacement;
 
         public bool CanFinishPath
         {
@@ -350,11 +376,15 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
             }
         }
 
-        public bool CanMoveSelectedNode => SelectedNode != null && !CanCancelPlacement;
+        public bool CanMoveSelectedNode => canMoveSelectedNode && IsSelectedCapabilityNode() && !CanCancelPlacement;
 
-        public bool CanRepairSelectedNode => SelectedNode != null && !CanCancelPlacement;
+        public bool CanRepairSelectedNode => canRepairSelectedNode && IsSelectedCapabilityNode() && !CanCancelPlacement;
 
-        public bool CanAnnotateSelectedNode => SelectedNode != null && !CanCancelPlacement;
+        public bool CanAnnotateSelectedNode => !IsRepairMode && SelectedNode != null && !CanCancelPlacement;
+
+        public bool CanAddViaPoint => !IsRepairMode && SelectedNode != null && !CanCancelPlacement;
+
+        public bool CanRemoveViaPoint => canRemoveSelectedViaPoint && IsSelectedCapabilityNode() && !CanCancelPlacement;
 
         public bool CanRedo
         {
@@ -448,6 +478,7 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
                 if (suppressSelectionCommand)
                     return;
 
+                selectedNodeCapabilityIndex = -1;
                 toolWindow.HighlightNode(value?.Index ?? -1);
                 SyncWaitTimeFromSelectedNode();
                 UpdateSelectedNodeDetailRows();
@@ -477,6 +508,8 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
             CanUndo = snapshot.CanUndo;
             CanRedo = snapshot.CanRedo;
             CanSnapToTrack = snapshot.CanSnapToTrack;
+            IsRepairMode = snapshot.IsRepairMode;
+            UpdateSelectedNodeCapabilities(snapshot);
             bool wasMovingNode = CanCancelMoveNode;
             CanCancelMoveNode = snapshot.CanCancelMoveNode;
             CanCommitMoveNode = snapshot.CanCommitMoveNode;
@@ -502,6 +535,22 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
                 snapshotSelectedPathId = snapshot.SelectedPathId;
                 UpdateSelectedPathFromSnapshot();
             }
+        }
+
+        private void UpdateSelectedNodeCapabilities(TrainPathSnapshot snapshot)
+        {
+            selectedNodeCapabilityIndex = snapshot.SelectedNodeIndex;
+            canMoveSelectedNode = snapshot.CanMoveSelectedNode;
+            canRepairSelectedNode = snapshot.CanRepairSelectedNode;
+            canRemoveSelectedViaPoint = snapshot.CanRemoveSelectedViaPoint;
+            MoveSelectedNodeCommand.RaiseCanExecuteChanged();
+            RepairSelectedNodeCommand.RaiseCanExecuteChanged();
+            RemoveViaPointCommand.RaiseCanExecuteChanged();
+        }
+
+        private bool IsSelectedCapabilityNode()
+        {
+            return SelectedNode != null && SelectedNode.Index == selectedNodeCapabilityIndex;
         }
 
         private void ApplyBlockedSaveFeedback(TrainPathSnapshot snapshot)
