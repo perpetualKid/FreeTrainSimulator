@@ -1,3 +1,5 @@
+using GetText;
+
 namespace FreeTrainSimulator.Toolbox.ViewModels
 {
     /// <summary>
@@ -73,10 +75,10 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
 
         public bool IsSaveAs => !string.Equals(SourcePathId, PathId?.Trim(), System.StringComparison.OrdinalIgnoreCase);
 
-        public string SaveActionText => IsSaveAs ? "Save As" : "Save";
+        public string SaveActionText => CatalogManager.Catalog.GetString(IsSaveAs ? "Save As" : "Save");
 
         public string IdentityMessage => IsSaveAs
-            ? "Save As creates or replaces the entered Path ID. The original path is preserved."
-            : "Save updates the active path.";
+            ? CatalogManager.Catalog.GetString("Save As creates or replaces the entered Path ID. The original path is preserved.")
+            : CatalogManager.Catalog.GetString("Save updates the active path.");
     }
 }

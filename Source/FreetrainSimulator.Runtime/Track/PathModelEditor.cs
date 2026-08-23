@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 
@@ -9,6 +10,16 @@ using FreeTrainSimulator.Models.Track;
 
 namespace FreeTrainSimulator.Runtime.Track
 {
+    /// <summary>Role of an authored node in the single supported passing-branch topology.</summary>
+    public enum PassingBranchNodeRole
+    {
+        None,
+        MainRoute,
+        BranchStart,
+        BranchInterior,
+        BranchRejoin,
+    }
+
     /// <summary>
     /// UI-neutral, stateless mutation operations on an authored <see cref="PathModel"/>. Each operation is a
     /// pure function: it never mutates its input and returns a <see cref="PathEditResult"/> carrying a new
@@ -339,6 +350,126 @@ namespace FreeTrainSimulator.Runtime.Track
             return PathEditResult.Succeeded($"Removed via point {nodeIndex}.", pathModel with { PathNodes = RemoveNodeAt(relinked, nodeIndex) }, ImmutableArray.Create(nodeIndex));
         }
 
+        /// <summary>
+        /// Creates one single-level passing branch from a main-route node to a later main-route node. The branch
+        /// initially has no authored interior anchors; callers can materialize resolver-selected candidates with
+        /// <see cref="AddPassingBranchAnchors"/>. Existing, nested, and overlapping branches are refused.
+        /// </summary>
+        public static PathEditResult CreatePassingBranch(PathModel pathModel, int startNodeIndex, int rejoinNodeIndex)
+        {
+            ArgumentNullException.ThrowIfNull(pathModel);
+
+            ImmutableArray<PathNode> nodes = Nodes(pathModel);
+            if (!TryGetMainRouteNodes(nodes, out ImmutableArray<int> mainRoute, out string failure))
+                return PathEditResult.Failed(failure, pathModel);
+            if (!IsEligiblePassingBranch(nodes, mainRoute, startNodeIndex, rejoinNodeIndex, out failure))
+                return PathEditResult.Failed(failure, pathModel);
+
+            ImmutableArray<PathNode> updatedNodes = nodes.SetItem(startNodeIndex, nodes[startNodeIndex] with { NextSidingNode = rejoinNodeIndex });
+            return PathEditResult.Succeeded($"Created passing branch from node {startNodeIndex} to node {rejoinNodeIndex}.",
+                pathModel with { PathNodes = updatedNodes }, ImmutableArray.Create(startNodeIndex, rejoinNodeIndex));
+        }
+
+        /// <summary>Materializes resolver-selected intermediary anchors on an existing supported passing branch.</summary>
+        public static PathEditResult AddPassingBranchAnchors(PathModel pathModel, int startNodeIndex, ImmutableArray<PathRouteAnchor> anchors)
+        {
+            ArgumentNullException.ThrowIfNull(pathModel);
+            if (anchors.IsDefaultOrEmpty)
+                return PathEditResult.Failed("The selected passing route candidate has no intermediary anchors to author.", pathModel);
+
+            ImmutableArray<PathNode> nodes = Nodes(pathModel);
+            if (!TryGetSinglePassingBranch(nodes, startNodeIndex, out int rejoinNodeIndex, out _, out string failure))
+                return PathEditResult.Failed(failure, pathModel);
+
+            ImmutableArray<PathNode>.Builder builder = nodes.ToBuilder();
+            ImmutableArray<int>.Builder changed = ImmutableArray.CreateBuilder<int>(anchors.Length + 2);
+            int previousIndex = startNodeIndex;
+            foreach (PathRouteAnchor anchor in anchors)
+            {
+                int newIndex = builder.Count;
+                builder.Add(new PathNode(anchor.Location)
+                {
+                    NodeType = anchor.NodeType.Includes(PathNodeType.Junction) ? PathNodeType.Junction : PathNodeType.Intermediate,
+                    NodeIndex = anchor.TrackNodeIndex,
+                    NextMainNode = -1,
+                    NextSidingNode = rejoinNodeIndex,
+                });
+                builder[previousIndex] = builder[previousIndex] with { NextSidingNode = newIndex };
+                previousIndex = newIndex;
+                changed.Add(newIndex);
+            }
+            changed.Add(startNodeIndex);
+            changed.Add(rejoinNodeIndex);
+            return PathEditResult.Succeeded($"Added {anchors.Length} passing-branch anchor(s) after node {startNodeIndex}.",
+                pathModel with { PathNodes = builder.ToImmutable() }, changed.ToImmutable());
+        }
+
+        /// <summary>Moves an interior anchor of a supported single-level passing branch.</summary>
+        public static PathEditResult MovePassingBranchAnchor(PathModel pathModel, int nodeIndex, PathNode anchor, bool isJunction)
+        {
+            ArgumentNullException.ThrowIfNull(pathModel);
+            ArgumentNullException.ThrowIfNull(anchor);
+
+            ImmutableArray<PathNode> nodes = Nodes(pathModel);
+            if (!TryGetPassingBranchInteriorNodes(nodes, out ImmutableArray<int> interiorNodes, out string failure))
+                return PathEditResult.Failed(failure, pathModel);
+            if (!interiorNodes.Contains(nodeIndex))
+                return PathEditResult.Failed($"Node {nodeIndex} is not an interior anchor of the supported passing branch.", pathModel);
+
+            return MoveNode(pathModel, nodeIndex, anchor, isJunction);
+        }
+
+        /// <summary>Returns the node's role after validating the complete supported passing-branch topology.</summary>
+        public static bool TryGetPassingBranchNodeRole(PathModel pathModel, int nodeIndex, out PassingBranchNodeRole role, out string failure)
+        {
+            ArgumentNullException.ThrowIfNull(pathModel);
+
+            role = PassingBranchNodeRole.None;
+            ImmutableArray<PathNode> nodes = Nodes(pathModel);
+            if (nodeIndex < 0 || nodeIndex >= nodes.Length)
+            {
+                failure = $"Node index {nodeIndex} is out of range.";
+                return false;
+            }
+
+            ImmutableArray<int> starts = Enumerable.Range(0, nodes.Length)
+                .Where(index => nodes[index].NextMainNode >= 0 && nodes[index].NextSidingNode >= 0).ToImmutableArray();
+            if (starts.Length != 1)
+            {
+                failure = "Exactly one supported passing branch is required.";
+                return false;
+            }
+            if (!TryGetSinglePassingBranch(nodes, starts[0], out int rejoinNodeIndex, out ImmutableArray<int> interiorNodes, out failure))
+                return false;
+
+            role = nodeIndex == starts[0]
+                ? PassingBranchNodeRole.BranchStart
+                : nodeIndex == rejoinNodeIndex
+                    ? PassingBranchNodeRole.BranchRejoin
+                    : interiorNodes.Contains(nodeIndex)
+                        ? PassingBranchNodeRole.BranchInterior
+                        : PassingBranchNodeRole.MainRoute;
+            failure = null;
+            return true;
+        }
+
+        /// <summary>Removes the supported single-level passing branch and its interior anchors.</summary>
+        public static PathEditResult RemovePassingBranch(PathModel pathModel, int startNodeIndex)
+        {
+            ArgumentNullException.ThrowIfNull(pathModel);
+
+            ImmutableArray<PathNode> nodes = Nodes(pathModel);
+            if (!TryGetSinglePassingBranch(nodes, startNodeIndex, out _, out ImmutableArray<int> interiorNodes, out string failure))
+                return PathEditResult.Failed(failure, pathModel);
+
+            ImmutableArray<PathNode> updatedNodes = nodes.SetItem(startNodeIndex, nodes[startNodeIndex] with { NextSidingNode = -1 });
+            foreach (int interiorIndex in interiorNodes.OrderByDescending(index => index))
+                updatedNodes = RemoveNodeAt(updatedNodes, interiorIndex);
+
+            return PathEditResult.Succeeded($"Removed passing branch from node {startNodeIndex}.",
+                pathModel with { PathNodes = updatedNodes }, interiorNodes.Add(startNodeIndex));
+        }
+
         private static PathNode CreateViaNode(PathNode anchor, bool junction, int nextMainNode)
         {
             return new PathNode(anchor.Location)
@@ -348,6 +479,144 @@ namespace FreeTrainSimulator.Runtime.Track
                 NextMainNode = nextMainNode,
                 NextSidingNode = -1,
             };
+        }
+
+        private static bool IsEligiblePassingBranch(ImmutableArray<PathNode> nodes, ImmutableArray<int> mainRoute,
+            int startNodeIndex, int rejoinNodeIndex, out string failure)
+        {
+            int startPosition = mainRoute.IndexOf(startNodeIndex);
+            int rejoinPosition = mainRoute.IndexOf(rejoinNodeIndex);
+            if (startPosition < 0 || rejoinPosition < 0)
+            {
+                failure = "A passing branch must start and rejoin on authored main-route nodes.";
+                return false;
+            }
+            if (rejoinPosition <= startPosition)
+            {
+                failure = "A passing branch must rejoin a later main-route node.";
+                return false;
+            }
+            if (nodes.Any(node => node.NextSidingNode >= 0))
+            {
+                failure = "Nested or overlapping passing branches are not supported.";
+                return false;
+            }
+            if (nodes.Length != mainRoute.Length)
+            {
+                failure = "A passing branch cannot be added while disconnected authored nodes exist.";
+                return false;
+            }
+            failure = null;
+            return true;
+        }
+
+        private static bool TryGetSinglePassingBranch(ImmutableArray<PathNode> nodes, int startNodeIndex, out int rejoinNodeIndex,
+            out ImmutableArray<int> interiorNodes, out string failure)
+        {
+            rejoinNodeIndex = -1;
+            interiorNodes = ImmutableArray<int>.Empty;
+            if (!TryGetMainRouteNodes(nodes, out ImmutableArray<int> mainRoute, out failure))
+                return false;
+            if (startNodeIndex < 0 || startNodeIndex >= nodes.Length || nodes[startNodeIndex].NextSidingNode < 0 || !mainRoute.Contains(startNodeIndex))
+            {
+                failure = $"Node {startNodeIndex} does not start a passing branch.";
+                return false;
+            }
+            ImmutableArray<int> branchStarts = Enumerable.Range(0, nodes.Length)
+                .Where(index => nodes[index].NextMainNode >= 0 && nodes[index].NextSidingNode >= 0).ToImmutableArray();
+            if (branchStarts.Length != 1 || branchStarts[0] != startNodeIndex)
+            {
+                failure = "The path does not contain exactly one supported passing-branch start.";
+                return false;
+            }
+
+            ImmutableArray<int>.Builder interior = ImmutableArray.CreateBuilder<int>();
+            HashSet<int> visited = new HashSet<int>();
+            int current = nodes[startNodeIndex].NextSidingNode;
+            while (!mainRoute.Contains(current))
+            {
+                if (current < 0 || current >= nodes.Length || !visited.Add(current) || nodes[current].NextMainNode >= 0 || nodes[current].NextSidingNode < 0)
+                {
+                    failure = "The passing branch is unresolved, nested, or does not rejoin the main route.";
+                    return false;
+                }
+                interior.Add(current);
+                current = nodes[current].NextSidingNode;
+            }
+            if (mainRoute.IndexOf(current) <= mainRoute.IndexOf(startNodeIndex))
+            {
+                failure = "The passing branch does not rejoin a later main-route node.";
+                return false;
+            }
+            rejoinNodeIndex = current;
+            interiorNodes = interior.ToImmutable();
+            ImmutableHashSet<int> allowedNodes = mainRoute.ToImmutableHashSet().Union(interiorNodes);
+            for (int index = 0; index < nodes.Length; index++)
+            {
+                if (!allowedNodes.Contains(index))
+                {
+                    failure = "The path contains disconnected nodes outside the passing branch.";
+                    return false;
+                }
+                if (nodes[index].NextSidingNode >= 0 && index != startNodeIndex && !interiorNodes.Contains(index))
+                {
+                    failure = "The path contains an overlapping or nested passing-branch link.";
+                    return false;
+                }
+            }
+            failure = null;
+            return true;
+        }
+
+        private static bool TryGetPassingBranchInteriorNodes(ImmutableArray<PathNode> nodes, out ImmutableArray<int> interiorNodes, out string failure)
+        {
+            ImmutableArray<int> starts = Enumerable.Range(0, nodes.Length)
+                .Where(index => nodes[index].NextMainNode >= 0 && nodes[index].NextSidingNode >= 0).ToImmutableArray();
+            if (starts.Length != 1)
+            {
+                interiorNodes = ImmutableArray<int>.Empty;
+                failure = "Exactly one supported passing branch is required.";
+                return false;
+            }
+            return TryGetSinglePassingBranch(nodes, starts[0], out _, out interiorNodes, out failure);
+        }
+
+        private static bool TryGetMainRouteNodes(ImmutableArray<PathNode> nodes, out ImmutableArray<int> mainRoute, out string failure)
+        {
+            for (int index = 0; index < nodes.Length; index++)
+            {
+                if (nodes[index].NextSidingNode < -1 || nodes[index].NextSidingNode >= nodes.Length)
+                {
+                    mainRoute = ImmutableArray<int>.Empty;
+                    failure = $"Node {index} has invalid siding link {nodes[index].NextSidingNode}.";
+                    return false;
+                }
+            }
+
+            int startIndex = IndexOfNodeType(nodes, PathNodeType.Start);
+            if (startIndex < 0)
+            {
+                mainRoute = ImmutableArray<int>.Empty;
+                failure = "A passing branch requires a main-route start node.";
+                return false;
+            }
+            ImmutableArray<int>.Builder route = ImmutableArray.CreateBuilder<int>();
+            HashSet<int> visited = new HashSet<int>();
+            int current = startIndex;
+            while (current >= 0)
+            {
+                if (current >= nodes.Length || !visited.Add(current))
+                {
+                    mainRoute = ImmutableArray<int>.Empty;
+                    failure = "The main route contains an invalid link or cycle.";
+                    return false;
+                }
+                route.Add(current);
+                current = nodes[current].NextMainNode;
+            }
+            mainRoute = route.ToImmutable();
+            failure = null;
+            return true;
         }
 
         // Re-targets a single absolute link index after a node is inserted at insertIndex.

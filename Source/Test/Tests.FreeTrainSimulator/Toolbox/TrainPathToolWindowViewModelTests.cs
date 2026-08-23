@@ -23,6 +23,29 @@ namespace Tests.FreeTrainSimulator.Toolbox
         }
 
         [TestMethod]
+        public void WhenPassingBranchCandidatePhaseIsAppliedThenOnlyCancelPhaseActionIsEnabled()
+        {
+            TrainPathToolWindow bridge = CreateBridge(action => action());
+            SetBridgeSnapshot(bridge, TrainPathSnapshot.Empty with
+            {
+                PassingBranchPhase = PassingBranchAuthoringPhase.SelectingCandidate,
+                CanCancelPassingBranch = true,
+                HasPendingPassingBranchCandidate = true,
+            });
+            using ToolWindowRefreshScheduler refreshScheduler = new ToolWindowRefreshScheduler(Dispatcher.CurrentDispatcher);
+            using TrainPathToolWindowViewModel viewModel = new TrainPathToolWindowViewModel(bridge, refreshScheduler);
+
+            typeof(TrainPathToolWindowViewModel).GetMethod("Refresh", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(viewModel, null);
+
+            Assert.AreEqual(PassingBranchAuthoringPhase.SelectingCandidate, viewModel.PassingBranchPhase);
+            Assert.IsTrue(viewModel.HasPendingPassingBranchCandidate);
+            Assert.IsTrue(viewModel.CancelPassingBranchCommand.CanExecute(null));
+            Assert.IsFalse(viewModel.BeginPassingBranchCommand.CanExecute(null));
+            Assert.IsFalse(viewModel.CompletePassingBranchCommand.CanExecute(null));
+            Assert.IsFalse(viewModel.RemovePassingBranchCommand.CanExecute(null));
+        }
+
+        [TestMethod]
         public void WhenSetStartHereCommandExecutedThenBridgeCommandIsMarshaled()
         {
             int invocations = 0;

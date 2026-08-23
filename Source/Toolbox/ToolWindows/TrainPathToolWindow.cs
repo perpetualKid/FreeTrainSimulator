@@ -262,6 +262,24 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
         /// <summary>Whether route building can finish at its last committed point.</summary>
         public bool CanFinishPath { get; init; }
 
+        public bool CanBeginPassingBranch { get; init; }
+
+        public bool CanCompletePassingBranch { get; init; }
+
+        public bool CanCancelPassingBranch { get; init; }
+
+        public bool CanRemovePassingBranch { get; init; }
+
+        public bool HasPendingPassingBranchCandidate { get; init; }
+
+        public PassingBranchAuthoringPhase PassingBranchPhase { get; init; }
+
+        public string CommandResultMessage { get; init; }
+
+        public bool CommandResultIsWarning { get; init; }
+
+        public int CommandResultVersion { get; init; }
+
         /// <summary>An empty snapshot used before any path content is available.</summary>
         public static TrainPathSnapshot Empty { get; } = new TrainPathSnapshot
         {
@@ -289,6 +307,12 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
             CanMoveSelectedNode = false,
             CanRepairSelectedNode = false,
             CanRemoveSelectedViaPoint = false,
+            CanBeginPassingBranch = false,
+            CanCompletePassingBranch = false,
+            CanCancelPassingBranch = false,
+            CanRemovePassingBranch = false,
+            HasPendingPassingBranchCandidate = false,
+            PassingBranchPhase = PassingBranchAuthoringPhase.Idle,
         };
     }
 
@@ -326,6 +350,9 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
         private PathPersistenceValidationResult blockedSaveValidation;
         private PathModel blockedSaveSourceModel;
         private int blockedSaveFeedbackVersion;
+        private string commandResultMessage;
+        private bool commandResultIsWarning;
+        private int commandResultVersion;
 
         internal TrainPathToolWindow(Func<PathEditor> pathEditorAccessor, Func<ITrainPathToolingContext> toolingContextAccessor,
             Action<Action> gameThreadInvoker, Action createPathAction, Action savePathAction, Action<PathModelHeader> loadPathAction,
@@ -425,6 +452,12 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
             bool canCancelNewPath = pathEditor.IsNewPath;
             bool isBuildingRoute = pathEditor.IsBuildingRoute;
             bool canFinishPath = isBuildingRoute && pathEditor.CanRemoveEnd;
+            bool canBeginPassingBranch = pathEditor.CanBeginPassingBranch(selectedNodeIndex);
+            bool canCompletePassingBranch = pathEditor.CanCompletePassingBranch(selectedNodeIndex);
+            bool canCancelPassingBranch = pathEditor.CanCancelPassingBranch;
+            bool canRemovePassingBranch = pathEditor.CanRemovePassingBranch(selectedNodeIndex);
+            bool hasPendingPassingBranchCandidate = pathEditor.HasPendingPassingBranchCandidate;
+            PassingBranchAuthoringPhase passingBranchPhase = pathEditor.PassingBranchPhase;
 
             int currentSnapshotVersion = snapshotVersion;
 
@@ -451,6 +484,13 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
                 && canCancelNewPath == snapshot.CanCancelNewPath
                 && isBuildingRoute == snapshot.IsBuildingRoute
                 && canFinishPath == snapshot.CanFinishPath
+                && canBeginPassingBranch == snapshot.CanBeginPassingBranch
+                && canCompletePassingBranch == snapshot.CanCompletePassingBranch
+                && canCancelPassingBranch == snapshot.CanCancelPassingBranch
+                && canRemovePassingBranch == snapshot.CanRemovePassingBranch
+                && hasPendingPassingBranchCandidate == snapshot.HasPendingPassingBranchCandidate
+                && passingBranchPhase == snapshot.PassingBranchPhase
+                && commandResultVersion == snapshot.CommandResultVersion
                 && isRepairMode == snapshot.IsRepairMode
                 && blockedSaveFeedbackVersion == snapshot.BlockedSaveFeedbackVersion
                 && paths.SequenceEqual(snapshot.Paths))
@@ -493,6 +533,15 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
                 CanCancelNewPath = canCancelNewPath,
                 IsBuildingRoute = isBuildingRoute,
                 CanFinishPath = canFinishPath,
+                CanBeginPassingBranch = canBeginPassingBranch,
+                CanCompletePassingBranch = canCompletePassingBranch,
+                CanCancelPassingBranch = canCancelPassingBranch,
+                CanRemovePassingBranch = canRemovePassingBranch,
+                HasPendingPassingBranchCandidate = hasPendingPassingBranchCandidate,
+                PassingBranchPhase = passingBranchPhase,
+                CommandResultMessage = commandResultMessage,
+                CommandResultIsWarning = commandResultIsWarning,
+                CommandResultVersion = commandResultVersion,
             };
         }
 
@@ -645,6 +694,14 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
 
         internal void RemoveViaPoint(int nodeIndex) => ExecuteEditorCommand(pathEditor => pathEditor.RemoveViaPointCommand(nodeIndex));
 
+        internal void BeginPassingBranch(int startNodeIndex) => ExecuteEditorCommand(pathEditor => pathEditor.BeginPassingBranchCommand(startNodeIndex));
+
+        internal void CompletePassingBranch(int rejoinNodeIndex) => ExecuteEditorCommand(pathEditor => pathEditor.CompletePassingBranchCommand(rejoinNodeIndex));
+
+        internal void CancelPassingBranch() => ExecuteEditorCommand(pathEditor => pathEditor.CancelPassingBranchCommand());
+
+        internal void RemovePassingBranch(int startNodeIndex) => ExecuteEditorCommand(pathEditor => pathEditor.RemovePassingBranchCommand(startNodeIndex));
+
         internal void PreviewRouteCandidate(int fromNodeIndex, int candidateIndex) => ExecuteEditorCommand(pathEditor => pathEditor.PreviewRouteCandidateCommand(fromNodeIndex, candidateIndex));
 
         internal void ClearRouteCandidatePreview() => InvokeEditorAction(pathEditor => pathEditor.ClearRouteCandidatePreview());
@@ -766,10 +823,13 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
                 }
 
                 PathEditorCommandResult result = command(pathEditor);
+                commandResultMessage = result.Message;
+                commandResultIsWarning = !result.Success;
+                commandResultVersion++;
+                MarkDirty();
                 if (result.Success)
                 {
                     onSuccess?.Invoke();
-                    MarkDirty();
                     return;
                 }
 

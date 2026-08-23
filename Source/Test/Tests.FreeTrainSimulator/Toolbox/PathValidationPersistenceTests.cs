@@ -123,6 +123,44 @@ namespace Tests.FreeTrainSimulator.Toolbox
         }
 
         [TestMethod]
+        public async Task WhenPathHasSidingLinkBelowMinusOneThenSaveIsBlocked()
+        {
+            RouteModel route = CreateRoute();
+            PathModel invalid = CreateLinearPath("invalid-siding-link") with
+            {
+                PathNodes = CreateLinearPath("source").PathNodes.SetItem(0,
+                    CreateLinearPath("source").PathNodes[0] with { NextSidingNode = -2 }),
+            };
+
+            PathPersistenceValidationResult result = await PathEditor.SaveValidatedPath(invalid, route,
+                TrackWorldTestFixture.CreateSingleVectorNodeTrackWorld()).ConfigureAwait(false);
+
+            Assert.IsFalse(result.PersistenceAllowed);
+            Assert.IsFalse((await route.GetPaths(CancellationToken.None).ConfigureAwait(false)).Any(path => path.Id == invalid.Id));
+        }
+
+        [TestMethod]
+        public async Task WhenValidPassingBranchIsSavedThenItRoundTripsWithResolverValidation()
+        {
+            RouteModel route = CreateRoute();
+            PathModel source = CreateLinearPath("passing-round-trip");
+            PathModel branch = source with
+            {
+                PathNodes = source.PathNodes.SetItem(0, source.PathNodes[0] with { NextSidingNode = 1 }),
+            };
+
+            PathPersistenceValidationResult result = await PathEditor.SaveValidatedPath(branch, route,
+                TrackWorldTestFixture.CreateSingleVectorNodeTrackWorld()).ConfigureAwait(false);
+            PathModelHeader savedHeader = (await route.GetPaths(CancellationToken.None).ConfigureAwait(false)).Single(path => path.Id == branch.Id);
+            PathModel reloaded = await savedHeader.GetExtended(CancellationToken.None).ConfigureAwait(false);
+
+            Assert.IsTrue(result.PersistenceAllowed);
+            Assert.AreEqual(PathValidationState.Valid, reloaded.ValidationState);
+            Assert.IsTrue(reloaded.PathNodes.Any(node => node.NextSidingNode >= 0));
+            Assert.IsTrue(PathRouteResolver.Resolve(reloaded, TrackWorldTestFixture.CreateSingleVectorNodeTrackWorld(), CancellationToken.None).IsValid);
+        }
+
+        [TestMethod]
         public async Task WhenChangedPathIdIsSavedThenOriginalAndSaveAsPathsArePersistedSeparately()
         {
             RouteModel route = CreateRoute();

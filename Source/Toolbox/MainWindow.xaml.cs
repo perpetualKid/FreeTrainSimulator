@@ -274,8 +274,8 @@ namespace FreeTrainSimulator.Toolbox
             if (saveRequest.IsSaveAs && await MapHost.TrainPathIdExistsAsync(dialog.PathDetails.Id).ConfigureAwait(true))
             {
                 MessageBoxResult overwriteResult = MessageBox.Show(this,
-                    $"A path with ID '{dialog.PathDetails.Id}' already exists. Replace that path? The active path will remain unchanged unless the save succeeds.",
-                    "Confirm Save As Overwrite", MessageBoxButton.YesNo, MessageBoxImage.Warning);
+                    string.Format(CatalogManager.Catalog.GetString("A path with ID '{0}' already exists. Replace that path? The active path will remain unchanged unless the save succeeds."), dialog.PathDetails.Id),
+                    CatalogManager.Catalog.GetString("Confirm Save As Overwrite"), MessageBoxButton.YesNo, MessageBoxImage.Warning);
                 if (overwriteResult != MessageBoxResult.Yes)
                     return;
 

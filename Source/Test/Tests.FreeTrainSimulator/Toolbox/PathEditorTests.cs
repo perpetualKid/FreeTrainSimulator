@@ -575,6 +575,122 @@ namespace Tests.FreeTrainSimulator.Toolbox
         }
 
         [TestMethod]
+        public void WhenPassingBranchRejoinIsSelectedThenGenericCancellationIsAvailableAndSafe()
+        {
+            PathModel source = CreateEditablePath();
+            using PathEditor editor = CreateEditor(source);
+            PathModel baseline = editor.TryCaptureCurrentPathModel();
+            bool dirty = editor.HasUnsavedChanges;
+            bool canUndo = editor.CanUndo;
+            bool canRedo = editor.CanRedo;
+
+            Assert.IsTrue(editor.BeginPassingBranchCommand(0).Success);
+            bool canCancel = editor.CanCancelPathInteraction;
+            PathEditorCommandResult cancel = editor.CancelPathInteractionCommand();
+
+            Assert.IsTrue(canCancel);
+            Assert.IsTrue(cancel.Success);
+            Assert.AreEqual(PassingBranchAuthoringPhase.Idle, editor.PassingBranchPhase);
+            Assert.AreSame(baseline, editor.TryCaptureCurrentPathModel());
+            Assert.AreEqual(dirty, editor.HasUnsavedChanges);
+            Assert.AreEqual(canUndo, editor.CanUndo);
+            Assert.AreEqual(canRedo, editor.CanRedo);
+        }
+
+        [TestMethod]
+        public void WhenResolvedPassingBranchIsCreatedThenUndoAndRedoRestoreItsLifecycle()
+        {
+            PathModel source = CreateEditablePath();
+            using PathEditor editor = CreateEditor(source);
+
+            PathEditorCommandResult begin = editor.BeginPassingBranchCommand(0);
+            PathEditorCommandResult complete = editor.CompletePassingBranchCommand(1);
+
+            Assert.IsTrue(begin.Success);
+            Assert.IsTrue(complete.Success, complete.Message);
+            Assert.IsTrue(editor.TryCaptureCurrentPathModel().PathNodes.Any(node => node.NextSidingNode >= 0));
+            Assert.IsTrue(editor.Undo());
+            Assert.IsFalse(editor.TryCaptureCurrentPathModel().PathNodes.Any(node => node.NextSidingNode >= 0));
+            Assert.IsTrue(editor.Redo());
+            Assert.IsTrue(editor.TryCaptureCurrentPathModel().PathNodes.Any(node => node.NextSidingNode >= 0));
+        }
+
+        [TestMethod]
+        public void WhenBranchedPathMainNodeIsMovedThenNormalMoveRemainsAvailable()
+        {
+            PathModel source = CreateSupportedPassingBranchPath();
+            PathNode anchor = CreateNodeAt(50, PathNodeType.None, -1);
+
+            PathEditResult result = InvokeMoveSelectedAuthoredNode(source, 1, anchor);
+
+            Assert.IsTrue(result.Success, result.Message);
+            Assert.AreEqual(anchor.Location, result.PathModel.PathNodes[1].Location);
+        }
+
+        [TestMethod]
+        public void WhenPassingBranchInteriorIsMovedThenBranchSpecificMoveIsUsed()
+        {
+            PathModel source = CreateSupportedPassingBranchPath();
+            PathNode anchor = CreateNodeAt(75, PathNodeType.None, -1);
+
+            PathEditResult result = InvokeMoveSelectedAuthoredNode(source, 3, anchor);
+
+            Assert.IsTrue(result.Success, result.Message);
+            Assert.AreEqual(anchor.Location, result.PathModel.PathNodes[3].Location);
+        }
+
+        [DataTestMethod]
+        [DataRow(0)]
+        [DataRow(2)]
+        public void WhenPassingBranchEndpointIsMovedThenMoveIsRejected(int nodeIndex)
+        {
+            PathModel source = CreateSupportedPassingBranchPath();
+
+            PathEditResult result = InvokeMoveSelectedAuthoredNode(source, nodeIndex, CreateNodeAt(25, PathNodeType.None, -1));
+
+            Assert.IsFalse(result.Success);
+            Assert.AreSame(source, result.PathModel);
+        }
+
+        [TestMethod]
+        public void WhenPendingPassingCandidateIsCanceledGenericallyThenPreviewAndHistoryStayUnchanged()
+        {
+            PathModel source = CreateEditablePath();
+            using PathEditor editor = CreateEditor(source);
+            PathModel baseline = editor.TryCaptureCurrentPathModel();
+            ResolvedPathSpan span = new ResolvedPathSpan(0, 1, PathRouteSpanStatus.Ambiguous);
+            SetPrivateField(editor, "pendingPassingBranchCandidate", new PendingPassingBranchCandidate(baseline, 0, 1, span));
+            bool dirty = editor.HasUnsavedChanges;
+            bool canUndo = editor.CanUndo;
+            bool canRedo = editor.CanRedo;
+
+            PathEditorCommandResult cancel = editor.CancelPathInteractionCommand();
+
+            Assert.IsTrue(cancel.Success);
+            Assert.AreEqual(PassingBranchAuthoringPhase.Idle, editor.PassingBranchPhase);
+            Assert.AreSame(baseline, editor.TryCaptureCurrentPathModel());
+            Assert.AreEqual(dirty, editor.HasUnsavedChanges);
+            Assert.AreEqual(canUndo, editor.CanUndo);
+            Assert.AreEqual(canRedo, editor.CanRedo);
+        }
+
+        [TestMethod]
+        public void WhenPassingBranchIsRemovedThenUndoRestoresIt()
+        {
+            PathModel source = CreateEditablePath();
+            using PathEditor editor = CreateEditor(source);
+            Assert.IsTrue(editor.BeginPassingBranchCommand(0).Success);
+            Assert.IsTrue(editor.CompletePassingBranchCommand(1).Success);
+
+            PathEditorCommandResult remove = editor.RemovePassingBranchCommand(0);
+
+            Assert.IsTrue(remove.Success, remove.Message);
+            Assert.IsFalse(editor.TryCaptureCurrentPathModel().PathNodes.Any(node => node.NextSidingNode >= 0));
+            Assert.IsTrue(editor.Undo());
+            Assert.IsTrue(editor.TryCaptureCurrentPathModel().PathNodes.Any(node => node.NextSidingNode >= 0));
+        }
+
+        [TestMethod]
         public void WhenRouteCandidatesAreCycledThenSpaceEquivalentAcceptsThePreviewedCandidate()
         {
             using PathEditor editor = CreateEditor(CreateAmbiguousEndpointPath(), CreateAmbiguousTrackWorld());
@@ -1033,6 +1149,28 @@ namespace Tests.FreeTrainSimulator.Toolbox
         }
 
         [TestMethod]
+        public void WhenPassingBranchRejoinSelectionIsCanceledThenModelAndHistoryRemainUnchanged()
+        {
+            PathModel source = CreateEditablePath();
+            using PathEditor editor = CreateEditor(source);
+            PathModel baseline = editor.TryCaptureCurrentPathModel();
+            bool dirty = editor.HasUnsavedChanges;
+            bool canUndo = editor.CanUndo;
+            bool canRedo = editor.CanRedo;
+
+            PathEditorCommandResult begin = editor.BeginPassingBranchCommand(0);
+            PathEditorCommandResult cancel = editor.CancelPathInteractionCommand();
+
+            Assert.IsTrue(begin.Success);
+            Assert.AreEqual(PassingBranchAuthoringPhase.Idle, editor.PassingBranchPhase);
+            Assert.IsTrue(cancel.Success);
+            Assert.AreSame(baseline, editor.TryCaptureCurrentPathModel());
+            Assert.AreEqual(dirty, editor.HasUnsavedChanges);
+            Assert.AreEqual(canUndo, editor.CanUndo);
+            Assert.AreEqual(canRedo, editor.CanRedo);
+        }
+
+        [TestMethod]
         public void WhenSaveAsOverwriteIsDeclinedThenEditorStateRemainsUnchanged()
         {
             PathModel source = CreateEditablePath();
@@ -1274,6 +1412,26 @@ namespace Tests.FreeTrainSimulator.Toolbox
                 NodeType = nodeType,
                 NextMainNode = nextMainNode,
             };
+        }
+
+        private static PathModel CreateSupportedPassingBranchPath()
+        {
+            return new PathModel
+            {
+                Id = "passing-path",
+                Name = "Passing Path",
+                PathNodes = ImmutableArray.Create(
+                    CreateNodeAt(0, PathNodeType.Start, 1) with { NextSidingNode = 3 },
+                    CreateNodeAt(40, PathNodeType.Intermediate, 2),
+                    CreateNodeAt(100, PathNodeType.End, -1),
+                    CreateNodeAt(60, PathNodeType.Intermediate, -1) with { NextSidingNode = 2 }),
+            };
+        }
+
+        private static PathEditResult InvokeMoveSelectedAuthoredNode(PathModel pathModel, int nodeIndex, PathNode anchor)
+        {
+            return (PathEditResult)typeof(PathEditor).GetMethod("MoveSelectedAuthoredNode", BindingFlags.Static | BindingFlags.NonPublic)
+                .Invoke(null, new object[] { pathModel, nodeIndex, anchor, false });
         }
 
         private static PathModel CreateNonRejoiningPassingPath()
