@@ -243,7 +243,7 @@ namespace Tests.FreeTrainSimulator.Toolbox
                 {
                     Assert.IsTrue(completedSave.IsFaulted);
                     Assert.IsTrue(completedSave.Exception?.InnerException is IOException or UnauthorizedAccessException);
-                });
+                }, TestContext.CancellationToken, TaskContinuationOptions.None, TaskScheduler.Default).ConfigureAwait(false);
             }
 
             byte[] persistedBytes = await File.ReadAllBytesAsync(targetFileName).ConfigureAwait(false);
@@ -349,5 +349,7 @@ namespace Tests.FreeTrainSimulator.Toolbox
                 TrackNodeConnectors = linkedNodeIndexes.Select(link => new TrackNodeConnector { Link = link }).ToImmutableArray(),
             };
         }
+
+        public TestContext TestContext { get; set; }
     }
 }

@@ -72,7 +72,7 @@ namespace Tests.FreeTrainSimulator.Toolbox
             PathModel source = new PathModel { Id = "empty", Name = "Empty", PathNodes = ImmutableArray<PathNode>.Empty };
             using PathEditor editor = new PathEditor(new TestPathEditorContext(TrackWorldTestFixture.CreateSingleVectorNodeTrackWorld()));
 
-            bool initialized = await editor.InitializePathAsync(source, CancellationToken.None);
+            bool initialized = await editor.InitializePathAsync(source, CancellationToken.None).ConfigureAwait(false);
 
             Assert.IsTrue(initialized);
             Assert.IsTrue(editor.IsRepairMode);
@@ -90,7 +90,7 @@ namespace Tests.FreeTrainSimulator.Toolbox
             };
             using PathEditor editor = new PathEditor(new TestPathEditorContext(TrackWorldTestFixture.CreateSingleVectorNodeTrackWorld()));
 
-            bool initialized = await editor.InitializePathAsync(source, CancellationToken.None);
+            bool initialized = await editor.InitializePathAsync(source, CancellationToken.None).ConfigureAwait(false);
 
             Assert.IsTrue(initialized);
             Assert.IsTrue(editor.IsRepairMode);
@@ -106,7 +106,7 @@ namespace Tests.FreeTrainSimulator.Toolbox
                 PathNodes = ImmutableArray.Create(CreateNodeAt(0, PathNodeType.Start, -1)),
             };
             using PathEditor editor = new PathEditor(new TestPathEditorContext(TrackWorldTestFixture.CreateSingleVectorNodeTrackWorld()));
-            Assert.IsTrue(await editor.InitializePathAsync(source, CancellationToken.None));
+            Assert.IsTrue(await editor.InitializePathAsync(source, CancellationToken.None).ConfigureAwait(false));
             editor.SelectAuthoredNode(0);
             Assert.AreEqual(0, editor.SelectedAuthoredNodeIndex);
 
@@ -137,7 +137,7 @@ namespace Tests.FreeTrainSimulator.Toolbox
             };
             using PathEditor editor = new PathEditor(new TestPathEditorContext(TrackWorldTestFixture.CreateSingleVectorNodeTrackWorld()));
 
-            bool initialized = await editor.InitializePathAsync(source, CancellationToken.None);
+            bool initialized = await editor.InitializePathAsync(source, CancellationToken.None).ConfigureAwait(false);
 
             Assert.IsTrue(initialized);
             Assert.IsTrue(editor.IsRepairMode);
@@ -154,7 +154,7 @@ namespace Tests.FreeTrainSimulator.Toolbox
             };
             using PathEditor editor = new PathEditor(new TestPathEditorContext(TrackWorldTestFixture.CreateSingleVectorNodeTrackWorld()));
 
-            bool initialized = await editor.InitializePathAsync(source, CancellationToken.None);
+            bool initialized = await editor.InitializePathAsync(source, CancellationToken.None).ConfigureAwait(false);
 
             Assert.IsTrue(initialized);
             Assert.IsTrue(editor.IsRepairMode);
@@ -639,7 +639,7 @@ namespace Tests.FreeTrainSimulator.Toolbox
             Assert.AreEqual(anchor.Location, result.PathModel.PathNodes[3].Location);
         }
 
-        [DataTestMethod]
+        [TestMethod]
         [DataRow(0)]
         [DataRow(2)]
         public void WhenPassingBranchEndpointIsMovedThenMoveIsRejected(int nodeIndex)
@@ -997,7 +997,7 @@ namespace Tests.FreeTrainSimulator.Toolbox
             {
                 _ = editor.BeginViaPointPlacementAt(0, CreateNodeAt(50, PathNodeType.Intermediate, -1));
 
-            bool canceled = editor.CancelMoveNode();
+                bool canceled = editor.CancelMoveNode();
 
                 Assert.IsTrue(canceled);
                 Assert.AreSequenceEqual(source.PathNodes, editor.TryCaptureCurrentPathModel().PathNodes);
@@ -1119,7 +1119,7 @@ namespace Tests.FreeTrainSimulator.Toolbox
             int pathChangedEvents = 0;
             editor.OnPathChanged += (_, _) => pathChangedEvents++;
             persistence.SetResult(saved);
-            _ = await PathSaveOperationConsumer.ConsumeAsync(editor, operation, action => action());
+            _ = await PathSaveOperationConsumer.ConsumeAsync(editor, operation, action => action()).ConfigureAwait(false);
 
             Assert.IsTrue(edit.Success);
             Assert.AreSame(newerModel, editor.TryCaptureCurrentPathModel());
@@ -1141,7 +1141,7 @@ namespace Tests.FreeTrainSimulator.Toolbox
             PathSaveOperation operation = CreatePendingSaveOperation(editor, capturedSource,
                 Task.FromResult(new PathPersistenceValidationResult(true, savedCopy, null, default, default, null, null)));
 
-            _ = await PathSaveOperationConsumer.ConsumeAsync(editor, operation, action => action());
+            _ = await PathSaveOperationConsumer.ConsumeAsync(editor, operation, action => action()).ConfigureAwait(false);
 
             Assert.AreEqual("saved-copy", editor.PathId);
             Assert.AreEqual("Saved Copy", editor.TryCaptureCurrentPathModel().Name);
@@ -1201,7 +1201,7 @@ namespace Tests.FreeTrainSimulator.Toolbox
             PathSaveOperation first = CreatePendingSaveOperation(editor, source, firstPersistence.Task);
             PathSaveOperation duplicate = editor.BeginSave(source);
 
-            PathPersistenceValidationResult duplicateResult = await PathSaveOperationConsumer.ConsumeAsync(editor, duplicate, action => action());
+            PathPersistenceValidationResult duplicateResult = await PathSaveOperationConsumer.ConsumeAsync(editor, duplicate, action => action()).ConfigureAwait(false);
             PathSaveOperation third = editor.BeginSave(source);
 
             Assert.IsTrue(editor.IsSaveInProgress);
@@ -1209,7 +1209,7 @@ namespace Tests.FreeTrainSimulator.Toolbox
             Assert.IsFalse(third.Acquired);
 
             firstPersistence.SetResult(new PathPersistenceValidationResult(true, source, null, default, default, null, null));
-            _ = await PathSaveOperationConsumer.ConsumeAsync(editor, first, action => action());
+            _ = await PathSaveOperationConsumer.ConsumeAsync(editor, first, action => action()).ConfigureAwait(false);
 
             Assert.IsFalse(editor.IsSaveInProgress);
         }
@@ -1227,10 +1227,10 @@ namespace Tests.FreeTrainSimulator.Toolbox
             PathSaveOperation operation = CreatePendingSaveOperation(editor, committedModel,
                 Task.FromException<PathPersistenceValidationResult>(new NotSupportedException("Test persistence failure.")));
 
-            await PathSaveOperationConsumer.ConsumeAsync(editor, operation, action => action()).ContinueWith(completedSave =>
+            await PathSaveOperationConsumer.ConsumeAsync(editor, operation, action => action()).ContinueWith(completedSave => 
             {
                 Assert.IsTrue(completedSave.IsFaulted);
-            });
+            }, TestContext.CancellationToken, TaskContinuationOptions.None, TaskScheduler.Default).ConfigureAwait(false);
 
             Assert.IsFalse(editor.IsSaveInProgress);
             Assert.AreSame(committedModel, editor.TryCaptureCurrentPathModel());
@@ -1254,8 +1254,8 @@ namespace Tests.FreeTrainSimulator.Toolbox
             _ = await PathSaveOperationConsumer.ConsumeAsync(editor, operation, async action =>
             {
                 bridgeThreadId = Environment.CurrentManagedThreadId;
-                await action();
-            });
+                await action().ConfigureAwait(false);
+            }).ConfigureAwait(false);
 
             Assert.AreEqual(bridgeThreadId, completionThreadId);
         }
@@ -1599,7 +1599,8 @@ namespace Tests.FreeTrainSimulator.Toolbox
         private static JunctionNode CreateJunctionNode(int nodeIndex)
         {
             return new JunctionNode(new WorldLocation(new Tile(0, 0), new Vector3(nodeIndex * 100, 0, 0)),
-                new Tile(0, 0), Vector3.Zero) { NodeIndex = nodeIndex };
+                new Tile(0, 0), Vector3.Zero)
+            { NodeIndex = nodeIndex };
         }
 
         private static TrackNodeConnectorIndex CreateConnectors(int nodeIndex, params int[] linkedNodeIndexes)
@@ -1795,5 +1796,7 @@ namespace Tests.FreeTrainSimulator.Toolbox
         }
 
         private static TrackWorld CreateInitializedTrackWorld() => TrackWorldTestFixture.CreateSingleVectorNodeTrackWorld();
+
+        public TestContext TestContext { get; set; }
     }
 }
