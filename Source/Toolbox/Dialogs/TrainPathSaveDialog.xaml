@@ -3,12 +3,13 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         Title="Train Path Meta Data"
         Width="380"
-        Height="280"
+        Height="310"
         WindowStartupLocation="CenterOwner"
         ShowInTaskbar="False"
         ResizeMode="NoResize">
     <Grid Margin="12">
         <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
             <RowDefinition Height="Auto" />
@@ -42,11 +43,16 @@
         <CheckBox Grid.Row="4" Grid.Column="1" Margin="6,4" VerticalAlignment="Center"
                   IsChecked="{Binding PlayerPath}" />
 
-        <StackPanel Grid.Row="6" Grid.Column="0" Grid.ColumnSpan="2"
+        <TextBlock Grid.Row="5" Grid.Column="0" Grid.ColumnSpan="2"
+                   Margin="0,8,0,0"
+                   Text="{Binding IdentityMessage}"
+                   TextWrapping="Wrap" />
+
+        <StackPanel Grid.Row="7" Grid.Column="0" Grid.ColumnSpan="2"
                     Orientation="Horizontal"
                     HorizontalAlignment="Right"
                     Margin="0,12,0,0">
-            <Button Content="Save"
+            <Button Content="{Binding SaveActionText}"
                     Width="90"
                     IsDefault="True"
                     IsEnabled="{Binding CanSave}"

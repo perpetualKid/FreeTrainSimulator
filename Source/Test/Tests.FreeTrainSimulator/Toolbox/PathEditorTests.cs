@@ -1015,6 +1015,46 @@ namespace Tests.FreeTrainSimulator.Toolbox
         }
 
         [TestMethod]
+        public async Task WhenSaveAsCompletesThenEditorSwitchesToTheNewPersistedIdentity()
+        {
+            PathModel source = CreateEditablePath();
+            using PathEditor editor = CreateEditor(source);
+            _ = editor.SetStartAnchorCommand(CreateNodeAt(25, PathNodeType.None, -1), false);
+            PathModel capturedSource = editor.TryCaptureCurrentPathModel();
+            PathModel savedCopy = capturedSource with { Id = "saved-copy", Name = "Saved Copy" };
+            PathSaveOperation operation = CreatePendingSaveOperation(editor, capturedSource,
+                Task.FromResult(new PathPersistenceValidationResult(true, savedCopy, null, default, default, null, null)));
+
+            _ = await PathSaveOperationConsumer.ConsumeAsync(editor, operation, action => action());
+
+            Assert.AreEqual("saved-copy", editor.PathId);
+            Assert.AreEqual("Saved Copy", editor.TryCaptureCurrentPathModel().Name);
+            Assert.IsFalse(editor.HasUnsavedChanges);
+        }
+
+        [TestMethod]
+        public void WhenSaveAsOverwriteIsDeclinedThenEditorStateRemainsUnchanged()
+        {
+            PathModel source = CreateEditablePath();
+            using PathEditor editor = CreateEditor(source);
+            _ = editor.SetStartAnchorCommand(CreateNodeAt(25, PathNodeType.None, -1), false);
+            Assert.IsTrue(editor.Undo());
+            PathModel currentModel = editor.TryCaptureCurrentPathModel();
+            bool dirty = editor.HasUnsavedChanges;
+            bool canUndo = editor.CanUndo;
+            bool canRedo = editor.CanRedo;
+            TrainPathSaveRequest request = new(new PathModelHeader { Id = "existing-copy", Name = "Copy" }, source.Id, false);
+
+            bool canSubmit = request.CanSubmit(true);
+
+            Assert.IsFalse(canSubmit);
+            Assert.AreSame(currentModel, editor.TryCaptureCurrentPathModel());
+            Assert.AreEqual(dirty, editor.HasUnsavedChanges);
+            Assert.AreEqual(canUndo, editor.CanUndo);
+            Assert.AreEqual(canRedo, editor.CanRedo);
+        }
+
+        [TestMethod]
         public async Task WhenRejectedDuplicateSaveIsConsumedThenItCannotClearTheActiveSaveOrPermitAThirdSave()
         {
             PathModel source = CreateEditablePath();

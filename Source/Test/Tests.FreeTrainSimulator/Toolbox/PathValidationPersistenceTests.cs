@@ -123,6 +123,47 @@ namespace Tests.FreeTrainSimulator.Toolbox
         }
 
         [TestMethod]
+        public async Task WhenChangedPathIdIsSavedThenOriginalAndSaveAsPathsArePersistedSeparately()
+        {
+            RouteModel route = CreateRoute();
+            PathModel original = CreateLinearPath("original-path") with { Name = "Original" };
+            _ = await route.Save(original).ConfigureAwait(false);
+            PathModel saveAs = original with { Id = "copied-path", Name = "Copy" };
+
+            PathPersistenceValidationResult result = await PathEditor.SaveValidatedPath(saveAs, route,
+                TrackWorldTestFixture.CreateSingleVectorNodeTrackWorld()).ConfigureAwait(false);
+            ImmutableArray<PathModelHeader> paths = await route.GetPaths(CancellationToken.None).ConfigureAwait(false);
+            PathModel persistedOriginal = await paths.Single(path => path.Id == original.Id).GetExtended(CancellationToken.None).ConfigureAwait(false);
+            PathModel persistedCopy = await paths.Single(path => path.Id == saveAs.Id).GetExtended(CancellationToken.None).ConfigureAwait(false);
+
+            Assert.IsTrue(result.PersistenceAllowed);
+            Assert.AreEqual("Original", persistedOriginal.Name);
+            Assert.AreEqual("Copy", persistedCopy.Name);
+            Assert.AreSequenceEqual(original.PathNodes, persistedOriginal.PathNodes);
+            Assert.AreSequenceEqual(saveAs.PathNodes, persistedCopy.PathNodes);
+        }
+
+        [TestMethod]
+        public async Task WhenConfirmedSaveAsOverwritesExistingIdThenOnlyTheTargetPathIsReplaced()
+        {
+            RouteModel route = CreateRoute();
+            PathModel original = CreateLinearPath("original-path") with { Name = "Original" };
+            PathModel existingTarget = CreateLinearPath("target-path") with { Name = "Existing Target" };
+            _ = await route.Save(original).ConfigureAwait(false);
+            _ = await route.Save(existingTarget).ConfigureAwait(false);
+            PathModel replacement = original with { Id = existingTarget.Id, Name = "Replacement Target" };
+
+            _ = await PathEditor.SaveValidatedPath(replacement, route,
+                TrackWorldTestFixture.CreateSingleVectorNodeTrackWorld()).ConfigureAwait(false);
+            ImmutableArray<PathModelHeader> paths = await route.GetPaths(CancellationToken.None).ConfigureAwait(false);
+            PathModel persistedOriginal = await paths.Single(path => path.Id == original.Id).GetExtended(CancellationToken.None).ConfigureAwait(false);
+            PathModel persistedTarget = await paths.Single(path => path.Id == existingTarget.Id).GetExtended(CancellationToken.None).ConfigureAwait(false);
+
+            Assert.AreEqual("Original", persistedOriginal.Name);
+            Assert.AreEqual("Replacement Target", persistedTarget.Name);
+        }
+
+        [TestMethod]
         public async Task WhenSaveNormalizationFailsThenExistingPersistedContentIsUnchanged()
         {
             RouteModel route = CreateRoute();

@@ -358,19 +358,41 @@ namespace FreeTrainSimulator.Toolbox.Hosting
         }
 
         /// <summary>
+        /// Captures the active path's metadata and identity for the WPF save dialog.
+        /// </summary>
+        internal Task<TrainPathSaveDialogState> GetTrainPathSaveDialogStateAsync()
+        {
+            GameWindow game = gameWindow;
+            return game == null
+                ? Task.FromResult<TrainPathSaveDialogState>(null)
+                : game.InvokeOnGameThreadAsync(() => Task.FromResult(game.CaptureTrainPathSaveDialogState()));
+        }
+
+        /// <summary>Returns whether the selected route already contains the supplied train-path ID.</summary>
+        internal Task<bool> TrainPathIdExistsAsync(string pathId)
+        {
+            ArgumentException.ThrowIfNullOrWhiteSpace(pathId);
+
+            GameWindow game = gameWindow;
+            return game == null
+                ? Task.FromResult(false)
+                : game.InvokeOnGameThreadAsync(() => game.TrainPathIdExistsAsync(pathId));
+        }
+
+        /// <summary>
         /// Submits the collected path metadata back to the hosted game (marshaled onto the game thread) to
         /// persist the path and refresh the path list. Called by the shell after the WPF save dialog is
         /// confirmed.
         /// </summary>
-        internal Task SubmitSavePathAsync(PathModelHeader pathDetails)
+        internal Task SubmitSavePathAsync(TrainPathSaveRequest saveRequest)
         {
-            ArgumentNullException.ThrowIfNull(pathDetails);
+            ArgumentNullException.ThrowIfNull(saveRequest);
 
             GameWindow game = gameWindow;
             if (game == null)
                 return Task.CompletedTask;
 
-            return game.InvokeOnGameThreadAsync(() => game.SubmitTrainPathSaveAsync(pathDetails));
+            return game.InvokeOnGameThreadAsync(() => game.SubmitTrainPathSaveAsync(saveRequest));
         }
 
         /// <summary>

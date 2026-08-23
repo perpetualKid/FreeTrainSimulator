@@ -7,11 +7,23 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
     /// </summary>
     internal sealed class TrainPathSaveDialogViewModel : ObservableObject
     {
-        private string pathName = string.Empty;
-        private string pathId = string.Empty;
-        private string pathStart = string.Empty;
-        private string pathEnd = string.Empty;
-        private bool playerPath = true;
+        private string pathName;
+        private string pathId;
+        private string pathStart;
+        private string pathEnd;
+        private bool playerPath;
+
+        public TrainPathSaveDialogViewModel(string sourcePathId, string pathName, string pathId, string pathStart, string pathEnd, bool playerPath)
+        {
+            SourcePathId = sourcePathId;
+            this.pathName = pathName ?? string.Empty;
+            this.pathId = pathId ?? string.Empty;
+            this.pathStart = pathStart ?? string.Empty;
+            this.pathEnd = pathEnd ?? string.Empty;
+            this.playerPath = playerPath;
+        }
+
+        public string SourcePathId { get; }
 
         public string PathName
         {
@@ -29,7 +41,12 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
             set
             {
                 if (SetProperty(ref pathId, value))
+                {
                     OnPropertyChanged(nameof(CanSave));
+                    OnPropertyChanged(nameof(IsSaveAs));
+                    OnPropertyChanged(nameof(SaveActionText));
+                    OnPropertyChanged(nameof(IdentityMessage));
+                }
             }
         }
 
@@ -53,5 +70,13 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
 
         /// <summary>True once both id and name are non-blank, matching the legacy save behaviour.</summary>
         public bool CanSave => !string.IsNullOrWhiteSpace(PathId) && !string.IsNullOrWhiteSpace(PathName);
+
+        public bool IsSaveAs => !string.Equals(SourcePathId, PathId?.Trim(), System.StringComparison.OrdinalIgnoreCase);
+
+        public string SaveActionText => IsSaveAs ? "Save As" : "Save";
+
+        public string IdentityMessage => IsSaveAs
+            ? "Save As creates or replaces the entered Path ID. The original path is preserved."
+            : "Save updates the active path.";
     }
 }

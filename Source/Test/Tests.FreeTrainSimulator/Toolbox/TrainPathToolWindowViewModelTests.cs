@@ -75,6 +75,50 @@ namespace Tests.FreeTrainSimulator.Toolbox
             Assert.AreEqual("Start anchor placement canceled.", viewModel.StatusMessage);
         }
 
+        [TestMethod]
+        public void WhenExistingPathOpensSaveDialogThenAllMetadataIsPrefilled()
+        {
+            TrainPathSaveDialogViewModel viewModel = new("path-1", "Morning Run", "path-1", "Depot", "Terminal", false);
+
+            Assert.AreEqual("Morning Run", viewModel.PathName);
+            Assert.AreEqual("path-1", viewModel.PathId);
+            Assert.AreEqual("Depot", viewModel.PathStart);
+            Assert.AreEqual("Terminal", viewModel.PathEnd);
+            Assert.IsFalse(viewModel.PlayerPath);
+            Assert.IsFalse(viewModel.IsSaveAs);
+            Assert.AreEqual("Save", viewModel.SaveActionText);
+        }
+
+        [TestMethod]
+        public void WhenTransientPathOpensSaveDialogThenCurrentMetadataIsPrefilled()
+        {
+            TrainPathSaveDialogViewModel viewModel = new(PathEditor.NewPathId, "Draft Path", PathEditor.NewPathId,
+                "Draft Start", "Draft End", true);
+
+            Assert.AreEqual("Draft Path", viewModel.PathName);
+            Assert.AreEqual(PathEditor.NewPathId, viewModel.PathId);
+            Assert.AreEqual("Draft Start", viewModel.PathStart);
+            Assert.AreEqual("Draft End", viewModel.PathEnd);
+            Assert.IsTrue(viewModel.PlayerPath);
+        }
+
+        [TestMethod]
+        public void WhenSaveAsTargetExistsWithoutConfirmationThenRequestCannotSubmit()
+        {
+            TrainPathSaveRequest request = new(new PathModelHeader { Id = "copy", Name = "Copy" }, "original", false);
+
+            Assert.IsTrue(request.IsSaveAs);
+            Assert.IsFalse(request.CanSubmit(true));
+        }
+
+        [TestMethod]
+        public void WhenSaveAsTargetExistsWithConfirmationThenRequestCanSubmit()
+        {
+            TrainPathSaveRequest request = new(new PathModelHeader { Id = "copy", Name = "Copy" }, "original", true);
+
+            Assert.IsTrue(request.CanSubmit(true));
+        }
+
         private static TrainPathToolWindow CreateBridge(Action<Action> invoker, Action createPathAction, Action savePathAction)
         {
             return new TrainPathToolWindow(() => null, () => null, invoker, createPathAction, savePathAction, _ => { }, () => { }, () => { });
