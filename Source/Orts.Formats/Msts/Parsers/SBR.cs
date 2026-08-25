@@ -73,7 +73,7 @@ namespace Orts.Formats.Msts.Parsers
                  * past the first 2 bytes to get to the deflate data will work.
                 */
                 fileStream.Seek(2, SeekOrigin.Current);
-                fileStream = new DeflateStream(fileStream, CompressionMode.Decompress);
+                fileStream = new BufferedStream(new DeflateStream(fileStream, CompressionMode.Decompress));
             }
             else if (headerString.StartsWith("\r\nSIMISA", StringComparison.Ordinal))
             {
