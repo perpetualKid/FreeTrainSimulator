@@ -12,6 +12,8 @@ using FreeTrainSimulator.Runtime.Track;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.Xna.Framework;
 
+using Tests.FreeTrainSimulator.Common;
+
 namespace Tests.FreeTrainSimulator.Runtime.Track
 {
     /// <summary>
@@ -651,6 +653,25 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
             Assert.IsFalse(result.Diagnostics.Any(diagnostic => diagnostic.Code == PathRouteDiagnosticCode.UnsupportedGraphCycle));
         }
 
+        [DataTestMethod]
+        [DataRow("Loop")]
+        [DataRow("JunctionLadder")]
+        [DataRow("Siding")]
+        [DataRow("BalloonLoop")]
+        [DataRow("DeadEnd")]
+        [DataRow("ParallelTrack")]
+        [DataRow("AmbiguousSwitch")]
+        public void WhenRepresentativeTopologyIsResolvedThenMainRouteConnectsAnchoredEndpoints(string topologyName)
+        {
+            TrackWorld trackWorld = CreateRepresentativeTrackWorld(topologyName);
+            PathModel pathModel = CreateAnchoredEndpointPath(trackWorld);
+
+            PathRouteResolution result = PathRouteResolver.Resolve(pathModel, trackWorld, TestContext.CancellationToken);
+
+            Assert.AreNotEqual(PathRouteSpanStatus.Unresolved, result.MainRoute.Spans.Single().Status,
+                string.Join("; ", result.Diagnostics.Select(diagnostic => $"{diagnostic.Severity}:{diagnostic.Code}:{diagnostic.Message}")));
+        }
+
         /// <summary>
         /// Verifies that anchored spans without a deterministic dense connection are reported.
         /// </summary>
@@ -879,6 +900,33 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
                 null,
                 new object[] { trackModel },
                 null);
+        }
+
+        private static TrackWorld CreateRepresentativeTrackWorld(string topologyName)
+        {
+            return topologyName switch
+            {
+                "Loop" => TrackWorldTestFixture.CreateLoopTrackWorld(),
+                "JunctionLadder" => TrackWorldTestFixture.CreateJunctionLadderTrackWorld(),
+                "Siding" => TrackWorldTestFixture.CreateSidingTrackWorld(),
+                "BalloonLoop" => TrackWorldTestFixture.CreateBalloonLoopTrackWorld(),
+                "DeadEnd" => TrackWorldTestFixture.CreateDeadEndTrackWorld(),
+                "ParallelTrack" => TrackWorldTestFixture.CreateParallelTrackWorld(),
+                "AmbiguousSwitch" => TrackWorldTestFixture.CreateAmbiguousSwitchTrackWorld(),
+                _ => throw new ArgumentException($"Unknown representative topology '{topologyName}'.", nameof(topologyName)),
+            };
+        }
+
+        private static PathModel CreateAnchoredEndpointPath(TrackWorld trackWorld)
+        {
+            return new PathModel
+            {
+                Id = "representative-main-path",
+                Name = "Representative Main Path",
+                PathNodes = ImmutableArray.Create(
+                    CreateNode(PathNodeType.Start, 1, -1, 1, trackWorld.TrackDatabase.TrackNodes[1].Location),
+                    CreateNode(PathNodeType.End, -1, -1, 2, trackWorld.TrackDatabase.TrackNodes[2].Location)),
+            };
         }
 
         private static TrackWorld CreateInitializedTrackWorldWithTwoVectorNodes()

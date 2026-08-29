@@ -19,6 +19,8 @@ using Microsoft.Xna.Framework;
 
 using Tests.FreeTrainSimulator.Common;
 
+using EditorTrainPath = FreeTrainSimulator.Graphics.MapView.Widgets.EditorTrainPath;
+
 namespace Tests.FreeTrainSimulator.Toolbox
 {
     // Integration coverage for path validation and guarded persistence using the assembly-wide isolated model store.
@@ -161,6 +163,53 @@ namespace Tests.FreeTrainSimulator.Toolbox
         }
 
         [TestMethod]
+        public async Task WhenGeneratedPassingPathIsReloadedThenRuntimeConsumerRetainsRejoiningBranch()
+        {
+            RouteModel route = CreateRoute();
+            TrackWorld trackWorld = TrackWorldTestFixture.CreateSidingTrackWorld();
+            PathModel source = CreateRepresentativePassingPath("generated-passing-consumer", trackWorld);
+
+            PathPersistenceValidationResult result = await PathEditor.SaveValidatedPath(source, route, trackWorld).ConfigureAwait(false);
+            PathModelHeader savedHeader = (await route.GetPaths(CancellationToken.None).ConfigureAwait(false)).Single(path => path.Id == source.Id);
+            PathModel reloaded = await savedHeader.GetExtended(CancellationToken.None).ConfigureAwait(false);
+            EditorTrainPath runtimePath = new EditorTrainPath(reloaded, trackWorld);
+            TrainPathPointBase branchStart = runtimePath.PathPoints.Single(point => point.NextMainNode > -1 && point.NextSidingNode > -1);
+
+            Assert.IsTrue(result.PersistenceAllowed && PassingBranchRejoinsMain(runtimePath.PathPoints, branchStart));
+        }
+
+        [TestMethod]
+        public async Task WhenGeneratedMainPathIsReloadedThenResolverRetainsRepresentativeRoute()
+        {
+            RouteModel route = CreateRoute();
+            TrackWorld trackWorld = TrackWorldTestFixture.CreateSingleVectorNodeTrackWorld();
+            PathModel source = CreateLinearPath("generated-main-round-trip");
+
+            PathPersistenceValidationResult result = await PathEditor.SaveValidatedPath(source, route, trackWorld).ConfigureAwait(false);
+            PathModelHeader savedHeader = (await route.GetPaths(CancellationToken.None).ConfigureAwait(false)).Single(path => path.Id == source.Id);
+            PathModel reloaded = await savedHeader.GetExtended(CancellationToken.None).ConfigureAwait(false);
+            PathRouteResolution resolution = PathRouteResolver.Resolve(reloaded, trackWorld, CancellationToken.None);
+
+            Assert.IsTrue(result.PersistenceAllowed && resolution.IsValid,
+                string.Join("; ", resolution.Diagnostics.Select(diagnostic => $"{diagnostic.Severity}:{diagnostic.Code}:{diagnostic.Message}")));
+        }
+
+        [TestMethod]
+        public async Task WhenGeneratedMainPathIsReloadedThenRuntimeConsumerRetainsMainConnectivity()
+        {
+            RouteModel route = CreateRoute();
+            TrackWorld trackWorld = TrackWorldTestFixture.CreateDeadEndTrackWorld();
+            PathModel source = CreateAnchoredEndpointPath("generated-main-consumer", trackWorld);
+
+            _ = await PathEditor.SaveValidatedPath(source, route, trackWorld).ConfigureAwait(false);
+            PathModelHeader savedHeader = (await route.GetPaths(CancellationToken.None).ConfigureAwait(false)).Single(path => path.Id == source.Id);
+            PathModel reloaded = await savedHeader.GetExtended(CancellationToken.None).ConfigureAwait(false);
+            EditorTrainPath runtimePath = new EditorTrainPath(reloaded, trackWorld);
+
+            Assert.IsTrue(MainChainReachesEnd(runtimePath.PathPoints));
+        }
+
+        [TestMethod]
         public async Task WhenChangedPathIdIsSavedThenOriginalAndSaveAsPathsArePersistedSeparately()
         {
             RouteModel route = CreateRoute();
@@ -299,6 +348,94 @@ namespace Tests.FreeTrainSimulator.Toolbox
             };
         }
 
+        private static PathModel CreateRepresentativePassingPath(string id, TrackWorld trackWorld)
+        {
+            return new PathModel
+            {
+                Id = id,
+                Name = id,
+                PathNodes = ImmutableArray.Create(
+                    CreateAnchoredPathNode(trackWorld, 1, PathNodeType.Start, 1, 3),
+                    CreateAnchoredPathNode(trackWorld, 4, PathNodeType.Intermediate, 2, -1),
+                    CreateAnchoredPathNode(trackWorld, 2, PathNodeType.End, -1, -1),
+                    CreateAnchoredPathNode(trackWorld, 5, PathNodeType.Intermediate, -1, 2)),
+            };
+        }
+
+        private static bool MainChainReachesEnd(System.Collections.Generic.IReadOnlyList<TrainPathPointBase> pathPoints)
+        {
+            int currentIndex = pathPoints.Select((point, index) => (point, index))
+                .Single(item => item.point.NodeType.Includes(PathNodeType.Start)).index;
+            System.Collections.Generic.HashSet<int> visited = [];
+            while (currentIndex >= 0 && currentIndex < pathPoints.Count && visited.Add(currentIndex))
+            {
+                TrainPathPointBase current = pathPoints[currentIndex];
+                if (current.NodeType.Includes(PathNodeType.End))
+                    return true;
+
+                currentIndex = current.NextMainNode;
+            }
+
+            return false;
+        }
+
+        private static bool PassingBranchRejoinsMain(System.Collections.Generic.IReadOnlyList<TrainPathPointBase> pathPoints,
+            TrainPathPointBase branchStart)
+        {
+            System.Collections.Generic.HashSet<int> mainIndexes = [];
+            int mainIndex = pathPoints.Select((point, index) => (point, index)).Single(item => ReferenceEquals(item.point, branchStart)).index;
+            while (mainIndex >= 0 && mainIndex < pathPoints.Count && mainIndexes.Add(mainIndex))
+                mainIndex = pathPoints[mainIndex].NextMainNode;
+
+            System.Collections.Generic.HashSet<int> branchIndexes = [];
+            int branchIndex = branchStart.NextSidingNode;
+            while (branchIndex >= 0 && branchIndex < pathPoints.Count && branchIndexes.Add(branchIndex))
+            {
+                if (mainIndexes.Contains(branchIndex))
+                    return true;
+
+                branchIndex = pathPoints[branchIndex].NextSidingNode;
+            }
+
+            return false;
+        }
+
+        private static PathNode CreateAnchoredPathNode(TrackWorld trackWorld, int trackNodeIndex, PathNodeType nodeType,
+            int nextMainNode, int nextSidingNode)
+        {
+            return new PathNode(trackWorld.TrackDatabase.TrackNodes[trackNodeIndex].Location)
+            {
+                NodeType = nodeType,
+                NodeIndex = trackNodeIndex,
+                NextMainNode = nextMainNode,
+                NextSidingNode = nextSidingNode,
+            };
+        }
+
+        private static PathModel CreateAnchoredEndpointPath(string id, TrackWorld trackWorld)
+        {
+            return new PathModel
+            {
+                Id = id,
+                Name = id,
+                PathNodes = ImmutableArray.Create(
+                    new PathNode(trackWorld.TrackDatabase.TrackNodes[1].Location)
+                    {
+                        NodeType = PathNodeType.Start,
+                        NodeIndex = 1,
+                        NextMainNode = 1,
+                        NextSidingNode = -1,
+                    },
+                    new PathNode(trackWorld.TrackDatabase.TrackNodes[2].Location)
+                    {
+                        NodeType = PathNodeType.End,
+                        NodeIndex = 2,
+                        NextMainNode = -1,
+                        NextSidingNode = -1,
+                    }),
+            };
+        }
+
         private static PathNode CreatePathNode(float x, PathNodeType nodeType, int nextMainNode)
         {
             return new PathNode(new WorldLocation(new Tile(0, 0), new Vector3(x, 0, 0)))
@@ -335,9 +472,9 @@ namespace Tests.FreeTrainSimulator.Toolbox
             };
         }
 
-        private static JunctionNode CreateJunctionNode(int nodeIndex)
+        private static global::FreeTrainSimulator.Models.Track.JunctionNode CreateJunctionNode(int nodeIndex)
         {
-            return new JunctionNode(new WorldLocation(new Tile(0, 0), new Vector3(nodeIndex * 100, 0, 0)),
+            return new global::FreeTrainSimulator.Models.Track.JunctionNode(new WorldLocation(new Tile(0, 0), new Vector3(nodeIndex * 100, 0, 0)),
                 new Tile(0, 0), Vector3.Zero) { NodeIndex = nodeIndex };
         }
 
