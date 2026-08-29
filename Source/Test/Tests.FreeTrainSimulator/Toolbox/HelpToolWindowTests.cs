@@ -43,7 +43,7 @@ namespace Tests.FreeTrainSimulator.Toolbox
             {
                 Active = true,
             };
-            helpToolWindow.SetSearch("Help", HelpToolWindow.HelpSearchColumn.Command);
+            helpToolWindow.SetSearch("Help", HelpSearchColumn.Command);
 
             helpToolWindow.RefreshSnapshot();
 
@@ -57,7 +57,7 @@ namespace Tests.FreeTrainSimulator.Toolbox
             {
                 Active = true,
             };
-            helpToolWindow.SetSearch("Help", HelpToolWindow.HelpSearchColumn.Command);
+            helpToolWindow.SetSearch("Help", HelpSearchColumn.Command);
 
             helpToolWindow.RefreshSnapshot();
 
@@ -71,7 +71,7 @@ namespace Tests.FreeTrainSimulator.Toolbox
             {
                 Active = true,
             };
-            helpToolWindow.SetSearch("Left", HelpToolWindow.HelpSearchColumn.Key);
+            helpToolWindow.SetSearch("Left", HelpSearchColumn.Key);
 
             helpToolWindow.RefreshSnapshot();
 
@@ -85,7 +85,7 @@ namespace Tests.FreeTrainSimulator.Toolbox
             {
                 Active = true,
             };
-            helpToolWindow.SetSearch("   ", HelpToolWindow.HelpSearchColumn.Command);
+            helpToolWindow.SetSearch("   ", HelpSearchColumn.Command);
 
             helpToolWindow.RefreshSnapshot();
 

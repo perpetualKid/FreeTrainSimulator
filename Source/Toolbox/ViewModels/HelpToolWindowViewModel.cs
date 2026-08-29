@@ -61,9 +61,9 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
 
         private void UpdateSearch()
         {
-            HelpToolWindow.HelpSearchColumn searchColumn = SearchByKey
-                ? HelpToolWindow.HelpSearchColumn.Key
-                : HelpToolWindow.HelpSearchColumn.Command;
+            HelpSearchColumn searchColumn = SearchByKey
+                ? HelpSearchColumn.Key
+                : HelpSearchColumn.Command;
 
             toolWindow.SetSearch(SearchText ?? string.Empty, searchColumn);
         }

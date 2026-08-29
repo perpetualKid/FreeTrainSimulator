@@ -653,7 +653,7 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
             Assert.IsFalse(result.Diagnostics.Any(diagnostic => diagnostic.Code == PathRouteDiagnosticCode.UnsupportedGraphCycle));
         }
 
-        [DataTestMethod]
+        [TestMethod]
         [DataRow("Loop")]
         [DataRow("JunctionLadder")]
         [DataRow("Siding")]

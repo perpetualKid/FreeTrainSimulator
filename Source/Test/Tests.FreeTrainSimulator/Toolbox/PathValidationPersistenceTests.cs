@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
@@ -362,11 +363,11 @@ namespace Tests.FreeTrainSimulator.Toolbox
             };
         }
 
-        private static bool MainChainReachesEnd(System.Collections.Generic.IReadOnlyList<TrainPathPointBase> pathPoints)
+        private static bool MainChainReachesEnd(List<TrainPathPointBase> pathPoints)
         {
             int currentIndex = pathPoints.Select((point, index) => (point, index))
                 .Single(item => item.point.NodeType.Includes(PathNodeType.Start)).index;
-            System.Collections.Generic.HashSet<int> visited = [];
+            HashSet<int> visited = new HashSet<int>();
             while (currentIndex >= 0 && currentIndex < pathPoints.Count && visited.Add(currentIndex))
             {
                 TrainPathPointBase current = pathPoints[currentIndex];
@@ -379,15 +380,14 @@ namespace Tests.FreeTrainSimulator.Toolbox
             return false;
         }
 
-        private static bool PassingBranchRejoinsMain(System.Collections.Generic.IReadOnlyList<TrainPathPointBase> pathPoints,
-            TrainPathPointBase branchStart)
+        private static bool PassingBranchRejoinsMain(List<TrainPathPointBase> pathPoints, TrainPathPointBase branchStart)
         {
-            System.Collections.Generic.HashSet<int> mainIndexes = [];
+            HashSet<int> mainIndexes = new HashSet<int>();
             int mainIndex = pathPoints.Select((point, index) => (point, index)).Single(item => ReferenceEquals(item.point, branchStart)).index;
             while (mainIndex >= 0 && mainIndex < pathPoints.Count && mainIndexes.Add(mainIndex))
                 mainIndex = pathPoints[mainIndex].NextMainNode;
 
-            System.Collections.Generic.HashSet<int> branchIndexes = [];
+            HashSet<int> branchIndexes = new HashSet<int>();
             int branchIndex = branchStart.NextSidingNode;
             while (branchIndex >= 0 && branchIndex < pathPoints.Count && branchIndexes.Add(branchIndex))
             {

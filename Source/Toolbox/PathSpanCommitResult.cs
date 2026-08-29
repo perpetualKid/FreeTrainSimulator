@@ -6,21 +6,6 @@ using FreeTrainSimulator.Runtime.Track;
 namespace FreeTrainSimulator.Toolbox
 {
     /// <summary>
-    /// Outcome of resolving the span(s) affected by an authored anchor edit.
-    /// </summary>
-    internal enum PathSpanCommitStatus
-    {
-        /// <summary>The authored edit itself was rejected; nothing was resolved.</summary>
-        Failed,
-        /// <summary>Every affected span resolved to a single route; the result can be committed.</summary>
-        Resolved,
-        /// <summary>At least one affected span has several equal-cost routes; the user must choose.</summary>
-        Ambiguous,
-        /// <summary>At least one affected span could not be routed; the edit must not be committed.</summary>
-        Unresolved,
-    }
-
-    /// <summary>
     /// Result of the unified span-commit routine: the tentative or materialized path model together with the
     /// resolution outcome for the spans adjacent to the edited node(s).
     /// </summary>

@@ -17,22 +17,6 @@ using FreeTrainSimulator.Runtime.Track;
 
 namespace FreeTrainSimulator.Toolbox
 {
-    internal enum PathEditorPlacementMode
-    {
-        None,
-        MoveNode,
-        StartAnchor,
-        EndAnchor,
-        BuildRoute,
-    }
-
-    internal enum PassingBranchAuthoringPhase
-    {
-        Idle,
-        SelectingRejoin,
-        SelectingCandidate,
-    }
-
     public class PathEditorChangedEventArgs : EventArgs
     {
         public TrainPathBase Path { get; }
@@ -48,6 +32,7 @@ namespace FreeTrainSimulator.Toolbox
         internal const string NewPathId = "<New Path>";
 
         private readonly UserCommandController<UserCommand> userCommandController;
+        private readonly Action<Action> interactivePreviewDispatcher;
         private readonly Stack<PathModel> undoHistory = new Stack<PathModel>();
         private readonly Stack<PathModel> redoHistory = new Stack<PathModel>();
         // One resolution per path model instance, shared by the persisted validation state and by consumers such
@@ -65,7 +50,13 @@ namespace FreeTrainSimulator.Toolbox
         private PathModel movePreviewAuthoringModel;
         private PathModel movePreviewModel;
         private PathNode movePreviewAnchor;
+        private PathNode resolvingPreviewAnchor;
         private PathSpanCommitResult movePreviewSpanCommit;
+#pragma warning disable CA2213 // Disposal is owned by the preview task continuation after token use has completed.
+        private CancellationTokenSource interactivePreviewCancellation;
+#pragma warning restore CA2213
+        private Task interactivePreviewTask = Task.CompletedTask;
+        private int interactivePreviewGeneration;
         private PathEditorPlacementMode placementMode;
         private bool placementSourceEditMode;
         private bool placementSourceUnsavedChanges;
@@ -169,9 +160,11 @@ namespace FreeTrainSimulator.Toolbox
 
         internal PathEditor(IPathEditorContext editorContext) : base(editorContext) { }
 
-        internal PathEditor(IPathEditorContext editorContext, UserCommandController<UserCommand> userCommandController) : base(editorContext)
+        internal PathEditor(IPathEditorContext editorContext, UserCommandController<UserCommand> userCommandController,
+            Action<Action> interactivePreviewDispatcher) : base(editorContext)
         {
             this.userCommandController = userCommandController;
+            this.interactivePreviewDispatcher = interactivePreviewDispatcher ?? throw new ArgumentNullException(nameof(interactivePreviewDispatcher));
             userCommandController.AddEvent(CommonUserCommand.PointerReleased, MouseReleasedLeft);
             userCommandController.AddEvent(CommonUserCommand.AlternatePointerReleased, MouseReleasedRight);
             userCommandController.AddEvent(CommonUserCommand.PointerDragged, MouseDragged);
@@ -179,6 +172,7 @@ namespace FreeTrainSimulator.Toolbox
 
         protected override void Dispose(bool disposing)
         {
+            CancelInteractivePreview();
             userCommandController?.RemoveEvent(CommonUserCommand.PointerReleased, MouseReleasedLeft);
             userCommandController?.RemoveEvent(CommonUserCommand.AlternatePointerReleased, MouseReleasedRight);
             userCommandController?.RemoveEvent(CommonUserCommand.PointerDragged, MouseDragged);
@@ -533,13 +527,17 @@ namespace FreeTrainSimulator.Toolbox
         private PathSpanCommitResult EvaluateSpanCommit(PathModel tentativeModel, ImmutableArray<int> changedNodeIndexes, string message, PathModel sourceModel)
             => EvaluateSpanCommit(tentativeModel, changedNodeIndexes, message, sourceModel, false);
 
+        private PathSpanCommitResult EvaluateSpanCommit(PathModel tentativeModel, ImmutableArray<int> changedNodeIndexes, string message,
+            PathModel sourceModel, bool allowAutomaticReversal)
+            => EvaluateSpanCommit(tentativeModel, changedNodeIndexes, message, sourceModel, allowAutomaticReversal, CancellationToken.None);
+
         // allowAutomaticReversal is set by the endpoint-authoring commands (route building, Set End Here). When the
         // requested target only fails because it lies behind the current direction of travel, retry once with the
         // preceding route point marked as a reversal, which is what the user means by clicking back along the path.
         private PathSpanCommitResult EvaluateSpanCommit(PathModel tentativeModel, ImmutableArray<int> changedNodeIndexes, string message,
-            PathModel sourceModel, bool allowAutomaticReversal)
+            PathModel sourceModel, bool allowAutomaticReversal, CancellationToken cancellationToken)
         {
-            PathRouteResolution resolution = PathRouteResolver.Resolve(tentativeModel, TrackWorld, PathRouteResolverOptions.Default, CancellationToken.None);
+            PathRouteResolution resolution = PathRouteResolver.Resolve(tentativeModel, TrackWorld, PathRouteResolverOptions.Default, cancellationToken);
             ImmutableArray<ResolvedPathSpan> affectedSpans = AffectedSpans(resolution, changedNodeIndexes);
 
             if (affectedSpans.IsEmpty)
@@ -561,7 +559,7 @@ namespace FreeTrainSimulator.Toolbox
 
             if (affectedSpans.Any(span => span.Status is PathRouteSpanStatus.Unresolved or PathRouteSpanStatus.NotResolved))
             {
-                return TryReverseAndResolve(tentativeModel, changedNodeIndexes, message, sourceModel, allowAutomaticReversal)
+                return TryReverseAndResolve(tentativeModel, changedNodeIndexes, message, sourceModel, allowAutomaticReversal, cancellationToken)
                     ?? PathSpanCommitResult.Unresolved(
                         "The affected span could not be routed; click closer to the last anchor or add a via point.",
                         sourceModel);
@@ -569,7 +567,7 @@ namespace FreeTrainSimulator.Toolbox
 
             if (HasImplicitRouteBack(tentativeModel, resolution.MainRoute?.Spans ?? ImmutableArray<ResolvedPathSpan>.Empty, affectedSpans))
             {
-                return TryReverseAndResolve(tentativeModel, changedNodeIndexes, message, sourceModel, allowAutomaticReversal)
+                return TryReverseAndResolve(tentativeModel, changedNodeIndexes, message, sourceModel, allowAutomaticReversal, cancellationToken)
                     ?? PathSpanCommitResult.Unresolved(
                         "The affected span reverses over the existing route; mark the route point as a reversal before routing back.",
                         sourceModel);
@@ -586,7 +584,7 @@ namespace FreeTrainSimulator.Toolbox
         // reversal is not applicable (no preceding point, or it is a junction/terminus) or still does not resolve,
         // so the caller reports its original failure.
         private PathSpanCommitResult TryReverseAndResolve(PathModel tentativeModel, ImmutableArray<int> changedNodeIndexes,
-            string message, PathModel sourceModel, bool allowAutomaticReversal)
+            string message, PathModel sourceModel, bool allowAutomaticReversal, CancellationToken cancellationToken)
         {
             if (!allowAutomaticReversal)
                 return null;
@@ -603,7 +601,7 @@ namespace FreeTrainSimulator.Toolbox
                 ? changedNodeIndexes
                 : changedNodeIndexes.Add(reversalNodeIndex);
             PathSpanCommitResult result = EvaluateSpanCommit(reversal.PathModel, reversalChangedNodes,
-                $"{message} Reversal added at node {reversalNodeIndex}.", sourceModel, false);
+                $"{message} Reversal added at node {reversalNodeIndex}.", sourceModel, false, cancellationToken);
 
             return result.Success ? result : null;
         }
@@ -1662,7 +1660,7 @@ namespace FreeTrainSimulator.Toolbox
             }
 
             PathNode replacementAnchor = CreateReplacementAnchor(candidate);
-            if (EquivalentMoveAnchor(movePreviewAnchor, replacementAnchor))
+            if (EquivalentMoveAnchor(movePreviewAnchor, replacementAnchor) || EquivalentMoveAnchor(resolvingPreviewAnchor, replacementAnchor))
                 return;
 
             bool isJunction = candidate.JunctionNode != null || candidate.NodeType.Includes(PathNodeType.Junction);
@@ -1716,20 +1714,86 @@ namespace FreeTrainSimulator.Toolbox
                 return;
             }
 
-            PathSpanCommitResult spanCommit = EvaluateSpanCommit(result.PathModel, result.ChangedNodeIndexes,
-                "Route point preview.", moveSourceModel, AllowsAutomaticReversal(placementMode));
-            if (spanCommit.Status == PathSpanCommitStatus.Unresolved)
+            if (interactivePreviewDispatcher == null)
             {
-                // Keep the last resolved preview committable while the pointer crosses an unresolved sliver.
+                ApplyResolvedMovePreview(replacementAnchor, result, EvaluateSpanCommit(result.PathModel,
+                    result.ChangedNodeIndexes, "Route point preview.", moveSourceModel,
+                    AllowsAutomaticReversal(placementMode)));
                 return;
             }
 
+            StartInteractivePreview(replacementAnchor, result);
+        }
+
+        private void StartInteractivePreview(PathNode replacementAnchor, PathEditResult edit)
+        {
+            CancelInteractivePreview();
+            CancellationTokenSource cancellation = new();
+            interactivePreviewCancellation = cancellation;
+            resolvingPreviewAnchor = replacementAnchor;
+            int generation = ++interactivePreviewGeneration;
+            PathModel sourceModel = moveSourceModel;
+            PathEditorPlacementMode sourceMode = placementMode;
+            bool allowAutomaticReversal = AllowsAutomaticReversal(sourceMode);
+
+            interactivePreviewTask = Task.Run(() => EvaluateSpanCommit(edit.PathModel, edit.ChangedNodeIndexes,
+                "Route point preview.", sourceModel, allowAutomaticReversal, cancellation.Token), cancellation.Token)
+                .ContinueWith(completed =>
+                {
+                    _ = Interlocked.CompareExchange(ref interactivePreviewCancellation, null, cancellation);
+                    if (completed.IsFaulted)
+                        _ = completed.Exception;
+                    try
+                    {
+                        interactivePreviewDispatcher(() => CompleteInteractivePreview(
+                            generation, sourceModel, sourceMode, replacementAnchor, edit, completed));
+                    }
+                    finally
+                    {
+                        cancellation.Dispose();
+                    }
+                },
+                    CancellationToken.None, TaskContinuationOptions.ExecuteSynchronously, TaskScheduler.Default);
+        }
+
+        private void CompleteInteractivePreview(int generation, PathModel sourceModel, PathEditorPlacementMode sourceMode,
+            PathNode replacementAnchor, PathEditResult edit, Task<PathSpanCommitResult> resolutionTask)
+        {
+            if (generation != interactivePreviewGeneration || !ReferenceEquals(sourceModel, moveSourceModel)
+                || sourceMode != placementMode || !EquivalentMoveAnchor(resolvingPreviewAnchor, replacementAnchor))
+                return;
+
+            resolvingPreviewAnchor = null;
+            if (resolutionTask.IsCanceled)
+                return;
+            if (resolutionTask.IsFaulted)
+            {
+                Trace.TraceWarning($"Cannot resolve path preview: {resolutionTask.Exception?.GetBaseException().Message}");
+                return;
+            }
+
+            ApplyResolvedMovePreview(replacementAnchor, edit, resolutionTask.Result);
+        }
+
+        private void ApplyResolvedMovePreview(PathNode replacementAnchor, PathEditResult edit, PathSpanCommitResult spanCommit)
+        {
+            if (spanCommit.Status == PathSpanCommitStatus.Unresolved)
+                return;
+
             movePreviewAnchor = replacementAnchor;
-            movePreviewAuthoringModel = placementMode == PathEditorPlacementMode.BuildRoute ? result.PathModel : null;
+            movePreviewAuthoringModel = placementMode == PathEditorPlacementMode.BuildRoute ? edit.PathModel : null;
             movePreviewSpanCommit = spanCommit;
             movePreviewModel = spanCommit.PathModel;
             SetPreviewPath(movePreviewModel);
             OnPathUpdated?.Invoke(this, new PathEditorChangedEventArgs(TrainPath));
+        }
+
+        private void CancelInteractivePreview()
+        {
+            interactivePreviewGeneration++;
+            resolvingPreviewAnchor = null;
+            CancellationTokenSource cancellation = Interlocked.Exchange(ref interactivePreviewCancellation, null);
+            cancellation?.Cancel();
         }
 
         private static PathEditResult MoveSelectedAuthoredNode(PathModel pathModel, int nodeIndex, PathNode anchor, bool isJunction)
@@ -1753,6 +1817,7 @@ namespace FreeTrainSimulator.Toolbox
 
         private void ClearMovePreview()
         {
+            CancelInteractivePreview();
             movePreviewAnchor = null;
             movePreviewModel = null;
             movePreviewSpanCommit = null;

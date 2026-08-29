@@ -148,7 +148,7 @@ namespace Tests.FreeTrainSimulator.Common
             return TrackWorld.Initialize(null, new TrackModel { TrackDatabase = trackDatabase }, new TrackSectionModel());
         }
 
-        private static TrackNodeBase CreateVectorNode(int nodeIndex)
+        private static VectorNode CreateVectorNode(int nodeIndex)
         {
             WorldLocation start = new WorldLocation(new Tile(0, 0), new Vector3(nodeIndex * 100, 0, 0));
             WorldLocation end = new WorldLocation(new Tile(0, 0), new Vector3((nodeIndex * 100) + 50, 0, 0));
@@ -159,7 +159,7 @@ namespace Tests.FreeTrainSimulator.Common
             };
         }
 
-        private static TrackNodeBase CreateJunctionNode(int nodeIndex)
+        private static JunctionNode CreateJunctionNode(int nodeIndex)
         {
             WorldLocation location = new WorldLocation(new Tile(0, 0), new Vector3(nodeIndex * 100, 0, 0));
             return new JunctionNode(location, new Tile(0, 0), Vector3.Zero) { NodeIndex = nodeIndex };
