@@ -1030,7 +1030,7 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
             builder.Add(new ToolWindowRow { Name = "Start", Value = pathModel.Start });
             builder.Add(new ToolWindowRow { Name = "End", Value = pathModel.End });
             builder.Add(new ToolWindowRow { Name = "Player Path", Value = FormatStrings.FormatYesNo(pathModel.PlayerPath) });
-            if (!isRepairMode)
+            if (currentPath != null)
             {
                 builder.Add(new ToolWindowRow { Name = "Path Length", Value = FormatStrings.FormatDistanceDisplay(currentPath.Length, metricUnits, 1000) });
                 builder.AddRange(BuildEditorStateMetadata(currentPath));
