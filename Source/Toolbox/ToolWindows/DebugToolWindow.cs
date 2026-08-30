@@ -1,6 +1,7 @@
 using System.Collections.Immutable;
 
 using FreeTrainSimulator.Common.DebugInfo;
+using FreeTrainSimulator.Toolbox.Hosting;
 using FreeTrainSimulator.Toolbox.PopupWindows;
 
 namespace FreeTrainSimulator.Toolbox.ToolWindows

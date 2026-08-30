@@ -8,6 +8,8 @@ using System.Threading.Tasks;
 using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Models.Content;
 using FreeTrainSimulator.Runtime.Track;
+using FreeTrainSimulator.Toolbox.Hosting;
+using FreeTrainSimulator.Toolbox.PathEditing;
 using FreeTrainSimulator.Toolbox.PopupWindows;
 
 using DrawingColor = System.Drawing.Color;
@@ -429,7 +431,13 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
                 lastPathId = null;
                 lastNodeCount = 0;
                 lastSnapshotVersion = pathsSnapshotVersion;
-                snapshot = TrainPathSnapshot.Empty with { Paths = BuildPaths(null) };
+                snapshot = TrainPathSnapshot.Empty with
+                {
+                    Paths = BuildPaths(null),
+                    CommandResultMessage = commandResultMessage,
+                    CommandResultIsWarning = commandResultIsWarning,
+                    CommandResultVersion = commandResultVersion,
+                };
                 return;
             }
 
@@ -569,11 +577,6 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
         /// </summary>
         internal void SelectPath(string pathId)
         {
-            _ = SelectPathAsync(pathId);
-        }
-
-        private async Task SelectPathAsync(string pathId)
-        {
             gameThreadInvoker(() =>
             {
                 CaptureTransientCurrentPath();
@@ -590,14 +593,15 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
                     : cachedPaths.FirstOrDefault(p => string.Equals(p.Id, pathId, StringComparison.OrdinalIgnoreCase));
                 if (path == null)
                 {
-                    _ = RefreshCachedPathsFromContextAsync();
-                    path = cachedPaths.FirstOrDefault(p => string.Equals(p.Id, pathId, StringComparison.OrdinalIgnoreCase));
-                }
-                if (path != null)
-                {
-                    loadPathAction(path);
+                    commandResultMessage = $"Path '{pathId}' is no longer available.";
+                    commandResultIsWarning = true;
+                    commandResultVersion++;
                     MarkDirty();
+                    return;
                 }
+
+                loadPathAction(path);
+                MarkDirty();
             });
         }
 
@@ -726,6 +730,8 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
 
         internal bool CanCreatePath => toolingContextAccessor() != null;
 
+        internal bool CanValidatePaths => toolingContextAccessor() != null;
+
         internal bool CanSavePath
         {
             get
@@ -756,10 +762,16 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
             {
                 PathEditor pathEditor = pathEditorAccessor();
                 if (pathEditor?.IsNewPath != true)
+                {
+                    PublishCommandResult(PathEditorCommandResult.Failed("No unsaved new path is active.", pathEditor?.TryCaptureCurrentPathModel()));
+                    MarkDirty();
                     return;
+                }
 
+                PathModel canceledPath = pathEditor.TryCaptureCurrentPathModel();
                 transientPaths.Remove(PathEditor.NewPathId);
                 unloadPathAction();
+                PublishCommandResult(PathEditorCommandResult.Succeeded("New path canceled.", canceledPath));
                 MarkDirty();
             });
         }
@@ -772,9 +784,16 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
                 createPathAction();
                 PathEditor pathEditor = pathEditorAccessor();
                 if (pathEditor == null)
+                {
+                    PathEditorCommandResult unavailable = PathEditorCommandResult.Failed("Cannot start a new path because no path editor is active.", null);
+                    PublishCommandResult(unavailable);
+                    Trace.TraceWarning(unavailable.Message);
+                    MarkDirty();
                     return;
+                }
 
                 PathEditorCommandResult result = pathEditor.BeginStartAnchorPlacementCommand();
+                PublishCommandResult(result);
                 if (result.Success)
                     activateMapInputAction();
                 else
@@ -854,9 +873,7 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
                 }
 
                 PathEditorCommandResult result = command(pathEditor);
-                commandResultMessage = result.Message;
-                commandResultIsWarning = !result.Success;
-                commandResultVersion++;
+                PublishCommandResult(result);
                 MarkDirty();
                 if (result.Success)
                 {
@@ -866,6 +883,15 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
 
                 Trace.TraceWarning(result.Message);
             });
+        }
+
+        private void PublishCommandResult(PathEditorCommandResult result)
+        {
+            ArgumentNullException.ThrowIfNull(result);
+
+            commandResultMessage = result.Message;
+            commandResultIsWarning = !result.Success;
+            commandResultVersion++;
         }
 
         // Marshals onto the game thread, resolves the current (possibly not-yet-created) editor, and runs
@@ -899,14 +925,15 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
         /// updated validity flags, then refreshes the cached path list so the review markers update. Awaitable so
         /// the caller can surface failures; the cache update is marshalled back onto the game thread.
         /// </summary>
-        internal async Task ValidateAllPaths()
+        internal async Task<bool> ValidateAllPaths()
         {
             ITrainPathToolingContext toolingContext = toolingContextAccessor();
             if (toolingContext == null)
-                return;
+                return false;
 
             ImmutableArray<PathModelHeader> paths = await toolingContext.ValidateAllPaths().ConfigureAwait(false);
             gameThreadInvoker(() => UpdatePaths(paths));
+            return true;
         }
 
         private ImmutableArray<TrainPathListRow> BuildPaths(PathModel currentPathModel)
@@ -1181,23 +1208,6 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
             ITrainPathToolingContext toolingContext = toolingContextAccessor();
             PathValidationState validationState = PathEditor.ResolveValidationState(pathModel, toolingContext?.TrackWorld);
             return pathModel.ValidationState == validationState ? pathModel : pathModel with { ValidationState = validationState };
-        }
-
-        private async Task RefreshCachedPathsFromContextAsync()
-        {
-            ITrainPathToolingContext toolingContext = toolingContextAccessor();
-            if (toolingContext == null)
-                return;
-
-            try
-            {
-                ImmutableArray<PathModelHeader> paths = await toolingContext.GetPaths().ConfigureAwait(false);
-                cachedPaths = paths.IsDefault ? ImmutableArray<PathModelHeader>.Empty : paths;
-            }
-            catch (Exception ex) when (ex is InvalidOperationException || ex is System.IO.IOException)
-            {
-                System.Diagnostics.Trace.TraceWarning($"Failed to refresh path cache for selection: {ex.Message}");
-            }
         }
 
         /// <summary>

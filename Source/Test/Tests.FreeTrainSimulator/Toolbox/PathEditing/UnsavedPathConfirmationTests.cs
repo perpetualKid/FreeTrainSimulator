@@ -1,0 +1,41 @@
+using System.Threading.Tasks;
+
+using FreeTrainSimulator.Toolbox.PathEditing;
+
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+
+namespace Tests.FreeTrainSimulator.Toolbox.PathEditing
+{
+    [TestClass]
+    public class UnsavedPathConfirmationTests
+    {
+        [TestMethod]
+        public async Task WhenNoUnsavedChangesThenRouteChangeProceedsWithoutPrompt()
+        {
+            bool requested = false;
+
+            bool confirmed = await UnsavedPathConfirmationEventArgs.RequestAsync(false, this, (_, _) => requested = true).ConfigureAwait(false);
+
+            Assert.IsTrue(confirmed);
+            Assert.IsFalse(requested);
+        }
+
+        [TestMethod]
+        public async Task WhenUnsavedChangesHaveNoConfirmationUiThenRouteChangeIsBlocked()
+        {
+            bool confirmed = await UnsavedPathConfirmationEventArgs.RequestAsync(true, this, null).ConfigureAwait(false);
+
+            Assert.IsFalse(confirmed);
+        }
+
+        [TestMethod]
+        [DataRow(true)]
+        [DataRow(false)]
+        public async Task WhenUnsavedChangesArePromptedThenUserDecisionIsHonored(bool decision)
+        {
+            bool confirmed = await UnsavedPathConfirmationEventArgs.RequestAsync(true, this, (_, args) => args.Completion.SetResult(decision)).ConfigureAwait(false);
+
+            Assert.AreEqual(decision, confirmed);
+        }
+    }
+}

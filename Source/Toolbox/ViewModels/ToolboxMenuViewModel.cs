@@ -5,6 +5,7 @@ using System.Windows.Threading;
 
 using FreeTrainSimulator.Models.Base;
 using FreeTrainSimulator.Models.Content;
+using FreeTrainSimulator.Toolbox.Hosting;
 
 namespace FreeTrainSimulator.Toolbox.ViewModels
 {
