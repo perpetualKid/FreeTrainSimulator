@@ -29,6 +29,26 @@ namespace Tests.FreeTrainSimulator.Toolbox
     public class PathValidationPersistenceTests
     {
         [TestMethod]
+        public void WhenNewPathIsPreparedForSaveThenTrimmedNameBecomesIdentity()
+        {
+            PathModelHeader details = new PathModelHeader { Id = PathEditor.NewPathId, Name = " Morning Run " };
+
+            PathModelHeader prepared = TrainPathSaveRequest.PreparePathDetails(details, PathEditor.NewPathId);
+
+            Assert.AreEqual("Morning Run", prepared.Id);
+        }
+
+        [TestMethod]
+        public void WhenExistingPathIsPreparedForSaveThenIdentityIsPreserved()
+        {
+            PathModelHeader details = new PathModelHeader { Id = "path-1", Name = "Renamed Path" };
+
+            PathModelHeader prepared = TrainPathSaveRequest.PreparePathDetails(details, "path-1");
+
+            Assert.AreEqual("path-1", prepared.Id);
+        }
+
+        [TestMethod]
         public async Task WhenValidateRoutePathsRunsThenReloadedHeadersCarryPersistedValidationState()
         {
             RouteModelHeader route = await SeedRouteWithPathsAsync().ConfigureAwait(false);

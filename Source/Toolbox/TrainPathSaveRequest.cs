@@ -4,10 +4,10 @@ using FreeTrainSimulator.Models.Content;
 
 namespace FreeTrainSimulator.Toolbox
 {
-    /// <summary>Immutable metadata and identity captured from the active editor for a save dialog.</summary>
-    internal sealed class TrainPathSaveDialogState
+    /// <summary>Immutable metadata and identity captured from the active editor for persistence.</summary>
+    internal sealed class TrainPathSaveState
     {
-        public TrainPathSaveDialogState(PathModelHeader pathDetails, string sourcePathId)
+        public TrainPathSaveState(PathModelHeader pathDetails, string sourcePathId)
         {
             PathDetails = pathDetails ?? throw new ArgumentNullException(nameof(pathDetails));
             SourcePathId = sourcePathId;
@@ -37,5 +37,14 @@ namespace FreeTrainSimulator.Toolbox
         public bool IsSaveAs => !string.Equals(SourcePathId, PathDetails.Id, StringComparison.OrdinalIgnoreCase);
 
         public bool CanSubmit(bool targetPathExists) => !IsSaveAs || !targetPathExists || OverwriteConfirmed;
+
+        public static PathModelHeader PreparePathDetails(PathModelHeader pathDetails, string sourcePathId)
+        {
+            ArgumentNullException.ThrowIfNull(pathDetails);
+
+            return string.Equals(sourcePathId, PathEditor.NewPathId, StringComparison.Ordinal)
+                ? pathDetails with { Id = pathDetails.Name?.Trim() }
+                : pathDetails;
+        }
     }
 }

@@ -20,6 +20,18 @@ namespace FreeTrainSimulator.Toolbox.Views
             InitializeComponent();
         }
 
+        private void MetadataEditor_LostFocus(object sender, RoutedEventArgs e)
+        {
+            if (DataContext is TrainPathToolWindowViewModel viewModel)
+                viewModel.CommitMetadata();
+        }
+
+        private void MetadataEditor_Click(object sender, RoutedEventArgs e)
+        {
+            if (DataContext is TrainPathToolWindowViewModel viewModel)
+                viewModel.CommitMetadata();
+        }
+
         private void PathEditorTabs_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             if (!IsLoaded || !IsVisible || e.Source != PathEditorTabs || PathEditorTabs.SelectedIndex < 0

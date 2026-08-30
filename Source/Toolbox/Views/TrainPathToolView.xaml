@@ -220,7 +220,7 @@
                     </Button>
                     <Button Padding="8,2"
                              Margin="0,0,6,4"
-                             Content="Cancel New Path"
+                             Content="Cancel"
                              Command="{Binding CancelNewPathCommand}"
                              ToolTip="Cancel the active unsaved new path">
                         <Button.Style>
@@ -236,7 +236,7 @@
                     </Button>
                     <Button Margin="0,0,6,4"
                             Padding="8,2"
-                            Content="Save Path"
+                            Content="Save"
                             Command="{Binding SavePathCommand}"
                             ToolTip="Save the currently edited path" />
                     <Button Margin="0,0,6,4"
@@ -283,6 +283,26 @@
                                Margin="0,2,0,4"
                                FontWeight="Bold"
                                Text="Path Details" />
+                    <Grid DockPanel.Dock="Top" Margin="0,0,0,6">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Grid.Row="0" Text="Name" Margin="4,3,8,3" VerticalAlignment="Center" />
+                        <TextBox Grid.Row="0" Grid.Column="1" Margin="3" LostFocus="MetadataEditor_LostFocus" Text="{Binding PathName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                        <TextBlock Grid.Row="1" Text="Start" Margin="4,3,8,3" VerticalAlignment="Center" />
+                        <TextBox Grid.Row="1" Grid.Column="1" Margin="3" LostFocus="MetadataEditor_LostFocus" Text="{Binding PathStart, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                        <TextBlock Grid.Row="2" Text="End" Margin="4,3,8,3" VerticalAlignment="Center" />
+                        <TextBox Grid.Row="2" Grid.Column="1" Margin="3" LostFocus="MetadataEditor_LostFocus" Text="{Binding PathEnd, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                        <TextBlock Grid.Row="3" Text="Player Path" Margin="4,3,8,3" VerticalAlignment="Center" />
+                        <CheckBox Grid.Row="3" Grid.Column="1" Margin="3" VerticalAlignment="Center" Click="MetadataEditor_Click" IsChecked="{Binding PlayerPath, Mode=TwoWay}" />
+                    </Grid>
                     <ListView ItemsSource="{Binding Metadata}"
                               ItemContainerStyle="{StaticResource TrainPathMetadataRowItemStyle}"
                               ScrollViewer.HorizontalScrollBarVisibility="Disabled"

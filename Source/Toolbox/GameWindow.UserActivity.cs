@@ -557,7 +557,7 @@ namespace FreeTrainSimulator.Toolbox
         // Persists the given path metadata through the path editor and refreshes the menu's path list. Runs on
         // the game thread; callers can await completion and observe traced failures instead of relying on
         // async-void exception dispatch.
-        internal TrainPathSaveDialogState CaptureTrainPathSaveDialogState()
+        internal TrainPathSaveState CaptureTrainPathSaveState()
         {
             PathModel pathModel = pathEditor?.TryCaptureCurrentPathModel();
             if (pathModel == null)
@@ -565,13 +565,13 @@ namespace FreeTrainSimulator.Toolbox
 
             PathModelHeader pathDetails = new PathModelHeader
             {
-                Id = string.Equals(pathModel.Id, PathEditor.NewPathId, StringComparison.Ordinal) ? string.Empty : pathModel.Id,
-                Name = string.Equals(pathModel.Name, PathEditor.NewPathId, StringComparison.Ordinal) ? string.Empty : pathModel.Name,
+                Id = pathModel.Id,
+                Name = pathModel.Name,
                 Start = pathModel.Start,
                 End = pathModel.End,
                 PlayerPath = pathModel.PlayerPath,
             };
-            return new TrainPathSaveDialogState(pathDetails, pathModel.Id);
+            return new TrainPathSaveState(pathDetails, pathModel.Id);
         }
 
         internal async Task<bool> TrainPathIdExistsAsync(string pathId)

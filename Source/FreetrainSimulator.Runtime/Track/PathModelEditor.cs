@@ -33,6 +33,35 @@ namespace FreeTrainSimulator.Runtime.Track
     {
         private const double NearbyJunctionRepairDistanceMeters = 10.0;
 
+        /// <summary>Updates editable path metadata without changing route nodes or path identity.</summary>
+        public static PathEditResult SetMetadata(PathModel pathModel, string name, string start, string end, bool playerPath)
+        {
+            ArgumentNullException.ThrowIfNull(pathModel);
+
+            string normalizedName = name?.Trim() ?? string.Empty;
+            if (string.IsNullOrWhiteSpace(normalizedName))
+                return PathEditResult.Failed("Path name must not be empty.", pathModel);
+
+            string normalizedStart = start?.Trim() ?? string.Empty;
+            string normalizedEnd = end?.Trim() ?? string.Empty;
+            if (string.Equals(pathModel.Name ?? string.Empty, normalizedName, StringComparison.Ordinal)
+                && string.Equals(pathModel.Start ?? string.Empty, normalizedStart, StringComparison.Ordinal)
+                && string.Equals(pathModel.End ?? string.Empty, normalizedEnd, StringComparison.Ordinal)
+                && pathModel.PlayerPath == playerPath)
+            {
+                return PathEditResult.Succeeded("Path metadata is unchanged.", pathModel, ImmutableArray<int>.Empty);
+            }
+
+            PathModel updated = pathModel with
+            {
+                Name = normalizedName,
+                Start = normalizedStart,
+                End = normalizedEnd,
+                PlayerPath = playerPath,
+            };
+            return PathEditResult.Succeeded("Path metadata updated.", updated, ImmutableArray<int>.Empty);
+        }
+
         /// <summary>
         /// Sets the authored start anchor. An existing start is replaced in place; otherwise the new start is
         /// prepended and all absolute links are re-indexed.

@@ -13,6 +13,7 @@ using AvalonDock.Layout;
 using AvalonDock.Serializer.Json;
 
 using FreeTrainSimulator.Common.Info;
+using FreeTrainSimulator.Models.Content;
 using FreeTrainSimulator.Models.Settings;
 using FreeTrainSimulator.Models.Shim;
 using FreeTrainSimulator.Toolbox.Dialogs;
@@ -67,12 +68,22 @@ namespace FreeTrainSimulator.Toolbox
             MapHost.HostedMenuReady += MapHost_HostedMenuReady;
             MapHost.HostedToolWindowsReady += MapHost_HostedToolWindowsReady;
             MapHost.SaveTrainPathRequested += MapHost_SaveTrainPathRequested;
+            MapHost.UnsavedPathConfirmationRequested += MapHost_UnsavedPathConfirmationRequested;
             MapHost.ScreenshotRequested += MapHost_ScreenshotRequested;
             MapHost.AboutRequested += MapHost_AboutRequested;
             MapHost.ExitRequested += MapHost_ExitRequested;
             MapHost.LanguageChanged += MapHost_LanguageChanged;
             MapHost.MapContextMenuRequested += MapHost_MapContextMenuRequested;
             DockingManager.ActiveContentChanged += DockingManager_ActiveContentChanged;
+        }
+
+        private void MapHost_UnsavedPathConfirmationRequested(object sender, UnsavedPathConfirmationEventArgs e)
+        {
+            MessageBoxResult result = MessageBox.Show(this,
+                CatalogManager.Catalog.GetString("There are unsaved path changes. Changing the route will discard them. Continue?"),
+                CatalogManager.Catalog.GetString("Unsaved Path Changes"), MessageBoxButton.YesNo,
+                MessageBoxImage.Warning);
+            e.Completion.TrySetResult(result == MessageBoxResult.Yes);
         }
 
         private async void MainWindow_Loaded(object sender, RoutedEventArgs e)
@@ -257,30 +268,24 @@ namespace FreeTrainSimulator.Toolbox
 
         private async void MapHost_SaveTrainPathRequested(object sender, EventArgs e)
         {
-            TrainPathSaveDialogState saveDialogState = await MapHost.GetTrainPathSaveDialogStateAsync().ConfigureAwait(true);
-            if (saveDialogState == null)
+            TrainPathSaveState saveState = await MapHost.GetTrainPathSaveStateAsync().ConfigureAwait(true);
+            if (saveState == null)
                 return;
 
-            TrainPathSaveDialog dialog = new TrainPathSaveDialog(saveDialogState.PathDetails, saveDialogState.SourcePathId)
-            {
-                Owner = this,
-            };
-
-            if (dialog.ShowDialog() != true || dialog.PathDetails == null)
-                return;
+            PathModelHeader pathDetails = TrainPathSaveRequest.PreparePathDetails(saveState.PathDetails, saveState.SourcePathId);
 
             bool overwriteConfirmed = false;
-            TrainPathSaveRequest saveRequest = new TrainPathSaveRequest(dialog.PathDetails, dialog.SourcePathId, overwriteConfirmed);
-            if (saveRequest.IsSaveAs && await MapHost.TrainPathIdExistsAsync(dialog.PathDetails.Id).ConfigureAwait(true))
+            TrainPathSaveRequest saveRequest = new TrainPathSaveRequest(pathDetails, saveState.SourcePathId, overwriteConfirmed);
+            if (saveRequest.IsSaveAs && await MapHost.TrainPathIdExistsAsync(pathDetails.Id).ConfigureAwait(true))
             {
                 MessageBoxResult overwriteResult = MessageBox.Show(this,
-                    CatalogManager.Catalog.GetString($"A path with ID '{dialog.PathDetails.Id}' already exists. Replace that path? The active path will remain unchanged unless the save succeeds."),
+                    CatalogManager.Catalog.GetString($"A path with ID '{pathDetails.Id}' already exists. Replace that path? The active path will remain unchanged unless the save succeeds."),
                     CatalogManager.Catalog.GetString("Confirm Save As Overwrite"), MessageBoxButton.YesNo, MessageBoxImage.Warning);
                 if (overwriteResult != MessageBoxResult.Yes)
                     return;
 
                 overwriteConfirmed = true;
-                saveRequest = new TrainPathSaveRequest(dialog.PathDetails, dialog.SourcePathId, overwriteConfirmed);
+                saveRequest = new TrainPathSaveRequest(pathDetails, saveState.SourcePathId, overwriteConfirmed);
             }
 
             try
@@ -799,6 +804,7 @@ namespace FreeTrainSimulator.Toolbox
             MapHost.HostedMenuReady -= MapHost_HostedMenuReady;
             MapHost.HostedToolWindowsReady -= MapHost_HostedToolWindowsReady;
             MapHost.SaveTrainPathRequested -= MapHost_SaveTrainPathRequested;
+            MapHost.UnsavedPathConfirmationRequested -= MapHost_UnsavedPathConfirmationRequested;
             MapHost.ScreenshotRequested -= MapHost_ScreenshotRequested;
             MapHost.AboutRequested -= MapHost_AboutRequested;
             MapHost.ExitRequested -= MapHost_ExitRequested;

@@ -371,6 +371,27 @@ namespace FreeTrainSimulator.Toolbox
         /// <summary>Removes the end node from the current path and records an undo snapshot. Returns the operation result.</summary>
         public PathEditResult RemoveEnd() => ApplyUndoableEdit(PathModelEditor.RemoveEnd);
 
+        /// <summary>Updates editable path metadata as one undoable operation.</summary>
+        public PathEditorCommandResult SetMetadataCommand(string name, string start, string end, bool playerPath)
+        {
+            if (IsPlacementActive || pendingPassingBranchCandidate != null)
+                return PathEditorCommandResult.Failed("Finish or cancel the active path interaction before editing metadata.", currentPathModel);
+
+            PathModel currentModel = currentPathModel;
+            if (currentModel == null)
+                return PathEditorCommandResult.Failed("No editable path is currently loaded.", null);
+
+            PathEditResult result = PathModelEditor.SetMetadata(currentModel, name, start, end, playerPath);
+            if (!result.Success || ReferenceEquals(result.PathModel, currentModel))
+                return PathEditorCommandResult.FromPathEditResult(result);
+
+            PushUndoSnapshot(currentModel);
+            RestoreSnapshot(result.PathModel);
+            unsavedChanges = true;
+            OnPathUpdated?.Invoke(this, new PathEditorChangedEventArgs(TrainPath));
+            return PathEditorCommandResult.FromPathEditResult(result);
+        }
+
         public PathEditorCommandResult BeginStartAnchorPlacementCommand()
         {
             return BeginAnchorPlacement(PathEditorPlacementMode.StartAnchor)
@@ -2257,6 +2278,14 @@ namespace FreeTrainSimulator.Toolbox
             if (spanCommit.Status == PathSpanCommitStatus.Resolved)
                 committedModel = spanCommit.PathModel;
 
+            bool movedStartOrEnd = committedMode == PathEditorPlacementMode.MoveNode
+                && movedNodeIndex >= 0 && movedNodeIndex < undoSnapshot.PathNodes.Length
+                && (undoSnapshot.PathNodes[movedNodeIndex].NodeType.Includes(PathNodeType.Start)
+                    || undoSnapshot.PathNodes[movedNodeIndex].NodeType.Includes(PathNodeType.End));
+            if (committedMode is PathEditorPlacementMode.StartAnchor or PathEditorPlacementMode.EndAnchor
+                or PathEditorPlacementMode.BuildRoute || movedStartOrEnd)
+                committedModel = ApplyEndpointMetadata(committedModel, committedMode, movedNodeIndex);
+
             bool beginRouteBuilding = committedMode == PathEditorPlacementMode.StartAnchor
                 && !HasFlag(undoSnapshot, PathNodeType.Start);
             PushUndoSnapshot(undoSnapshot);
@@ -2292,6 +2321,32 @@ namespace FreeTrainSimulator.Toolbox
                 _ = BeginAnchorPlacement(PathEditorPlacementMode.BuildRoute);
             OnPathUpdated?.Invoke(this, new PathEditorChangedEventArgs(TrainPath));
             return committedResult;
+        }
+
+        private PathModel ApplyEndpointMetadata(PathModel pathModel, PathEditorPlacementMode committedMode, int movedNodeIndex)
+        {
+            PathRouteResolution resolution = PathRouteResolver.Resolve(pathModel, TrackWorld,
+                PathRouteResolverOptions.Default, CancellationToken.None);
+            bool updateStart = committedMode is PathEditorPlacementMode.StartAnchor or PathEditorPlacementMode.BuildRoute
+                || committedMode == PathEditorPlacementMode.MoveNode && movedNodeIndex >= 0
+                && movedNodeIndex < pathModel.PathNodes.Length
+                && pathModel.PathNodes[movedNodeIndex].NodeType.Includes(PathNodeType.Start);
+            bool updateEnd = committedMode is PathEditorPlacementMode.EndAnchor or PathEditorPlacementMode.BuildRoute
+                || committedMode == PathEditorPlacementMode.MoveNode && movedNodeIndex >= 0
+                && movedNodeIndex < pathModel.PathNodes.Length
+                && pathModel.PathNodes[movedNodeIndex].NodeType.Includes(PathNodeType.End);
+
+            return pathModel with
+            {
+                Start = updateStart
+                    ? PathEndpointNameResolver.Resolve(pathModel, resolution, TrackWorld, true,
+                        PathEndpointNameResolver.DefaultMaximumDistance)
+                    : pathModel.Start,
+                End = updateEnd
+                    ? PathEndpointNameResolver.Resolve(pathModel, resolution, TrackWorld, false,
+                        PathEndpointNameResolver.DefaultMaximumDistance)
+                    : pathModel.End,
+            };
         }
 
         // Only the endpoint-authoring modes advance the route forward, so only they can meaningfully interpret a

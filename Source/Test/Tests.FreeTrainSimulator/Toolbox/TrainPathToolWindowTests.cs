@@ -35,6 +35,78 @@ namespace Tests.FreeTrainSimulator.Toolbox
         }
 
         [TestMethod]
+        public void WhenMetadataIsSetThenEditorModelIsUpdatedAndDirty()
+        {
+            PathModel source = CreatePathModel(PathNodeType.Start, PathNodeType.End) with { Name = "Old Name" };
+            using (PathEditor editor = CreatePathEditor(source))
+            {
+                TrainPathToolWindow trainPathToolWindow = new(() => editor, () => null, action => action(),
+                    () => { }, () => { }, _ => { }, () => { }, () => { });
+
+                trainPathToolWindow.SetMetadata("New Name", "Start", "End", true);
+
+                Assert.AreEqual("New Name", editor.TryCaptureCurrentPathModel().Name);
+                Assert.IsTrue(editor.HasUnsavedChanges);
+                Assert.IsTrue(trainPathToolWindow.CanSavePath);
+            }
+        }
+
+        [TestMethod]
+        public void WhenExistingPathIsUnchangedThenSaveIsDisabled()
+        {
+            using (PathEditor editor = CreatePathEditor(CreatePathModel(PathNodeType.Start, PathNodeType.End)))
+            {
+                typeof(PathEditor).GetField("unsavedChanges", BindingFlags.Instance | BindingFlags.NonPublic).SetValue(editor, false);
+                TrainPathToolWindow trainPathToolWindow = new(() => editor, () => null, action => action(),
+                    () => { }, () => { }, _ => { }, () => { }, () => { });
+
+                Assert.IsFalse(trainPathToolWindow.CanSavePath);
+            }
+        }
+
+        [TestMethod]
+        public void WhenMetadataCommitIsUnchangedThenPathRemainsClean()
+        {
+            PathModel source = CreatePathModel(PathNodeType.Start, PathNodeType.End);
+            using (PathEditor editor = CreatePathEditor(source))
+            {
+                typeof(PathEditor).GetField("unsavedChanges", BindingFlags.Instance | BindingFlags.NonPublic).SetValue(editor, false);
+                TrainPathToolWindow trainPathToolWindow = new(() => editor, () => null, action => action(),
+                    () => { }, () => { }, _ => { }, () => { }, () => { });
+
+                trainPathToolWindow.SetMetadata(source.Name, source.Start, source.End, source.PlayerPath);
+
+                Assert.IsFalse(editor.HasUnsavedChanges);
+            }
+        }
+
+        [TestMethod]
+        public void WhenSnapshotContainsExistingMetadataThenEditableFieldsArePopulated()
+        {
+            PathModel source = CreatePathModel(PathNodeType.Start, PathNodeType.End) with
+            {
+                Name = "Existing Path",
+                Start = "Depot",
+                End = "Terminal",
+                PlayerPath = true,
+            };
+            using (PathEditor editor = CreatePathEditor(source))
+            {
+                TrainPathToolWindow trainPathToolWindow = new(() => editor, () => null, action => action(),
+                    () => { }, () => { }, _ => { }, () => { }, () => { })
+                { Active = true };
+
+                trainPathToolWindow.RefreshSnapshot();
+                TrainPathSnapshot snapshot = trainPathToolWindow.CaptureTrainPathSnapshot();
+
+                Assert.AreEqual("Existing Path", snapshot.PathName);
+                Assert.AreEqual("Depot", snapshot.PathStart);
+                Assert.AreEqual("Terminal", snapshot.PathEnd);
+                Assert.IsTrue(snapshot.PlayerPath);
+            }
+        }
+
+        [TestMethod]
         public void WhenActiveWithNoEditorRefreshSnapshotThenSnapshotStaysEmpty()
         {
             TrainPathToolWindow trainPathToolWindow = CreateTrainPathToolWindow(_ => { });
@@ -60,7 +132,7 @@ namespace Tests.FreeTrainSimulator.Toolbox
             trainPathToolWindow.RefreshSnapshot();
 
             TrainPathSnapshot snapshot = trainPathToolWindow.CaptureTrainPathSnapshot();
-            Assert.AreEqual(2, snapshot.Paths.Length);
+            Assert.HasCount(2, snapshot.Paths);
             Assert.AreEqual(PathValidationState.Valid, snapshot.Paths[0].ValidationState);
             Assert.AreEqual(PathValidationState.Invalid, snapshot.Paths[1].ValidationState);
         }
@@ -661,7 +733,7 @@ namespace Tests.FreeTrainSimulator.Toolbox
             trainPathToolWindow.RefreshSnapshot();
 
             TrainPathSnapshot snapshot = trainPathToolWindow.CaptureTrainPathSnapshot();
-            Assert.AreEqual(authoredPath.PathNodes.Length, snapshot.Nodes.Length);
+            Assert.HasCount(authoredPath.PathNodes.Length, snapshot.Nodes);
             Assert.AreEqual(authoredPath.PathNodes.Length.ToString(System.Globalization.CultureInfo.InvariantCulture), snapshot.Metadata.Single(row => row.Name == "Node Count").Value);
         }
 

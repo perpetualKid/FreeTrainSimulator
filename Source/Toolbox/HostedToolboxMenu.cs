@@ -153,6 +153,12 @@ namespace FreeTrainSimulator.Toolbox
             // folder dropdown appears to ignore the choice).
             InvokeOnGameThreadAsync($"Select content folder '{folder.Name}'", async () =>
             {
+                if (!await game.ConfirmDiscardUnsavedPathsAsync().ConfigureAwait(true))
+                {
+                    SelectedFolderChanged?.Invoke(this, EventArgs.Empty);
+                    return;
+                }
+
                 SelectedFolder = folder;
                 SelectedFolderChanged?.Invoke(this, EventArgs.Empty);
 
@@ -168,6 +174,12 @@ namespace FreeTrainSimulator.Toolbox
 
             InvokeOnGameThreadAsync($"Toggle route '{route.Name}'", async () =>
             {
+                if (!await game.ConfirmDiscardUnsavedPathsAsync().ConfigureAwait(true))
+                {
+                    SelectedRouteChanged?.Invoke(this, EventArgs.Empty);
+                    return;
+                }
+
                 if (string.Equals(SelectedRouteName, route.Name, StringComparison.Ordinal))
                 {
                     game.UnloadRoute();

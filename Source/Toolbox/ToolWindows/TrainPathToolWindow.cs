@@ -196,6 +196,14 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
         /// <summary>Name/value metadata rows for the currently edited path.</summary>
         public ImmutableArray<ToolWindowRow> Metadata { get; init; }
 
+        public string PathName { get; init; }
+
+        public string PathStart { get; init; }
+
+        public string PathEnd { get; init; }
+
+        public bool PlayerPath { get; init; }
+
         /// <summary>Equal-cost route candidates of the currently edited path's ambiguous spans.</summary>
         public ImmutableArray<TrainPathRouteCandidateRow> RouteCandidates { get; init; }
 
@@ -493,6 +501,10 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
                 && commandResultVersion == snapshot.CommandResultVersion
                 && isRepairMode == snapshot.IsRepairMode
                 && blockedSaveFeedbackVersion == snapshot.BlockedSaveFeedbackVersion
+                && string.Equals(currentPathModel?.Name, snapshot.PathName, StringComparison.Ordinal)
+                && string.Equals(currentPathModel?.Start, snapshot.PathStart, StringComparison.Ordinal)
+                && string.Equals(currentPathModel?.End, snapshot.PathEnd, StringComparison.Ordinal)
+                && currentPathModel?.PlayerPath == snapshot.PlayerPath
                 && paths.SequenceEqual(snapshot.Paths))
             {
                 return;
@@ -511,6 +523,10 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
                 Nodes = isRepairMode ? BuildAuthoredNodes(currentPathModel, resolution) : BuildNodes(authoredPath),
                 SelectedNodeIndex = selectedNodeIndex,
                 Metadata = BuildMetadata(pathEditor, authoredPath, currentPathModel, isRepairMode),
+                PathName = currentPathModel?.Name,
+                PathStart = currentPathModel?.Start,
+                PathEnd = currentPathModel?.End,
+                PlayerPath = currentPathModel?.PlayerPath == true,
                 RouteCandidates = isRepairMode ? ImmutableArray<TrainPathRouteCandidateRow>.Empty : BuildRouteCandidates(pathEditor),
                 Diagnostics = diagnostics,
                 IsRepairMode = isRepairMode,
@@ -715,7 +731,7 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
             get
             {
                 PathEditor pathEditor = pathEditorAccessor();
-                return pathEditor?.TrainPath != null && !pathEditor.IsSaveInProgress;
+                return pathEditor?.TrainPath != null && pathEditor.HasUnsavedChanges && !pathEditor.IsSaveInProgress;
             }
         }
 
@@ -775,6 +791,18 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
                 if (pathEditor == null)
                     return;
 
+                PathModel currentModel = pathEditor.TryCaptureCurrentPathModel();
+                if (currentModel == null || string.IsNullOrWhiteSpace(currentModel.Name)
+                    || currentModel.Name.Trim().IndexOfAny(System.IO.Path.GetInvalidFileNameChars()) >= 0
+                    || currentModel.Name.Trim() is "." or "..")
+                {
+                    commandResultMessage = "Enter a path name without filename-invalid characters before saving.";
+                    commandResultIsWarning = true;
+                    commandResultVersion++;
+                    MarkDirty();
+                    return;
+                }
+
                 PathPersistenceValidationResult validation = pathEditor.ValidateCurrentPathForPersistence();
                 if (!validation.PersistenceAllowed)
                 {
@@ -787,6 +815,9 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
                 MarkDirty();
             });
         }
+
+        internal void SetMetadata(string name, string start, string end, bool playerPath)
+            => ExecuteEditorCommand(pathEditor => pathEditor.SetMetadataCommand(name, start, end, playerPath));
 
         internal void ReportBlockedSave(PathPersistenceValidationResult validation, PathModel sourceModel)
         {
@@ -1026,10 +1057,6 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
             ImmutableArray<ToolWindowRow>.Builder builder = ImmutableArray.CreateBuilder<ToolWindowRow>();
             builder.Add(new ToolWindowRow { Name = "Editor Mode", Value = isRepairMode ? "Repair" : "Normal", Color = isRepairMode ? DrawingColor.OrangeRed : null, Bold = isRepairMode });
             builder.Add(new ToolWindowRow { Name = "Path ID", Value = pathModel.Id });
-            builder.Add(new ToolWindowRow { Name = "Path Name", Value = pathModel.Name });
-            builder.Add(new ToolWindowRow { Name = "Start", Value = pathModel.Start });
-            builder.Add(new ToolWindowRow { Name = "End", Value = pathModel.End });
-            builder.Add(new ToolWindowRow { Name = "Player Path", Value = FormatStrings.FormatYesNo(pathModel.PlayerPath) });
             if (currentPath != null)
             {
                 builder.Add(new ToolWindowRow { Name = "Path Length", Value = FormatStrings.FormatDistanceDisplay(currentPath.Length, metricUnits, 1000) });

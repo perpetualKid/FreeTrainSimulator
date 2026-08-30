@@ -58,6 +58,10 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
         private bool hasPendingPassingBranchCandidate;
         private int commandResultVersion;
         private PassingBranchAuthoringPhase passingBranchPhase;
+        private string pathName = string.Empty;
+        private string pathStart = string.Empty;
+        private string pathEnd = string.Empty;
+        private bool playerPath;
 
         public TrainPathToolWindowViewModel(TrainPathToolWindow toolWindow, ToolWindowRefreshScheduler scheduler)
             : base(scheduler, ToolWindowRefreshScheduler.BaseInterval)
@@ -137,6 +141,35 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
         public ObservableCollection<DebugToolWindowRowViewModel> SelectedNodeDetailRows { get; } = new ObservableCollection<DebugToolWindowRowViewModel>();
 
         public ObservableCollection<DebugToolWindowRowViewModel> Metadata { get; } = new ObservableCollection<DebugToolWindowRowViewModel>();
+
+        public string PathName
+        {
+            get => pathName;
+            set => SetProperty(ref pathName, value);
+        }
+
+        public string PathStart
+        {
+            get => pathStart;
+            set => SetProperty(ref pathStart, value);
+        }
+
+        public string PathEnd
+        {
+            get => pathEnd;
+            set => SetProperty(ref pathEnd, value);
+        }
+
+        public bool PlayerPath
+        {
+            get => playerPath;
+            set => SetProperty(ref playerPath, value);
+        }
+
+        public void CommitMetadata()
+        {
+            toolWindow.SetMetadata(PathName, PathStart, PathEnd, PlayerPath);
+        }
 
         /// <summary>Equal-cost route candidates of the current path's ambiguous spans.</summary>
         public ObservableCollection<TrainPathRouteCandidateItemViewModel> RouteCandidates { get; } = new ObservableCollection<TrainPathRouteCandidateItemViewModel>();
@@ -548,6 +581,7 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
             SyncNodes(snapshot.Nodes, snapshot.SelectedNodeIndex);
             UpdateSelectedNodeDetailRows();
             DebugToolWindowRowViewModel.Sync(Metadata, snapshot.Metadata);
+            SyncEditableMetadata(snapshot);
             SyncRouteCandidates(snapshot.RouteCandidates);
             SyncDiagnostics(snapshot.Diagnostics);
             ApplyBlockedSaveFeedback(snapshot);
@@ -592,6 +626,14 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
                 snapshotSelectedPathId = snapshot.SelectedPathId;
                 UpdateSelectedPathFromSnapshot();
             }
+        }
+
+        private void SyncEditableMetadata(TrainPathSnapshot snapshot)
+        {
+            PathName = snapshot.PathName ?? string.Empty;
+            PathStart = snapshot.PathStart ?? string.Empty;
+            PathEnd = snapshot.PathEnd ?? string.Empty;
+            PlayerPath = snapshot.PlayerPath;
         }
 
         private void UpdateSelectedNodeCapabilities(TrainPathSnapshot snapshot)

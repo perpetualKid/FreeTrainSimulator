@@ -41,6 +41,8 @@ namespace FreeTrainSimulator.Toolbox.Hosting
         /// </summary>
         internal event EventHandler SaveTrainPathRequested;
 
+        internal event EventHandler<UnsavedPathConfirmationEventArgs> UnsavedPathConfirmationRequested;
+
         /// <summary>
         /// Raised on the WPF UI thread once hosted tool-window bridges become available.
         /// </summary>
@@ -170,6 +172,8 @@ namespace FreeTrainSimulator.Toolbox.Hosting
 
             game.SaveTrainPathRequested -= Game_SaveTrainPathRequested;
             game.SaveTrainPathRequested += Game_SaveTrainPathRequested;
+            game.UnsavedPathConfirmationRequested -= Game_UnsavedPathConfirmationRequested;
+            game.UnsavedPathConfirmationRequested += Game_UnsavedPathConfirmationRequested;
             game.ScreenshotRequested -= Game_ScreenshotRequested;
             game.ScreenshotRequested += Game_ScreenshotRequested;
             game.AboutRequested -= Game_AboutRequested;
@@ -185,6 +189,12 @@ namespace FreeTrainSimulator.Toolbox.Hosting
             // The hosted game already loaded its language during construction (before the shell subscribed), so
             // raise an initial notification here to drive the shell's first localization pass.
             LanguageChanged?.Invoke(this, EventArgs.Empty);
+        }
+
+        private void Game_UnsavedPathConfirmationRequested(object sender, UnsavedPathConfirmationEventArgs e)
+        {
+            Dispatcher.BeginInvoke(DispatcherPriority.Normal,
+                new Action(() => UnsavedPathConfirmationRequested?.Invoke(this, e)));
         }
 
         private void AttachHostedWindow()
@@ -360,12 +370,12 @@ namespace FreeTrainSimulator.Toolbox.Hosting
         /// <summary>
         /// Captures the active path's metadata and identity for the WPF save dialog.
         /// </summary>
-        internal Task<TrainPathSaveDialogState> GetTrainPathSaveDialogStateAsync()
+        internal Task<TrainPathSaveState> GetTrainPathSaveStateAsync()
         {
             GameWindow game = gameWindow;
             return game == null
-                ? Task.FromResult<TrainPathSaveDialogState>(null)
-                : game.InvokeOnGameThreadAsync(() => Task.FromResult(game.CaptureTrainPathSaveDialogState()));
+                ? Task.FromResult<TrainPathSaveState>(null)
+                : game.InvokeOnGameThreadAsync(() => Task.FromResult(game.CaptureTrainPathSaveState()));
         }
 
         /// <summary>Returns whether the selected route already contains the supplied train-path ID.</summary>

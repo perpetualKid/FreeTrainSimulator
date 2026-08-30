@@ -212,6 +212,12 @@ namespace FreeTrainSimulator.Toolbox
 
         internal bool HasUnsavedPathChanges => hostedTrainPathToolWindow?.HasUnsavedPathChanges == true || pathEditor?.HasUnsavedChanges == true;
 
+        internal event EventHandler<UnsavedPathConfirmationEventArgs> UnsavedPathConfirmationRequested;
+
+        internal Task<bool> ConfirmDiscardUnsavedPathsAsync()
+            => UnsavedPathConfirmationEventArgs.RequestAsync(
+                HasUnsavedPathChanges, this, UnsavedPathConfirmationRequested);
+
         internal void EditPath()
         {
             PathEditor editor = PathEditor;

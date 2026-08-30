@@ -18,6 +18,21 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
     public class PathModelEditorTests
     {
         [TestMethod]
+        public void WhenMetadataIsUpdatedThenIdentityAndNodesArePreserved()
+        {
+            PathModel path = CreatePath(Node(PathNodeType.Start, -1)) with { Id = "path-1", Name = "Old" };
+
+            PathEditResult result = PathModelEditor.SetMetadata(path, " New Name ", " Start ", " End ", true);
+
+            Assert.AreEqual("path-1", result.PathModel.Id);
+            Assert.AreEqual("New Name", result.PathModel.Name);
+            Assert.AreEqual("Start", result.PathModel.Start);
+            Assert.AreEqual("End", result.PathModel.End);
+            Assert.IsTrue(result.PathModel.PlayerPath);
+            Assert.AreSequenceEqual(path.PathNodes, result.PathModel.PathNodes);
+        }
+
+        [TestMethod]
         public void WhenSetStartAnchorOnEmptyPathThenStartIsCreated()
         {
             PathModel path = new PathModel();
