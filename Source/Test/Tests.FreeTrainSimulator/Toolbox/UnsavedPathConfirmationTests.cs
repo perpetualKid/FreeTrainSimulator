@@ -14,7 +14,7 @@ namespace Tests.FreeTrainSimulator.Toolbox
         {
             bool requested = false;
 
-            bool confirmed = await UnsavedPathConfirmationEventArgs.RequestAsync(false, this, (_, _) => requested = true);
+            bool confirmed = await UnsavedPathConfirmationEventArgs.RequestAsync(false, this, (_, _) => requested = true).ConfigureAwait(false);
 
             Assert.IsTrue(confirmed);
             Assert.IsFalse(requested);
@@ -23,7 +23,7 @@ namespace Tests.FreeTrainSimulator.Toolbox
         [TestMethod]
         public async Task WhenUnsavedChangesHaveNoConfirmationUiThenRouteChangeIsBlocked()
         {
-            bool confirmed = await UnsavedPathConfirmationEventArgs.RequestAsync(true, this, null);
+            bool confirmed = await UnsavedPathConfirmationEventArgs.RequestAsync(true, this, null).ConfigureAwait(false);
 
             Assert.IsFalse(confirmed);
         }
@@ -33,8 +33,7 @@ namespace Tests.FreeTrainSimulator.Toolbox
         [DataRow(false)]
         public async Task WhenUnsavedChangesArePromptedThenUserDecisionIsHonored(bool decision)
         {
-            bool confirmed = await UnsavedPathConfirmationEventArgs.RequestAsync(true, this,
-                (_, args) => args.Completion.SetResult(decision));
+            bool confirmed = await UnsavedPathConfirmationEventArgs.RequestAsync(true, this, (_, args) => args.Completion.SetResult(decision)).ConfigureAwait(false);
 
             Assert.AreEqual(decision, confirmed);
         }

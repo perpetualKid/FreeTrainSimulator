@@ -32,17 +32,20 @@ namespace Tests.FreeTrainSimulator.Toolbox
                 CanCancelPassingBranch = true,
                 HasPendingPassingBranchCandidate = true,
             });
-            using ToolWindowRefreshScheduler refreshScheduler = new ToolWindowRefreshScheduler(Dispatcher.CurrentDispatcher);
-            using TrainPathToolWindowViewModel viewModel = new TrainPathToolWindowViewModel(bridge, refreshScheduler);
+            using (ToolWindowRefreshScheduler refreshScheduler = new ToolWindowRefreshScheduler(Dispatcher.CurrentDispatcher))
+            {
+                using (TrainPathToolWindowViewModel viewModel = new TrainPathToolWindowViewModel(bridge, refreshScheduler))
+                {
+                    typeof(TrainPathToolWindowViewModel).GetMethod("Refresh", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(viewModel, null);
 
-            typeof(TrainPathToolWindowViewModel).GetMethod("Refresh", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(viewModel, null);
-
-            Assert.AreEqual(PassingBranchAuthoringPhase.SelectingCandidate, viewModel.PassingBranchPhase);
-            Assert.IsTrue(viewModel.HasPendingPassingBranchCandidate);
-            Assert.IsTrue(viewModel.CancelPassingBranchCommand.CanExecute(null));
-            Assert.IsFalse(viewModel.BeginPassingBranchCommand.CanExecute(null));
-            Assert.IsFalse(viewModel.CompletePassingBranchCommand.CanExecute(null));
-            Assert.IsFalse(viewModel.RemovePassingBranchCommand.CanExecute(null));
+                    Assert.AreEqual(PassingBranchAuthoringPhase.SelectingCandidate, viewModel.PassingBranchPhase);
+                    Assert.IsTrue(viewModel.HasPendingPassingBranchCandidate);
+                    Assert.IsTrue(viewModel.CancelPassingBranchCommand.CanExecute(null));
+                    Assert.IsFalse(viewModel.BeginPassingBranchCommand.CanExecute(null));
+                    Assert.IsFalse(viewModel.CompletePassingBranchCommand.CanExecute(null));
+                    Assert.IsFalse(viewModel.RemovePassingBranchCommand.CanExecute(null));
+                }
+            }
         }
 
         [TestMethod]
@@ -50,24 +53,31 @@ namespace Tests.FreeTrainSimulator.Toolbox
         {
             int invocations = 0;
             TrainPathToolWindow bridge = CreateBridge(_ => invocations++);
-            using ToolWindowRefreshScheduler refreshScheduler = new ToolWindowRefreshScheduler(Dispatcher.CurrentDispatcher);
-            using TrainPathToolWindowViewModel viewModel = new TrainPathToolWindowViewModel(bridge, refreshScheduler);
-            SetCommandAvailability(viewModel, "canPlaceStartAnchor", true);
+            using (ToolWindowRefreshScheduler refreshScheduler = new ToolWindowRefreshScheduler(Dispatcher.CurrentDispatcher))
+            {
+                using (TrainPathToolWindowViewModel viewModel = new TrainPathToolWindowViewModel(bridge, refreshScheduler))
+                {
+                    SetCommandAvailability(viewModel, "canPlaceStartAnchor", true);
 
-            viewModel.SetStartHereCommand.Execute(null);
+                    viewModel.SetStartHereCommand.Execute(null);
 
-            Assert.AreEqual(1, invocations);
-            Assert.AreEqual("Select a valid track location for the start anchor.", viewModel.StatusMessage);
+                    Assert.AreEqual(1, invocations);
+                    Assert.AreEqual("Select a valid track location for the start anchor.", viewModel.StatusMessage);
+                }
+            }
         }
 
         [TestMethod]
         public void WhenSetEndHereCommandDisabledThenItCannotExecute()
         {
             TrainPathToolWindow bridge = CreateBridge(action => action());
-            using ToolWindowRefreshScheduler refreshScheduler = new ToolWindowRefreshScheduler(Dispatcher.CurrentDispatcher);
-            using TrainPathToolWindowViewModel viewModel = new TrainPathToolWindowViewModel(bridge, refreshScheduler);
-
-            Assert.IsFalse(viewModel.SetEndHereCommand.CanExecute(null));
+            using (ToolWindowRefreshScheduler refreshScheduler = new ToolWindowRefreshScheduler(Dispatcher.CurrentDispatcher))
+            {
+                using (TrainPathToolWindowViewModel viewModel = new TrainPathToolWindowViewModel(bridge, refreshScheduler))
+                {
+                    Assert.IsFalse(viewModel.SetEndHereCommand.CanExecute(null));
+                }
+            }
         }
 
         [TestMethod]
@@ -75,27 +85,35 @@ namespace Tests.FreeTrainSimulator.Toolbox
         {
             int invocations = 0;
             TrainPathToolWindow bridge = CreateBridge(_ => invocations++);
-            using ToolWindowRefreshScheduler refreshScheduler = new ToolWindowRefreshScheduler(Dispatcher.CurrentDispatcher);
-            using TrainPathToolWindowViewModel viewModel = new TrainPathToolWindowViewModel(bridge, refreshScheduler);
-            SetCommandAvailability(viewModel, "canCommitPlacement", true);
+            using (ToolWindowRefreshScheduler refreshScheduler = new ToolWindowRefreshScheduler(Dispatcher.CurrentDispatcher))
+            {
+                using (TrainPathToolWindowViewModel viewModel = new TrainPathToolWindowViewModel(bridge, refreshScheduler))
+                {
+                    SetCommandAvailability(viewModel, "canCommitPlacement", true);
 
-            viewModel.CommitPlacementCommand.Execute(null);
+                    viewModel.CommitPlacementCommand.Execute(null);
 
-            Assert.AreEqual(1, invocations);
+                    Assert.AreEqual(1, invocations);
+                }
+            }
         }
 
         [TestMethod]
         public void WhenStartPlacementIsCanceledThenStatusIdentifiesStartAnchor()
         {
             TrainPathToolWindow bridge = CreateBridge(_ => { });
-            using ToolWindowRefreshScheduler refreshScheduler = new ToolWindowRefreshScheduler(Dispatcher.CurrentDispatcher);
-            using TrainPathToolWindowViewModel viewModel = new TrainPathToolWindowViewModel(bridge, refreshScheduler);
-            SetCommandAvailability(viewModel, "canCancelPlacement", true);
-            SetCommandAvailability(viewModel, "placementMode", PathEditorPlacementMode.StartAnchor);
+            using (ToolWindowRefreshScheduler refreshScheduler = new ToolWindowRefreshScheduler(Dispatcher.CurrentDispatcher))
+            {
+                using (TrainPathToolWindowViewModel viewModel = new TrainPathToolWindowViewModel(bridge, refreshScheduler))
+                {
+                    SetCommandAvailability(viewModel, "canCancelPlacement", true);
+                    SetCommandAvailability(viewModel, "placementMode", PathEditorPlacementMode.StartAnchor);
 
-            viewModel.CancelPlacementCommand.Execute(null);
+                    viewModel.CancelPlacementCommand.Execute(null);
 
-            Assert.AreEqual("Start anchor placement canceled.", viewModel.StatusMessage);
+                    Assert.AreEqual("Start anchor placement canceled.", viewModel.StatusMessage);
+                }
+            }
         }
 
         [TestMethod]
@@ -150,20 +168,24 @@ namespace Tests.FreeTrainSimulator.Toolbox
                 CanRepairSelectedNode = true,
                 CanRemoveSelectedViaPoint = true,
             });
-            using ToolWindowRefreshScheduler refreshScheduler = new ToolWindowRefreshScheduler(Dispatcher.CurrentDispatcher);
-            using TrainPathToolWindowViewModel viewModel = new TrainPathToolWindowViewModel(bridge, refreshScheduler);
-            viewModel.RouteCandidates.Add(new TrainPathRouteCandidateItemViewModel(new TrainPathRouteCandidateRow(0, 1, 0, "unsafe")));
-            viewModel.SelectedRouteCandidate = viewModel.RouteCandidates[0];
+            using (ToolWindowRefreshScheduler refreshScheduler = new ToolWindowRefreshScheduler(Dispatcher.CurrentDispatcher))
+            {
+                using (TrainPathToolWindowViewModel viewModel = new TrainPathToolWindowViewModel(bridge, refreshScheduler))
+                {
+                    viewModel.RouteCandidates.Add(new TrainPathRouteCandidateItemViewModel(new TrainPathRouteCandidateRow(0, 1, 0, "unsafe")));
+                    viewModel.SelectedRouteCandidate = viewModel.RouteCandidates[0];
 
-            typeof(TrainPathToolWindowViewModel).GetMethod("Refresh", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(viewModel, null);
+                    typeof(TrainPathToolWindowViewModel).GetMethod("Refresh", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(viewModel, null);
 
-            Assert.IsTrue(viewModel.IsRepairMode);
-            Assert.IsTrue(viewModel.AreRepairNodeActionsVisible);
-            Assert.IsFalse(viewModel.AcceptRouteCandidateCommand.CanExecute(null));
-            Assert.IsFalse(viewModel.AddViaPointCommand.CanExecute(null));
-            Assert.IsTrue(viewModel.MoveSelectedNodeCommand.CanExecute(null));
-            Assert.IsTrue(viewModel.RepairSelectedNodeCommand.CanExecute(null));
-            Assert.IsTrue(viewModel.RemoveViaPointCommand.CanExecute(null));
+                    Assert.IsTrue(viewModel.IsRepairMode);
+                    Assert.IsTrue(viewModel.AreRepairNodeActionsVisible);
+                    Assert.IsFalse(viewModel.AcceptRouteCandidateCommand.CanExecute(null));
+                    Assert.IsFalse(viewModel.AddViaPointCommand.CanExecute(null));
+                    Assert.IsTrue(viewModel.MoveSelectedNodeCommand.CanExecute(null));
+                    Assert.IsTrue(viewModel.RepairSelectedNodeCommand.CanExecute(null));
+                    Assert.IsTrue(viewModel.RemoveViaPointCommand.CanExecute(null));
+                }
+            }
         }
 
         [TestMethod]
@@ -171,13 +193,16 @@ namespace Tests.FreeTrainSimulator.Toolbox
         {
             TrainPathToolWindow bridge = CreateBridge(action => action());
             SetBridgeSnapshot(bridge, TrainPathSnapshot.Empty);
-            using ToolWindowRefreshScheduler refreshScheduler = new ToolWindowRefreshScheduler(Dispatcher.CurrentDispatcher);
-            using TrainPathToolWindowViewModel viewModel = new TrainPathToolWindowViewModel(bridge, refreshScheduler);
+            using (ToolWindowRefreshScheduler refreshScheduler = new ToolWindowRefreshScheduler(Dispatcher.CurrentDispatcher))
+            {
+                using (TrainPathToolWindowViewModel viewModel = new TrainPathToolWindowViewModel(bridge, refreshScheduler))
+                {
+                    typeof(TrainPathToolWindowViewModel).GetMethod("Refresh", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(viewModel, null);
 
-            typeof(TrainPathToolWindowViewModel).GetMethod("Refresh", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(viewModel, null);
-
-            Assert.IsFalse(viewModel.IsRepairMode);
-            Assert.IsFalse(viewModel.AreRepairNodeActionsVisible);
+                    Assert.IsFalse(viewModel.IsRepairMode);
+                    Assert.IsFalse(viewModel.AreRepairNodeActionsVisible);
+                }
+            }
         }
 
         [TestMethod]
@@ -259,13 +284,17 @@ namespace Tests.FreeTrainSimulator.Toolbox
         public void WhenNewPathCommandExecutedThenProgressiveRouteGuidanceIsShown()
         {
             TrainPathToolWindow bridge = CreateBridge(action => action(), () => { }, () => { });
-            using ToolWindowRefreshScheduler refreshScheduler = new ToolWindowRefreshScheduler(Dispatcher.CurrentDispatcher);
-            using TrainPathToolWindowViewModel viewModel = new TrainPathToolWindowViewModel(bridge, refreshScheduler);
-            SetCommandAvailability(viewModel, "canCreatePath", true);
+            using (ToolWindowRefreshScheduler refreshScheduler = new ToolWindowRefreshScheduler(Dispatcher.CurrentDispatcher))
+            {
+                using (TrainPathToolWindowViewModel viewModel = new TrainPathToolWindowViewModel(bridge, refreshScheduler))
+                {
+                    SetCommandAvailability(viewModel, "canCreatePath", true);
 
-            viewModel.NewPathCommand.Execute(null);
+                    viewModel.NewPathCommand.Execute(null);
 
-            Assert.AreEqual("Click track to set the start; continue clicking to add route points, then double-click to finish.", viewModel.StatusMessage);
+                    Assert.AreEqual("Click track to set the start; continue clicking to add route points, then double-click to finish.", viewModel.StatusMessage);
+                }
+            }
         }
 
         [TestMethod]
@@ -322,15 +351,18 @@ namespace Tests.FreeTrainSimulator.Toolbox
                 BlockedSaveDiagnostic = diagnostic,
                 BlockedSaveFeedbackVersion = 1,
             });
-            using ToolWindowRefreshScheduler refreshScheduler = new ToolWindowRefreshScheduler(Dispatcher.CurrentDispatcher);
-            using TrainPathToolWindowViewModel viewModel = new TrainPathToolWindowViewModel(bridge, refreshScheduler);
+            using (ToolWindowRefreshScheduler refreshScheduler = new ToolWindowRefreshScheduler(Dispatcher.CurrentDispatcher))
+            {
+                using (TrainPathToolWindowViewModel viewModel = new TrainPathToolWindowViewModel(bridge, refreshScheduler))
+                {
+                    viewModel.Start();
 
-            viewModel.Start();
-
-            Assert.IsTrue(viewModel.StatusMessageIsWarning);
-            Assert.AreEqual("Path cannot be saved because a node is off track.", viewModel.StatusMessage);
-            Assert.AreEqual(2, viewModel.SelectedTabIndex);
-            Assert.AreEqual(PathRouteDiagnosticCode.AnchorNotOnTrack, viewModel.SelectedDiagnostic?.Code);
+                    Assert.IsTrue(viewModel.StatusMessageIsWarning);
+                    Assert.AreEqual("Path cannot be saved because a node is off track.", viewModel.StatusMessage);
+                    Assert.AreEqual(2, viewModel.SelectedTabIndex);
+                    Assert.AreEqual(PathRouteDiagnosticCode.AnchorNotOnTrack, viewModel.SelectedDiagnostic?.Code);
+                }
+            }
         }
 
         [TestMethod]

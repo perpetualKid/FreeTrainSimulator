@@ -510,7 +510,7 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
             PathEditResult result = PathModelEditor.RemoveStart(path);
 
             Assert.IsTrue(result.Success);
-            Assert.AreEqual(2, result.PathModel.PathNodes.Length);
+            Assert.HasCount(2, result.PathModel.PathNodes);
         }
 
         [TestMethod]
@@ -566,7 +566,7 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
             PathEditResult result = PathModelEditor.RemoveRestOfPath(path, 1);
 
             Assert.IsTrue(result.Success);
-            Assert.AreEqual(2, result.PathModel.PathNodes.Length);
+            Assert.HasCount(2, result.PathModel.PathNodes);
         }
 
         [TestMethod]
@@ -925,7 +925,7 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
             PathEditResult result = PathModelEditor.InsertViaPoint(path, 0, anchor, false);
 
             Assert.IsTrue(result.Success);
-            Assert.AreEqual(3, result.PathModel.PathNodes.Length);
+            Assert.HasCount(3, result.PathModel.PathNodes);
             Assert.AreEqual(1, result.PathModel.PathNodes[0].NextMainNode);
             Assert.AreEqual(PathNodeType.Intermediate, result.PathModel.PathNodes[1].NodeType);
             Assert.AreEqual(4, result.PathModel.PathNodes[1].NodeIndex);
@@ -999,7 +999,7 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
             PathEditResult result = PathModelEditor.RemoveViaPoint(path, 1);
 
             Assert.IsTrue(result.Success);
-            Assert.AreEqual(2, result.PathModel.PathNodes.Length);
+            Assert.HasCount(2, result.PathModel.PathNodes);
             Assert.AreEqual(1, result.PathModel.PathNodes[0].NextMainNode);
             Assert.AreEqual(PathNodeType.End, result.PathModel.PathNodes[1].NodeType);
         }
@@ -1040,7 +1040,7 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
             PathEditResult result = PathModelEditor.RemoveViaPoint(withVia, 2);
 
             Assert.IsTrue(result.Success);
-            Assert.AreEqual(3, result.PathModel.PathNodes.Length);
+            Assert.HasCount(3, result.PathModel.PathNodes);
             Assert.AreEqual(1, result.PathModel.PathNodes[0].NextMainNode);
             Assert.AreEqual(2, result.PathModel.PathNodes[1].NextMainNode);
             Assert.AreEqual(-1, result.PathModel.PathNodes[2].NextMainNode);
@@ -1057,7 +1057,7 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
             PathEditResult result = PathModelEditor.ApplyRouteCandidate(path, 0, candidate);
 
             Assert.IsTrue(result.Success);
-            Assert.AreEqual(4, result.PathModel.PathNodes.Length);
+            Assert.HasCount(4, result.PathModel.PathNodes);
             Assert.AreEqual(7, result.PathModel.PathNodes[1].NodeIndex);
             Assert.AreEqual(8, result.PathModel.PathNodes[2].NodeIndex);
             Assert.AreEqual(PathNodeType.End, result.PathModel.PathNodes[3].NodeType);

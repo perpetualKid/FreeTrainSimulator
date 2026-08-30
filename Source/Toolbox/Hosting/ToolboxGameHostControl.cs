@@ -362,8 +362,7 @@ namespace FreeTrainSimulator.Toolbox.Hosting
             Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() =>
             {
                 System.Windows.Window window = System.Windows.Window.GetWindow(this);
-                if (window != null)
-                    window.Title = title;
+                window?.Title = title;
             }));
         }
 
@@ -399,10 +398,7 @@ namespace FreeTrainSimulator.Toolbox.Hosting
             ArgumentNullException.ThrowIfNull(saveRequest);
 
             GameWindow game = gameWindow;
-            if (game == null)
-                return Task.CompletedTask;
-
-            return game.InvokeOnGameThreadAsync(() => game.SubmitTrainPathSaveAsync(saveRequest));
+            return game == null ? Task.CompletedTask : game.InvokeOnGameThreadAsync(() => game.SubmitTrainPathSaveAsync(saveRequest));
         }
 
         /// <summary>
@@ -451,16 +447,13 @@ namespace FreeTrainSimulator.Toolbox.Hosting
             disposed = true;
 
             GameWindow game = gameWindow;
-            if (game != null)
-            {
-                // Signal the game loop (running on its own STA thread) to exit. Marshal Exit onto the game
-                // thread because that is where the MonoGame/WinForms state lives. Do NOT call game.Dispose()
-                // here: the game owns a separate thread that is actively running game.Run(), and the
-                // using-block in GameThreadStart disposes it on that thread once Run() returns. Disposing
-                // here races with the live loop and tears down the GraphicsDevice/Platform mid-Tick, causing
-                // a NullReferenceException inside MonoGame's Game.Tick().
-                game.InvokeOnGameThread(game.Exit);
-            }
+            // Signal the game loop (running on its own STA thread) to exit. Marshal Exit onto the game
+            // thread because that is where the MonoGame/WinForms state lives. Do NOT call game.Dispose()
+            // here: the game owns a separate thread that is actively running game.Run(), and the
+            // using-block in GameThreadStart disposes it on that thread once Run() returns. Disposing
+            // here races with the live loop and tears down the GraphicsDevice/Platform mid-Tick, causing
+            // a NullReferenceException inside MonoGame's Game.Tick().
+            game?.InvokeOnGameThread(game.Exit);
 
             // Wait for the game thread to finish its loop and dispose the GameWindow on its owning thread.
             if (gameThread != null && gameThread.IsAlive)

@@ -101,7 +101,7 @@ namespace Tests.FreeTrainSimulator.Toolbox
             Assert.IsTrue(result.Diagnostics.All(diagnostic => diagnostic.Severity < PathRouteDiagnosticSeverity.Error),
                 string.Join("; ", result.Diagnostics.Select(diagnostic => $"{diagnostic.Severity}:{diagnostic.Code}:{diagnostic.Message}")));
             Assert.AreSequenceEqual(result.PathModel.PathNodes, savedPath.PathNodes);
-            Assert.IsTrue(savedPath.PathNodes.Length > path.PathNodes.Length);
+            Assert.IsGreaterThan(path.PathNodes.Length, savedPath.PathNodes.Length);
         }
 
         [TestMethod]
@@ -304,7 +304,7 @@ namespace Tests.FreeTrainSimulator.Toolbox
             PathModel persisted = CreateLinearPath("atomic-replacement-path");
             _ = await route.Save(persisted).ConfigureAwait(false);
             string targetFileName = ModelFileResolver<PathModelHeader>.FilePath(persisted) + ContentHandlerBase<PathModelHeader>.SaveStateExtension;
-            byte[] originalBytes = await File.ReadAllBytesAsync(targetFileName).ConfigureAwait(false);
+            byte[] originalBytes = await File.ReadAllBytesAsync(targetFileName, TestContext.CancellationToken).ConfigureAwait(false);
             PathModel replacement = persisted with { Name = "Replacement That Must Not Persist" };
 
             using (FileStream targetLock = new FileStream(targetFileName, FileMode.Open, FileAccess.Read, FileShare.Read))
@@ -316,7 +316,7 @@ namespace Tests.FreeTrainSimulator.Toolbox
                 }, TestContext.CancellationToken, TaskContinuationOptions.None, TaskScheduler.Default).ConfigureAwait(false);
             }
 
-            byte[] persistedBytes = await File.ReadAllBytesAsync(targetFileName).ConfigureAwait(false);
+            byte[] persistedBytes = await File.ReadAllBytesAsync(targetFileName, TestContext.CancellationToken).ConfigureAwait(false);
             Assert.AreSequenceEqual(originalBytes, persistedBytes);
         }
 
