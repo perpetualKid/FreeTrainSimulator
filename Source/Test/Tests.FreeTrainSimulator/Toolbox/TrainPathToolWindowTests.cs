@@ -167,6 +167,21 @@ namespace Tests.FreeTrainSimulator.Toolbox
         }
 
         [TestMethod]
+        public void WhenTransientNewPathIsSavedThenSourceAndTargetAreNoLongerUnsaved()
+        {
+            TrainPathToolWindow trainPathToolWindow = CreateTrainPathToolWindow(action => action());
+            Dictionary<string, PathModel> transientPaths = (Dictionary<string, PathModel>)typeof(TrainPathToolWindow)
+                .GetField("transientPaths", BindingFlags.Instance | BindingFlags.NonPublic)
+                .GetValue(trainPathToolWindow);
+            transientPaths.Add(PathEditor.NewPathId, new PathModel { Id = PathEditor.NewPathId, Name = "New Path" });
+            transientPaths.Add("saved-path", new PathModel { Id = "saved-path", Name = "Saved Path" });
+
+            trainPathToolWindow.CompleteSavedPath(PathEditor.NewPathId, "saved-path");
+
+            Assert.IsFalse(trainPathToolWindow.HasUnsavedPathChanges);
+        }
+
+        [TestMethod]
         public void WhenNoEditorOrTransientPathThenHasUnsavedPathChangesIsFalse()
         {
             TrainPathToolWindow trainPathToolWindow = CreateTrainPathToolWindow(action => action());

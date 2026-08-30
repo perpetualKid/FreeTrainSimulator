@@ -565,8 +565,8 @@ namespace FreeTrainSimulator.Toolbox
 
             PathModelHeader pathDetails = new PathModelHeader
             {
-                Id = pathModel.Id,
-                Name = pathModel.Name,
+                Id = string.Equals(pathModel.Id, PathEditor.NewPathId, StringComparison.Ordinal) ? string.Empty : pathModel.Id,
+                Name = string.Equals(pathModel.Name, PathEditor.NewPathId, StringComparison.Ordinal) ? string.Empty : pathModel.Name,
                 Start = pathModel.Start,
                 End = pathModel.End,
                 PlayerPath = pathModel.PlayerPath,
@@ -629,6 +629,12 @@ namespace FreeTrainSimulator.Toolbox
                     }).ConfigureAwait(false);
                     return;
                 }
+
+                await InvokeOnGameThreadAsync(() =>
+                {
+                    hostedTrainPathToolWindow?.CompleteSavedPath(operation.SourcePathId, validation.PathModel.Id);
+                    return Task.CompletedTask;
+                }).ConfigureAwait(false);
 
                 long refreshVersion = Interlocked.Increment(ref pathListRefreshVersion);
                 ImmutableArray<PathModelHeader> paths = await route.GetRoutePaths(ctsProfileLoading?.Token ?? CancellationToken.None).ConfigureAwait(false);

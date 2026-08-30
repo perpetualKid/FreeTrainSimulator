@@ -1231,6 +1231,7 @@ namespace Tests.FreeTrainSimulator.Toolbox
                 _ = await PathSaveOperationConsumer.ConsumeAsync(editor, operation, action => action()).ConfigureAwait(false);
 
                 Assert.AreEqual("saved-copy", editor.PathId);
+                Assert.AreEqual("saved-copy", editor.TrainPath.PathModel.Id);
                 Assert.AreEqual("Saved Copy", editor.TryCaptureCurrentPathModel().Name);
                 Assert.IsFalse(editor.HasUnsavedChanges);
             }

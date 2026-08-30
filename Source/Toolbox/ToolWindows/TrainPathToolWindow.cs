@@ -1119,6 +1119,17 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
             MarkDirty();
         }
 
+        /// <summary>Removes transient identities replaced by a successful persisted save.</summary>
+        internal void CompleteSavedPath(string sourcePathId, string savedPathId)
+        {
+            if (!string.IsNullOrWhiteSpace(sourcePathId))
+                transientPaths.Remove(sourcePathId);
+            if (!string.IsNullOrWhiteSpace(savedPathId))
+                transientPaths.Remove(savedPathId);
+            ClearBlockedSaveFeedback();
+            MarkDirty();
+        }
+
         // Preserves in-memory edits of the path being left behind, so switching paths does not discard them.
         // Only paths with pending edits are captured: merely browsing must not turn every visited path into a
         // transient (and therefore 'unsaved') one.

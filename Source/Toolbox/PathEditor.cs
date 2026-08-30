@@ -2010,6 +2010,7 @@ namespace FreeTrainSimulator.Toolbox
             path = validation.PathModel;
             currentPathModel = validation.PathModel;
             unsavedChanges = false;
+            RestorePath(validation.PathModel, false);
 
             OnPathChanged?.Invoke(this, new PathEditorChangedEventArgs(TrainPath));
             return true;

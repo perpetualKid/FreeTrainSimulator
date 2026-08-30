@@ -115,14 +115,15 @@ namespace Tests.FreeTrainSimulator.Toolbox
         [TestMethod]
         public void WhenTransientPathOpensSaveDialogThenCurrentMetadataIsPrefilled()
         {
-            TrainPathSaveDialogViewModel viewModel = new(PathEditor.NewPathId, "Draft Path", PathEditor.NewPathId,
+            TrainPathSaveDialogViewModel viewModel = new(PathEditor.NewPathId, "Draft Path", string.Empty,
                 "Draft Start", "Draft End", true);
 
             Assert.AreEqual("Draft Path", viewModel.PathName);
-            Assert.AreEqual(PathEditor.NewPathId, viewModel.PathId);
+            Assert.AreEqual(string.Empty, viewModel.PathId);
             Assert.AreEqual("Draft Start", viewModel.PathStart);
             Assert.AreEqual("Draft End", viewModel.PathEnd);
             Assert.IsTrue(viewModel.PlayerPath);
+            Assert.IsFalse(viewModel.CanSave);
         }
 
         [TestMethod]
