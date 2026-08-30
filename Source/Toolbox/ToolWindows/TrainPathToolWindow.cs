@@ -838,6 +838,78 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
         internal void SetMetadata(string name, string start, string end, bool playerPath)
             => ExecuteEditorCommand(pathEditor => pathEditor.SetMetadataCommand(name, start, end, playerPath));
 
+        internal ImmutableArray<MapContextMenuItem> GetNodeActions(int nodeIndex)
+        {
+            PathEditor pathEditor = pathEditorAccessor();
+            PathModel model = pathEditor?.TryCaptureCurrentPathModel();
+            if (model == null || nodeIndex < 0 || nodeIndex >= model.PathNodes.Length)
+                return ImmutableArray<MapContextMenuItem>.Empty;
+
+            PathNode node = model.PathNodes[nodeIndex];
+            MapContextMenuActionBuilder.MapContextMenuState state = new()
+            {
+                CanBeginPassingBranch = pathEditor.CanBeginPassingBranch(nodeIndex),
+                CanCompletePassingBranch = pathEditor.CanCompletePassingBranch(nodeIndex),
+                CanCancelPassingBranch = pathEditor.CanCancelPassingBranch,
+                CanRemovePassingBranch = pathEditor.CanRemovePassingBranch(nodeIndex),
+                IsPlacementActive = pathEditor.IsPlacementActive,
+                CanMoveNode = pathEditor.CanMoveNode(nodeIndex),
+                CanClearWaitPoint = pathEditor.CanClearWaitPoint(nodeIndex),
+                CanSetReversalPoint = pathEditor.CanSetReversalPoint(nodeIndex),
+                CanClearReversalPoint = pathEditor.CanClearReversalPoint(nodeIndex),
+                CanRemoveViaPoint = pathEditor.CanRemoveViaPoint(nodeIndex),
+                CanRepairNode = pathEditor.CanRepairNode(nodeIndex),
+                CanRemoveRestOfPath = pathEditor.CanRemoveRestOfPath(nodeIndex),
+            };
+            return MapContextMenuActionBuilder.BuildNodeActions(nodeIndex, state);
+        }
+
+        internal void ExecuteNodeAction(MapContextMenuAction action, int nodeIndex)
+        {
+            switch (action)
+            {
+                case MapContextMenuAction.MoveNode:
+                    BeginMoveNode(nodeIndex);
+                    break;
+                case MapContextMenuAction.CancelPlacement:
+                    CancelPlacement();
+                    break;
+                case MapContextMenuAction.ClearWaitPoint:
+                    ClearWaitPoint(nodeIndex);
+                    break;
+                case MapContextMenuAction.SetReversalPoint:
+                    SetReversalPoint(nodeIndex);
+                    break;
+                case MapContextMenuAction.ClearReversalPoint:
+                    ClearReversalPoint(nodeIndex);
+                    break;
+                case MapContextMenuAction.RemoveViaPoint:
+                    RemoveViaPoint(nodeIndex);
+                    break;
+                case MapContextMenuAction.RepairNode:
+                    RepairSelectedNode(nodeIndex);
+                    break;
+                case MapContextMenuAction.StartPassingBranch:
+                    BeginPassingBranch(nodeIndex);
+                    break;
+                case MapContextMenuAction.RejoinPassingBranch:
+                    CompletePassingBranch(nodeIndex);
+                    break;
+                case MapContextMenuAction.CancelPassingBranch:
+                    CancelPassingBranch();
+                    break;
+                case MapContextMenuAction.RemovePassingBranch:
+                    RemovePassingBranch(nodeIndex);
+                    break;
+                case MapContextMenuAction.RemoveRestOfPath:
+                    RemoveRestOfPath(nodeIndex);
+                    break;
+                default:
+                    Trace.TraceWarning($"Unsupported path node action {action}.");
+                    break;
+            }
+        }
+
         internal void ReportBlockedSave(PathPersistenceValidationResult validation, PathModel sourceModel)
         {
             ArgumentNullException.ThrowIfNull(validation);

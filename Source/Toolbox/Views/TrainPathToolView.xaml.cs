@@ -5,6 +5,7 @@ using System.Windows.Controls;
 using System.Windows.Input;
 
 using FreeTrainSimulator.Toolbox.ViewModels;
+using FreeTrainSimulator.Toolbox.PathEditing;
 
 namespace FreeTrainSimulator.Toolbox.Views
 {
@@ -18,6 +19,45 @@ namespace FreeTrainSimulator.Toolbox.Views
         public TrainPathToolView()
         {
             InitializeComponent();
+        }
+
+        private void PathNodes_ContextMenuOpening(object sender, ContextMenuEventArgs e)
+        {
+            if (sender is not ListView listView || DataContext is not TrainPathToolWindowViewModel viewModel)
+                return;
+
+            DependencyObject source = e.OriginalSource as DependencyObject;
+            ListViewItem row = ItemsControl.ContainerFromElement(listView, source) as ListViewItem
+                ?? listView.ItemContainerGenerator.ContainerFromItem(listView.SelectedItem) as ListViewItem;
+            if (row?.DataContext is not TrainPathNodeItemViewModel node)
+            {
+                e.Handled = true;
+                return;
+            }
+
+            listView.SelectedItem = node;
+            ContextMenu menu = listView.ContextMenu;
+            menu.Items.Clear();
+            foreach (MapContextMenuItem action in viewModel.GetSelectedNodeActions())
+            {
+                if (action.IsSeparator)
+                {
+                    menu.Items.Add(new Separator());
+                    continue;
+                }
+
+                MenuItem item = new() { Header = MainWindow.GetMapContextMenuCaption(action) };
+                MapContextMenuItem capturedAction = action;
+                item.Click += (_, _) => viewModel.ExecuteNodeAction(capturedAction);
+                menu.Items.Add(item);
+            }
+            if (menu.Items.Count == 0)
+            {
+                e.Handled = true;
+                return;
+            }
+
+            menu.PlacementTarget = row;
         }
 
         private void MetadataEditor_LostFocus(object sender, RoutedEventArgs e)

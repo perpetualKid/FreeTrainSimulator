@@ -131,6 +131,19 @@ namespace FreeTrainSimulator.Toolbox
             ImmutableArray<MapContextMenuItem> items;
             if (editor.TryGetPathNodeAt(location, tolerance, out int nodeIndex))
             {
+                state = state with
+                {
+                    CanBeginPassingBranch = editor.CanBeginPassingBranch(nodeIndex),
+                    CanCompletePassingBranch = editor.CanCompletePassingBranch(nodeIndex),
+                    CanCancelPassingBranch = editor.CanCancelPassingBranch,
+                    CanRemovePassingBranch = editor.CanRemovePassingBranch(nodeIndex),
+                    CanClearWaitPoint = editor.CanClearWaitPoint(nodeIndex),
+                    CanSetReversalPoint = editor.CanSetReversalPoint(nodeIndex),
+                    CanClearReversalPoint = editor.CanClearReversalPoint(nodeIndex),
+                    CanRemoveViaPoint = editor.CanRemoveViaPoint(nodeIndex),
+                    CanRepairNode = editor.CanRepairNode(nodeIndex),
+                    CanRemoveRestOfPath = editor.CanRemoveRestOfPath(nodeIndex),
+                };
                 items = MapContextMenuActionBuilder.BuildForNode(
                     editor.TrainPath?.PathPoints[nodeIndex], nodeIndex, editor.CanMoveNode(nodeIndex), state, contextAnchor);
             }
@@ -270,10 +283,18 @@ namespace FreeTrainSimulator.Toolbox
             switch (action)
             {
                 case MapContextMenuAction.MoveNode:
-                    toolWindow.BeginMoveNode(nodeIndex);
-                    break;
                 case MapContextMenuAction.CancelPlacement:
-                    toolWindow.CancelPlacement();
+                case MapContextMenuAction.RemoveViaPoint:
+                case MapContextMenuAction.ClearWaitPoint:
+                case MapContextMenuAction.SetReversalPoint:
+                case MapContextMenuAction.ClearReversalPoint:
+                case MapContextMenuAction.RepairNode:
+                case MapContextMenuAction.StartPassingBranch:
+                case MapContextMenuAction.RejoinPassingBranch:
+                case MapContextMenuAction.CancelPassingBranch:
+                case MapContextMenuAction.RemovePassingBranch:
+                case MapContextMenuAction.RemoveRestOfPath:
+                    toolWindow.ExecuteNodeAction(action, nodeIndex);
                     break;
                 case MapContextMenuAction.AddViaPoint:
                     if (placementAnchor == null)
@@ -283,24 +304,6 @@ namespace FreeTrainSimulator.Toolbox
                         bool isJunction = RuntimeDataResolver.Instance.TrackWorld?.JunctionAt(placementAnchor.Location) != null;
                         toolWindow.AddViaPointHere(nodeIndex, placementAnchor, isJunction);
                     }
-                    break;
-                case MapContextMenuAction.RemoveViaPoint:
-                    toolWindow.RemoveViaPoint(nodeIndex);
-                    break;
-                case MapContextMenuAction.ClearWaitPoint:
-                    toolWindow.ClearWaitPoint(nodeIndex);
-                    break;
-                case MapContextMenuAction.SetReversalPoint:
-                    toolWindow.SetReversalPoint(nodeIndex);
-                    break;
-                case MapContextMenuAction.ClearReversalPoint:
-                    toolWindow.ClearReversalPoint(nodeIndex);
-                    break;
-                case MapContextMenuAction.RepairNode:
-                    toolWindow.RepairSelectedNode(nodeIndex);
-                    break;
-                case MapContextMenuAction.RemoveRestOfPath:
-                    toolWindow.RemoveRestOfPath(nodeIndex);
                     break;
                 case MapContextMenuAction.SelectRouteCandidate:
                 case MapContextMenuAction.RouteThroughJunctionExit:

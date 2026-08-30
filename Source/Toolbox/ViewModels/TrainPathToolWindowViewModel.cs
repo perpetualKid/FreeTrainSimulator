@@ -167,6 +167,17 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
             toolWindow.SetMetadata(PathName, PathStart, PathEnd, PlayerPath);
         }
 
+        public ImmutableArray<MapContextMenuItem> GetSelectedNodeActions()
+            => SelectedNode == null
+                ? ImmutableArray<MapContextMenuItem>.Empty
+                : toolWindow.GetNodeActions(SelectedNode.Index);
+
+        public void ExecuteNodeAction(MapContextMenuItem action)
+        {
+            ArgumentNullException.ThrowIfNull(action);
+            toolWindow.ExecuteNodeAction(action.Action, action.NodeIndex);
+        }
+
         /// <summary>Equal-cost route candidates of the current path's ambiguous spans.</summary>
         public ObservableCollection<TrainPathRouteCandidateItemViewModel> RouteCandidates { get; } = new ObservableCollection<TrainPathRouteCandidateItemViewModel>();
 

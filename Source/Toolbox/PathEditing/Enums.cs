@@ -47,6 +47,10 @@ namespace FreeTrainSimulator.Toolbox.PathEditing
         SetReversalPoint,
         ClearReversalPoint,
         RepairNode,
+        StartPassingBranch,
+        RejoinPassingBranch,
+        CancelPassingBranch,
+        RemovePassingBranch,
 
         // Span scoped; the node index identifies the span's preceding node
         AddViaPoint,

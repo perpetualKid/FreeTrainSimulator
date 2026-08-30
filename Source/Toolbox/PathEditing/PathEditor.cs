@@ -1020,6 +1020,30 @@ namespace FreeTrainSimulator.Toolbox.PathEditing
             return currentModel != null && PathModelEditor.RemoveViaPoint(currentModel, nodeIndex).Success;
         }
 
+        public bool CanClearWaitPoint(int nodeIndex)
+        {
+            PathModel currentModel = TryGetEditablePathModel();
+            return currentModel != null && PathModelEditor.ClearWaitPoint(currentModel, nodeIndex).Success;
+        }
+
+        public bool CanSetReversalPoint(int nodeIndex)
+        {
+            PathModel currentModel = TryGetEditablePathModel();
+            return currentModel != null && PathModelEditor.SetReversalPoint(currentModel, nodeIndex).Success;
+        }
+
+        public bool CanClearReversalPoint(int nodeIndex)
+        {
+            PathModel currentModel = TryGetEditablePathModel();
+            return currentModel != null && PathModelEditor.ClearReversalPoint(currentModel, nodeIndex).Success;
+        }
+
+        public bool CanRemoveRestOfPath(int nodeIndex)
+        {
+            PathModel currentModel = TryGetEditablePathModel();
+            return currentModel != null && PathModelEditor.RemoveRestOfPath(currentModel, nodeIndex).Success;
+        }
+
         public void SelectAuthoredNode(int nodeIndex)
         {
             ImmutableArray<PathNode> nodes = currentPathModel?.PathNodes ?? ImmutableArray<PathNode>.Empty;

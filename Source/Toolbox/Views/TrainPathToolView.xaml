@@ -355,81 +355,9 @@
                             Command="{Binding RedoCommand}" />
                     <Button Margin="0,0,6,4"
                             Padding="8,2"
-                            Content="Move Selected Node"
-                            Command="{Binding MoveSelectedNodeCommand}"
-                            ToolTip="Move the selected authored node to a safe track location.">
-                        <Button.Style>
-                            <Style TargetType="Button">
-                                <Setter Property="Visibility" Value="Collapsed" />
-                                <Style.Triggers>
-                                    <DataTrigger Binding="{Binding AreRepairNodeActionsVisible}" Value="True">
-                                        <Setter Property="Visibility" Value="Visible" />
-                                    </DataTrigger>
-                                </Style.Triggers>
-                            </Style>
-                        </Button.Style>
-                    </Button>
-                    <Button Margin="0,0,6,4"
-                            Padding="8,2"
-                            Content="Repair Selected Node"
-                            Command="{Binding RepairSelectedNodeCommand}"
-                            ToolTip="Apply the available safe repair to the selected authored node.">
-                        <Button.Style>
-                            <Style TargetType="Button">
-                                <Setter Property="Visibility" Value="Collapsed" />
-                                <Style.Triggers>
-                                    <DataTrigger Binding="{Binding AreRepairNodeActionsVisible}" Value="True">
-                                        <Setter Property="Visibility" Value="Visible" />
-                                    </DataTrigger>
-                                </Style.Triggers>
-                            </Style>
-                        </Button.Style>
-                    </Button>
-                    <Button Margin="0,0,6,4"
-                            Padding="8,2"
-                            Content="Remove Via Point"
-                            Command="{Binding RemoveViaPointCommand}"
-                            ToolTip="Remove the selected authored via point when it can be safely relinked.">
-                        <Button.Style>
-                            <Style TargetType="Button">
-                                <Setter Property="Visibility" Value="Collapsed" />
-                                <Style.Triggers>
-                                    <DataTrigger Binding="{Binding AreRepairNodeActionsVisible}" Value="True">
-                                        <Setter Property="Visibility" Value="Visible" />
-                                    </DataTrigger>
-                                </Style.Triggers>
-                            </Style>
-                        </Button.Style>
-                    </Button>
-                    <Button Margin="0,0,6,4"
-                            Padding="8,2"
                             Content="Re-resolve Path"
                             Command="{Binding SnapToTrackCommand}"
                             ToolTip="Rebuild the whole path from its authored nodes using the path resolver. This may insert generated nodes and update links." />
-                    <Button Margin="0,0,6,4"
-                            Padding="8,2"
-                            Content="Start Passing Branch"
-                            Command="{Binding BeginPassingBranchCommand}"
-                            ToolTip="Select the current main-route node as the departure for one passing branch."
-                            Visibility="{Binding CanBeginPassingBranch, Converter={StaticResource BooleanToVisibilityConverter}}" />
-                    <Button Margin="0,0,6,4"
-                            Padding="8,2"
-                            Content="Rejoin Passing Branch"
-                            Command="{Binding CompletePassingBranchCommand}"
-                            ToolTip="Use the selected later main-route node as the passing-branch rejoin."
-                            Visibility="{Binding CanCompletePassingBranch, Converter={StaticResource BooleanToVisibilityConverter}}" />
-                    <Button Margin="0,0,6,4"
-                            Padding="8,2"
-                            Content="Cancel Passing Branch"
-                            Command="{Binding CancelPassingBranchCommand}"
-                            ToolTip="Cancel the pending passing-branch rejoin or candidate selection without changing the path."
-                            Visibility="{Binding CanCancelPassingBranch, Converter={StaticResource BooleanToVisibilityConverter}}" />
-                    <Button Margin="0,0,6,4"
-                            Padding="8,2"
-                            Content="Remove Passing Branch"
-                            Command="{Binding RemovePassingBranchCommand}"
-                            ToolTip="Remove the supported passing branch that starts at the selected main-route node."
-                            Visibility="{Binding CanRemovePassingBranch, Converter={StaticResource BooleanToVisibilityConverter}}" />
                     <Button Margin="0,0,6,4"
                             Padding="8,2"
                             Content="Set Start Here"
@@ -460,9 +388,13 @@
                             Command="{Binding CancelPlacementCommand}" />
                 </WrapPanel>
                 <ListView Grid.Row="1"
+                          ContextMenuOpening="PathNodes_ContextMenuOpening"
                           ItemsSource="{Binding Nodes}"
                           SelectedItem="{Binding SelectedNode, Mode=TwoWay}"
                           behaviors:GridViewColumnBehavior.StretchListView="True">
+                    <ListView.ContextMenu>
+                        <ContextMenu />
+                    </ListView.ContextMenu>
                     <ListView.ItemContainerStyle>
                         <Style TargetType="ListViewItem">
                             <Setter Property="ToolTip" Value="{Binding Validation}" />

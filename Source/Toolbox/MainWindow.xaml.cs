@@ -391,7 +391,7 @@ namespace FreeTrainSimulator.Toolbox
             contextMenu.IsOpen = true;
         }
 
-        private static string GetMapContextMenuCaption(MapContextMenuItem item)
+        internal static string GetMapContextMenuCaption(MapContextMenuItem item)
         {
             string caption = item.Action switch
             {
@@ -402,6 +402,10 @@ namespace FreeTrainSimulator.Toolbox
                 MapContextMenuAction.ClearWaitPoint => CatalogManager.Catalog.GetString("Clear Wait Point"),
                 MapContextMenuAction.SetReversalPoint => CatalogManager.Catalog.GetString("Set Reversal Point"),
                 MapContextMenuAction.ClearReversalPoint => CatalogManager.Catalog.GetString("Clear Reversal Point"),
+                MapContextMenuAction.StartPassingBranch => CatalogManager.Catalog.GetString("Start Passing Branch"),
+                MapContextMenuAction.RejoinPassingBranch => CatalogManager.Catalog.GetString("Rejoin Passing Branch"),
+                MapContextMenuAction.CancelPassingBranch => CatalogManager.Catalog.GetString("Cancel Passing Branch"),
+                MapContextMenuAction.RemovePassingBranch => CatalogManager.Catalog.GetString("Remove Passing Branch"),
                 MapContextMenuAction.RepairNode => CatalogManager.Catalog.GetString("Repair Node"),
                 MapContextMenuAction.RemoveRestOfPath => CatalogManager.Catalog.GetString("Remove Rest of Path"),
                 MapContextMenuAction.SelectRouteCandidate => CatalogManager.Catalog.GetString("Use Route"),

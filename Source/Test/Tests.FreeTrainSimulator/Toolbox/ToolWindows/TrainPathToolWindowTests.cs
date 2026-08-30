@@ -36,13 +36,58 @@ namespace Tests.FreeTrainSimulator.Toolbox.ToolWindows
         }
 
         [TestMethod]
+        public void WhenNodeActionsAreRequestedThenTheyUseSharedMapActionVocabulary()
+        {
+            PathModel source = CreatePathModel(PathNodeType.Start, PathNodeType.Intermediate, PathNodeType.End);
+            using (PathEditor editor = CreatePathEditor(source))
+            {
+                TrainPathToolWindow trainPathToolWindow = new TrainPathToolWindow(() => editor, () => null, action => action(), () => { }, () => { }, _ => { }, () => { }, () => { });
+
+                ImmutableArray<MapContextMenuItem> actions = trainPathToolWindow.GetNodeActions(1);
+
+                Assert.Contains(MapContextMenuAction.MoveNode, actions.Select(item => item.Action));
+                Assert.Contains(MapContextMenuAction.SetReversalPoint, actions.Select(item => item.Action));
+                Assert.Contains(MapContextMenuAction.RemoveViaPoint, actions.Select(item => item.Action));
+            }
+        }
+
+        [TestMethod]
+        public void WhenSharedNodeActionIsExecutedThenExistingEditorCommandRuns()
+        {
+            PathModel source = CreatePathModel(PathNodeType.Start, PathNodeType.Intermediate, PathNodeType.End);
+            using (PathEditor editor = CreatePathEditor(source))
+            {
+                TrainPathToolWindow trainPathToolWindow = new TrainPathToolWindow(() => editor, () => null, action => action(), () => { }, () => { }, _ => { }, () => { }, () => { });
+
+                trainPathToolWindow.ExecuteNodeAction(MapContextMenuAction.SetReversalPoint, 1);
+
+                Assert.IsTrue(editor.TryCaptureCurrentPathModel().PathNodes[1].NodeType.Includes(PathNodeType.Reversal));
+            }
+        }
+
+        [TestMethod]
+        public void WhenCapturedNodeActionExecutesThenLaterSelectionDoesNotChangeItsTarget()
+        {
+            PathModel source = CreatePathModel(PathNodeType.Start, PathNodeType.Intermediate, PathNodeType.Intermediate, PathNodeType.End);
+            using PathEditor editor = CreatePathEditor(source);
+            TrainPathToolWindow trainPathToolWindow = new(() => editor, () => null, action => action(),
+                () => { }, () => { }, _ => { }, () => { }, () => { });
+            MapContextMenuItem captured = new(MapContextMenuAction.SetReversalPoint, 1);
+            editor.SelectAuthoredNode(2);
+
+            trainPathToolWindow.ExecuteNodeAction(captured.Action, captured.NodeIndex);
+
+            Assert.IsTrue(editor.TryCaptureCurrentPathModel().PathNodes[1].NodeType.Includes(PathNodeType.Reversal));
+            Assert.IsFalse(editor.TryCaptureCurrentPathModel().PathNodes[2].NodeType.Includes(PathNodeType.Reversal));
+        }
+
+        [TestMethod]
         public void WhenMetadataIsSetThenEditorModelIsUpdatedAndDirty()
         {
             PathModel source = CreatePathModel(PathNodeType.Start, PathNodeType.End) with { Name = "Old Name" };
             using (PathEditor editor = CreatePathEditor(source))
             {
-                TrainPathToolWindow trainPathToolWindow = new(() => editor, () => null, action => action(),
-                    () => { }, () => { }, _ => { }, () => { }, () => { });
+                TrainPathToolWindow trainPathToolWindow = new TrainPathToolWindow(() => editor, () => null, action => action(), () => { }, () => { }, _ => { }, () => { }, () => { });
 
                 trainPathToolWindow.SetMetadata("New Name", "Start", "End", true);
 
@@ -58,7 +103,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.ToolWindows
             using (PathEditor editor = CreatePathEditor(CreatePathModel(PathNodeType.Start, PathNodeType.End)))
             {
                 typeof(PathEditor).GetField("unsavedChanges", BindingFlags.Instance | BindingFlags.NonPublic).SetValue(editor, false);
-                TrainPathToolWindow trainPathToolWindow = new(() => editor, () => null, action => action(),
+                TrainPathToolWindow trainPathToolWindow = new TrainPathToolWindow(() => editor, () => null, action => action(),
                     () => { }, () => { }, _ => { }, () => { }, () => { });
 
                 Assert.IsFalse(trainPathToolWindow.CanSavePath);
@@ -72,8 +117,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.ToolWindows
             using (PathEditor editor = CreatePathEditor(source))
             {
                 typeof(PathEditor).GetField("unsavedChanges", BindingFlags.Instance | BindingFlags.NonPublic).SetValue(editor, false);
-                TrainPathToolWindow trainPathToolWindow = new(() => editor, () => null, action => action(),
-                    () => { }, () => { }, _ => { }, () => { }, () => { });
+                TrainPathToolWindow trainPathToolWindow = new TrainPathToolWindow(() => editor, () => null, action => action(), () => { }, () => { }, _ => { }, () => { }, () => { });
 
                 trainPathToolWindow.SetMetadata(source.Name, source.Start, source.End, source.PlayerPath);
 
@@ -93,8 +137,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.ToolWindows
             };
             using (PathEditor editor = CreatePathEditor(source))
             {
-                TrainPathToolWindow trainPathToolWindow = new(() => editor, () => null, action => action(),
-                    () => { }, () => { }, _ => { }, () => { }, () => { })
+                TrainPathToolWindow trainPathToolWindow = new TrainPathToolWindow(() => editor, () => null, action => action(), () => { }, () => { }, _ => { }, () => { }, () => { })
                 { Active = true };
 
                 trainPathToolWindow.RefreshSnapshot();

@@ -51,6 +51,28 @@ namespace FreeTrainSimulator.Toolbox.PathEditing
 
             /// <summary>Whether the active path is the unsaved model created by New Path.</summary>
             public bool IsNewPath { get; init; }
+
+            public bool CanBeginPassingBranch { get; init; }
+
+            public bool CanCompletePassingBranch { get; init; }
+
+            public bool CanCancelPassingBranch { get; init; }
+
+            public bool CanRemovePassingBranch { get; init; }
+
+            public bool CanMoveNode { get; init; }
+
+            public bool CanClearWaitPoint { get; init; }
+
+            public bool CanSetReversalPoint { get; init; }
+
+            public bool CanClearReversalPoint { get; init; }
+
+            public bool CanRemoveViaPoint { get; init; }
+
+            public bool CanRepairNode { get; init; }
+
+            public bool CanRemoveRestOfPath { get; init; }
         }
 
         /// <summary>
@@ -72,32 +94,59 @@ namespace FreeTrainSimulator.Toolbox.PathEditing
             if (node == null)
                 return ImmutableArray<MapContextMenuItem>.Empty;
 
+            if (state.CanCancelPassingBranch)
+                return BuildNodeActions(nodeIndex, state with { CanMoveNode = canMoveNode });
+
             ImmutableArray<MapContextMenuItem>.Builder items = ImmutableArray.CreateBuilder<MapContextMenuItem>();
-
-            if (canMoveNode)
-                items.Add(new MapContextMenuItem(MapContextMenuAction.MoveNode, nodeIndex));
+            items.AddRange(BuildNodeActions(nodeIndex, state with { CanMoveNode = canMoveNode }));
             AddAnchorPlacementActions(items, state, placementAnchor);
-
-            // Creating or editing a wait point is done by editing the Wait property. Keep the one-click clear
-            // action here because removal remains useful directly on the map.
-            if (node.WaitInfo != null)
-                items.Add(new MapContextMenuItem(MapContextMenuAction.ClearWaitPoint, nodeIndex));
-            items.Add(new MapContextMenuItem(
-                node.NodeType.Includes(PathNodeType.Reversal) ? MapContextMenuAction.ClearReversalPoint : MapContextMenuAction.SetReversalPoint, nodeIndex));
-
-            // Start and end nodes are managed through their own commands, so removing them as a via point is
-            // never meaningful.
-            if (IsRemovableViaPoint(node))
-                items.Add(new MapContextMenuItem(MapContextMenuAction.RemoveViaPoint, nodeIndex));
-
-            if (node.ValidationResult != PathNodeInvalidReasons.None)
-                items.Add(new MapContextMenuItem(MapContextMenuAction.RepairNode, nodeIndex));
-
-            AddSeparator(items);
-            items.Add(new MapContextMenuItem(MapContextMenuAction.RemoveRestOfPath, nodeIndex));
 
             AddHistoryActions(items, state);
             return Finalize(items);
+        }
+
+        internal static ImmutableArray<MapContextMenuItem> BuildNodeActions(int nodeIndex, in MapContextMenuState state)
+        {
+            ImmutableArray<MapContextMenuItem>.Builder items = ImmutableArray.CreateBuilder<MapContextMenuItem>();
+            if (state.IsPlacementActive)
+            {
+                items.Add(new MapContextMenuItem(MapContextMenuAction.CancelPlacement, nodeIndex));
+                return items.ToImmutable();
+            }
+            if (state.CanCancelPassingBranch)
+            {
+                if (state.CanCompletePassingBranch)
+                    items.Add(new MapContextMenuItem(MapContextMenuAction.RejoinPassingBranch, nodeIndex));
+                items.Add(new MapContextMenuItem(MapContextMenuAction.CancelPassingBranch, nodeIndex));
+                return items.ToImmutable();
+            }
+
+            if (state.CanMoveNode)
+                items.Add(new MapContextMenuItem(MapContextMenuAction.MoveNode, nodeIndex));
+            if (state.CanClearWaitPoint)
+                items.Add(new MapContextMenuItem(MapContextMenuAction.ClearWaitPoint, nodeIndex));
+            if (state.CanSetReversalPoint)
+                items.Add(new MapContextMenuItem(MapContextMenuAction.SetReversalPoint, nodeIndex));
+            if (state.CanClearReversalPoint)
+                items.Add(new MapContextMenuItem(MapContextMenuAction.ClearReversalPoint, nodeIndex));
+            if (state.CanRemoveViaPoint)
+                items.Add(new MapContextMenuItem(MapContextMenuAction.RemoveViaPoint, nodeIndex));
+            if (state.CanRepairNode)
+                items.Add(new MapContextMenuItem(MapContextMenuAction.RepairNode, nodeIndex));
+            if (state.CanBeginPassingBranch)
+                items.Add(new MapContextMenuItem(MapContextMenuAction.StartPassingBranch, nodeIndex));
+            if (state.CanCompletePassingBranch)
+                items.Add(new MapContextMenuItem(MapContextMenuAction.RejoinPassingBranch, nodeIndex));
+            if (state.CanCancelPassingBranch)
+                items.Add(new MapContextMenuItem(MapContextMenuAction.CancelPassingBranch, nodeIndex));
+            if (state.CanRemovePassingBranch)
+                items.Add(new MapContextMenuItem(MapContextMenuAction.RemovePassingBranch, nodeIndex));
+            if (state.CanRemoveRestOfPath)
+            {
+                AddSeparator(items);
+                items.Add(new MapContextMenuItem(MapContextMenuAction.RemoveRestOfPath, nodeIndex));
+            }
+            return items.ToImmutable();
         }
 
         /// <summary>
