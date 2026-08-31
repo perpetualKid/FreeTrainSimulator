@@ -23,6 +23,29 @@ namespace Tests.FreeTrainSimulator.Toolbox
         }
 
         [TestMethod]
+        public void WhenPassingBranchCandidatePhaseIsAppliedThenOnlyCancelPhaseActionIsEnabled()
+        {
+            TrainPathToolWindow bridge = CreateBridge(action => action());
+            SetBridgeSnapshot(bridge, TrainPathSnapshot.Empty with
+            {
+                PassingBranchPhase = PassingBranchAuthoringPhase.SelectingCandidate,
+                CanCancelPassingBranch = true,
+                HasPendingPassingBranchCandidate = true,
+            });
+            using ToolWindowRefreshScheduler refreshScheduler = new ToolWindowRefreshScheduler(Dispatcher.CurrentDispatcher);
+            using TrainPathToolWindowViewModel viewModel = new TrainPathToolWindowViewModel(bridge, refreshScheduler);
+
+            typeof(TrainPathToolWindowViewModel).GetMethod("Refresh", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(viewModel, null);
+
+            Assert.AreEqual(PassingBranchAuthoringPhase.SelectingCandidate, viewModel.PassingBranchPhase);
+            Assert.IsTrue(viewModel.HasPendingPassingBranchCandidate);
+            Assert.IsTrue(viewModel.CancelPassingBranchCommand.CanExecute(null));
+            Assert.IsFalse(viewModel.BeginPassingBranchCommand.CanExecute(null));
+            Assert.IsFalse(viewModel.CompletePassingBranchCommand.CanExecute(null));
+            Assert.IsFalse(viewModel.RemovePassingBranchCommand.CanExecute(null));
+        }
+
+        [TestMethod]
         public void WhenSetStartHereCommandExecutedThenBridgeCommandIsMarshaled()
         {
             int invocations = 0;
@@ -75,6 +98,50 @@ namespace Tests.FreeTrainSimulator.Toolbox
             Assert.AreEqual("Start anchor placement canceled.", viewModel.StatusMessage);
         }
 
+        [TestMethod]
+        public void WhenExistingPathOpensSaveDialogThenAllMetadataIsPrefilled()
+        {
+            TrainPathSaveDialogViewModel viewModel = new("path-1", "Morning Run", "path-1", "Depot", "Terminal", false);
+
+            Assert.AreEqual("Morning Run", viewModel.PathName);
+            Assert.AreEqual("path-1", viewModel.PathId);
+            Assert.AreEqual("Depot", viewModel.PathStart);
+            Assert.AreEqual("Terminal", viewModel.PathEnd);
+            Assert.IsFalse(viewModel.PlayerPath);
+            Assert.IsFalse(viewModel.IsSaveAs);
+            Assert.AreEqual("Save", viewModel.SaveActionText);
+        }
+
+        [TestMethod]
+        public void WhenTransientPathOpensSaveDialogThenCurrentMetadataIsPrefilled()
+        {
+            TrainPathSaveDialogViewModel viewModel = new(PathEditor.NewPathId, "Draft Path", PathEditor.NewPathId,
+                "Draft Start", "Draft End", true);
+
+            Assert.AreEqual("Draft Path", viewModel.PathName);
+            Assert.AreEqual(PathEditor.NewPathId, viewModel.PathId);
+            Assert.AreEqual("Draft Start", viewModel.PathStart);
+            Assert.AreEqual("Draft End", viewModel.PathEnd);
+            Assert.IsTrue(viewModel.PlayerPath);
+        }
+
+        [TestMethod]
+        public void WhenSaveAsTargetExistsWithoutConfirmationThenRequestCannotSubmit()
+        {
+            TrainPathSaveRequest request = new(new PathModelHeader { Id = "copy", Name = "Copy" }, "original", false);
+
+            Assert.IsTrue(request.IsSaveAs);
+            Assert.IsFalse(request.CanSubmit(true));
+        }
+
+        [TestMethod]
+        public void WhenSaveAsTargetExistsWithConfirmationThenRequestCanSubmit()
+        {
+            TrainPathSaveRequest request = new(new PathModelHeader { Id = "copy", Name = "Copy" }, "original", true);
+
+            Assert.IsTrue(request.CanSubmit(true));
+        }
+
         private static TrainPathToolWindow CreateBridge(Action<Action> invoker, Action createPathAction, Action savePathAction)
         {
             return new TrainPathToolWindow(() => null, () => null, invoker, createPathAction, savePathAction, _ => { }, () => { }, () => { });
@@ -95,6 +162,49 @@ namespace Tests.FreeTrainSimulator.Toolbox
                     Assert.AreEqual(1, invocations);
                 }
             }
+        }
+
+        [TestMethod]
+        public void WhenRepairModeSnapshotIsAppliedThenUnsafeRouteCommandsAreDisabledAndSafeNodeRemovalRemainsEnabled()
+        {
+            TrainPathToolWindow bridge = CreateBridge(action => action());
+            SetBridgeSnapshot(bridge, TrainPathSnapshot.Empty with
+            {
+                IsRepairMode = true,
+                Nodes = System.Collections.Immutable.ImmutableArray.Create(new TrainPathNodeRow(0, PathNodeType.Intermediate, false, 1, -1, -1, null, "Broken link.")),
+                SelectedNodeIndex = 0,
+                CanMoveSelectedNode = true,
+                CanRepairSelectedNode = true,
+                CanRemoveSelectedViaPoint = true,
+            });
+            using ToolWindowRefreshScheduler refreshScheduler = new ToolWindowRefreshScheduler(Dispatcher.CurrentDispatcher);
+            using TrainPathToolWindowViewModel viewModel = new TrainPathToolWindowViewModel(bridge, refreshScheduler);
+            viewModel.RouteCandidates.Add(new TrainPathRouteCandidateItemViewModel(new TrainPathRouteCandidateRow(0, 1, 0, "unsafe")));
+            viewModel.SelectedRouteCandidate = viewModel.RouteCandidates[0];
+
+            typeof(TrainPathToolWindowViewModel).GetMethod("Refresh", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(viewModel, null);
+
+            Assert.IsTrue(viewModel.IsRepairMode);
+            Assert.IsTrue(viewModel.AreRepairNodeActionsVisible);
+            Assert.IsFalse(viewModel.AcceptRouteCandidateCommand.CanExecute(null));
+            Assert.IsFalse(viewModel.AddViaPointCommand.CanExecute(null));
+            Assert.IsTrue(viewModel.MoveSelectedNodeCommand.CanExecute(null));
+            Assert.IsTrue(viewModel.RepairSelectedNodeCommand.CanExecute(null));
+            Assert.IsTrue(viewModel.RemoveViaPointCommand.CanExecute(null));
+        }
+
+        [TestMethod]
+        public void WhenNormalModeSnapshotIsAppliedThenRepairNodeActionsAreNotVisible()
+        {
+            TrainPathToolWindow bridge = CreateBridge(action => action());
+            SetBridgeSnapshot(bridge, TrainPathSnapshot.Empty);
+            using ToolWindowRefreshScheduler refreshScheduler = new ToolWindowRefreshScheduler(Dispatcher.CurrentDispatcher);
+            using TrainPathToolWindowViewModel viewModel = new TrainPathToolWindowViewModel(bridge, refreshScheduler);
+
+            typeof(TrainPathToolWindowViewModel).GetMethod("Refresh", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(viewModel, null);
+
+            Assert.IsFalse(viewModel.IsRepairMode);
+            Assert.IsFalse(viewModel.AreRepairNodeActionsVisible);
         }
 
         [TestMethod]
@@ -200,7 +310,7 @@ namespace Tests.FreeTrainSimulator.Toolbox
                     trainPathToolWindowViewModel.SavePathCommand.Execute(null);
 
                     Assert.AreEqual(1, invocations);
-                    Assert.AreEqual(1, saveActions);
+                    Assert.AreEqual(0, saveActions);
                 }
             }
         }
@@ -223,6 +333,31 @@ namespace Tests.FreeTrainSimulator.Toolbox
                     Assert.Contains("node 2", trainPathToolWindowViewModel.StatusMessage);
                 }
             }
+        }
+
+        [TestMethod]
+        public void WhenSaveIsBlockedThenActionableDiagnosticIsSelectedAndStatusIsShown()
+        {
+            TrainPathDiagnosticRow diagnostic = new TrainPathDiagnosticRow(
+                PathRouteDiagnosticSeverity.Error, PathRouteDiagnosticCode.AnchorNotOnTrack, "Node is off track.",
+                2, -1, -1, "Move the node onto track.", true);
+            TrainPathToolWindow bridge = CreateBridge(action => action());
+            SetBridgeSnapshot(bridge, TrainPathSnapshot.Empty with
+            {
+                Diagnostics = [diagnostic],
+                BlockedSaveMessage = "Path cannot be saved because a node is off track.",
+                BlockedSaveDiagnostic = diagnostic,
+                BlockedSaveFeedbackVersion = 1,
+            });
+            using ToolWindowRefreshScheduler refreshScheduler = new ToolWindowRefreshScheduler(Dispatcher.CurrentDispatcher);
+            using TrainPathToolWindowViewModel viewModel = new TrainPathToolWindowViewModel(bridge, refreshScheduler);
+
+            viewModel.Start();
+
+            Assert.IsTrue(viewModel.StatusMessageIsWarning);
+            Assert.AreEqual("Path cannot be saved because a node is off track.", viewModel.StatusMessage);
+            Assert.AreEqual(2, viewModel.SelectedTabIndex);
+            Assert.AreEqual(PathRouteDiagnosticCode.AnchorNotOnTrack, viewModel.SelectedDiagnostic?.Code);
         }
 
         [TestMethod]
@@ -616,6 +751,11 @@ namespace Tests.FreeTrainSimulator.Toolbox
         private static void SetCommandAvailability(TrainPathToolWindowViewModel viewModel, string fieldName, object value)
         {
             typeof(TrainPathToolWindowViewModel).GetField(fieldName, BindingFlags.Instance | BindingFlags.NonPublic).SetValue(viewModel, value);
+        }
+
+        private static void SetBridgeSnapshot(TrainPathToolWindow bridge, TrainPathSnapshot snapshot)
+        {
+            typeof(TrainPathToolWindow).GetField("snapshot", BindingFlags.Instance | BindingFlags.NonPublic).SetValue(bridge, snapshot);
         }
     }
 }

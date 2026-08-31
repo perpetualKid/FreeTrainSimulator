@@ -1,3 +1,4 @@
+using System;
 using System.Windows;
 
 using FreeTrainSimulator.Models.Content;
@@ -12,16 +13,22 @@ namespace FreeTrainSimulator.Toolbox.Dialogs
     /// </summary>
     public partial class TrainPathSaveDialog : Window
     {
-        private readonly TrainPathSaveDialogViewModel viewModel = new TrainPathSaveDialogViewModel();
+        private readonly TrainPathSaveDialogViewModel viewModel;
 
-        internal TrainPathSaveDialog()
+        internal TrainPathSaveDialog(PathModelHeader initialPathDetails, string sourcePathId)
         {
+            ArgumentNullException.ThrowIfNull(initialPathDetails);
+
             InitializeComponent();
+            viewModel = new TrainPathSaveDialogViewModel(sourcePathId, initialPathDetails.Name, initialPathDetails.Id,
+                initialPathDetails.Start, initialPathDetails.End, initialPathDetails.PlayerPath);
             DataContext = viewModel;
         }
 
         /// <summary>The collected path metadata, set when the dialog is confirmed with Save.</summary>
         internal PathModelHeader PathDetails { get; private set; }
+
+        internal string SourcePathId => viewModel.SourcePathId;
 
         private void SaveButton_Click(object sender, RoutedEventArgs e)
         {

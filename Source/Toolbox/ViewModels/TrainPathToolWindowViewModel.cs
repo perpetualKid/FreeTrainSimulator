@@ -44,6 +44,20 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
         private int? selectedNodeWaitTime;
         private bool suppressSelectionCommand;
         private bool suppressWaitTimeCommand;
+        private int blockedSaveFeedbackVersion;
+        private string blockedSaveStatusMessage;
+        private bool isRepairMode;
+        private bool canMoveSelectedNode;
+        private bool canRepairSelectedNode;
+        private bool canRemoveSelectedViaPoint;
+        private int selectedNodeCapabilityIndex = -1;
+        private bool canBeginPassingBranch;
+        private bool canCompletePassingBranch;
+        private bool canCancelPassingBranch;
+        private bool canRemovePassingBranch;
+        private bool hasPendingPassingBranchCandidate;
+        private int commandResultVersion;
+        private PassingBranchAuthoringPhase passingBranchPhase;
 
         public TrainPathToolWindowViewModel(TrainPathToolWindow toolWindow, ToolWindowRefreshScheduler scheduler)
             : base(scheduler, ToolWindowRefreshScheduler.BaseInterval)
@@ -63,8 +77,12 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
             CancelPlacementCommand = new RelayCommand(_ => CancelPlacement(), _ => CanCancelPlacement);
             RepairSelectedNodeCommand = new RelayCommand(_ => RepairSelectedNode(), _ => CanRepairSelectedNode);
             ToggleReversalPointCommand = new RelayCommand(_ => ToggleReversalPoint(), _ => CanAnnotateSelectedNode);
-            AddViaPointCommand = new RelayCommand(_ => AddViaPoint(), _ => CanAnnotateSelectedNode);
-            RemoveViaPointCommand = new RelayCommand(_ => RemoveViaPoint(), _ => CanAnnotateSelectedNode);
+            AddViaPointCommand = new RelayCommand(_ => AddViaPoint(), _ => CanAddViaPoint);
+            RemoveViaPointCommand = new RelayCommand(_ => RemoveViaPoint(), _ => CanRemoveViaPoint);
+            BeginPassingBranchCommand = new RelayCommand(_ => BeginPassingBranch(), _ => CanBeginPassingBranch);
+            CompletePassingBranchCommand = new RelayCommand(_ => CompletePassingBranch(), _ => CanCompletePassingBranch);
+            CancelPassingBranchCommand = new RelayCommand(_ => CancelPassingBranch(), _ => CanCancelPassingBranch);
+            RemovePassingBranchCommand = new RelayCommand(_ => RemovePassingBranch(), _ => CanRemovePassingBranch);
             NewPathCommand = new RelayCommand(_ => NewPath(), _ => CanCreatePath);
             CancelNewPathCommand = new RelayCommand(_ => CancelNewPath(), _ => CanCancelNewPath);
             ContinuePathCommand = new RelayCommand(_ => ContinuePath(), _ => CanContinuePath);
@@ -73,6 +91,12 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
             ValidateAllPathsCommand = new RelayCommand(_ => ValidateAllPaths());
             AcceptRouteCandidateCommand = new RelayCommand(_ => AcceptRouteCandidate(), _ => CanAcceptRouteCandidate);
             RepairDiagnosticCommand = new RelayCommand(_ => RepairDiagnostic(), _ => CanRepairDiagnostic);
+        }
+
+        public PassingBranchAuthoringPhase PassingBranchPhase
+        {
+            get => passingBranchPhase;
+            private set => SetProperty(ref passingBranchPhase, value);
         }
 
         /// <summary>
@@ -148,6 +172,14 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
 
         public RelayCommand RemoveViaPointCommand { get; }
 
+        public RelayCommand BeginPassingBranchCommand { get; }
+
+        public RelayCommand CompletePassingBranchCommand { get; }
+
+        public RelayCommand CancelPassingBranchCommand { get; }
+
+        public RelayCommand RemovePassingBranchCommand { get; }
+
         public RelayCommand NewPathCommand { get; }
 
         public RelayCommand CancelNewPathCommand { get; }
@@ -164,9 +196,37 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
 
         public RelayCommand RepairDiagnosticCommand { get; }
 
-        public bool CanAcceptRouteCandidate => SelectedRouteCandidate != null && !CanCancelPlacement;
+        public bool CanAcceptRouteCandidate => !IsRepairMode && SelectedRouteCandidate != null && !CanCancelPlacement;
 
         public bool CanRepairDiagnostic => SelectedDiagnostic?.CanRepair == true && !CanCancelPlacement;
+
+        /// <summary>Whether the selected path has fatal diagnostics and is safely loaded as raw authored data.</summary>
+        public bool IsRepairMode
+        {
+            get => isRepairMode;
+            private set
+            {
+                if (!SetProperty(ref isRepairMode, value))
+                    return;
+
+                OnPropertyChanged(nameof(AreRepairNodeActionsVisible));
+                AcceptRouteCandidateCommand.RaiseCanExecuteChanged();
+                AddViaPointCommand.RaiseCanExecuteChanged();
+                RemoveViaPointCommand.RaiseCanExecuteChanged();
+                BeginPassingBranchCommand.RaiseCanExecuteChanged();
+                CompletePassingBranchCommand.RaiseCanExecuteChanged();
+                RemovePassingBranchCommand.RaiseCanExecuteChanged();
+                BeginPassingBranchCommand.RaiseCanExecuteChanged();
+                CompletePassingBranchCommand.RaiseCanExecuteChanged();
+                CancelPassingBranchCommand.RaiseCanExecuteChanged();
+                RemovePassingBranchCommand.RaiseCanExecuteChanged();
+                ToggleReversalPointCommand.RaiseCanExecuteChanged();
+                ContinuePathCommand.RaiseCanExecuteChanged();
+            }
+        }
+
+        /// <summary>Whether repair-only selected-node actions should be presented in the Path Nodes toolbar.</summary>
+        public bool AreRepairNodeActionsVisible => IsRepairMode;
 
         public PathEditorPlacementMode PlacementMode
         {
@@ -184,7 +244,7 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
             }
         }
 
-        public bool CanContinuePath => CanSavePath && !CanCancelPlacement;
+        public bool CanContinuePath => !IsRepairMode && CanSavePath && !CanCancelPlacement;
 
         public bool CanFinishPath
         {
@@ -348,11 +408,29 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
             }
         }
 
-        public bool CanMoveSelectedNode => SelectedNode != null && !CanCancelPlacement;
+        public bool CanMoveSelectedNode => canMoveSelectedNode && IsSelectedCapabilityNode() && !CanCancelPlacement;
 
-        public bool CanRepairSelectedNode => SelectedNode != null && !CanCancelPlacement;
+        public bool CanRepairSelectedNode => canRepairSelectedNode && IsSelectedCapabilityNode() && !CanCancelPlacement;
 
-        public bool CanAnnotateSelectedNode => SelectedNode != null && !CanCancelPlacement;
+        public bool CanAnnotateSelectedNode => !IsRepairMode && SelectedNode != null && !CanCancelPlacement;
+
+        public bool CanAddViaPoint => !IsRepairMode && SelectedNode != null && !CanCancelPlacement;
+
+        public bool CanRemoveViaPoint => canRemoveSelectedViaPoint && IsSelectedCapabilityNode() && !CanCancelPlacement;
+
+        public bool CanBeginPassingBranch => canBeginPassingBranch && IsSelectedCapabilityNode();
+
+        public bool CanCompletePassingBranch => canCompletePassingBranch && IsSelectedCapabilityNode();
+
+        public bool CanCancelPassingBranch => canCancelPassingBranch;
+
+        public bool CanRemovePassingBranch => canRemovePassingBranch && IsSelectedCapabilityNode();
+
+        public bool HasPendingPassingBranchCandidate
+        {
+            get => hasPendingPassingBranchCandidate;
+            private set => SetProperty(ref hasPendingPassingBranchCandidate, value);
+        }
 
         public bool CanRedo
         {
@@ -446,6 +524,7 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
                 if (suppressSelectionCommand)
                     return;
 
+                selectedNodeCapabilityIndex = -1;
                 toolWindow.HighlightNode(value?.Index ?? -1);
                 SyncWaitTimeFromSelectedNode();
                 UpdateSelectedNodeDetailRows();
@@ -471,9 +550,13 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
             DebugToolWindowRowViewModel.Sync(Metadata, snapshot.Metadata);
             SyncRouteCandidates(snapshot.RouteCandidates);
             SyncDiagnostics(snapshot.Diagnostics);
+            ApplyBlockedSaveFeedback(snapshot);
+            ApplyCommandResultFeedback(snapshot);
             CanUndo = snapshot.CanUndo;
             CanRedo = snapshot.CanRedo;
             CanSnapToTrack = snapshot.CanSnapToTrack;
+            IsRepairMode = snapshot.IsRepairMode;
+            UpdateSelectedNodeCapabilities(snapshot);
             bool wasMovingNode = CanCancelMoveNode;
             CanCancelMoveNode = snapshot.CanCancelMoveNode;
             CanCommitMoveNode = snapshot.CanCommitMoveNode;
@@ -488,6 +571,16 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
             CanCancelNewPath = snapshot.CanCancelNewPath;
             IsBuildingRoute = snapshot.IsBuildingRoute;
             CanFinishPath = snapshot.CanFinishPath;
+            canBeginPassingBranch = snapshot.CanBeginPassingBranch;
+            canCompletePassingBranch = snapshot.CanCompletePassingBranch;
+            canCancelPassingBranch = snapshot.CanCancelPassingBranch;
+            canRemovePassingBranch = snapshot.CanRemovePassingBranch;
+            HasPendingPassingBranchCandidate = snapshot.HasPendingPassingBranchCandidate;
+            PassingBranchPhase = snapshot.PassingBranchPhase;
+            BeginPassingBranchCommand.RaiseCanExecuteChanged();
+            CompletePassingBranchCommand.RaiseCanExecuteChanged();
+            CancelPassingBranchCommand.RaiseCanExecuteChanged();
+            RemovePassingBranchCommand.RaiseCanExecuteChanged();
 
             if (wasMovingNode && !CanCancelMoveNode && IsMoveGuidanceMessage(StatusMessage))
                 SetStatusMessage(string.Empty, false);
@@ -499,6 +592,62 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
                 snapshotSelectedPathId = snapshot.SelectedPathId;
                 UpdateSelectedPathFromSnapshot();
             }
+        }
+
+        private void UpdateSelectedNodeCapabilities(TrainPathSnapshot snapshot)
+        {
+            selectedNodeCapabilityIndex = snapshot.SelectedNodeIndex;
+            canMoveSelectedNode = snapshot.CanMoveSelectedNode;
+            canRepairSelectedNode = snapshot.CanRepairSelectedNode;
+            canRemoveSelectedViaPoint = snapshot.CanRemoveSelectedViaPoint;
+            MoveSelectedNodeCommand.RaiseCanExecuteChanged();
+            RepairSelectedNodeCommand.RaiseCanExecuteChanged();
+            RemoveViaPointCommand.RaiseCanExecuteChanged();
+            BeginPassingBranchCommand.RaiseCanExecuteChanged();
+            CompletePassingBranchCommand.RaiseCanExecuteChanged();
+            RemovePassingBranchCommand.RaiseCanExecuteChanged();
+        }
+
+        private void ApplyCommandResultFeedback(TrainPathSnapshot snapshot)
+        {
+            if (snapshot.CommandResultVersion == commandResultVersion)
+                return;
+
+            commandResultVersion = snapshot.CommandResultVersion;
+            if (!string.IsNullOrWhiteSpace(snapshot.CommandResultMessage))
+                SetStatusMessage(snapshot.CommandResultMessage, snapshot.CommandResultIsWarning);
+        }
+
+        private bool IsSelectedCapabilityNode()
+        {
+            return SelectedNode != null && SelectedNode.Index == selectedNodeCapabilityIndex;
+        }
+
+        private void ApplyBlockedSaveFeedback(TrainPathSnapshot snapshot)
+        {
+            if (snapshot.BlockedSaveFeedbackVersion == blockedSaveFeedbackVersion)
+                return;
+
+            blockedSaveFeedbackVersion = snapshot.BlockedSaveFeedbackVersion;
+            if (string.IsNullOrWhiteSpace(snapshot.BlockedSaveMessage))
+            {
+                if (string.Equals(StatusMessage, blockedSaveStatusMessage, StringComparison.Ordinal))
+                    SetStatusMessage(string.Empty, false);
+                blockedSaveStatusMessage = null;
+                return;
+            }
+
+            blockedSaveStatusMessage = snapshot.BlockedSaveMessage;
+            SetStatusMessage(snapshot.BlockedSaveMessage, true);
+            SelectedTabIndex = 2;
+
+            if (snapshot.BlockedSaveDiagnostic is not TrainPathDiagnosticRow diagnostic)
+                return;
+
+            SelectedDiagnostic = Diagnostics.FirstOrDefault(item => item.Code == diagnostic.Code
+                && item.NodeIndex == diagnostic.NodeIndex
+                && item.FromNodeIndex == diagnostic.FromNodeIndex
+                && item.ToNodeIndex == diagnostic.ToNodeIndex);
         }
 
         private void ContinuePath()
@@ -677,6 +826,35 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
 
             toolWindow.RemoveViaPoint(SelectedNode.Index);
             SetStatusMessage($"Remove via point {SelectedNode.Index} requested.", false);
+        }
+
+        private void BeginPassingBranch()
+        {
+            if (SelectedNode == null)
+                return;
+
+            toolWindow.BeginPassingBranch(SelectedNode.Index);
+        }
+
+        private void CompletePassingBranch()
+        {
+            if (SelectedNode == null)
+                return;
+
+            toolWindow.CompletePassingBranch(SelectedNode.Index);
+        }
+
+        private void CancelPassingBranch()
+        {
+            toolWindow.CancelPassingBranch();
+        }
+
+        private void RemovePassingBranch()
+        {
+            if (SelectedNode == null)
+                return;
+
+            toolWindow.RemovePassingBranch(SelectedNode.Index);
         }
 
         // Runs the forced 'validate all paths' bridge.

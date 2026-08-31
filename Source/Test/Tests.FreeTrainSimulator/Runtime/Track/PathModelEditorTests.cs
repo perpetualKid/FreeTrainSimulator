@@ -285,6 +285,124 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
         }
 
         [TestMethod]
+        public void WhenPassingBranchIsCreatedThenItLinksToALaterMainRouteNode()
+        {
+            PathModel path = CreatePath(
+                Node(PathNodeType.Start, 1),
+                Node(PathNodeType.Intermediate, 2),
+                Node(PathNodeType.End, -1));
+
+            PathEditResult result = PathModelEditor.CreatePassingBranch(path, 0, 2);
+
+            Assert.IsTrue(result.Success);
+            Assert.AreEqual(2, result.PathModel.PathNodes[0].NextSidingNode);
+            Assert.AreEqual(1, result.PathModel.PathNodes[0].NextMainNode);
+        }
+
+        [TestMethod]
+        public void WhenPassingBranchRejoinsBeforeItsStartThenEditFailsWithoutChangingModel()
+        {
+            PathModel path = CreatePath(
+                Node(PathNodeType.Start, 1),
+                Node(PathNodeType.Intermediate, 2),
+                Node(PathNodeType.End, -1));
+
+            PathEditResult result = PathModelEditor.CreatePassingBranch(path, 1, 0);
+
+            Assert.IsFalse(result.Success);
+            Assert.AreSame(path, result.PathModel);
+        }
+
+        [TestMethod]
+        public void WhenSidingLinkIsBelowMinusOneThenBranchOperationIsRejected()
+        {
+            PathModel path = CreatePath(
+                Node(PathNodeType.Start, 1, -2),
+                Node(PathNodeType.End, -1));
+
+            PathEditResult result = PathModelEditor.CreatePassingBranch(path, 0, 1);
+
+            Assert.IsFalse(result.Success);
+            Assert.AreSame(path, result.PathModel);
+        }
+
+        [TestMethod]
+        public void WhenSupportedBranchRolesAreInspectedThenMainAndBranchNodesAreDistinguished()
+        {
+            PathModel path = CreatePath(
+                Node(PathNodeType.Start, 1, 3),
+                Node(PathNodeType.Intermediate, 2),
+                Node(PathNodeType.End, -1),
+                Node(PathNodeType.Intermediate, -1, 2));
+
+            Assert.IsTrue(PathModelEditor.TryGetPassingBranchNodeRole(path, 0, out PassingBranchNodeRole startRole, out _));
+            Assert.AreEqual(PassingBranchNodeRole.BranchStart, startRole);
+            Assert.IsTrue(PathModelEditor.TryGetPassingBranchNodeRole(path, 1, out PassingBranchNodeRole mainRole, out _));
+            Assert.AreEqual(PassingBranchNodeRole.MainRoute, mainRole);
+            Assert.IsTrue(PathModelEditor.TryGetPassingBranchNodeRole(path, 2, out PassingBranchNodeRole rejoinRole, out _));
+            Assert.AreEqual(PassingBranchNodeRole.BranchRejoin, rejoinRole);
+            Assert.IsTrue(PathModelEditor.TryGetPassingBranchNodeRole(path, 3, out PassingBranchNodeRole interiorRole, out _));
+            Assert.AreEqual(PassingBranchNodeRole.BranchInterior, interiorRole);
+        }
+
+        [TestMethod]
+        public void WhenDisconnectedNodeExistsThenPassingBranchCreationIsRejectedWithoutChangingModel()
+        {
+            PathModel path = CreatePath(
+                Node(PathNodeType.Start, 1),
+                Node(PathNodeType.End, -1),
+                Node(PathNodeType.Intermediate, -1));
+
+            PathEditResult result = PathModelEditor.CreatePassingBranch(path, 0, 1);
+
+            Assert.IsFalse(result.Success);
+            Assert.AreSame(path, result.PathModel);
+        }
+
+        [TestMethod]
+        public void WhenPassingBranchDoesNotRejoinThenRemovalIsRejectedWithoutChangingModel()
+        {
+            PathModel path = CreatePath(
+                Node(PathNodeType.Start, 1, 2),
+                Node(PathNodeType.End, -1),
+                Node(PathNodeType.Intermediate, -1));
+
+            PathEditResult result = PathModelEditor.RemovePassingBranch(path, 0);
+
+            Assert.IsFalse(result.Success);
+            Assert.AreSame(path, result.PathModel);
+        }
+
+        [TestMethod]
+        public void WhenNestedSidingLinkExistsThenBranchMoveIsRejectedWithoutChangingModel()
+        {
+            PathModel path = CreatePath(
+                Node(PathNodeType.Start, 1, 2),
+                Node(PathNodeType.End, -1),
+                Node(PathNodeType.Intermediate, 1, 1));
+            PathNode anchor = new PathNode(new WorldLocation(new Tile(0, 0), new Vector3(25, 0, 0))) { NodeIndex = 1 };
+
+            PathEditResult result = PathModelEditor.MovePassingBranchAnchor(path, 2, anchor, false);
+
+            Assert.IsFalse(result.Success);
+            Assert.AreSame(path, result.PathModel);
+        }
+
+        [TestMethod]
+        public void WhenPassingBranchAlreadyExistsThenOverlappingBranchIsRejectedWithoutChangingModel()
+        {
+            PathModel path = CreatePath(
+                Node(PathNodeType.Start, 1, 2),
+                Node(PathNodeType.Intermediate, 2),
+                Node(PathNodeType.End, -1));
+
+            PathEditResult result = PathModelEditor.CreatePassingBranch(path, 1, 2);
+
+            Assert.IsFalse(result.Success);
+            Assert.AreSame(path, result.PathModel);
+        }
+
+        [TestMethod]
         public void WhenAddEndButNoStartExistsThenResultFails()
         {
             PathModel path = CreatePath(Node(PathNodeType.Intermediate, -1));

@@ -3,6 +3,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
@@ -47,6 +48,7 @@ namespace FreeTrainSimulator.Toolbox
 
         // Pointer radius, in screen pixels, used to hit test path nodes on the map surface.
         private const int nodeHitTestRadiusPixels = 10;
+        private long pathListRefreshVersion;
 
         /// <summary>
         /// Raised on the game thread when the user requests the map context menu. The WPF shell re-raises this
@@ -555,14 +557,46 @@ namespace FreeTrainSimulator.Toolbox
         // Persists the given path metadata through the path editor and refreshes the menu's path list. Runs on
         // the game thread; callers can await completion and observe traced failures instead of relying on
         // async-void exception dispatch.
-        internal async Task SubmitTrainPathSaveAsync(PathModelHeader pathDetails)
+        internal TrainPathSaveDialogState CaptureTrainPathSaveDialogState()
         {
-            ArgumentNullException.ThrowIfNull(pathDetails);
+            PathModel pathModel = pathEditor?.TryCaptureCurrentPathModel();
+            if (pathModel == null)
+                return null;
+
+            PathModelHeader pathDetails = new PathModelHeader
+            {
+                Id = pathModel.Id,
+                Name = pathModel.Name,
+                Start = pathModel.Start,
+                End = pathModel.End,
+                PlayerPath = pathModel.PlayerPath,
+            };
+            return new TrainPathSaveDialogState(pathDetails, pathModel.Id);
+        }
+
+        internal async Task<bool> TrainPathIdExistsAsync(string pathId)
+        {
+            if (string.IsNullOrWhiteSpace(pathId) || selectedRoute == null)
+                return false;
+
+            ImmutableArray<PathModelHeader> paths = await selectedRoute.GetRoutePaths(ctsProfileLoading?.Token ?? CancellationToken.None).ConfigureAwait(false);
+            return paths.Any(path => string.Equals(path.Id, pathId, StringComparison.OrdinalIgnoreCase));
+        }
+
+        internal async Task SubmitTrainPathSaveAsync(TrainPathSaveRequest saveRequest)
+        {
+            ArgumentNullException.ThrowIfNull(saveRequest);
 
             PathEditor editor = pathEditor;
             if (editor == null)
             {
                 Trace.TraceWarning("Cannot save train path because no path editor is active.");
+                return;
+            }
+
+            if (!string.Equals(editor.PathId, saveRequest.SourcePathId, StringComparison.OrdinalIgnoreCase))
+            {
+                Trace.TraceWarning("Cannot save train path because the active path changed before save submission.");
                 return;
             }
 
@@ -575,10 +609,38 @@ namespace FreeTrainSimulator.Toolbox
 
             try
             {
-                await editor.SavePath(pathDetails).ConfigureAwait(true);
-                ImmutableArray<PathModelHeader> paths = await route.GetRoutePaths(ctsProfileLoading?.Token ?? CancellationToken.None).ConfigureAwait(true);
-                menu.PopulatePaths(paths);
-                hostedTrainPathToolWindow?.UpdatePaths(paths);
+                if (!saveRequest.CanSubmit(await TrainPathIdExistsAsync(saveRequest.PathDetails.Id).ConfigureAwait(false)))
+                {
+                    Trace.TraceInformation($"Save As for train path '{saveRequest.PathDetails.Id}' was not confirmed.");
+                    return;
+                }
+
+                PathSaveOperation operation = editor.BeginSave(saveRequest.PathDetails);
+                PathPersistenceValidationResult validation = await PathSaveOperationConsumer.ConsumeAsync(editor, operation,
+                    InvokeOnGameThreadAsync).ConfigureAwait(false);
+
+                if (!validation.PersistenceAllowed)
+                {
+                    Trace.TraceWarning(validation.FailureMessage);
+                    await InvokeOnGameThreadAsync(() =>
+                    {
+                        hostedTrainPathToolWindow?.ReportBlockedSave(validation, editor.TryCaptureCurrentPathModel());
+                        return Task.CompletedTask;
+                    }).ConfigureAwait(false);
+                    return;
+                }
+
+                long refreshVersion = Interlocked.Increment(ref pathListRefreshVersion);
+                ImmutableArray<PathModelHeader> paths = await route.GetRoutePaths(ctsProfileLoading?.Token ?? CancellationToken.None).ConfigureAwait(false);
+                await InvokeOnGameThreadAsync(() =>
+                {
+                    if (refreshVersion == Interlocked.Read(ref pathListRefreshVersion))
+                    {
+                        menu.PopulatePaths(paths);
+                        hostedTrainPathToolWindow?.UpdatePaths(paths);
+                    }
+                    return Task.CompletedTask;
+                }).ConfigureAwait(false);
             }
             catch (OperationCanceledException ex)
             {

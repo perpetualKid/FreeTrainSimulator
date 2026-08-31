@@ -2,6 +2,8 @@ using System.Collections.Immutable;
 using System;
 using System.Linq;
 using System.Reflection;
+using System.Threading;
+using System.Threading.Tasks;
 
 using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Input;
@@ -62,6 +64,101 @@ namespace Tests.FreeTrainSimulator.Toolbox
 
             Assert.IsTrue(canInitialize);
             Assert.IsTrue(resolution.HighestSeverity < PathRouteDiagnosticSeverity.Fatal);
+        }
+
+        [TestMethod]
+        public async Task WhenEmptyPathIsLoadedThenEditorEntersRepairModeWithoutRuntimePath()
+        {
+            PathModel source = new PathModel { Id = "empty", Name = "Empty", PathNodes = ImmutableArray<PathNode>.Empty };
+            using PathEditor editor = new PathEditor(new TestPathEditorContext(TrackWorldTestFixture.CreateSingleVectorNodeTrackWorld()));
+
+            bool initialized = await editor.InitializePathAsync(source, CancellationToken.None).ConfigureAwait(false);
+
+            Assert.IsTrue(initialized);
+            Assert.IsTrue(editor.IsRepairMode);
+            Assert.AreSame(source, editor.TryCaptureCurrentPathModel());
+            Assert.IsNull(editor.TrainPath);
+        }
+
+        [TestMethod]
+        public async Task WhenCyclicPathIsLoadedThenEditorEntersRepairModeWithoutRuntimePath()
+        {
+            PathModel source = new PathModel
+            {
+                Id = "cycle",
+                PathNodes = ImmutableArray.Create(CreateNode(PathNodeType.Start, 1), CreateNode(PathNodeType.Intermediate, 0), CreateNode(PathNodeType.End, -1)),
+            };
+            using PathEditor editor = new PathEditor(new TestPathEditorContext(TrackWorldTestFixture.CreateSingleVectorNodeTrackWorld()));
+
+            bool initialized = await editor.InitializePathAsync(source, CancellationToken.None).ConfigureAwait(false);
+
+            Assert.IsTrue(initialized);
+            Assert.IsTrue(editor.IsRepairMode);
+            Assert.IsNull(editor.TrainPath);
+        }
+
+        [TestMethod]
+        public async Task WhenRepairAddsMissingEndThenEditorTransitionsToNormalModeAndUndoRestoresRepairMode()
+        {
+            PathModel source = new PathModel
+            {
+                Id = "missing-end",
+                PathNodes = ImmutableArray.Create(CreateNodeAt(0, PathNodeType.Start, -1)),
+            };
+            using PathEditor editor = new PathEditor(new TestPathEditorContext(TrackWorldTestFixture.CreateSingleVectorNodeTrackWorld()));
+            Assert.IsTrue(await editor.InitializePathAsync(source, CancellationToken.None).ConfigureAwait(false));
+            editor.SelectAuthoredNode(0);
+            Assert.AreEqual(0, editor.SelectedAuthoredNodeIndex);
+
+            PathEditorCommandResult repair = editor.SetEndAnchorCommand(CreateNodeAt(100, PathNodeType.None, -1), false);
+
+            Assert.IsTrue(repair.Success);
+            Assert.IsFalse(editor.IsRepairMode);
+            Assert.IsNotNull(editor.TrainPath);
+            Assert.AreEqual(0, editor.SelectedAuthoredNodeIndex);
+            Assert.IsTrue(editor.HasUnsavedChanges);
+            Assert.IsTrue(editor.CanUndo);
+
+            Assert.IsTrue(editor.Undo());
+            Assert.IsTrue(editor.IsRepairMode);
+            Assert.IsNull(editor.TrainPath);
+            Assert.AreEqual(0, editor.SelectedAuthoredNodeIndex);
+            Assert.IsTrue(editor.Redo());
+            Assert.IsFalse(editor.IsRepairMode);
+        }
+
+        [TestMethod]
+        public async Task WhenPathHasInvalidLinkThenEditorEntersRepairModeWithoutRuntimePath()
+        {
+            PathModel source = new PathModel
+            {
+                Id = "invalid-link",
+                PathNodes = ImmutableArray.Create(CreateNode(PathNodeType.Start, 9), CreateNode(PathNodeType.End, -1)),
+            };
+            using PathEditor editor = new PathEditor(new TestPathEditorContext(TrackWorldTestFixture.CreateSingleVectorNodeTrackWorld()));
+
+            bool initialized = await editor.InitializePathAsync(source, CancellationToken.None).ConfigureAwait(false);
+
+            Assert.IsTrue(initialized);
+            Assert.IsTrue(editor.IsRepairMode);
+            Assert.IsNull(editor.TrainPath);
+        }
+
+        [TestMethod]
+        public async Task WhenPathHasNoEndThenEditorEntersRepairModeWithoutRuntimePath()
+        {
+            PathModel source = new PathModel
+            {
+                Id = "missing-end",
+                PathNodes = ImmutableArray.Create(CreateNode(PathNodeType.Start, -1)),
+            };
+            using PathEditor editor = new PathEditor(new TestPathEditorContext(TrackWorldTestFixture.CreateSingleVectorNodeTrackWorld()));
+
+            bool initialized = await editor.InitializePathAsync(source, CancellationToken.None).ConfigureAwait(false);
+
+            Assert.IsTrue(initialized);
+            Assert.IsTrue(editor.IsRepairMode);
+            Assert.IsNull(editor.TrainPath);
         }
 
         [TestMethod]
@@ -413,7 +510,7 @@ namespace Tests.FreeTrainSimulator.Toolbox
 
             PathEditorCommandResult result = editor.SetEndAnchorCommand(CreateNodeAt(100, PathNodeType.None, -1), false);
 
-            Assert.IsTrue(result.Success);
+            Assert.IsTrue(result.Success, result.Message);
             Assert.IsTrue(HasNodeType(editor.TryCaptureCurrentPathModel(), PathNodeType.End));
         }
 
@@ -454,6 +551,143 @@ namespace Tests.FreeTrainSimulator.Toolbox
             Assert.IsTrue(editor.HasPendingAmbiguousSpanCommit);
             Assert.IsFalse(HasNodeType(editor.TryCaptureCurrentPathModel(), PathNodeType.End));
             Assert.IsFalse(editor.CanUndo);
+        }
+
+        [TestMethod]
+        public void WhenSpanGenerationFailsThenCommittedStateAndHistoryRemainUnchanged()
+        {
+            PathModel source = CreateNonRejoiningPassingPath();
+            using PathEditor editor = CreateEditor(source);
+            _ = editor.SetWaitPointCommand(1, 10);
+            _ = editor.Undo();
+            SetPrivateField(editor, "unsavedChanges", false);
+            PathModel committedModel = editor.TryCaptureCurrentPathModel();
+            bool canUndo = editor.CanUndo;
+            bool canRedo = editor.CanRedo;
+
+            PathEditorCommandResult result = editor.SetEndAnchorCommand(CreateNodeAt(90, PathNodeType.None, -1), false);
+
+            Assert.IsFalse(result.Success);
+            Assert.AreSame(committedModel, editor.TryCaptureCurrentPathModel());
+            Assert.IsFalse(editor.HasUnsavedChanges);
+            Assert.AreEqual(canUndo, editor.CanUndo);
+            Assert.AreEqual(canRedo, editor.CanRedo);
+        }
+
+        [TestMethod]
+        public void WhenPassingBranchRejoinIsSelectedThenGenericCancellationIsAvailableAndSafe()
+        {
+            PathModel source = CreateEditablePath();
+            using PathEditor editor = CreateEditor(source);
+            PathModel baseline = editor.TryCaptureCurrentPathModel();
+            bool dirty = editor.HasUnsavedChanges;
+            bool canUndo = editor.CanUndo;
+            bool canRedo = editor.CanRedo;
+
+            Assert.IsTrue(editor.BeginPassingBranchCommand(0).Success);
+            bool canCancel = editor.CanCancelPathInteraction;
+            PathEditorCommandResult cancel = editor.CancelPathInteractionCommand();
+
+            Assert.IsTrue(canCancel);
+            Assert.IsTrue(cancel.Success);
+            Assert.AreEqual(PassingBranchAuthoringPhase.Idle, editor.PassingBranchPhase);
+            Assert.AreSame(baseline, editor.TryCaptureCurrentPathModel());
+            Assert.AreEqual(dirty, editor.HasUnsavedChanges);
+            Assert.AreEqual(canUndo, editor.CanUndo);
+            Assert.AreEqual(canRedo, editor.CanRedo);
+        }
+
+        [TestMethod]
+        public void WhenResolvedPassingBranchIsCreatedThenUndoAndRedoRestoreItsLifecycle()
+        {
+            PathModel source = CreateEditablePath();
+            using PathEditor editor = CreateEditor(source);
+
+            PathEditorCommandResult begin = editor.BeginPassingBranchCommand(0);
+            PathEditorCommandResult complete = editor.CompletePassingBranchCommand(1);
+
+            Assert.IsTrue(begin.Success);
+            Assert.IsTrue(complete.Success, complete.Message);
+            Assert.IsTrue(editor.TryCaptureCurrentPathModel().PathNodes.Any(node => node.NextSidingNode >= 0));
+            Assert.IsTrue(editor.Undo());
+            Assert.IsFalse(editor.TryCaptureCurrentPathModel().PathNodes.Any(node => node.NextSidingNode >= 0));
+            Assert.IsTrue(editor.Redo());
+            Assert.IsTrue(editor.TryCaptureCurrentPathModel().PathNodes.Any(node => node.NextSidingNode >= 0));
+        }
+
+        [TestMethod]
+        public void WhenBranchedPathMainNodeIsMovedThenNormalMoveRemainsAvailable()
+        {
+            PathModel source = CreateSupportedPassingBranchPath();
+            PathNode anchor = CreateNodeAt(50, PathNodeType.None, -1);
+
+            PathEditResult result = InvokeMoveSelectedAuthoredNode(source, 1, anchor);
+
+            Assert.IsTrue(result.Success, result.Message);
+            Assert.AreEqual(anchor.Location, result.PathModel.PathNodes[1].Location);
+        }
+
+        [TestMethod]
+        public void WhenPassingBranchInteriorIsMovedThenBranchSpecificMoveIsUsed()
+        {
+            PathModel source = CreateSupportedPassingBranchPath();
+            PathNode anchor = CreateNodeAt(75, PathNodeType.None, -1);
+
+            PathEditResult result = InvokeMoveSelectedAuthoredNode(source, 3, anchor);
+
+            Assert.IsTrue(result.Success, result.Message);
+            Assert.AreEqual(anchor.Location, result.PathModel.PathNodes[3].Location);
+        }
+
+        [TestMethod]
+        [DataRow(0)]
+        [DataRow(2)]
+        public void WhenPassingBranchEndpointIsMovedThenMoveIsRejected(int nodeIndex)
+        {
+            PathModel source = CreateSupportedPassingBranchPath();
+
+            PathEditResult result = InvokeMoveSelectedAuthoredNode(source, nodeIndex, CreateNodeAt(25, PathNodeType.None, -1));
+
+            Assert.IsFalse(result.Success);
+            Assert.AreSame(source, result.PathModel);
+        }
+
+        [TestMethod]
+        public void WhenPendingPassingCandidateIsCanceledGenericallyThenPreviewAndHistoryStayUnchanged()
+        {
+            PathModel source = CreateEditablePath();
+            using PathEditor editor = CreateEditor(source);
+            PathModel baseline = editor.TryCaptureCurrentPathModel();
+            ResolvedPathSpan span = new ResolvedPathSpan(0, 1, PathRouteSpanStatus.Ambiguous);
+            SetPrivateField(editor, "pendingPassingBranchCandidate", new PendingPassingBranchCandidate(baseline, 0, 1, span));
+            bool dirty = editor.HasUnsavedChanges;
+            bool canUndo = editor.CanUndo;
+            bool canRedo = editor.CanRedo;
+
+            PathEditorCommandResult cancel = editor.CancelPathInteractionCommand();
+
+            Assert.IsTrue(cancel.Success);
+            Assert.AreEqual(PassingBranchAuthoringPhase.Idle, editor.PassingBranchPhase);
+            Assert.AreSame(baseline, editor.TryCaptureCurrentPathModel());
+            Assert.AreEqual(dirty, editor.HasUnsavedChanges);
+            Assert.AreEqual(canUndo, editor.CanUndo);
+            Assert.AreEqual(canRedo, editor.CanRedo);
+        }
+
+        [TestMethod]
+        public void WhenPassingBranchIsRemovedThenUndoRestoresIt()
+        {
+            PathModel source = CreateEditablePath();
+            using PathEditor editor = CreateEditor(source);
+            Assert.IsTrue(editor.BeginPassingBranchCommand(0).Success);
+            Assert.IsTrue(editor.CompletePassingBranchCommand(1).Success);
+
+            PathEditorCommandResult remove = editor.RemovePassingBranchCommand(0);
+
+            Assert.IsTrue(remove.Success, remove.Message);
+            Assert.IsFalse(editor.TryCaptureCurrentPathModel().PathNodes.Any(node => node.NextSidingNode >= 0));
+            Assert.IsTrue(editor.Undo());
+            Assert.IsTrue(editor.TryCaptureCurrentPathModel().PathNodes.Any(node => node.NextSidingNode >= 0));
         }
 
         [TestMethod]
@@ -763,7 +997,7 @@ namespace Tests.FreeTrainSimulator.Toolbox
             {
                 _ = editor.BeginViaPointPlacementAt(0, CreateNodeAt(50, PathNodeType.Intermediate, -1));
 
-            bool canceled = editor.CancelMoveNode();
+                bool canceled = editor.CancelMoveNode();
 
                 Assert.IsTrue(canceled);
                 Assert.AreSequenceEqual(source.PathNodes, editor.TryCaptureCurrentPathModel().PathNodes);
@@ -867,6 +1101,182 @@ namespace Tests.FreeTrainSimulator.Toolbox
             Assert.IsTrue(first.Success);
             Assert.IsTrue(second.Success);
             Assert.AreSequenceEqual(first.PathModel.PathNodes, second.PathModel.PathNodes);
+        }
+
+        [TestMethod]
+        public async Task WhenSaveCompletesAfterANewerEditThenTheNewerModelRemainsDirty()
+        {
+            PathModel source = CreateEditablePath();
+            using PathEditor editor = CreateEditor(source);
+            PathPersistenceValidationResult saved = new(true, source with { Name = "Saved Path" }, null, default, default, null, null);
+            TaskCompletionSource<PathPersistenceValidationResult> persistence = new(TaskCreationOptions.RunContinuationsAsynchronously);
+            PathSaveOperation operation = CreatePendingSaveOperation(editor, source, persistence.Task);
+
+            PathEditorCommandResult edit = editor.SetStartAnchorCommand(CreateNodeAt(25, PathNodeType.None, -1), false);
+            PathModel newerModel = editor.TryCaptureCurrentPathModel();
+            PathModelHeader activeHeader = typeof(PathEditor).GetField("path", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(editor) as PathModelHeader;
+            bool canUndo = editor.CanUndo;
+            int pathChangedEvents = 0;
+            editor.OnPathChanged += (_, _) => pathChangedEvents++;
+            persistence.SetResult(saved);
+            _ = await PathSaveOperationConsumer.ConsumeAsync(editor, operation, action => action()).ConfigureAwait(false);
+
+            Assert.IsTrue(edit.Success);
+            Assert.AreSame(newerModel, editor.TryCaptureCurrentPathModel());
+            Assert.IsTrue(editor.HasUnsavedChanges);
+            Assert.AreEqual(canUndo, editor.CanUndo);
+            Assert.AreSame(activeHeader, typeof(PathEditor).GetField("path", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(editor));
+            Assert.AreEqual(0, pathChangedEvents);
+            Assert.IsFalse(editor.IsSaveInProgress);
+        }
+
+        [TestMethod]
+        public async Task WhenSaveAsCompletesThenEditorSwitchesToTheNewPersistedIdentity()
+        {
+            PathModel source = CreateEditablePath();
+            using PathEditor editor = CreateEditor(source);
+            _ = editor.SetStartAnchorCommand(CreateNodeAt(25, PathNodeType.None, -1), false);
+            PathModel capturedSource = editor.TryCaptureCurrentPathModel();
+            PathModel savedCopy = capturedSource with { Id = "saved-copy", Name = "Saved Copy" };
+            PathSaveOperation operation = CreatePendingSaveOperation(editor, capturedSource,
+                Task.FromResult(new PathPersistenceValidationResult(true, savedCopy, null, default, default, null, null)));
+
+            _ = await PathSaveOperationConsumer.ConsumeAsync(editor, operation, action => action()).ConfigureAwait(false);
+
+            Assert.AreEqual("saved-copy", editor.PathId);
+            Assert.AreEqual("Saved Copy", editor.TryCaptureCurrentPathModel().Name);
+            Assert.IsFalse(editor.HasUnsavedChanges);
+        }
+
+        [TestMethod]
+        public void WhenPassingBranchRejoinSelectionIsCanceledThenModelAndHistoryRemainUnchanged()
+        {
+            PathModel source = CreateEditablePath();
+            using PathEditor editor = CreateEditor(source);
+            PathModel baseline = editor.TryCaptureCurrentPathModel();
+            bool dirty = editor.HasUnsavedChanges;
+            bool canUndo = editor.CanUndo;
+            bool canRedo = editor.CanRedo;
+
+            PathEditorCommandResult begin = editor.BeginPassingBranchCommand(0);
+            PathEditorCommandResult cancel = editor.CancelPathInteractionCommand();
+
+            Assert.IsTrue(begin.Success);
+            Assert.AreEqual(PassingBranchAuthoringPhase.Idle, editor.PassingBranchPhase);
+            Assert.IsTrue(cancel.Success);
+            Assert.AreSame(baseline, editor.TryCaptureCurrentPathModel());
+            Assert.AreEqual(dirty, editor.HasUnsavedChanges);
+            Assert.AreEqual(canUndo, editor.CanUndo);
+            Assert.AreEqual(canRedo, editor.CanRedo);
+        }
+
+        [TestMethod]
+        public void WhenSaveAsOverwriteIsDeclinedThenEditorStateRemainsUnchanged()
+        {
+            PathModel source = CreateEditablePath();
+            using PathEditor editor = CreateEditor(source);
+            _ = editor.SetStartAnchorCommand(CreateNodeAt(25, PathNodeType.None, -1), false);
+            Assert.IsTrue(editor.Undo());
+            PathModel currentModel = editor.TryCaptureCurrentPathModel();
+            bool dirty = editor.HasUnsavedChanges;
+            bool canUndo = editor.CanUndo;
+            bool canRedo = editor.CanRedo;
+            TrainPathSaveRequest request = new(new PathModelHeader { Id = "existing-copy", Name = "Copy" }, source.Id, false);
+
+            bool canSubmit = request.CanSubmit(true);
+
+            Assert.IsFalse(canSubmit);
+            Assert.AreSame(currentModel, editor.TryCaptureCurrentPathModel());
+            Assert.AreEqual(dirty, editor.HasUnsavedChanges);
+            Assert.AreEqual(canUndo, editor.CanUndo);
+            Assert.AreEqual(canRedo, editor.CanRedo);
+        }
+
+        [TestMethod]
+        public async Task WhenRejectedDuplicateSaveIsConsumedThenItCannotClearTheActiveSaveOrPermitAThirdSave()
+        {
+            PathModel source = CreateEditablePath();
+            using PathEditor editor = CreateEditor(source);
+            TaskCompletionSource<PathPersistenceValidationResult> firstPersistence = new(TaskCreationOptions.RunContinuationsAsynchronously);
+            PathSaveOperation first = CreatePendingSaveOperation(editor, source, firstPersistence.Task);
+            PathSaveOperation duplicate = editor.BeginSave(source);
+
+            PathPersistenceValidationResult duplicateResult = await PathSaveOperationConsumer.ConsumeAsync(editor, duplicate, action => action()).ConfigureAwait(false);
+            PathSaveOperation third = editor.BeginSave(source);
+
+            Assert.IsTrue(editor.IsSaveInProgress);
+            Assert.IsFalse(duplicateResult.PersistenceAllowed);
+            Assert.IsFalse(third.Acquired);
+
+            firstPersistence.SetResult(new PathPersistenceValidationResult(true, source, null, default, default, null, null));
+            _ = await PathSaveOperationConsumer.ConsumeAsync(editor, first, action => action()).ConfigureAwait(false);
+
+            Assert.IsFalse(editor.IsSaveInProgress);
+        }
+
+        [TestMethod]
+        public async Task WhenPersistenceThrowsUnexpectedExceptionThenSaveAvailabilityAndEditorStateAreRestored()
+        {
+            PathModel source = CreateEditablePath();
+            using PathEditor editor = CreateEditor(source);
+            _ = editor.SetStartAnchorCommand(CreateNodeAt(25, PathNodeType.None, -1), false);
+            PathModel committedModel = editor.TryCaptureCurrentPathModel();
+            bool dirty = editor.HasUnsavedChanges;
+            bool canUndo = editor.CanUndo;
+            bool canRedo = editor.CanRedo;
+            PathSaveOperation operation = CreatePendingSaveOperation(editor, committedModel,
+                Task.FromException<PathPersistenceValidationResult>(new NotSupportedException("Test persistence failure.")));
+
+            await PathSaveOperationConsumer.ConsumeAsync(editor, operation, action => action()).ContinueWith(completedSave => 
+            {
+                Assert.IsTrue(completedSave.IsFaulted);
+            }, TestContext.CancellationToken, TaskContinuationOptions.None, TaskScheduler.Default).ConfigureAwait(false);
+
+            Assert.IsFalse(editor.IsSaveInProgress);
+            Assert.AreSame(committedModel, editor.TryCaptureCurrentPathModel());
+            Assert.AreEqual(dirty, editor.HasUnsavedChanges);
+            Assert.AreEqual(canUndo, editor.CanUndo);
+            Assert.AreEqual(canRedo, editor.CanRedo);
+        }
+
+        [TestMethod]
+        public async Task WhenSaveResultIsConsumedThenEditorCompletionRunsThroughTheGameThreadBridge()
+        {
+            PathModel source = CreateEditablePath();
+            using PathEditor editor = CreateEditor(source);
+            int bridgeThreadId = -1;
+            int completionThreadId = -1;
+            editor.OnPathChanged += (_, _) => completionThreadId = Environment.CurrentManagedThreadId;
+            PathModel capturedSource = editor.TryCaptureCurrentPathModel();
+            PathSaveOperation operation = CreatePendingSaveOperation(editor, capturedSource,
+                Task.FromResult(new PathPersistenceValidationResult(true, capturedSource, null, default, default, null, null)));
+
+            _ = await PathSaveOperationConsumer.ConsumeAsync(editor, operation, async action =>
+            {
+                bridgeThreadId = Environment.CurrentManagedThreadId;
+                await action().ConfigureAwait(false);
+            }).ConfigureAwait(false);
+
+            Assert.AreEqual(bridgeThreadId, completionThreadId);
+        }
+
+        [TestMethod]
+        public void WhenWarningOnlyPathIsReResolvedThenItUsesTheSaveValidationPolicy()
+        {
+            PathModel source = new PathModel()
+            {
+                PathNodes = ImmutableArray.Create(
+                    CreateNodeAt(100, PathNodeType.Start, 1) with { NodeIndex = 1 },
+                    CreateNodeAt(400, PathNodeType.End, -1) with { NodeIndex = 4 }),
+            };
+            TrackWorld trackWorld = CreateAmbiguousTrackWorld();
+
+            PathPersistenceValidationResult saveValidation = PathPersistenceValidationPolicy.ValidateForPersistence(source, trackWorld);
+            PathEditResult reResolved = PathEditor.SnapPathToTrack(source, trackWorld);
+
+            Assert.IsTrue(saveValidation.PersistenceAllowed);
+            Assert.IsTrue(reResolved.Success);
+            Assert.AreSequenceEqual(saveValidation.PathModel.PathNodes, reResolved.PathModel.PathNodes);
         }
 
         [TestMethod]
@@ -1001,6 +1411,40 @@ namespace Tests.FreeTrainSimulator.Toolbox
             {
                 NodeType = nodeType,
                 NextMainNode = nextMainNode,
+            };
+        }
+
+        private static PathModel CreateSupportedPassingBranchPath()
+        {
+            return new PathModel
+            {
+                Id = "passing-path",
+                Name = "Passing Path",
+                PathNodes = ImmutableArray.Create(
+                    CreateNodeAt(0, PathNodeType.Start, 1) with { NextSidingNode = 3 },
+                    CreateNodeAt(40, PathNodeType.Intermediate, 2),
+                    CreateNodeAt(100, PathNodeType.End, -1),
+                    CreateNodeAt(60, PathNodeType.Intermediate, -1) with { NextSidingNode = 2 }),
+            };
+        }
+
+        private static PathEditResult InvokeMoveSelectedAuthoredNode(PathModel pathModel, int nodeIndex, PathNode anchor)
+        {
+            return (PathEditResult)typeof(PathEditor).GetMethod("MoveSelectedAuthoredNode", BindingFlags.Static | BindingFlags.NonPublic)
+                .Invoke(null, new object[] { pathModel, nodeIndex, anchor, false });
+        }
+
+        private static PathModel CreateNonRejoiningPassingPath()
+        {
+            return new PathModel
+            {
+                Id = "broken-passing-path",
+                Name = "Broken Passing Path",
+                PathNodes = ImmutableArray.Create(
+                    CreateNodeAt(0, PathNodeType.Start, 1) with { NextSidingNode = 2 },
+                    CreateNodeAt(50, PathNodeType.Intermediate, 3),
+                    CreateNodeAt(25, PathNodeType.Intermediate, -1),
+                    CreateNodeAt(100, PathNodeType.End, -1)),
             };
         }
 
@@ -1155,7 +1599,8 @@ namespace Tests.FreeTrainSimulator.Toolbox
         private static JunctionNode CreateJunctionNode(int nodeIndex)
         {
             return new JunctionNode(new WorldLocation(new Tile(0, 0), new Vector3(nodeIndex * 100, 0, 0)),
-                new Tile(0, 0), Vector3.Zero) { NodeIndex = nodeIndex };
+                new Tile(0, 0), Vector3.Zero)
+            { NodeIndex = nodeIndex };
         }
 
         private static TrackNodeConnectorIndex CreateConnectors(int nodeIndex, params int[] linkedNodeIndexes)
@@ -1280,6 +1725,14 @@ namespace Tests.FreeTrainSimulator.Toolbox
             typeof(PathEditor).GetField(fieldName, BindingFlags.Instance | BindingFlags.NonPublic).SetValue(editor, value);
         }
 
+        private static PathSaveOperation CreatePendingSaveOperation(PathEditor editor, PathModel sourceModel,
+            Task<PathPersistenceValidationResult> persistenceTask)
+        {
+            PathSaveOperation operation = new PathSaveOperation(true, sourceModel, sourceModel.Id, persistenceTask);
+            SetPrivateField(editor, "activeSaveOperation", operation);
+            return operation;
+        }
+
         private sealed class TestPathEditorContext : IPathEditorContext, IPathEditorContextServicesAccessor
         {
             private readonly IPathEditorServices services;
@@ -1343,5 +1796,7 @@ namespace Tests.FreeTrainSimulator.Toolbox
         }
 
         private static TrackWorld CreateInitializedTrackWorld() => TrackWorldTestFixture.CreateSingleVectorNodeTrackWorld();
+
+        public TestContext TestContext { get; set; }
     }
 }

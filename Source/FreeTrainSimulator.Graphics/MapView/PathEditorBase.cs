@@ -62,9 +62,6 @@ namespace FreeTrainSimulator.Graphics.MapView
             protected set => trainPath = value as EditorTrainPath;
         }
 
-        /// <summary>Path currently rendered on the map, preferring a non-persisted preview when present.</summary>
-        protected TrainPathBase RenderedPath => previewTrainPath ?? trainPath;
-
         /// <summary>Index of the path node selected on the map, or -1 when no node is selected.</summary>
         public int SelectedPathNodeIndex => trainPath?.SelectedNodeIndex ?? -1;
 
@@ -82,7 +79,7 @@ namespace FreeTrainSimulator.Graphics.MapView
 
         internal void UpdatePointerLocation(in PointD location, TrackSegmentBase nearestSegment)
         {
-            if (trainPath == null)
+            if (trainPath == null && !UseStandaloneActivePathPointPreview)
                 return;
 
             // if a tracksegment is nearby, snap to the segment
@@ -165,6 +162,23 @@ namespace FreeTrainSimulator.Graphics.MapView
             trainPath = ((IPathEditorContextServicesAccessor)editorContext).Services.CreateEditorTrainPath(pathModel);
             SetPreviewPath(null);
             activePathPoint = editMode ? new EditorPathPoint(PointD.None, PointD.None, PathNodeType.Start) : null;
+        }
+
+        /// <summary>Clears all runtime path and preview state while retaining an authored model outside the renderer.</summary>
+        protected void ClearRuntimePathState(bool editMode)
+        {
+            EditMode = editMode;
+            trainPath = null;
+            previewTrainPath = null;
+            PreviewPathModel = null;
+            activePathPoint = null;
+            editorContext.ContentMode = editMode ? ToolboxContentMode.EditPath : ToolboxContentMode.ViewRoute;
+        }
+
+        /// <summary>Initializes a track-snapped pointer preview that does not require a rendered path.</summary>
+        protected void InitializeStandalonePathPointPreview()
+        {
+            activePathPoint = new EditorPathPoint(PointD.None, PointD.None, PathNodeType.Start);
         }
 
         public PathModel ConvertTrainPath(PathModelHeader pathModelHeader)

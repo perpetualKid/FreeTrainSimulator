@@ -257,7 +257,11 @@ namespace FreeTrainSimulator.Toolbox
 
         private async void MapHost_SaveTrainPathRequested(object sender, EventArgs e)
         {
-            TrainPathSaveDialog dialog = new TrainPathSaveDialog
+            TrainPathSaveDialogState saveDialogState = await MapHost.GetTrainPathSaveDialogStateAsync().ConfigureAwait(true);
+            if (saveDialogState == null)
+                return;
+
+            TrainPathSaveDialog dialog = new TrainPathSaveDialog(saveDialogState.PathDetails, saveDialogState.SourcePathId)
             {
                 Owner = this,
             };
@@ -265,9 +269,23 @@ namespace FreeTrainSimulator.Toolbox
             if (dialog.ShowDialog() != true || dialog.PathDetails == null)
                 return;
 
+            bool overwriteConfirmed = false;
+            TrainPathSaveRequest saveRequest = new TrainPathSaveRequest(dialog.PathDetails, dialog.SourcePathId, overwriteConfirmed);
+            if (saveRequest.IsSaveAs && await MapHost.TrainPathIdExistsAsync(dialog.PathDetails.Id).ConfigureAwait(true))
+            {
+                MessageBoxResult overwriteResult = MessageBox.Show(this,
+                    CatalogManager.Catalog.GetString($"A path with ID '{dialog.PathDetails.Id}' already exists. Replace that path? The active path will remain unchanged unless the save succeeds."),
+                    CatalogManager.Catalog.GetString("Confirm Save As Overwrite"), MessageBoxButton.YesNo, MessageBoxImage.Warning);
+                if (overwriteResult != MessageBoxResult.Yes)
+                    return;
+
+                overwriteConfirmed = true;
+                saveRequest = new TrainPathSaveRequest(dialog.PathDetails, dialog.SourcePathId, overwriteConfirmed);
+            }
+
             try
             {
-                await MapHost.SubmitSavePathAsync(dialog.PathDetails).ConfigureAwait(true);
+                await MapHost.SubmitSavePathAsync(saveRequest).ConfigureAwait(true);
             }
             catch (OperationCanceledException ex)
             {

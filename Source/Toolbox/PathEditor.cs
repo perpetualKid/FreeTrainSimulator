@@ -26,6 +26,13 @@ namespace FreeTrainSimulator.Toolbox
         BuildRoute,
     }
 
+    internal enum PassingBranchAuthoringPhase
+    {
+        Idle,
+        SelectingRejoin,
+        SelectingCandidate,
+    }
+
     public class PathEditorChangedEventArgs : EventArgs
     {
         public TrainPathBase Path { get; }
@@ -70,6 +77,12 @@ namespace FreeTrainSimulator.Toolbox
         private int previewedRouteCandidateFromNodeIndex = -1;
         private int previewedRouteCandidateIndex = -1;
         private bool unsavedChanges;
+        private PathSaveOperation activeSaveOperation;
+        private bool repairMode;
+        private PathNode selectedAuthoredNode;
+        private int selectedAuthoredNodeIndex = -1;
+        private int pendingPassingBranchStartNodeIndex = -1;
+        private PendingPassingBranchCandidate pendingPassingBranchCandidate;
 
         public string PathId => path?.Id;
 
@@ -95,12 +108,57 @@ namespace FreeTrainSimulator.Toolbox
 
         public bool HasUnsavedChanges => unsavedChanges;
 
+        /// <summary>Whether the authored model has fatal resolver diagnostics and is loaded without runtime route state.</summary>
+        public bool IsRepairMode => repairMode;
+
+        /// <summary>Index of the selected authored node, including while no runtime path is constructed.</summary>
+        public int SelectedAuthoredNodeIndex => selectedAuthoredNodeIndex;
+
+        /// <summary>Whether persistence is currently running for the captured editor model.</summary>
+        public bool IsSaveInProgress => activeSaveOperation != null;
+
         /// <summary><see langword="true"/> when the editor contains the unsaved path created by New Path.</summary>
         public bool IsNewPath => string.Equals(currentPathModel?.Id, NewPathId, StringComparison.Ordinal);
 
         public bool HasPendingAmbiguousSpanCommit => pendingAmbiguousSpanCommit != null;
 
-        public bool CanCancelPathInteraction => IsPlacementActive || pendingAmbiguousSpanCommit != null || previewedRouteCandidateFromNodeIndex >= 0;
+        public bool IsSelectingPassingBranchRejoin => pendingPassingBranchStartNodeIndex >= 0;
+
+        public bool HasPendingPassingBranchCandidate => pendingPassingBranchCandidate != null;
+
+        public PassingBranchAuthoringPhase PassingBranchPhase => pendingPassingBranchCandidate != null
+            ? PassingBranchAuthoringPhase.SelectingCandidate
+            : pendingPassingBranchStartNodeIndex >= 0
+                ? PassingBranchAuthoringPhase.SelectingRejoin
+                : PassingBranchAuthoringPhase.Idle;
+
+        public bool CanBeginPassingBranch(int nodeIndex)
+        {
+            PathModel model = TryGetEditablePathModel();
+            return !repairMode && !IsPlacementActive && pendingPassingBranchStartNodeIndex < 0 && pendingPassingBranchCandidate == null
+                && model != null && nodeIndex >= 0 && nodeIndex < model.PathNodes.Length
+                && model.PathNodes[nodeIndex].NextMainNode >= 0 && !model.PathNodes.Any(node => node.NextSidingNode >= 0);
+        }
+
+        public bool CanCompletePassingBranch(int nodeIndex)
+        {
+            PathModel model = TryGetEditablePathModel();
+            return !repairMode && !IsPlacementActive && pendingPassingBranchStartNodeIndex >= 0 && pendingPassingBranchCandidate == null
+                && model != null && nodeIndex >= 0 && nodeIndex < model.PathNodes.Length;
+        }
+
+        public bool CanCancelPassingBranch => PassingBranchPhase != PassingBranchAuthoringPhase.Idle;
+
+        public bool CanRemovePassingBranch(int nodeIndex)
+        {
+            PathModel model = TryGetEditablePathModel();
+            return !repairMode && !IsPlacementActive && pendingPassingBranchCandidate == null && model != null
+                && nodeIndex >= 0 && nodeIndex < model.PathNodes.Length && model.PathNodes[nodeIndex].NextMainNode >= 0
+                && model.PathNodes[nodeIndex].NextSidingNode >= 0;
+        }
+
+        public bool CanCancelPathInteraction => IsPlacementActive || pendingAmbiguousSpanCommit != null
+            || PassingBranchPhase != PassingBranchAuthoringPhase.Idle || previewedRouteCandidateFromNodeIndex >= 0;
 
         public ImmutableArray<ResolvedPathSpan> PendingAmbiguousSpans => pendingAmbiguousSpanCommit?.AmbiguousSpans
             ?? ImmutableArray<ResolvedPathSpan>.Empty;
@@ -141,21 +199,23 @@ namespace FreeTrainSimulator.Toolbox
                 this.path = pathModel ?? path;
                 currentPathModel = pathModel;
                 routeAuthoringModel = null;
-
-                if (pathModel != null && !CanInitializePath(pathModel, out PathRouteResolution resolution))
-                {
-                    string diagnostics = string.Join("; ", resolution.Diagnostics
-                        .Where(diagnostic => diagnostic.Severity == PathRouteDiagnosticSeverity.Fatal)
-                        .Select(diagnostic => $"{diagnostic.Code}: {diagnostic.Message}"));
-                    Trace.TraceWarning($"Path editor cannot open path '{path.Id}' because the path content has fatal route diagnostics. {diagnostics}");
-                    return false;
-                }
+                ClearAuthoredNodeSelection();
 
                 ClearMoveNodeState();
                 ClearHistory();
-                await InitializePathModelAsync(pathModel, cancellationToken).ConfigureAwait(false);
                 currentPathModel = pathModel;
                 unsavedChanges = false;
+                if (pathModel != null && !CanInitializePath(pathModel, TrackWorld, out PathRouteResolution resolution))
+                {
+                    repairMode = true;
+                    ClearRuntimePathState(true);
+                    Trace.TraceWarning($"Path editor opened path '{path.Id}' in repair mode because the path content has fatal route diagnostics.");
+                }
+                else
+                {
+                    repairMode = false;
+                    await InitializePathModelAsync(pathModel, cancellationToken).ConfigureAwait(false);
+                }
                 OnPathChanged?.Invoke(this, new PathEditorChangedEventArgs(TrainPath));
                 return true;
             }
@@ -204,7 +264,7 @@ namespace FreeTrainSimulator.Toolbox
         /// </summary>
         internal PathRouteResolution ResolveCurrent(PathModel pathModel)
         {
-            return resolutionCache.Resolve(pathModel, RuntimeDataResolver.Instance?.TrackWorld);
+            return resolutionCache.Resolve(pathModel, TrackWorld);
         }
 
         private static async Task<bool> CanInitializePathAsync(PathModelHeader path, CancellationToken cancellationToken)
@@ -235,6 +295,8 @@ namespace FreeTrainSimulator.Toolbox
             };
             path = newPath;
             currentPathModel = newPath;
+            repairMode = false;
+            ClearAuthoredNodeSelection();
             ClearMoveNodeState();
             ClearHistory();
             unsavedChanges = true;
@@ -457,6 +519,9 @@ namespace FreeTrainSimulator.Toolbox
             ArgumentNullException.ThrowIfNull(sourceModel);
             ArgumentNullException.ThrowIfNull(anchorEdit);
 
+            if (pendingPassingBranchCandidate != null)
+                return PathSpanCommitResult.Failed("Accept or cancel the pending passing-route candidate before editing the path.", sourceModel);
+
             PathEditResult edit = anchorEdit(sourceModel);
             return edit.Success
                 ? EvaluateSpanCommit(edit.PathModel, edit.ChangedNodeIndexes, edit.Message, sourceModel, allowAutomaticReversal)
@@ -476,6 +541,13 @@ namespace FreeTrainSimulator.Toolbox
         {
             PathRouteResolution resolution = PathRouteResolver.Resolve(tentativeModel, TrackWorld, PathRouteResolverOptions.Default, CancellationToken.None);
             ImmutableArray<ResolvedPathSpan> affectedSpans = AffectedSpans(resolution, changedNodeIndexes);
+
+            if (affectedSpans.IsEmpty)
+            {
+                return CanCommitStandaloneStartAnchor(tentativeModel, changedNodeIndexes)
+                    ? PathSpanCommitResult.Resolved(message, tentativeModel, changedNodeIndexes)
+                    : PathSpanCommitResult.Unresolved("The edit did not produce a route span that can be materialized.", sourceModel);
+            }
 
             ImmutableArray<ResolvedPathSpan> ambiguousSpans = affectedSpans
                 .Where(span => span.Status == PathRouteSpanStatus.Ambiguous || span.Candidates.Length > 1)
@@ -504,10 +576,10 @@ namespace FreeTrainSimulator.Toolbox
             }
 
             // Materialize the generated intermediaries so the committed model is the single persistence source.
-            PathGenerationResult generated = PathModelRouteGenerator.GeneratePath(tentativeModel, resolution, TrackWorld, PathRouteResolverOptions.Default);
-            return generated.Success
-                ? PathSpanCommitResult.Resolved(message, generated.PathModel, generated.ChangedNodeIndexes)
-                : PathSpanCommitResult.Resolved(message, tentativeModel, changedNodeIndexes);
+            PathPersistenceValidationResult materialization = PathPersistenceValidationPolicy.MaterializeResolvedPath(tentativeModel, resolution, TrackWorld);
+            return materialization.PersistenceAllowed
+                ? PathSpanCommitResult.Resolved(message, materialization.PathModel, materialization.ChangedNodeIndexes)
+                : PathSpanCommitResult.Unresolved(materialization.FailureMessage, sourceModel);
         }
 
         // Marks the route point preceding the end anchor as a reversal and re-evaluates. Returns null when the
@@ -534,6 +606,17 @@ namespace FreeTrainSimulator.Toolbox
                 $"{message} Reversal added at node {reversalNodeIndex}.", sourceModel, false);
 
             return result.Success ? result : null;
+        }
+
+        private static bool CanCommitStandaloneStartAnchor(PathModel pathModel, ImmutableArray<int> changedNodeIndexes)
+        {
+            ImmutableArray<PathNode> nodes = pathModel.PathNodes.IsDefault ? ImmutableArray<PathNode>.Empty : pathModel.PathNodes;
+            return nodes.Length == 1
+                && changedNodeIndexes.Length == 1
+                && changedNodeIndexes[0] == 0
+                && nodes[0].NodeType.Includes(PathNodeType.Start)
+                && nodes[0].NextMainNode == -1
+                && nodes[0].NextSidingNode == -1;
         }
 
         // The node linking to the end anchor on the main chain, i.e. the route point committed just before it.
@@ -756,7 +839,7 @@ namespace FreeTrainSimulator.Toolbox
 
             placementSourceEditMode = EditMode;
             placementSourceUnsavedChanges = unsavedChanges;
-            if (!EditMode)
+            if (!EditMode && !repairMode)
             {
                 path = currentModel;
                 currentPathModel = currentModel;
@@ -865,7 +948,7 @@ namespace FreeTrainSimulator.Toolbox
         {
             PathModel currentModel = TryGetEditablePathModel();
             ImmutableArray<PathNode> nodes = currentModel?.PathNodes ?? ImmutableArray<PathNode>.Empty;
-            return nodeIndex >= 0 && nodeIndex < nodes.Length;
+            return !IsPlacementActive && nodeIndex >= 0 && nodeIndex < nodes.Length;
         }
 
         /// <summary>
@@ -903,20 +986,43 @@ namespace FreeTrainSimulator.Toolbox
 
         public PathEditResult RepairSelectedNode(int nodeIndex)
         {
-            return ApplySelectedNodeEdit(nodeIndex, model => PathModelEditor.RepairNode(model, nodeIndex, RuntimeDataResolver.Instance.TrackWorld));
+            return ApplySelectedNodeEdit(nodeIndex, model => PathModelEditor.RepairNode(model, nodeIndex, TrackWorld));
         }
 
         public bool CanRepairNode(int nodeIndex)
         {
             PathModel currentModel = TryGetEditablePathModel();
-            return currentModel != null && PathModelEditor.RepairNode(currentModel, nodeIndex, RuntimeDataResolver.Instance.TrackWorld).Success;
+            return currentModel != null && PathModelEditor.RepairNode(currentModel, nodeIndex, TrackWorld).Success;
+        }
+
+        public bool CanRemoveViaPoint(int nodeIndex)
+        {
+            PathModel currentModel = TryGetEditablePathModel();
+            return currentModel != null && PathModelEditor.RemoveViaPoint(currentModel, nodeIndex).Success;
+        }
+
+        public void SelectAuthoredNode(int nodeIndex)
+        {
+            ImmutableArray<PathNode> nodes = currentPathModel?.PathNodes ?? ImmutableArray<PathNode>.Empty;
+            if (nodeIndex < 0 || nodeIndex >= nodes.Length)
+            {
+                ClearAuthoredNodeSelection();
+                if (!repairMode)
+                    ClearPathHighlight();
+                return;
+            }
+
+            selectedAuthoredNodeIndex = nodeIndex;
+            selectedAuthoredNode = nodes[nodeIndex];
+            if (!repairMode)
+                SelectPathItem(nodeIndex);
         }
 
         public void HighlightDiagnosticTarget(int nodeIndex, int fromNodeIndex, int toNodeIndex)
         {
             if (nodeIndex >= 0)
             {
-                HighlightPathItem(nodeIndex);
+                SelectAuthoredNode(nodeIndex);
                 return;
             }
 
@@ -925,11 +1031,11 @@ namespace FreeTrainSimulator.Toolbox
 
             if (fromNodeIndex >= 0)
             {
-                HighlightPathItem(fromNodeIndex);
+                SelectAuthoredNode(fromNodeIndex);
                 return;
             }
 
-            ClearPathHighlight();
+            SelectAuthoredNode(-1);
         }
 
         /// <summary>
@@ -1044,12 +1150,96 @@ namespace FreeTrainSimulator.Toolbox
             return ApplySelectedNodeEdit(nodeIndex, model => PathModelEditor.RemoveViaPoint(model, nodeIndex));
         }
 
+        /// <summary>Begins selecting a later main-route node for a new single-level passing branch.</summary>
+        public PathEditorCommandResult BeginPassingBranchCommand(int startNodeIndex)
+        {
+            PathModel model = TryGetEditablePathModel();
+            if (repairMode || IsPlacementActive || model == null || model.PathNodes.Any(node => node.NextSidingNode >= 0))
+                return PathEditorCommandResult.Failed("A passing branch can only be authored on a normal path without an existing branch.", model);
+            if (startNodeIndex < 0 || startNodeIndex >= model.PathNodes.Length || model.PathNodes[startNodeIndex].NextMainNode < 0)
+                return PathEditorCommandResult.Failed("Select a non-terminal main-route node as the passing-branch start.", model);
+
+            pendingPassingBranchStartNodeIndex = startNodeIndex;
+            SelectAuthoredNode(startNodeIndex);
+            OnPathUpdated?.Invoke(this, new PathEditorChangedEventArgs(TrainPath));
+            return PathEditorCommandResult.Succeeded("Select a later main-route node to rejoin the passing branch.", model);
+        }
+
+        /// <summary>Creates the selected single-level passing branch after resolver validation succeeds.</summary>
+        public PathEditorCommandResult CompletePassingBranchCommand(int rejoinNodeIndex)
+        {
+            PathModel model = TryGetEditablePathModel();
+            int startNodeIndex = pendingPassingBranchStartNodeIndex;
+            if (startNodeIndex < 0 || model == null)
+                return PathEditorCommandResult.Failed("Select a passing-branch start before selecting its rejoin node.", model);
+
+            PathEditResult authored = PathModelEditor.CreatePassingBranch(model, startNodeIndex, rejoinNodeIndex);
+            if (!authored.Success)
+                return PathEditorCommandResult.FromPathEditResult(authored);
+
+            PathRouteResolution resolution = PathRouteResolver.Resolve(authored.PathModel, TrackWorld, PathRouteResolverOptions.Default, CancellationToken.None);
+            ResolvedPathRoute passingRoute = resolution.PassingRoutes.FirstOrDefault(route => route.StartNodeIndex == startNodeIndex);
+            ResolvedPathSpan ambiguousSpan = passingRoute?.Spans.FirstOrDefault(span => span.Status == PathRouteSpanStatus.Ambiguous || span.Candidates.Length > 1);
+            if (ambiguousSpan != null)
+            {
+                pendingPassingBranchStartNodeIndex = -1;
+                pendingPassingBranchCandidate = new PendingPassingBranchCandidate(model, startNodeIndex, rejoinNodeIndex, ambiguousSpan);
+                OnPathUpdated?.Invoke(this, new PathEditorChangedEventArgs(TrainPath));
+                return PathEditorCommandResult.Failed("The passing branch has equal-cost routes; select a route candidate to preview and accept it.", model);
+            }
+            if (!resolution.IsValid || passingRoute == null || passingRoute.Spans.Any(span => span.Status != PathRouteSpanStatus.Resolved))
+            {
+                string message = !resolution.IsValid
+                    ? "The selected passing branch could not be resolved."
+                    : "The selected passing branch is ambiguous or unresolved; add a supported route candidate before committing it.";
+                return PathEditorCommandResult.Failed(message, model);
+            }
+
+            PathPersistenceValidationResult materialization = PathPersistenceValidationPolicy.MaterializeResolvedPath(authored.PathModel, resolution, TrackWorld);
+            if (!materialization.PersistenceAllowed)
+                return PathEditorCommandResult.Failed(materialization.FailureMessage, model);
+
+            pendingPassingBranchStartNodeIndex = -1;
+            PathEditResult committed = ApplySelectedNodeEdit(startNodeIndex, _ => PathEditResult.Succeeded(
+                "Passing branch created and resolved.", materialization.PathModel, materialization.ChangedNodeIndexes));
+            return PathEditorCommandResult.FromPathEditResult(committed);
+        }
+
+        /// <summary>Cancels a pending passing-branch rejoin selection without changing the authored model.</summary>
+        public PathEditorCommandResult CancelPassingBranchCommand()
+        {
+            if (pendingPassingBranchCandidate != null)
+            {
+                pendingPassingBranchCandidate = null;
+                SetPreviewPath(null);
+                ClearPreviewedRouteCandidate();
+                OnPathUpdated?.Invoke(this, new PathEditorChangedEventArgs(TrainPath));
+                return PathEditorCommandResult.Succeeded("Passing-route candidate selection canceled.", TryGetEditablePathModel());
+            }
+            if (pendingPassingBranchStartNodeIndex < 0)
+                return PathEditorCommandResult.Failed("No passing-branch selection is active.", TryGetEditablePathModel());
+
+            pendingPassingBranchStartNodeIndex = -1;
+            OnPathUpdated?.Invoke(this, new PathEditorChangedEventArgs(TrainPath));
+            return PathEditorCommandResult.Succeeded("Passing-branch selection canceled.", TryGetEditablePathModel());
+        }
+
+        /// <summary>Removes the supported passing branch that starts at the selected main-route node.</summary>
+        public PathEditorCommandResult RemovePassingBranchCommand(int startNodeIndex)
+        {
+            return PathEditorCommandResult.FromPathEditResult(ApplySelectedNodeEdit(startNodeIndex,
+                model => PathModelEditor.RemovePassingBranch(model, startNodeIndex)));
+        }
+
         /// <summary>
         /// Resolves the current authored path and returns the spans that have several equal-cost route
         /// candidates, so the user can choose the intended route.
         /// </summary>
         public ImmutableArray<ResolvedPathSpan> GetAmbiguousSpans()
         {
+            if (pendingPassingBranchCandidate != null)
+                return ImmutableArray.Create(pendingPassingBranchCandidate.Span);
+
             PathModel currentModel = TryGetEditablePathModel();
             if (currentModel == null)
                 return ImmutableArray<ResolvedPathSpan>.Empty;
@@ -1066,6 +1256,18 @@ namespace FreeTrainSimulator.Toolbox
         /// </summary>
         public PathEditResult PreviewRouteCandidate(int fromNodeIndex, int candidateIndex)
         {
+            if (pendingPassingBranchCandidate != null)
+            {
+                PathEditResult passingPreview = BuildPassingBranchCandidateModel(fromNodeIndex, candidateIndex);
+                if (passingPreview.Success)
+                {
+                    SetPreviewPath(passingPreview.PathModel);
+                    SetPreviewedRouteCandidate(fromNodeIndex, candidateIndex);
+                    OnPathUpdated?.Invoke(this, new PathEditorChangedEventArgs(TrainPath));
+                }
+                return passingPreview;
+            }
+
             if (pendingAmbiguousSpanCommit != null)
             {
                 PathEditResult pendingResult = PreviewPendingRouteCandidate(fromNodeIndex, candidateIndex);
@@ -1096,6 +1298,14 @@ namespace FreeTrainSimulator.Toolbox
                 return;
             }
 
+            if (pendingPassingBranchCandidate != null)
+            {
+                SetPreviewPath(null);
+                ClearPreviewedRouteCandidate();
+                OnPathUpdated?.Invoke(this, new PathEditorChangedEventArgs(TrainPath));
+                return;
+            }
+
             SetPreviewPath(null);
             ClearPreviewedRouteCandidate();
             OnPathUpdated?.Invoke(this, new PathEditorChangedEventArgs(TrainPath));
@@ -1107,6 +1317,31 @@ namespace FreeTrainSimulator.Toolbox
         /// </summary>
         public PathEditResult AcceptRouteCandidate(int fromNodeIndex, int candidateIndex)
         {
+            if (pendingPassingBranchCandidate != null)
+            {
+                PathEditResult passingCandidate = BuildPassingBranchCandidateModel(fromNodeIndex, candidateIndex);
+                if (!passingCandidate.Success)
+                    return passingCandidate;
+
+                PendingPassingBranchCandidate pending = pendingPassingBranchCandidate;
+                if (!ReferenceEquals(TryGetEditablePathModel(), pending.SourceModel))
+                {
+                    pendingPassingBranchCandidate = null;
+                    SetPreviewPath(null);
+                    ClearPreviewedRouteCandidate();
+                    return PathEditResult.Failed("The path changed while the passing-route candidate was pending; the candidate was canceled.", TryGetEditablePathModel());
+                }
+                pendingPassingBranchCandidate = null;
+                PathEditResult committed = ApplySelectedNodeEdit(pending.StartNodeIndex, _ => PathEditResult.Succeeded(
+                    "Passing-route candidate accepted.", passingCandidate.PathModel, passingCandidate.ChangedNodeIndexes));
+                if (committed.Success)
+                {
+                    SetPreviewPath(null);
+                    ClearPreviewedRouteCandidate();
+                }
+                return committed;
+            }
+
             if (pendingAmbiguousSpanCommit != null)
             {
                 PathEditResult pendingResult = AcceptPendingRouteCandidate(fromNodeIndex, candidateIndex);
@@ -1127,6 +1362,30 @@ namespace FreeTrainSimulator.Toolbox
             }
 
             return result;
+        }
+
+        private PathEditResult BuildPassingBranchCandidateModel(int fromNodeIndex, int candidateIndex)
+        {
+            PendingPassingBranchCandidate pending = pendingPassingBranchCandidate;
+            if (pending == null || pending.Span.FromNodeIndex != fromNodeIndex || candidateIndex < 0 || candidateIndex >= pending.Span.Candidates.Length)
+                return PathEditResult.Failed("The selected passing-route candidate is no longer available.", TryGetEditablePathModel());
+
+            PathEditResult branch = PathModelEditor.CreatePassingBranch(pending.SourceModel, pending.StartNodeIndex, pending.RejoinNodeIndex);
+            if (!branch.Success)
+                return branch;
+            PathEditResult anchored = PathModelEditor.AddPassingBranchAnchors(branch.PathModel, pending.StartNodeIndex,
+                pending.Span.Candidates[candidateIndex].GeneratedIntermediaryAnchors);
+            if (!anchored.Success)
+                return anchored;
+
+            PathRouteResolution resolution = PathRouteResolver.Resolve(anchored.PathModel, TrackWorld, PathRouteResolverOptions.Default, CancellationToken.None);
+            if (!resolution.IsValid)
+                return PathEditResult.Failed("The selected passing-route candidate could not be resolved.", pending.SourceModel);
+
+            PathPersistenceValidationResult materialization = PathPersistenceValidationPolicy.MaterializeResolvedPath(anchored.PathModel, resolution, TrackWorld);
+            return materialization.PersistenceAllowed
+                ? PathEditResult.Succeeded("Passing-route candidate preview.", materialization.PathModel, materialization.ChangedNodeIndexes)
+                : PathEditResult.Failed(materialization.FailureMessage, pending.SourceModel);
         }
 
         public PathEditorCommandResult PreviewRouteCandidateCommand(int fromNodeIndex, int candidateIndex)
@@ -1187,6 +1446,9 @@ namespace FreeTrainSimulator.Toolbox
 
         public PathEditorCommandResult CancelPathInteractionCommand()
         {
+            if (PassingBranchPhase != PassingBranchAuthoringPhase.Idle)
+                return CancelPassingBranchCommand();
+
             if (pendingAmbiguousSpanCommit != null)
             {
                 CancelPendingRouteCandidate();
@@ -1292,6 +1554,9 @@ namespace FreeTrainSimulator.Toolbox
         // towards the cursor, which is not what the user asked for.
         private PathEditResult ApplySelectedNodeEdit(int nodeIndex, Func<PathModel, PathEditResult> edit)
         {
+            if (pendingPassingBranchCandidate != null)
+                return PathEditResult.Failed("Accept or cancel the pending passing-route candidate before editing the path.", TryGetEditablePathModel());
+
             PathModel currentModel = TryGetEditablePathModel();
             ImmutableArray<PathNode> nodes = currentModel?.PathNodes ?? ImmutableArray<PathNode>.Empty;
             if (nodeIndex < 0 || nodeIndex >= nodes.Length)
@@ -1310,7 +1575,7 @@ namespace FreeTrainSimulator.Toolbox
             PushUndoSnapshot(currentModel);
             unsavedChanges = true;
             RestoreSnapshot(result.PathModel);
-            SelectPathItem(nodeIndex);
+            SelectAuthoredNode(nodeIndex);
             OnPathUpdated?.Invoke(this, new PathEditorChangedEventArgs(TrainPath));
             return result;
         }
@@ -1322,6 +1587,9 @@ namespace FreeTrainSimulator.Toolbox
 
         public bool BeginMoveNode(int nodeIndex)
         {
+            if (pendingPassingBranchCandidate != null)
+                return false;
+
             PathModel currentModel = TryGetEditablePathModel();
             ImmutableArray<PathNode> nodes = currentModel?.PathNodes ?? ImmutableArray<PathNode>.Empty;
             if (nodeIndex < 0 || nodeIndex >= nodes.Length || IsPlacementActive)
@@ -1343,14 +1611,23 @@ namespace FreeTrainSimulator.Toolbox
             movePreviewAnchor = null;
             movePreviewSpanCommit = null;
             UseStandaloneActivePathPointPreview = true;
-            if (!InitializeActivePathPointPreview(nodeIndex))
+            bool initializedPreview = repairMode
+                ? InitializeRepairMovePreview()
+                : InitializeActivePathPointPreview(nodeIndex);
+            if (!initializedPreview)
             {
                 ClearMoveNodeState();
                 return false;
             }
             SetHiddenPathNodeIndex(nodeIndex);
-            SelectPathItem(nodeIndex);
+            SelectAuthoredNode(nodeIndex);
             OnPathUpdated?.Invoke(this, new PathEditorChangedEventArgs(TrainPath));
+            return true;
+        }
+
+        private bool InitializeRepairMovePreview()
+        {
+            InitializeStandalonePathPointPreview();
             return true;
         }
 
@@ -1391,7 +1668,7 @@ namespace FreeTrainSimulator.Toolbox
             bool isJunction = candidate.JunctionNode != null || candidate.NodeType.Includes(PathNodeType.Junction);
             PathEditResult result = placementMode switch
             {
-                PathEditorPlacementMode.MoveNode => PathModelEditor.MoveNode(moveSourceModel, movingNodeIndex, replacementAnchor, isJunction),
+                PathEditorPlacementMode.MoveNode => MoveSelectedAuthoredNode(moveSourceModel, movingNodeIndex, replacementAnchor, isJunction),
                 PathEditorPlacementMode.StartAnchor => PathModelEditor.SetStartAnchor(moveSourceModel, replacementAnchor, isJunction),
                 PathEditorPlacementMode.EndAnchor => PathModelEditor.SetEndAnchor(moveSourceModel, replacementAnchor, isJunction),
                 PathEditorPlacementMode.BuildRoute => AddRoutePoint(moveSourceModel, replacementAnchor, isJunction),
@@ -1401,6 +1678,41 @@ namespace FreeTrainSimulator.Toolbox
             {
                 // Preserve the last valid preview. A transient invalid hover near overlapping junction geometry
                 // must not erase the route point the user can still see and intends to commit.
+                return;
+            }
+
+            if (repairMode)
+            {
+                movePreviewAnchor = replacementAnchor;
+                movePreviewAuthoringModel = null;
+                movePreviewSpanCommit = null;
+                movePreviewModel = result.PathModel;
+                OnPathUpdated?.Invoke(this, new PathEditorChangedEventArgs(TrainPath));
+                return;
+            }
+
+            bool isPassingInteriorMove = placementMode == PathEditorPlacementMode.MoveNode
+                && moveSourceModel.PathNodes.Any(node => node.NextSidingNode >= 0)
+                && PathModelEditor.TryGetPassingBranchNodeRole(moveSourceModel, movingNodeIndex, out PassingBranchNodeRole moveRole, out _)
+                && moveRole == PassingBranchNodeRole.BranchInterior;
+            if (isPassingInteriorMove)
+            {
+                PathRouteResolution branchResolution = PathRouteResolver.Resolve(result.PathModel, TrackWorld, PathRouteResolverOptions.Default, CancellationToken.None);
+                bool passingSpansResolved = branchResolution.IsValid
+                    && branchResolution.PassingRoutes.All(route => route.Spans.All(span => span.Status == PathRouteSpanStatus.Resolved));
+                if (!passingSpansResolved)
+                    return;
+
+                PathPersistenceValidationResult branchMaterialization = PathPersistenceValidationPolicy.MaterializeResolvedPath(result.PathModel, branchResolution, TrackWorld);
+                if (!branchMaterialization.PersistenceAllowed)
+                    return;
+
+                movePreviewAnchor = replacementAnchor;
+                movePreviewAuthoringModel = null;
+                movePreviewSpanCommit = null;
+                movePreviewModel = branchMaterialization.PathModel;
+                SetPreviewPath(movePreviewModel);
+                OnPathUpdated?.Invoke(this, new PathEditorChangedEventArgs(TrainPath));
                 return;
             }
 
@@ -1420,6 +1732,25 @@ namespace FreeTrainSimulator.Toolbox
             OnPathUpdated?.Invoke(this, new PathEditorChangedEventArgs(TrainPath));
         }
 
+        private static PathEditResult MoveSelectedAuthoredNode(PathModel pathModel, int nodeIndex, PathNode anchor, bool isJunction)
+        {
+            bool hasPassingBranch = pathModel.PathNodes.Any(node => node.NextSidingNode >= 0);
+            if (!hasPassingBranch)
+                return PathModelEditor.MoveNode(pathModel, nodeIndex, anchor, isJunction);
+
+            if (!PathModelEditor.TryGetPassingBranchNodeRole(pathModel, nodeIndex, out PassingBranchNodeRole role, out string failure))
+                return PathEditResult.Failed(failure, pathModel);
+
+            return role switch
+            {
+                PassingBranchNodeRole.BranchInterior => PathModelEditor.MovePassingBranchAnchor(pathModel, nodeIndex, anchor, isJunction),
+                PassingBranchNodeRole.BranchStart => PathEditResult.Failed("A passing-branch start cannot be moved independently.", pathModel),
+                PassingBranchNodeRole.BranchRejoin => PathEditResult.Failed("A passing-branch rejoin cannot be moved independently.", pathModel),
+                PassingBranchNodeRole.MainRoute => PathModelEditor.MoveNode(pathModel, nodeIndex, anchor, isJunction),
+                _ => PathEditResult.Failed($"Node {nodeIndex} is not part of the supported path topology.", pathModel),
+            };
+        }
+
         private void ClearMovePreview()
         {
             movePreviewAnchor = null;
@@ -1433,6 +1764,11 @@ namespace FreeTrainSimulator.Toolbox
 
         public bool CancelPlacement()
         {
+            if (!IsPlacementActive && pendingPassingBranchCandidate != null)
+            {
+                _ = CancelPassingBranchCommand();
+                return true;
+            }
             if (!IsPlacementActive)
                 return false;
 
@@ -1494,6 +1830,9 @@ namespace FreeTrainSimulator.Toolbox
         // in edit mode, no path is currently loaded, or the edit reports failure.
         private PathEditResult ApplyUndoableEdit(Func<PathModel, PathEditResult> edit)
         {
+            if (pendingPassingBranchCandidate != null)
+                return PathEditResult.Failed("Accept or cancel the pending passing-route candidate before editing the path.", TryGetEditablePathModel());
+
             if (!EditMode)
                 return PathEditResult.Failed("The path is not in edit mode.", null);
 
@@ -1546,34 +1885,108 @@ namespace FreeTrainSimulator.Toolbox
                 : PathEditResult.Failed(generation.Message, model);
         }
 
-        // Resolves the model with default options and rebuilds its route via the generator, populating track
-        // anchors, inserting generated intermediary nodes, and weaving resolved passing branches. Shared by
-        // SnapToTrack and snap-on-save.
+        // Resolves and rebuilds the model using the same materialization policy as normal persistence, including
+        // deterministic tie-breaking for warning-only ambiguous spans. Shared by SnapToTrack and snap-on-save.
         internal static PathGenerationResult GenerateTrackSnappedPath(PathModel model, TrackWorld trackWorld)
         {
-            PathRouteResolution resolution = PathRouteResolver.Resolve(model, trackWorld, PathRouteResolverOptions.Default, CancellationToken.None);
-            return PathModelRouteGenerator.GeneratePath(model, resolution, trackWorld, PathRouteResolverOptions.Default);
+            PathPersistenceValidationResult materialization = PathPersistenceValidationPolicy.ValidateForPersistence(model, trackWorld);
+            return materialization.PersistenceAllowed
+                ? PathGenerationResult.Succeeded("Path generated.", materialization.PathModel, materialization.Diagnostics, materialization.ChangedNodeIndexes)
+                : PathGenerationResult.Failed(materialization.FailureMessage, model, materialization.Diagnostics);
         }
         #endregion
 
-        public async Task SavePath(PathModelHeader pathDetails)
+        internal PathSaveOperation BeginSave(PathModelHeader pathDetails)
         {
-            PathModel pathModel = new PathModel(pathDetails) { PathNodes = currentPathModel?.PathNodes ?? ImmutableArray<PathNode>.Empty };
+            ArgumentNullException.ThrowIfNull(pathDetails);
 
-            // Editor-saved paths are always normalized to track (guard-and-refuse preserves passing-branch paths).
-            pathModel = TrySnapForSave(pathModel);
+            if (activeSaveOperation != null)
+            {
+                return new PathSaveOperation(false, currentPathModel, currentPathModel?.Id, Task.FromResult(new PathPersistenceValidationResult(false,
+                    currentPathModel, null, default, default, "A save is already in progress for this path.", null)));
+            }
 
-            // Stamp the validation state from the model that will actually be persisted so the header is self-describing.
-            pathModel = pathModel with { ValidationState = ResolveValidationState(pathModel, RuntimeDataResolver.Instance.TrackWorld) };
+            PathModel sourceModel = currentPathModel;
+            PathModel pathModel = new PathModel(pathDetails) { PathNodes = sourceModel?.PathNodes ?? ImmutableArray<PathNode>.Empty };
+            PathSaveOperation operation = new PathSaveOperation(true, sourceModel, sourceModel?.Id, PersistSaveAsync(pathModel));
+            activeSaveOperation = operation;
+            return operation;
+        }
 
+        private static async Task<PathPersistenceValidationResult> PersistSaveAsync(PathModel pathModel)
+        {
             // The toolbox registers RuntimeDataResolver process-wide only (RuntimeDataResolver.Initialize
             // passes game: null), so Instance is the single authoritative resolver here; a game-scoped
             // GameInstance(game) lookup would resolve to the same object.
-            pathModel = await RuntimeDataResolver.Instance.RouteData.Save(pathModel).ConfigureAwait(false);
-            path = pathModel;
-            currentPathModel = pathModel;
+            return await SaveValidatedPath(pathModel, RuntimeDataResolver.Instance.RouteData,
+                RuntimeDataResolver.Instance.TrackWorld).ConfigureAwait(false);
+        }
+
+        /// <summary>
+        /// Completes the current save on the game thread. A save result only replaces the editor model when the
+        /// captured source is still current; mutations committed while I/O was pending remain dirty.
+        /// </summary>
+        internal bool CompleteSave(PathSaveOperation operation, PathPersistenceValidationResult validation)
+        {
+            ArgumentNullException.ThrowIfNull(operation);
+            ArgumentNullException.ThrowIfNull(validation);
+
+            if (!ReferenceEquals(activeSaveOperation, operation))
+                return false;
+
+            activeSaveOperation = null;
+
+            if (!validation.PersistenceAllowed)
+                return true;
+
+            if (!ReferenceEquals(currentPathModel, operation.SourceModel))
+                return true;
+
+            path = validation.PathModel;
+            currentPathModel = validation.PathModel;
             unsavedChanges = false;
+
             OnPathChanged?.Invoke(this, new PathEditorChangedEventArgs(TrainPath));
+            return true;
+        }
+
+        /// <summary>Clears the pending save after a persistence failure on the game thread.</summary>
+        internal bool CancelSave(PathSaveOperation operation)
+        {
+            ArgumentNullException.ThrowIfNull(operation);
+
+            if (!ReferenceEquals(activeSaveOperation, operation))
+                return false;
+
+            activeSaveOperation = null;
+            return true;
+        }
+
+        internal PathPersistenceValidationResult ValidateCurrentPathForPersistence()
+        {
+            PathModel pathModel = TryGetEditablePathModel();
+            if (pathModel == null)
+            {
+                return new PathPersistenceValidationResult(false, null, null, default, default,
+                    "No editable path is currently loaded.", null);
+            }
+
+            return PathPersistenceValidationPolicy.ValidateForPersistence(pathModel, ResolveCurrent(pathModel), TrackWorld);
+        }
+
+        internal static async Task<PathPersistenceValidationResult> SaveValidatedPath(PathModel pathModel, RouteModel routeData, TrackWorld trackWorld)
+        {
+            ArgumentNullException.ThrowIfNull(pathModel);
+            ArgumentNullException.ThrowIfNull(routeData);
+
+            PathPersistenceValidationResult validation = PathPersistenceValidationPolicy.ValidateForPersistence(pathModel, trackWorld);
+            if (!validation.PersistenceAllowed)
+                return validation;
+
+            PathModel validatedModel = validation.PathModel with { ValidationState = ResolveValidationState(validation.Resolution) };
+            PathModel savedModel = await routeData.Save(validatedModel).ConfigureAwait(false);
+            return new PathPersistenceValidationResult(true, savedModel, validation.Resolution, validation.Diagnostics,
+                validation.ChangedNodeIndexes, null, null);
         }
 
         /// <summary>
@@ -1623,19 +2036,6 @@ namespace FreeTrainSimulator.Toolbox
                 Trace.TraceInformation($"Validated {revalidatedCount} path(s) for route '{routeModel.Id}'; {invalidCount} invalid.");
 
             return invalidCount;
-        }
-
-        // Attempts to snap the model to track before saving. Passing branches that rejoin the main route are
-        // woven into the generated path; paths that fail to resolve or whose passing shapes the generator cannot
-        // represent are saved as authored (never dropping data), with the reason traced.
-        private static PathModel TrySnapForSave(PathModel pathModel)
-        {
-            PathGenerationResult snapped = GenerateTrackSnappedPath(pathModel, RuntimeDataResolver.Instance.TrackWorld);
-            if (snapped.Success)
-                return snapped.PathModel;
-
-            Trace.TraceWarning($"Snap-to-track on save skipped for path '{pathModel.Id}': {snapped.Message}");
-            return pathModel;
         }
 
         public void MouseDragged(UserCommandArgs userCommandArgs, KeyModifiers keyModifiers)
@@ -1733,6 +2133,23 @@ namespace FreeTrainSimulator.Toolbox
                 if (!result.Success)
                     return result;
 
+                if (placementMode == PathEditorPlacementMode.MoveNode && currentModel.PathNodes.Any(node => node.NextSidingNode >= 0))
+                {
+                    result = MoveSelectedAuthoredNode(currentModel, movingNodeIndex, replacementAnchor, isJunction);
+                    if (!result.Success)
+                        return result;
+
+                    PathRouteResolution resolution = PathRouteResolver.Resolve(result.PathModel, TrackWorld, PathRouteResolverOptions.Default, CancellationToken.None);
+                    if (!resolution.IsValid)
+                        return PathEditResult.Failed("The moved path node leaves the main or passing route unresolved.", currentModel);
+
+                    PathPersistenceValidationResult materialization = PathPersistenceValidationPolicy.MaterializeResolvedPath(result.PathModel, resolution, TrackWorld);
+                    if (!materialization.PersistenceAllowed)
+                        return PathEditResult.Failed(materialization.FailureMessage, currentModel);
+
+                    result = PathEditResult.Succeeded(result.Message, materialization.PathModel, materialization.ChangedNodeIndexes);
+                }
+
                 committedModel = result.PathModel;
                 if (placementMode == PathEditorPlacementMode.BuildRoute)
                     committedAuthoringModel = result.PathModel;
@@ -1742,11 +2159,26 @@ namespace FreeTrainSimulator.Toolbox
             int movedNodeIndex = movingNodeIndex;
             PathModel undoSnapshot = pendingViaSourceModel ?? currentModel;
 
+            if (repairMode)
+            {
+                PushUndoSnapshot(undoSnapshot);
+                unsavedChanges = true;
+                ClearMoveNodeState();
+                RestoreSnapshot(committedModel);
+                OnPathUpdated?.Invoke(this, new PathEditorChangedEventArgs(TrainPath));
+                return PathEditResult.Succeeded($"Moved node {movedNodeIndex}.", currentPathModel, ImmutableArray.Create(movedNodeIndex));
+            }
+
             // Every placement commit funnels through the unified span-commit routine, so the affected span is
             // resolved and materialized exactly like a directly authored anchor.
             ImmutableArray<int> changedNodeIndexes = result?.ChangedNodeIndexes ?? ImmutableArray.Create(movedNodeIndex);
-            PathSpanCommitResult spanCommit = movePreviewSpanCommit
-                ?? EvaluateSpanCommit(committedModel, changedNodeIndexes, "Placement committed.", undoSnapshot,
+            bool isPassingBranchMove = committedMode == PathEditorPlacementMode.MoveNode
+                && PathModelEditor.TryGetPassingBranchNodeRole(undoSnapshot, movedNodeIndex, out PassingBranchNodeRole moveRole, out _)
+                && moveRole == PassingBranchNodeRole.BranchInterior
+                && movePreviewSpanCommit == null;
+            PathSpanCommitResult spanCommit = isPassingBranchMove
+                ? PathSpanCommitResult.Resolved("Passing-branch move committed.", committedModel, changedNodeIndexes)
+                : movePreviewSpanCommit ?? EvaluateSpanCommit(committedModel, changedNodeIndexes, "Placement committed.", undoSnapshot,
                     AllowsAutomaticReversal(placementMode));
             if (spanCommit.Status == PathSpanCommitStatus.Unresolved)
                 return PathEditResult.Failed(spanCommit.Message, currentModel);
@@ -1897,7 +2329,45 @@ namespace FreeTrainSimulator.Toolbox
             return TryGetEditablePathModel();
         }
 
-        internal TrainPathBase TryCaptureRenderedPath() => RenderedPath;
+        private void ClearAuthoredNodeSelection()
+        {
+            selectedAuthoredNode = null;
+            selectedAuthoredNodeIndex = -1;
+        }
+
+        private void ReconcileAuthoredNodeSelection(PathModel snapshot)
+        {
+            ImmutableArray<PathNode> nodes = snapshot?.PathNodes ?? ImmutableArray<PathNode>.Empty;
+            if (nodes.IsEmpty)
+            {
+                ClearAuthoredNodeSelection();
+                return;
+            }
+
+            int selectedIndex = -1;
+            if (selectedAuthoredNode != null)
+            {
+                for (int i = 0; i < nodes.Length; i++)
+                {
+                    if (ReferenceEquals(nodes[i], selectedAuthoredNode))
+                    {
+                        selectedIndex = i;
+                        break;
+                    }
+                }
+            }
+
+            if (selectedIndex < 0 && selectedAuthoredNodeIndex >= 0)
+                selectedIndex = Math.Min(selectedAuthoredNodeIndex, nodes.Length - 1);
+
+            if (selectedIndex < 0)
+                return;
+
+            selectedAuthoredNodeIndex = selectedIndex;
+            selectedAuthoredNode = nodes[selectedIndex];
+            if (!repairMode)
+                SelectPathItem(selectedIndex);
+        }
 
         private static int IndexOfNodeType(PathModel pathModel, PathNodeType nodeType, int fallback)
         {
@@ -1964,7 +2434,12 @@ namespace FreeTrainSimulator.Toolbox
             // silently switch a path that was opened for viewing into edit mode.
             path = snapshot;
             currentPathModel = snapshot;
-            RestorePath(snapshot, EditMode);
+            repairMode = ResolveCurrent(snapshot)?.HighestSeverity == PathRouteDiagnosticSeverity.Fatal;
+            if (repairMode)
+                ClearRuntimePathState(true);
+            else
+                RestorePath(snapshot, EditMode);
+            ReconcileAuthoredNodeSelection(snapshot);
             ClearMoveNodeState();
             editorDragged = false;
         }

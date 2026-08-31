@@ -434,6 +434,41 @@ namespace FreeTrainSimulator.Toolbox
             return completion.Task;
         }
 
+        internal Task<T> InvokeOnGameThreadAsync<T>(Func<Task<T>> action)
+        {
+            ArgumentNullException.ThrowIfNull(action);
+
+            if (windowForm.IsDisposed || windowForm.Disposing)
+                return Task.FromResult(default(T));
+
+            if (!windowForm.InvokeRequired)
+                return action();
+
+            TaskCompletionSource<T> completion = new(TaskCreationOptions.RunContinuationsAsynchronously);
+            try
+            {
+                windowForm.BeginInvoke((System.Windows.Forms.MethodInvoker)delegate
+                {
+                    Task<T> task = action();
+                    _ = task.ContinueWith(completedTask =>
+                    {
+                        if (completedTask.IsCanceled)
+                            completion.TrySetCanceled();
+                        else if (completedTask.IsFaulted)
+                            completion.TrySetException(completedTask.Exception.InnerExceptions);
+                        else
+                            completion.TrySetResult(completedTask.Result);
+                    }, CancellationToken.None, TaskContinuationOptions.ExecuteSynchronously, TaskScheduler.Default);
+                });
+            }
+            catch (InvalidOperationException exception)
+            {
+                completion.TrySetException(exception);
+            }
+
+            return completion.Task;
+        }
+
         private static void CompleteInvokedTask(Task task, object state)
         {
             TaskCompletionSource completion = (TaskCompletionSource)state;
