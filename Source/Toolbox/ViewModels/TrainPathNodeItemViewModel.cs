@@ -27,7 +27,7 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
             nextSidingNode = -1;
         }
 
-        public TrainPathNodeItemViewModel(TrainPathNodeRow row): this(row.Index, row.NodeType, row.Valid)
+        public TrainPathNodeItemViewModel(TrainPathNodeRow row) : this(row.Index, row.NodeType, row.Valid)
         {
             Update(row);
         }

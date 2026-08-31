@@ -7,7 +7,6 @@ using System.Threading.Tasks;
 using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Graphics;
 using FreeTrainSimulator.Models.Content;
-using FreeTrainSimulator.Toolbox;
 
 namespace FreeTrainSimulator.Toolbox.Hosting
 {

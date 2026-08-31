@@ -23,7 +23,6 @@ using FreeTrainSimulator.Graphics.Xna;
 using FreeTrainSimulator.Models.Settings;
 using FreeTrainSimulator.Models.Shim;
 using FreeTrainSimulator.Toolbox.Hosting;
-using FreeTrainSimulator.Toolbox.PathEditing;
 using FreeTrainSimulator.Toolbox.PopupWindows;
 using FreeTrainSimulator.Toolbox.Settings;
 using FreeTrainSimulator.Toolbox.ToolWindows;

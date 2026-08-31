@@ -1,11 +1,10 @@
-using System;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 
-using FreeTrainSimulator.Toolbox.ViewModels;
 using FreeTrainSimulator.Toolbox.PathEditing;
+using FreeTrainSimulator.Toolbox.ViewModels;
 
 namespace FreeTrainSimulator.Toolbox.Views
 {

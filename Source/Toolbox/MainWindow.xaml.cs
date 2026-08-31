@@ -20,11 +20,9 @@ using FreeTrainSimulator.Toolbox.Dialogs;
 using FreeTrainSimulator.Toolbox.Hosting;
 using FreeTrainSimulator.Toolbox.PathEditing;
 using FreeTrainSimulator.Toolbox.Settings;
-using FreeTrainSimulator.Toolbox.ToolWindows;
 using FreeTrainSimulator.Toolbox.ViewModels;
 
 using GetText;
-using GetText.Wpf;
 
 namespace FreeTrainSimulator.Toolbox
 {

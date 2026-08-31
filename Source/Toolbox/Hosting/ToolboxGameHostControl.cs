@@ -10,7 +10,6 @@ using FreeTrainSimulator.Common.Native;
 using FreeTrainSimulator.Models.Content;
 using FreeTrainSimulator.Toolbox.PathEditing;
 using FreeTrainSimulator.Toolbox.Settings;
-using FreeTrainSimulator.Toolbox.ToolWindows;
 
 namespace FreeTrainSimulator.Toolbox.Hosting
 {

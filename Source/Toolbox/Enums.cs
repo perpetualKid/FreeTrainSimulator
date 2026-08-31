@@ -23,7 +23,7 @@ namespace FreeTrainSimulator.Toolbox
         [Description("Log Window (Tab)")] DisplayLogWindow,
         [Description("Train Path Window (Tab)")] DisplayTrainPathWindow,
         [Description("Path Editor Undo")] PathEditorUndo,
-        [Description("Path Editor Redo")] PathEditorRedo,           
+        [Description("Path Editor Redo")] PathEditorRedo,
         [Description("Path Editor Alternate Redo")] PathEditorAlternateRedo,
         [Description("Remove Selected Via Point")] RemoveSelectedViaPoint,
         [Description("Commit Path Placement")] CommitPathPlacement,
@@ -32,4 +32,3 @@ namespace FreeTrainSimulator.Toolbox
         [Description("Accept Route Candidate")] AcceptRouteCandidate,
     }
 }
-    
