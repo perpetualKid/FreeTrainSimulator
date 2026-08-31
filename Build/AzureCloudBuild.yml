@@ -18,7 +18,7 @@ pool:
   vmImage: 'windows-2025-vs2026' #'windows-latest'
 
 variables:
-  solution: 'Source/FreeTrainSimulator.sln'
+  solution: 'Source/FreeTrainSimulator.slnx'
   buildPlatform: 'Any CPU'
   buildConfiguration: 'Release' #changes to Debug below if this is a prerelease version 
 
