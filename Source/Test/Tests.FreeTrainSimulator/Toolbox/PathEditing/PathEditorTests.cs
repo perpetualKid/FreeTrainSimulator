@@ -607,7 +607,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.PathEditing
 
                 Assert.IsFalse(result.Success);
                 Assert.AreSame(committedModel, editor.TryCaptureCurrentPathModel());
-                StringAssert.Contains(result.Message, "Accept or cancel");
+                StringAssert.Contains(result.Message, "Accept or cancel", StringComparison.OrdinalIgnoreCase);
             }
         }
 

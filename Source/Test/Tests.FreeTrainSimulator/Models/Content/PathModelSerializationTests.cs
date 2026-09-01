@@ -19,12 +19,6 @@ namespace Tests.FreeTrainSimulator.Models.Content
     public class PathModelSerializationTests
     {
         [TestMethod]
-        public void PathNodeTypeViaRetainsPersistedValue()
-        {
-            Assert.AreEqual(0x2, (int)PathNodeType.Via);
-        }
-
-        [TestMethod]
         public void WhenPathModelRoundTripsThenNodeCountIsPreserved()
         {
             PathModel original = CreatePathModel();

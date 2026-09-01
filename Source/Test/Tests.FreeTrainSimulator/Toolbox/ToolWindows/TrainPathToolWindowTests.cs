@@ -845,24 +845,6 @@ namespace Tests.FreeTrainSimulator.Toolbox.ToolWindows
             return new TrainPathToolWindow(() => null, () => null, invoker, createPathAction, savePathAction, loadPathAction, unloadPathAction, () => { });
         }
 
-        private sealed class TestTrainPathToolingContext : ITrainPathToolingContext
-        {
-            private readonly ImmutableArray<PathModelHeader> paths;
-
-            public TestTrainPathToolingContext(ImmutableArray<PathModelHeader> paths)
-            {
-                this.paths = paths;
-            }
-
-            public bool UseMetricUnits => true;
-
-            public TrackWorld TrackWorld => null;
-
-            public Task<ImmutableArray<PathModelHeader>> GetPaths() => Task.FromResult(paths);
-
-            public Task<ImmutableArray<PathModelHeader>> ValidateAllPaths() => Task.FromResult(paths);
-        }
-
         private static PathModel CreatePathModel(params PathNodeType[] nodeTypes)
         {
             ImmutableArray<PathNode>.Builder nodes = ImmutableArray.CreateBuilder<PathNode>(nodeTypes.Length);

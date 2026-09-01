@@ -59,7 +59,7 @@ namespace FreeTrainSimulator.Runtime.Track
         }
 
         private static string NearestStation(IEnumerable<(int TrackNodeIndex, double StartPosition, TrackDirection Direction, double DistanceToNodeStart)> routeNodes,
-            IReadOnlyDictionary<int, List<PlatformTrackItem>> platformsByNode, double maximumDistance)
+            Dictionary<int, List<PlatformTrackItem>> platformsByNode, double maximumDistance)
         {
             foreach ((int trackNodeIndex, double startPosition, TrackDirection direction, double distanceToNodeStart) in routeNodes)
             {
