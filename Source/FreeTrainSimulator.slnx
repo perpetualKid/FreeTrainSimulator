@@ -26,18 +26,13 @@
     <Project Path="Test/Tests.FreeTrainSimulator/Tests.FreeTrainSimulator.csproj" />
     <Project Path="Test/Tests.Orts/Tests.Orts.csproj" />
   </Folder>
-  <Project Path="ActivityRunner/ActivityRunner.csproj">
-    <BuildDependency Project="Toolbox/Toolbox.csproj" />
-  </Project>
+  <Project Path="ActivityRunner/ActivityRunner.csproj" />
   <Project Path="FreeTrainSimulator.Common/FreeTrainSimulator.Common.csproj" />
   <Project Path="FreeTrainSimulator.Graphics/FreeTrainSimulator.Graphics.csproj" />
-  <Project Path="FreeTrainSimulator.Models.Imported/FreeTrainSimulator.Models.Imported.csproj">
-    <BuildType Solution="CodeAnalysis|*" Project="Debug" />
-  </Project>
+  <Project Path="FreeTrainSimulator.Models.Imported/FreeTrainSimulator.Models.Imported.csproj" />
   <Project Path="FreeTrainSimulator.Models/FreeTrainSimulator.Models.csproj" />
   <Project Path="FreeTrainSimulator.Online/FreeTrainSimulator.Online.csproj" />
   <Project Path="FreetrainSimulator.Runtime/FreetrainSimulator.Runtime.csproj">
-    <BuildType Solution="CodeAnalysis|*" Project="Debug" />
     <BuildType Solution="UpdateContentVersion|*" Project="Release" />
   </Project>
   <Project Path="FreeTrainSimulator.Updater/FreeTrainSimulator.Updater.csproj" />
@@ -49,7 +44,4 @@
   <Project Path="Orts.Simulation/Orts.Simulation.csproj" />
   <Project Path="Toolbox/Toolbox.csproj" />
   <Project Path="Updater/Updater.csproj" />
-  <Properties Name="Performance">
-    <Property Name="HasPerformanceSessions" Value="true" />
-  </Properties>
 </Solution>

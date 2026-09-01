@@ -26,10 +26,11 @@ steps:
 - task: NuGetToolInstaller@1
   displayName: Installing Nuget tools
 
-- task: NuGetCommand@2
+- task: DotNetCoreCLI@2
   displayName: Restore Nuget Packages for Solution
   inputs:
-    restoreSolution: '$(solution)'
+    command: restore
+    projects: '$(solution)'
 
 - task: DotNetCoreCLI@2
   displayName: Restore dotnet tools
