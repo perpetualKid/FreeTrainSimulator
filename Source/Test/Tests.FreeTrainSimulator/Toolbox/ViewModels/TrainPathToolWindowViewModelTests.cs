@@ -9,7 +9,6 @@ using System.Windows.Threading;
 using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Models.Content;
 using FreeTrainSimulator.Runtime.Track;
-using FreeTrainSimulator.Toolbox;
 using FreeTrainSimulator.Toolbox.PathEditing;
 using FreeTrainSimulator.Toolbox.ToolWindows;
 using FreeTrainSimulator.Toolbox.ViewModels;
@@ -53,6 +52,65 @@ namespace Tests.FreeTrainSimulator.Toolbox.ViewModels
         }
 
         [TestMethod]
+        public void WhenPathInteractionIsCancelableThenConflictingNodeCommandIsDisabled()
+        {
+            TrainPathToolWindow bridge = CreateBridge(action => action());
+            SetBridgeSnapshot(bridge, TrainPathSnapshot.Empty with
+            {
+                Nodes = [new TrainPathNodeRow(0, PathNodeType.Intermediate, true, 1, -1, -1, null, null)],
+                SelectedNodeIndex = 0,
+                CanRemoveSelectedViaPoint = true,
+                CanCancelPathInteraction = true,
+            });
+            using (ToolWindowRefreshScheduler refreshScheduler = new ToolWindowRefreshScheduler(Dispatcher.CurrentDispatcher))
+            {
+                using (TrainPathToolWindowViewModel viewModel = new TrainPathToolWindowViewModel(bridge, refreshScheduler))
+                {
+                    viewModel.Start();
+
+                    Assert.IsFalse(viewModel.RemoveViaPointCommand.CanExecute(null));
+                }
+            }
+        }
+
+        [TestMethod]
+        public void WhenPathInteractionIsCancelableThenCancelInteractionCommandIsEnabled()
+        {
+            TrainPathToolWindow bridge = CreateBridge(action => action());
+            SetBridgeSnapshot(bridge, TrainPathSnapshot.Empty with { CanCancelPathInteraction = true });
+            using (ToolWindowRefreshScheduler refreshScheduler = new ToolWindowRefreshScheduler(Dispatcher.CurrentDispatcher))
+            {
+                using (TrainPathToolWindowViewModel viewModel = new TrainPathToolWindowViewModel(bridge, refreshScheduler))
+                {
+                    viewModel.Start();
+
+                    Assert.IsTrue(viewModel.CancelPathInteractionCommand.CanExecute(null));
+                }
+            }
+        }
+
+        [TestMethod]
+        public void WhenCandidateInteractionIsActiveThenSelectedCandidateCanBeAccepted()
+        {
+            TrainPathToolWindow bridge = CreateBridge(action => action());
+            SetBridgeSnapshot(bridge, TrainPathSnapshot.Empty with
+            {
+                RouteCandidates = [new TrainPathRouteCandidateRow(0, 1, 0, "candidate")],
+                CanCancelPathInteraction = true,
+            });
+            using (ToolWindowRefreshScheduler refreshScheduler = new ToolWindowRefreshScheduler(Dispatcher.CurrentDispatcher))
+            {
+                using (TrainPathToolWindowViewModel viewModel = new TrainPathToolWindowViewModel(bridge, refreshScheduler))
+                {
+                    viewModel.Start();
+                    viewModel.SelectedRouteCandidate = viewModel.RouteCandidates[0];
+
+                    Assert.IsTrue(viewModel.AcceptRouteCandidateCommand.CanExecute(null));
+                }
+            }
+        }
+
+        [TestMethod]
         public void WhenSetEndHereCommandDisabledThenItCannotExecute()
         {
             TrainPathToolWindow bridge = CreateBridge(action => action());
@@ -86,12 +144,15 @@ namespace Tests.FreeTrainSimulator.Toolbox.ViewModels
         public void WhenNoRouteIsLoadedThenValidateAllPathsCommandIsDisabled()
         {
             TrainPathToolWindow bridge = CreateBridge(action => action());
-            using ToolWindowRefreshScheduler refreshScheduler = new(Dispatcher.CurrentDispatcher);
-            using TrainPathToolWindowViewModel viewModel = new(bridge, refreshScheduler);
+            using (ToolWindowRefreshScheduler refreshScheduler = new ToolWindowRefreshScheduler(Dispatcher.CurrentDispatcher))
+            {
+                using (TrainPathToolWindowViewModel viewModel = new TrainPathToolWindowViewModel(bridge, refreshScheduler))
+                {
+                    viewModel.Start();
 
-            viewModel.Start();
-
-            Assert.IsFalse(viewModel.ValidateAllPathsCommand.CanExecute(null));
+                    Assert.IsFalse(viewModel.ValidateAllPathsCommand.CanExecute(null));
+                }
+            }
         }
 
         [TestMethod]
@@ -99,13 +160,17 @@ namespace Tests.FreeTrainSimulator.Toolbox.ViewModels
         {
             TestToolingContext context = new(() => Task.FromResult(ImmutableArray<PathModelHeader>.Empty));
             TrainPathToolWindow bridge = CreateBridge(action => action(), context);
-            using ToolWindowRefreshScheduler refreshScheduler = new(Dispatcher.CurrentDispatcher);
-            using TrainPathToolWindowViewModel viewModel = new(bridge, refreshScheduler);
-            viewModel.Start();
+            using (ToolWindowRefreshScheduler refreshScheduler = new ToolWindowRefreshScheduler(Dispatcher.CurrentDispatcher))
+            {
+                using (TrainPathToolWindowViewModel viewModel = new TrainPathToolWindowViewModel(bridge, refreshScheduler))
+                {
+                    viewModel.Start();
 
-            viewModel.ValidateAllPathsCommand.Execute(null);
+                    viewModel.ValidateAllPathsCommand.Execute(null);
 
-            Assert.AreEqual("Path validation complete.", viewModel.StatusMessage);
+                    Assert.AreEqual("Path validation complete.", viewModel.StatusMessage);
+                }
+            }
         }
 
         [TestMethod]
@@ -223,12 +288,15 @@ namespace Tests.FreeTrainSimulator.Toolbox.ViewModels
                 CommandResultMessage = "Path node moved.",
                 CommandResultVersion = 1,
             });
-            using ToolWindowRefreshScheduler refreshScheduler = new(Dispatcher.CurrentDispatcher);
-            using TrainPathToolWindowViewModel viewModel = new(bridge, refreshScheduler);
+            using (ToolWindowRefreshScheduler refreshScheduler = new ToolWindowRefreshScheduler(Dispatcher.CurrentDispatcher))
+            {
+                using (TrainPathToolWindowViewModel viewModel = new TrainPathToolWindowViewModel(bridge, refreshScheduler))
+                {
+                    viewModel.Start();
 
-            viewModel.Start();
-
-            Assert.AreEqual("Path node moved.", viewModel.StatusMessage);
+                    Assert.AreEqual("Path node moved.", viewModel.StatusMessage);
+                }
+            }
         }
 
         [TestMethod]
@@ -241,13 +309,16 @@ namespace Tests.FreeTrainSimulator.Toolbox.ViewModels
                 CommandResultIsWarning = true,
                 CommandResultVersion = 1,
             });
-            using ToolWindowRefreshScheduler refreshScheduler = new(Dispatcher.CurrentDispatcher);
-            using TrainPathToolWindowViewModel viewModel = new(bridge, refreshScheduler);
+            using (ToolWindowRefreshScheduler refreshScheduler = new ToolWindowRefreshScheduler(Dispatcher.CurrentDispatcher))
+            {
+                using (TrainPathToolWindowViewModel viewModel = new TrainPathToolWindowViewModel(bridge, refreshScheduler))
+                {
+                    viewModel.Start();
 
-            viewModel.Start();
-
-            Assert.AreEqual("Path node cannot be moved.", viewModel.StatusMessage);
-            Assert.IsTrue(viewModel.StatusMessageIsWarning);
+                    Assert.AreEqual("Path node cannot be moved.", viewModel.StatusMessage);
+                    Assert.IsTrue(viewModel.StatusMessageIsWarning);
+                }
+            }
         }
 
         [TestMethod]
@@ -517,13 +588,11 @@ namespace Tests.FreeTrainSimulator.Toolbox.ViewModels
             {
                 using (TrainPathToolWindowViewModel viewModel = new TrainPathToolWindowViewModel(bridge, refreshScheduler))
                 {
-                    TrainPathRouteCandidateItemViewModel matchingCandidate = new TrainPathRouteCandidateItemViewModel(
-                        new TrainPathRouteCandidateRow(1, 4, 0, "matching"));
+                    TrainPathRouteCandidateItemViewModel matchingCandidate = new TrainPathRouteCandidateItemViewModel(new TrainPathRouteCandidateRow(1, 4, 0, "matching"));
                     viewModel.RouteCandidates.Add(new TrainPathRouteCandidateItemViewModel(new TrainPathRouteCandidateRow(0, 1, 0, "other")));
                     viewModel.RouteCandidates.Add(matchingCandidate);
 
-                    viewModel.SelectedDiagnostic = new TrainPathDiagnosticItemViewModel(new TrainPathDiagnosticRow(
-                        PathRouteDiagnosticSeverity.Warning, PathRouteDiagnosticCode.AmbiguousRoute, "Several routes are available.",
+                    viewModel.SelectedDiagnostic = new TrainPathDiagnosticItemViewModel(new TrainPathDiagnosticRow(PathRouteDiagnosticSeverity.Warning, PathRouteDiagnosticCode.AmbiguousRoute, "Several routes are available.",
                         -1, 1, 4, "Choose a route candidate.", false));
 
                     Assert.AreSame(matchingCandidate, viewModel.SelectedRouteCandidate);
@@ -546,14 +615,18 @@ namespace Tests.FreeTrainSimulator.Toolbox.ViewModels
         {
             TestToolingContext context = new(() => Task.FromException<ImmutableArray<PathModelHeader>>(exception));
             TrainPathToolWindow bridge = CreateBridge(action => action(), context);
-            using ToolWindowRefreshScheduler refreshScheduler = new(Dispatcher.CurrentDispatcher);
-            using TrainPathToolWindowViewModel viewModel = new(bridge, refreshScheduler);
-            viewModel.Start();
+            using (ToolWindowRefreshScheduler refreshScheduler = new ToolWindowRefreshScheduler(Dispatcher.CurrentDispatcher))
+            {
+                using (TrainPathToolWindowViewModel viewModel = new TrainPathToolWindowViewModel(bridge, refreshScheduler))
+                {
+                    viewModel.Start();
 
-            viewModel.ValidateAllPathsCommand.Execute(null);
+                    viewModel.ValidateAllPathsCommand.Execute(null);
 
-            Assert.AreEqual($"Path validation failed: {exception.Message}", viewModel.StatusMessage);
-            Assert.IsTrue(viewModel.StatusMessageIsWarning);
+                    Assert.AreEqual($"Path validation failed: {exception.Message}", viewModel.StatusMessage);
+                    Assert.IsTrue(viewModel.StatusMessageIsWarning);
+                }
+            }
         }
 
         private sealed class TestToolingContext : ITrainPathToolingContext

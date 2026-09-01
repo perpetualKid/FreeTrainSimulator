@@ -596,6 +596,59 @@ namespace Tests.FreeTrainSimulator.Toolbox.PathEditing
         }
 
         [TestMethod]
+        public void WhenPendingAmbiguousCandidateExistsThenMetadataEditIsRejected()
+        {
+            using (PathEditor editor = CreateEditor(CreateAmbiguousEndpointPath(), CreateAmbiguousTrackWorld()))
+            {
+                _ = editor.SetEndAnchorCommand(CreateNodeAt(200, PathNodeType.None, -1) with { NodeIndex = 2 }, false);
+                PathModel committedModel = editor.TryCaptureCurrentPathModel();
+
+                PathEditorCommandResult result = editor.SetMetadataCommand("Changed", "Changed Start", "Changed End", false);
+
+                Assert.IsFalse(result.Success);
+                Assert.AreSame(committedModel, editor.TryCaptureCurrentPathModel());
+                StringAssert.Contains(result.Message, "Accept or cancel");
+            }
+        }
+
+        [TestMethod]
+        public async Task WhenPendingAmbiguousCandidateSourceIsStaleThenAcceptancePreservesCurrentPath()
+        {
+            using (PathEditor editor = CreateEditor(CreateAmbiguousEndpointPath(), CreateAmbiguousTrackWorld()))
+            {
+                _ = editor.SetEndAnchorCommand(CreateNodeAt(200, PathNodeType.None, -1) with { NodeIndex = 2 }, false);
+                PathModel replacement = CreateEditablePath() with { Id = "replacement-path" };
+                Assert.IsTrue(await editor.InitializePathAsync(replacement, CancellationToken.None).ConfigureAwait(false));
+
+                PathEditResult result = editor.AcceptPendingRouteCandidate(0, 0);
+
+                Assert.IsFalse(result.Success);
+                Assert.AreSame(replacement, editor.TryCaptureCurrentPathModel());
+                Assert.IsFalse(editor.HasPendingAmbiguousSpanCommit);
+            }
+        }
+
+        [TestMethod]
+        public void WhenAlternatePointerIsReleasedThenPathEditorLeavesInputUnhandled()
+        {
+            UserCommandController<global::FreeTrainSimulator.Toolbox.UserCommand> commandController = new UserCommandController<global::FreeTrainSimulator.Toolbox.UserCommand>();
+            using (PathEditor editor = new PathEditor(new TestPathEditorContext(TrackWorldTestFixture.CreateSingleVectorNodeTrackWorld()), commandController, action => action()))
+            {
+                editor.InitializeNewPath();
+                UserCommandArgs commandArgs = new UserCommandArgs();
+
+                MethodInfo trigger = typeof(UserCommandController<global::FreeTrainSimulator.Toolbox.UserCommand>)
+                    .GetMethods(BindingFlags.Instance | BindingFlags.NonPublic)
+                    .Single(method => method.Name == "Trigger"
+                        && method.GetParameters()[0].ParameterType == typeof(CommonUserCommand));
+                trigger.Invoke(commandController, new object[] { CommonUserCommand.AlternatePointerReleased, commandArgs, new GameTime(), KeyModifiers.None });
+
+                Assert.IsFalse(commandArgs.Handled);
+                Assert.IsFalse(editor.CanUndo);
+            }
+        }
+
+        [TestMethod]
         public void WhenSpanGenerationFailsThenCommittedStateAndHistoryRemainUnchanged()
         {
             PathModel source = CreateNonRejoiningPassingPath();

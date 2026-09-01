@@ -384,8 +384,8 @@
                             Command="{Binding CommitPlacementCommand}" />
                     <Button Margin="0,0,6,4"
                             Padding="8,2"
-                            Content="Cancel Placement"
-                            Command="{Binding CancelPlacementCommand}" />
+                            Content="Cancel Interaction"
+                            Command="{Binding CancelPathInteractionCommand}" />
                 </WrapPanel>
                 <ListView Grid.Row="1"
                           ContextMenuOpening="PathNodes_ContextMenuOpening"
