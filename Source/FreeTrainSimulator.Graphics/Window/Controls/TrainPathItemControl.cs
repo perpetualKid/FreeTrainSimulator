@@ -20,7 +20,7 @@ namespace FreeTrainSimulator.Graphics.Window.Controls
                 PathNodeType _ when nodeType.Includes(PathNodeType.Start) => BasicTextureType.PathStart,
                 PathNodeType _ when nodeType.Includes(PathNodeType.End) => BasicTextureType.PathEnd,
                 PathNodeType _ when nodeType.Includes(PathNodeType.Junction) => BasicTextureType.PathNormal,
-                PathNodeType _ when nodeType.Includes(PathNodeType.Intermediate) => BasicTextureType.PathNormal,
+                PathNodeType _ when nodeType.Includes(PathNodeType.Via) => BasicTextureType.PathNormal,
                 PathNodeType _ when nodeType.Includes(PathNodeType.Wait) => BasicTextureType.PathWait,
                 PathNodeType _ when nodeType.Includes(PathNodeType.Reversal) => BasicTextureType.PathReverse,
                 PathNodeType _ when nodeType.Includes(PathNodeType.None) => BasicTextureType.RingCrossed,

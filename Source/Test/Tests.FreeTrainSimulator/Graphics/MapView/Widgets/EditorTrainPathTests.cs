@@ -79,11 +79,11 @@ namespace Tests.FreeTrainSimulator.Graphics.MapView.Widgets
         [TestMethod]
         public void WhenPathHasStartAndDanglingNodeWithoutEndThenConstructionSucceeds()
         {
-            // Start -> Intermediate with no End and no outgoing link on the last node: the dangling node must
+            // Start -> Via with no End and no outgoing link on the last node: the dangling node must
             // be skipped during section building rather than dereferencing a null endpoint.
             PathModel partialPath = CreatePath(
                 Node(PathNodeType.Start, nextMainNode: 1),
-                Node(PathNodeType.Intermediate, nextMainNode: -1));
+                Node(PathNodeType.Via, nextMainNode: -1));
 
             EditorTrainPath trainPath = new EditorTrainPath(partialPath, CreateTrackWorld());
 
@@ -122,7 +122,7 @@ namespace Tests.FreeTrainSimulator.Graphics.MapView.Widgets
             // (UpdatePathEndPoint) must not dereference a null anchor.
             PathModel path = CreatePath(
                 Node(PathNodeType.Start, nextMainNode: 1),
-                Node(PathNodeType.Intermediate, nextMainNode: -1));
+                Node(PathNodeType.Via, nextMainNode: -1));
             EditorTrainPath trainPath = new EditorTrainPath(path, CreateTrackWorld());
 
             EditorPathPoint result = trainPath.UpdatePathEndPoint(PointD.None, null, null);
@@ -191,7 +191,7 @@ namespace Tests.FreeTrainSimulator.Graphics.MapView.Widgets
         {
             PathModel path = CreatePath(
                 NodeAt(0, PathNodeType.Start, nextMainNode: 1),
-                NodeAt(100, PathNodeType.Intermediate, nextMainNode: 2),
+                NodeAt(100, PathNodeType.Via, nextMainNode: 2),
                 NodeAt(200, PathNodeType.End, nextMainNode: -1));
             EditorTrainPath trainPath = new EditorTrainPath(path, CreateTrackWorld());
 
@@ -232,7 +232,7 @@ namespace Tests.FreeTrainSimulator.Graphics.MapView.Widgets
         {
             PathModel path = CreatePath(
                 NodeAt(0, PathNodeType.Start, nextMainNode: 1),
-                NodeAt(100, PathNodeType.Intermediate, nextMainNode: 2),
+                NodeAt(100, PathNodeType.Via, nextMainNode: 2),
                 NodeAt(200, PathNodeType.End, nextMainNode: -1));
             EditorTrainPath trainPath = new EditorTrainPath(path, CreateTrackWorld());
 
@@ -250,7 +250,7 @@ namespace Tests.FreeTrainSimulator.Graphics.MapView.Widgets
             PathModel path = CreatePath(
                 NodeAt(0, PathNodeType.Start, nextMainNode: 1),
                 NodeAt(100, PathNodeType.End, nextMainNode: -1),
-                NodeAt(200, PathNodeType.Intermediate, nextMainNode: -1));
+                NodeAt(200, PathNodeType.Via, nextMainNode: -1));
             EditorTrainPath trainPath = new EditorTrainPath(path, CreateTrackWorld());
 
             bool highlighted = trainPath.HighlightMainPathSpan(0, 2);
@@ -319,7 +319,7 @@ namespace Tests.FreeTrainSimulator.Graphics.MapView.Widgets
         {
             // Built via the (location, vector, nodeType) constructor so ValidationResult stays None, i.e. a
             // valid anchor the editor is allowed to extend from.
-            return new EditorPathPoint(PointD.None, PointD.None, PathNodeType.Intermediate);
+            return new EditorPathPoint(PointD.None, PointD.None, PathNodeType.Via);
         }
 
         private static PathNode Node(PathNodeType nodeType, int nextMainNode)

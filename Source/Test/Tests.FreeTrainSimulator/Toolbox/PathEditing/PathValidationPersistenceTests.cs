@@ -282,8 +282,8 @@ namespace Tests.FreeTrainSimulator.Toolbox.PathEditing
                 Name = "Unpersisted Replacement",
                 PathNodes = ImmutableArray.Create(
                     CreatePathNode(0, PathNodeType.Start, 1) with { NextSidingNode = 2 },
-                    CreatePathNode(50, PathNodeType.Intermediate, 3),
-                    CreatePathNode(25, PathNodeType.Intermediate, -1),
+                    CreatePathNode(50, PathNodeType.Via, 3),
+                    CreatePathNode(25, PathNodeType.Via, -1),
                     CreatePathNode(100, PathNodeType.End, -1)),
             };
 
@@ -377,9 +377,9 @@ namespace Tests.FreeTrainSimulator.Toolbox.PathEditing
                 Name = id,
                 PathNodes = ImmutableArray.Create(
                     CreateAnchoredPathNode(trackWorld, 1, PathNodeType.Start, 1, 3),
-                    CreateAnchoredPathNode(trackWorld, 4, PathNodeType.Intermediate, 2, -1),
+                    CreateAnchoredPathNode(trackWorld, 4, PathNodeType.Via, 2, -1),
                     CreateAnchoredPathNode(trackWorld, 2, PathNodeType.End, -1, -1),
-                    CreateAnchoredPathNode(trackWorld, 5, PathNodeType.Intermediate, -1, 2)),
+                    CreateAnchoredPathNode(trackWorld, 5, PathNodeType.Via, -1, 2)),
             };
         }
 
@@ -495,7 +495,8 @@ namespace Tests.FreeTrainSimulator.Toolbox.PathEditing
         private static global::FreeTrainSimulator.Models.Track.JunctionNode CreateJunctionNode(int nodeIndex)
         {
             return new global::FreeTrainSimulator.Models.Track.JunctionNode(new WorldLocation(new Tile(0, 0), new Vector3(nodeIndex * 100, 0, 0)),
-                new Tile(0, 0), Vector3.Zero) { NodeIndex = nodeIndex };
+                new Tile(0, 0), Vector3.Zero)
+            { NodeIndex = nodeIndex };
         }
 
         private static TrackNodeConnectorIndex CreateConnectors(int nodeIndex, params int[] linkedNodeIndexes)

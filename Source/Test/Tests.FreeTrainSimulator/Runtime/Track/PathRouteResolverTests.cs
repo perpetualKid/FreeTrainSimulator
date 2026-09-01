@@ -45,7 +45,7 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
         {
             PathModel pathModel = new PathModel()
             {
-                PathNodes = ImmutableArray.Create(CreateNode(PathNodeType.Intermediate, -1)),
+                PathNodes = ImmutableArray.Create(CreateNode(PathNodeType.Via, -1)),
             };
 
             PathRouteResolution result = PathRouteResolver.Resolve(pathModel, null, TestContext.CancellationToken);
@@ -81,7 +81,7 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
             PathModel pathModel = new PathModel()
             {
                 PathNodes = ImmutableArray.Create(CreateNode(PathNodeType.Start, 1), CreateNode(PathNodeType.End, -1),
-                    CreateNode(PathNodeType.Intermediate, -1)),
+                    CreateNode(PathNodeType.Via, -1)),
             };
 
             PathRouteResolution result = PathRouteResolver.Resolve(pathModel, null, TestContext.CancellationToken);
@@ -97,7 +97,7 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
         {
             PathModel pathModel = new PathModel()
             {
-                PathNodes = ImmutableArray.Create(CreateNode(PathNodeType.Start, 1), CreateNode(PathNodeType.Intermediate, 2),
+                PathNodes = ImmutableArray.Create(CreateNode(PathNodeType.Start, 1), CreateNode(PathNodeType.Via, 2),
                     CreateNode(PathNodeType.End, 1)),
             };
 
@@ -115,7 +115,7 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
             PathModel pathModel = new PathModel()
             {
                 PathNodes = ImmutableArray.Create(CreateNode(PathNodeType.Start, 1, 2), CreateNode(PathNodeType.End, -1),
-                    CreateNode(PathNodeType.Intermediate, -1, 3), CreateNode(PathNodeType.Intermediate, -1, 2)),
+                    CreateNode(PathNodeType.Via, -1, 3), CreateNode(PathNodeType.Via, -1, 2)),
             };
 
             PathRouteResolution result = PathRouteResolver.Resolve(pathModel, null, TestContext.CancellationToken);
@@ -133,7 +133,7 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
             {
                 PathNodes = ImmutableArray.Create(
                     CreateNode(PathNodeType.Start, 1),
-                    CreateNode(PathNodeType.Intermediate, 2),
+                    CreateNode(PathNodeType.Via, 2),
                     CreateNode(PathNodeType.End, -1)),
             };
 
@@ -155,7 +155,7 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
         {
             PathModel pathModel = new PathModel()
             {
-                PathNodes = ImmutableArray.Create(CreateNode(PathNodeType.Start, 1), CreateNode(PathNodeType.Intermediate, -1), CreateNode(PathNodeType.End, -1)),
+                PathNodes = ImmutableArray.Create(CreateNode(PathNodeType.Start, 1), CreateNode(PathNodeType.Via, -1), CreateNode(PathNodeType.End, -1)),
             };
 
             PathRouteResolution result = PathRouteResolver.Resolve(pathModel, null, TestContext.CancellationToken);
@@ -193,7 +193,7 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
             TrackWorld trackWorld = CreateTrackWorld(
                 ImmutableArray.Create<TrackNodeBase>(null, CreateVectorNode(1), CreateVectorNode(2), CreateJunctionNode(3)),
                 ImmutableArray.Create(new TrackNodeConnectorIndex(), CreateConnectors(1, 3),
-                    CreateConnectors(2, 3),CreateConnectors(3, 1, 2)));
+                    CreateConnectors(2, 3), CreateConnectors(3, 1, 2)));
 
             PathModel pathModel = new PathModel()
             {
@@ -290,7 +290,7 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
             {
                 PathNodes = ImmutableArray.Create(
                     CreateNode(PathNodeType.Start, 1, -1, 1, new WorldLocation(new Tile(0, 0), new Vector3(100, 0, 25))),
-                    CreateNode(PathNodeType.Intermediate, 2, -1, 1, new WorldLocation(new Tile(0, 0), new Vector3(50, 0, 100))),
+                    CreateNode(PathNodeType.Via, 2, -1, 1, new WorldLocation(new Tile(0, 0), new Vector3(50, 0, 100))),
                     CreateNode(PathNodeType.End, -1, -1, 2, new WorldLocation(new Tile(0, 0), new Vector3(-50, 0, 0)))),
             };
 
@@ -315,7 +315,7 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
             {
                 PathNodes = ImmutableArray.Create(
                     CreateNode(PathNodeType.Start, 1, -1, 1, new WorldLocation(new Tile(0, 0), new Vector3(100, 0, 25))),
-                    CreateNode(PathNodeType.Intermediate | PathNodeType.Reversal, 2, -1, 1, new WorldLocation(new Tile(0, 0), new Vector3(50, 0, 100))),
+                    CreateNode(PathNodeType.Via | PathNodeType.Reversal, 2, -1, 1, new WorldLocation(new Tile(0, 0), new Vector3(50, 0, 100))),
                     CreateNode(PathNodeType.End, -1, -1, 2, new WorldLocation(new Tile(0, 0), new Vector3(-50, 0, 0)))),
             };
 
@@ -334,7 +334,7 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
             {
                 PathNodes = ImmutableArray.Create(
                     CreateNode(PathNodeType.Start, 1, -1, 1, new WorldLocation(new Tile(0, 0), new Vector3(100, 0, 25))),
-                    CreateNode(PathNodeType.Intermediate, 2, -1, 1, new WorldLocation(new Tile(0, 0), new Vector3(50, 0, 100))),
+                    CreateNode(PathNodeType.Via, 2, -1, 1, new WorldLocation(new Tile(0, 0), new Vector3(50, 0, 100))),
                     CreateNode(PathNodeType.End, -1, -1, 1, new WorldLocation(new Tile(0, 0), new Vector3(25, 0, 0)))),
             };
 
@@ -351,7 +351,7 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
             {
                 PathNodes = ImmutableArray.Create(
                     CreateNode(PathNodeType.Start, 1, -1, 1, new WorldLocation(new Tile(0, 0), new Vector3(100, 0, 25))),
-                    CreateNode(PathNodeType.Intermediate | PathNodeType.Reversal, 2, -1, 1, new WorldLocation(new Tile(0, 0), new Vector3(50, 0, 100))),
+                    CreateNode(PathNodeType.Via | PathNodeType.Reversal, 2, -1, 1, new WorldLocation(new Tile(0, 0), new Vector3(50, 0, 100))),
                     CreateNode(PathNodeType.End, -1, -1, 1, new WorldLocation(new Tile(0, 0), new Vector3(25, 0, 0)))),
             };
 
@@ -767,7 +767,7 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
                 PathNodes = ImmutableArray.Create(
                     CreateNode(PathNodeType.Start, 1, 2),
                     CreateNode(PathNodeType.End, -1),
-                    CreateNode(PathNodeType.Intermediate, -1)),
+                    CreateNode(PathNodeType.Via, -1)),
             };
 
             PathRouteResolution result = PathRouteResolver.Resolve(pathModel, null, TestContext.CancellationToken);
@@ -788,8 +788,8 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
             {
                 PathNodes = ImmutableArray.Create(
                     CreateNode(PathNodeType.Start, 1, 2),
-                    CreateNode(PathNodeType.Intermediate, 3),
-                    CreateNode(PathNodeType.Intermediate, -1, 3),
+                    CreateNode(PathNodeType.Via, 3),
+                    CreateNode(PathNodeType.Via, -1, 3),
                     CreateNode(PathNodeType.End, -1)),
             };
 
@@ -809,7 +809,7 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
                 PathNodes = ImmutableArray.Create(
                     CreateNode(PathNodeType.Start, 1, 2),
                     CreateNode(PathNodeType.End, -1),
-                    CreateNode(PathNodeType.Intermediate, -1)),
+                    CreateNode(PathNodeType.Via, -1)),
             };
 
             PathRouteResolution result = PathRouteResolver.Resolve(pathModel, null, TestContext.CancellationToken);
@@ -825,8 +825,8 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
         {
             PathModel pathModel = new PathModel()
             {
-                PathNodes = ImmutableArray.Create(CreateNode(PathNodeType.Start, 1), CreateNode(PathNodeType.Intermediate, 2),
-                    CreateNode(PathNodeType.Intermediate, 3, 4), CreateNode(PathNodeType.End, -1), CreateNode(PathNodeType.Intermediate, -1, 1)),
+                PathNodes = ImmutableArray.Create(CreateNode(PathNodeType.Start, 1), CreateNode(PathNodeType.Via, 2),
+                    CreateNode(PathNodeType.Via, 3, 4), CreateNode(PathNodeType.End, -1), CreateNode(PathNodeType.Via, -1, 1)),
             };
 
             PathRouteResolution result = PathRouteResolver.Resolve(pathModel, null, TestContext.CancellationToken);
@@ -835,15 +835,15 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
         }
 
         /// <summary>
-        /// Verifies that an intermediate siding node does not start a separate passing route.
+        /// Verifies that a via siding node does not start a separate passing route.
         /// </summary>
         [TestMethod]
-        public void ResolveWhenSidingChainHasIntermediateNodeBuildsSinglePassingRoute()
+        public void ResolveWhenSidingChainHasViaNodeBuildsSinglePassingRoute()
         {
             PathModel pathModel = new PathModel()
             {
                 PathNodes = ImmutableArray.Create(CreateNode(PathNodeType.Start, 1, 2), CreateNode(PathNodeType.End, -1),
-                    CreateNode(PathNodeType.Intermediate, -1, 3), CreateNode(PathNodeType.Intermediate, 1)),
+                    CreateNode(PathNodeType.Via, -1, 3), CreateNode(PathNodeType.Via, 1)),
             };
 
             PathRouteResolution result = PathRouteResolver.Resolve(pathModel, null, TestContext.CancellationToken);

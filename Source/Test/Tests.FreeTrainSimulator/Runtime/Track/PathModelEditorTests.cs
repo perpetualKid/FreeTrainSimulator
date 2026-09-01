@@ -50,7 +50,7 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
         [TestMethod]
         public void WhenSetStartAnchorReplacesStartThenLinksArePreserved()
         {
-            PathModel path = CreatePath(Node(PathNodeType.Start | PathNodeType.Invalid | PathNodeType.Intermediate, 2, 1));
+            PathModel path = CreatePath(Node(PathNodeType.Start | PathNodeType.Invalid | PathNodeType.Via, 2, 1));
 
             PathEditResult result = PathModelEditor.SetStartAnchor(path, Anchor(20, 84), false);
 
@@ -78,9 +78,9 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
         public void WhenSetStartAnchorPrependsExistingPathThenAllLinksAreReindexed()
         {
             PathModel path = CreatePath(
-                Node(PathNodeType.Intermediate, 1, 2),
-                Node(PathNodeType.Intermediate, -1),
-                Node(PathNodeType.Intermediate, 1));
+                Node(PathNodeType.Via, 1, 2),
+                Node(PathNodeType.Via, -1),
+                Node(PathNodeType.Via, 1));
 
             PathEditResult result = PathModelEditor.SetStartAnchor(path, Anchor(10, 42), false);
 
@@ -94,7 +94,7 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
         [TestMethod]
         public void WhenSetStartAnchorPrependsExistingPathThenInputModelIsUnchanged()
         {
-            PathNode originalNode = Node(PathNodeType.Intermediate, -1);
+            PathNode originalNode = Node(PathNodeType.Via, -1);
             PathModel path = CreatePath(originalNode);
 
             PathEditResult result = PathModelEditor.SetStartAnchor(path, Anchor(10, 42), false);
@@ -139,12 +139,12 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
         [TestMethod]
         public void WhenSetEndAnchorAppendsToMainTailThenInteriorNodesArePreserved()
         {
-            PathNode interior = Node(PathNodeType.Intermediate, 2, 3);
+            PathNode interior = Node(PathNodeType.Via, 2, 3);
             PathModel path = CreatePath(
                 Node(PathNodeType.Start, 1),
                 interior,
-                Node(PathNodeType.Intermediate, -1),
-                Node(PathNodeType.Intermediate, -1));
+                Node(PathNodeType.Via, -1),
+                Node(PathNodeType.Via, -1));
 
             PathEditResult result = PathModelEditor.SetEndAnchor(path, Anchor(30, 126), false);
 
@@ -159,7 +159,7 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
         {
             PathModel path = CreatePath(
                 Node(PathNodeType.Start, 1),
-                Node(PathNodeType.End | PathNodeType.Invalid | PathNodeType.Intermediate | PathNodeType.Junction, 7));
+                Node(PathNodeType.End | PathNodeType.Invalid | PathNodeType.Via | PathNodeType.Junction, 7));
 
             PathEditResult result = PathModelEditor.SetEndAnchor(path, Anchor(30, 126), false);
 
@@ -185,7 +185,7 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
         [TestMethod]
         public void WhenSetEndAnchorHasNoStartThenEditFails()
         {
-            PathModel path = CreatePath(Node(PathNodeType.Intermediate, -1));
+            PathModel path = CreatePath(Node(PathNodeType.Via, -1));
 
             PathEditResult result = PathModelEditor.SetEndAnchor(path, Anchor(30, 126), false);
 
@@ -211,7 +211,7 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
         {
             PathModel path = CreatePath(
                 Node(PathNodeType.Start, 1),
-                Node(PathNodeType.Intermediate, 0));
+                Node(PathNodeType.Via, 0));
 
             PathEditResult result = PathModelEditor.SetEndAnchor(path, Anchor(30, 126), false);
 
@@ -225,8 +225,8 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
         {
             PathModel path = CreatePath(
                 Node(PathNodeType.Start, 1),
-                Node(PathNodeType.Intermediate, -1, 2),
-                Node(PathNodeType.Intermediate, -1));
+                Node(PathNodeType.Via, -1, 2),
+                Node(PathNodeType.Via, -1));
 
             PathEditResult result = PathModelEditor.SetEndAnchor(path, Anchor(30, 126), false);
 
@@ -241,7 +241,7 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
             PathModel path = CreatePath(
                 Node(PathNodeType.Start, 1),
                 Node(PathNodeType.End, -1, 2),
-                Node(PathNodeType.Intermediate, -1));
+                Node(PathNodeType.Via, -1));
 
             PathEditResult result = PathModelEditor.SetEndAnchor(path, Anchor(30, 126), false);
 
@@ -267,7 +267,7 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
         {
             PathModel path = CreatePath(
                 Node(PathNodeType.Start, 1),
-                Node(PathNodeType.Intermediate, -1));
+                Node(PathNodeType.Via, -1));
 
             PathEditResult result = PathModelEditor.AddEnd(path);
 
@@ -280,7 +280,7 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
         {
             PathModel path = CreatePath(
                 Node(PathNodeType.Start, 1),
-                Node(PathNodeType.Intermediate, 5));
+                Node(PathNodeType.Via, 5));
 
             PathEditResult result = PathModelEditor.AddEnd(path);
 
@@ -304,7 +304,7 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
         {
             PathModel path = CreatePath(
                 Node(PathNodeType.Start, 1),
-                Node(PathNodeType.Intermediate, 2),
+                Node(PathNodeType.Via, 2),
                 Node(PathNodeType.End, -1));
 
             PathEditResult result = PathModelEditor.CreatePassingBranch(path, 0, 2);
@@ -319,7 +319,7 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
         {
             PathModel path = CreatePath(
                 Node(PathNodeType.Start, 1),
-                Node(PathNodeType.Intermediate, 2),
+                Node(PathNodeType.Via, 2),
                 Node(PathNodeType.End, -1));
 
             PathEditResult result = PathModelEditor.CreatePassingBranch(path, 1, 0);
@@ -346,9 +346,9 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
         {
             PathModel path = CreatePath(
                 Node(PathNodeType.Start, 1, 3),
-                Node(PathNodeType.Intermediate, 2),
+                Node(PathNodeType.Via, 2),
                 Node(PathNodeType.End, -1),
-                Node(PathNodeType.Intermediate, -1, 2));
+                Node(PathNodeType.Via, -1, 2));
 
             Assert.IsTrue(PathModelEditor.TryGetPassingBranchNodeRole(path, 0, out PassingBranchNodeRole startRole, out _));
             Assert.AreEqual(PassingBranchNodeRole.BranchStart, startRole);
@@ -366,7 +366,7 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
             PathModel path = CreatePath(
                 Node(PathNodeType.Start, 1),
                 Node(PathNodeType.End, -1),
-                Node(PathNodeType.Intermediate, -1));
+                Node(PathNodeType.Via, -1));
 
             PathEditResult result = PathModelEditor.CreatePassingBranch(path, 0, 1);
 
@@ -380,7 +380,7 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
             PathModel path = CreatePath(
                 Node(PathNodeType.Start, 1, 2),
                 Node(PathNodeType.End, -1),
-                Node(PathNodeType.Intermediate, -1));
+                Node(PathNodeType.Via, -1));
 
             PathEditResult result = PathModelEditor.RemovePassingBranch(path, 0);
 
@@ -394,7 +394,7 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
             PathModel path = CreatePath(
                 Node(PathNodeType.Start, 1, 2),
                 Node(PathNodeType.End, -1),
-                Node(PathNodeType.Intermediate, 1, 1));
+                Node(PathNodeType.Via, 1, 1));
             PathNode anchor = new PathNode(new WorldLocation(new Tile(0, 0), new Vector3(25, 0, 0))) { NodeIndex = 1 };
 
             PathEditResult result = PathModelEditor.MovePassingBranchAnchor(path, 2, anchor, false);
@@ -408,7 +408,7 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
         {
             PathModel path = CreatePath(
                 Node(PathNodeType.Start, 1, 2),
-                Node(PathNodeType.Intermediate, 2),
+                Node(PathNodeType.Via, 2),
                 Node(PathNodeType.End, -1));
 
             PathEditResult result = PathModelEditor.CreatePassingBranch(path, 1, 2);
@@ -420,7 +420,7 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
         [TestMethod]
         public void WhenAddEndButNoStartExistsThenResultFails()
         {
-            PathModel path = CreatePath(Node(PathNodeType.Intermediate, -1));
+            PathModel path = CreatePath(Node(PathNodeType.Via, -1));
 
             PathEditResult result = PathModelEditor.AddEnd(path);
 
@@ -438,7 +438,7 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
         }
 
         [TestMethod]
-        public void WhenRemoveEndThenEndNodeBecomesIntermediate()
+        public void WhenRemoveEndThenEndNodeBecomesVia()
         {
             PathModel path = CreatePath(
                 Node(PathNodeType.Start, 1),
@@ -447,7 +447,7 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
             PathEditResult result = PathModelEditor.RemoveEnd(path);
 
             Assert.IsTrue(result.Success);
-            Assert.AreEqual(PathNodeType.Intermediate, result.PathModel.PathNodes[1].NodeType);
+            Assert.AreEqual(PathNodeType.Via, result.PathModel.PathNodes[1].NodeType);
         }
 
         [TestMethod]
@@ -467,7 +467,7 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
         {
             PathModel path = CreatePath(
                 Node(PathNodeType.Start, 1),
-                Node(PathNodeType.Intermediate, -1));
+                Node(PathNodeType.Via, -1));
 
             PathEditResult result = PathModelEditor.RemoveEnd(path);
 
@@ -478,7 +478,7 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
         public void WhenAddStartThenFirstNodeBecomesStart()
         {
             PathModel path = CreatePath(
-                Node(PathNodeType.Intermediate, 1),
+                Node(PathNodeType.Via, 1),
                 Node(PathNodeType.End, -1));
 
             PathEditResult result = PathModelEditor.AddStart(path);
@@ -504,7 +504,7 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
         {
             PathModel path = CreatePath(
                 Node(PathNodeType.Start, 1),
-                Node(PathNodeType.Intermediate, 2),
+                Node(PathNodeType.Via, 2),
                 Node(PathNodeType.End, -1));
 
             PathEditResult result = PathModelEditor.RemoveStart(path);
@@ -516,11 +516,11 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
         [TestMethod]
         public void WhenRemoveStartThenForwardLinksAreReindexed()
         {
-            // 0:Start->1, 1:Intermediate->2, 2:End. After removing node 0, the survivors shift down by one
+            // 0:Start->1, 1:Via->2, 2:End. After removing node 0, the survivors shift down by one
             // and their links must decrement: old node 1 (now 0) linked to 2 -> now links to 1.
             PathModel path = CreatePath(
                 Node(PathNodeType.Start, 1),
-                Node(PathNodeType.Intermediate, 2),
+                Node(PathNodeType.Via, 2),
                 Node(PathNodeType.End, -1));
 
             PathEditResult result = PathModelEditor.RemoveStart(path);
@@ -534,7 +534,7 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
             // Node 1 has a passing link back to node 0 (the start). Removing node 0 must break that link to -1.
             PathModel path = CreatePath(
                 Node(PathNodeType.Start, 2),
-                Node(PathNodeType.Intermediate, 2, 0),
+                Node(PathNodeType.Via, 2, 0),
                 Node(PathNodeType.End, -1));
 
             PathEditResult result = PathModelEditor.RemoveStart(path);
@@ -546,7 +546,7 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
         public void WhenRemoveStartButNoStartExistsThenResultFails()
         {
             PathModel path = CreatePath(
-                Node(PathNodeType.Intermediate, 1),
+                Node(PathNodeType.Via, 1),
                 Node(PathNodeType.End, -1));
 
             PathEditResult result = PathModelEditor.RemoveStart(path);
@@ -559,8 +559,8 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
         {
             PathModel path = CreatePath(
                 Node(PathNodeType.Start, 1),
-                Node(PathNodeType.Intermediate, 2),
-                Node(PathNodeType.Intermediate, 3),
+                Node(PathNodeType.Via, 2),
+                Node(PathNodeType.Via, 3),
                 Node(PathNodeType.End, -1));
 
             PathEditResult result = PathModelEditor.RemoveRestOfPath(path, 1);
@@ -574,7 +574,7 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
         {
             PathModel path = CreatePath(
                 Node(PathNodeType.Start, 1),
-                Node(PathNodeType.Intermediate, 2),
+                Node(PathNodeType.Via, 2),
                 Node(PathNodeType.End, -1));
 
             PathEditResult result = PathModelEditor.RemoveRestOfPath(path, 1);
@@ -590,7 +590,7 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
             // break that link to -1.
             PathModel path = CreatePath(
                 Node(PathNodeType.Start, 1, 2),
-                Node(PathNodeType.Intermediate, 2),
+                Node(PathNodeType.Via, 2),
                 Node(PathNodeType.End, -1));
 
             PathEditResult result = PathModelEditor.RemoveRestOfPath(path, 1);
@@ -647,7 +647,7 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
             PathEditResult result = PathModelEditor.RepairNode(path, 1, trackWorld);
 
             Assert.IsTrue(result.Success);
-            Assert.IsTrue(result.PathModel.PathNodes[1].NodeType.Includes(PathNodeType.Intermediate));
+            Assert.IsTrue(result.PathModel.PathNodes[1].NodeType.Includes(PathNodeType.Via));
             Assert.IsFalse(result.PathModel.PathNodes[1].NodeType.Includes(PathNodeType.Junction));
             Assert.AreEqual(1, result.PathModel.PathNodes[1].NodeIndex);
         }
@@ -659,7 +659,7 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
                 new JunctionNode(new WorldLocation(new Tile(0, 0), new Vector3(3, 0, 0)), new Tile(0, 0), Vector3.Zero) { NodeIndex = 2 });
             PathModel path = CreatePath(
                 Node(PathNodeType.Start, 1),
-                Node(PathNodeType.Intermediate, 2),
+                Node(PathNodeType.Via, 2),
                 Node(PathNodeType.End, -1));
 
             PathEditResult result = PathModelEditor.RepairNode(path, 1, trackWorld);
@@ -678,7 +678,7 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
                 new JunctionNode(new WorldLocation(new Tile(0, 0), new Vector3(-3, 0, 0)), new Tile(0, 0), Vector3.Zero) { NodeIndex = 3 });
             PathModel path = CreatePath(
                 Node(PathNodeType.Start, 1),
-                Node(PathNodeType.Intermediate, 2),
+                Node(PathNodeType.Via, 2),
                 Node(PathNodeType.End, -1));
 
             PathEditResult result = PathModelEditor.RepairNode(path, 1, trackWorld);
@@ -742,7 +742,7 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
         public void WhenMoveNodeWithOutOfRangeIndexThenResultFails()
         {
             PathModel path = CreatePath(Node(PathNodeType.Start, -1));
-            PathNode replacement = Node(PathNodeType.Intermediate, -1);
+            PathNode replacement = Node(PathNodeType.Via, -1);
 
             PathEditResult result = PathModelEditor.MoveNode(path, 4, replacement, false);
 
@@ -757,7 +757,7 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
             // restore the pushed snapshot. The mutation must not alter the original (immutable) model.
             PathModel original = CreatePath(
                 Node(PathNodeType.Start, 1),
-                Node(PathNodeType.Intermediate, -1));
+                Node(PathNodeType.Via, -1));
             Stack<PathModel> undoHistory = new Stack<PathModel>();
 
             undoHistory.Push(original);
@@ -767,22 +767,22 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
 
             Assert.IsTrue(result.Success);
             Assert.AreEqual(PathNodeType.End, afterMutation.PathNodes[1].NodeType);
-            Assert.AreEqual(PathNodeType.Intermediate, afterUndo.PathNodes[1].NodeType);
+            Assert.AreEqual(PathNodeType.Via, afterUndo.PathNodes[1].NodeType);
             Assert.AreSame(original, afterUndo);
         }
 
         [TestMethod]
-        public void WhenWaitPointIsSetOnIntermediateNodeThenNodeIsMarkedAndWaitTimeStored()
+        public void WhenWaitPointIsSetOnViaNodeThenNodeIsMarkedAndWaitTimeStored()
         {
             PathModel path = CreatePath(
                 Node(PathNodeType.Start, 1),
-                Node(PathNodeType.Intermediate, 2),
+                Node(PathNodeType.Via, 2),
                 Node(PathNodeType.End, -1));
 
             PathEditResult result = PathModelEditor.SetWaitPoint(path, 1, 90);
 
             Assert.IsTrue(result.Success);
-            Assert.AreEqual(PathNodeType.Intermediate | PathNodeType.Wait, result.PathModel.PathNodes[1].NodeType);
+            Assert.AreEqual(PathNodeType.Via | PathNodeType.Wait, result.PathModel.PathNodes[1].NodeType);
             Assert.AreEqual(90, result.PathModel.PathNodes[1].WaitInfo.WaitTime);
         }
 
@@ -791,7 +791,7 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
         {
             PathModel path = CreatePath(
                 Node(PathNodeType.Start, 1),
-                Node(PathNodeType.Intermediate, -1));
+                Node(PathNodeType.Via, -1));
 
             PathEditResult result = PathModelEditor.SetWaitPoint(path, 1, 0);
 
@@ -829,13 +829,13 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
         {
             PathModel path = CreatePath(
                 Node(PathNodeType.Start, 1),
-                Node(PathNodeType.Intermediate, -1));
+                Node(PathNodeType.Via, -1));
             PathModel withWait = PathModelEditor.SetWaitPoint(path, 1, 30).PathModel;
 
             PathEditResult result = PathModelEditor.ClearWaitPoint(withWait, 1);
 
             Assert.IsTrue(result.Success);
-            Assert.AreEqual(PathNodeType.Intermediate, result.PathModel.PathNodes[1].NodeType);
+            Assert.AreEqual(PathNodeType.Via, result.PathModel.PathNodes[1].NodeType);
             Assert.IsNull(result.PathModel.PathNodes[1].WaitInfo);
         }
 
@@ -844,7 +844,7 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
         {
             PathModel path = CreatePath(
                 Node(PathNodeType.Start, 1),
-                Node(PathNodeType.Intermediate, -1));
+                Node(PathNodeType.Via, -1));
 
             PathEditResult result = PathModelEditor.ClearWaitPoint(path, 1);
 
@@ -852,17 +852,17 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
         }
 
         [TestMethod]
-        public void WhenReversalPointIsSetOnIntermediateNodeThenNodeIsMarked()
+        public void WhenReversalPointIsSetOnViaNodeThenNodeIsMarked()
         {
             PathModel path = CreatePath(
                 Node(PathNodeType.Start, 1),
-                Node(PathNodeType.Intermediate, 2),
+                Node(PathNodeType.Via, 2),
                 Node(PathNodeType.End, -1));
 
             PathEditResult result = PathModelEditor.SetReversalPoint(path, 1);
 
             Assert.IsTrue(result.Success);
-            Assert.AreEqual(PathNodeType.Intermediate | PathNodeType.Reversal, result.PathModel.PathNodes[1].NodeType);
+            Assert.AreEqual(PathNodeType.Via | PathNodeType.Reversal, result.PathModel.PathNodes[1].NodeType);
         }
 
         [TestMethod]
@@ -882,13 +882,13 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
         {
             PathModel path = CreatePath(
                 Node(PathNodeType.Start, 1),
-                Node(PathNodeType.Intermediate, -1));
+                Node(PathNodeType.Via, -1));
             PathModel withReversal = PathModelEditor.SetReversalPoint(path, 1).PathModel;
 
             PathEditResult result = PathModelEditor.ClearReversalPoint(withReversal, 1);
 
             Assert.IsTrue(result.Success);
-            Assert.AreEqual(PathNodeType.Intermediate, result.PathModel.PathNodes[1].NodeType);
+            Assert.AreEqual(PathNodeType.Via, result.PathModel.PathNodes[1].NodeType);
         }
 
         [TestMethod]
@@ -896,7 +896,7 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
         {
             PathModel path = CreatePath(
                 Node(PathNodeType.Start, 1),
-                Node(PathNodeType.Intermediate, -1));
+                Node(PathNodeType.Via, -1));
 
             PathEditResult result = PathModelEditor.ClearReversalPoint(path, 1);
 
@@ -927,7 +927,7 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
             Assert.IsTrue(result.Success);
             Assert.HasCount(3, result.PathModel.PathNodes);
             Assert.AreEqual(1, result.PathModel.PathNodes[0].NextMainNode);
-            Assert.AreEqual(PathNodeType.Intermediate, result.PathModel.PathNodes[1].NodeType);
+            Assert.AreEqual(PathNodeType.Via, result.PathModel.PathNodes[1].NodeType);
             Assert.AreEqual(4, result.PathModel.PathNodes[1].NodeIndex);
             Assert.AreEqual(2, result.PathModel.PathNodes[1].NextMainNode);
             Assert.AreEqual(PathNodeType.End, result.PathModel.PathNodes[2].NodeType);
@@ -938,7 +938,7 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
         {
             PathModel path = CreatePath(
                 Node(PathNodeType.Start, 1),
-                Node(PathNodeType.Intermediate, 2),
+                Node(PathNodeType.Via, 2),
                 Node(PathNodeType.End, -1));
             PathNode anchor = new PathNode(new WorldLocation(new Tile(0, 0), Vector3.Zero));
 
@@ -993,7 +993,7 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
         {
             PathModel path = CreatePath(
                 Node(PathNodeType.Start, 1),
-                Node(PathNodeType.Intermediate, 2),
+                Node(PathNodeType.Via, 2),
                 Node(PathNodeType.End, -1));
 
             PathEditResult result = PathModelEditor.RemoveViaPoint(path, 1);
@@ -1032,7 +1032,7 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
         {
             PathModel path = CreatePath(
                 Node(PathNodeType.Start, 1),
-                Node(PathNodeType.Intermediate, 2),
+                Node(PathNodeType.Via, 2),
                 Node(PathNodeType.End, -1));
             PathNode anchor = new PathNode(new WorldLocation(new Tile(0, 0), Vector3.Zero));
 
@@ -1110,7 +1110,7 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
         {
             ImmutableArray<PathRouteAnchor> anchors = intermediaryTrackNodeIndexes
                 .Select(trackNodeIndex => new PathRouteAnchor(-1, new WorldLocation(new Tile(0, 0), new Vector3(trackNodeIndex, 0, 0)),
-                    PathNodeType.Intermediate, trackNodeIndex, -1))
+                    PathNodeType.Via, trackNodeIndex, -1))
                 .ToImmutableArray();
 
             return new ResolvedRouteCandidate(ImmutableArray<int>.Empty, ImmutableArray<int>.Empty, anchors, 10.0);

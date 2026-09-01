@@ -38,7 +38,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.ToolWindows
         [TestMethod]
         public void WhenNodeActionsAreRequestedThenTheyUseSharedMapActionVocabulary()
         {
-            PathModel source = CreatePathModel(PathNodeType.Start, PathNodeType.Intermediate, PathNodeType.End);
+            PathModel source = CreatePathModel(PathNodeType.Start, PathNodeType.Via, PathNodeType.End);
             using (PathEditor editor = CreatePathEditor(source))
             {
                 TrainPathToolWindow trainPathToolWindow = new TrainPathToolWindow(() => editor, () => null, action => action(), () => { }, () => { }, _ => { }, () => { }, () => { });
@@ -54,7 +54,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.ToolWindows
         [TestMethod]
         public void WhenSharedNodeActionIsExecutedThenExistingEditorCommandRuns()
         {
-            PathModel source = CreatePathModel(PathNodeType.Start, PathNodeType.Intermediate, PathNodeType.End);
+            PathModel source = CreatePathModel(PathNodeType.Start, PathNodeType.Via, PathNodeType.End);
             using (PathEditor editor = CreatePathEditor(source))
             {
                 TrainPathToolWindow trainPathToolWindow = new TrainPathToolWindow(() => editor, () => null, action => action(), () => { }, () => { }, _ => { }, () => { }, () => { });
@@ -68,7 +68,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.ToolWindows
         [TestMethod]
         public void WhenCapturedNodeActionExecutesThenLaterSelectionDoesNotChangeItsTarget()
         {
-            PathModel source = CreatePathModel(PathNodeType.Start, PathNodeType.Intermediate, PathNodeType.Intermediate, PathNodeType.End);
+            PathModel source = CreatePathModel(PathNodeType.Start, PathNodeType.Via, PathNodeType.Via, PathNodeType.End);
             using PathEditor editor = CreatePathEditor(source);
             TrainPathToolWindow trainPathToolWindow = new(() => editor, () => null, action => action(),
                 () => { }, () => { }, _ => { }, () => { }, () => { });
@@ -570,7 +570,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.ToolWindows
         public void WhenSaveValidationIsBlockedThenSaveActionIsNotInvokedAndDiagnosticIsExposed()
         {
             int saveActions = 0;
-            PathModel invalidPath = CreatePathModel(PathNodeType.Start | PathNodeType.Junction, PathNodeType.Intermediate, PathNodeType.End);
+            PathModel invalidPath = CreatePathModel(PathNodeType.Start | PathNodeType.Junction, PathNodeType.Via, PathNodeType.End);
             using PathEditor editor = CreatePathEditor(invalidPath);
             _ = editor.SetWaitPointCommand(1, 10);
             _ = editor.Undo();
@@ -600,7 +600,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.ToolWindows
         [TestMethod]
         public void WhenPostDialogSaveIsBlockedThenFeedbackIsPublishedForTheCurrentEditorModel()
         {
-            PathModel invalidPath = CreatePathModel(PathNodeType.Start | PathNodeType.Junction, PathNodeType.Intermediate, PathNodeType.End);
+            PathModel invalidPath = CreatePathModel(PathNodeType.Start | PathNodeType.Junction, PathNodeType.Via, PathNodeType.End);
             using PathEditor editor = CreatePathEditor(invalidPath);
             PathModel saveModel = new PathModel(invalidPath) { Name = "Updated Path Name" };
             PathPersistenceValidationResult validation = PathPersistenceValidationPolicy.ValidateForPersistence(saveModel, CreateInitializedTrackWorld());
@@ -721,7 +721,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.ToolWindows
         public void WhenGeneratedPreviewIsActiveThenSnapshotRowsUseAuthoredNodeIndices()
         {
             PathModel authoredPath = CreatePathModel(PathNodeType.Start, PathNodeType.End);
-            PathModel previewPath = CreatePathModel(PathNodeType.Start, PathNodeType.Intermediate, PathNodeType.End);
+            PathModel previewPath = CreatePathModel(PathNodeType.Start, PathNodeType.Via, PathNodeType.End);
             using PathEditor editor = new PathEditor(new TestPathEditorContext(CreateInitializedTrackWorld()));
             editor.InitializeNewPath();
             typeof(PathEditor).GetMethod("RestoreSnapshot", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(editor, new object[] { authoredPath });

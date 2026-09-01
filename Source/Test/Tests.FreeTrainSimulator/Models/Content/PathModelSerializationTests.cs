@@ -19,6 +19,12 @@ namespace Tests.FreeTrainSimulator.Models.Content
     public class PathModelSerializationTests
     {
         [TestMethod]
+        public void PathNodeTypeViaRetainsPersistedValue()
+        {
+            Assert.AreEqual(0x2, (int)PathNodeType.Via);
+        }
+
+        [TestMethod]
         public void WhenPathModelRoundTripsThenNodeCountIsPreserved()
         {
             PathModel original = CreatePathModel();
@@ -169,7 +175,7 @@ namespace Tests.FreeTrainSimulator.Models.Content
             return MemoryPackSerializer.Deserialize<PathModel>(serialized);
         }
 
-        // A three-node main route (Start -> Intermediate -> End) with a passing-branch link, a populated
+        // A three-node main route (Start -> Via -> End) with a passing-branch link, a populated
         // anchor NodeIndex, and a wait node, covering every field ToPathModel emits and the persistence
         // layer must round-trip.
         private static PathModel CreatePathModel()
@@ -191,7 +197,7 @@ namespace Tests.FreeTrainSimulator.Models.Content
                     },
                     new PathNode(new WorldLocation(new Tile(1, 2), new Vector3(30, 2, 40)))
                     {
-                        NodeType = PathNodeType.Intermediate,
+                        NodeType = PathNodeType.Via,
                         NodeIndex = 42,
                         NextMainNode = 2,
                         NextSidingNode = 3,

@@ -43,7 +43,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.PathEditing
         {
             PathModel pathModel = new PathModel()
             {
-                PathNodes = ImmutableArray.Create(CreateNode(PathNodeType.Start, 1), CreateNode(PathNodeType.Intermediate, -1), CreateNode(PathNodeType.End, -1)),
+                PathNodes = ImmutableArray.Create(CreateNode(PathNodeType.Start, 1), CreateNode(PathNodeType.Via, -1), CreateNode(PathNodeType.End, -1)),
             };
 
             bool canInitialize = PathEditor.CanInitializePath(pathModel, null, out PathRouteResolution resolution);
@@ -87,7 +87,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.PathEditing
             PathModel source = new PathModel
             {
                 Id = "cycle",
-                PathNodes = ImmutableArray.Create(CreateNode(PathNodeType.Start, 1), CreateNode(PathNodeType.Intermediate, 0), CreateNode(PathNodeType.End, -1)),
+                PathNodes = ImmutableArray.Create(CreateNode(PathNodeType.Start, 1), CreateNode(PathNodeType.Via, 0), CreateNode(PathNodeType.End, -1)),
             };
             using (PathEditor editor = new PathEditor(new TestPathEditorContext(TrackWorldTestFixture.CreateSingleVectorNodeTrackWorld())))
             {
@@ -204,12 +204,12 @@ namespace Tests.FreeTrainSimulator.Toolbox.PathEditing
         [TestMethod]
         public void WhenPathHasStartButNoEndThenTrainPathConstructionSucceeds()
         {
-            // Regression: undoing after an endpoint was set restores a partial path (Start + intermediate,
+            // Regression: undoing after an endpoint was set restores a partial path (Start + via,
             // no End yet). The TrainPathBase constructor must not throw for an incomplete path during editing;
             // completeness is validated separately by PathRouteResolver.
             PathModel partialPath = new PathModel()
             {
-                PathNodes = ImmutableArray.Create(CreateNode(PathNodeType.Start, 1), CreateNode(PathNodeType.Intermediate, -1)),
+                PathNodes = ImmutableArray.Create(CreateNode(PathNodeType.Start, 1), CreateNode(PathNodeType.Via, -1)),
             };
 
             TestTrainPath trainPath = new TestTrainPath(partialPath);
@@ -350,13 +350,13 @@ namespace Tests.FreeTrainSimulator.Toolbox.PathEditing
         }
 
         [TestMethod]
-        public void WhenRoutePointIsCommittedThenPreviousEndpointBecomesIntermediate()
+        public void WhenRoutePointIsCommittedThenPreviousEndpointBecomesVia()
         {
             PathModel source = CreateEditablePath();
 
             PathEditResult result = InvokeAddRoutePoint(source, CreateNodeAt(200, PathNodeType.None, -1));
 
-            Assert.IsTrue(result.PathModel.PathNodes[1].NodeType.Includes(PathNodeType.Intermediate));
+            Assert.IsTrue(result.PathModel.PathNodes[1].NodeType.Includes(PathNodeType.Via));
             Assert.IsFalse(result.PathModel.PathNodes[1].NodeType.Includes(PathNodeType.End));
         }
 
@@ -368,8 +368,8 @@ namespace Tests.FreeTrainSimulator.Toolbox.PathEditing
                 Id = "materialized",
                 PathNodes = ImmutableArray.Create(
                     CreateNodeAt(0, PathNodeType.Start, 1),
-                    CreateNodeAt(25, PathNodeType.Intermediate, 2),
-                    CreateNodeAt(50, PathNodeType.Intermediate, 3),
+                    CreateNodeAt(25, PathNodeType.Via, 2),
+                    CreateNodeAt(50, PathNodeType.Via, 3),
                     CreateNodeAt(100, PathNodeType.End, -1)),
             };
             PathModel authored = new PathModel(materialized)
@@ -513,7 +513,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.PathEditing
             // compare each affected span against the edges of the spans preceding it, not against all spans.
             PathModel pathModel = new PathModel
             {
-                PathNodes = ImmutableArray.Create(CreateNode(PathNodeType.Start, 1), CreateNode(PathNodeType.Intermediate, 2), CreateNode(PathNodeType.End, -1)),
+                PathNodes = ImmutableArray.Create(CreateNode(PathNodeType.Start, 1), CreateNode(PathNodeType.Via, 2), CreateNode(PathNodeType.End, -1)),
             };
             ResolvedPathSpan outgoing = new(0, 1, PathRouteSpanStatus.Resolved, ImmutableArray.Create(9, 3, 7, 4, 5));
             ResolvedPathSpan returning = new(1, 2, PathRouteSpanStatus.Resolved, ImmutableArray.Create(5, 4, 7, 3, 9));
@@ -529,7 +529,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.PathEditing
         {
             PathModel pathModel = new PathModel
             {
-                PathNodes = ImmutableArray.Create(CreateNode(PathNodeType.Start, 1), CreateNode(PathNodeType.Intermediate | PathNodeType.Reversal, 2), CreateNode(PathNodeType.End, -1)),
+                PathNodes = ImmutableArray.Create(CreateNode(PathNodeType.Start, 1), CreateNode(PathNodeType.Via | PathNodeType.Reversal, 2), CreateNode(PathNodeType.End, -1)),
             };
             ResolvedPathSpan committed = new(0, 1, PathRouteSpanStatus.Resolved, ImmutableArray.Create(9, 3, 7, 4, 5));
             ResolvedPathSpan affected = new(1, 2, PathRouteSpanStatus.Resolved, ImmutableArray.Create(5, 4, 7, 3, 9));
@@ -987,7 +987,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.PathEditing
                 SetPrivateField(editor, "unsavedChanges", false);
                 _ = editor.BeginStartAnchorPlacementCommand();
 
-            bool canceled = editor.CancelPlacement();
+                bool canceled = editor.CancelPlacement();
 
                 Assert.IsTrue(canceled);
                 Assert.IsFalse(editor.HasUnsavedChanges);
@@ -1006,8 +1006,8 @@ namespace Tests.FreeTrainSimulator.Toolbox.PathEditing
                 PathEditResult preview = PathModelEditor.SetStartAnchor(source, CreateNodeAt(25, PathNodeType.None, -1), false);
                 SetPrivateField(editor, "movePreviewModel", preview.PathModel);
 
-            PathEditResult committed = editor.CommitPlacement();
-            bool undone = editor.Undo();
+                PathEditResult committed = editor.CommitPlacement();
+                bool undone = editor.Undo();
 
                 Assert.IsTrue(committed.Success);
                 Assert.IsTrue(undone);
@@ -1025,10 +1025,10 @@ namespace Tests.FreeTrainSimulator.Toolbox.PathEditing
                 _ = editor.BeginStartAnchorPlacementCommand();
                 PathEditResult preview = PathModelEditor.SetStartAnchor(source, CreateNodeAt(25, PathNodeType.None, -1), false);
                 SetPrivateField(editor, "movePreviewModel", preview.PathModel);
-            _ = editor.CommitPlacement();
-            _ = editor.Undo();
+                _ = editor.CommitPlacement();
+                _ = editor.Undo();
 
-            bool redone = editor.Redo();
+                bool redone = editor.Redo();
 
                 Assert.IsTrue(redone);
                 Assert.AreEqual(preview.PathModel.PathNodes[0].Location, editor.TryCaptureCurrentPathModel().PathNodes[0].Location);
@@ -1050,7 +1050,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.PathEditing
                 PathEditResult preview = PathModelEditor.SetEndAnchor(source, CreateNodeAt(100, PathNodeType.None, -1), false);
                 SetPrivateField(editor, "movePreviewModel", preview.PathModel);
 
-            PathEditResult committed = editor.CommitPlacement();
+                PathEditResult committed = editor.CommitPlacement();
 
                 Assert.AreSame(committed.PathModel, editor.TryCaptureCurrentPathModel());
                 Assert.IsTrue(editor.HasUnsavedChanges);
@@ -1073,9 +1073,9 @@ namespace Tests.FreeTrainSimulator.Toolbox.PathEditing
                 SetPrivateField(editor, "movePreviewModel", preview.PathModel);
                 _ = editor.CommitPlacement();
 
-            PathRouteResolution resolution = editor.ResolveCurrent(editor.TryCaptureCurrentPathModel());
+                PathRouteResolution resolution = editor.ResolveCurrent(editor.TryCaptureCurrentPathModel());
 
-            Assert.IsFalse(HasDiagnostic(resolution, PathRouteDiagnosticCode.MissingEndNode));
+                Assert.IsFalse(HasDiagnostic(resolution, PathRouteDiagnosticCode.MissingEndNode));
             }
         }
 
@@ -1103,10 +1103,10 @@ namespace Tests.FreeTrainSimulator.Toolbox.PathEditing
                 _ = editor.BeginStartAnchorPlacementCommand();
                 PathModel source = editor.TryCaptureCurrentPathModel();
                 PathEditResult preview = PathModelEditor.SetStartAnchor(source, CreateNodeAt(25, PathNodeType.None, -1), false);
-            SetPrivateField(editor, "movePreviewModel", preview.PathModel);
+                SetPrivateField(editor, "movePreviewModel", preview.PathModel);
 
-            editor.MouseDragged(new UserCommandArgs(), KeyModifiers.None);
-            editor.MouseReleasedLeft(new UserCommandArgs(), KeyModifiers.None);
+                editor.MouseDragged(new UserCommandArgs(), KeyModifiers.None);
+                editor.MouseReleasedLeft(new UserCommandArgs(), KeyModifiers.None);
 
                 Assert.IsTrue(editor.IsPlacingStartAnchor);
             }
@@ -1118,7 +1118,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.PathEditing
             PathModel source = CreateEditablePath();
             using (PathEditor editor = CreateEditor(source))
             {
-                PathNode anchor = CreateNodeAt(50, PathNodeType.Intermediate, -1);
+                PathNode anchor = CreateNodeAt(50, PathNodeType.Via, -1);
 
                 PathEditResult result = editor.BeginViaPointPlacementAt(0, anchor);
 
@@ -1133,7 +1133,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.PathEditing
             PathModel source = CreateEditablePath();
             using (PathEditor editor = CreateEditor(source))
             {
-                _ = editor.BeginViaPointPlacementAt(0, CreateNodeAt(50, PathNodeType.Intermediate, -1));
+                _ = editor.BeginViaPointPlacementAt(0, CreateNodeAt(50, PathNodeType.Via, -1));
 
                 bool canceled = editor.CancelMoveNode();
 
@@ -1150,7 +1150,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.PathEditing
             PathModel source = CreateEditablePath();
             using (PathEditor editor = CreateEditor(source))
             {
-                _ = editor.BeginViaPointPlacementAt(0, CreateNodeAt(50, PathNodeType.Intermediate, -1));
+                _ = editor.BeginViaPointPlacementAt(0, CreateNodeAt(50, PathNodeType.Via, -1));
                 PathModel insertedModel = editor.TryCaptureCurrentPathModel();
                 SetPrivateField(editor, "movePreviewModel", insertedModel);
 
@@ -1203,7 +1203,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.PathEditing
         {
             PathModel partialPath = new PathModel()
             {
-                PathNodes = ImmutableArray.Create(CreateNode(PathNodeType.Intermediate, 1), CreateNode(PathNodeType.End, -1)),
+                PathNodes = ImmutableArray.Create(CreateNode(PathNodeType.Via, 1), CreateNode(PathNodeType.End, -1)),
             };
 
             TestTrainPath trainPath = new TestTrainPath(partialPath);
@@ -1441,7 +1441,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.PathEditing
                 PathNodes = ImmutableArray.Create(
                     CreatePassingNode(PathNodeType.Start, 1, 2),
                     CreatePassingNode(PathNodeType.End, -1, -1),
-                    CreatePassingNode(PathNodeType.Intermediate, -1, 1)),
+                    CreatePassingNode(PathNodeType.Via, -1, 1)),
             };
 
             PathEditResult result = PathEditor.SnapPathToTrack(pathModel, null);
@@ -1573,9 +1573,9 @@ namespace Tests.FreeTrainSimulator.Toolbox.PathEditing
                 Name = "Passing Path",
                 PathNodes = ImmutableArray.Create(
                     CreateNodeAt(0, PathNodeType.Start, 1) with { NextSidingNode = 3 },
-                    CreateNodeAt(40, PathNodeType.Intermediate, 2),
+                    CreateNodeAt(40, PathNodeType.Via, 2),
                     CreateNodeAt(100, PathNodeType.End, -1),
-                    CreateNodeAt(60, PathNodeType.Intermediate, -1) with { NextSidingNode = 2 }),
+                    CreateNodeAt(60, PathNodeType.Via, -1) with { NextSidingNode = 2 }),
             };
         }
 
@@ -1593,8 +1593,8 @@ namespace Tests.FreeTrainSimulator.Toolbox.PathEditing
                 Name = "Broken Passing Path",
                 PathNodes = ImmutableArray.Create(
                     CreateNodeAt(0, PathNodeType.Start, 1) with { NextSidingNode = 2 },
-                    CreateNodeAt(50, PathNodeType.Intermediate, 3),
-                    CreateNodeAt(25, PathNodeType.Intermediate, -1),
+                    CreateNodeAt(50, PathNodeType.Via, 3),
+                    CreateNodeAt(25, PathNodeType.Via, -1),
                     CreateNodeAt(100, PathNodeType.End, -1)),
             };
         }
@@ -1792,7 +1792,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.PathEditing
                 PathNodes = ImmutableArray.Create(
                     CreateNodeAt(0, PathNodeType.Start, 2),
                     CreateNodeAt(100, PathNodeType.End, -1),
-                    CreateNodeAt(50, PathNodeType.Intermediate, 1)),
+                    CreateNodeAt(50, PathNodeType.Via, 1)),
             };
 
             int precedingIndex = InvokePrecedingEndNodeIndex(pathModel);
@@ -1917,7 +1917,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.PathEditing
             }
 
             public TestTrainPathPoint(in PointD location)
-                : base(location, PathNodeType.Intermediate)
+                : base(location, PathNodeType.Via)
             {
             }
         }

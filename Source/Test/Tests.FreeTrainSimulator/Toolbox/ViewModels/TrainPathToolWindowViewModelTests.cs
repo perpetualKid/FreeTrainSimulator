@@ -57,7 +57,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.ViewModels
             TrainPathToolWindow bridge = CreateBridge(action => action());
             SetBridgeSnapshot(bridge, TrainPathSnapshot.Empty with
             {
-                Nodes = [new TrainPathNodeRow(0, PathNodeType.Intermediate, true, 1, -1, -1, null, null)],
+                Nodes = [new TrainPathNodeRow(0, PathNodeType.Via, true, 1, -1, -1, null, null)],
                 SelectedNodeIndex = 0,
                 CanRemoveSelectedViaPoint = true,
                 CanCancelPathInteraction = true,
@@ -208,7 +208,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.ViewModels
             SetBridgeSnapshot(bridge, TrainPathSnapshot.Empty with
             {
                 IsRepairMode = true,
-                Nodes = System.Collections.Immutable.ImmutableArray.Create(new TrainPathNodeRow(0, PathNodeType.Intermediate, false, 1, -1, -1, null, "Broken link.")),
+                Nodes = System.Collections.Immutable.ImmutableArray.Create(new TrainPathNodeRow(0, PathNodeType.Via, false, 1, -1, -1, null, "Broken link.")),
                 SelectedNodeIndex = 0,
                 CanMoveSelectedNode = true,
                 CanRepairSelectedNode = true,
@@ -508,7 +508,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.ViewModels
         [TestMethod]
         public void WhenNodeTypeContainsWaitFlagThenNodeReportsWaitPoint()
         {
-            TrainPathNodeItemViewModel node = new TrainPathNodeItemViewModel(new TrainPathNodeRow(1, PathNodeType.Intermediate | PathNodeType.Wait, true, 7, 2, 3, 45, null));
+            TrainPathNodeItemViewModel node = new TrainPathNodeItemViewModel(new TrainPathNodeRow(1, PathNodeType.Via | PathNodeType.Wait, true, 7, 2, 3, 45, null));
 
             Assert.IsTrue(node.HasWaitPoint);
             Assert.IsFalse(node.HasReversalPoint);
@@ -517,7 +517,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.ViewModels
         [TestMethod]
         public void WhenNodeTypeContainsReversalFlagThenNodeReportsReversalPoint()
         {
-            TrainPathNodeItemViewModel node = new TrainPathNodeItemViewModel(new TrainPathNodeRow(1, PathNodeType.Intermediate | PathNodeType.Reversal, true, 7, 2, 3, null, null));
+            TrainPathNodeItemViewModel node = new TrainPathNodeItemViewModel(new TrainPathNodeRow(1, PathNodeType.Via | PathNodeType.Reversal, true, 7, 2, 3, null, null));
 
             Assert.IsTrue(node.HasReversalPoint);
             Assert.IsFalse(node.HasWaitPoint);

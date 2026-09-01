@@ -170,8 +170,8 @@ namespace FreeTrainSimulator.Runtime.Track
             if (nodes[lastIndex].NodeType.Includes(PathNodeType.End))
                 return PathEditResult.Failed("The path already ends with an end node.", pathModel);
 
-            // Swap Intermediate for End (keeping any Junction/Wait/Reversal flags) and break the trailing link.
-            PathNodeType nodeType = (nodes[lastIndex].NodeType & ~PathNodeType.Intermediate) | PathNodeType.End;
+            // Swap Via for End (keeping any Junction/Wait/Reversal flags) and break the trailing link.
+            PathNodeType nodeType = (nodes[lastIndex].NodeType & ~PathNodeType.Via) | PathNodeType.End;
             PathNode endNode = nodes[lastIndex] with { NodeType = nodeType, NextMainNode = -1 };
 
             return PathEditResult.Succeeded("Added end node.",
@@ -180,7 +180,7 @@ namespace FreeTrainSimulator.Runtime.Track
         }
 
         /// <summary>
-        /// Clears the end flag from the end node, leaving it as a regular intermediate node. Fails when the
+        /// Clears the end flag from the end node, leaving it as a regular via node. Fails when the
         /// path has no end node.
         /// </summary>
         public static PathEditResult RemoveEnd(PathModel pathModel)
@@ -192,10 +192,10 @@ namespace FreeTrainSimulator.Runtime.Track
             if (endIndex < 0)
                 return PathEditResult.Failed("The path has no end node to remove.", pathModel);
 
-            // Drop the End flag; if nothing else remains, the node becomes a plain intermediate node.
+            // Drop the End flag; if nothing else remains, the node becomes a plain via node.
             PathNodeType nodeType = nodes[endIndex].NodeType & ~PathNodeType.End;
             if (nodeType == PathNodeType.None)
-                nodeType = PathNodeType.Intermediate;
+                nodeType = PathNodeType.Via;
 
             return PathEditResult.Succeeded("Removed end node.",
                 pathModel with { PathNodes = nodes.SetItem(endIndex, nodes[endIndex] with { NodeType = nodeType }) },
@@ -216,9 +216,9 @@ namespace FreeTrainSimulator.Runtime.Track
             if (IndexOfNodeType(nodes, PathNodeType.Start) >= 0)
                 return PathEditResult.Failed("The path already has a start node.", pathModel);
 
-            // Swap Intermediate for Start (keeping any Junction flag); links are unchanged because the first
+            // Swap Via for Start (keeping any Junction flag); links are unchanged because the first
             // node keeps its position.
-            PathNodeType nodeType = (nodes[0].NodeType & ~PathNodeType.Intermediate) | PathNodeType.Start;
+            PathNodeType nodeType = (nodes[0].NodeType & ~PathNodeType.Via) | PathNodeType.Start;
 
             return PathEditResult.Succeeded("Added start node.",
                 pathModel with { PathNodes = nodes.SetItem(0, nodes[0] with { NodeType = nodeType }) },
@@ -273,7 +273,7 @@ namespace FreeTrainSimulator.Runtime.Track
             }
 
             // The truncation point becomes the new end node.
-            PathNodeType nodeType = (nodes[nodeIndex].NodeType & ~PathNodeType.Intermediate) | PathNodeType.End;
+            PathNodeType nodeType = (nodes[nodeIndex].NodeType & ~PathNodeType.Via) | PathNodeType.End;
             builder.Add(nodes[nodeIndex] with { NodeType = nodeType, NextMainNode = -1, NextSidingNode = -1 });
 
             return PathEditResult.Succeeded($"Removed {nodes.Length - nodeIndex - 1} node(s) after node {nodeIndex}.",
@@ -318,8 +318,7 @@ namespace FreeTrainSimulator.Runtime.Track
 
         /// <summary>
         /// Inserts a via point directly after the node at <paramref name="nodeIndex"/>, linking it into the
-        /// main chain and re-indexing all following links. A via point is an authored intermediate anchor that
-        /// constrains the route the resolver may take. Fails for an out-of-range index or when the preceding node
+        /// main chain and re-indexing all following links. Fails for an out-of-range index or when the preceding node
         /// is the end node.
         /// </summary>
         public static PathEditResult InsertViaPoint(PathModel pathModel, int nodeIndex, PathNode anchor, bool isJunction)
@@ -418,7 +417,7 @@ namespace FreeTrainSimulator.Runtime.Track
                 int newIndex = builder.Count;
                 builder.Add(new PathNode(anchor.Location)
                 {
-                    NodeType = anchor.NodeType.Includes(PathNodeType.Junction) ? PathNodeType.Junction : PathNodeType.Intermediate,
+                    NodeType = anchor.NodeType.Includes(PathNodeType.Junction) ? PathNodeType.Junction : PathNodeType.Via,
                     NodeIndex = anchor.TrackNodeIndex,
                     NextMainNode = -1,
                     NextSidingNode = rejoinNodeIndex,
@@ -503,7 +502,7 @@ namespace FreeTrainSimulator.Runtime.Track
         {
             return new PathNode(anchor.Location)
             {
-                NodeType = junction ? PathNodeType.Junction : PathNodeType.Intermediate,
+                NodeType = junction ? PathNodeType.Junction : PathNodeType.Via,
                 NodeIndex = anchor.NodeIndex,
                 NextMainNode = nextMainNode,
                 NextSidingNode = -1,
@@ -763,16 +762,16 @@ namespace FreeTrainSimulator.Runtime.Track
             return true;
         }
 
-        // Drops a marker flag, falling back to a plain intermediate node when nothing else remains.
+        // Drops a marker flag, falling back to a plain via node when nothing else remains.
         private static PathNodeType WithoutMarker(PathNodeType nodeType, PathNodeType marker)
         {
             PathNodeType remaining = nodeType & ~marker;
-            return remaining == PathNodeType.None ? PathNodeType.Intermediate : remaining;
+            return remaining == PathNodeType.None ? PathNodeType.Via : remaining;
         }
 
         /// <summary>
         /// Moves the node at <paramref name="nodeIndex"/> to a new track anchor, preserving its path links and
-        /// wait metadata. Start/end/wait/reversal intent is preserved, while junction/intermediate classification
+        /// wait metadata. Start/end/wait/reversal intent is preserved, while junction/via classification
         /// is recalculated from <paramref name="isJunction"/>.
         /// </summary>
         public static PathEditResult MoveNode(PathModel pathModel, int nodeIndex, PathNode replacementAnchor, bool isJunction)
@@ -787,7 +786,7 @@ namespace FreeTrainSimulator.Runtime.Track
             PathNode original = nodes[nodeIndex];
             PathNodeType nodeType = original.NodeType & (PathNodeType.Start | PathNodeType.End | PathNodeType.Wait | PathNodeType.Reversal | PathNodeType.Invalid);
             nodeType &= ~PathNodeType.Invalid;
-            nodeType |= isJunction ? PathNodeType.Junction : PathNodeType.Intermediate;
+            nodeType |= isJunction ? PathNodeType.Junction : PathNodeType.Via;
 
             PathNode movedNode = new PathNode(replacementAnchor.Location)
             {

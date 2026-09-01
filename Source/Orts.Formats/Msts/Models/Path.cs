@@ -66,7 +66,7 @@ namespace Orts.Formats.Msts.Models
             {
                 NodeType = PathNodeType.Start;
             }
-            else if (NextMainNode == -1  && NextSidingNode == -1)
+            else if (NextMainNode == -1 && NextSidingNode == -1)
             {
                 NodeType = PathNodeType.End;
             }
@@ -82,7 +82,7 @@ namespace Orts.Formats.Msts.Models
             }
             else if ((pathFlags & PathFlags.IntermediatePoint) == PathFlags.IntermediatePoint)
             {
-                NodeType = PathNodeType.Intermediate;
+                NodeType = PathNodeType.Via;
             }
 
             if (junctionFlag == 2)

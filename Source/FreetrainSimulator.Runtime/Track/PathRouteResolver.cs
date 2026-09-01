@@ -401,7 +401,7 @@ namespace FreeTrainSimulator.Runtime.Track
             return new ResolvedPathRoute(branchKind, startNodeIndex, endNodeIndex, spans.ToImmutableArray());
         }
 
-        private static ImmutableArray<ResolvedPathRoute> BuildPassingRoutes(ImmutableArray<PathNode> pathNodes, 
+        private static ImmutableArray<ResolvedPathRoute> BuildPassingRoutes(ImmutableArray<PathNode> pathNodes,
             ImmutableArray<PathRouteAnchor> anchors, TrackWorld trackWorld, PathRouteResolverOptions options, List<PathRouteDiagnostic> diagnostics, CancellationToken cancellationToken)
         {
             ImmutableArray<ResolvedPathRoute>.Builder routes = ImmutableArray.CreateBuilder<ResolvedPathRoute>();
@@ -410,7 +410,7 @@ namespace FreeTrainSimulator.Runtime.Track
                 cancellationToken.ThrowIfCancellationRequested();
 
                 // A passing branch starts only at a siding-start node that has both a main and a siding
-                // successor; intermediate siding nodes also carry NextSidingNode but must not start a branch.
+                // successor; via siding nodes also carry NextSidingNode but must not start a branch.
                 PathNode node = pathNodes[i];
                 if (IsInRange(node.NextMainNode, pathNodes.Length) && IsInRange(node.NextSidingNode, pathNodes.Length))
                     routes.Add(BuildRoute(PathRouteBranchKind.Passing, pathNodes, anchors, trackWorld, options, diagnostics, i, static pathNode => pathNode.NextSidingNode, cancellationToken));
@@ -731,7 +731,7 @@ namespace FreeTrainSimulator.Runtime.Track
                         ? boundaryGeometry.Length - inset
                         : inset);
                 }
-                generatedAnchors.Add(new PathRouteAnchor(-1, boundary, PathNodeType.Intermediate,
+                generatedAnchors.Add(new PathRouteAnchor(-1, boundary, PathNodeType.Via,
                     departureNode.NodeIndex, sectionIndex));
             }
             for (int i = 0; i < routeNodeIndexes.Length; i++)
@@ -743,7 +743,7 @@ namespace FreeTrainSimulator.Runtime.Track
 
                 if (options.IncludeGeneratedIntermediaryNodes && i > 0 && i < routeNodeIndexes.Length - 1)
                     AddGeneratedRouteAnchor(generatedAnchors,
-                        new PathRouteAnchor(-1, trackNode.Location, PathNodeType.Intermediate, trackNodeIndex, -1),
+                        new PathRouteAnchor(-1, trackNode.Location, PathNodeType.Via, trackNodeIndex, -1),
                         trackDatabase);
             }
 

@@ -20,7 +20,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.PathEditing
         public void WhenNodeMoveIsInProgressThenNodeMenuOnlyOffersCancelMove()
         {
             ImmutableArray<MapContextMenuItem> items = BuildForNode(
-                new TestPathPoint(PathNodeType.Intermediate), 2, true, new MapContextMenuState { IsPlacementActive = true });
+                new TestPathPoint(PathNodeType.Via), 2, true, new MapContextMenuState { IsPlacementActive = true });
 
             Assert.AreEqual(1, items.Length);
             Assert.AreEqual(MapContextMenuAction.CancelPlacement, items[0].Action);
@@ -135,7 +135,8 @@ namespace Tests.FreeTrainSimulator.Toolbox.PathEditing
 
         [TestMethod]
         public void WhenNoTrackAnchorExistsThenMapMenuOmitsEndpointHereActions()
-        {            ImmutableArray<MapContextMenuItem> items = BuildForMap(new MapContextMenuState
+        {
+            ImmutableArray<MapContextMenuItem> items = BuildForMap(new MapContextMenuState
             {
                 CanStartNewPath = true,
                 CanSetStartAnchor = true,
@@ -169,7 +170,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.PathEditing
         public void WhenNodeCannotBeMovedThenMoveNodeIsNotOffered()
         {
             ImmutableArray<MapContextMenuItem> items = BuildForNode(
-                new TestPathPoint(PathNodeType.Intermediate), 1, false, default);
+                new TestPathPoint(PathNodeType.Via), 1, false, default);
 
             Assert.DoesNotContain(MapContextMenuAction.MoveNode, Actions(items));
         }
@@ -184,10 +185,10 @@ namespace Tests.FreeTrainSimulator.Toolbox.PathEditing
         }
 
         [TestMethod]
-        public void WhenNodeIsIntermediateThenRemoveViaPointIsOffered()
+        public void WhenNodeIsViaThenRemoveViaPointIsOffered()
         {
             ImmutableArray<MapContextMenuItem> items = BuildForNode(
-                new TestPathPoint(PathNodeType.Intermediate), 1, true,
+                new TestPathPoint(PathNodeType.Via), 1, true,
                 new MapContextMenuState { CanRemoveViaPoint = true });
 
             Assert.Contains(MapContextMenuAction.RemoveViaPoint, Actions(items));
@@ -222,7 +223,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.PathEditing
         public void WhenNodeIsValidThenRepairNodeIsNotOffered()
         {
             ImmutableArray<MapContextMenuItem> items = BuildForNode(
-                new TestPathPoint(PathNodeType.Intermediate), 1, true, default);
+                new TestPathPoint(PathNodeType.Via), 1, true, default);
 
             Assert.DoesNotContain(MapContextMenuAction.RepairNode, Actions(items));
         }
@@ -241,7 +242,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.PathEditing
         [TestMethod]
         public void WhenNodeIsInvalidThenRepairNodeIsOffered()
         {
-            TestPathPoint node = new TestPathPoint(PathNodeType.Intermediate)
+            TestPathPoint node = new TestPathPoint(PathNodeType.Via)
             {
                 ValidationResult = PathNodeInvalidReasons.NotOnTrack,
             };
@@ -256,7 +257,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.PathEditing
         public void WhenNodeCanStartPassingBranchThenStartActionIsOffered()
         {
             ImmutableArray<MapContextMenuItem> items = BuildForNode(
-                new TestPathPoint(PathNodeType.Intermediate), 1, true,
+                new TestPathPoint(PathNodeType.Via), 1, true,
                 new MapContextMenuState { CanBeginPassingBranch = true });
 
             Assert.Contains(MapContextMenuAction.StartPassingBranch, Actions(items));
@@ -267,7 +268,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.PathEditing
         public void WhenNodeCanRejoinPassingBranchThenRejoinAndCancelActionsAreOffered()
         {
             ImmutableArray<MapContextMenuItem> items = BuildForNode(
-                new TestPathPoint(PathNodeType.Intermediate), 3, true,
+                new TestPathPoint(PathNodeType.Via), 3, true,
                 new MapContextMenuState { CanCompletePassingBranch = true, CanCancelPassingBranch = true });
 
             Assert.Contains(MapContextMenuAction.RejoinPassingBranch, Actions(items));
@@ -279,7 +280,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.PathEditing
         public void WhenNodeOwnsPassingBranchThenRemoveActionIsOffered()
         {
             ImmutableArray<MapContextMenuItem> items = BuildForNode(
-                new TestPathPoint(PathNodeType.Intermediate), 1, true,
+                new TestPathPoint(PathNodeType.Via), 1, true,
                 new MapContextMenuState { CanRemovePassingBranch = true });
 
             Assert.Contains(MapContextMenuAction.RemovePassingBranch, Actions(items));
@@ -289,7 +290,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.PathEditing
         public void WhenNodeActionsAreBuiltThenTheyCarryTheNodeIndex()
         {
             ImmutableArray<MapContextMenuItem> items = BuildForNode(
-                new TestPathPoint(PathNodeType.Intermediate), 4, true, default);
+                new TestPathPoint(PathNodeType.Via), 4, true, default);
 
             Assert.IsTrue(items.All(item => item.IsSeparator
                 || item.Action == MapContextMenuAction.Undo
@@ -301,7 +302,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.PathEditing
         public void WhenMenuHasMultipleSectionsThenSeparatorsAreInserted()
         {
             ImmutableArray<MapContextMenuItem> items = BuildForNode(
-                new TestPathPoint(PathNodeType.Intermediate), 1, true,
+                new TestPathPoint(PathNodeType.Via), 1, true,
                 new MapContextMenuState { CanUndo = true, CanRemoveRestOfPath = true });
 
             Assert.AreEqual(2, items.Count(item => item.IsSeparator));
@@ -387,7 +388,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.PathEditing
         public void WhenUndoIsAvailableThenNodeMenuOffersUndo()
         {
             ImmutableArray<MapContextMenuItem> items = BuildForNode(
-                new TestPathPoint(PathNodeType.Intermediate), 1, true, new MapContextMenuState { CanUndo = true });
+                new TestPathPoint(PathNodeType.Via), 1, true, new MapContextMenuState { CanUndo = true });
 
             Assert.Contains(MapContextMenuAction.Undo, Actions(items));
             Assert.DoesNotContain(MapContextMenuAction.Redo, Actions(items));
