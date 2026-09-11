@@ -72,10 +72,10 @@ namespace FreeTrainSimulator.Runtime.Track
             else
             {
                 // check the links are connected through (the same) junction node on either end
-                IEnumerable<TrackNodeConnector> trackPins = startNodeConnectors.Intersect(endNodeConnectors, TrackNodeConnectorComparer.LinkOnlyComparer);
-                if (trackPins.Count() == 1)
+                List<TrackNodeConnector> trackPins = startNodeConnectors.Intersect(endNodeConnectors, TrackNodeConnectorComparer.LinkOnlyComparer).ToList();
+                if (trackPins.Count == 1)
                 {
-                    PointD junctionLocation = PointD.FromWorldLocation((trackDatabase.JunctionNodes[trackPins.First().Link]).Location);
+                    PointD junctionLocation = PointD.FromWorldLocation((trackDatabase.JunctionNodes[trackPins[0].Link]).Location);
                     PathSections = PathSections.Add(InitializeSection(trackWorld, startTrackNodeIndex, start, junctionLocation));
                     PathSections = PathSections.Add(InitializeSection(trackWorld, endTrackNodeIndex, junctionLocation, end));
                 }

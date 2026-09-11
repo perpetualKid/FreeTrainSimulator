@@ -104,40 +104,53 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
         public RouteNavigationItemViewModel SelectedStation
         {
             get => selectedStation;
-            set
-            {
-                if (!SetProperty(ref selectedStation, value) || suppressSelectionCommand)
-                    return;
-
-                if (value != null)
-                    toolWindow.NavigateToStation(value.Index);
-            }
+            private set => SetProperty(ref selectedStation, value);
         }
 
         public RouteNavigationItemViewModel SelectedPlatform
         {
             get => selectedPlatform;
-            set
-            {
-                if (!SetProperty(ref selectedPlatform, value) || suppressSelectionCommand)
-                    return;
-
-                if (value != null)
-                    toolWindow.NavigateToPlatform(value.Index);
-            }
+            private set => SetProperty(ref selectedPlatform, value);
         }
 
         public RouteNavigationItemViewModel SelectedSiding
         {
             get => selectedSiding;
-            set
-            {
-                if (!SetProperty(ref selectedSiding, value) || suppressSelectionCommand)
-                    return;
+            private set => SetProperty(ref selectedSiding, value);
+        }
 
-                if (value != null)
-                    toolWindow.NavigateToSiding(value.Index);
-            }
+        /// <summary>
+        /// Handles a user-initiated station pick from the view's SelectionChanged handler. See
+        /// <see cref="Views.ToolWindowSelection"/> for why selection is delivered this way rather than through a
+        /// TwoWay binding.
+        /// </summary>
+        public void UserSelectStation(RouteNavigationItemViewModel station)
+        {
+            if (station == null || suppressSelectionCommand)
+                return;
+
+            SelectedStation = station;
+            toolWindow.NavigateToStation(station.Index);
+        }
+
+        /// <summary>Handles a user-initiated platform pick; see <see cref="UserSelectStation"/>.</summary>
+        public void UserSelectPlatform(RouteNavigationItemViewModel platform)
+        {
+            if (platform == null || suppressSelectionCommand)
+                return;
+
+            SelectedPlatform = platform;
+            toolWindow.NavigateToPlatform(platform.Index);
+        }
+
+        /// <summary>Handles a user-initiated siding pick; see <see cref="UserSelectStation"/>.</summary>
+        public void UserSelectSiding(RouteNavigationItemViewModel siding)
+        {
+            if (siding == null || suppressSelectionCommand)
+                return;
+
+            SelectedSiding = siding;
+            toolWindow.NavigateToSiding(siding.Index);
         }
 
         protected override void OnStarted() => toolWindow.Active = true;

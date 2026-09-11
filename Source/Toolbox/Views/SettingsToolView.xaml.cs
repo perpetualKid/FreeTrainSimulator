@@ -1,5 +1,8 @@
 using System.Windows.Controls;
 
+using FreeTrainSimulator.Toolbox.ToolWindows;
+using FreeTrainSimulator.Toolbox.ViewModels;
+
 namespace FreeTrainSimulator.Toolbox.Views
 {
     /// <summary>
@@ -13,6 +16,22 @@ namespace FreeTrainSimulator.Toolbox.Views
         public SettingsToolView()
         {
             InitializeComponent();
+        }
+
+        // The language/color ComboBoxes bind SelectedItem OneWay and forward user picks here; see
+        // ToolWindowSelection for why a TwoWay binding is unreliable in these hosted tool windows.
+        private void LanguageCombo_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (DataContext is SettingsToolWindowViewModel viewModel && ToolWindowSelection.TryGetAddedItem(e, out LanguageOption language))
+                viewModel.UserSelectLanguage(language);
+        }
+
+        // The color ComboBox lives in an ItemsControl template, so its DataContext is a per-row
+        // ColorItemViewModel rather than the hosted settings view model.
+        private void ColorCombo_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (sender is ComboBox combo && combo.DataContext is ColorItemViewModel colorItem && ToolWindowSelection.TryGetAddedItem(e, out string colorName))
+                colorItem.UserSelectColorName(colorName);
         }
     }
 }

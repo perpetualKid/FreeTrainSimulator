@@ -1,5 +1,7 @@
 using System.Windows.Controls;
 
+using FreeTrainSimulator.Toolbox.ViewModels;
+
 namespace FreeTrainSimulator.Toolbox.Views
 {
     /// <summary>
@@ -12,6 +14,26 @@ namespace FreeTrainSimulator.Toolbox.Views
         public RouteNavigationToolView()
         {
             InitializeComponent();
+        }
+
+        // The station/platform/siding lists bind SelectedItem OneWay and forward user picks here; see
+        // ToolWindowSelection for why a TwoWay binding is unreliable in these hosted tool windows.
+        private void StationList_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (DataContext is RouteNavigationToolWindowViewModel viewModel && ToolWindowSelection.TryGetAddedItem(e, out RouteNavigationItemViewModel item))
+                viewModel.UserSelectStation(item);
+        }
+
+        private void PlatformList_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (DataContext is RouteNavigationToolWindowViewModel viewModel && ToolWindowSelection.TryGetAddedItem(e, out RouteNavigationItemViewModel item))
+                viewModel.UserSelectPlatform(item);
+        }
+
+        private void SidingList_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (DataContext is RouteNavigationToolWindowViewModel viewModel && ToolWindowSelection.TryGetAddedItem(e, out RouteNavigationItemViewModel item))
+                viewModel.UserSelectSiding(item);
         }
     }
 }

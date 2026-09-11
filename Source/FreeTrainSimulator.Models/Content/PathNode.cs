@@ -16,7 +16,7 @@ namespace FreeTrainSimulator.Models.Content
 
         /// <summary>World location of this path node.</summary>
         public ref readonly WorldLocation Location => ref location;
-        /// <summary>Classification of the node (start, end, intermediate, junction, etc.).</summary>
+        /// <summary>Classification of the node (start, end, via, junction, etc.).</summary>
         public PathNodeType NodeType { get; init; }
         /// <summary>Index into the track node array identifying the associated track node.</summary>
         public int NodeIndex { get; init; }

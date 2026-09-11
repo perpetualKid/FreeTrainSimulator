@@ -2,6 +2,7 @@ using System;
 using System.Collections.Immutable;
 
 using FreeTrainSimulator.Graphics.MapView;
+using FreeTrainSimulator.Toolbox.Hosting;
 using FreeTrainSimulator.Toolbox.PopupWindows;
 
 namespace FreeTrainSimulator.Toolbox.ToolWindows

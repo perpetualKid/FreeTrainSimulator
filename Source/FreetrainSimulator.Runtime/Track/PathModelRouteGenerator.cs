@@ -209,8 +209,8 @@ namespace FreeTrainSimulator.Runtime.Track
         private static PathNodeType BuildPassingNodeType(PathRouteAnchor anchor, PathNode sourceNode, TrackWorld trackWorld)
         {
             PathNodeType nodeType = sourceNode?.NodeType ?? anchor.NodeType;
-            nodeType &= ~(PathNodeType.Start | PathNodeType.End | PathNodeType.Intermediate);
-            nodeType |= PathNodeType.Intermediate;
+            nodeType &= ~(PathNodeType.Start | PathNodeType.End | PathNodeType.Via);
+            nodeType |= PathNodeType.Via;
 
             if (trackWorld?.TrackNodeByIndex(anchor.TrackNodeIndex) is JunctionNode)
                 nodeType |= PathNodeType.Junction;
@@ -236,14 +236,14 @@ namespace FreeTrainSimulator.Runtime.Track
         private static PathNodeType BuildNodeType(PathRouteAnchor anchor, PathNode sourceNode, int nodeIndex, int nodeCount, TrackWorld trackWorld)
         {
             PathNodeType nodeType = sourceNode?.NodeType ?? anchor.NodeType;
-            nodeType &= ~(PathNodeType.Start | PathNodeType.End | PathNodeType.Intermediate);
+            nodeType &= ~(PathNodeType.Start | PathNodeType.End | PathNodeType.Via);
 
             if (nodeIndex == 0)
                 nodeType |= PathNodeType.Start;
             else if (nodeIndex == nodeCount - 1)
                 nodeType |= PathNodeType.End;
             else
-                nodeType |= PathNodeType.Intermediate;
+                nodeType |= PathNodeType.Via;
 
             if (trackWorld?.TrackNodeByIndex(anchor.TrackNodeIndex) is JunctionNode)
                 nodeType |= PathNodeType.Junction;

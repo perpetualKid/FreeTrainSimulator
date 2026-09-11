@@ -59,7 +59,7 @@ namespace FreeTrainSimulator.Runtime.Track
             ArgumentNullException.ThrowIfNull(trackWorld);
 
             JunctionNode = trackWorld.JunctionNodeBaseAt(Location);
-            NodeType = JunctionNode != null ? PathNodeType.Junction : PathNodeType.Intermediate;
+            NodeType = JunctionNode != null ? PathNodeType.Junction : PathNodeType.Via;
             NearestTrackDistance = trackWorld.NearestTrackDistance(Location);
 
             ConnectedSegments = GetConnectedNodes(trackWorld);
@@ -80,7 +80,7 @@ namespace FreeTrainSimulator.Runtime.Track
             }
             else if (trackSegment != null)
             {
-                NodeType = PathNodeType.Intermediate;
+                NodeType = PathNodeType.Via;
                 ConnectedSegments = ImmutableArray.Create(trackSegment);
             }
 

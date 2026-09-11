@@ -1921,8 +1921,8 @@ namespace FreeTrainSimulator.Common
         None = 0x0,
         /// <summary>Node is a regular node on a junction</summary>
         Junction = 0x1,
-        /// <summary>Node is an intermediate point node </summary>
-        Intermediate = 0x2,
+        /// <summary>Node is a routing point between the path start and end</summary>
+        Via = 0x2,
         /// <summary>Node is the start node </summary>
         Start = 0x4,
         /// <summary>Node is the end node (not just the last node) </summary>

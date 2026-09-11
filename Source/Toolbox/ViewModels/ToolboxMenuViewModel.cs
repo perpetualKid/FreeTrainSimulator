@@ -1,10 +1,12 @@
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Windows.Threading;
 
 using FreeTrainSimulator.Models.Base;
 using FreeTrainSimulator.Models.Content;
+using FreeTrainSimulator.Toolbox.Hosting;
 
 namespace FreeTrainSimulator.Toolbox.ViewModels
 {
@@ -97,33 +99,26 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
         }
 
         /// <summary>
-        /// Content folder chosen in the Routes tool window. Selecting a folder loads its routes through the
-        /// hosted bridge (which unloads any currently loaded route first).
+        /// Content folder chosen in the Routes tool window. Bound one-way (source to target) only; user picks
+        /// are delivered through <see cref="UserSelectFolder"/> from the view's SelectionChanged handler. A
+        /// TwoWay binding is unreliable here because AvalonDock re-parents the tool-window content, cycling the
+        /// DataContext and silently dropping the ComboBox's target-to-source write-back.
         /// </summary>
         public FolderModel SelectedFolder
         {
             get => selectedFolder;
-            set
-            {
-                if (!SetProperty(ref selectedFolder, value) || synchronizingSelection)
-                    return;
-                OnSelectFolder(value);
-            }
+            private set => SetProperty(ref selectedFolder, value);
         }
 
         /// <summary>
-        /// Route chosen in the Routes tool window. Selecting a route toggles it through the hosted bridge
-        /// (loading the new route, or unloading when the already-loaded route is picked again).
+        /// Route chosen in the Routes tool window. Bound one-way (source to target) only; user picks are
+        /// delivered through <see cref="UserSelectRoute"/> from the view's SelectionChanged handler (see
+        /// <see cref="SelectedFolder"/> for why TwoWay is unreliable here).
         /// </summary>
         public RouteModelHeader SelectedRoute
         {
             get => selectedRoute;
-            set
-            {
-                if (!SetProperty(ref selectedRoute, value) || synchronizingSelection)
-                    return;
-                OnToggleRoute(value);
-            }
+            private set => SetProperty(ref selectedRoute, value);
         }
 
         public RelayCommand EditPathCommand { get; }
@@ -136,61 +131,110 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
 
         public RelayCommand QuitCommand { get; }
 
+        /// <summary>
+        /// Handles a user-initiated content-folder pick from the Routes tool window. Ignored during
+        /// programmatic synchronization or when the pick matches the current selection. The selection is not
+        /// applied here; it is committed authoritatively by <see cref="RebuildFolders"/> once the
+        /// hosted bridge reports the new folder (mirroring the WinForms menu flow).
+        /// </summary>
+        public void UserSelectFolder(FolderModel folder)
+        {
+            if (folder == null || synchronizingSelection || EqualityComparer<FolderModel>.Default.Equals(selectedFolder, folder))
+                return;
+
+            // Sync the backing field to the user's pick immediately (without raising PropertyChanged, since the
+            // ComboBox already shows it). This keeps the OneWay binding SOURCE aligned with the displayed value
+            // during the async bridge round-trip; otherwise a binding refresh in that window re-pushes the stale
+            // previous folder back into the ComboBox and the display reverts. The authoritative confirmation is
+            // still applied by RebuildFolders once the bridge reports the new folder.
+            selectedFolder = folder;
+            OnSelectFolder(folder);
+        }
+
+        /// <summary>
+        /// Handles a user-initiated route pick from the Routes tool window. Ignored during programmatic
+        /// synchronization or when the pick matches the current selection. The selection is committed
+        /// authoritatively by <see cref="RebuildRoutes"/> once the bridge reports the new route.
+        /// </summary>
+        public void UserSelectRoute(RouteModelHeader route)
+        {
+            if (route == null || synchronizingSelection || EqualityComparer<RouteModelHeader>.Default.Equals(selectedRoute, route))
+                return;
+
+            // Keep the OneWay binding source aligned with the displayed pick (see UserSelectFolder).
+            selectedRoute = route;
+            OnToggleRoute(route);
+        }
+
         private void OnSelectFolder(FolderModel folder)
         {
-            if (folder != null)
-                menu.SelectFolder(folder);
+            if (folder == null)
+                return;
+
+            // Clear the dependent route list and selection up front so the route ComboBox does not carry a
+            // stale selection into the new folder's load.
+            synchronizingSelection = true;
+            try
+            {
+                SelectedRoute = null;
+                Routes.Clear();
+            }
+            finally
+            {
+                synchronizingSelection = false;
+            }
+
+            DeferToBridge(() => menu.SelectFolder(folder));
         }
 
         private void OnToggleRoute(RouteModelHeader route)
         {
             if (route != null)
-                menu.ToggleRoute(route);
+                DeferToBridge(() => menu.ToggleRoute(route));
         }
 
         private void OnTogglePath(PathModelHeader path)
         {
             if (path != null)
-                menu.TogglePath(path);
+                DeferToBridge(() => menu.TogglePath(path));
+        }
+
+        // Forwards a selection change to the hosted bridge, but only after the current WPF selection commit
+        // has fully unwound. In hosted mode the game thread is the WPF UI thread, so the bridge raises its
+        // Selected*Changed notifications synchronously/reentrantly; letting them run while a Selector is still
+        // committing the user's pick corrupts the ComboBox binding and causes the next pick to be ignored.
+        // Posting at Background priority guarantees the Selector finishes first.
+        private void DeferToBridge(Action action)
+        {
+            if (disposed)
+                return;
+
+            _ = dispatcher.BeginInvoke(DispatcherPriority.Background, new Action(() =>
+            {
+                if (!disposed)
+                    action();
+            }));
         }
 
         private void MenuContentFoldersChanged(object sender, EventArgs e)
-            => RunOnDispatcher(() =>
-            {
-                ReplaceContent(ContentFolders, menu.ContentFolders);
-                // The folder instances were replaced, so re-resolve the selection against the new collection
-                // to keep the Routes tool-window folder combo box in sync without re-triggering a load.
-                SyncSelectedFolderFromBridge();
-            });
+            => RunOnDispatcher(() => RebuildFolders());
 
         private void MenuRoutesChanged(object sender, EventArgs e)
-            => RunOnDispatcher(() =>
-            {
-                ReplaceContent(Routes, menu.Routes);
-                // The route instances were replaced, so re-resolve the selection against the new collection
-                // to keep the Routes tool-window combo box in sync without re-triggering a load.
-                SyncSelectedRouteFromBridge();
-            });
+            => RunOnDispatcher(() => RebuildRoutes());
 
         private void MenuPathsChanged(object sender, EventArgs e)
-            => RunOnDispatcher(() =>
-            {
-                ReplaceContent(Paths, menu.Paths);
-                // The path instances were replaced, so re-resolve the selection against the new collection
-                // to keep the Routes tool-window path list in sync without re-triggering a load.
-                SyncSelectedPathFromBridge();
-            });
+            => RunOnDispatcher(() => RebuildPaths());
 
-        private void MenuSelectedFolderChanged(object sender, EventArgs e) => RunOnDispatcher(SyncSelectedFolderFromBridge);
+        private void MenuSelectedFolderChanged(object sender, EventArgs e) => RunOnDispatcher(RebuildFolders);
 
         private void MenuSelectedRouteChanged(object sender, EventArgs e)
             => RunOnDispatcher(() =>
             {
                 SelectedRouteName = menu.SelectedRouteName;
-                SyncSelectedRouteFromBridge();
+                UpdateSelectedRoute();
             });
 
-        private void MenuSelectedPathChanged(object sender, EventArgs e) => RunOnDispatcher(SyncSelectedPathFromBridge);
+        private void MenuSelectedPathChanged(object sender, EventArgs e) => RunOnDispatcher(UpdateSelectedPath);
 
         private void MenuEnabledChanged(object sender, EventArgs e) => RunOnDispatcher(() => Enabled = menu.Enabled);
 
@@ -212,18 +256,33 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
         private static void ReplaceContent<T>(ObservableCollection<T> target, System.Collections.Immutable.ImmutableArray<T> source) where T : ModelBase
         {
             target.Clear();
-            foreach (T item in source.OrderBy(item => item.Name, StringComparer.CurrentCultureIgnoreCase))
+            // Distinct() collapses value-equal records: the model types are records with value-based
+            // Equals/GetHashCode, and WPF's Selector keys selectable items in a dictionary by item equality.
+            // Two value-equal items would insert the same key twice and throw ArgumentException during a
+            // selection change. They are indistinguishable as selectable items anyway, so drop the duplicates.
+            foreach (T item in source.Distinct().OrderBy(item => item.Name, StringComparer.CurrentCultureIgnoreCase))
                 target.Add(item);
         }
 
-        // Re-resolves SelectedFolder from the bridge's selected folder against the current ContentFolders
-        // collection. Guarded so the assignment reflects bridge state without forwarding back into a load.
-        private void SyncSelectedFolderFromBridge()
+        // Rebuilds the folder items and re-resolves the displayed selection from the bridge. This is the
+        // single authoritative point that updates the folder ComboBox (mirroring the WinForms menu's
+        // SetComboBoxItem). The selection is cleared BEFORE the Clear + Add rebuild: rebuilding the items while
+        // the ComboBox still holds a SelectedItem drives WPF's Selector to rebuild its selection tracking
+        // mid-change, and because the model types are value-equal records, an added item that is value-equal to
+        // the retained selection inserts a duplicate ItemInfo key and throws ArgumentException. Emptying the
+        // selection first leaves the Selector nothing to track. Guarded so assignments do not forward into a load.
+        private void RebuildFolders()
         {
             synchronizingSelection = true;
             try
             {
+                SelectedFolder = null;
+                OnPropertyChanged(nameof(SelectedFolder));
+
+                ReplaceContent(ContentFolders, menu.ContentFolders);
+
                 SelectedFolder = FindFolderByName(menu.SelectedFolder?.Name);
+                OnPropertyChanged(nameof(SelectedFolder));
             }
             finally
             {
@@ -231,14 +290,20 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
             }
         }
 
-        // Re-resolves SelectedRoute from the bridge's selected route name against the current Routes
-        // collection. Guarded so the assignment reflects bridge state without forwarding back into a load.
-        private void SyncSelectedRouteFromBridge()
+        // Rebuilds the route items and re-resolves the displayed selection; see RebuildFolders for the clear-
+        // before-rebuild rationale.
+        private void RebuildRoutes()
         {
             synchronizingSelection = true;
             try
             {
+                SelectedRoute = null;
+                OnPropertyChanged(nameof(SelectedRoute));
+
+                ReplaceContent(Routes, menu.Routes);
+
                 SelectedRoute = FindRouteByName(menu.SelectedRouteName);
+                OnPropertyChanged(nameof(SelectedRoute));
             }
             finally
             {
@@ -246,14 +311,63 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
             }
         }
 
-        // Re-resolves SelectedPath from the bridge's selected path against the current Paths collection.
-        // Guarded so the assignment reflects bridge state without forwarding back into a load.
-        private void SyncSelectedPathFromBridge()
+        // Rebuilds the path items and re-resolves the displayed selection; see RebuildFolders for the clear-
+        // before-rebuild rationale.
+        private void RebuildPaths()
+        {
+            synchronizingSelection = true;
+            try
+            {
+                SelectedPath = null;
+                OnPropertyChanged(nameof(SelectedPath));
+
+                ReplaceContent(Paths, menu.Paths);
+
+                SelectedPath = FindPathById(menu.SelectedPath?.Id);
+                OnPropertyChanged(nameof(SelectedPath));
+            }
+            finally
+            {
+                synchronizingSelection = false;
+            }
+        }
+
+        // Updates the displayed route selection only, without rebuilding the item collection. Used when the
+        // bridge reports a route selection change but the route list itself is unchanged, so the ComboBox does
+        // not flicker through an empty selection while a route loads.
+        private void UpdateSelectedRoute()
+        {
+            RouteModelHeader resolved = FindRouteByName(menu.SelectedRouteName);
+
+            // Ignore the transient null the bridge raises mid-load: loading a route first unloads the current
+            // one (PreSelectRoute(null)) before committing the new name, which would blank the ComboBox until
+            // the load finishes. When the user is switching to another route (selectedRoute already points at
+            // the target and it is still in the list), keep showing it. Genuine route clears happen through a
+            // folder change (RebuildRoutes), not this path.
+            if (resolved == null && selectedRoute != null && Routes.Contains(selectedRoute))
+                return;
+
+            synchronizingSelection = true;
+            try
+            {
+                SelectedRoute = resolved;
+                OnPropertyChanged(nameof(SelectedRoute));
+            }
+            finally
+            {
+                synchronizingSelection = false;
+            }
+        }
+
+        // Updates the displayed path selection only, without rebuilding the item collection; see
+        // UpdateSelectedRoute.
+        private void UpdateSelectedPath()
         {
             synchronizingSelection = true;
             try
             {
                 SelectedPath = FindPathById(menu.SelectedPath?.Id);
+                OnPropertyChanged(nameof(SelectedPath));
             }
             finally
             {

@@ -1,9 +1,9 @@
-using System;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 
+using FreeTrainSimulator.Toolbox.PathEditing;
 using FreeTrainSimulator.Toolbox.ViewModels;
 
 namespace FreeTrainSimulator.Toolbox.Views
@@ -18,6 +18,84 @@ namespace FreeTrainSimulator.Toolbox.Views
         public TrainPathToolView()
         {
             InitializeComponent();
+        }
+
+        // The path/node/diagnostic/route-candidate lists bind SelectedItem OneWay and forward user picks here;
+        // see ToolWindowSelection for why a TwoWay binding is unreliable in these hosted tool windows.
+        private void PathList_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (DataContext is TrainPathToolWindowViewModel viewModel && ToolWindowSelection.TryGetAddedItem(e, out TrainPathListItemViewModel item))
+                viewModel.UserSelectPath(item);
+        }
+
+        private void NodeList_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (DataContext is TrainPathToolWindowViewModel viewModel && ToolWindowSelection.TryGetAddedItem(e, out TrainPathNodeItemViewModel item))
+                viewModel.UserSelectNode(item);
+        }
+
+        private void DiagnosticList_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (DataContext is TrainPathToolWindowViewModel viewModel && ToolWindowSelection.TryGetAddedItem(e, out TrainPathDiagnosticItemViewModel item))
+                viewModel.UserSelectDiagnostic(item);
+        }
+
+        private void RouteCandidateList_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (DataContext is TrainPathToolWindowViewModel viewModel && ToolWindowSelection.TryGetAddedItem(e, out TrainPathRouteCandidateItemViewModel item))
+                viewModel.UserSelectRouteCandidate(item);
+        }
+
+        private void PathNodes_ContextMenuOpening(object sender, ContextMenuEventArgs e)
+        {
+            if (sender is not ListView listView || DataContext is not TrainPathToolWindowViewModel viewModel)
+                return;
+
+            DependencyObject source = e.OriginalSource as DependencyObject;
+            ListViewItem row = ItemsControl.ContainerFromElement(listView, source) as ListViewItem
+                ?? listView.ItemContainerGenerator.ContainerFromItem(listView.SelectedItem) as ListViewItem;
+            if (row?.DataContext is not TrainPathNodeItemViewModel node)
+            {
+                e.Handled = true;
+                return;
+            }
+
+            listView.SelectedItem = node;
+            viewModel.UserSelectNode(node);
+            ContextMenu menu = listView.ContextMenu;
+            menu.Items.Clear();
+            foreach (MapContextMenuItem action in viewModel.GetSelectedNodeActions())
+            {
+                if (action.IsSeparator)
+                {
+                    menu.Items.Add(new Separator());
+                    continue;
+                }
+
+                MenuItem item = new() { Header = MainWindow.GetMapContextMenuCaption(action) };
+                MapContextMenuItem capturedAction = action;
+                item.Click += (_, _) => viewModel.ExecuteNodeAction(capturedAction);
+                menu.Items.Add(item);
+            }
+            if (menu.Items.Count == 0)
+            {
+                e.Handled = true;
+                return;
+            }
+
+            menu.PlacementTarget = row;
+        }
+
+        private void MetadataEditor_LostFocus(object sender, RoutedEventArgs e)
+        {
+            if (DataContext is TrainPathToolWindowViewModel viewModel)
+                viewModel.CommitMetadata();
+        }
+
+        private void MetadataEditor_Click(object sender, RoutedEventArgs e)
+        {
+            if (DataContext is TrainPathToolWindowViewModel viewModel)
+                viewModel.CommitMetadata();
         }
 
         private void PathEditorTabs_SelectionChanged(object sender, SelectionChangedEventArgs e)

@@ -27,8 +27,8 @@ namespace Tests.FreeTrainSimulator.Models.Imported.Track
             return new List<TrainPathPointBase>
             {
                 new TrainPathPoint(PointD.None, PathNodeType.Start) { NextMainNode = 1, NextSidingNode = 2 },
-                new TrainPathPoint(PointD.None, PathNodeType.Intermediate) { NextMainNode = 3, NextSidingNode = -1 },
-                new TrainPathPoint(PointD.None, PathNodeType.Intermediate) { NextMainNode = -1, NextSidingNode = 3 },
+                new TrainPathPoint(PointD.None, PathNodeType.Via) { NextMainNode = 3, NextSidingNode = -1 },
+                new TrainPathPoint(PointD.None, PathNodeType.Via) { NextMainNode = -1, NextSidingNode = 3 },
                 new TrainPathPoint(PointD.None, PathNodeType.End) { NextMainNode = -1, NextSidingNode = -1 },
             };
         }
@@ -47,12 +47,12 @@ namespace Tests.FreeTrainSimulator.Models.Imported.Track
             List<PathNode> nodes = new List<PathNode>
             {
                 CreatePathNode(PathNodeType.Start),
-                CreatePathNode(PathNodeType.Intermediate),
-                CreatePathNode(PathNodeType.Intermediate),
+                CreatePathNode(PathNodeType.Via),
+                CreatePathNode(PathNodeType.Via),
                 CreatePathNode(PathNodeType.End),
             };
 
-            Assert.AreSame(nodes[1], nodes.NodeOfType(PathNodeType.Intermediate));
+            Assert.AreSame(nodes[1], nodes.NodeOfType(PathNodeType.Via));
         }
 
         [TestMethod]
@@ -160,7 +160,7 @@ namespace Tests.FreeTrainSimulator.Models.Imported.Track
         public void PreviousPathPointForUnknownPointReturnsNull()
         {
             List<TrainPathPointBase> path = CreateMainPathWithPassingPath();
-            TrainPathPointBase foreignPoint = new TrainPathPoint(PointD.None, PathNodeType.Intermediate);
+            TrainPathPointBase foreignPoint = new TrainPathPoint(PointD.None, PathNodeType.Via);
 
             Assert.IsNull(path.PreviousPathPoint(foreignPoint, PathSectionType.MainPath));
         }

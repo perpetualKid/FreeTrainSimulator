@@ -33,7 +33,7 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
             Assert.IsTrue(result.Success);
             Assert.HasCount(3, result.PathModel.PathNodes);
             Assert.AreEqual(PathNodeType.Start, result.PathModel.PathNodes[0].NodeType);
-            Assert.AreEqual(PathNodeType.Intermediate, result.PathModel.PathNodes[1].NodeType);
+            Assert.AreEqual(PathNodeType.Via, result.PathModel.PathNodes[1].NodeType);
             Assert.AreEqual(PathNodeType.End, result.PathModel.PathNodes[2].NodeType);
             Assert.AreEqual(1, result.PathModel.PathNodes[0].NextMainNode);
             Assert.AreEqual(2, result.PathModel.PathNodes[1].NextMainNode);
@@ -153,7 +153,7 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
 
             PathNode sidingNode = result.PathModel.PathNodes[3];
             Assert.AreEqual(3, sidingNode.NodeIndex);
-            Assert.IsTrue(sidingNode.NodeType.Includes(PathNodeType.Intermediate));
+            Assert.IsTrue(sidingNode.NodeType.Includes(PathNodeType.Via));
         }
 
         [TestMethod]
@@ -259,8 +259,8 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
                 PlayerPath = true,
                 PathNodes = ImmutableArray.Create(
                     CreatePassingNode(PathNodeType.Start, 1, 2, 1),
-                    CreatePassingNode(PathNodeType.Intermediate, 3, -1, 2),
-                    CreatePassingNode(PathNodeType.Intermediate, -1, 3, 3),
+                    CreatePassingNode(PathNodeType.Via, 3, -1, 2),
+                    CreatePassingNode(PathNodeType.Via, -1, 3, 3),
                     CreatePassingNode(PathNodeType.End, -1, -1, 4)),
             };
         }
@@ -278,8 +278,8 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
                 PlayerPath = true,
                 PathNodes = ImmutableArray.Create(
                     CreatePassingNode(PathNodeType.Start, 1, 2, 1),
-                    CreatePassingNode(PathNodeType.Intermediate, 3, -1, 2),
-                    CreatePassingNode(PathNodeType.Intermediate, -1, -1, 3),
+                    CreatePassingNode(PathNodeType.Via, 3, -1, 2),
+                    CreatePassingNode(PathNodeType.Via, -1, -1, 3),
                     CreatePassingNode(PathNodeType.End, -1, -1, 4)),
             };
         }

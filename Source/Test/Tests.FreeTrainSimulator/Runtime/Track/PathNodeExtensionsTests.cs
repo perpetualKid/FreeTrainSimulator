@@ -35,7 +35,7 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
             List<TrainPathPointBase> points = new List<TrainPathPointBase>
             {
                 Point(PathNodeType.Start, nextMainNode: 1),
-                Point(PathNodeType.Intermediate, nextMainNode: -1),
+                Point(PathNodeType.Via, nextMainNode: -1),
             };
 
             TrainPathPointBase next = points.NextPathPoint(points[1], PathSectionType.MainPath);
@@ -49,7 +49,7 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
             List<TrainPathPointBase> points = new List<TrainPathPointBase>
             {
                 Point(PathNodeType.Start, nextMainNode: 1),
-                Point(PathNodeType.Intermediate, nextMainNode: -1),
+                Point(PathNodeType.Via, nextMainNode: -1),
             };
 
             TrainPathPointBase next = points.NextPathPoint(points[0], PathSectionType.PassingPath);

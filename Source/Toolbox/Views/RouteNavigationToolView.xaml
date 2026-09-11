@@ -37,7 +37,8 @@
                          Text="{Binding StationFilter, UpdateSourceTrigger=PropertyChanged}"
                          ToolTip="Filter stations by name" />
                 <ListView ItemsSource="{Binding Stations}"
-                          SelectedItem="{Binding SelectedStation, Mode=TwoWay}"
+                          SelectedItem="{Binding SelectedStation, Mode=OneWay}"
+                          SelectionChanged="StationList_SelectionChanged"
                           ItemContainerStyle="{StaticResource RouteNavigationRowStyle}"
                           behaviors:GridViewColumnBehavior.StretchListView="True">
                     <ListView.View>
@@ -57,7 +58,8 @@
                          Text="{Binding PlatformFilter, UpdateSourceTrigger=PropertyChanged}"
                          ToolTip="Filter platforms by name or station" />
                 <ListView ItemsSource="{Binding Platforms}"
-                          SelectedItem="{Binding SelectedPlatform, Mode=TwoWay}"
+                          SelectedItem="{Binding SelectedPlatform, Mode=OneWay}"
+                          SelectionChanged="PlatformList_SelectionChanged"
                           ItemContainerStyle="{StaticResource RouteNavigationRowStyle}"
                           behaviors:GridViewColumnBehavior.StretchListView="True">
                     <ListView.View>
@@ -78,7 +80,8 @@
                          Text="{Binding SidingFilter, UpdateSourceTrigger=PropertyChanged}"
                          ToolTip="Filter sidings by name or nearest station" />
                 <ListView ItemsSource="{Binding Sidings}"
-                          SelectedItem="{Binding SelectedSiding, Mode=TwoWay}"
+                          SelectedItem="{Binding SelectedSiding, Mode=OneWay}"
+                          SelectionChanged="SidingList_SelectionChanged"
                           ItemContainerStyle="{StaticResource RouteNavigationRowStyle}"
                           behaviors:GridViewColumnBehavior.StretchListView="True">
                     <ListView.View>

@@ -146,7 +146,7 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
                 PathNodeType _ when nodeType.Includes(PathNodeType.Reversal) => BasicTextureType.PathReverse,
                 PathNodeType _ when nodeType.Includes(PathNodeType.Junction) => BasicTextureType.PathJunction,
                 PathNodeType _ when nodeType.Includes(PathNodeType.Wait) => BasicTextureType.PathWait,
-                PathNodeType _ when nodeType.Includes(PathNodeType.Intermediate) => BasicTextureType.PathVia,
+                PathNodeType _ when nodeType.Includes(PathNodeType.Via) => BasicTextureType.PathVia,
                 PathNodeType _ when nodeType.Includes(PathNodeType.None) => BasicTextureType.RingCrossed,
                 PathNodeType _ when nodeType.Includes(PathNodeType.Invalid) => BasicTextureType.RingCrossed,
                 _ => throw new NotImplementedException(),

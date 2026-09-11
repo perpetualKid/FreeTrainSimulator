@@ -8,314 +8,14 @@ using System.Threading.Tasks;
 using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Models.Content;
 using FreeTrainSimulator.Runtime.Track;
+using FreeTrainSimulator.Toolbox.Hosting;
+using FreeTrainSimulator.Toolbox.PathEditing;
 using FreeTrainSimulator.Toolbox.PopupWindows;
 
 using DrawingColor = System.Drawing.Color;
 
 namespace FreeTrainSimulator.Toolbox.ToolWindows
 {
-    /// <summary>
-    /// One available train path in the hosted train-path tool window's path list.
-    /// </summary>
-    internal readonly record struct TrainPathListRow
-    {
-        public TrainPathListRow(string id, string name, PathValidationState validationState)
-            : this(id, name, validationState, false)
-        {
-        }
-
-        public TrainPathListRow(string id, string name, PathValidationState validationState, bool hasUnsavedChanges)
-        {
-            Id = id;
-            Name = name;
-            ValidationState = validationState;
-            HasUnsavedChanges = hasUnsavedChanges;
-        }
-
-        /// <summary>Unique id of the path.</summary>
-        public string Id { get; }
-
-        /// <summary>Display name of the path.</summary>
-        public string Name { get; }
-
-        /// <summary>Persisted validation state of the path (valid, invalid, or not yet validated).</summary>
-        public PathValidationState ValidationState { get; }
-
-        /// <summary>Whether the path holds edits that have not been persisted yet.</summary>
-        public bool HasUnsavedChanges { get; }
-    }
-
-    /// <summary>
-    /// One node row of the currently edited train path (index, node type, validity).
-    /// </summary>
-    internal readonly record struct TrainPathNodeRow
-    {
-        public TrainPathNodeRow(int index, PathNodeType nodeType, bool valid)
-            : this(index, nodeType, valid, 0, -1, -1, null, null, null, null, null)
-        {
-        }
-
-        public TrainPathNodeRow(int index, PathNodeType nodeType, bool valid, int trackNodeIndex, int nextMainNode, int nextSidingNode, int? waitTime, string validation)
-            : this(index, nodeType, valid, trackNodeIndex, nextMainNode, nextSidingNode, waitTime, validation, null, null, null)
-        {
-        }
-
-        public TrainPathNodeRow(int index, PathNodeType nodeType, bool valid, int trackNodeIndex, int nextMainNode, int nextSidingNode, int? waitTime,
-            string validation, int? nearestTrackNodeIndex, int? nearestTrackSectionIndex, double? nearestTrackDistanceMeters)
-        {
-            Index = index;
-            NodeType = nodeType;
-            Valid = valid;
-            TrackNodeIndex = trackNodeIndex;
-            NextMainNode = nextMainNode;
-            NextSidingNode = nextSidingNode;
-            WaitTime = waitTime;
-            Validation = validation;
-            NearestTrackNodeIndex = nearestTrackNodeIndex;
-            NearestTrackSectionIndex = nearestTrackSectionIndex;
-            NearestTrackDistanceMeters = nearestTrackDistanceMeters;
-        }
-
-        public int Index { get; }
-
-        public PathNodeType NodeType { get; }
-
-        public bool Valid { get; }
-
-        public int TrackNodeIndex { get; }
-
-        public int NextMainNode { get; }
-
-        public int NextSidingNode { get; }
-
-        public int? WaitTime { get; }
-
-        public string Validation { get; }
-
-        public int? NearestTrackNodeIndex { get; }
-
-        public int? NearestTrackSectionIndex { get; }
-
-        public double? NearestTrackDistanceMeters { get; }
-    }
-
-    /// <summary>
-    /// One equal-cost route candidate of an ambiguous span of the currently edited train path.
-    /// </summary>
-    internal readonly record struct TrainPathRouteCandidateRow
-    {
-        public TrainPathRouteCandidateRow(int fromNodeIndex, int toNodeIndex, int candidateIndex, string description)
-        {
-            FromNodeIndex = fromNodeIndex;
-            ToNodeIndex = toNodeIndex;
-            CandidateIndex = candidateIndex;
-            Description = description;
-        }
-
-        /// <summary>Authored node index the ambiguous span starts at.</summary>
-        public int FromNodeIndex { get; }
-
-        /// <summary>Authored node index the ambiguous span ends at.</summary>
-        public int ToNodeIndex { get; }
-
-        /// <summary>Index of the candidate within the span, stable across resolutions.</summary>
-        public int CandidateIndex { get; }
-
-        /// <summary>Human readable summary of the route the candidate takes.</summary>
-        public string Description { get; }
-    }
-
-    /// <summary>
-    /// One resolver diagnostic of the currently edited train path, flattened into immutable UI-safe data.
-    /// </summary>
-    internal readonly record struct TrainPathDiagnosticRow
-    {
-        public TrainPathDiagnosticRow(PathRouteDiagnosticSeverity severity, PathRouteDiagnosticCode code, string message,
-            int nodeIndex, int fromNodeIndex, int toNodeIndex, string suggestedAction, bool canRepair)
-        {
-            Severity = severity;
-            Code = code;
-            Message = message;
-            NodeIndex = nodeIndex;
-            FromNodeIndex = fromNodeIndex;
-            ToNodeIndex = toNodeIndex;
-            SuggestedAction = suggestedAction;
-            CanRepair = canRepair;
-        }
-
-        /// <summary>Diagnostic severity.</summary>
-        public PathRouteDiagnosticSeverity Severity { get; }
-
-        /// <summary>Stable diagnostic code.</summary>
-        public PathRouteDiagnosticCode Code { get; }
-
-        /// <summary>Human-readable diagnostic message.</summary>
-        public string Message { get; }
-
-        /// <summary>Authored node index associated with the diagnostic, or -1 when not node-specific.</summary>
-        public int NodeIndex { get; }
-
-        /// <summary>Source authored node index for span diagnostics, or -1 when not span-specific.</summary>
-        public int FromNodeIndex { get; }
-
-        /// <summary>Target authored node index for span diagnostics, or -1 when not span-specific.</summary>
-        public int ToNodeIndex { get; }
-
-        /// <summary>Suggested repair or review action.</summary>
-        public string SuggestedAction { get; }
-
-        /// <summary>Whether the existing selected-node repair operation can repair this diagnostic target.</summary>
-        public bool CanRepair { get; }
-
-        /// <summary>Whether the diagnostic identifies one authored node.</summary>
-        public bool HasNodeTarget => NodeIndex >= 0;
-
-        /// <summary>Whether the diagnostic identifies an authored path span.</summary>
-        public bool HasSpanTarget => FromNodeIndex >= 0 && ToNodeIndex >= 0;
-    }
-
-    /// <summary>
-    /// Immutable snapshot of the hosted train-path tool window state, captured on the game thread and read
-    /// lock-free by the WPF view model. Combines the available paths, the selected path id, the current
-    /// path's node rows, and its metadata name/value rows.
-    /// </summary>
-    internal sealed record TrainPathSnapshot
-    {
-        /// <summary>Available paths for the loaded route.</summary>
-        public ImmutableArray<TrainPathListRow> Paths { get; init; }
-
-        /// <summary>Id of the currently selected path, or null when none is selected.</summary>
-        public string SelectedPathId { get; init; }
-
-        /// <summary>Node rows of the currently edited path.</summary>
-        public ImmutableArray<TrainPathNodeRow> Nodes { get; init; }
-
-        /// <summary>Index of the path node selected on the map, or -1 when none is selected.</summary>
-        public int SelectedNodeIndex { get; init; } = -1;
-
-        /// <summary>Name/value metadata rows for the currently edited path.</summary>
-        public ImmutableArray<ToolWindowRow> Metadata { get; init; }
-
-        /// <summary>Equal-cost route candidates of the currently edited path's ambiguous spans.</summary>
-        public ImmutableArray<TrainPathRouteCandidateRow> RouteCandidates { get; init; }
-
-        /// <summary>Resolver diagnostics of the currently edited path.</summary>
-        public ImmutableArray<TrainPathDiagnosticRow> Diagnostics { get; init; }
-
-        /// <summary>Whether the current path is loaded without runtime route or renderer state for safe repair.</summary>
-        public bool IsRepairMode { get; init; }
-
-        /// <summary>Actionable feedback from the latest blocked save request.</summary>
-        public string BlockedSaveMessage { get; init; }
-
-        /// <summary>Diagnostic to focus for the latest blocked save request, when available.</summary>
-        public TrainPathDiagnosticRow? BlockedSaveDiagnostic { get; init; }
-
-        /// <summary>Version incremented for each blocked save request.</summary>
-        public int BlockedSaveFeedbackVersion { get; init; }
-
-        /// <summary>Whether an undo step is available.</summary>
-        public bool CanUndo { get; init; }
-
-        /// <summary>Whether a redo step is available.</summary>
-        public bool CanRedo { get; init; }
-
-        /// <summary>Whether the current path can be snapped to track.</summary>
-        public bool CanSnapToTrack { get; init; }
-
-        /// <summary>Whether a node move operation is currently active.</summary>
-        public bool CanCancelMoveNode { get; init; }
-
-        /// <summary>Whether the active node move has a valid preview that can be committed.</summary>
-        public bool CanCommitMoveNode { get; init; }
-
-        /// <summary>Current guided map placement mode.</summary>
-        public PathEditorPlacementMode PlacementMode { get; init; }
-
-        /// <summary>Whether any map placement can be canceled.</summary>
-        public bool CanCancelPlacement { get; init; }
-
-        /// <summary>Whether the active placement has a valid track preview that can be committed.</summary>
-        public bool CanCommitPlacement { get; init; }
-
-        /// <summary>Whether start-anchor placement can begin.</summary>
-        public bool CanPlaceStartAnchor { get; init; }
-
-        /// <summary>Whether end-anchor placement can begin.</summary>
-        public bool CanPlaceEndAnchor { get; init; }
-
-        /// <summary>Whether the selected authored node can be moved safely.</summary>
-        public bool CanMoveSelectedNode { get; init; }
-
-        /// <summary>Whether the selected authored node has an applicable safe repair.</summary>
-        public bool CanRepairSelectedNode { get; init; }
-
-        /// <summary>Whether the selected authored node can be removed as a via point.</summary>
-        public bool CanRemoveSelectedViaPoint { get; init; }
-
-        /// <summary>Whether the active unsaved New Path model can be canceled.</summary>
-        public bool CanCancelNewPath { get; init; }
-
-        /// <summary>Whether progressive route building is active.</summary>
-        public bool IsBuildingRoute { get; init; }
-
-        /// <summary>Whether route building can finish at its last committed point.</summary>
-        public bool CanFinishPath { get; init; }
-
-        public bool CanBeginPassingBranch { get; init; }
-
-        public bool CanCompletePassingBranch { get; init; }
-
-        public bool CanCancelPassingBranch { get; init; }
-
-        public bool CanRemovePassingBranch { get; init; }
-
-        public bool HasPendingPassingBranchCandidate { get; init; }
-
-        public PassingBranchAuthoringPhase PassingBranchPhase { get; init; }
-
-        public string CommandResultMessage { get; init; }
-
-        public bool CommandResultIsWarning { get; init; }
-
-        public int CommandResultVersion { get; init; }
-
-        /// <summary>An empty snapshot used before any path content is available.</summary>
-        public static TrainPathSnapshot Empty { get; } = new TrainPathSnapshot
-        {
-            Paths = ImmutableArray<TrainPathListRow>.Empty,
-            SelectedPathId = null,
-            Nodes = ImmutableArray<TrainPathNodeRow>.Empty,
-            SelectedNodeIndex = -1,
-            Metadata = ImmutableArray<ToolWindowRow>.Empty,
-            RouteCandidates = ImmutableArray<TrainPathRouteCandidateRow>.Empty,
-            Diagnostics = ImmutableArray<TrainPathDiagnosticRow>.Empty,
-            IsRepairMode = false,
-            BlockedSaveMessage = null,
-            BlockedSaveDiagnostic = null,
-            BlockedSaveFeedbackVersion = 0,
-            CanUndo = false,
-            CanRedo = false,
-            CanSnapToTrack = false,
-            CanCancelMoveNode = false,
-            CanCommitMoveNode = false,
-            PlacementMode = PathEditorPlacementMode.None,
-            CanCancelPlacement = false,
-            CanCommitPlacement = false,
-            CanPlaceStartAnchor = false,
-            CanPlaceEndAnchor = false,
-            CanMoveSelectedNode = false,
-            CanRepairSelectedNode = false,
-            CanRemoveSelectedViaPoint = false,
-            CanBeginPassingBranch = false,
-            CanCompletePassingBranch = false,
-            CanCancelPassingBranch = false,
-            CanRemovePassingBranch = false,
-            HasPendingPassingBranchCandidate = false,
-            PassingBranchPhase = PassingBranchAuthoringPhase.Idle,
-        };
-    }
-
     /// <summary>
     /// Hosted-mode bridge exposing the train-path editor as a dockable WPF tool window. Mirrors the legacy
     /// <c>TrainPathWindow</c> popup: it lists the route's available paths, shows the currently edited path's
@@ -413,7 +113,7 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
                     && !snapshot.CanSnapToTrack
                     && !snapshot.CanCancelMoveNode
                     && !snapshot.CanCommitMoveNode
-                    && !snapshot.CanCancelPlacement
+                    && !snapshot.CanCancelPathInteraction
                     && !snapshot.CanCommitPlacement;
                 if (snapshotIsPathsOnly && pathsSnapshotVersion == lastSnapshotVersion)
                     return;
@@ -421,7 +121,13 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
                 lastPathId = null;
                 lastNodeCount = 0;
                 lastSnapshotVersion = pathsSnapshotVersion;
-                snapshot = TrainPathSnapshot.Empty with { Paths = BuildPaths(null) };
+                snapshot = TrainPathSnapshot.Empty with
+                {
+                    Paths = BuildPaths(null),
+                    CommandResultMessage = commandResultMessage,
+                    CommandResultIsWarning = commandResultIsWarning,
+                    CommandResultVersion = commandResultVersion,
+                };
                 return;
             }
 
@@ -442,7 +148,7 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
             bool canCancelMoveNode = pathEditor.IsMovingNode;
             bool canCommitMoveNode = pathEditor.CanCommitMoveNode;
             PathEditorPlacementMode placementMode = pathEditor.PlacementMode;
-            bool canCancelPlacement = pathEditor.IsPlacementActive;
+            bool canCancelPathInteraction = pathEditor.CanCancelPathInteraction;
             bool canCommitPlacement = pathEditor.CanCommitPlacement;
             bool canPlaceStartAnchor = pathEditor.CanPlaceStartAnchor;
             bool canPlaceEndAnchor = pathEditor.CanPlaceEndAnchor;
@@ -474,7 +180,7 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
                 && canCancelMoveNode == snapshot.CanCancelMoveNode
                 && canCommitMoveNode == snapshot.CanCommitMoveNode
                 && placementMode == snapshot.PlacementMode
-                && canCancelPlacement == snapshot.CanCancelPlacement
+                && canCancelPathInteraction == snapshot.CanCancelPathInteraction
                 && canCommitPlacement == snapshot.CanCommitPlacement
                 && canPlaceStartAnchor == snapshot.CanPlaceStartAnchor
                 && canPlaceEndAnchor == snapshot.CanPlaceEndAnchor
@@ -493,6 +199,10 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
                 && commandResultVersion == snapshot.CommandResultVersion
                 && isRepairMode == snapshot.IsRepairMode
                 && blockedSaveFeedbackVersion == snapshot.BlockedSaveFeedbackVersion
+                && string.Equals(currentPathModel?.Name, snapshot.PathName, StringComparison.Ordinal)
+                && string.Equals(currentPathModel?.Start, snapshot.PathStart, StringComparison.Ordinal)
+                && string.Equals(currentPathModel?.End, snapshot.PathEnd, StringComparison.Ordinal)
+                && currentPathModel?.PlayerPath == snapshot.PlayerPath
                 && paths.SequenceEqual(snapshot.Paths))
             {
                 return;
@@ -511,6 +221,10 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
                 Nodes = isRepairMode ? BuildAuthoredNodes(currentPathModel, resolution) : BuildNodes(authoredPath),
                 SelectedNodeIndex = selectedNodeIndex,
                 Metadata = BuildMetadata(pathEditor, authoredPath, currentPathModel, isRepairMode),
+                PathName = currentPathModel?.Name,
+                PathStart = currentPathModel?.Start,
+                PathEnd = currentPathModel?.End,
+                PlayerPath = currentPathModel?.PlayerPath == true,
                 RouteCandidates = isRepairMode ? ImmutableArray<TrainPathRouteCandidateRow>.Empty : BuildRouteCandidates(pathEditor),
                 Diagnostics = diagnostics,
                 IsRepairMode = isRepairMode,
@@ -523,7 +237,7 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
                 CanCancelMoveNode = canCancelMoveNode,
                 CanCommitMoveNode = canCommitMoveNode,
                 PlacementMode = placementMode,
-                CanCancelPlacement = canCancelPlacement,
+                CanCancelPathInteraction = canCancelPathInteraction,
                 CanCommitPlacement = canCommitPlacement,
                 CanPlaceStartAnchor = canPlaceStartAnchor,
                 CanPlaceEndAnchor = canPlaceEndAnchor,
@@ -553,11 +267,6 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
         /// </summary>
         internal void SelectPath(string pathId)
         {
-            _ = SelectPathAsync(pathId);
-        }
-
-        private async Task SelectPathAsync(string pathId)
-        {
             gameThreadInvoker(() =>
             {
                 CaptureTransientCurrentPath();
@@ -574,14 +283,15 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
                     : cachedPaths.FirstOrDefault(p => string.Equals(p.Id, pathId, StringComparison.OrdinalIgnoreCase));
                 if (path == null)
                 {
-                    _ = RefreshCachedPathsFromContextAsync();
-                    path = cachedPaths.FirstOrDefault(p => string.Equals(p.Id, pathId, StringComparison.OrdinalIgnoreCase));
-                }
-                if (path != null)
-                {
-                    loadPathAction(path);
+                    commandResultMessage = $"Path '{pathId}' is no longer available.";
+                    commandResultIsWarning = true;
+                    commandResultVersion++;
                     MarkDirty();
+                    return;
                 }
+
+                loadPathAction(path);
+                MarkDirty();
             });
         }
 
@@ -710,12 +420,15 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
 
         internal bool CanCreatePath => toolingContextAccessor() != null;
 
+        internal bool CanValidatePaths => toolingContextAccessor() != null;
+
         internal bool CanSavePath
         {
             get
             {
                 PathEditor pathEditor = pathEditorAccessor();
-                return pathEditor?.TrainPath != null && !pathEditor.IsSaveInProgress;
+                return pathEditor?.TrainPath != null && pathEditor.HasUnsavedChanges && !pathEditor.IsSaveInProgress
+                    && !pathEditor.CanCancelPathInteraction;
             }
         }
 
@@ -740,10 +453,16 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
             {
                 PathEditor pathEditor = pathEditorAccessor();
                 if (pathEditor?.IsNewPath != true)
+                {
+                    PublishCommandResult(PathEditorCommandResult.Failed("No unsaved new path is active.", pathEditor?.TryCaptureCurrentPathModel()));
+                    MarkDirty();
                     return;
+                }
 
+                PathModel canceledPath = pathEditor.TryCaptureCurrentPathModel();
                 transientPaths.Remove(PathEditor.NewPathId);
                 unloadPathAction();
+                PublishCommandResult(PathEditorCommandResult.Succeeded("New path canceled.", canceledPath));
                 MarkDirty();
             });
         }
@@ -756,9 +475,16 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
                 createPathAction();
                 PathEditor pathEditor = pathEditorAccessor();
                 if (pathEditor == null)
+                {
+                    PathEditorCommandResult unavailable = PathEditorCommandResult.Failed("Cannot start a new path because no path editor is active.", null);
+                    PublishCommandResult(unavailable);
+                    Trace.TraceWarning(unavailable.Message);
+                    MarkDirty();
                     return;
+                }
 
                 PathEditorCommandResult result = pathEditor.BeginStartAnchorPlacementCommand();
+                PublishCommandResult(result);
                 if (result.Success)
                     activateMapInputAction();
                 else
@@ -775,6 +501,18 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
                 if (pathEditor == null)
                     return;
 
+                PathModel currentModel = pathEditor.TryCaptureCurrentPathModel();
+                if (currentModel == null || string.IsNullOrWhiteSpace(currentModel.Name)
+                    || currentModel.Name.Trim().IndexOfAny(System.IO.Path.GetInvalidFileNameChars()) >= 0
+                    || currentModel.Name.Trim() is "." or "..")
+                {
+                    commandResultMessage = "Enter a path name without filename-invalid characters before saving.";
+                    commandResultIsWarning = true;
+                    commandResultVersion++;
+                    MarkDirty();
+                    return;
+                }
+
                 PathPersistenceValidationResult validation = pathEditor.ValidateCurrentPathForPersistence();
                 if (!validation.PersistenceAllowed)
                 {
@@ -786,6 +524,81 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
                 savePathAction();
                 MarkDirty();
             });
+        }
+
+        internal void SetMetadata(string name, string start, string end, bool playerPath)
+            => ExecuteEditorCommand(pathEditor => pathEditor.SetMetadataCommand(name, start, end, playerPath));
+
+        internal ImmutableArray<MapContextMenuItem> GetNodeActions(int nodeIndex)
+        {
+            PathEditor pathEditor = pathEditorAccessor();
+            PathModel model = pathEditor?.TryCaptureCurrentPathModel();
+            if (model == null || nodeIndex < 0 || nodeIndex >= model.PathNodes.Length)
+                return ImmutableArray<MapContextMenuItem>.Empty;
+
+            PathNode node = model.PathNodes[nodeIndex];
+            MapContextMenuActionBuilder.MapContextMenuState state = new()
+            {
+                CanBeginPassingBranch = pathEditor.CanBeginPassingBranch(nodeIndex),
+                CanCompletePassingBranch = pathEditor.CanCompletePassingBranch(nodeIndex),
+                CanCancelPassingBranch = pathEditor.CanCancelPassingBranch,
+                CanRemovePassingBranch = pathEditor.CanRemovePassingBranch(nodeIndex),
+                IsPlacementActive = pathEditor.IsPlacementActive,
+                CanMoveNode = pathEditor.CanMoveNode(nodeIndex),
+                CanClearWaitPoint = pathEditor.CanClearWaitPoint(nodeIndex),
+                CanSetReversalPoint = pathEditor.CanSetReversalPoint(nodeIndex),
+                CanClearReversalPoint = pathEditor.CanClearReversalPoint(nodeIndex),
+                CanRemoveViaPoint = pathEditor.CanRemoveViaPoint(nodeIndex),
+                CanRepairNode = pathEditor.CanRepairNode(nodeIndex),
+                CanRemoveRestOfPath = pathEditor.CanRemoveRestOfPath(nodeIndex),
+            };
+            return MapContextMenuActionBuilder.BuildNodeActions(nodeIndex, state);
+        }
+
+        internal void ExecuteNodeAction(MapContextMenuAction action, int nodeIndex)
+        {
+            switch (action)
+            {
+                case MapContextMenuAction.MoveNode:
+                    BeginMoveNode(nodeIndex);
+                    break;
+                case MapContextMenuAction.CancelPlacement:
+                    CancelPlacement();
+                    break;
+                case MapContextMenuAction.ClearWaitPoint:
+                    ClearWaitPoint(nodeIndex);
+                    break;
+                case MapContextMenuAction.SetReversalPoint:
+                    SetReversalPoint(nodeIndex);
+                    break;
+                case MapContextMenuAction.ClearReversalPoint:
+                    ClearReversalPoint(nodeIndex);
+                    break;
+                case MapContextMenuAction.RemoveViaPoint:
+                    RemoveViaPoint(nodeIndex);
+                    break;
+                case MapContextMenuAction.RepairNode:
+                    RepairSelectedNode(nodeIndex);
+                    break;
+                case MapContextMenuAction.StartPassingBranch:
+                    BeginPassingBranch(nodeIndex);
+                    break;
+                case MapContextMenuAction.RejoinPassingBranch:
+                    CompletePassingBranch(nodeIndex);
+                    break;
+                case MapContextMenuAction.CancelPassingBranch:
+                    CancelPassingBranch();
+                    break;
+                case MapContextMenuAction.RemovePassingBranch:
+                    RemovePassingBranch(nodeIndex);
+                    break;
+                case MapContextMenuAction.RemoveRestOfPath:
+                    RemoveRestOfPath(nodeIndex);
+                    break;
+                default:
+                    Trace.TraceWarning($"Unsupported path node action {action}.");
+                    break;
+            }
         }
 
         internal void ReportBlockedSave(PathPersistenceValidationResult validation, PathModel sourceModel)
@@ -823,9 +636,7 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
                 }
 
                 PathEditorCommandResult result = command(pathEditor);
-                commandResultMessage = result.Message;
-                commandResultIsWarning = !result.Success;
-                commandResultVersion++;
+                PublishCommandResult(result);
                 MarkDirty();
                 if (result.Success)
                 {
@@ -835,6 +646,15 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
 
                 Trace.TraceWarning(result.Message);
             });
+        }
+
+        private void PublishCommandResult(PathEditorCommandResult result)
+        {
+            ArgumentNullException.ThrowIfNull(result);
+
+            commandResultMessage = result.Message;
+            commandResultIsWarning = !result.Success;
+            commandResultVersion++;
         }
 
         // Marshals onto the game thread, resolves the current (possibly not-yet-created) editor, and runs
@@ -868,14 +688,15 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
         /// updated validity flags, then refreshes the cached path list so the review markers update. Awaitable so
         /// the caller can surface failures; the cache update is marshalled back onto the game thread.
         /// </summary>
-        internal async Task ValidateAllPaths()
+        internal async Task<bool> ValidateAllPaths()
         {
             ITrainPathToolingContext toolingContext = toolingContextAccessor();
             if (toolingContext == null)
-                return;
+                return false;
 
             ImmutableArray<PathModelHeader> paths = await toolingContext.ValidateAllPaths().ConfigureAwait(false);
             gameThreadInvoker(() => UpdatePaths(paths));
+            return true;
         }
 
         private ImmutableArray<TrainPathListRow> BuildPaths(PathModel currentPathModel)
@@ -1026,11 +847,7 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
             ImmutableArray<ToolWindowRow>.Builder builder = ImmutableArray.CreateBuilder<ToolWindowRow>();
             builder.Add(new ToolWindowRow { Name = "Editor Mode", Value = isRepairMode ? "Repair" : "Normal", Color = isRepairMode ? DrawingColor.OrangeRed : null, Bold = isRepairMode });
             builder.Add(new ToolWindowRow { Name = "Path ID", Value = pathModel.Id });
-            builder.Add(new ToolWindowRow { Name = "Path Name", Value = pathModel.Name });
-            builder.Add(new ToolWindowRow { Name = "Start", Value = pathModel.Start });
-            builder.Add(new ToolWindowRow { Name = "End", Value = pathModel.End });
-            builder.Add(new ToolWindowRow { Name = "Player Path", Value = FormatStrings.FormatYesNo(pathModel.PlayerPath) });
-            if (!isRepairMode)
+            if (currentPath != null)
             {
                 builder.Add(new ToolWindowRow { Name = "Path Length", Value = FormatStrings.FormatDistanceDisplay(currentPath.Length, metricUnits, 1000) });
                 builder.AddRange(BuildEditorStateMetadata(currentPath));
@@ -1119,6 +936,17 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
             MarkDirty();
         }
 
+        /// <summary>Removes transient identities replaced by a successful persisted save.</summary>
+        internal void CompleteSavedPath(string sourcePathId, string savedPathId)
+        {
+            if (!string.IsNullOrWhiteSpace(sourcePathId))
+                transientPaths.Remove(sourcePathId);
+            if (!string.IsNullOrWhiteSpace(savedPathId))
+                transientPaths.Remove(savedPathId);
+            ClearBlockedSaveFeedback();
+            MarkDirty();
+        }
+
         // Preserves in-memory edits of the path being left behind, so switching paths does not discard them.
         // Only paths with pending edits are captured: merely browsing must not turn every visited path into a
         // transient (and therefore 'unsaved') one.
@@ -1143,23 +971,6 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
             ITrainPathToolingContext toolingContext = toolingContextAccessor();
             PathValidationState validationState = PathEditor.ResolveValidationState(pathModel, toolingContext?.TrackWorld);
             return pathModel.ValidationState == validationState ? pathModel : pathModel with { ValidationState = validationState };
-        }
-
-        private async Task RefreshCachedPathsFromContextAsync()
-        {
-            ITrainPathToolingContext toolingContext = toolingContextAccessor();
-            if (toolingContext == null)
-                return;
-
-            try
-            {
-                ImmutableArray<PathModelHeader> paths = await toolingContext.GetPaths().ConfigureAwait(false);
-                cachedPaths = paths.IsDefault ? ImmutableArray<PathModelHeader>.Empty : paths;
-            }
-            catch (Exception ex) when (ex is InvalidOperationException || ex is System.IO.IOException)
-            {
-                System.Diagnostics.Trace.TraceWarning($"Failed to refresh path cache for selection: {ex.Message}");
-            }
         }
 
         /// <summary>

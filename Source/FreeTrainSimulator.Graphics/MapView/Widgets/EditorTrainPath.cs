@@ -58,10 +58,10 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
                 colorVariation = colorVariation == ColorVariation.ComplementHighlight
                     ? colorVariation
                     : PathType switch
-                {
-                    PathSectionType.PassingPath => ColorVariation.Highlight,
-                    _ => ColorVariation.None,
-                };
+                    {
+                        PathSectionType.PassingPath => ColorVariation.Highlight,
+                        _ => ColorVariation.None,
+                    };
                 foreach (EditorTrainPathSegment segment in SectionSegments)
                 {
                     segment.Draw(renderer, colorVariation, PathType == PathSectionType.Invalid ? -scaleFactor : scaleFactor);
@@ -84,7 +84,7 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
             }
         }
 
-        public EditorTrainPath(PathModel pathModel, TrackWorld trackWorld) : base(pathModel, trackWorld) 
+        public EditorTrainPath(PathModel pathModel, TrackWorld trackWorld) : base(pathModel, trackWorld)
         {
             PathPoints.AddRange(PathModel.PathNodes.Select(node => new EditorPathPoint(node, TrackWorld)));
 
@@ -236,7 +236,7 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
 
             EditorPathPoint pathPoint = new EditorPathPoint(location, junctionNode, trackSegment, TrackWorld)
             {
-                NodeType = junctionNode != null || trackSegment != null ? startPoint ? PathNodeType.Start : PathNodeType.Intermediate : PathNodeType.Invalid
+                NodeType = junctionNode != null || trackSegment != null ? startPoint ? PathNodeType.Start : PathNodeType.Via : PathNodeType.Invalid
             };
 
             if (!startPoint)

@@ -3,7 +3,6 @@ using FreeTrainSimulator.Common.Position;
 using FreeTrainSimulator.Graphics;
 using FreeTrainSimulator.Models.Base;
 using FreeTrainSimulator.Models.Settings;
-using FreeTrainSimulator.Toolbox.PopupWindows;
 
 using MemoryPack;
 

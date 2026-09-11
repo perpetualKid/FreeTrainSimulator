@@ -13,6 +13,7 @@ using FreeTrainSimulator.Graphics.Xna;
 using FreeTrainSimulator.Models.Content;
 using FreeTrainSimulator.Models.Shim;
 using FreeTrainSimulator.Runtime;
+using FreeTrainSimulator.Toolbox.PathEditing;
 using FreeTrainSimulator.Toolbox.PopupWindows;
 
 using Microsoft.Xna.Framework;
@@ -65,7 +66,7 @@ namespace FreeTrainSimulator.Toolbox
             {
                 if (null == pathEditor && toolboxContent != null)
                 {
-                    pathEditor = new PathEditor(toolboxContent, userCommandController);
+                    pathEditor = new PathEditor(toolboxContent, userCommandController, InvokeOnGameThread);
                     pathEditor.OnPathChanged += PathEditor_OnEditorPathChanged;
                     pathEditor.OnPathUpdated += PathEditor_OnEditorPathUpdated;
                     OnPathEditorChanged?.Invoke(this, new PathEditorAvailabilityChangedEventArgs(pathEditor));
@@ -211,6 +212,12 @@ namespace FreeTrainSimulator.Toolbox
         }
 
         internal bool HasUnsavedPathChanges => hostedTrainPathToolWindow?.HasUnsavedPathChanges == true || pathEditor?.HasUnsavedChanges == true;
+
+        internal event EventHandler<UnsavedPathConfirmationEventArgs> UnsavedPathConfirmationRequested;
+
+        internal Task<bool> ConfirmDiscardUnsavedPathsAsync()
+            => UnsavedPathConfirmationEventArgs.RequestAsync(
+                HasUnsavedPathChanges, this, UnsavedPathConfirmationRequested);
 
         internal void EditPath()
         {

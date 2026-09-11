@@ -212,6 +212,8 @@ namespace FreeTrainSimulator.Graphics.MapView
                 return false;
 
             editorContext.Viewport?.SetTrackingPosition(trainPath.PathPoints[fromNodeIndex].Location);
+            // On-demand rendering: request a redraw so the span highlight shows immediately (see SelectPathItem).
+            editorContext.RequestRedraw();
             return true;
         }
 
@@ -230,6 +232,9 @@ namespace FreeTrainSimulator.Graphics.MapView
             {
                 trainPath.ClearHighlightedSpan();
                 trainPath.SelectedNodeIndex = index;
+                // The map renders on demand, so a selection change (reflected only while drawing) must request
+                // a redraw or the highlight would not move until the next incidental repaint.
+                editorContext.RequestRedraw();
             }
         }
 

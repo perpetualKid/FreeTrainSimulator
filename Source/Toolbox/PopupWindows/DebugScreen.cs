@@ -13,13 +13,6 @@ using Microsoft.Xna.Framework;
 
 namespace FreeTrainSimulator.Toolbox.PopupWindows
 {
-    public enum DebugScreenInformation
-    {
-        Common,
-        Graphics,
-        Route,
-    }
-
     public class DebugScreen : OverlayBase
     {
         private readonly EnumArray<NameValueTextGrid, DebugScreenInformation> currentProvider = new EnumArray<NameValueTextGrid, DebugScreenInformation>();

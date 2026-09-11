@@ -13,12 +13,6 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
     /// </summary>
     internal sealed class HelpToolWindow : IToolboxToolWindow
     {
-        internal enum HelpSearchColumn
-        {
-            Command = 1,
-            Key = 2,
-        }
-
         private volatile ToolWindowSnapshot snapshot = ToolWindowSnapshot.Empty;
         private volatile bool active;
         private ImmutableArray<HelpRow> allRows = ImmutableArray<HelpRow>.Empty;

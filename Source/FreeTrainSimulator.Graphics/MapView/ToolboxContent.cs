@@ -213,6 +213,8 @@ namespace FreeTrainSimulator.Graphics.MapView
             set => PathEditor = value;
         }
 
+        void IPathEditorContext.RequestRedraw() => ShellServices.RequestRedraw();
+
         IMapViewport ITrackNodeInfoContext.Viewport => Viewport;
 
         IMapHostControl ITrackNodeInfoContext.HostControl => HostControl;
