@@ -18,14 +18,16 @@
                        Margin="0,0,0,3" />
             <ComboBox Margin="0,0,0,9"
                       ItemsSource="{Binding ContentFolders}"
-                      SelectedItem="{Binding SelectedFolder, Mode=TwoWay}"
+                      SelectedItem="{Binding SelectedFolder, Mode=OneWay}"
                       DisplayMemberPath="Name"
+                      SelectionChanged="FolderCombo_SelectionChanged"
                       ToolTip="Select the content folder to load routes from" />
             <TextBlock Text="Route"
                        Margin="0,0,0,3" />
             <ComboBox ItemsSource="{Binding Routes}"
-                      SelectedItem="{Binding SelectedRoute, Mode=TwoWay}"
+                      SelectedItem="{Binding SelectedRoute, Mode=OneWay}"
                       DisplayMemberPath="Name"
+                      SelectionChanged="RouteCombo_SelectionChanged"
                       ToolTip="Select a route to open" />
         </StackPanel>
         <TextBox Text="{Binding SelectedRoute.Description, Mode=OneWay}"
