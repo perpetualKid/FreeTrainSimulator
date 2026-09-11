@@ -192,7 +192,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.ViewModels
             {
                 ColorItemViewModel item = settingsToolWindowViewModel.ColorItems.Single(i => i.Setting == ColorSetting.RailTrack);
 
-                item.SelectedColorName = nameof(Microsoft.Xna.Framework.Color.Red);
+                item.UserSelectColorName(nameof(Microsoft.Xna.Framework.Color.Red));
 
                 Assert.AreEqual(nameof(Microsoft.Xna.Framework.Color.Red), toolboxSettings.ColorSettings[ColorSetting.RailTrack]);
             }
@@ -330,11 +330,11 @@ namespace Tests.FreeTrainSimulator.Toolbox.ViewModels
             ProfileUserSettingsModel userSettings = new ProfileUserSettingsModel() { Language = string.Empty };
             using (SettingsToolWindowViewModel settingsToolWindowViewModel = new SettingsToolWindowViewModel(CreateBridge(new ProfileToolboxSettingsModel(), userSettings)))
             {
-                settingsToolWindowViewModel.SelectedLanguage = new LanguageOption()
+                settingsToolWindowViewModel.UserSelectLanguage(new LanguageOption()
                 {
                     Code = "de",
                     DisplayName = "Deutsch"
-                };
+                });
 
                 Assert.AreEqual("de", userSettings.Language);
             }

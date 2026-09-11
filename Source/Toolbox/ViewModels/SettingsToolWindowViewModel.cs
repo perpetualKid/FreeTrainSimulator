@@ -176,17 +176,29 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
         }
 
         /// <summary>
-        /// Currently selected UI language. Setting it forwards the chosen culture code to the bridge, which
-        /// reloads the gettext catalog and (in hosted mode) drives the WPF shell's re-localization.
+        /// Currently selected UI language. Bound one-way (source to target) only; user picks are delivered
+        /// through <see cref="UserSelectLanguage"/> from the view's SelectionChanged handler. See
+        /// <see cref="Views.ToolWindowSelection"/> for why a TwoWay binding is unreliable in these hosted tool
+        /// windows.
         /// </summary>
         public LanguageOption SelectedLanguage
         {
             get => selectedLanguage;
-            set
-            {
-                if (SetProperty(ref selectedLanguage, value) && value != null)
-                    toolWindow.SetLanguage(value.Code);
-            }
+            private set => SetProperty(ref selectedLanguage, value);
+        }
+
+        /// <summary>
+        /// Handles a user-initiated language pick from the view's SelectionChanged handler. Forwards the chosen
+        /// culture code to the bridge, which reloads the gettext catalog and (in hosted mode) drives the WPF
+        /// shell's re-localization.
+        /// </summary>
+        public void UserSelectLanguage(LanguageOption language)
+        {
+            if (language == null || EqualityComparer<LanguageOption>.Default.Equals(selectedLanguage, language))
+                return;
+
+            SelectedLanguage = language;
+            toolWindow.SetLanguage(language.Code);
         }
 
         public void Start()

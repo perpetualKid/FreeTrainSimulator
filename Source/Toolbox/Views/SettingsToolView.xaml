@@ -43,8 +43,9 @@
                                                Margin="0,0,8,0" />
                                     <ComboBox Grid.Column="1"
                                               ItemsSource="{Binding AvailableLanguages}"
-                                              SelectedItem="{Binding SelectedLanguage}"
+                                              SelectedItem="{Binding SelectedLanguage, Mode=OneWay}"
                                               DisplayMemberPath="DisplayName"
+                                              SelectionChanged="LanguageCombo_SelectionChanged"
                                               ToolTip="Select the user interface language" />
                                 </Grid>
                             </StackPanel>
@@ -78,7 +79,8 @@
                                                VerticalAlignment="Center" />
                                     <ComboBox Grid.Column="1"
                                               ItemsSource="{Binding AvailableColorNames}"
-                                              SelectedItem="{Binding SelectedColorName}">
+                                              SelectedItem="{Binding SelectedColorName, Mode=OneWay}"
+                                              SelectionChanged="ColorCombo_SelectionChanged">
                                         <ComboBox.ItemTemplate>
                                             <DataTemplate>
                                                 <StackPanel Orientation="Horizontal">

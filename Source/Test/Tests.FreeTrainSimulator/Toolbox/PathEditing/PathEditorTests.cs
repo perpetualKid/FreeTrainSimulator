@@ -1872,6 +1872,8 @@ namespace Tests.FreeTrainSimulator.Toolbox.PathEditing
 
             public PathEditorBase PathEditor { get; set; }
 
+            public void RequestRedraw() { }
+
             IPathEditorServices IPathEditorContextServicesAccessor.Services => services;
 
             public TestPathEditorContext(TrackWorld trackWorld)

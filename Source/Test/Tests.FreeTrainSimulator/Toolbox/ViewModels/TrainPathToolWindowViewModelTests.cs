@@ -103,7 +103,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.ViewModels
                 using (TrainPathToolWindowViewModel viewModel = new TrainPathToolWindowViewModel(bridge, refreshScheduler))
                 {
                     viewModel.Start();
-                    viewModel.SelectedRouteCandidate = viewModel.RouteCandidates[0];
+                    viewModel.UserSelectRouteCandidate(viewModel.RouteCandidates[0]);
 
                     Assert.IsTrue(viewModel.AcceptRouteCandidateCommand.CanExecute(null));
                 }
@@ -219,7 +219,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.ViewModels
                 using (TrainPathToolWindowViewModel viewModel = new TrainPathToolWindowViewModel(bridge, refreshScheduler))
                 {
                     viewModel.RouteCandidates.Add(new TrainPathRouteCandidateItemViewModel(new TrainPathRouteCandidateRow(0, 1, 0, "unsafe")));
-                    viewModel.SelectedRouteCandidate = viewModel.RouteCandidates[0];
+                    viewModel.UserSelectRouteCandidate(viewModel.RouteCandidates[0]);
 
                     viewModel.Start();
 
@@ -404,12 +404,10 @@ namespace Tests.FreeTrainSimulator.Toolbox.ViewModels
             TrainPathListItemViewModel path = new TrainPathListItemViewModel("path-1", "First Path", PathValidationState.NotValidated);
             using (ToolWindowRefreshScheduler refreshScheduler = new ToolWindowRefreshScheduler(Dispatcher.CurrentDispatcher))
             {
-                using (TrainPathToolWindowViewModel trainPathToolWindowViewModel = new TrainPathToolWindowViewModel(bridge, refreshScheduler)
+                using (TrainPathToolWindowViewModel trainPathToolWindowViewModel = new TrainPathToolWindowViewModel(bridge, refreshScheduler))
                 {
-                    SelectedPath = path
-                })
-                {
-                    trainPathToolWindowViewModel.SelectedPath = path;
+                    trainPathToolWindowViewModel.UserSelectPath(path);
+                    trainPathToolWindowViewModel.UserSelectPath(path);
                 }
             }
             Assert.AreEqual(1, invocations);
@@ -421,11 +419,10 @@ namespace Tests.FreeTrainSimulator.Toolbox.ViewModels
             TrainPathToolWindow bridge = CreateBridge(action => action());
             using (ToolWindowRefreshScheduler refreshScheduler = new ToolWindowRefreshScheduler(Dispatcher.CurrentDispatcher))
             {
-                using (TrainPathToolWindowViewModel trainPathToolWindowViewModel = new TrainPathToolWindowViewModel(bridge, refreshScheduler)
+                using (TrainPathToolWindowViewModel trainPathToolWindowViewModel = new TrainPathToolWindowViewModel(bridge, refreshScheduler))
                 {
-                    SelectedPath = new TrainPathListItemViewModel("path-1", "First Path", PathValidationState.NotValidated)
-                })
-                {
+                    trainPathToolWindowViewModel.UserSelectPath(new TrainPathListItemViewModel("path-1", "First Path", PathValidationState.NotValidated));
+
                     Assert.AreEqual(string.Empty, trainPathToolWindowViewModel.StatusMessage);
                 }
             }
@@ -493,11 +490,10 @@ namespace Tests.FreeTrainSimulator.Toolbox.ViewModels
             TrainPathToolWindow bridge = CreateBridge(action => action());
             using (ToolWindowRefreshScheduler refreshScheduler = new ToolWindowRefreshScheduler(Dispatcher.CurrentDispatcher))
             {
-                using (TrainPathToolWindowViewModel trainPathToolWindowViewModel = new TrainPathToolWindowViewModel(bridge, refreshScheduler)
+                using (TrainPathToolWindowViewModel trainPathToolWindowViewModel = new TrainPathToolWindowViewModel(bridge, refreshScheduler))
                 {
-                    SelectedNode = new TrainPathNodeItemViewModel(new TrainPathNodeRow(2, PathNodeType.End, false, 0, -1, -1, null, "NotOnTrack", 42, 3, 1.25))
-                })
-                {
+                    trainPathToolWindowViewModel.UserSelectNode(new TrainPathNodeItemViewModel(new TrainPathNodeRow(2, PathNodeType.End, false, 0, -1, -1, null, "NotOnTrack", 42, 3, 1.25)));
+
                     Assert.AreEqual("42", trainPathToolWindowViewModel.SelectedNodeDetailRows.Single(row => row.Name == "Nearest Track Node").Value);
                     Assert.AreEqual("3", trainPathToolWindowViewModel.SelectedNodeDetailRows.Single(row => row.Name == "Nearest Track Section").Value);
                     Assert.AreEqual("1.25 m", trainPathToolWindowViewModel.SelectedNodeDetailRows.Single(row => row.Name == "Nearest Track Distance").Value);
@@ -532,7 +528,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.ViewModels
             {
                 using (TrainPathToolWindowViewModel trainPathToolWindowViewModel = new TrainPathToolWindowViewModel(bridge, refreshScheduler))
                 {
-                    trainPathToolWindowViewModel.SelectedRouteCandidate = new TrainPathRouteCandidateItemViewModel(new TrainPathRouteCandidateRow(1, 4, 0, "candidate"));
+                    trainPathToolWindowViewModel.UserSelectRouteCandidate(new TrainPathRouteCandidateItemViewModel(new TrainPathRouteCandidateRow(1, 4, 0, "candidate")));
 
                     Assert.AreEqual(1, marshaledInvocations);
                 }
@@ -560,7 +556,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.ViewModels
             {
                 using (TrainPathToolWindowViewModel trainPathToolWindowViewModel = new TrainPathToolWindowViewModel(bridge, refreshScheduler))
                 {
-                    trainPathToolWindowViewModel.SelectedRouteCandidate = new TrainPathRouteCandidateItemViewModel(new TrainPathRouteCandidateRow(1, 4, 0, "candidate"));
+                    trainPathToolWindowViewModel.UserSelectRouteCandidate(new TrainPathRouteCandidateItemViewModel(new TrainPathRouteCandidateRow(1, 4, 0, "candidate")));
 
                     Assert.IsTrue(trainPathToolWindowViewModel.AcceptRouteCandidateCommand.CanExecute(null));
                 }
@@ -592,8 +588,8 @@ namespace Tests.FreeTrainSimulator.Toolbox.ViewModels
                     viewModel.RouteCandidates.Add(new TrainPathRouteCandidateItemViewModel(new TrainPathRouteCandidateRow(0, 1, 0, "other")));
                     viewModel.RouteCandidates.Add(matchingCandidate);
 
-                    viewModel.SelectedDiagnostic = new TrainPathDiagnosticItemViewModel(new TrainPathDiagnosticRow(PathRouteDiagnosticSeverity.Warning, PathRouteDiagnosticCode.AmbiguousRoute, "Several routes are available.",
-                        -1, 1, 4, "Choose a route candidate.", false));
+                    viewModel.UserSelectDiagnostic(new TrainPathDiagnosticItemViewModel(new TrainPathDiagnosticRow(PathRouteDiagnosticSeverity.Warning, PathRouteDiagnosticCode.AmbiguousRoute, "Several routes are available.",
+                        -1, 1, 4, "Choose a route candidate.", false)));
 
                     Assert.AreSame(matchingCandidate, viewModel.SelectedRouteCandidate);
                     Assert.AreEqual(3, viewModel.SelectedTabIndex);

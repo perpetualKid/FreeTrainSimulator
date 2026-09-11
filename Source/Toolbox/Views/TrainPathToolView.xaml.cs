@@ -20,6 +20,32 @@ namespace FreeTrainSimulator.Toolbox.Views
             InitializeComponent();
         }
 
+        // The path/node/diagnostic/route-candidate lists bind SelectedItem OneWay and forward user picks here;
+        // see ToolWindowSelection for why a TwoWay binding is unreliable in these hosted tool windows.
+        private void PathList_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (DataContext is TrainPathToolWindowViewModel viewModel && ToolWindowSelection.TryGetAddedItem(e, out TrainPathListItemViewModel item))
+                viewModel.UserSelectPath(item);
+        }
+
+        private void NodeList_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (DataContext is TrainPathToolWindowViewModel viewModel && ToolWindowSelection.TryGetAddedItem(e, out TrainPathNodeItemViewModel item))
+                viewModel.UserSelectNode(item);
+        }
+
+        private void DiagnosticList_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (DataContext is TrainPathToolWindowViewModel viewModel && ToolWindowSelection.TryGetAddedItem(e, out TrainPathDiagnosticItemViewModel item))
+                viewModel.UserSelectDiagnostic(item);
+        }
+
+        private void RouteCandidateList_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+            if (DataContext is TrainPathToolWindowViewModel viewModel && ToolWindowSelection.TryGetAddedItem(e, out TrainPathRouteCandidateItemViewModel item))
+                viewModel.UserSelectRouteCandidate(item);
+        }
+
         private void PathNodes_ContextMenuOpening(object sender, ContextMenuEventArgs e)
         {
             if (sender is not ListView listView || DataContext is not TrainPathToolWindowViewModel viewModel)
@@ -35,6 +61,7 @@ namespace FreeTrainSimulator.Toolbox.Views
             }
 
             listView.SelectedItem = node;
+            viewModel.UserSelectNode(node);
             ContextMenu menu = listView.ContextMenu;
             menu.Items.Clear();
             foreach (MapContextMenuItem action in viewModel.GetSelectedNodeActions())

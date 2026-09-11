@@ -131,7 +131,10 @@ namespace FreeTrainSimulator.Toolbox.Hosting
             {
                 if (folder.Name.Equals(folderName, StringComparison.OrdinalIgnoreCase))
                 {
-                    SelectFolder(folder);
+                    // Restore path: only set the folder and populate its routes. The caller (PreSelectRoute)
+                    // loads the persisted route itself, so this must NOT auto-load a single route - doing so
+                    // would race the caller's load and can draw against half-initialized content.
+                    SelectFolder(folder, autoLoadSingleRoute: false);
                     return folder;
                 }
             }
@@ -143,7 +146,14 @@ namespace FreeTrainSimulator.Toolbox.Hosting
         #region Commands (in from the WPF UI thread, marshaled to the game thread)
 
         /// <summary>Selects a content folder and loads its routes.</summary>
-        public void SelectFolder(FolderModel folder)
+        public void SelectFolder(FolderModel folder) => SelectFolder(folder, autoLoadSingleRoute: true);
+
+        /// <summary>
+        /// Selects a content folder and loads its routes. When <paramref name="autoLoadSingleRoute"/> is true
+        /// and the folder has exactly one route, that route is loaded immediately. The restore flow passes
+        /// false because it loads the persisted route itself.
+        /// </summary>
+        private void SelectFolder(FolderModel folder, bool autoLoadSingleRoute)
         {
             ArgumentNullException.ThrowIfNull(folder);
 
@@ -163,7 +173,16 @@ namespace FreeTrainSimulator.Toolbox.Hosting
                 SelectedFolderChanged?.Invoke(this, EventArgs.Empty);
 
                 game.UnloadRoute();
-                ((IToolboxMenu)this).PopulateRoutes(await game.FindRoutes(folder).ConfigureAwait(true));
+                ImmutableArray<RouteModelHeader> routes = await game.FindRoutes(folder).ConfigureAwait(true);
+                ((IToolboxMenu)this).PopulateRoutes(routes);
+
+                // When a folder has exactly one route, load it immediately instead of waiting for the user to
+                // pick it from a single-item dropdown. Skipped during restore, which loads its own route.
+                if (autoLoadSingleRoute && routes.Length == 1)
+                {
+                    await game.LoadRoute(routes[0]).ConfigureAwait(true);
+                    ((IToolboxMenu)this).PreSelectRoute(routes[0].Name);
+                }
             });
         }
 

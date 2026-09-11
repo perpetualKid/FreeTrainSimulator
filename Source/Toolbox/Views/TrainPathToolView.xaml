@@ -252,7 +252,8 @@
                          ToolTip="Search Paths" />
                 <ListView Grid.Row="2"
                           ItemsSource="{Binding Paths}"
-                          SelectedItem="{Binding SelectedPath, Mode=TwoWay}"
+                          SelectedItem="{Binding SelectedPath, Mode=OneWay}"
+                          SelectionChanged="PathList_SelectionChanged"
                           behaviors:GridViewColumnBehavior.StretchListView="True">
                     <ListView.ItemContainerStyle>
                         <Style TargetType="ListViewItem">
@@ -390,7 +391,8 @@
                 <ListView Grid.Row="1"
                           ContextMenuOpening="PathNodes_ContextMenuOpening"
                           ItemsSource="{Binding Nodes}"
-                          SelectedItem="{Binding SelectedNode, Mode=TwoWay}"
+                          SelectedItem="{Binding SelectedNode, Mode=OneWay}"
+                          SelectionChanged="NodeList_SelectionChanged"
                           behaviors:GridViewColumnBehavior.StretchListView="True">
                     <ListView.ContextMenu>
                         <ContextMenu />
@@ -493,7 +495,8 @@
                     </DockPanel>
                 </Border>
                 <ListView ItemsSource="{Binding Diagnostics}"
-                          SelectedItem="{Binding SelectedDiagnostic, Mode=TwoWay}"
+                          SelectedItem="{Binding SelectedDiagnostic, Mode=OneWay}"
+                          SelectionChanged="DiagnosticList_SelectionChanged"
                           ScrollViewer.HorizontalScrollBarVisibility="Disabled">
                     <ListView.ItemContainerStyle>
                         <Style TargetType="ListViewItem">
@@ -555,7 +558,8 @@
                             ToolTip="Author the selected candidate route as via points, making the span unambiguous" />
                 </WrapPanel>
                 <ListView ItemsSource="{Binding RouteCandidates}"
-                          SelectedItem="{Binding SelectedRouteCandidate, Mode=TwoWay}"
+                          SelectedItem="{Binding SelectedRouteCandidate, Mode=OneWay}"
+                          SelectionChanged="RouteCandidateList_SelectionChanged"
                           ScrollViewer.HorizontalScrollBarVisibility="Disabled">
                     <ListView.ItemContainerStyle>
                         <Style TargetType="ListViewItem">

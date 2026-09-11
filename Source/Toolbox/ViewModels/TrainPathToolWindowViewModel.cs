@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Collections.ObjectModel;
 using System.Linq;
@@ -53,6 +54,7 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
         private bool canRepairSelectedNode;
         private bool canRemoveSelectedViaPoint;
         private int selectedNodeCapabilityIndex = -1;
+        private int? pendingSelectedNodeIndex;
         private bool canBeginPassingBranch;
         private bool canCompletePassingBranch;
         private bool canCancelPassingBranch;
@@ -366,25 +368,34 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
         public TrainPathDiagnosticItemViewModel SelectedDiagnostic
         {
             get => selectedDiagnostic;
-            set
+            private set
             {
-                if (!SetProperty(ref selectedDiagnostic, value))
-                    return;
-
-                RepairDiagnosticCommand.RaiseCanExecuteChanged();
-                if (suppressSelectionCommand)
-                    return;
-
-                if (value == null)
-                {
-                    toolWindow.HighlightDiagnosticTarget(-1, -1, -1);
-                    return;
-                }
-
-                toolWindow.HighlightDiagnosticTarget(value.NodeIndex, value.FromNodeIndex, value.ToNodeIndex);
-                if (value.IsAmbiguousRoute)
-                    NavigateToRouteCandidates(value);
+                if (SetProperty(ref selectedDiagnostic, value))
+                    RepairDiagnosticCommand.RaiseCanExecuteChanged();
             }
+        }
+
+        /// <summary>
+        /// Handles a user-initiated diagnostic pick from the view's SelectionChanged handler. See
+        /// <see cref="Views.ToolWindowSelection"/> for why selection is delivered this way rather than through a
+        /// TwoWay binding.
+        /// </summary>
+        public void UserSelectDiagnostic(TrainPathDiagnosticItemViewModel value)
+        {
+            if (suppressSelectionCommand || EqualityComparer<TrainPathDiagnosticItemViewModel>.Default.Equals(selectedDiagnostic, value))
+                return;
+
+            SelectedDiagnostic = value;
+
+            if (value == null)
+            {
+                toolWindow.HighlightDiagnosticTarget(-1, -1, -1);
+                return;
+            }
+
+            toolWindow.HighlightDiagnosticTarget(value.NodeIndex, value.FromNodeIndex, value.ToNodeIndex);
+            if (value.IsAmbiguousRoute)
+                NavigateToRouteCandidates(value);
         }
 
         /// <summary>
@@ -394,23 +405,28 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
         public TrainPathRouteCandidateItemViewModel SelectedRouteCandidate
         {
             get => selectedRouteCandidate;
-            set
+            private set
             {
-                if (!SetProperty(ref selectedRouteCandidate, value))
-                    return;
-
-                AcceptRouteCandidateCommand.RaiseCanExecuteChanged();
-                if (suppressSelectionCommand)
-                    return;
-
-                if (value == null)
-                {
-                    toolWindow.ClearRouteCandidatePreview();
-                    return;
-                }
-
-                toolWindow.PreviewRouteCandidate(value.FromNodeIndex, value.CandidateIndex);
+                if (SetProperty(ref selectedRouteCandidate, value))
+                    AcceptRouteCandidateCommand.RaiseCanExecuteChanged();
             }
+        }
+
+        /// <summary>Handles a user-initiated route candidate pick; see <see cref="UserSelectDiagnostic"/>.</summary>
+        public void UserSelectRouteCandidate(TrainPathRouteCandidateItemViewModel value)
+        {
+            if (suppressSelectionCommand || EqualityComparer<TrainPathRouteCandidateItemViewModel>.Default.Equals(selectedRouteCandidate, value))
+                return;
+
+            SelectedRouteCandidate = value;
+
+            if (value == null)
+            {
+                toolWindow.ClearRouteCandidatePreview();
+                return;
+            }
+
+            toolWindow.PreviewRouteCandidate(value.FromNodeIndex, value.CandidateIndex);
         }
 
         public bool CanUndo
@@ -549,40 +565,49 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
         public TrainPathListItemViewModel SelectedPath
         {
             get => selectedPath;
-            set
-            {
-                if (!SetProperty(ref selectedPath, value))
-                    return;
+            private set => SetProperty(ref selectedPath, value);
+        }
 
-                if (suppressSelectionCommand)
-                    return;
+        /// <summary>Handles a user-initiated path pick; see <see cref="UserSelectDiagnostic"/>.</summary>
+        public void UserSelectPath(TrainPathListItemViewModel value)
+        {
+            if (suppressSelectionCommand || EqualityComparer<TrainPathListItemViewModel>.Default.Equals(selectedPath, value))
+                return;
 
-                SetStatusMessage(string.Empty, false);
-                toolWindow.SelectPath(value?.Id);
-            }
+            SelectedPath = value;
+            SetStatusMessage(string.Empty, false);
+            // Switching path reloads the node list, so drop any pending node target from the old path.
+            pendingSelectedNodeIndex = null;
+            toolWindow.SelectPath(value?.Id);
         }
 
         public TrainPathNodeItemViewModel SelectedNode
         {
             get => selectedNode;
-            set
-            {
-                if (!SetProperty(ref selectedNode, value))
-                    return;
+            private set => SetProperty(ref selectedNode, value);
+        }
 
-                if (suppressSelectionCommand)
-                    return;
+        /// <summary>Handles a user-initiated node pick; see <see cref="UserSelectDiagnostic"/>.</summary>
+        public void UserSelectNode(TrainPathNodeItemViewModel value)
+        {
+            if (suppressSelectionCommand || EqualityComparer<TrainPathNodeItemViewModel>.Default.Equals(selectedNode, value))
+                return;
 
-                selectedNodeCapabilityIndex = -1;
-                toolWindow.HighlightNode(value?.Index ?? -1);
-                SyncWaitTimeFromSelectedNode();
-                UpdateSelectedNodeDetailRows();
-                MoveSelectedNodeCommand.RaiseCanExecuteChanged();
-                RepairSelectedNodeCommand.RaiseCanExecuteChanged();
-                ToggleReversalPointCommand.RaiseCanExecuteChanged();
-                AddViaPointCommand.RaiseCanExecuteChanged();
-                RemoveViaPointCommand.RaiseCanExecuteChanged();
-            }
+            // Record the pending target so an in-flight refresh snapshot (which still carries the bridge's
+            // previous SelectedNodeIndex until the highlight below is processed on the game thread) does not
+            // briefly restore the old node and cause the selection to flicker back and forth.
+            pendingSelectedNodeIndex = value?.Index ?? -1;
+
+            SelectedNode = value;
+            selectedNodeCapabilityIndex = -1;
+            toolWindow.HighlightNode(value?.Index ?? -1);
+            SyncWaitTimeFromSelectedNode();
+            UpdateSelectedNodeDetailRows();
+            MoveSelectedNodeCommand.RaiseCanExecuteChanged();
+            RepairSelectedNodeCommand.RaiseCanExecuteChanged();
+            ToggleReversalPointCommand.RaiseCanExecuteChanged();
+            AddViaPointCommand.RaiseCanExecuteChanged();
+            RemoveViaPointCommand.RaiseCanExecuteChanged();
         }
 
         protected override void OnStarted() => toolWindow.Active = true;
@@ -947,6 +972,18 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
 
             for (int i = Nodes.Count - 1; i >= rows.Length; i--)
                 Nodes.RemoveAt(i);
+
+            // While a user pick is still propagating to the bridge, the snapshot's selectedIndex lags behind
+            // (it still reports the previous node). Ignore snapshots that disagree with the pending target so
+            // the list does not flicker back to the old node and then forward again. Clear the pending marker
+            // once the bridge has caught up to it.
+            if (pendingSelectedNodeIndex.HasValue)
+            {
+                if (selectedIndex == pendingSelectedNodeIndex.Value)
+                    pendingSelectedNodeIndex = null;
+                else
+                    return;
+            }
 
             if (selectedIndex >= 0)
             {

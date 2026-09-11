@@ -76,14 +76,29 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
 
         public IReadOnlyList<string> AvailableColorNames { get; }
 
+        /// <summary>
+        /// Currently selected color name. Bound one-way (source to target) only; user picks are delivered
+        /// through <see cref="UserSelectColorName"/> from the view's SelectionChanged handler. See
+        /// <see cref="Views.ToolWindowSelection"/> for why a TwoWay binding is unreliable in these hosted tool
+        /// windows.
+        /// </summary>
         public string SelectedColorName
         {
             get => selectedColorName;
-            set
-            {
-                if (SetProperty(ref selectedColorName, value))
-                    apply(Setting, value);
-            }
+            private set => SetProperty(ref selectedColorName, value);
+        }
+
+        /// <summary>
+        /// Handles a user-initiated color pick from the view's SelectionChanged handler, applying it to the
+        /// game side.
+        /// </summary>
+        public void UserSelectColorName(string value)
+        {
+            if (value == null || string.Equals(selectedColorName, value, StringComparison.Ordinal))
+                return;
+
+            SelectedColorName = value;
+            apply(Setting, value);
         }
 
         /// <summary>Re-syncs the local field from the live value without re-applying it to the game side.</summary>
