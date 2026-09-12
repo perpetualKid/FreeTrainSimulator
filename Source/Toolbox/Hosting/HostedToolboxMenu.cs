@@ -172,6 +172,10 @@ namespace FreeTrainSimulator.Toolbox.Hosting
                 SelectedFolder = folder;
                 SelectedFolderChanged?.Invoke(this, EventArgs.Empty);
 
+                // Confirmation succeeded, so the previous folder's routes are no longer valid choices. Publish
+                // the empty transition before route discovery begins; cancellation returns above and preserves
+                // the existing route collection and selection.
+                ((IToolboxMenu)this).PopulateRoutes(ImmutableArray<RouteModelHeader>.Empty);
                 game.UnloadRoute();
                 ImmutableArray<RouteModelHeader> routes = await game.FindRoutes(folder).ConfigureAwait(true);
                 ((IToolboxMenu)this).PopulateRoutes(routes);

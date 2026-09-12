@@ -382,7 +382,15 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
         /// </summary>
         public void UserSelectDiagnostic(TrainPathDiagnosticItemViewModel value)
         {
-            if (suppressSelectionCommand || EqualityComparer<TrainPathDiagnosticItemViewModel>.Default.Equals(selectedDiagnostic, value))
+            if (suppressSelectionCommand)
+                return;
+
+            ActivateDiagnostic(value);
+        }
+
+        private void ActivateDiagnostic(TrainPathDiagnosticItemViewModel value)
+        {
+            if (EqualityComparer<TrainPathDiagnosticItemViewModel>.Default.Equals(selectedDiagnostic, value))
                 return;
 
             SelectedDiagnostic = value;
@@ -415,7 +423,15 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
         /// <summary>Handles a user-initiated route candidate pick; see <see cref="UserSelectDiagnostic"/>.</summary>
         public void UserSelectRouteCandidate(TrainPathRouteCandidateItemViewModel value)
         {
-            if (suppressSelectionCommand || EqualityComparer<TrainPathRouteCandidateItemViewModel>.Default.Equals(selectedRouteCandidate, value))
+            if (suppressSelectionCommand)
+                return;
+
+            ActivateRouteCandidate(value);
+        }
+
+        private void ActivateRouteCandidate(TrainPathRouteCandidateItemViewModel value)
+        {
+            if (EqualityComparer<TrainPathRouteCandidateItemViewModel>.Default.Equals(selectedRouteCandidate, value))
                 return;
 
             SelectedRouteCandidate = value;
@@ -728,10 +744,10 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
             if (snapshot.BlockedSaveDiagnostic is not TrainPathDiagnosticRow diagnostic)
                 return;
 
-            SelectedDiagnostic = Diagnostics.FirstOrDefault(item => item.Code == diagnostic.Code
+            ActivateDiagnostic(Diagnostics.FirstOrDefault(item => item.Code == diagnostic.Code
                 && item.NodeIndex == diagnostic.NodeIndex
                 && item.FromNodeIndex == diagnostic.FromNodeIndex
-                && item.ToNodeIndex == diagnostic.ToNodeIndex);
+                && item.ToNodeIndex == diagnostic.ToNodeIndex));
         }
 
         private void SyncDiagnostics(ImmutableArray<TrainPathDiagnosticRow> rows)
@@ -779,7 +795,7 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
             }
 
             SelectedTabIndex = 3;
-            SelectedRouteCandidate = candidate;
+            ActivateRouteCandidate(candidate);
         }
 
         private void RepairDiagnostic()

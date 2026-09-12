@@ -52,6 +52,36 @@ namespace Tests.FreeTrainSimulator.Toolbox.ViewModels
         }
 
         [TestMethod]
+        public void WhenSaveIsBlockedThenDiagnosticTargetHighlightIsMarshaled()
+        {
+            int marshaledInvocations = 0;
+            TrainPathDiagnosticRow diagnostic = new TrainPathDiagnosticRow(
+                PathRouteDiagnosticSeverity.Error, PathRouteDiagnosticCode.AnchorNotOnTrack, "Node is off track.",
+                2, -1, -1, "Move the node onto track.", true);
+            TrainPathToolWindow bridge = CreateBridge(action =>
+            {
+                marshaledInvocations++;
+                action();
+            });
+            SetBridgeSnapshot(bridge, TrainPathSnapshot.Empty with
+            {
+                Diagnostics = [diagnostic],
+                BlockedSaveMessage = "Path cannot be saved because a node is off track.",
+                BlockedSaveDiagnostic = diagnostic,
+                BlockedSaveFeedbackVersion = 1,
+            });
+            using (ToolWindowRefreshScheduler refreshScheduler = new ToolWindowRefreshScheduler(Dispatcher.CurrentDispatcher))
+            {
+                using (TrainPathToolWindowViewModel viewModel = new TrainPathToolWindowViewModel(bridge, refreshScheduler))
+                {
+                    viewModel.Start();
+
+                    Assert.AreEqual(1, marshaledInvocations);
+                }
+            }
+        }
+
+        [TestMethod]
         public void WhenPathInteractionIsCancelableThenConflictingNodeCommandIsDisabled()
         {
             TrainPathToolWindow bridge = CreateBridge(action => action());
@@ -593,6 +623,29 @@ namespace Tests.FreeTrainSimulator.Toolbox.ViewModels
 
                     Assert.AreSame(matchingCandidate, viewModel.SelectedRouteCandidate);
                     Assert.AreEqual(3, viewModel.SelectedTabIndex);
+                }
+            }
+        }
+
+        [TestMethod]
+        public void WhenAmbiguousDiagnosticSelectedThenHighlightAndCandidatePreviewAreMarshaled()
+        {
+            int marshaledInvocations = 0;
+            TrainPathToolWindow bridge = CreateBridge(action =>
+            {
+                marshaledInvocations++;
+                action();
+            });
+            using (ToolWindowRefreshScheduler refreshScheduler = new ToolWindowRefreshScheduler(Dispatcher.CurrentDispatcher))
+            {
+                using (TrainPathToolWindowViewModel viewModel = new TrainPathToolWindowViewModel(bridge, refreshScheduler))
+                {
+                    viewModel.RouteCandidates.Add(new TrainPathRouteCandidateItemViewModel(new TrainPathRouteCandidateRow(1, 4, 0, "matching")));
+
+                    viewModel.UserSelectDiagnostic(new TrainPathDiagnosticItemViewModel(new TrainPathDiagnosticRow(PathRouteDiagnosticSeverity.Warning,
+                        PathRouteDiagnosticCode.AmbiguousRoute, "Several routes are available.", -1, 1, 4, "Choose a route candidate.", false)));
+
+                    Assert.AreEqual(2, marshaledInvocations);
                 }
             }
         }

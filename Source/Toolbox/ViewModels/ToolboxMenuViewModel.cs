@@ -171,19 +171,6 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
             if (folder == null)
                 return;
 
-            // Clear the dependent route list and selection up front so the route ComboBox does not carry a
-            // stale selection into the new folder's load.
-            synchronizingSelection = true;
-            try
-            {
-                SelectedRoute = null;
-                Routes.Clear();
-            }
-            finally
-            {
-                synchronizingSelection = false;
-            }
-
             DeferToBridge(() => menu.SelectFolder(folder));
         }
 
