@@ -1,12 +1,9 @@
 ﻿using System;
-using System.Threading;
-using System.Threading.Tasks;
 
 using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Position;
 using FreeTrainSimulator.Graphics.MapView.Widgets;
 using FreeTrainSimulator.Models.Content;
-using FreeTrainSimulator.Models.Shim;
 using FreeTrainSimulator.Runtime.Track;
 
 namespace FreeTrainSimulator.Graphics.MapView
@@ -116,14 +113,8 @@ namespace FreeTrainSimulator.Graphics.MapView
         }
 
         #region additional content (Paths)
-        protected async Task InitializePathModelAsync(PathModelHeader pathModelHeader, CancellationToken cancellationToken = default)
+        protected void InitializePathModel(PathModel pathModel)
         {
-            PathModel pathModel = pathModelHeader as PathModel;
-            if (pathModelHeader != null && pathModel == null)
-            {
-                pathModel = await pathModelHeader.GetExtended(cancellationToken).ConfigureAwait(false);
-            }
-
             EditMode = false;
             trainPath = ((IPathEditorContextServicesAccessor)editorContext).Services.CreateEditorTrainPath(pathModel);
             SetPreviewPath(null);

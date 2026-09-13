@@ -66,7 +66,7 @@ namespace FreeTrainSimulator.Toolbox
             {
                 if (null == pathEditor && toolboxContent != null)
                 {
-                    pathEditor = new PathEditor(toolboxContent, userCommandController, InvokeOnGameThread);
+                    pathEditor = new PathEditor(toolboxContent, userCommandController, InvokeOnGameThread, commit => InvokeOnGameThreadAsync(() => Task.FromResult(commit())));
                     pathEditor.OnPathChanged += PathEditor_OnEditorPathChanged;
                     pathEditor.OnPathUpdated += PathEditor_OnEditorPathUpdated;
                     OnPathEditorChanged?.Invoke(this, new PathEditorAvailabilityChangedEventArgs(pathEditor));

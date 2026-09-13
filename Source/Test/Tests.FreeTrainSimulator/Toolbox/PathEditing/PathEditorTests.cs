@@ -10,6 +10,7 @@ using FreeTrainSimulator.Common.Input;
 using FreeTrainSimulator.Common.Position;
 using FreeTrainSimulator.Graphics.MapView;
 using FreeTrainSimulator.Models.Content;
+using FreeTrainSimulator.Models.Handler;
 using FreeTrainSimulator.Models.Track;
 using FreeTrainSimulator.Runtime.Track;
 using FreeTrainSimulator.Toolbox.PathEditing;
@@ -480,7 +481,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.PathEditing
                 PathEditorCommandResult result = editor.CommitPlacementCommand();
 
                 Assert.IsTrue(result.Success);
-                Assert.AreEqual(3, editor.TryCaptureCurrentPathModel().PathNodes.Length);
+                Assert.HasCount(3, editor.TryCaptureCurrentPathModel().PathNodes);
                 Assert.IsTrue(editor.CanUndo);
             }
         }
@@ -596,6 +597,137 @@ namespace Tests.FreeTrainSimulator.Toolbox.PathEditing
         }
 
         [TestMethod]
+        public async Task WhenSecondPathLoadCompletesFirstThenFirstCannotReplaceIt()
+        {
+            RouteModel route = CreateLoadTestRoute();
+            TaskCompletionSource<PathModelHeader> firstCompletion = CreatePathLoadCompletion();
+            TaskCompletionSource<PathModelHeader> secondCompletion = CreatePathLoadCompletion();
+            PathModelHeader firstHeader = CreatePendingPathHeader(route, "first-path", firstCompletion.Task);
+            PathModelHeader secondHeader = CreatePendingPathHeader(route, "second-path", secondCompletion.Task);
+            PathModel firstPath = CreateLoadedPath(route, firstHeader.Id);
+            PathModel secondPath = CreateLoadedPath(route, secondHeader.Id);
+            using (PathEditor editor = CreateNewEditor())
+            {
+                try
+                {
+                    Task<bool> firstLoad = editor.InitializePathAsync(firstHeader, CancellationToken.None);
+                    Task<bool> secondLoad = editor.InitializePathAsync(secondHeader, CancellationToken.None);
+
+                    secondCompletion.SetResult(secondPath);
+                    _ = await secondLoad.ConfigureAwait(false);
+                    firstCompletion.SetResult(firstPath);
+                    _ = await firstLoad.ConfigureAwait(false);
+
+                    Assert.AreSame(secondPath, editor.TryCaptureCurrentPathModel());
+                }
+                finally
+                {
+                    RemovePendingPath(route, firstHeader.Id);
+                    RemovePendingPath(route, secondHeader.Id);
+                }
+            }
+        }
+
+        [TestMethod]
+        public async Task WhenPathIsUnloadedDuringLoadThenLateCompletionCannotReopenIt()
+        {
+            RouteModel route = CreateLoadTestRoute();
+            TaskCompletionSource<PathModelHeader> completion = CreatePathLoadCompletion();
+            PathModelHeader header = CreatePendingPathHeader(route, "unloaded-path", completion.Task);
+            PathModel loadedPath = CreateLoadedPath(route, header.Id);
+            using (PathEditor editor = CreateNewEditor())
+            {
+                try
+                {
+                    Task<bool> load = editor.InitializePathAsync(header, CancellationToken.None);
+
+                    _ = await editor.InitializePathAsync(null, CancellationToken.None).ConfigureAwait(false);
+                    completion.SetResult(loadedPath);
+                    _ = await load.ConfigureAwait(false);
+
+                    Assert.IsNull(editor.TryCaptureCurrentPathModel());
+                }
+                finally
+                {
+                    RemovePendingPath(route, header.Id);
+                }
+            }
+        }
+
+        [TestMethod]
+        public async Task WhenNewPathStartsDuringLoadThenLateCompletionCannotReplaceIt()
+        {
+            RouteModel route = CreateLoadTestRoute();
+            TaskCompletionSource<PathModelHeader> completion = CreatePathLoadCompletion();
+            PathModelHeader header = CreatePendingPathHeader(route, "superseded-path", completion.Task);
+            PathModel loadedPath = CreateLoadedPath(route, header.Id);
+            using (PathEditor editor = CreateNewEditor())
+            {
+                try
+                {
+                    Task<bool> load = editor.InitializePathAsync(header, CancellationToken.None);
+
+                    editor.InitializeNewPath();
+                    completion.SetResult(loadedPath);
+                    _ = await load.ConfigureAwait(false);
+
+                    Assert.IsTrue(editor.IsNewPath);
+                }
+                finally
+                {
+                    RemovePendingPath(route, header.Id);
+                }
+            }
+        }
+
+        [TestMethod]
+        public async Task WhenNewPathStartsAfterLoadCommitIsQueuedThenStaleCommitCannotReplaceIt()
+        {
+            TaskCompletionSource<Func<bool>> queuedCommitSource = new(TaskCreationOptions.RunContinuationsAsynchronously);
+            TaskCompletionSource<bool> commitCompletion = new(TaskCreationOptions.RunContinuationsAsynchronously);
+            UserCommandController<global::FreeTrainSimulator.Toolbox.UserCommand> commandController = new UserCommandController<global::FreeTrainSimulator.Toolbox.UserCommand>();
+            using (PathEditor editor = new PathEditor(new TestPathEditorContext(TrackWorldTestFixture.CreateSingleVectorNodeTrackWorld()), commandController,
+                action => action(), commit =>
+                {
+                    queuedCommitSource.TrySetResult(commit);
+                    return commitCompletion.Task;
+                }))
+            {
+                PathModel loadedPath = CreateEditablePath() with { Id = "queued-load-path" };
+                Task<bool> load = editor.InitializePathAsync(loadedPath, CancellationToken.None);
+                Func<bool> queuedCommit = await queuedCommitSource.Task.ConfigureAwait(false);
+
+                editor.InitializeNewPath();
+                commitCompletion.SetResult(queuedCommit());
+                _ = await load.ConfigureAwait(false);
+
+                Assert.IsTrue(editor.IsNewPath);
+            }
+        }
+
+        [TestMethod]
+        public async Task WhenEditorIsDisposedAfterLoadCommitIsQueuedThenCommitIsRejected()
+        {
+            TaskCompletionSource<Func<bool>> queuedCommitSource = new(TaskCreationOptions.RunContinuationsAsynchronously);
+            TaskCompletionSource<bool> commitCompletion = new(TaskCreationOptions.RunContinuationsAsynchronously);
+            UserCommandController<global::FreeTrainSimulator.Toolbox.UserCommand> commandController = new UserCommandController<global::FreeTrainSimulator.Toolbox.UserCommand>();
+            PathEditor editor = new PathEditor(new TestPathEditorContext(TrackWorldTestFixture.CreateSingleVectorNodeTrackWorld()), commandController,
+                action => action(), commit =>
+                {
+                    queuedCommitSource.TrySetResult(commit);
+                    return commitCompletion.Task;
+                });
+            Task<bool> load = editor.InitializePathAsync(CreateEditablePath() with { Id = "disposed-load-path" }, CancellationToken.None);
+            Func<bool> queuedCommit = await queuedCommitSource.Task.ConfigureAwait(false);
+
+            editor.Dispose();
+            commitCompletion.SetResult(queuedCommit());
+            bool loaded = await load.ConfigureAwait(false);
+
+            Assert.IsFalse(loaded);
+        }
+
+        [TestMethod]
         public void WhenPendingAmbiguousCandidateExistsThenMetadataEditIsRejected()
         {
             using (PathEditor editor = CreateEditor(CreateAmbiguousEndpointPath(), CreateAmbiguousTrackWorld()))
@@ -607,7 +739,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.PathEditing
 
                 Assert.IsFalse(result.Success);
                 Assert.AreSame(committedModel, editor.TryCaptureCurrentPathModel());
-                StringAssert.Contains(result.Message, "Accept or cancel", StringComparison.OrdinalIgnoreCase);
+                Assert.Contains("Accept or cancel", result.Message, StringComparison.OrdinalIgnoreCase);
             }
         }
 
@@ -632,7 +764,8 @@ namespace Tests.FreeTrainSimulator.Toolbox.PathEditing
         public void WhenAlternatePointerIsReleasedThenPathEditorLeavesInputUnhandled()
         {
             UserCommandController<global::FreeTrainSimulator.Toolbox.UserCommand> commandController = new UserCommandController<global::FreeTrainSimulator.Toolbox.UserCommand>();
-            using (PathEditor editor = new PathEditor(new TestPathEditorContext(TrackWorldTestFixture.CreateSingleVectorNodeTrackWorld()), commandController, action => action()))
+            using (PathEditor editor = new PathEditor(new TestPathEditorContext(TrackWorldTestFixture.CreateSingleVectorNodeTrackWorld()), commandController,
+                action => action(), commit => Task.FromResult(commit())))
             {
                 editor.InitializeNewPath();
                 UserCommandArgs commandArgs = new UserCommandArgs();
@@ -758,8 +891,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.PathEditing
             using (PathEditor editor = CreateEditor(CreateEditablePath()))
             {
                 Assert.IsTrue(editor.BeginPassingBranchCommand(0).Success);
-                typeof(PathEditor).GetMethod("RestoreSnapshot", BindingFlags.Instance | BindingFlags.NonPublic)
-                    .Invoke(editor, new object[] { replacement });
+                typeof(PathEditor).GetMethod("RestoreSnapshot", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(editor, new object[] { replacement });
                 PathModel restoredReplacement = editor.TryCaptureCurrentPathModel();
 
                 PathEditorCommandResult result = editor.CompletePassingBranchCommand(1);
@@ -768,6 +900,32 @@ namespace Tests.FreeTrainSimulator.Toolbox.PathEditing
                 Assert.AreEqual(PassingBranchAuthoringPhase.Idle, editor.PassingBranchPhase);
                 Assert.AreSame(restoredReplacement, editor.TryCaptureCurrentPathModel());
                 Assert.IsFalse(editor.TryCaptureCurrentPathModel().PathNodes.Any(node => node.NextSidingNode >= 0));
+            }
+        }
+
+        [TestMethod]
+        public void WhenMainSpanIsUnresolvedThenPassingCompletionReportsItsNodeIndexes()
+        {
+            PathNode unresolvedStart = CreateUnroutableNode() with { NodeType = PathNodeType.Start, NextMainNode = 1 };
+            PathModel source = new PathModel
+            {
+                Id = "unresolved-main-path",
+                PathNodes = ImmutableArray.Create(
+                    unresolvedStart,
+                    CreateNodeAt(0, PathNodeType.Via, 2),
+                    CreateNodeAt(100, PathNodeType.End, -1)),
+            };
+            using (PathEditor editor = CreateEditor(source))
+            {
+                PathModel baseline = editor.TryCaptureCurrentPathModel();
+                Assert.IsTrue(editor.BeginPassingBranchCommand(1).Success);
+
+                PathEditorCommandResult result = editor.CompletePassingBranchCommand(2);
+
+                Assert.IsFalse(result.Success);
+                Assert.Contains("span from node 0 to node 1 is unresolved", result.Message, StringComparison.OrdinalIgnoreCase);
+                Assert.AreSame(baseline, editor.TryCaptureCurrentPathModel());
+                Assert.IsFalse(editor.CanUndo);
             }
         }
 
@@ -848,6 +1006,50 @@ namespace Tests.FreeTrainSimulator.Toolbox.PathEditing
                 Assert.AreEqual(dirty, editor.HasUnsavedChanges);
                 Assert.AreEqual(canUndo, editor.CanUndo);
                 Assert.AreEqual(canRedo, editor.CanRedo);
+            }
+        }
+
+        [TestMethod]
+        public void WhenPassingCandidateSourceChangesThenPreviewClearsStaleCandidate()
+        {
+            PathModel source = CreateEditablePath();
+            PathModel replacement = source with { Id = "replacement-preview-path" };
+            using (PathEditor editor = CreateEditor(source))
+            {
+                PathModel baseline = editor.TryCaptureCurrentPathModel();
+                SetPrivateField(editor, "pendingPassingBranchCandidate", new PendingPassingBranchCandidate(baseline, 0, 1,
+                    new ResolvedPathSpan(0, 1, PathRouteSpanStatus.Ambiguous)));
+                typeof(PathEditor).GetMethod("RestoreSnapshot", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(editor, new object[] { replacement });
+                PathModel restoredReplacement = editor.TryCaptureCurrentPathModel();
+
+                PathEditResult result = editor.PreviewRouteCandidate(0, 0);
+
+                Assert.IsFalse(result.Success);
+                Assert.AreEqual(PassingBranchAuthoringPhase.Idle, editor.PassingBranchPhase);
+                Assert.AreSame(restoredReplacement, editor.TryCaptureCurrentPathModel());
+                Assert.IsFalse(editor.CanUndo);
+            }
+        }
+
+        [TestMethod]
+        public void WhenPassingCandidateSourceChangesThenAcceptanceClearsStaleCandidate()
+        {
+            PathModel source = CreateEditablePath();
+            PathModel replacement = source with { Id = "replacement-acceptance-path" };
+            using (PathEditor editor = CreateEditor(source))
+            {
+                PathModel baseline = editor.TryCaptureCurrentPathModel();
+                SetPrivateField(editor, "pendingPassingBranchCandidate", new PendingPassingBranchCandidate(baseline, 0, 1,
+                    new ResolvedPathSpan(0, 1, PathRouteSpanStatus.Ambiguous)));
+                typeof(PathEditor).GetMethod("RestoreSnapshot", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(editor, new object[] { replacement });
+                PathModel restoredReplacement = editor.TryCaptureCurrentPathModel();
+
+                PathEditResult result = editor.AcceptRouteCandidate(0, 0);
+
+                Assert.IsFalse(result.Success);
+                Assert.AreEqual(PassingBranchAuthoringPhase.Idle, editor.PassingBranchPhase);
+                Assert.AreSame(restoredReplacement, editor.TryCaptureCurrentPathModel());
+                Assert.IsFalse(editor.CanUndo);
             }
         }
 
@@ -1747,6 +1949,36 @@ namespace Tests.FreeTrainSimulator.Toolbox.PathEditing
             return editor;
         }
 
+        private static RouteModel CreateLoadTestRoute()
+        {
+            RouteModel route = new RouteModel(WorldLocation.None)
+            {
+                Id = $"load-route-{Guid.NewGuid():N}",
+                Name = "Load Test Route",
+            };
+            route.Initialize(null);
+            return route;
+        }
+
+        private static TaskCompletionSource<PathModelHeader> CreatePathLoadCompletion() => new TaskCompletionSource<PathModelHeader>(TaskCreationOptions.RunContinuationsAsynchronously);
+
+        private static PathModelHeader CreatePendingPathHeader(RouteModelHeader route, string pathId, Task<PathModelHeader> loadTask)
+        {
+            PathModelHeader header = new PathModelHeader { Id = pathId, Name = pathId };
+            header.Initialize(route);
+            TestPathModelHandler.SetLoadTask(route.Hierarchy(pathId), loadTask);
+            return header;
+        }
+
+        private static PathModel CreateLoadedPath(RouteModelHeader route, string pathId)
+        {
+            PathModel pathModel = CreateEditablePath() with { Id = pathId, Name = pathId };
+            pathModel.Initialize(route);
+            return pathModel;
+        }
+
+        private static void RemovePendingPath(RouteModelHeader route, string pathId) => TestPathModelHandler.RemoveLoadTask(route.Hierarchy(pathId));
+
         private static PathEditor CreateNewEditor()
         {
             TrackWorld trackWorld = TrackWorldTestFixture.CreateSingleVectorNodeTrackWorld();
@@ -1955,6 +2187,15 @@ namespace Tests.FreeTrainSimulator.Toolbox.PathEditing
             {
                 services = new PathEditorServices(trackWorld);
             }
+        }
+
+        private sealed class TestPathModelHandler : ContentHandlerBase<PathModelHeader>
+        {
+            public static void SetLoadTask(string key, Task<PathModelHeader> loadTask)
+                => modelTaskCache[key] = loadTask;
+
+            public static void RemoveLoadTask(string key)
+                => modelTaskCache.TryRemove(key, out _);
         }
 
         private sealed record TestTrainPath : TrainPathBase

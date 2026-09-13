@@ -416,14 +416,17 @@ namespace FreeTrainSimulator.Toolbox
                 return Task.CompletedTask;
 
             if (!windowForm.InvokeRequired)
-                return action();
+                return CaptureInvocationAsync(action);
 
             TaskCompletionSource completion = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+            void CompleteWhenDisposed(object sender, EventArgs e) => completion.TrySetResult();
+            windowForm.Disposed += CompleteWhenDisposed;
+            _ = completion.Task.ContinueWith(_ => windowForm.Disposed -= CompleteWhenDisposed, CancellationToken.None, TaskContinuationOptions.ExecuteSynchronously, TaskScheduler.Default);
             try
             {
-                windowForm.BeginInvoke((System.Windows.Forms.MethodInvoker)delegate
+                _ = windowForm.BeginInvoke((System.Windows.Forms.MethodInvoker)delegate
                 {
-                    Task task = action();
+                    Task task = CaptureInvocationAsync(action);
                     _ = task.ContinueWith(CompleteInvokedTask, completion, CancellationToken.None, TaskContinuationOptions.ExecuteSynchronously, TaskScheduler.Default);
                 });
             }
@@ -443,14 +446,17 @@ namespace FreeTrainSimulator.Toolbox
                 return Task.FromResult(default(T));
 
             if (!windowForm.InvokeRequired)
-                return action();
+                return CaptureInvocationAsync(action);
 
             TaskCompletionSource<T> completion = new(TaskCreationOptions.RunContinuationsAsynchronously);
+            void CompleteWhenDisposed(object sender, EventArgs e) => completion.TrySetResult(default);
+            windowForm.Disposed += CompleteWhenDisposed;
+            _ = completion.Task.ContinueWith(_ => windowForm.Disposed -= CompleteWhenDisposed, CancellationToken.None, TaskContinuationOptions.ExecuteSynchronously, TaskScheduler.Default);
             try
             {
-                windowForm.BeginInvoke((System.Windows.Forms.MethodInvoker)delegate
+                _ = windowForm.BeginInvoke((System.Windows.Forms.MethodInvoker)delegate
                 {
-                    Task<T> task = action();
+                    Task<T> task = CaptureInvocationAsync(action);
                     _ = task.ContinueWith(completedTask =>
                     {
                         if (completedTask.IsCanceled)
@@ -470,6 +476,16 @@ namespace FreeTrainSimulator.Toolbox
             return completion.Task;
         }
 
+        private static async Task CaptureInvocationAsync(Func<Task> action)
+        {
+            await action().ConfigureAwait(false);
+        }
+
+        private static async Task<T> CaptureInvocationAsync<T>(Func<Task<T>> action)
+        {
+            return await action().ConfigureAwait(false);
+        }
+
         private static void CompleteInvokedTask(Task task, object state)
         {
             TaskCompletionSource completion = (TaskCompletionSource)state;
@@ -480,7 +496,7 @@ namespace FreeTrainSimulator.Toolbox
             }
             else if (task.Exception != null)
             {
-                foreach (System.Exception exception in task.Exception.InnerExceptions)
+                foreach (Exception exception in task.Exception.InnerExceptions)
                     Trace.TraceError($"Hosted game-thread operation failed: {exception}");
 
                 completion.TrySetException(task.Exception.InnerExceptions);

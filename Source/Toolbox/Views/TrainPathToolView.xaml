@@ -253,6 +253,7 @@
                 <ListView Grid.Row="2"
                           ItemsSource="{Binding Paths}"
                           SelectedItem="{Binding SelectedPath, Mode=OneWay}"
+                          PreviewMouseLeftButtonDown="PathList_PreviewMouseLeftButtonDown"
                           SelectionChanged="PathList_SelectionChanged"
                           behaviors:GridViewColumnBehavior.StretchListView="True">
                     <ListView.ItemContainerStyle>

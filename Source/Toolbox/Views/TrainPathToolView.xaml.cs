@@ -28,6 +28,21 @@ namespace FreeTrainSimulator.Toolbox.Views
                 viewModel.UserSelectPath(item);
         }
 
+        private void PathList_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            if (sender is not ListView listView || DataContext is not TrainPathToolWindowViewModel viewModel)
+                return;
+
+            DependencyObject source = e.OriginalSource as DependencyObject;
+            ListViewItem row = ItemsControl.ContainerFromElement(listView, source) as ListViewItem;
+            if (row?.IsSelected != true)
+                return;
+
+            e.Handled = true;
+            listView.SelectedItem = null;
+            viewModel.UserSelectPath(null);
+        }
+
         private void NodeList_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             if (DataContext is TrainPathToolWindowViewModel viewModel && ToolWindowSelection.TryGetAddedItem(e, out TrainPathNodeItemViewModel item))
