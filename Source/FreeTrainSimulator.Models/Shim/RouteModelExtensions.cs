@@ -72,12 +72,16 @@ namespace FreeTrainSimulator.Models.Shim
             return $"{routeModelHeader.Id} {timetableModel.Id}";
         }
 
-        public static Task<PathModel> Save(this RouteModelHeader routeModel, PathModel pathModel)
+        /// <summary>
+        /// Persists <paramref name="pathModel"/> under <paramref name="routeModel"/> while observing
+        /// <paramref name="cancellationToken"/>.
+        /// </summary>
+        public static Task<PathModel> Save(this RouteModelHeader routeModel, PathModel pathModel, CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(routeModel, nameof(routeModel));
             ArgumentNullException.ThrowIfNull(pathModel, nameof(pathModel));
 
-            return PathModelHandler.UpdatePath(pathModel, routeModel, CancellationToken.None);
+            return PathModelHandler.UpdatePath(pathModel, routeModel, cancellationToken);
         }
     }
 }

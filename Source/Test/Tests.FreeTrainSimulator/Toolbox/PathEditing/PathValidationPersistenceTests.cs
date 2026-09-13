@@ -51,7 +51,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.PathEditing
         [TestMethod]
         public async Task WhenValidateRoutePathsRunsThenReloadedHeadersCarryPersistedValidationState()
         {
-            RouteModelHeader route = await SeedRouteWithPathsAsync().ConfigureAwait(false);
+            RouteModelHeader route = await SeedRouteWithPathsAsync(TestContext.CancellationToken).ConfigureAwait(false);
 
             _ = await PathEditor.ValidateRoutePaths(route, null, true, CancellationToken.None).ConfigureAwait(false);
 
@@ -70,7 +70,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.PathEditing
             PathModel path = CreateLinearPath("valid-path");
 
             PathPersistenceValidationResult result = await PathEditor.SaveValidatedPath(path, route,
-                TrackWorldTestFixture.CreateSingleVectorNodeTrackWorld()).ConfigureAwait(false);
+                TrackWorldTestFixture.CreateSingleVectorNodeTrackWorld(), TestContext.CancellationToken).ConfigureAwait(false);
 
             PathModelHeader savedHeader = (await route.GetPaths(CancellationToken.None).ConfigureAwait(false)).Single(savedPath => savedPath.Id == path.Id);
             PathModel savedPath = await savedHeader.GetExtended(CancellationToken.None).ConfigureAwait(false);
@@ -93,7 +93,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.PathEditing
             };
 
             PathPersistenceValidationResult result = await PathEditor.SaveValidatedPath(path, route,
-                CreateAmbiguousRouteTrackWorld()).ConfigureAwait(false);
+                CreateAmbiguousRouteTrackWorld(), TestContext.CancellationToken).ConfigureAwait(false);
 
             PathModelHeader savedHeader = (await route.GetPaths(CancellationToken.None).ConfigureAwait(false)).Single(savedPath => savedPath.Id == path.Id);
             PathModel savedPath = await savedHeader.GetExtended(CancellationToken.None).ConfigureAwait(false);
@@ -109,7 +109,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.PathEditing
         {
             RouteModel route = CreateRoute();
             PathModel persisted = CreateLinearPath("protected-path");
-            _ = await route.Save(persisted).ConfigureAwait(false);
+            _ = await route.Save(persisted, TestContext.CancellationToken).ConfigureAwait(false);
             PathModel invalid = persisted with
             {
                 Name = "Invalid Replacement",
@@ -117,7 +117,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.PathEditing
             };
 
             PathPersistenceValidationResult result = await PathEditor.SaveValidatedPath(invalid, route,
-                TrackWorldTestFixture.CreateSingleVectorNodeTrackWorld()).ConfigureAwait(false);
+                TrackWorldTestFixture.CreateSingleVectorNodeTrackWorld(), TestContext.CancellationToken).ConfigureAwait(false);
 
             PathModelHeader reloadedHeader = (await route.GetPaths(CancellationToken.None).ConfigureAwait(false)).Single(path => path.Id == persisted.Id);
             PathModel reloaded = await reloadedHeader.GetExtended(CancellationToken.None).ConfigureAwait(false);
@@ -138,7 +138,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.PathEditing
             };
 
             PathPersistenceValidationResult result = await PathEditor.SaveValidatedPath(invalid, route,
-                TrackWorldTestFixture.CreateSingleVectorNodeTrackWorld()).ConfigureAwait(false);
+                TrackWorldTestFixture.CreateSingleVectorNodeTrackWorld(), TestContext.CancellationToken).ConfigureAwait(false);
 
             ImmutableArray<PathModelHeader> paths = await route.GetPaths(CancellationToken.None).ConfigureAwait(false);
             Assert.IsFalse(result.PersistenceAllowed);
@@ -156,7 +156,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.PathEditing
             };
 
             PathPersistenceValidationResult result = await PathEditor.SaveValidatedPath(invalid, route,
-                TrackWorldTestFixture.CreateSingleVectorNodeTrackWorld()).ConfigureAwait(false);
+                TrackWorldTestFixture.CreateSingleVectorNodeTrackWorld(), TestContext.CancellationToken).ConfigureAwait(false);
 
             Assert.IsFalse(result.PersistenceAllowed);
             Assert.IsFalse((await route.GetPaths(CancellationToken.None).ConfigureAwait(false)).Any(path => path.Id == invalid.Id));
@@ -173,7 +173,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.PathEditing
             };
 
             PathPersistenceValidationResult result = await PathEditor.SaveValidatedPath(branch, route,
-                TrackWorldTestFixture.CreateSingleVectorNodeTrackWorld()).ConfigureAwait(false);
+                TrackWorldTestFixture.CreateSingleVectorNodeTrackWorld(), TestContext.CancellationToken).ConfigureAwait(false);
             PathModelHeader savedHeader = (await route.GetPaths(CancellationToken.None).ConfigureAwait(false)).Single(path => path.Id == branch.Id);
             PathModel reloaded = await savedHeader.GetExtended(CancellationToken.None).ConfigureAwait(false);
 
@@ -190,7 +190,8 @@ namespace Tests.FreeTrainSimulator.Toolbox.PathEditing
             TrackWorld trackWorld = TrackWorldTestFixture.CreateSidingTrackWorld();
             PathModel source = CreateRepresentativePassingPath("generated-passing-consumer", trackWorld);
 
-            PathPersistenceValidationResult result = await PathEditor.SaveValidatedPath(source, route, trackWorld).ConfigureAwait(false);
+            PathPersistenceValidationResult result = await PathEditor.SaveValidatedPath(source, route, trackWorld,
+                TestContext.CancellationToken).ConfigureAwait(false);
             PathModelHeader savedHeader = (await route.GetPaths(CancellationToken.None).ConfigureAwait(false)).Single(path => path.Id == source.Id);
             PathModel reloaded = await savedHeader.GetExtended(CancellationToken.None).ConfigureAwait(false);
             EditorTrainPath runtimePath = new EditorTrainPath(reloaded, trackWorld);
@@ -206,7 +207,8 @@ namespace Tests.FreeTrainSimulator.Toolbox.PathEditing
             TrackWorld trackWorld = TrackWorldTestFixture.CreateSingleVectorNodeTrackWorld();
             PathModel source = CreateLinearPath("generated-main-round-trip");
 
-            PathPersistenceValidationResult result = await PathEditor.SaveValidatedPath(source, route, trackWorld).ConfigureAwait(false);
+            PathPersistenceValidationResult result = await PathEditor.SaveValidatedPath(source, route, trackWorld,
+                TestContext.CancellationToken).ConfigureAwait(false);
             PathModelHeader savedHeader = (await route.GetPaths(CancellationToken.None).ConfigureAwait(false)).Single(path => path.Id == source.Id);
             PathModel reloaded = await savedHeader.GetExtended(CancellationToken.None).ConfigureAwait(false);
             PathRouteResolution resolution = PathRouteResolver.Resolve(reloaded, trackWorld, CancellationToken.None);
@@ -222,7 +224,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.PathEditing
             TrackWorld trackWorld = TrackWorldTestFixture.CreateDeadEndTrackWorld();
             PathModel source = CreateAnchoredEndpointPath("generated-main-consumer", trackWorld);
 
-            _ = await PathEditor.SaveValidatedPath(source, route, trackWorld).ConfigureAwait(false);
+            _ = await PathEditor.SaveValidatedPath(source, route, trackWorld, TestContext.CancellationToken).ConfigureAwait(false);
             PathModelHeader savedHeader = (await route.GetPaths(CancellationToken.None).ConfigureAwait(false)).Single(path => path.Id == source.Id);
             PathModel reloaded = await savedHeader.GetExtended(CancellationToken.None).ConfigureAwait(false);
             EditorTrainPath runtimePath = new EditorTrainPath(reloaded, trackWorld);
@@ -235,11 +237,11 @@ namespace Tests.FreeTrainSimulator.Toolbox.PathEditing
         {
             RouteModel route = CreateRoute();
             PathModel original = CreateLinearPath("original-path") with { Name = "Original" };
-            _ = await route.Save(original).ConfigureAwait(false);
+            _ = await route.Save(original, TestContext.CancellationToken).ConfigureAwait(false);
             PathModel saveAs = original with { Id = "copied-path", Name = "Copy" };
 
             PathPersistenceValidationResult result = await PathEditor.SaveValidatedPath(saveAs, route,
-                TrackWorldTestFixture.CreateSingleVectorNodeTrackWorld()).ConfigureAwait(false);
+                TrackWorldTestFixture.CreateSingleVectorNodeTrackWorld(), TestContext.CancellationToken).ConfigureAwait(false);
             ImmutableArray<PathModelHeader> paths = await route.GetPaths(CancellationToken.None).ConfigureAwait(false);
             PathModel persistedOriginal = await paths.Single(path => path.Id == original.Id).GetExtended(CancellationToken.None).ConfigureAwait(false);
             PathModel persistedCopy = await paths.Single(path => path.Id == saveAs.Id).GetExtended(CancellationToken.None).ConfigureAwait(false);
@@ -257,12 +259,12 @@ namespace Tests.FreeTrainSimulator.Toolbox.PathEditing
             RouteModel route = CreateRoute();
             PathModel original = CreateLinearPath("original-path") with { Name = "Original" };
             PathModel existingTarget = CreateLinearPath("target-path") with { Name = "Existing Target" };
-            _ = await route.Save(original).ConfigureAwait(false);
-            _ = await route.Save(existingTarget).ConfigureAwait(false);
+            _ = await route.Save(original, TestContext.CancellationToken).ConfigureAwait(false);
+            _ = await route.Save(existingTarget, TestContext.CancellationToken).ConfigureAwait(false);
             PathModel replacement = original with { Id = existingTarget.Id, Name = "Replacement Target" };
 
             _ = await PathEditor.SaveValidatedPath(replacement, route,
-                TrackWorldTestFixture.CreateSingleVectorNodeTrackWorld()).ConfigureAwait(false);
+                TrackWorldTestFixture.CreateSingleVectorNodeTrackWorld(), TestContext.CancellationToken).ConfigureAwait(false);
             ImmutableArray<PathModelHeader> paths = await route.GetPaths(CancellationToken.None).ConfigureAwait(false);
             PathModel persistedOriginal = await paths.Single(path => path.Id == original.Id).GetExtended(CancellationToken.None).ConfigureAwait(false);
             PathModel persistedTarget = await paths.Single(path => path.Id == existingTarget.Id).GetExtended(CancellationToken.None).ConfigureAwait(false);
@@ -276,7 +278,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.PathEditing
         {
             RouteModel route = CreateRoute();
             PathModel persisted = CreateLinearPath("normalization-protected-path");
-            _ = await route.Save(persisted).ConfigureAwait(false);
+            _ = await route.Save(persisted, TestContext.CancellationToken).ConfigureAwait(false);
             PathModel nonRejoiningPassingPath = new PathModel(persisted)
             {
                 Name = "Unpersisted Replacement",
@@ -288,7 +290,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.PathEditing
             };
 
             PathPersistenceValidationResult result = await PathEditor.SaveValidatedPath(nonRejoiningPassingPath, route,
-                TrackWorldTestFixture.CreateSingleVectorNodeTrackWorld()).ConfigureAwait(false);
+                TrackWorldTestFixture.CreateSingleVectorNodeTrackWorld(), TestContext.CancellationToken).ConfigureAwait(false);
 
             PathModelHeader reloadedHeader = (await route.GetPaths(CancellationToken.None).ConfigureAwait(false)).Single(path => path.Id == persisted.Id);
             PathModel reloaded = await reloadedHeader.GetExtended(CancellationToken.None).ConfigureAwait(false);
@@ -302,25 +304,92 @@ namespace Tests.FreeTrainSimulator.Toolbox.PathEditing
         {
             RouteModel route = CreateRoute();
             PathModel persisted = CreateLinearPath("atomic-replacement-path");
-            _ = await route.Save(persisted).ConfigureAwait(false);
+            _ = await route.Save(persisted, TestContext.CancellationToken).ConfigureAwait(false);
             string targetFileName = ModelFileResolver<PathModelHeader>.FilePath(persisted) + ContentHandlerBase<PathModelHeader>.SaveStateExtension;
             byte[] originalBytes = await File.ReadAllBytesAsync(targetFileName, TestContext.CancellationToken).ConfigureAwait(false);
             PathModel replacement = persisted with { Name = "Replacement That Must Not Persist" };
 
             using (FileStream targetLock = new FileStream(targetFileName, FileMode.Open, FileAccess.Read, FileShare.Read))
             {
-                await route.Save(replacement).ContinueWith(completedSave =>
-                {
-                    Assert.IsTrue(completedSave.IsFaulted);
-                    Assert.IsTrue(completedSave.Exception?.InnerException is IOException or UnauthorizedAccessException);
-                }, TestContext.CancellationToken, TaskContinuationOptions.None, TaskScheduler.Default).ConfigureAwait(false);
+                await SaveWhileTargetIsLocked(route, replacement).ConfigureAwait(false);
             }
 
             byte[] persistedBytes = await File.ReadAllBytesAsync(targetFileName, TestContext.CancellationToken).ConfigureAwait(false);
             Assert.AreSequenceEqual(originalBytes, persistedBytes);
         }
 
-        private static async Task<RouteModelHeader> SeedRouteWithPathsAsync()
+        [TestMethod]
+        public async Task WhenAtomicReplacementFailsThenExistingPathRemainsReloadable()
+        {
+            RouteModel route = CreateRoute();
+            PathModel persisted = CreateLinearPath("atomic-reload-path");
+            _ = await route.Save(persisted, TestContext.CancellationToken).ConfigureAwait(false);
+            string targetFileName = ModelFileResolver<PathModelHeader>.FilePath(persisted) + ContentHandlerBase<PathModelHeader>.SaveStateExtension;
+            PathModel replacement = persisted with { Name = "Replacement That Must Not Persist" };
+
+            using (FileStream targetLock = new FileStream(targetFileName, FileMode.Open, FileAccess.Read, FileShare.Read))
+            {
+                await SaveWhileTargetIsLocked(route, replacement).ConfigureAwait(false);
+            }
+
+            PathModelHeader reloadedHeader = (await route.GetPaths(CancellationToken.None).ConfigureAwait(false)).Single(path => path.Id == persisted.Id);
+            PathModel reloaded = await reloadedHeader.GetExtended(CancellationToken.None).ConfigureAwait(false);
+            Assert.AreEqual(persisted.Name, reloaded.Name);
+        }
+
+        [TestMethod]
+        public async Task WhenAtomicReplacementFailsThenNoTemporaryFileRemains()
+        {
+            RouteModel route = CreateRoute();
+            PathModel persisted = CreateLinearPath("atomic-cleanup-path");
+            _ = await route.Save(persisted, TestContext.CancellationToken).ConfigureAwait(false);
+            string targetFileName = ModelFileResolver<PathModelHeader>.FilePath(persisted) + ContentHandlerBase<PathModelHeader>.SaveStateExtension;
+            PathModel replacement = persisted with { Name = "Replacement That Must Not Persist" };
+
+            using (FileStream targetLock = new FileStream(targetFileName, FileMode.Open, FileAccess.Read, FileShare.Read))
+            {
+                await SaveWhileTargetIsLocked(route, replacement).ConfigureAwait(false);
+            }
+
+            string[] temporaryFiles = Directory.GetFiles(Path.GetDirectoryName(targetFileName), $"{Path.GetFileName(targetFileName)}.*.tmp");
+            Assert.IsEmpty(temporaryFiles);
+        }
+
+        [TestMethod]
+        public async Task WhenPathUpdateIsCanceledThenExistingPersistedBytesAreUnchanged()
+        {
+            RouteModel route = CreateRoute();
+            PathModel persisted = CreateLinearPath("canceled-update-path");
+            _ = await route.Save(persisted, TestContext.CancellationToken).ConfigureAwait(false);
+            string targetFileName = ModelFileResolver<PathModelHeader>.FilePath(persisted) + ContentHandlerBase<PathModelHeader>.SaveStateExtension;
+            byte[] originalBytes = await File.ReadAllBytesAsync(targetFileName, TestContext.CancellationToken).ConfigureAwait(false);
+            PathModel replacement = persisted with { Name = "Canceled Replacement" };
+            using CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
+            cancellationTokenSource.Cancel();
+
+            _ = await Assert.ThrowsExactlyAsync<OperationCanceledException>(async () =>
+                await route.Save(replacement, cancellationTokenSource.Token).ConfigureAwait(false)).ConfigureAwait(false);
+
+            byte[] persistedBytes = await File.ReadAllBytesAsync(targetFileName, TestContext.CancellationToken).ConfigureAwait(false);
+            Assert.AreSequenceEqual(originalBytes, persistedBytes);
+        }
+
+        private async Task SaveWhileTargetIsLocked(RouteModel route, PathModel replacement)
+        {
+            try
+            {
+                _ = await route.Save(replacement, TestContext.CancellationToken).ConfigureAwait(false);
+                Assert.Fail("Saving over a locked target should fail.");
+            }
+            catch (IOException)
+            {
+            }
+            catch (UnauthorizedAccessException)
+            {
+            }
+        }
+
+        private static async Task<RouteModelHeader> SeedRouteWithPathsAsync(CancellationToken cancellationToken)
         {
             RouteModel routeModel = CreateRoute();
 
@@ -334,8 +403,8 @@ namespace Tests.FreeTrainSimulator.Toolbox.PathEditing
                     new PathNode(new WorldLocation(new Tile(0, 0), Vector3.Zero)) { NodeType = PathNodeType.End, NextMainNode = -1 }),
             };
 
-            _ = await routeModel.Save(emptyPath).ConfigureAwait(false);
-            _ = await routeModel.Save(linearPath).ConfigureAwait(false);
+            _ = await routeModel.Save(emptyPath, cancellationToken).ConfigureAwait(false);
+            _ = await routeModel.Save(linearPath, cancellationToken).ConfigureAwait(false);
             return routeModel;
         }
 

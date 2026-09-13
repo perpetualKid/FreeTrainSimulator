@@ -49,7 +49,7 @@ namespace FreeTrainSimulator.Models.Handler
             pathModel.Initialize(routeModel);
             collectionUpdateRequired[routeModel.Hierarchy()] = true;
             modelTaskCache.TryRemove(routeModel.Hierarchy(pathModel.Id), out _);
-            return ToFile(pathModel, CancellationToken.None);
+            return ToFile(pathModel, cancellationToken);
         }
 
         public static Task<ImmutableArray<PathModelHeader>> GetPaths(RouteModelHeader routeModel, CancellationToken cancellationToken)

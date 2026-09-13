@@ -2043,7 +2043,7 @@ namespace FreeTrainSimulator.Toolbox.PathEditing
             // passes game: null), so Instance is the single authoritative resolver here; a game-scoped
             // GameInstance(game) lookup would resolve to the same object.
             return await SaveValidatedPath(pathModel, RuntimeDataResolver.Instance.RouteData,
-                RuntimeDataResolver.Instance.TrackWorld).ConfigureAwait(false);
+                RuntimeDataResolver.Instance.TrackWorld, CancellationToken.None).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -2099,7 +2099,8 @@ namespace FreeTrainSimulator.Toolbox.PathEditing
             return PathPersistenceValidationPolicy.ValidateForPersistence(pathModel, ResolveCurrent(pathModel), TrackWorld);
         }
 
-        internal static async Task<PathPersistenceValidationResult> SaveValidatedPath(PathModel pathModel, RouteModel routeData, TrackWorld trackWorld)
+        internal static async Task<PathPersistenceValidationResult> SaveValidatedPath(PathModel pathModel, RouteModel routeData, TrackWorld trackWorld,
+            CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(pathModel);
             ArgumentNullException.ThrowIfNull(routeData);
@@ -2109,7 +2110,7 @@ namespace FreeTrainSimulator.Toolbox.PathEditing
                 return validation;
 
             PathModel validatedModel = validation.PathModel with { ValidationState = ResolveValidationState(validation.Resolution) };
-            PathModel savedModel = await routeData.Save(validatedModel).ConfigureAwait(false);
+            PathModel savedModel = await routeData.Save(validatedModel, cancellationToken).ConfigureAwait(false);
             return new PathPersistenceValidationResult(true, savedModel, validation.Resolution, validation.Diagnostics,
                 validation.ChangedNodeIndexes, null, null);
         }
@@ -2152,7 +2153,7 @@ namespace FreeTrainSimulator.Toolbox.PathEditing
 
                 if (pathModel.ValidationState != state)
                 {
-                    _ = await routeModel.Save(pathModel with { ValidationState = state }).ConfigureAwait(false);
+                    _ = await routeModel.Save(pathModel with { ValidationState = state }, cancellationToken).ConfigureAwait(false);
                     revalidatedCount++;
                 }
             }

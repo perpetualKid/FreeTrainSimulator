@@ -73,8 +73,11 @@ namespace FreeTrainSimulator.Models.Handler
         internal protected static async Task<TActual> ToFile<TActual>(TActual model, CancellationToken cancellationToken) where TActual : TModel
         {
             ArgumentNullException.ThrowIfNull(model, nameof(model));
+            cancellationToken.ThrowIfCancellationRequested();
 
             string targetFileName = ModelFileResolver<TModel>.FilePath(model) + SaveStateExtension;
+            string temporaryFileName = $"{targetFileName}.{Guid.NewGuid():N}.tmp";
+            bool committed = false;
 
             model.RefreshModel();
 
@@ -82,18 +85,57 @@ namespace FreeTrainSimulator.Models.Handler
             {
                 _ = Directory.CreateDirectory(Path.GetDirectoryName(targetFileName));
 
-                using (FileStream saveFile = new FileStream(targetFileName, FileMode.Create, FileAccess.Write))
+                using (FileStream saveFile = new FileStream(temporaryFileName, FileMode.CreateNew, FileAccess.Write, FileShare.None))
                 {
                     await MemoryPackSerializer.SerializeAsync(saveFile, model, null, cancellationToken).ConfigureAwait(false);
                     await saveFile.FlushAsync(cancellationToken).ConfigureAwait(false);
                 }
+
+                cancellationToken.ThrowIfCancellationRequested();
+                PromoteTemporaryFile(temporaryFileName, targetFileName);
+                committed = true;
             }
             catch (Exception ex)
             {
                 Trace.TraceError(ex.Message);
                 throw;
             }
+            finally
+            {
+                if (!committed)
+                    DeleteTemporaryFile(temporaryFileName);
+            }
             return model;
+        }
+
+        private static void PromoteTemporaryFile(string temporaryFileName, string targetFileName)
+        {
+            if (File.Exists(targetFileName))
+            {
+                File.Replace(temporaryFileName, targetFileName, null);
+                return;
+            }
+
+            try
+            {
+                File.Move(temporaryFileName, targetFileName);
+            }
+            catch (IOException) when (File.Exists(targetFileName))
+            {
+                File.Replace(temporaryFileName, targetFileName, null);
+            }
+        }
+
+        private static void DeleteTemporaryFile(string temporaryFileName)
+        {
+            try
+            {
+                File.Delete(temporaryFileName);
+            }
+            catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+            {
+                Trace.TraceWarning($"Failed to delete temporary model file '{temporaryFileName}': {ex}");
+            }
         }
 
         internal protected static Task Create<TActual, TContainer>(TActual model, TContainer parent, CancellationToken cancellationToken) where TContainer : ModelBase where TActual : TModel
