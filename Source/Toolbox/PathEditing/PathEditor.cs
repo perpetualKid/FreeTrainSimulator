@@ -64,6 +64,7 @@ namespace FreeTrainSimulator.Toolbox.PathEditing
         private PathNode selectedAuthoredNode;
         private int selectedAuthoredNodeIndex = -1;
         private int pendingPassingBranchStartNodeIndex = -1;
+        private PathModel pendingPassingBranchSourceModel;
         private PendingPassingBranchCandidate pendingPassingBranchCandidate;
 
         public string PathId => path?.Id;
@@ -128,6 +129,7 @@ namespace FreeTrainSimulator.Toolbox.PathEditing
         {
             PathModel model = TryGetEditablePathModel();
             return !repairMode && !IsPlacementActive && pendingPassingBranchStartNodeIndex >= 0 && !HasPendingRouteCandidateInteraction
+                && ReferenceEquals(model, pendingPassingBranchSourceModel)
                 && model != null && nodeIndex >= 0 && nodeIndex < model.PathNodes.Length;
         }
 
@@ -181,12 +183,11 @@ namespace FreeTrainSimulator.Toolbox.PathEditing
                     pathModel = await path.GetExtended(cancellationToken).ConfigureAwait(false);
                 }
 
+                ClearTransientPathInteractionState();
                 this.path = pathModel ?? path;
                 currentPathModel = pathModel;
-                routeAuthoringModel = null;
                 ClearAuthoredNodeSelection();
 
-                ClearMoveNodeState();
                 ClearHistory();
                 currentPathModel = pathModel;
                 unsavedChanges = false;
@@ -270,6 +271,7 @@ namespace FreeTrainSimulator.Toolbox.PathEditing
 
         public void InitializeNewPath()
         {
+            ClearTransientPathInteractionState();
             PathModel newPath = new PathModel()
             {
                 Id = NewPathId,
@@ -282,7 +284,6 @@ namespace FreeTrainSimulator.Toolbox.PathEditing
             currentPathModel = newPath;
             repairMode = false;
             ClearAuthoredNodeSelection();
-            ClearMoveNodeState();
             ClearHistory();
             unsavedChanges = true;
             InitializeAnchorPathEdit(newPath);
@@ -1213,6 +1214,7 @@ namespace FreeTrainSimulator.Toolbox.PathEditing
                 return PathEditorCommandResult.Failed("Select a non-terminal main-route node as the passing-branch start.", model);
 
             pendingPassingBranchStartNodeIndex = startNodeIndex;
+            pendingPassingBranchSourceModel = model;
             SelectAuthoredNode(startNodeIndex);
             OnPathUpdated?.Invoke(this, new PathEditorChangedEventArgs(TrainPath));
             return PathEditorCommandResult.Succeeded("Select a later main-route node to rejoin the passing branch.", model);
@@ -1225,6 +1227,12 @@ namespace FreeTrainSimulator.Toolbox.PathEditing
             int startNodeIndex = pendingPassingBranchStartNodeIndex;
             if (startNodeIndex < 0 || model == null)
                 return PathEditorCommandResult.Failed("Select a passing-branch start before selecting its rejoin node.", model);
+            if (!ReferenceEquals(model, pendingPassingBranchSourceModel))
+            {
+                ClearPassingBranchRejoinSelection();
+                OnPathUpdated?.Invoke(this, new PathEditorChangedEventArgs(TrainPath));
+                return PathEditorCommandResult.Failed("The path changed while the passing-branch rejoin was pending; the selection was canceled.", model);
+            }
 
             PathEditResult authored = PathModelEditor.CreatePassingBranch(model, startNodeIndex, rejoinNodeIndex);
             if (!authored.Success)
@@ -1235,8 +1243,8 @@ namespace FreeTrainSimulator.Toolbox.PathEditing
             ResolvedPathSpan ambiguousSpan = passingRoute?.Spans.FirstOrDefault(span => span.Status == PathRouteSpanStatus.Ambiguous || span.Candidates.Length > 1);
             if (ambiguousSpan != null)
             {
-                pendingPassingBranchStartNodeIndex = -1;
                 pendingPassingBranchCandidate = new PendingPassingBranchCandidate(model, startNodeIndex, rejoinNodeIndex, ambiguousSpan);
+                ClearPassingBranchRejoinSelection();
                 OnPathUpdated?.Invoke(this, new PathEditorChangedEventArgs(TrainPath));
                 return PathEditorCommandResult.Failed("The passing branch has equal-cost routes; select a route candidate to preview and accept it.", model);
             }
@@ -1252,7 +1260,7 @@ namespace FreeTrainSimulator.Toolbox.PathEditing
             if (!materialization.PersistenceAllowed)
                 return PathEditorCommandResult.Failed(materialization.FailureMessage, model);
 
-            pendingPassingBranchStartNodeIndex = -1;
+            ClearPassingBranchRejoinSelection();
             PathEditResult committed = ApplySelectedNodeEdit(startNodeIndex, _ => PathEditResult.Succeeded(
                 "Passing branch created and resolved.", materialization.PathModel, materialization.ChangedNodeIndexes));
             return PathEditorCommandResult.FromPathEditResult(committed);
@@ -1272,7 +1280,7 @@ namespace FreeTrainSimulator.Toolbox.PathEditing
             if (pendingPassingBranchStartNodeIndex < 0)
                 return PathEditorCommandResult.Failed("No passing-branch selection is active.", TryGetEditablePathModel());
 
-            pendingPassingBranchStartNodeIndex = -1;
+            ClearPassingBranchRejoinSelection();
             OnPathUpdated?.Invoke(this, new PathEditorChangedEventArgs(TrainPath));
             return PathEditorCommandResult.Succeeded("Passing-branch selection canceled.", TryGetEditablePathModel());
         }
@@ -2422,6 +2430,23 @@ namespace FreeTrainSimulator.Toolbox.PathEditing
             ClearMovePreview();
             UseStandaloneActivePathPointPreview = false;
             SetHiddenPathNodeIndex(-1);
+        }
+
+        private void ClearPassingBranchRejoinSelection()
+        {
+            pendingPassingBranchStartNodeIndex = -1;
+            pendingPassingBranchSourceModel = null;
+        }
+
+        private void ClearTransientPathInteractionState()
+        {
+            ClearMoveNodeState();
+            routeAuthoringModel = null;
+            pendingAmbiguousSpanCommit = null;
+            ClearPassingBranchRejoinSelection();
+            pendingPassingBranchCandidate = null;
+            ClearPreviewedRouteCandidate();
+            editorDragged = false;
         }
 
         private void RestorePendingViaSource()

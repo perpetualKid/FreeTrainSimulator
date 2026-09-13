@@ -697,6 +697,81 @@ namespace Tests.FreeTrainSimulator.Toolbox.PathEditing
         }
 
         [TestMethod]
+        public async Task WhenPathIsLoadedDuringPassingBranchRejoinThenSelectionCannotModifyReplacement()
+        {
+            PathModel replacement = CreateEditablePath() with { Id = "replacement-path" };
+            using (PathEditor editor = CreateEditor(CreateEditablePath()))
+            {
+                Assert.IsTrue(editor.BeginPassingBranchCommand(0).Success);
+
+                Assert.IsTrue(await editor.InitializePathAsync(replacement, CancellationToken.None).ConfigureAwait(false));
+                PathEditorCommandResult result = editor.CompletePassingBranchCommand(1);
+
+                Assert.IsFalse(result.Success);
+                Assert.AreEqual(PassingBranchAuthoringPhase.Idle, editor.PassingBranchPhase);
+                Assert.AreSame(replacement, editor.TryCaptureCurrentPathModel());
+                Assert.IsFalse(editor.TryCaptureCurrentPathModel().PathNodes.Any(node => node.NextSidingNode >= 0));
+                Assert.IsFalse(editor.HasUnsavedChanges);
+                Assert.IsFalse(editor.CanUndo);
+            }
+        }
+
+        [TestMethod]
+        public void WhenNewPathIsCreatedDuringPassingBranchRejoinThenSelectionIsCleared()
+        {
+            using (PathEditor editor = CreateEditor(CreateEditablePath()))
+            {
+                Assert.IsTrue(editor.BeginPassingBranchCommand(0).Success);
+
+                editor.InitializeNewPath();
+                PathEditorCommandResult result = editor.CompletePassingBranchCommand(1);
+
+                Assert.IsFalse(result.Success);
+                Assert.AreEqual(PassingBranchAuthoringPhase.Idle, editor.PassingBranchPhase);
+                Assert.IsTrue(editor.IsNewPath);
+                Assert.IsFalse(editor.CanUndo);
+            }
+        }
+
+        [TestMethod]
+        public async Task WhenPathIsUnloadedDuringPassingBranchRejoinThenSelectionIsCleared()
+        {
+            using (PathEditor editor = CreateEditor(CreateEditablePath()))
+            {
+                Assert.IsTrue(editor.BeginPassingBranchCommand(0).Success);
+
+                Assert.IsTrue(await editor.InitializePathAsync(null, CancellationToken.None).ConfigureAwait(false));
+                PathEditorCommandResult result = editor.CompletePassingBranchCommand(1);
+
+                Assert.IsFalse(result.Success);
+                Assert.AreEqual(PassingBranchAuthoringPhase.Idle, editor.PassingBranchPhase);
+                Assert.IsNull(editor.TryCaptureCurrentPathModel());
+                Assert.IsFalse(editor.HasUnsavedChanges);
+                Assert.IsFalse(editor.CanUndo);
+            }
+        }
+
+        [TestMethod]
+        public void WhenPassingBranchSourceChangesThenCompletionIsRejected()
+        {
+            PathModel replacement = CreateEditablePath() with { Id = "replacement-snapshot" };
+            using (PathEditor editor = CreateEditor(CreateEditablePath()))
+            {
+                Assert.IsTrue(editor.BeginPassingBranchCommand(0).Success);
+                typeof(PathEditor).GetMethod("RestoreSnapshot", BindingFlags.Instance | BindingFlags.NonPublic)
+                    .Invoke(editor, new object[] { replacement });
+                PathModel restoredReplacement = editor.TryCaptureCurrentPathModel();
+
+                PathEditorCommandResult result = editor.CompletePassingBranchCommand(1);
+
+                Assert.IsFalse(result.Success);
+                Assert.AreEqual(PassingBranchAuthoringPhase.Idle, editor.PassingBranchPhase);
+                Assert.AreSame(restoredReplacement, editor.TryCaptureCurrentPathModel());
+                Assert.IsFalse(editor.TryCaptureCurrentPathModel().PathNodes.Any(node => node.NextSidingNode >= 0));
+            }
+        }
+
+        [TestMethod]
         public void WhenResolvedPassingBranchIsCreatedThenUndoAndRedoRestoreItsLifecycle()
         {
             PathModel source = CreateEditablePath();
