@@ -686,6 +686,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.PathEditing
             TaskCompletionSource<Func<bool>> queuedCommitSource = new(TaskCreationOptions.RunContinuationsAsynchronously);
             TaskCompletionSource<bool> commitCompletion = new(TaskCreationOptions.RunContinuationsAsynchronously);
             UserCommandController<global::FreeTrainSimulator.Toolbox.UserCommand> commandController = new UserCommandController<global::FreeTrainSimulator.Toolbox.UserCommand>();
+
             using (PathEditor editor = new PathEditor(new TestPathEditorContext(TrackWorldTestFixture.CreateSingleVectorNodeTrackWorld()), commandController,
                 action => action(), commit =>
                 {
@@ -949,6 +950,102 @@ namespace Tests.FreeTrainSimulator.Toolbox.PathEditing
         }
 
         [TestMethod]
+        public void WhenPathIsTruncatedBeforePassingBranchRejoinThenBranchAndTailAreRemovedAsOneEdit()
+        {
+            PathModel source = CreateTruncationPassingBranchPath();
+            using (PathEditor editor = CreateEditor(source))
+            {
+                PathEditResult result = editor.RemoveRestOfPath(2);
+
+                Assert.IsTrue(result.Success, result.Message);
+                Assert.IsFalse(editor.TryCaptureCurrentPathModel().PathNodes.Any(node => node.NextSidingNode >= 0));
+                Assert.IsTrue(editor.HasUnsavedChanges);
+                Assert.IsTrue(editor.Undo());
+                Assert.AreSequenceEqual(source.PathNodes, editor.TryCaptureCurrentPathModel().PathNodes);
+                Assert.IsTrue(editor.Redo());
+                Assert.IsFalse(editor.TryCaptureCurrentPathModel().PathNodes.Any(node => node.NextSidingNode >= 0));
+            }
+        }
+
+        [TestMethod]
+        public void WhenPathIsTruncatedAtPassingBranchRejoinThenCompleteBranchIsPreserved()
+        {
+            PathModel source = CreateTruncationPassingBranchPath();
+            using (PathEditor editor = CreateEditor(source))
+            {
+                PathEditResult result = editor.RemoveRestOfPath(3);
+
+                Assert.IsTrue(result.Success, result.Message);
+                PathModel truncated = editor.TryCaptureCurrentPathModel();
+                Assert.IsTrue(PathModelEditor.TryGetPassingBranchNodeRole(truncated, 3, out PassingBranchNodeRole role, out _));
+                Assert.AreEqual(PassingBranchNodeRole.BranchRejoin, role);
+                Assert.IsTrue(editor.Undo());
+                Assert.AreSequenceEqual(source.PathNodes, editor.TryCaptureCurrentPathModel().PathNodes);
+            }
+        }
+
+        [TestMethod]
+        public void WhenPathIsTruncatedAtPassingBranchInteriorThenEditorStateRemainsUnchanged()
+        {
+            PathModel source = CreateTruncationPassingBranchPath();
+            using (PathEditor editor = CreateEditor(source))
+            {
+                editor.SelectAuthoredNode(6);
+                PathModel baseline = editor.TryCaptureCurrentPathModel();
+                bool dirty = editor.HasUnsavedChanges;
+                bool canUndo = editor.CanUndo;
+                bool canRedo = editor.CanRedo;
+
+                PathEditResult result = editor.RemoveRestOfPath(6);
+
+                Assert.IsFalse(result.Success);
+                Assert.IsFalse(editor.CanRemoveRestOfPath(6));
+                Assert.AreSame(baseline, editor.TryCaptureCurrentPathModel());
+                Assert.AreEqual(6, editor.SelectedAuthoredNodeIndex);
+                Assert.AreEqual(dirty, editor.HasUnsavedChanges);
+                Assert.AreEqual(canUndo, editor.CanUndo);
+                Assert.AreEqual(canRedo, editor.CanRedo);
+            }
+        }
+
+        [TestMethod]
+        public void WhenRouteCandidateIsPendingThenPathTruncationIsUnavailableAndRejected()
+        {
+            PathModel source = CreateTruncationPassingBranchPath();
+            using (PathEditor editor = CreateEditor(source))
+            {
+                PathModel baseline = editor.TryCaptureCurrentPathModel();
+                SetPrivateField(editor, "pendingPassingBranchCandidate", new PendingPassingBranchCandidate(baseline, 1, 3,
+                    new ResolvedPathSpan(1, 3, PathRouteSpanStatus.Ambiguous)));
+
+                bool canRemove = editor.CanRemoveRestOfPath(2);
+                PathEditResult result = editor.RemoveRestOfPath(2);
+
+                Assert.IsFalse(canRemove);
+                Assert.IsFalse(result.Success);
+                Assert.AreSame(baseline, editor.TryCaptureCurrentPathModel());
+                Assert.IsTrue(editor.HasPendingPassingBranchCandidate);
+            }
+        }
+
+        [TestMethod]
+        public void WhenTruncationRemapsCutoffThenEditorSelectsTheNewEnd()
+        {
+            PathModel source = CreateNoncanonicalPassingBranchPath();
+            using (PathEditor editor = CreateEditor(source))
+            {
+                PathEditResult result = editor.RemoveRestOfPath(5);
+
+                Assert.IsTrue(result.Success, result.Message);
+                int selectedNodeIndex = editor.SelectedAuthoredNodeIndex;
+                Assert.IsTrue(selectedNodeIndex >= 0);
+                Assert.IsTrue(editor.TryCaptureCurrentPathModel().PathNodes[selectedNodeIndex].NodeType.Includes(PathNodeType.End));
+                Assert.IsTrue(editor.Undo());
+                Assert.AreSequenceEqual(source.PathNodes, editor.TryCaptureCurrentPathModel().PathNodes);
+            }
+        }
+
+        [TestMethod]
         public void WhenBranchedPathMainNodeIsMovedThenNormalMoveRemainsAvailable()
         {
             PathModel source = CreateSupportedPassingBranchPath();
@@ -983,6 +1080,76 @@ namespace Tests.FreeTrainSimulator.Toolbox.PathEditing
 
             Assert.IsFalse(result.Success);
             Assert.AreSame(source, result.PathModel);
+        }
+
+        [TestMethod]
+        [DataRow(0)]
+        [DataRow(2)]
+        public void WhenPassingBranchEndpointIsRemovedAsViaThenEditorStateRemainsUnchanged(int nodeIndex)
+        {
+            PathModel source = CreateSupportedPassingBranchPath();
+            using (PathEditor editor = CreateEditor(source))
+            {
+                editor.SelectAuthoredNode(nodeIndex);
+                PathModel baseline = editor.TryCaptureCurrentPathModel();
+                bool dirty = editor.HasUnsavedChanges;
+                bool canUndo = editor.CanUndo;
+                bool canRedo = editor.CanRedo;
+
+                PathEditResult result = editor.RemoveViaPoint(nodeIndex);
+
+                Assert.IsFalse(result.Success);
+                Assert.IsFalse(editor.CanRemoveViaPoint(nodeIndex));
+                Assert.AreSame(baseline, editor.TryCaptureCurrentPathModel());
+                Assert.AreEqual(nodeIndex, editor.SelectedAuthoredNodeIndex);
+                Assert.AreEqual(dirty, editor.HasUnsavedChanges);
+                Assert.AreEqual(canUndo, editor.CanUndo);
+                Assert.AreEqual(canRedo, editor.CanRedo);
+            }
+        }
+
+        [TestMethod]
+        public void WhenPassingBranchInteriorRemovalPassesValidationThenItIsUndoable()
+        {
+            PathModel source = CreateSupportedPassingBranchPath();
+            using (PathEditor editor = CreateEditor(source))
+            {
+                editor.SelectAuthoredNode(3);
+
+                PathEditResult result = editor.RemoveViaPoint(3);
+
+                Assert.IsTrue(result.Success, result.Message);
+                Assert.IsTrue(editor.HasUnsavedChanges);
+                Assert.IsTrue(editor.CanUndo);
+                Assert.HasCount(3, editor.TryCaptureCurrentPathModel().PathNodes);
+                Assert.IsTrue(editor.Undo());
+                Assert.AreSequenceEqual(source.PathNodes, editor.TryCaptureCurrentPathModel().PathNodes);
+            }
+        }
+
+        [TestMethod]
+        public void WhenPassingBranchInteriorRemovalFailsSaveVerificationThenEditorStateRemainsUnchanged()
+        {
+            TrackWorld trackWorld = TrackWorldTestFixture.CreateSidingTrackWorld();
+            PathModel source = CreateResolvablePassingBranchPath(trackWorld);
+            using (PathEditor editor = CreateEditor(source, trackWorld))
+            {
+                editor.SelectAuthoredNode(3);
+                PathModel baseline = editor.TryCaptureCurrentPathModel();
+                bool dirty = editor.HasUnsavedChanges;
+                bool canUndo = editor.CanUndo;
+                bool canRedo = editor.CanRedo;
+
+                PathEditResult result = editor.RemoveViaPoint(3);
+
+                Assert.IsFalse(result.Success);
+                Assert.IsFalse(editor.CanRemoveViaPoint(3));
+                Assert.AreSame(baseline, editor.TryCaptureCurrentPathModel());
+                Assert.AreEqual(3, editor.SelectedAuthoredNodeIndex);
+                Assert.AreEqual(dirty, editor.HasUnsavedChanges);
+                Assert.AreEqual(canUndo, editor.CanUndo);
+                Assert.AreEqual(canRedo, editor.CanRedo);
+            }
         }
 
         [TestMethod]
@@ -1853,6 +2020,65 @@ namespace Tests.FreeTrainSimulator.Toolbox.PathEditing
                     CreateNodeAt(40, PathNodeType.Via, 2),
                     CreateNodeAt(100, PathNodeType.End, -1),
                     CreateNodeAt(60, PathNodeType.Via, -1) with { NextSidingNode = 2 }),
+            };
+        }
+
+        private static PathModel CreateResolvablePassingBranchPath(TrackWorld trackWorld)
+        {
+            return new PathModel
+            {
+                Id = "resolvable-passing-path",
+                Name = "Resolvable Passing Path",
+                PathNodes = ImmutableArray.Create(
+                    CreateAnchoredNode(trackWorld, 1, PathNodeType.Start, 1, 3),
+                    CreateAnchoredNode(trackWorld, 4, PathNodeType.Via, 2, -1),
+                    CreateAnchoredNode(trackWorld, 2, PathNodeType.End, -1, -1),
+                    CreateAnchoredNode(trackWorld, 5, PathNodeType.Via, -1, 2)),
+            };
+        }
+
+        private static PathModel CreateTruncationPassingBranchPath()
+        {
+            return new PathModel
+            {
+                Id = "truncation-passing-path",
+                Name = "Truncation Passing Path",
+                PathNodes = ImmutableArray.Create(
+                    CreateNodeAt(0, PathNodeType.Start, 1),
+                    CreateNodeAt(20, PathNodeType.Via, 2) with { NextSidingNode = 6 },
+                    CreateNodeAt(40, PathNodeType.Via, 3),
+                    CreateNodeAt(60, PathNodeType.Via, 4),
+                    CreateNodeAt(80, PathNodeType.Via, 5),
+                    CreateNodeAt(100, PathNodeType.End, -1),
+                    CreateNodeAt(50, PathNodeType.Via, -1) with { NextSidingNode = 7 },
+                    CreateNodeAt(70, PathNodeType.Via, -1) with { NextSidingNode = 3 }),
+            };
+        }
+
+        private static PathModel CreateNoncanonicalPassingBranchPath()
+        {
+            return new PathModel
+            {
+                Id = "noncanonical-passing-path",
+                Name = "Noncanonical Passing Path",
+                PathNodes = ImmutableArray.Create(
+                    CreateNodeAt(0, PathNodeType.Start, 3),
+                    CreateNodeAt(100, PathNodeType.End, -1),
+                    CreateNodeAt(50, PathNodeType.Via, -1) with { NextSidingNode = 4 },
+                    CreateNodeAt(20, PathNodeType.Via, 4) with { NextSidingNode = 2 },
+                    CreateNodeAt(60, PathNodeType.Via, 5),
+                    CreateNodeAt(80, PathNodeType.Via, 1)),
+            };
+        }
+
+        private static PathNode CreateAnchoredNode(TrackWorld trackWorld, int trackNodeIndex, PathNodeType nodeType, int nextMainNode, int nextSidingNode)
+        {
+            return new PathNode(trackWorld.TrackDatabase.TrackNodes[trackNodeIndex].Location)
+            {
+                NodeType = nodeType,
+                NodeIndex = trackNodeIndex,
+                NextMainNode = nextMainNode,
+                NextSidingNode = nextSidingNode,
             };
         }
 

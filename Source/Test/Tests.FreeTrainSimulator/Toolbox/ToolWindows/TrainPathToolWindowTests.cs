@@ -52,6 +52,104 @@ namespace Tests.FreeTrainSimulator.Toolbox.ToolWindows
         }
 
         [TestMethod]
+        [DataRow(1)]
+        [DataRow(3)]
+        public void WhenPassingBranchEndpointActionsAreRequestedThenGenericRemovalIsNotOffered(int nodeIndex)
+        {
+            using (PathEditor editor = CreatePathEditor(CreateSupportedPassingBranchPath()))
+            {
+                TrainPathToolWindow trainPathToolWindow = new TrainPathToolWindow(() => editor, () => null, action => action(),
+                    () => { }, () => { }, _ => { }, () => { }, () => { });
+
+                ImmutableArray<MapContextMenuItem> actions = trainPathToolWindow.GetNodeActions(nodeIndex);
+
+                Assert.DoesNotContain(MapContextMenuAction.RemoveViaPoint, actions.Select(item => item.Action));
+            }
+        }
+
+        [TestMethod]
+        public void WhenValidatedPassingBranchInteriorActionsAreRequestedThenGenericRemovalIsOffered()
+        {
+            using (PathEditor editor = CreatePathEditor(CreateSupportedPassingBranchPath()))
+            {
+                TrainPathToolWindow trainPathToolWindow = new TrainPathToolWindow(() => editor, () => null, action => action(),
+                    () => { }, () => { }, _ => { }, () => { }, () => { });
+
+                ImmutableArray<MapContextMenuItem> actions = trainPathToolWindow.GetNodeActions(5);
+
+                Assert.Contains(MapContextMenuAction.RemoveViaPoint, actions.Select(item => item.Action));
+            }
+        }
+
+        [TestMethod]
+        public void WhenSupportedMainRouteCutoffActionsAreRequestedThenTruncationIsOffered()
+        {
+            using (PathEditor editor = CreatePathEditor(CreateSupportedPassingBranchPath()))
+            {
+                TrainPathToolWindow trainPathToolWindow = new TrainPathToolWindow(() => editor, () => null, action => action(),
+                    () => { }, () => { }, _ => { }, () => { }, () => { });
+
+                ImmutableArray<MapContextMenuItem> actions = trainPathToolWindow.GetNodeActions(2);
+
+                Assert.Contains(MapContextMenuAction.RemoveRestOfPath, actions.Select(item => item.Action));
+            }
+        }
+
+        [TestMethod]
+        [DataRow(4)]
+        [DataRow(5)]
+        public void WhenUnsupportedCutoffActionsAreRequestedThenTruncationIsNotOffered(int nodeIndex)
+        {
+            using (PathEditor editor = CreatePathEditor(CreateSupportedPassingBranchPath()))
+            {
+                TrainPathToolWindow trainPathToolWindow = new TrainPathToolWindow(() => editor, () => null, action => action(),
+                    () => { }, () => { }, _ => { }, () => { }, () => { });
+
+                ImmutableArray<MapContextMenuItem> actions = trainPathToolWindow.GetNodeActions(nodeIndex);
+
+                Assert.DoesNotContain(MapContextMenuAction.RemoveRestOfPath, actions.Select(item => item.Action));
+            }
+        }
+
+        [TestMethod]
+        public void WhenRejectedTruncationActionExecutesThenActualWarningIsPublished()
+        {
+            using (PathEditor editor = CreatePathEditor(CreateSupportedPassingBranchPath()))
+            {
+                TrainPathToolWindow trainPathToolWindow = new(() => editor, () => null, action => action(),
+                    () => { }, () => { }, _ => { }, () => { }, () => { })
+                {
+                    Active = true,
+                };
+                PathModel baseline = editor.TryCaptureCurrentPathModel();
+
+                trainPathToolWindow.ExecuteNodeAction(MapContextMenuAction.RemoveRestOfPath, 5);
+                trainPathToolWindow.RefreshSnapshot();
+
+                TrainPathSnapshot snapshot = trainPathToolWindow.CaptureTrainPathSnapshot();
+                Assert.IsTrue(snapshot.CommandResultIsWarning);
+                Assert.AreSame(baseline, editor.TryCaptureCurrentPathModel());
+                Assert.IsFalse(editor.CanUndo);
+            }
+        }
+
+        [TestMethod]
+        public void WhenSupportedTruncationActionExecutesThenOneUndoRestoresBranchAndTail()
+        {
+            PathModel source = CreateSupportedPassingBranchPath();
+            using (PathEditor editor = CreatePathEditor(source))
+            {
+                TrainPathToolWindow trainPathToolWindow = new(() => editor, () => null, action => action(), () => { }, () => { }, _ => { }, () => { }, () => { });
+
+                trainPathToolWindow.ExecuteNodeAction(MapContextMenuAction.RemoveRestOfPath, 2);
+
+                Assert.IsFalse(editor.TryCaptureCurrentPathModel().PathNodes.Any(node => node.NextSidingNode >= 0));
+                Assert.IsTrue(editor.Undo());
+                Assert.AreSequenceEqual(source.PathNodes, editor.TryCaptureCurrentPathModel().PathNodes);
+            }
+        }
+
+        [TestMethod]
         public void WhenSharedNodeActionIsExecutedThenExistingEditorCommandRuns()
         {
             PathModel source = CreatePathModel(PathNodeType.Start, PathNodeType.Via, PathNodeType.End);
@@ -69,16 +167,18 @@ namespace Tests.FreeTrainSimulator.Toolbox.ToolWindows
         public void WhenCapturedNodeActionExecutesThenLaterSelectionDoesNotChangeItsTarget()
         {
             PathModel source = CreatePathModel(PathNodeType.Start, PathNodeType.Via, PathNodeType.Via, PathNodeType.End);
-            using PathEditor editor = CreatePathEditor(source);
-            TrainPathToolWindow trainPathToolWindow = new(() => editor, () => null, action => action(),
-                () => { }, () => { }, _ => { }, () => { }, () => { });
-            MapContextMenuItem captured = new(MapContextMenuAction.SetReversalPoint, 1);
-            editor.SelectAuthoredNode(2);
+            using (PathEditor editor = CreatePathEditor(source))
+            {
+                TrainPathToolWindow trainPathToolWindow = new(() => editor, () => null, action => action(),
+                    () => { }, () => { }, _ => { }, () => { }, () => { });
+                MapContextMenuItem captured = new(MapContextMenuAction.SetReversalPoint, 1);
+                editor.SelectAuthoredNode(2);
 
-            trainPathToolWindow.ExecuteNodeAction(captured.Action, captured.NodeIndex);
+                trainPathToolWindow.ExecuteNodeAction(captured.Action, captured.NodeIndex);
 
-            Assert.IsTrue(editor.TryCaptureCurrentPathModel().PathNodes[1].NodeType.Includes(PathNodeType.Reversal));
-            Assert.IsFalse(editor.TryCaptureCurrentPathModel().PathNodes[2].NodeType.Includes(PathNodeType.Reversal));
+                Assert.IsTrue(editor.TryCaptureCurrentPathModel().PathNodes[1].NodeType.Includes(PathNodeType.Reversal));
+                Assert.IsFalse(editor.TryCaptureCurrentPathModel().PathNodes[2].NodeType.Includes(PathNodeType.Reversal));
+            }
         }
 
         [TestMethod]
@@ -135,6 +235,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.ToolWindows
                 End = "Terminal",
                 PlayerPath = true,
             };
+
             using (PathEditor editor = CreatePathEditor(source))
             {
                 TrainPathToolWindow trainPathToolWindow = new TrainPathToolWindow(() => editor, () => null, action => action(), () => { }, () => { }, _ => { }, () => { }, () => { })
@@ -198,8 +299,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.ToolWindows
         [TestMethod]
         public void WhenCurrentPathIsNotSavedThenBuildPathRowsAddsVirtualCurrentPathFirst()
         {
-            ImmutableArray<PathModelHeader> savedPaths = ImmutableArray.Create(
-                new PathModelHeader { Id = "saved", Name = "Saved Path", ValidationState = PathValidationState.Valid });
+            ImmutableArray<PathModelHeader> savedPaths = ImmutableArray.Create(new PathModelHeader { Id = "saved", Name = "Saved Path", ValidationState = PathValidationState.Valid });
             PathModel currentPath = new PathModel
             {
                 Id = "<New Path>",
@@ -218,8 +318,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.ToolWindows
         [TestMethod]
         public void WhenCurrentPathIsSavedThenBuildPathRowsDoesNotDuplicateIt()
         {
-            ImmutableArray<PathModelHeader> savedPaths = ImmutableArray.Create(
-                new PathModelHeader { Id = "path-1", Name = "Saved Path", ValidationState = PathValidationState.Valid });
+            ImmutableArray<PathModelHeader> savedPaths = ImmutableArray.Create(new PathModelHeader { Id = "path-1", Name = "Saved Path", ValidationState = PathValidationState.Valid });
             PathModel currentPath = new PathModel
             {
                 Id = "path-1",
@@ -236,8 +335,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.ToolWindows
         [TestMethod]
         public void WhenCurrentPathOverridesSavedPathThenBuildPathRowsUsesCurrentValidationState()
         {
-            ImmutableArray<PathModelHeader> savedPaths = ImmutableArray.Create(
-                new PathModelHeader { Id = "path-1", Name = "Saved Path", ValidationState = PathValidationState.Invalid });
+            ImmutableArray<PathModelHeader> savedPaths = ImmutableArray.Create(new PathModelHeader { Id = "path-1", Name = "Saved Path", ValidationState = PathValidationState.Invalid });
             PathModel currentPath = new PathModel
             {
                 Id = "path-1",
@@ -254,8 +352,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.ToolWindows
         [TestMethod]
         public void WhenTransientPathExistsThenBuildPathRowsIncludesItBeforeSavedPaths()
         {
-            ImmutableArray<PathModelHeader> savedPaths = ImmutableArray.Create(
-                new PathModelHeader { Id = "saved", Name = "Saved Path", ValidationState = PathValidationState.Valid });
+            ImmutableArray<PathModelHeader> savedPaths = ImmutableArray.Create(new PathModelHeader { Id = "saved", Name = "Saved Path", ValidationState = PathValidationState.Valid });
             ImmutableArray<PathModel> transientPaths = ImmutableArray.Create(new PathModel
             {
                 Id = "edited",
@@ -308,8 +405,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.ToolWindows
         [TestMethod]
         public void WhenTransientPathMatchesSavedPathThenBuildPathRowsDoesNotDuplicateIt()
         {
-            ImmutableArray<PathModelHeader> savedPaths = ImmutableArray.Create(
-                new PathModelHeader { Id = "path-1", Name = "Saved Path", ValidationState = PathValidationState.Valid });
+            ImmutableArray<PathModelHeader> savedPaths = ImmutableArray.Create(new PathModelHeader { Id = "path-1", Name = "Saved Path", ValidationState = PathValidationState.Valid });
             ImmutableArray<PathModel> transientPaths = ImmutableArray.Create(new PathModel
             {
                 Id = "path-1",
@@ -327,8 +423,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.ToolWindows
         [TestMethod]
         public void WhenPathIsTransientThenBuildPathRowsMarksItAsUnsaved()
         {
-            ImmutableArray<PathModelHeader> savedPaths = ImmutableArray.Create(
-                new PathModelHeader { Id = "path-1", Name = "Saved Path", ValidationState = PathValidationState.Valid });
+            ImmutableArray<PathModelHeader> savedPaths = ImmutableArray.Create(new PathModelHeader { Id = "path-1", Name = "Saved Path", ValidationState = PathValidationState.Valid });
             ImmutableArray<PathModel> transientPaths = ImmutableArray.Create(new PathModel { Id = "path-1", Name = "Saved Path" });
 
             ImmutableArray<TrainPathListRow> rows = TrainPathToolWindow.BuildPathRows(savedPaths, transientPaths, null, false);
@@ -339,8 +434,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.ToolWindows
         [TestMethod]
         public void WhenPathIsSavedAndUnchangedThenBuildPathRowsDoesNotMarkItAsUnsaved()
         {
-            ImmutableArray<PathModelHeader> savedPaths = ImmutableArray.Create(
-                new PathModelHeader { Id = "path-1", Name = "Saved Path", ValidationState = PathValidationState.Valid });
+            ImmutableArray<PathModelHeader> savedPaths = ImmutableArray.Create(new PathModelHeader { Id = "path-1", Name = "Saved Path", ValidationState = PathValidationState.Valid });
 
             ImmutableArray<TrainPathListRow> rows = TrainPathToolWindow.BuildPathRows(savedPaths, ImmutableArray<PathModel>.Empty, null, false);
 
@@ -414,36 +508,40 @@ namespace Tests.FreeTrainSimulator.Toolbox.ToolWindows
         [TestMethod]
         public void WhenNewPathIsActiveThenCancelNewPathUnloadsIt()
         {
-            using PathEditor editor = new(new TestPathEditorContext(CreateInitializedTrackWorld()));
-            editor.InitializeNewPath();
-            int unloadActions = 0;
-            TrainPathToolWindow trainPathToolWindow = new(() => editor, () => null, action => action(), () => { }, () => { }, _ => { }, () => unloadActions++, () => { })
+            using (PathEditor editor = new(new TestPathEditorContext(CreateInitializedTrackWorld())))
             {
-                Active = true,
-            };
+                editor.InitializeNewPath();
+                int unloadActions = 0;
+                TrainPathToolWindow trainPathToolWindow = new(() => editor, () => null, action => action(), () => { }, () => { }, _ => { }, () => unloadActions++, () => { })
+                {
+                    Active = true,
+                };
 
-            trainPathToolWindow.CancelNewPath();
-            trainPathToolWindow.RefreshSnapshot();
+                trainPathToolWindow.CancelNewPath();
+                trainPathToolWindow.RefreshSnapshot();
 
-            Assert.AreEqual(1, unloadActions);
-            Assert.AreEqual("New path canceled.", trainPathToolWindow.CaptureTrainPathSnapshot().CommandResultMessage);
+                Assert.AreEqual(1, unloadActions);
+                Assert.AreEqual("New path canceled.", trainPathToolWindow.CaptureTrainPathSnapshot().CommandResultMessage);
+            }
         }
 
         [TestMethod]
         public void WhenSavedPathIsActiveThenCancelNewPathDoesNotUnloadIt()
         {
-            using PathEditor editor = new(new TestPathEditorContext(CreateInitializedTrackWorld()));
-            int unloadActions = 0;
-            TrainPathToolWindow trainPathToolWindow = new(() => editor, () => null, action => action(), () => { }, () => { }, _ => { }, () => unloadActions++, () => { })
+            using (PathEditor editor = new(new TestPathEditorContext(CreateInitializedTrackWorld())))
             {
-                Active = true,
-            };
+                int unloadActions = 0;
+                TrainPathToolWindow trainPathToolWindow = new(() => editor, () => null, action => action(), () => { }, () => { }, _ => { }, () => unloadActions++, () => { })
+                {
+                    Active = true,
+                };
 
-            trainPathToolWindow.CancelNewPath();
-            trainPathToolWindow.RefreshSnapshot();
+                trainPathToolWindow.CancelNewPath();
+                trainPathToolWindow.RefreshSnapshot();
 
-            Assert.AreEqual(0, unloadActions);
-            Assert.AreEqual("No unsaved new path is active.", trainPathToolWindow.CaptureTrainPathSnapshot().CommandResultMessage);
+                Assert.AreEqual(0, unloadActions);
+                Assert.AreEqual("No unsaved new path is active.", trainPathToolWindow.CaptureTrainPathSnapshot().CommandResultMessage);
+            }
         }
 
         [TestMethod]
@@ -463,17 +561,19 @@ namespace Tests.FreeTrainSimulator.Toolbox.ToolWindows
         public void WhenSelectPathIsTransientThenUnsavedModelIsLoaded()
         {
             PathModel source = CreatePathModel(PathNodeType.Start, PathNodeType.End) with { Id = "edited", Name = "Edited Path" };
-            using PathEditor editor = CreatePathEditor(source);
-            _ = editor.SetMetadataCommand("Unsaved Name", source.Start, source.End, source.PlayerPath);
-            PathModelHeader loadedPath = null;
-            TrainPathToolWindow trainPathToolWindow = new(() => editor, () => null, action => action(), () => { }, () => { }, path => loadedPath = path, () => { }, () => { });
-            trainPathToolWindow.UpdatePaths(ImmutableArray.Create(new PathModelHeader { Id = "saved", Name = "Saved Path" }));
+            using (PathEditor editor = CreatePathEditor(source))
+            {
+                _ = editor.SetMetadataCommand("Unsaved Name", source.Start, source.End, source.PlayerPath);
+                PathModelHeader loadedPath = null;
+                TrainPathToolWindow trainPathToolWindow = new(() => editor, () => null, action => action(), () => { }, () => { }, path => loadedPath = path, () => { }, () => { });
+                trainPathToolWindow.UpdatePaths(ImmutableArray.Create(new PathModelHeader { Id = "saved", Name = "Saved Path" }));
 
-            trainPathToolWindow.SelectPath("saved");
-            trainPathToolWindow.SelectPath("edited");
+                trainPathToolWindow.SelectPath("saved");
+                trainPathToolWindow.SelectPath("edited");
 
-            Assert.AreEqual("edited", loadedPath.Id);
-            Assert.AreEqual("Unsaved Name", loadedPath.Name);
+                Assert.AreEqual("edited", loadedPath.Id);
+                Assert.AreEqual("Unsaved Name", loadedPath.Name);
+            }
         }
 
         [TestMethod]
@@ -496,35 +596,39 @@ namespace Tests.FreeTrainSimulator.Toolbox.ToolWindows
         [TestMethod]
         public void WhenEditorCommandSucceedsThenSnapshotPublishesActualResult()
         {
-            using PathEditor editor = new(new TestPathEditorContext(CreateInitializedTrackWorld()));
-            editor.InitializeNewPath();
-            TrainPathToolWindow trainPathToolWindow = new(() => editor, () => null, action => action(), () => { }, () => { }, _ => { }, () => { }, () => { })
+            using (PathEditor editor = new(new TestPathEditorContext(CreateInitializedTrackWorld())))
             {
-                Active = true,
-            };
+                editor.InitializeNewPath();
+                TrainPathToolWindow trainPathToolWindow = new(() => editor, () => null, action => action(), () => { }, () => { }, _ => { }, () => { }, () => { })
+                {
+                    Active = true,
+                };
 
-            trainPathToolWindow.BeginStartAnchorPlacement();
-            trainPathToolWindow.RefreshSnapshot();
+                trainPathToolWindow.BeginStartAnchorPlacement();
+                trainPathToolWindow.RefreshSnapshot();
 
-            Assert.AreEqual("Select a valid track location for the start anchor.", trainPathToolWindow.CaptureTrainPathSnapshot().CommandResultMessage);
+                Assert.AreEqual("Select a valid track location for the start anchor.", trainPathToolWindow.CaptureTrainPathSnapshot().CommandResultMessage);
+            }
         }
 
         [TestMethod]
         public void WhenEditorCommandFailsThenSnapshotPublishesActualWarning()
         {
-            using PathEditor editor = new(new TestPathEditorContext(CreateInitializedTrackWorld()));
-            editor.InitializeNewPath();
-            TrainPathToolWindow trainPathToolWindow = new(() => editor, () => null, action => action(), () => { }, () => { }, _ => { }, () => { }, () => { })
+            using (PathEditor editor = new(new TestPathEditorContext(CreateInitializedTrackWorld())))
             {
-                Active = true,
-            };
+                editor.InitializeNewPath();
+                TrainPathToolWindow trainPathToolWindow = new(() => editor, () => null, action => action(), () => { }, () => { }, _ => { }, () => { }, () => { })
+                {
+                    Active = true,
+                };
 
-            trainPathToolWindow.BeginEndAnchorPlacement();
-            trainPathToolWindow.RefreshSnapshot();
+                trainPathToolWindow.BeginEndAnchorPlacement();
+                trainPathToolWindow.RefreshSnapshot();
 
-            TrainPathSnapshot snapshot = trainPathToolWindow.CaptureTrainPathSnapshot();
-            Assert.AreEqual("Set a start anchor before placing the end anchor.", snapshot.CommandResultMessage);
-            Assert.IsTrue(snapshot.CommandResultIsWarning);
+                TrainPathSnapshot snapshot = trainPathToolWindow.CaptureTrainPathSnapshot();
+                Assert.AreEqual("Set a start anchor before placing the end anchor.", snapshot.CommandResultMessage);
+                Assert.IsTrue(snapshot.CommandResultIsWarning);
+            }
         }
 
         [TestMethod]
@@ -556,11 +660,13 @@ namespace Tests.FreeTrainSimulator.Toolbox.ToolWindows
         {
             int invocations = 0;
             int saveActions = 0;
-            using PathEditor editor = CreatePathEditor(CreatePathModel(PathNodeType.Start, PathNodeType.End));
-            TrainPathToolWindow trainPathToolWindow = new TrainPathToolWindow(() => editor, () => null,
-                action => { invocations++; action(); }, () => { }, () => saveActions++, _ => { }, () => { }, () => { });
+            using (PathEditor editor = CreatePathEditor(CreatePathModel(PathNodeType.Start, PathNodeType.End)))
+            {
+                TrainPathToolWindow trainPathToolWindow = new TrainPathToolWindow(() => editor, () => null,
+                    action => { invocations++; action(); }, () => { }, () => saveActions++, _ => { }, () => { }, () => { });
 
-            trainPathToolWindow.SavePath();
+                trainPathToolWindow.SavePath();
+            }
 
             Assert.AreEqual(1, invocations);
             Assert.AreEqual(1, saveActions);
@@ -571,49 +677,53 @@ namespace Tests.FreeTrainSimulator.Toolbox.ToolWindows
         {
             int saveActions = 0;
             PathModel invalidPath = CreatePathModel(PathNodeType.Start | PathNodeType.Junction, PathNodeType.Via, PathNodeType.End);
-            using PathEditor editor = CreatePathEditor(invalidPath);
-            _ = editor.SetWaitPointCommand(1, 10);
-            _ = editor.Undo();
-            typeof(PathEditor).GetField("unsavedChanges", BindingFlags.Instance | BindingFlags.NonPublic).SetValue(editor, false);
-            PathModel committedModel = editor.TryCaptureCurrentPathModel();
-            bool canUndo = editor.CanUndo;
-            bool canRedo = editor.CanRedo;
-            TrainPathToolWindow trainPathToolWindow = new TrainPathToolWindow(() => editor, () => null,
-                action => action(), () => { }, () => saveActions++, _ => { }, () => { }, () => { })
+            using (PathEditor editor = CreatePathEditor(invalidPath))
             {
-                Active = true,
-            };
+                _ = editor.SetWaitPointCommand(1, 10);
+                _ = editor.Undo();
+                typeof(PathEditor).GetField("unsavedChanges", BindingFlags.Instance | BindingFlags.NonPublic).SetValue(editor, false);
+                PathModel committedModel = editor.TryCaptureCurrentPathModel();
+                bool canUndo = editor.CanUndo;
+                bool canRedo = editor.CanRedo;
+                TrainPathToolWindow trainPathToolWindow = new TrainPathToolWindow(() => editor, () => null,
+                    action => action(), () => { }, () => saveActions++, _ => { }, () => { }, () => { })
+                {
+                    Active = true,
+                };
 
-            trainPathToolWindow.SavePath();
-            trainPathToolWindow.RefreshSnapshot();
+                trainPathToolWindow.SavePath();
+                trainPathToolWindow.RefreshSnapshot();
 
-            TrainPathSnapshot snapshot = trainPathToolWindow.CaptureTrainPathSnapshot();
-            Assert.AreEqual(0, saveActions);
-            Assert.IsFalse(string.IsNullOrWhiteSpace(snapshot.BlockedSaveMessage));
-            Assert.AreEqual(PathRouteDiagnosticCode.NoJunctionNode, snapshot.BlockedSaveDiagnostic?.Code);
-            Assert.AreSame(committedModel, editor.TryCaptureCurrentPathModel());
-            Assert.IsFalse(editor.HasUnsavedChanges);
-            Assert.AreEqual(canUndo, editor.CanUndo);
-            Assert.AreEqual(canRedo, editor.CanRedo);
+                TrainPathSnapshot snapshot = trainPathToolWindow.CaptureTrainPathSnapshot();
+                Assert.AreEqual(0, saveActions);
+                Assert.IsFalse(string.IsNullOrWhiteSpace(snapshot.BlockedSaveMessage));
+                Assert.AreEqual(PathRouteDiagnosticCode.NoJunctionNode, snapshot.BlockedSaveDiagnostic?.Code);
+                Assert.AreSame(committedModel, editor.TryCaptureCurrentPathModel());
+                Assert.IsFalse(editor.HasUnsavedChanges);
+                Assert.AreEqual(canUndo, editor.CanUndo);
+                Assert.AreEqual(canRedo, editor.CanRedo);
+            }
         }
 
         [TestMethod]
         public void WhenPostDialogSaveIsBlockedThenFeedbackIsPublishedForTheCurrentEditorModel()
         {
             PathModel invalidPath = CreatePathModel(PathNodeType.Start | PathNodeType.Junction, PathNodeType.Via, PathNodeType.End);
-            using PathEditor editor = CreatePathEditor(invalidPath);
-            PathModel saveModel = new PathModel(invalidPath) { Name = "Updated Path Name" };
-            PathPersistenceValidationResult validation = PathPersistenceValidationPolicy.ValidateForPersistence(saveModel, CreateInitializedTrackWorld());
-            TrainPathToolWindow trainPathToolWindow = new TrainPathToolWindow(() => editor, () => null,
-                action => action(), () => { }, () => { }, _ => { }, () => { }, () => { })
+            using (PathEditor editor = CreatePathEditor(invalidPath))
             {
+                PathModel saveModel = new PathModel(invalidPath) { Name = "Updated Path Name" };
+                PathPersistenceValidationResult validation = PathPersistenceValidationPolicy.ValidateForPersistence(saveModel, CreateInitializedTrackWorld());
+                TrainPathToolWindow trainPathToolWindow = new TrainPathToolWindow(() => editor, () => null,
+                    action => action(), () => { }, () => { }, _ => { }, () => { }, () => { })
+                {
                 Active = true,
             };
 
             trainPathToolWindow.ReportBlockedSave(validation, editor.TryCaptureCurrentPathModel());
             trainPathToolWindow.RefreshSnapshot();
 
-            Assert.IsFalse(string.IsNullOrWhiteSpace(trainPathToolWindow.CaptureTrainPathSnapshot().BlockedSaveMessage));
+                Assert.IsFalse(string.IsNullOrWhiteSpace(trainPathToolWindow.CaptureTrainPathSnapshot().BlockedSaveMessage));
+            }
         }
 
         [TestMethod]
@@ -722,48 +832,52 @@ namespace Tests.FreeTrainSimulator.Toolbox.ToolWindows
         {
             PathModel authoredPath = CreatePathModel(PathNodeType.Start, PathNodeType.End);
             PathModel previewPath = CreatePathModel(PathNodeType.Start, PathNodeType.Via, PathNodeType.End);
-            using PathEditor editor = new PathEditor(new TestPathEditorContext(CreateInitializedTrackWorld()));
-            editor.InitializeNewPath();
-            typeof(PathEditor).GetMethod("RestoreSnapshot", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(editor, new object[] { authoredPath });
-            typeof(PathEditor).GetMethod("SetPreviewPath", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(editor, new object[] { previewPath });
-            TrainPathToolWindow trainPathToolWindow = new TrainPathToolWindow(() => editor, () => null, action => action(), () => { }, () => { }, _ => { }, () => { }, () => { })
+            using (PathEditor editor = new PathEditor(new TestPathEditorContext(CreateInitializedTrackWorld())))
             {
+                editor.InitializeNewPath();
+                typeof(PathEditor).GetMethod("RestoreSnapshot", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(editor, new object[] { authoredPath });
+                typeof(PathEditor).GetMethod("SetPreviewPath", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(editor, new object[] { previewPath });
+                TrainPathToolWindow trainPathToolWindow = new TrainPathToolWindow(() => editor, () => null, action => action(), () => { }, () => { }, _ => { }, () => { }, () => { })
+                {
                 Active = true,
             };
 
             trainPathToolWindow.RefreshSnapshot();
 
-            TrainPathSnapshot snapshot = trainPathToolWindow.CaptureTrainPathSnapshot();
-            Assert.HasCount(authoredPath.PathNodes.Length, snapshot.Nodes);
-            Assert.AreEqual(authoredPath.PathNodes.Length.ToString(System.Globalization.CultureInfo.InvariantCulture), snapshot.Metadata.Single(row => row.Name == "Node Count").Value);
+                TrainPathSnapshot snapshot = trainPathToolWindow.CaptureTrainPathSnapshot();
+                Assert.HasCount(authoredPath.PathNodes.Length, snapshot.Nodes);
+                Assert.AreEqual(authoredPath.PathNodes.Length.ToString(System.Globalization.CultureInfo.InvariantCulture), snapshot.Metadata.Single(row => row.Name == "Node Count").Value);
+            }
         }
 
         [TestMethod]
         public void WhenFatalPathIsLoadedThenSnapshotShowsRepairModeRawNodesAndDiagnostics()
         {
             PathModel fatalPath = CreatePathModel(PathNodeType.Start);
-            using PathEditor editor = CreatePathEditor(fatalPath);
-            TrainPathToolWindow trainPathToolWindow = new TrainPathToolWindow(() => editor, () => null, action => action(), () => { }, () => { }, _ => { }, () => { }, () => { })
+            using (PathEditor editor = CreatePathEditor(fatalPath))
             {
-                Active = true,
-            };
+                TrainPathToolWindow trainPathToolWindow = new TrainPathToolWindow(() => editor, () => null, action => action(), () => { }, () => { }, _ => { }, () => { }, () => { })
+                {
+                    Active = true,
+                };
 
-            trainPathToolWindow.HighlightNode(0);
-            trainPathToolWindow.RefreshSnapshot();
+                trainPathToolWindow.HighlightNode(0);
+                trainPathToolWindow.RefreshSnapshot();
 
-            TrainPathSnapshot snapshot = trainPathToolWindow.CaptureTrainPathSnapshot();
-            Assert.IsTrue(snapshot.IsRepairMode);
-            Assert.HasCount(1, snapshot.Nodes);
-            Assert.AreEqual(0, snapshot.SelectedNodeIndex);
-            Assert.IsTrue(snapshot.CanMoveSelectedNode);
-            Assert.AreEqual(fatalPath.PathNodes[0].NodeIndex, snapshot.Nodes[0].TrackNodeIndex);
-            Assert.IsFalse(snapshot.Diagnostics.IsEmpty);
-            Assert.IsTrue(snapshot.RouteCandidates.IsEmpty);
-            Assert.AreEqual("Repair", snapshot.Metadata.Single(row => row.Name == "Editor Mode").Value);
-            Assert.AreEqual("Not constructed", snapshot.Metadata.Single(row => row.Name == "Runtime Route").Value);
+                TrainPathSnapshot snapshot = trainPathToolWindow.CaptureTrainPathSnapshot();
+                Assert.IsTrue(snapshot.IsRepairMode);
+                Assert.HasCount(1, snapshot.Nodes);
+                Assert.AreEqual(0, snapshot.SelectedNodeIndex);
+                Assert.IsTrue(snapshot.CanMoveSelectedNode);
+                Assert.AreEqual(fatalPath.PathNodes[0].NodeIndex, snapshot.Nodes[0].TrackNodeIndex);
+                Assert.IsFalse(snapshot.Diagnostics.IsEmpty);
+                Assert.IsTrue(snapshot.RouteCandidates.IsEmpty);
+                Assert.AreEqual("Repair", snapshot.Metadata.Single(row => row.Name == "Editor Mode").Value);
+                Assert.AreEqual("Not constructed", snapshot.Metadata.Single(row => row.Name == "Runtime Route").Value);
 
-            trainPathToolWindow.RefreshSnapshot();
-            Assert.AreEqual(0, trainPathToolWindow.CaptureTrainPathSnapshot().SelectedNodeIndex);
+                trainPathToolWindow.RefreshSnapshot();
+                Assert.AreEqual(0, trainPathToolWindow.CaptureTrainPathSnapshot().SelectedNodeIndex);
+            }
         }
 
         [TestMethod]
@@ -864,6 +978,34 @@ namespace Tests.FreeTrainSimulator.Toolbox.ToolWindows
                 Id = "test-path",
                 Name = "Test Path",
                 PathNodes = nodes.ToImmutable(),
+            };
+        }
+
+        private static PathModel CreateSupportedPassingBranchPath()
+        {
+            return new PathModel
+            {
+                Id = "passing-path",
+                Name = "Passing Path",
+                PathNodes = ImmutableArray.Create(
+                    CreatePathNode(0, PathNodeType.Start, 1, -1),
+                    CreatePathNode(20, PathNodeType.Via, 2, 5),
+                    CreatePathNode(40, PathNodeType.Via, 3, -1),
+                    CreatePathNode(60, PathNodeType.Via, 4, -1),
+                    CreatePathNode(100, PathNodeType.End, -1, -1),
+                    CreatePathNode(50, PathNodeType.Via, -1, 6),
+                    CreatePathNode(70, PathNodeType.Via, -1, 3)),
+            };
+        }
+
+        private static PathNode CreatePathNode(float x, PathNodeType nodeType, int nextMainNode, int nextSidingNode)
+        {
+            return new PathNode(new WorldLocation(new Tile(0, 0), new Vector3(x, 0, 0)))
+            {
+                NodeType = nodeType,
+                NodeIndex = 1,
+                NextMainNode = nextMainNode,
+                NextSidingNode = nextSidingNode,
             };
         }
 

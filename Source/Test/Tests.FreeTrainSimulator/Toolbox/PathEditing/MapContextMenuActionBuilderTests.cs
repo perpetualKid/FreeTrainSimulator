@@ -22,7 +22,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.PathEditing
             ImmutableArray<MapContextMenuItem> items = BuildForNode(
                 new TestPathPoint(PathNodeType.Via), 2, true, new MapContextMenuState { IsPlacementActive = true });
 
-            Assert.AreEqual(1, items.Length);
+            Assert.HasCount(1, items);
             Assert.AreEqual(MapContextMenuAction.CancelPlacement, items[0].Action);
         }
 
@@ -78,7 +78,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.PathEditing
             ImmutableArray<MapContextMenuItem> items = BuildForMap(
                 new MapContextMenuState { IsPlacementActive = true, CanContinuePath = true, CanUndo = true });
 
-            Assert.AreEqual(1, items.Length);
+            Assert.HasCount(1, items);
             Assert.AreEqual(MapContextMenuAction.CancelPlacement, items[0].Action);
         }
 
@@ -154,7 +154,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.PathEditing
             ImmutableArray<MapContextMenuItem> items = BuildForSpan(0, PlacementAnchor(),
                 ImmutableArray<ResolvedRouteCandidate>.Empty, new MapContextMenuState { IsPlacementActive = true });
 
-            Assert.AreEqual(1, items.Length);
+            Assert.HasCount(1, items);
             Assert.AreEqual(MapContextMenuAction.CancelPlacement, items[0].Action);
         }
 
@@ -329,12 +329,20 @@ namespace Tests.FreeTrainSimulator.Toolbox.PathEditing
         public void WhenSpanIsUnambiguousThenOnlySpanEditsAreOffered()
         {
             PathNode placementAnchor = PlacementAnchor();
-            ImmutableArray<MapContextMenuItem> items = BuildForSpan(2, placementAnchor, ImmutableArray<ResolvedRouteCandidate>.Empty, default);
+            ImmutableArray<MapContextMenuItem> items = BuildForSpan(2, placementAnchor, ImmutableArray<ResolvedRouteCandidate>.Empty, new MapContextMenuState { CanRemoveRestOfPath = true });
 
             Assert.Contains(MapContextMenuAction.AddViaPoint, Actions(items));
             Assert.Contains(MapContextMenuAction.RemoveRestOfPath, Actions(items));
             Assert.DoesNotContain(MapContextMenuAction.SelectRouteCandidate, Actions(items));
             Assert.AreSame(placementAnchor, items.Single(item => item.Action == MapContextMenuAction.AddViaPoint).PlacementAnchor);
+        }
+
+        [TestMethod]
+        public void WhenSpanCannotTruncatePathThenRemoveRestOfPathIsNotOffered()
+        {
+            ImmutableArray<MapContextMenuItem> items = BuildForSpan(2, PlacementAnchor(), ImmutableArray<ResolvedRouteCandidate>.Empty, default);
+
+            Assert.DoesNotContain(MapContextMenuAction.RemoveRestOfPath, Actions(items));
         }
 
         [TestMethod]
@@ -347,7 +355,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.PathEditing
             ImmutableArray<MapContextMenuItem> items = BuildForSpan(1, PlacementAnchor(), candidates, default);
 
             MapContextMenuItem[] candidateItems = items.Where(item => item.Action == MapContextMenuAction.SelectRouteCandidate).ToArray();
-            Assert.AreEqual(2, candidateItems.Length);
+            Assert.HasCount(2, candidateItems);
             Assert.AreEqual(0, candidateItems[0].CandidateIndex);
             Assert.AreEqual(1, candidateItems[1].CandidateIndex);
             Assert.AreEqual(1, candidateItems[0].NodeIndex);

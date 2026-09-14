@@ -149,6 +149,7 @@ namespace FreeTrainSimulator.Toolbox
             }
             else if (editor.TryGetPathSpanAt(location, tolerance, out int fromNodeIndex, out PathNode placementAnchor))
             {
+                state = state with { CanRemoveRestOfPath = editor.CanRemoveRestOfPath(fromNodeIndex) };
                 items = MapContextMenuActionBuilder.BuildForSpan(fromNodeIndex, placementAnchor, editor.GetSpanCandidates(fromNodeIndex),
                     contextJunction?.NodeIndex ?? -1, state);
             }
@@ -231,6 +232,10 @@ namespace FreeTrainSimulator.Toolbox
 
         private void RemoveSelectedViaPoint(UserCommandArgs userCommandArgs)
         {
+            PathEditor editor = pathEditor;
+            if (editor == null || !editor.CanRemoveViaPoint(editor.SelectedAuthoredNodeIndex))
+                return;
+
             ExecutePathEditorKeyboardAction(userCommandArgs, toolWindow => toolWindow.RemoveSelectedViaPoint());
         }
 

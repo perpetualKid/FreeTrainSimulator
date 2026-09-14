@@ -300,6 +300,154 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
         }
 
         [TestMethod]
+        [DataRow(0, 1)]
+        [DataRow(1, 2)]
+        [DataRow(2, 3)]
+        public void WhenBranchedPathIsTruncatedBeforeRejoinThenBranchAndTailAreRemoved(int nodeIndex, int expectedNodeCount)
+        {
+            PathModel path = CreateTruncationPassingBranchPath();
+
+            PathEditResult result = PathModelEditor.RemoveRestOfPath(path, nodeIndex);
+
+            Assert.IsTrue(result.Success);
+            Assert.HasCount(expectedNodeCount, result.PathModel.PathNodes);
+            Assert.IsFalse(result.PathModel.PathNodes.Any(node => node.NextSidingNode >= 0));
+            Assert.IsTrue(result.PathModel.PathNodes[nodeIndex].NodeType.Includes(PathNodeType.End));
+        }
+
+        [TestMethod]
+        public void WhenBranchedPathIsTruncatedAtRejoinThenCompleteBranchIsPreservedAndRemapped()
+        {
+            PathModel path = CreateTruncationPassingBranchPath();
+
+            PathEditResult result = PathModelEditor.RemoveRestOfPath(path, 3);
+
+            Assert.IsTrue(result.Success);
+            Assert.HasCount(6, result.PathModel.PathNodes);
+            Assert.AreEqual(4, result.PathModel.PathNodes[1].NextSidingNode);
+            Assert.AreEqual(5, result.PathModel.PathNodes[4].NextSidingNode);
+            Assert.AreEqual(3, result.PathModel.PathNodes[5].NextSidingNode);
+            Assert.IsTrue(result.PathModel.PathNodes[3].NodeType.Includes(PathNodeType.End));
+            Assert.IsTrue(PathModelEditor.TryGetPassingBranchNodeRole(result.PathModel, 3, out PassingBranchNodeRole role, out _));
+            Assert.AreEqual(PassingBranchNodeRole.BranchRejoin, role);
+        }
+
+        [TestMethod]
+        public void WhenBranchedPathIsTruncatedAfterRejoinThenCompleteBranchIsPreservedAndRemapped()
+        {
+            PathModel path = CreateTruncationPassingBranchPath();
+
+            PathEditResult result = PathModelEditor.RemoveRestOfPath(path, 4);
+
+            Assert.IsTrue(result.Success);
+            Assert.HasCount(7, result.PathModel.PathNodes);
+            Assert.AreEqual(5, result.PathModel.PathNodes[1].NextSidingNode);
+            Assert.AreEqual(6, result.PathModel.PathNodes[5].NextSidingNode);
+            Assert.AreEqual(3, result.PathModel.PathNodes[6].NextSidingNode);
+            Assert.IsTrue(result.PathModel.PathNodes[4].NodeType.Includes(PathNodeType.End));
+            Assert.IsTrue(PathModelEditor.TryGetPassingBranchNodeRole(result.PathModel, 4, out PassingBranchNodeRole role, out _));
+            Assert.AreEqual(PassingBranchNodeRole.MainRoute, role);
+        }
+
+        [TestMethod]
+        [DataRow(6)]
+        [DataRow(7)]
+        public void WhenBranchedPathIsTruncatedAtBranchInteriorThenEditFails(int nodeIndex)
+        {
+            PathModel path = CreateTruncationPassingBranchPath();
+
+            PathEditResult result = PathModelEditor.RemoveRestOfPath(path, nodeIndex);
+
+            Assert.IsFalse(result.Success);
+            Assert.AreSame(path, result.PathModel);
+        }
+
+        [TestMethod]
+        public void WhenLinearPathStorageOrderDiffersThenTruncationFollowsMainRoute()
+        {
+            PathModel path = CreatePath(
+                Node(PathNodeType.Start, 2),
+                Node(PathNodeType.End, -1),
+                Node(PathNodeType.Via, 1));
+
+            PathEditResult result = PathModelEditor.RemoveRestOfPath(path, 2);
+
+            Assert.IsTrue(result.Success);
+            Assert.HasCount(2, result.PathModel.PathNodes);
+            Assert.AreEqual(1, result.ChangedNodeIndexes.Single());
+            Assert.IsTrue(result.PathModel.PathNodes[1].NodeType.Includes(PathNodeType.End));
+        }
+
+        [TestMethod]
+        public void WhenDisconnectedNodeIsSelectedForTruncationThenEditFails()
+        {
+            PathModel path = CreatePath(
+                Node(PathNodeType.Start, 1),
+                Node(PathNodeType.End, -1),
+                Node(PathNodeType.Via, -1));
+
+            PathEditResult result = PathModelEditor.RemoveRestOfPath(path, 2);
+
+            Assert.IsFalse(result.Success);
+            Assert.AreSame(path, result.PathModel);
+        }
+
+        [TestMethod]
+        public void WhenBranchedPathHasInvalidNegativeMainLinkThenTruncationFails()
+        {
+            PathModel path = CreateTruncationPassingBranchPath() with
+            {
+                PathNodes = CreateTruncationPassingBranchPath().PathNodes.SetItem(2,
+                    CreateTruncationPassingBranchPath().PathNodes[2] with { NextMainNode = -2 }),
+            };
+
+            PathEditResult result = PathModelEditor.RemoveRestOfPath(path, 1);
+
+            Assert.IsFalse(result.Success);
+            Assert.AreSame(path, result.PathModel);
+        }
+
+        [TestMethod]
+        public void WhenBranchedPathStorageOrderDiffersThenTruncationReturnsRemappedCutoffIndex()
+        {
+            PathModel path = CreateNoncanonicalPassingBranchPath();
+
+            PathEditResult result = PathModelEditor.RemoveRestOfPath(path, 5);
+
+            Assert.IsTrue(result.Success);
+            Assert.AreEqual(4, result.ChangedNodeIndexes.Single());
+            Assert.IsTrue(result.PathModel.PathNodes[4].NodeType.Includes(PathNodeType.End));
+            Assert.IsTrue(PathModelEditor.TryGetPassingBranchNodeRole(result.PathModel, 4, out PassingBranchNodeRole role, out _));
+            Assert.AreEqual(PassingBranchNodeRole.MainRoute, role);
+        }
+
+        [TestMethod]
+        public void WhenBranchedPathIsTruncatedAtTrueMainTailThenEditFails()
+        {
+            PathModel path = CreateTruncationPassingBranchPath();
+
+            PathEditResult result = PathModelEditor.RemoveRestOfPath(path, 5);
+
+            Assert.IsFalse(result.Success);
+            Assert.AreSame(path, result.PathModel);
+        }
+
+        [TestMethod]
+        public void WhenUnsupportedBranchedPathIsTruncatedThenEditFails()
+        {
+            PathModel path = CreatePath(
+                Node(PathNodeType.Start, 1, 3),
+                Node(PathNodeType.Via, 2),
+                Node(PathNodeType.End, -1),
+                Node(PathNodeType.Via, -1));
+
+            PathEditResult result = PathModelEditor.RemoveRestOfPath(path, 1);
+
+            Assert.IsFalse(result.Success);
+            Assert.AreSame(path, result.PathModel);
+        }
+
+        [TestMethod]
         public void WhenPassingBranchIsCreatedThenItLinksToALaterMainRouteNode()
         {
             PathModel path = CreatePath(
@@ -1005,6 +1153,65 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
         }
 
         [TestMethod]
+        [DataRow(1)]
+        [DataRow(3)]
+        public void WhenPassingBranchEndpointIsRemovedAsViaThenEditFails(int nodeIndex)
+        {
+            PathModel path = CreateSupportedPassingBranchPath();
+
+            PathEditResult result = PathModelEditor.RemoveViaPoint(path, nodeIndex);
+
+            Assert.IsFalse(result.Success);
+            Assert.AreSame(path, result.PathModel);
+        }
+
+        [TestMethod]
+        public void WhenUnsupportedPassingBranchNodeIsRemovedAsViaThenEditFails()
+        {
+            PathModel path = CreatePath(
+                Node(PathNodeType.Start, 1),
+                Node(PathNodeType.Via, 2, 4),
+                Node(PathNodeType.Via, 3),
+                Node(PathNodeType.End, -1),
+                Node(PathNodeType.Via, -1));
+
+            PathEditResult result = PathModelEditor.RemoveViaPoint(path, 2);
+
+            Assert.IsFalse(result.Success);
+            Assert.AreSame(path, result.PathModel);
+        }
+
+        [TestMethod]
+        public void WhenPassingBranchInteriorIsSafelyRemovedThenBranchRemainsSupported()
+        {
+            PathModel path = CreateSupportedPassingBranchPath();
+
+            PathEditResult result = PathModelEditor.RemoveViaPoint(path, 5);
+
+            Assert.IsTrue(result.Success);
+            Assert.IsTrue(PathModelEditor.TryGetPassingBranchNodeRole(result.PathModel, 1, out PassingBranchNodeRole startRole, out _));
+            Assert.AreEqual(PassingBranchNodeRole.BranchStart, startRole);
+            Assert.IsTrue(PathModelEditor.TryGetPassingBranchNodeRole(result.PathModel, 5, out PassingBranchNodeRole interiorRole, out _));
+            Assert.AreEqual(PassingBranchNodeRole.BranchInterior, interiorRole);
+            Assert.IsTrue(PathModelEditor.TryGetPassingBranchNodeRole(result.PathModel, 3, out PassingBranchNodeRole rejoinRole, out _));
+            Assert.AreEqual(PassingBranchNodeRole.BranchRejoin, rejoinRole);
+        }
+
+        [TestMethod]
+        public void WhenMainRouteViaIsSafelyRemovedThenPassingBranchRemainsSupported()
+        {
+            PathModel path = CreateSupportedPassingBranchPath();
+
+            PathEditResult result = PathModelEditor.RemoveViaPoint(path, 2);
+
+            Assert.IsTrue(result.Success);
+            Assert.IsTrue(PathModelEditor.TryGetPassingBranchNodeRole(result.PathModel, 1, out PassingBranchNodeRole startRole, out _));
+            Assert.AreEqual(PassingBranchNodeRole.BranchStart, startRole);
+            Assert.IsTrue(PathModelEditor.TryGetPassingBranchNodeRole(result.PathModel, 2, out PassingBranchNodeRole rejoinRole, out _));
+            Assert.AreEqual(PassingBranchNodeRole.BranchRejoin, rejoinRole);
+        }
+
+        [TestMethod]
         public void WhenViaPointIsRemovedOnStartNodeThenEditFails()
         {
             PathModel path = CreatePath(
@@ -1147,6 +1354,42 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
                 Name = "Test Path",
                 PathNodes = ImmutableArray.Create(nodes),
             };
+        }
+
+        private static PathModel CreateSupportedPassingBranchPath()
+        {
+            return CreatePath(
+                Node(PathNodeType.Start, 1),
+                Node(PathNodeType.Via, 2, 5),
+                Node(PathNodeType.Via, 3),
+                Node(PathNodeType.Via, 4),
+                Node(PathNodeType.End, -1),
+                Node(PathNodeType.Via, -1, 6),
+                Node(PathNodeType.Via, -1, 3));
+        }
+
+        private static PathModel CreateTruncationPassingBranchPath()
+        {
+            return CreatePath(
+                Node(PathNodeType.Start, 1),
+                Node(PathNodeType.Via, 2, 6),
+                Node(PathNodeType.Via, 3),
+                Node(PathNodeType.Via, 4),
+                Node(PathNodeType.Via, 5),
+                Node(PathNodeType.End, -1),
+                Node(PathNodeType.Via, -1, 7),
+                Node(PathNodeType.Via, -1, 3));
+        }
+
+        private static PathModel CreateNoncanonicalPassingBranchPath()
+        {
+            return CreatePath(
+                Node(PathNodeType.Start, 3),
+                Node(PathNodeType.End, -1),
+                Node(PathNodeType.Via, -1, 4),
+                Node(PathNodeType.Via, 4, 2),
+                Node(PathNodeType.Via, 5),
+                Node(PathNodeType.Via, 1));
         }
 
         private static TrackWorld CreateInitializedTrackWorldWithSingleVectorNode()

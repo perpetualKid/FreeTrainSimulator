@@ -917,7 +917,10 @@ namespace FreeTrainSimulator.Toolbox.PathEditing
         /// Truncates the path after the node at <paramref name="nodeIndex"/>, marking it as the new end, and
         /// records an undo snapshot. Returns the operation result.
         /// </summary>
-        public PathEditResult RemoveRestOfPath(int nodeIndex) => ApplySelectedNodeEdit(nodeIndex, model => PathModelEditor.RemoveRestOfPath(model, nodeIndex));
+        public PathEditResult RemoveRestOfPath(int nodeIndex)
+        {
+            return ApplySelectedNodeEdit(nodeIndex, model => EvaluateRestOfPathRemoval(model, nodeIndex), true);
+        }
 
         public PathEditorCommandResult RemoveRestOfPathCommand(int nodeIndex)
         {
@@ -1046,7 +1049,7 @@ namespace FreeTrainSimulator.Toolbox.PathEditing
         public bool CanRemoveViaPoint(int nodeIndex)
         {
             PathModel currentModel = TryGetEditablePathModel();
-            return currentModel != null && PathModelEditor.RemoveViaPoint(currentModel, nodeIndex).Success;
+            return currentModel != null && !HasPendingRouteCandidateInteraction && EvaluateViaPointRemoval(currentModel, nodeIndex).Success;
         }
 
         public bool CanClearWaitPoint(int nodeIndex)
@@ -1070,7 +1073,25 @@ namespace FreeTrainSimulator.Toolbox.PathEditing
         public bool CanRemoveRestOfPath(int nodeIndex)
         {
             PathModel currentModel = TryGetEditablePathModel();
-            return currentModel != null && PathModelEditor.RemoveRestOfPath(currentModel, nodeIndex).Success;
+            return currentModel != null && !HasPendingRouteCandidateInteraction && EvaluateRestOfPathRemoval(currentModel, nodeIndex).Success;
+        }
+
+        private PathEditResult EvaluateRestOfPathRemoval(PathModel sourceModel, int nodeIndex)
+        {
+            PathEditResult edit = PathModelEditor.RemoveRestOfPath(sourceModel, nodeIndex);
+            if (!edit.Success || !edit.PathModel.PathNodes.Any(node => node.NextSidingNode >= 0))
+                return edit;
+
+            PathPersistenceValidationResult validation = PathPersistenceValidationPolicy.ValidateForPersistence(edit.PathModel, TrackWorld);
+            if (!validation.PersistenceAllowed)
+                return PathEditResult.Failed(validation.FailureMessage, sourceModel);
+
+            PathPersistenceValidationResult verification = PathPersistenceValidationPolicy.ValidateForPersistence(validation.PathModel, TrackWorld);
+            if (!verification.PersistenceAllowed)
+                return PathEditResult.Failed(verification.FailureMessage, sourceModel);
+
+            int updatedEndIndex = IndexOfNodeType(verification.PathModel, PathNodeType.End, -1);
+            return PathEditResult.Succeeded(edit.Message, verification.PathModel, ImmutableArray.Create(updatedEndIndex));
         }
 
         public void SelectAuthoredNode(int nodeIndex)
@@ -1224,7 +1245,23 @@ namespace FreeTrainSimulator.Toolbox.PathEditing
         /// <summary>Removes the via point at <paramref name="nodeIndex"/> and records an undo snapshot.</summary>
         public PathEditResult RemoveViaPoint(int nodeIndex)
         {
-            return ApplySelectedNodeEdit(nodeIndex, model => PathModelEditor.RemoveViaPoint(model, nodeIndex));
+            return ApplySelectedNodeEdit(nodeIndex, model => EvaluateViaPointRemoval(model, nodeIndex));
+        }
+
+        private PathEditResult EvaluateViaPointRemoval(PathModel sourceModel, int nodeIndex)
+        {
+            PathEditResult edit = PathModelEditor.RemoveViaPoint(sourceModel, nodeIndex);
+            if (!edit.Success || !sourceModel.PathNodes.Any(node => node.NextSidingNode >= 0))
+                return edit;
+
+            PathPersistenceValidationResult validation = PathPersistenceValidationPolicy.ValidateForPersistence(edit.PathModel, TrackWorld);
+            if (!validation.PersistenceAllowed)
+                return PathEditResult.Failed(validation.FailureMessage, sourceModel);
+
+            PathPersistenceValidationResult verification = PathPersistenceValidationPolicy.ValidateForPersistence(validation.PathModel, TrackWorld);
+            return verification.PersistenceAllowed
+                ? PathEditResult.Succeeded(edit.Message, verification.PathModel, verification.ChangedNodeIndexes)
+                : PathEditResult.Failed(verification.FailureMessage, sourceModel);
         }
 
         /// <summary>Begins selecting a later main-route node for a new single-level passing branch.</summary>
@@ -1664,6 +1701,11 @@ namespace FreeTrainSimulator.Toolbox.PathEditing
         // towards the cursor, which is not what the user asked for.
         private PathEditResult ApplySelectedNodeEdit(int nodeIndex, Func<PathModel, PathEditResult> edit)
         {
+            return ApplySelectedNodeEdit(nodeIndex, edit, false);
+        }
+
+        private PathEditResult ApplySelectedNodeEdit(int nodeIndex, Func<PathModel, PathEditResult> edit, bool selectChangedNode)
+        {
             PathModel currentModel = TryGetEditablePathModel();
             if (HasPendingRouteCandidateInteraction)
                 return PendingRouteCandidateEditFailure(currentModel);
@@ -1685,7 +1727,7 @@ namespace FreeTrainSimulator.Toolbox.PathEditing
             PushUndoSnapshot(currentModel);
             unsavedChanges = true;
             RestoreSnapshot(result.PathModel);
-            SelectAuthoredNode(nodeIndex);
+            SelectAuthoredNode(selectChangedNode ? result.ChangedNodeIndexes.Single() : nodeIndex);
             OnPathUpdated?.Invoke(this, new PathEditorChangedEventArgs(TrainPath));
             return result;
         }

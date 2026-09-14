@@ -174,7 +174,9 @@ namespace FreeTrainSimulator.Toolbox.PathEditing
 
             items.Add(new MapContextMenuItem(MapContextMenuAction.AddViaPoint, fromNodeIndex) { PlacementAnchor = placementAnchor });
             AddAnchorPlacementActions(items, state, placementAnchor);
-            items.Add(new MapContextMenuItem(MapContextMenuAction.RemoveRestOfPath, fromNodeIndex));
+
+            if (state.CanRemoveRestOfPath)
+                items.Add(new MapContextMenuItem(MapContextMenuAction.RemoveRestOfPath, fromNodeIndex));
 
             if (!candidates.IsDefaultOrEmpty)
             {
