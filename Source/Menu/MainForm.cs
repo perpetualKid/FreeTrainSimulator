@@ -444,11 +444,11 @@ namespace FreeTrainSimulator.Menu
             contextMenuStripDocuments.Show(buttonDocuments, new Point(0, buttonDocuments.ClientSize.Height), ToolStripDropDownDirection.Default);
         }
 
-        private void TestingToolStripMenuItem_Click(object sender, EventArgs e)
+        private async void TestingToolStripMenuItem_Click(object sender, EventArgs e)
         {
             using (TestingForm form = new TestingForm(ContentModel, ProfileUserSettings))
             {
-                _ = form.ShowDialog(this);
+                _ = await form.ShowDialogAsync(this).ConfigureAwait(true);
             }
         }
 
@@ -468,7 +468,7 @@ namespace FreeTrainSimulator.Menu
             ImmutableArray<FolderModel> existingFolders = ContentModel.ContentFolders;
             using (OptionsForm form = new OptionsForm(ProfileUserSettings, updateManager, initialSetup, ContentModel))
             {
-                if (form.ShowDialog(this) == DialogResult.OK)
+                if (await form.ShowDialogAsync(this).ConfigureAwait(true) == DialogResult.OK)
                 {
                     if (existingFolders.Except(form.ContentModel.ContentFolders).Any() || form.ContentModel.ContentFolders.Except(existingFolders).Any() ||
                          ContentModel.RefreshRequired())
@@ -555,7 +555,7 @@ namespace FreeTrainSimulator.Menu
 
             using (ResumeForm form = new ResumeForm(ProfileUserSettings, ProfileSelections, route, activity, timetable))
             {
-                if (form.ShowDialog(this) == DialogResult.OK)
+                if (await form.ShowDialogAsync(this).ConfigureAwait(true) == DialogResult.OK)
                 {
                     ProfileSelections.GamePlayAction = form.SelectedAction;
                     ProfileSelections.GameSaveFile = form.SelectedSaveFile;
