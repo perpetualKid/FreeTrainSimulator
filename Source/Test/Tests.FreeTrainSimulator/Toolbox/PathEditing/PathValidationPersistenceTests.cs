@@ -364,11 +364,12 @@ namespace Tests.FreeTrainSimulator.Toolbox.PathEditing
             string targetFileName = ModelFileResolver<PathModelHeader>.FilePath(persisted) + ContentHandlerBase<PathModelHeader>.SaveStateExtension;
             byte[] originalBytes = await File.ReadAllBytesAsync(targetFileName, TestContext.CancellationToken).ConfigureAwait(false);
             PathModel replacement = persisted with { Name = "Canceled Replacement" };
-            using CancellationTokenSource cancellationTokenSource = new CancellationTokenSource();
-            cancellationTokenSource.Cancel();
+            using (CancellationTokenSource cancellationTokenSource = new CancellationTokenSource())
+            {
+                await cancellationTokenSource.CancelAsync().ConfigureAwait(false);
 
-            _ = await Assert.ThrowsExactlyAsync<OperationCanceledException>(async () =>
-                await route.Save(replacement, cancellationTokenSource.Token).ConfigureAwait(false)).ConfigureAwait(false);
+                _ = await Assert.ThrowsExactlyAsync<OperationCanceledException>(async () => await route.Save(replacement, cancellationTokenSource.Token).ConfigureAwait(false)).ConfigureAwait(false);
+            }
 
             byte[] persistedBytes = await File.ReadAllBytesAsync(targetFileName, TestContext.CancellationToken).ConfigureAwait(false);
             Assert.AreSequenceEqual(originalBytes, persistedBytes);
@@ -561,9 +562,9 @@ namespace Tests.FreeTrainSimulator.Toolbox.PathEditing
             };
         }
 
-        private static global::FreeTrainSimulator.Models.Track.JunctionNode CreateJunctionNode(int nodeIndex)
+        private static JunctionNode CreateJunctionNode(int nodeIndex)
         {
-            return new global::FreeTrainSimulator.Models.Track.JunctionNode(new WorldLocation(new Tile(0, 0), new Vector3(nodeIndex * 100, 0, 0)),
+            return new JunctionNode(new WorldLocation(new Tile(0, 0), new Vector3(nodeIndex * 100, 0, 0)),
                 new Tile(0, 0), Vector3.Zero)
             { NodeIndex = nodeIndex };
         }

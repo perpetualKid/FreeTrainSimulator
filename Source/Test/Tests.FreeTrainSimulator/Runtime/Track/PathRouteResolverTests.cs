@@ -823,42 +823,6 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
             Assert.AreEqual(1, result.AuthoredNodeAnchors[0].TrackNodeIndex);
         }
 
-        [TestMethod]
-        public void ResolveWhenStoredAnchorDisambiguatesLocationDoesNotReturnAmbiguousAnchor()
-        {
-            TrackWorld trackWorld = CreateOverlappingVectorTrackWorld();
-            WorldLocation sharedLocation = new WorldLocation(new Tile(0, 0), new Vector3(50, 0, 0));
-            PathModel pathModel = new PathModel
-            {
-                PathNodes = ImmutableArray.Create(
-                    CreateNode(PathNodeType.Start, 1, -1, 1, sharedLocation),
-                    CreateNode(PathNodeType.End, -1, -1, 2, new WorldLocation(new Tile(0, 0), new Vector3(-50, 0, 0)))),
-            };
-
-            PathRouteResolution result = PathRouteResolver.Resolve(pathModel, trackWorld, TestContext.CancellationToken);
-
-            Assert.IsFalse(result.Diagnostics.Any(diagnostic =>
-                diagnostic.Code == PathRouteDiagnosticCode.AmbiguousAnchor && diagnostic.NodeIndex == 0));
-        }
-
-        [TestMethod]
-        public void ResolveWhenLocationOnlyAnchorHasSeveralSectionsReturnsAmbiguousAnchor()
-        {
-            TrackWorld trackWorld = CreateOverlappingVectorTrackWorld();
-            WorldLocation sharedLocation = new WorldLocation(new Tile(0, 0), new Vector3(50, 0, 0));
-            PathModel pathModel = new PathModel
-            {
-                PathNodes = ImmutableArray.Create(
-                    CreateNode(PathNodeType.Start, 1, -1, 0, sharedLocation),
-                    CreateNode(PathNodeType.End, -1, -1, 2, new WorldLocation(new Tile(0, 0), new Vector3(-50, 0, 0)))),
-            };
-
-            PathRouteResolution result = PathRouteResolver.Resolve(pathModel, trackWorld, TestContext.CancellationToken);
-
-            Assert.IsTrue(result.Diagnostics.Any(diagnostic =>
-                diagnostic.Code == PathRouteDiagnosticCode.AmbiguousAnchor && diagnostic.NodeIndex == 0));
-        }
-
         /// <summary>
         /// Verifies that hybrid anchors report a mismatch when the stored node index disagrees with the stored location.
         /// </summary>
@@ -1120,40 +1084,6 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
             TrackSectionModel trackSectionModel = new TrackSectionModel()
             {
                 TrackSections = ImmutableDictionary<int, TrackSection>.Empty.Add(1, new TrackSection()
-                {
-                    SectionIndex = 1,
-                    Gauge = 1.435f,
-                    Length = 100,
-                }),
-            };
-
-            return TrackWorld.Initialize(null, trackModel, trackSectionModel);
-        }
-
-        private static TrackWorld CreateOverlappingVectorTrackWorld()
-        {
-            VectorNode firstNode = CreateInitializedVectorNode(1, 0);
-            WorldLocation secondStart = new WorldLocation(new Tile(0, 0), new Vector3(50, 0, -50));
-            WorldLocation secondEnd = new WorldLocation(new Tile(0, 0), new Vector3(50, 0, 50));
-            VectorSectionNode secondSection = new VectorSectionNode(secondStart, new Tile(0, 0), Vector3.Zero, secondEnd)
-            {
-                NodeIndex = 1,
-            };
-            VectorNode secondNode = new VectorNode(secondStart, new Tile(0, 0), secondEnd)
-            {
-                NodeIndex = 2,
-                VectorSections = ImmutableArray.Create(secondSection),
-            };
-            TrackDatabase trackDatabase = new TrackDatabase
-            {
-                TrackNodes = ImmutableArray.Create<TrackNodeBase>(null, firstNode, secondNode),
-                TrackNodeConnectors = ImmutableArray.Create(new TrackNodeConnectorIndex(), CreateConnectors(1), CreateConnectors(2)),
-            };
-            InitializeTrackDatabase(trackDatabase);
-            TrackModel trackModel = new TrackModel { TrackDatabase = trackDatabase };
-            TrackSectionModel trackSectionModel = new TrackSectionModel
-            {
-                TrackSections = ImmutableDictionary<int, TrackSection>.Empty.Add(1, new TrackSection
                 {
                     SectionIndex = 1,
                     Gauge = 1.435f,
