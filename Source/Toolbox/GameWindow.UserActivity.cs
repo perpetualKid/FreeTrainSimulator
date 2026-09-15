@@ -126,6 +126,7 @@ namespace FreeTrainSimulator.Toolbox
                 CanSavePath = hostedTrainPathToolWindow?.CanSavePath == true,
                 CanStartNewPath = hostedTrainPathToolWindow?.CanCreatePath == true,
                 IsNewPath = editor.IsNewPath,
+                CanCancelPassingBranch = editor.CanCancelPassingBranch,
             };
 
             ImmutableArray<MapContextMenuItem> items;
@@ -135,7 +136,6 @@ namespace FreeTrainSimulator.Toolbox
                 {
                     CanBeginPassingBranch = editor.CanBeginPassingBranch(nodeIndex),
                     CanCompletePassingBranch = editor.CanCompletePassingBranch(nodeIndex),
-                    CanCancelPassingBranch = editor.CanCancelPassingBranch,
                     CanRemovePassingBranch = editor.CanRemovePassingBranch(nodeIndex),
                     CanClearWaitPoint = editor.CanClearWaitPoint(nodeIndex),
                     CanSetReversalPoint = editor.CanSetReversalPoint(nodeIndex),

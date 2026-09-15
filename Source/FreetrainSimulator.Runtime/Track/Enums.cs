@@ -89,6 +89,9 @@ namespace FreeTrainSimulator.Runtime.Track
 
         /// <summary>A passing branch does not rejoin the main authored path.</summary>
         PassingBranchDoesNotRejoinMain,
+
+        /// <summary>A passing branch does not differ physically from the corresponding main route.</summary>
+        PassingBranchMatchesMainRoute,
     }
 
     /// <summary>

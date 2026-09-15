@@ -27,6 +27,21 @@ namespace Tests.FreeTrainSimulator.Toolbox.PathEditing
         }
 
         [TestMethod]
+        public void WhenPassingRejoinSelectionIsActiveThenMapMenuOnlyOffersCancelPassingBranch()
+        {
+            ImmutableArray<MapContextMenuItem> items = BuildForMap(new MapContextMenuState
+            {
+                CanCancelPassingBranch = true,
+                CanContinuePath = true,
+                CanUndo = true,
+                CanSavePath = true,
+            }, PlacementAnchor());
+
+            Assert.HasCount(1, items);
+            Assert.AreEqual(MapContextMenuAction.CancelPassingBranch, items[0].Action);
+        }
+
+        [TestMethod]
         public void WhenPlacementIsActiveThenAuthoritativeNodeCapabilitiesAreSuppressed()
         {
             ImmutableArray<MapContextMenuItem> items = BuildNodeActions(2, new MapContextMenuState
@@ -274,6 +289,27 @@ namespace Tests.FreeTrainSimulator.Toolbox.PathEditing
             Assert.Contains(MapContextMenuAction.RejoinPassingBranch, Actions(items));
             Assert.Contains(MapContextMenuAction.CancelPassingBranch, Actions(items));
             Assert.DoesNotContain(MapContextMenuAction.StartPassingBranch, Actions(items));
+        }
+
+        [TestMethod]
+        public void WhenNodeCannotRejoinDuringPassingSelectionThenOnlyCancelIsOffered()
+        {
+            ImmutableArray<MapContextMenuItem> items = BuildForNode(
+                new TestPathPoint(PathNodeType.Via), 1, true,
+                new MapContextMenuState { CanCancelPassingBranch = true, CanRemoveViaPoint = true, CanRemoveRestOfPath = true });
+
+            Assert.AreEqual(1, items.Length);
+            Assert.AreEqual(MapContextMenuAction.CancelPassingBranch, items[0].Action);
+        }
+
+        [TestMethod]
+        public void WhenPassingRejoinSelectionIsActiveThenSpanActionsAreSuppressed()
+        {
+            ImmutableArray<MapContextMenuItem> items = BuildForSpan(1, PlacementAnchor(), ImmutableArray<ResolvedRouteCandidate>.Empty,
+                new MapContextMenuState { CanCancelPassingBranch = true, CanRemoveRestOfPath = true });
+
+            Assert.AreEqual(1, items.Length);
+            Assert.AreEqual(MapContextMenuAction.CancelPassingBranch, items[0].Action);
         }
 
         [TestMethod]

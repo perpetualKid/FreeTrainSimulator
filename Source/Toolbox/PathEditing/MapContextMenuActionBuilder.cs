@@ -153,8 +153,7 @@ namespace FreeTrainSimulator.Toolbox.PathEditing
         /// Builds the menu for a path span. <paramref name="fromNodeIndex"/> is the span's preceding node;
         /// <paramref name="candidates"/> holds the equal-cost route candidates when the span is ambiguous.
         /// </summary>
-        public static ImmutableArray<MapContextMenuItem> BuildForSpan(int fromNodeIndex, PathNode placementAnchor,
-            ImmutableArray<ResolvedRouteCandidate> candidates, in MapContextMenuState state)
+        public static ImmutableArray<MapContextMenuItem> BuildForSpan(int fromNodeIndex, PathNode placementAnchor, ImmutableArray<ResolvedRouteCandidate> candidates, in MapContextMenuState state)
         {
             return BuildForSpan(fromNodeIndex, placementAnchor, candidates, -1, state);
         }
@@ -162,13 +161,15 @@ namespace FreeTrainSimulator.Toolbox.PathEditing
         /// <summary>
         /// Builds the span menu with explicit exit choices when the context location is a junction.
         /// </summary>
-        public static ImmutableArray<MapContextMenuItem> BuildForSpan(int fromNodeIndex, PathNode placementAnchor,
-            ImmutableArray<ResolvedRouteCandidate> candidates, int junctionNodeIndex, in MapContextMenuState state)
+        public static ImmutableArray<MapContextMenuItem> BuildForSpan(int fromNodeIndex, PathNode placementAnchor, ImmutableArray<ResolvedRouteCandidate> candidates, int junctionNodeIndex, in MapContextMenuState state)
         {
             ArgumentNullException.ThrowIfNull(placementAnchor);
 
             if (state.IsPlacementActive)
                 return BuildPlacementActions(state, placementAnchor, fromNodeIndex);
+
+            if (state.CanCancelPassingBranch)
+                return ImmutableArray.Create(new MapContextMenuItem(MapContextMenuAction.CancelPassingBranch, fromNodeIndex));
 
             ImmutableArray<MapContextMenuItem>.Builder items = ImmutableArray.CreateBuilder<MapContextMenuItem>();
 
@@ -202,6 +203,7 @@ namespace FreeTrainSimulator.Toolbox.PathEditing
             {
                 ImmutableArray<int> routeNodeIndexes = candidates[candidateIndex].RouteNodeIndexes;
                 int junctionRouteIndex = routeNodeIndexes.IndexOf(junctionNodeIndex);
+
                 if (junctionRouteIndex < 0 || junctionRouteIndex == routeNodeIndexes.Length - 1)
                     continue;
 
@@ -226,15 +228,22 @@ namespace FreeTrainSimulator.Toolbox.PathEditing
             if (state.IsPlacementActive)
                 return BuildPlacementActions(state, placementAnchor, -1);
 
+            if (state.CanCancelPassingBranch)
+                return ImmutableArray.Create(new MapContextMenuItem(MapContextMenuAction.CancelPassingBranch));
+
             ImmutableArray<MapContextMenuItem>.Builder items = ImmutableArray.CreateBuilder<MapContextMenuItem>();
 
             if (state.CanContinuePath)
                 items.Add(new MapContextMenuItem(MapContextMenuAction.ContinuePath));
+
             if (state.CanReResolvePath && !state.IsNewPath)
                 items.Add(new MapContextMenuItem(MapContextMenuAction.ReResolvePath));
+
             AddAnchorPlacementActions(items, state, placementAnchor);
+
             if (state.CanStartNewPath && !state.IsNewPath && placementAnchor != null)
                 items.Add(new MapContextMenuItem(MapContextMenuAction.StartNewPathHere) { PlacementAnchor = placementAnchor });
+
             if (state.CanSavePath)
                 items.Add(new MapContextMenuItem(MapContextMenuAction.SavePath));
 
@@ -254,6 +263,7 @@ namespace FreeTrainSimulator.Toolbox.PathEditing
                 items.Add(new MapContextMenuItem(MapContextMenuAction.AddRoutePointHere, nodeIndex) { PlacementAnchor = placementAnchor });
                 items.Add(new MapContextMenuItem(MapContextMenuAction.FinishPathHere, nodeIndex) { PlacementAnchor = placementAnchor });
             }
+
             if (state.CanFinishPath)
                 items.Add(new MapContextMenuItem(MapContextMenuAction.FinishPath, nodeIndex));
             AddSeparator(items);

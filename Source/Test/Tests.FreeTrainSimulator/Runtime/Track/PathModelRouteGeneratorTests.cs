@@ -30,7 +30,7 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
 
             PathGenerationResult result = PathModelRouteGenerator.GenerateMainPath(sourcePath, resolution, trackWorld, PathRouteResolverOptions.Default);
 
-            Assert.IsTrue(result.Success);
+            Assert.IsTrue(result.Success, $"{result.Message} {string.Join("; ", resolution.Diagnostics.Select(diagnostic => $"{diagnostic.Code}:{diagnostic.Message}"))}");
             Assert.HasCount(3, result.PathModel.PathNodes);
             Assert.AreEqual(PathNodeType.Start, result.PathModel.PathNodes[0].NodeType);
             Assert.AreEqual(PathNodeType.Via, result.PathModel.PathNodes[1].NodeType);
@@ -54,7 +54,7 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
             PathRouteResolution secondResolution = PathRouteResolver.Resolve(firstGeneration.PathModel, trackWorld, TestContext.CancellationToken);
             PathGenerationResult secondGeneration = PathModelRouteGenerator.GenerateMainPath(firstGeneration.PathModel, secondResolution, trackWorld, PathRouteResolverOptions.Default);
 
-            Assert.IsTrue(secondGeneration.Success);
+            Assert.IsTrue(secondGeneration.Success, $"{secondGeneration.Message} {string.Join("; ", secondResolution.Diagnostics.Select(diagnostic => $"{diagnostic.Code}:{diagnostic.Message}"))}");
             Assert.AreSequenceEqual(firstGeneration.PathModel.PathNodes, secondGeneration.PathModel.PathNodes);
         }
 
@@ -239,6 +239,7 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
             {
                 NodeType = nodeType,
                 NextMainNode = nextMainNode,
+                NextSidingNode = -1,
                 NodeIndex = nodeIndex,
                 WaitInfo = waitInfo,
             };

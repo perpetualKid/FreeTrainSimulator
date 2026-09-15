@@ -68,7 +68,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.ToolWindows
         }
 
         [TestMethod]
-        public void WhenValidatedPassingBranchInteriorActionsAreRequestedThenGenericRemovalIsOffered()
+        public void WhenPassingBranchInteriorRemovalWouldCollapseRouteThenGenericRemovalIsNotOffered()
         {
             using (PathEditor editor = CreatePathEditor(CreateSupportedPassingBranchPath()))
             {
@@ -77,7 +77,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.ToolWindows
 
                 ImmutableArray<MapContextMenuItem> actions = trainPathToolWindow.GetNodeActions(5);
 
-                Assert.Contains(MapContextMenuAction.RemoveViaPoint, actions.Select(item => item.Action));
+                Assert.DoesNotContain(MapContextMenuAction.RemoveViaPoint, actions.Select(item => item.Action));
             }
         }
 
@@ -178,6 +178,30 @@ namespace Tests.FreeTrainSimulator.Toolbox.ToolWindows
 
                 Assert.IsTrue(editor.TryCaptureCurrentPathModel().PathNodes[1].NodeType.Includes(PathNodeType.Reversal));
                 Assert.IsFalse(editor.TryCaptureCurrentPathModel().PathNodes[2].NodeType.Includes(PathNodeType.Reversal));
+            }
+        }
+
+        [TestMethod]
+        public void WhenSelectingPassingRejoinThenSnapshotPublishesTruthfulSelectedNodeCapability()
+        {
+            TrackWorld trackWorld = TrackWorldTestFixture.CreateSidingTrackWorld();
+            using (PathEditor editor = CreatePathEditor(CreateSidingEndpointPath(trackWorld), trackWorld))
+            {
+                TrainPathToolWindow trainPathToolWindow = new(() => editor, () => null, action => action(),
+                    () => { }, () => { }, _ => { }, () => { }, () => { }) { Active = true };
+                Assert.IsTrue(editor.BeginPassingBranchCommand(0).Success);
+                editor.SelectAuthoredNode(0);
+                trainPathToolWindow.RefreshSnapshot();
+                TrainPathSnapshot ineligible = trainPathToolWindow.CaptureTrainPathSnapshot();
+
+                editor.SelectAuthoredNode(1);
+                trainPathToolWindow.RefreshSnapshot();
+                TrainPathSnapshot eligible = trainPathToolWindow.CaptureTrainPathSnapshot();
+
+                Assert.AreEqual(PassingBranchAuthoringPhase.SelectingRejoin, ineligible.PassingBranchPhase);
+                Assert.IsTrue(ineligible.CanCancelPassingBranch);
+                Assert.IsFalse(ineligible.CanCompletePassingBranch);
+                Assert.IsTrue(eligible.CanCompletePassingBranch);
             }
         }
 
@@ -981,6 +1005,29 @@ namespace Tests.FreeTrainSimulator.Toolbox.ToolWindows
             };
         }
 
+        private static PathModel CreateSidingEndpointPath(TrackWorld trackWorld)
+        {
+            return new PathModel
+            {
+                Id = "siding-endpoint-path",
+                Name = "Siding Endpoint Path",
+                PathNodes = ImmutableArray.Create(
+                    CreateAnchoredNode(trackWorld, 1, PathNodeType.Start, 1),
+                    CreateAnchoredNode(trackWorld, 4, PathNodeType.End, -1)),
+            };
+        }
+
+        private static PathNode CreateAnchoredNode(TrackWorld trackWorld, int trackNodeIndex, PathNodeType nodeType, int nextMainNode)
+        {
+            return new PathNode(trackWorld.TrackDatabase.TrackNodes[trackNodeIndex].Location)
+            {
+                NodeType = nodeType,
+                NodeIndex = trackNodeIndex,
+                NextMainNode = nextMainNode,
+                NextSidingNode = -1,
+            };
+        }
+
         private static PathModel CreateSupportedPassingBranchPath()
         {
             return new PathModel
@@ -1011,7 +1058,12 @@ namespace Tests.FreeTrainSimulator.Toolbox.ToolWindows
 
         private static PathEditor CreatePathEditor(PathModel pathModel)
         {
-            PathEditor editor = new PathEditor(new TestPathEditorContext(CreateInitializedTrackWorld()));
+            return CreatePathEditor(pathModel, CreateInitializedTrackWorld());
+        }
+
+        private static PathEditor CreatePathEditor(PathModel pathModel, TrackWorld trackWorld)
+        {
+            PathEditor editor = new PathEditor(new TestPathEditorContext(trackWorld));
             editor.InitializeNewPath();
             typeof(PathEditor).GetMethod("RestoreSnapshot", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(editor, new object[] { pathModel });
             return editor;

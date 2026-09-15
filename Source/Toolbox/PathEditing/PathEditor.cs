@@ -111,7 +111,8 @@ namespace FreeTrainSimulator.Toolbox.PathEditing
 
         public bool HasPendingPassingBranchCandidate => pendingPassingBranchCandidate != null;
 
-        private bool HasPendingRouteCandidateInteraction => pendingAmbiguousSpanCommit != null || pendingPassingBranchCandidate != null;
+        private bool HasPendingRouteCandidateInteraction => pendingAmbiguousSpanCommit != null || pendingPassingBranchStartNodeIndex >= 0
+            || pendingPassingBranchCandidate != null;
 
         public PassingBranchAuthoringPhase PassingBranchPhase => pendingPassingBranchCandidate != null
             ? PassingBranchAuthoringPhase.SelectingCandidate
@@ -130,9 +131,10 @@ namespace FreeTrainSimulator.Toolbox.PathEditing
         public bool CanCompletePassingBranch(int nodeIndex)
         {
             PathModel model = TryGetEditablePathModel();
-            return !repairMode && !IsPlacementActive && pendingPassingBranchStartNodeIndex >= 0 && !HasPendingRouteCandidateInteraction
+            return !repairMode && !IsPlacementActive && pendingPassingBranchStartNodeIndex >= 0 && pendingAmbiguousSpanCommit == null
+                && pendingPassingBranchCandidate == null
                 && ReferenceEquals(model, pendingPassingBranchSourceModel)
-                && model != null && nodeIndex >= 0 && nodeIndex < model.PathNodes.Length;
+                && model != null && EvaluatePassingBranchCompletion(model, pendingPassingBranchStartNodeIndex, nodeIndex).CanComplete;
         }
 
         public bool CanCancelPassingBranch => PassingBranchPhase != PassingBranchAuthoringPhase.Idle;
@@ -1298,7 +1300,8 @@ namespace FreeTrainSimulator.Toolbox.PathEditing
             if (!authored.Success)
                 return PathEditorCommandResult.FromPathEditResult(authored);
 
-            PathRouteResolution resolution = PathRouteResolver.Resolve(authored.PathModel, TrackWorld, PathRouteResolverOptions.Default, CancellationToken.None);
+            PassingBranchCompletionEvaluation evaluation = EvaluatePassingBranchCompletion(model, startNodeIndex, rejoinNodeIndex);
+            PathRouteResolution resolution = evaluation.Resolution;
             ResolvedPathSpan incompleteMainSpan = resolution.MainRoute?.Spans.FirstOrDefault(span => span.Status != PathRouteSpanStatus.Resolved);
             if (incompleteMainSpan != null)
             {
@@ -1334,6 +1337,25 @@ namespace FreeTrainSimulator.Toolbox.PathEditing
                 "Passing branch created and resolved.", materialization.PathModel, materialization.ChangedNodeIndexes));
             return PathEditorCommandResult.FromPathEditResult(committed);
         }
+
+        private PassingBranchCompletionEvaluation EvaluatePassingBranchCompletion(PathModel model, int startNodeIndex, int rejoinNodeIndex)
+        {
+            PathEditResult authored = PathModelEditor.CreatePassingBranch(model, startNodeIndex, rejoinNodeIndex);
+            if (!authored.Success)
+                return new PassingBranchCompletionEvaluation(false, null);
+
+            PathRouteResolution resolution = PathRouteResolver.Resolve(authored.PathModel, TrackWorld,
+                PathRouteResolverOptions.Default, CancellationToken.None);
+            if (resolution.MainRoute?.Spans.Any(span => span.Status != PathRouteSpanStatus.Resolved) != false)
+                return new PassingBranchCompletionEvaluation(false, resolution);
+
+            ResolvedPathRoute passingRoute = resolution.PassingRoutes.FirstOrDefault(route => route.StartNodeIndex == startNodeIndex);
+            bool hasCandidate = passingRoute?.Spans.Any(span => span.Status == PathRouteSpanStatus.Ambiguous || span.Candidates.Length > 1) == true;
+            bool resolved = resolution.IsValid && passingRoute != null && passingRoute.Spans.All(span => span.Status == PathRouteSpanStatus.Resolved);
+            return new PassingBranchCompletionEvaluation(hasCandidate || resolved, resolution);
+        }
+
+        private readonly record struct PassingBranchCompletionEvaluation(bool CanComplete, PathRouteResolution Resolution);
 
         /// <summary>Cancels a pending passing-branch rejoin selection without changing the authored model.</summary>
         public PathEditorCommandResult CancelPassingBranchCommand()

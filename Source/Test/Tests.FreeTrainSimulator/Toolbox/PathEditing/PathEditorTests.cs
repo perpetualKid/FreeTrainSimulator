@@ -83,6 +83,64 @@ namespace Tests.FreeTrainSimulator.Toolbox.PathEditing
         }
 
         [TestMethod]
+        public void WhenPassingBranchRejoinIsSelectedThenConflictingEditsAreUnavailable()
+        {
+            PathModel source = CreateTruncationPassingBranchPath() with
+            {
+                PathNodes = CreateTruncationPassingBranchPath().PathNodes.Select(node => node with { NextSidingNode = -1 }).ToImmutableArray(),
+            };
+            using (PathEditor editor = CreateEditor(source))
+            {
+                Assert.IsTrue(editor.BeginPassingBranchCommand(1).Success);
+
+                Assert.IsFalse(editor.CanRemoveViaPoint(2));
+                Assert.IsFalse(editor.CanRemoveRestOfPath(2));
+                Assert.IsFalse(editor.AddViaPointHereCommand(2, CreateNodeAt(50, PathNodeType.None, -1), false).Success);
+            }
+        }
+
+        [TestMethod]
+        public void WhenPassingBranchRejoinIsSelectedThenOnlyLaterMainRouteNodeCanComplete()
+        {
+            TrackWorld trackWorld = TrackWorldTestFixture.CreateSidingTrackWorld();
+            PathModel source = CreateSidingEndpointPath(trackWorld);
+            using (PathEditor editor = CreateEditor(source, trackWorld))
+            {
+                Assert.IsTrue(editor.BeginPassingBranchCommand(0).Success);
+
+                Assert.IsFalse(editor.CanCompletePassingBranch(0));
+                Assert.IsTrue(editor.CanCompletePassingBranch(1));
+            }
+        }
+
+        [TestMethod]
+        public void WhenPassingRejoinHasNoPhysicalAlternativeThenCompletionIsUnavailable()
+        {
+            using (PathEditor editor = CreateEditor(CreateEditablePath()))
+            {
+                Assert.IsTrue(editor.BeginPassingBranchCommand(0).Success);
+
+                Assert.IsFalse(editor.CanCompletePassingBranch(1));
+            }
+        }
+
+        [TestMethod]
+        public void WhenPassingBranchSourceHasDisconnectedNodeThenCompletionIsUnavailable()
+        {
+            PathModel source = CreateEditablePath() with
+            {
+                PathNodes = CreateEditablePath().PathNodes.Add(CreateNodeAt(50, PathNodeType.Via, -1)),
+            };
+            using (PathEditor editor = CreateEditor(source))
+            {
+                Assert.IsTrue(editor.BeginPassingBranchCommand(0).Success);
+
+                Assert.IsFalse(editor.CanCompletePassingBranch(1));
+                Assert.IsFalse(editor.CanCompletePassingBranch(2));
+            }
+        }
+
+        [TestMethod]
         public async Task WhenCyclicPathIsLoadedThenEditorEntersRepairModeWithoutRuntimePath()
         {
             PathModel source = new PathModel
@@ -933,8 +991,9 @@ namespace Tests.FreeTrainSimulator.Toolbox.PathEditing
         [TestMethod]
         public void WhenResolvedPassingBranchIsCreatedThenUndoAndRedoRestoreItsLifecycle()
         {
-            PathModel source = CreateEditablePath();
-            using (PathEditor editor = CreateEditor(source))
+            TrackWorld trackWorld = TrackWorldTestFixture.CreateSidingTrackWorld();
+            PathModel source = CreateSidingEndpointPath(trackWorld);
+            using (PathEditor editor = CreateEditor(source, trackWorld))
             {
                 PathEditorCommandResult begin = editor.BeginPassingBranchCommand(0);
                 PathEditorCommandResult complete = editor.CompletePassingBranchCommand(1);
@@ -968,19 +1027,18 @@ namespace Tests.FreeTrainSimulator.Toolbox.PathEditing
         }
 
         [TestMethod]
-        public void WhenPathIsTruncatedAtPassingBranchRejoinThenCompleteBranchIsPreserved()
+        public void WhenBranchPreservingTruncationFailsPersistenceValidationThenEditorStateRemainsUnchanged()
         {
-            PathModel source = CreateTruncationPassingBranchPath();
-            using (PathEditor editor = CreateEditor(source))
+            TrackWorld trackWorld = TrackWorldTestFixture.CreateSidingTrackWorld();
+            PathModel source = CreateSidingTruncationPassingBranchPath(trackWorld);
+            using (PathEditor editor = CreateEditor(source, trackWorld))
             {
-                PathEditResult result = editor.RemoveRestOfPath(3);
+                PathModel baseline = editor.TryCaptureCurrentPathModel();
+                PathEditResult result = editor.RemoveRestOfPath(2);
 
-                Assert.IsTrue(result.Success, result.Message);
-                PathModel truncated = editor.TryCaptureCurrentPathModel();
-                Assert.IsTrue(PathModelEditor.TryGetPassingBranchNodeRole(truncated, 3, out PassingBranchNodeRole role, out _));
-                Assert.AreEqual(PassingBranchNodeRole.BranchRejoin, role);
-                Assert.IsTrue(editor.Undo());
-                Assert.AreSequenceEqual(source.PathNodes, editor.TryCaptureCurrentPathModel().PathNodes);
+                Assert.IsFalse(result.Success);
+                Assert.AreSame(baseline, editor.TryCaptureCurrentPathModel());
+                Assert.IsFalse(editor.CanUndo);
             }
         }
 
@@ -1031,10 +1089,10 @@ namespace Tests.FreeTrainSimulator.Toolbox.PathEditing
         [TestMethod]
         public void WhenTruncationRemapsCutoffThenEditorSelectsTheNewEnd()
         {
-            PathModel source = CreateNoncanonicalPassingBranchPath();
+            PathModel source = CreateNoncanonicalLinearPath();
             using (PathEditor editor = CreateEditor(source))
             {
-                PathEditResult result = editor.RemoveRestOfPath(5);
+                PathEditResult result = editor.RemoveRestOfPath(2);
 
                 Assert.IsTrue(result.Success, result.Message);
                 int selectedNodeIndex = editor.SelectedAuthoredNodeIndex;
@@ -1109,21 +1167,26 @@ namespace Tests.FreeTrainSimulator.Toolbox.PathEditing
         }
 
         [TestMethod]
-        public void WhenPassingBranchInteriorRemovalPassesValidationThenItIsUndoable()
+        public void WhenPassingBranchInteriorRemovalEliminatesPhysicalDistinctionThenEditorStateRemainsUnchanged()
         {
             PathModel source = CreateSupportedPassingBranchPath();
             using (PathEditor editor = CreateEditor(source))
             {
                 editor.SelectAuthoredNode(3);
+                PathModel baseline = editor.TryCaptureCurrentPathModel();
+                bool dirty = editor.HasUnsavedChanges;
+                bool canUndo = editor.CanUndo;
+                bool canRedo = editor.CanRedo;
 
                 PathEditResult result = editor.RemoveViaPoint(3);
 
-                Assert.IsTrue(result.Success, result.Message);
-                Assert.IsTrue(editor.HasUnsavedChanges);
-                Assert.IsTrue(editor.CanUndo);
-                Assert.HasCount(3, editor.TryCaptureCurrentPathModel().PathNodes);
-                Assert.IsTrue(editor.Undo());
-                Assert.AreSequenceEqual(source.PathNodes, editor.TryCaptureCurrentPathModel().PathNodes);
+                Assert.IsFalse(result.Success);
+                Assert.IsFalse(editor.CanRemoveViaPoint(3));
+                Assert.AreSame(baseline, editor.TryCaptureCurrentPathModel());
+                Assert.AreEqual(3, editor.SelectedAuthoredNodeIndex);
+                Assert.AreEqual(dirty, editor.HasUnsavedChanges);
+                Assert.AreEqual(canUndo, editor.CanUndo);
+                Assert.AreEqual(canRedo, editor.CanRedo);
             }
         }
 
@@ -1223,8 +1286,9 @@ namespace Tests.FreeTrainSimulator.Toolbox.PathEditing
         [TestMethod]
         public void WhenPassingBranchIsRemovedThenUndoRestoresIt()
         {
-            PathModel source = CreateEditablePath();
-            using (PathEditor editor = CreateEditor(source))
+            TrackWorld trackWorld = TrackWorldTestFixture.CreateSidingTrackWorld();
+            PathModel source = CreateSidingEndpointPath(trackWorld);
+            using (PathEditor editor = CreateEditor(source, trackWorld))
             {
                 Assert.IsTrue(editor.BeginPassingBranchCommand(0).Success);
                 Assert.IsTrue(editor.CompletePassingBranchCommand(1).Success);
@@ -2009,6 +2073,33 @@ namespace Tests.FreeTrainSimulator.Toolbox.PathEditing
             };
         }
 
+        private static PathModel CreateSidingEndpointPath(TrackWorld trackWorld)
+        {
+            return new PathModel
+            {
+                Id = "siding-endpoint-path",
+                Name = "Siding Endpoint Path",
+                PathNodes = ImmutableArray.Create(
+                    CreateAnchoredNode(trackWorld, 1, PathNodeType.Start, 1, -1),
+                    CreateAnchoredNode(trackWorld, 4, PathNodeType.End, -1, -1)),
+            };
+        }
+
+        private static PathModel CreateSidingTruncationPassingBranchPath(TrackWorld trackWorld)
+        {
+            return new PathModel
+            {
+                Id = "siding-truncation-path",
+                Name = "Siding Truncation Path",
+                PathNodes = ImmutableArray.Create(
+                    CreateAnchoredNode(trackWorld, 1, PathNodeType.Start, 1, 4),
+                    CreateAnchoredNode(trackWorld, 4, PathNodeType.Via, 2, -1),
+                    CreateAnchoredNode(trackWorld, 6, PathNodeType.Via, 3, -1),
+                    CreateAnchoredNode(trackWorld, 2, PathNodeType.End, -1, -1),
+                    CreateAnchoredNode(trackWorld, 5, PathNodeType.Via, -1, 2)),
+            };
+        }
+
         private static PathModel CreateSupportedPassingBranchPath()
         {
             return new PathModel
@@ -2055,19 +2146,16 @@ namespace Tests.FreeTrainSimulator.Toolbox.PathEditing
             };
         }
 
-        private static PathModel CreateNoncanonicalPassingBranchPath()
+        private static PathModel CreateNoncanonicalLinearPath()
         {
             return new PathModel
             {
-                Id = "noncanonical-passing-path",
-                Name = "Noncanonical Passing Path",
+                Id = "noncanonical-linear-path",
+                Name = "Noncanonical Linear Path",
                 PathNodes = ImmutableArray.Create(
-                    CreateNodeAt(0, PathNodeType.Start, 3),
+                    CreateNodeAt(0, PathNodeType.Start, 2),
                     CreateNodeAt(100, PathNodeType.End, -1),
-                    CreateNodeAt(50, PathNodeType.Via, -1) with { NextSidingNode = 4 },
-                    CreateNodeAt(20, PathNodeType.Via, 4) with { NextSidingNode = 2 },
-                    CreateNodeAt(60, PathNodeType.Via, 5),
-                    CreateNodeAt(80, PathNodeType.Via, 1)),
+                    CreateNodeAt(50, PathNodeType.Via, 1)),
             };
         }
 

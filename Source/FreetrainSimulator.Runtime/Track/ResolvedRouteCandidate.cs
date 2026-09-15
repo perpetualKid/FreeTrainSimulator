@@ -21,10 +21,17 @@ namespace FreeTrainSimulator.Runtime.Track
         /// <summary>Accumulated route search cost of the candidate.</summary>
         public double Cost { get; init; }
 
+        internal ImmutableArray<TrackRouteTraversal> PhysicalTraversals { get; init; }
+
         /// <summary>
         /// Initializes a new instance of the <see cref="ResolvedRouteCandidate"/> record.
         /// </summary>
         public ResolvedRouteCandidate(ImmutableArray<int> routeNodeIndexes, ImmutableArray<int> trackVectorNodeIndexes, ImmutableArray<PathRouteAnchor> generatedIntermediaryAnchors, double cost)
+            : this(routeNodeIndexes, trackVectorNodeIndexes, generatedIntermediaryAnchors, cost, ImmutableArray<TrackRouteTraversal>.Empty)
+        {
+        }
+
+        internal ResolvedRouteCandidate(ImmutableArray<int> routeNodeIndexes, ImmutableArray<int> trackVectorNodeIndexes, ImmutableArray<PathRouteAnchor> generatedIntermediaryAnchors, double cost, ImmutableArray<TrackRouteTraversal> physicalTraversals)
         {
             if (cost < 0)
                 throw new ArgumentOutOfRangeException(nameof(cost), cost, "Route candidate cost must not be negative.");
@@ -33,6 +40,9 @@ namespace FreeTrainSimulator.Runtime.Track
             TrackVectorNodeIndexes = trackVectorNodeIndexes.IsDefault ? ImmutableArray<int>.Empty : trackVectorNodeIndexes;
             GeneratedIntermediaryAnchors = generatedIntermediaryAnchors.IsDefault ? ImmutableArray<PathRouteAnchor>.Empty : generatedIntermediaryAnchors;
             Cost = cost;
+            PhysicalTraversals = physicalTraversals.IsDefault ? ImmutableArray<TrackRouteTraversal>.Empty : physicalTraversals;
         }
     }
+
+    internal readonly record struct TrackRouteTraversal(int FromNodeIndex, int FromConnectorIndex, int ToNodeIndex);
 }

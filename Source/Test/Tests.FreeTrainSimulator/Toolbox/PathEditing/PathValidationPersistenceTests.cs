@@ -163,7 +163,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.PathEditing
         }
 
         [TestMethod]
-        public async Task WhenValidPassingBranchIsSavedThenItRoundTripsWithResolverValidation()
+        public async Task WhenPassingBranchMatchesMainRouteThenSaveIsBlocked()
         {
             RouteModel route = CreateRoute();
             PathModel source = CreateLinearPath("passing-round-trip");
@@ -174,13 +174,9 @@ namespace Tests.FreeTrainSimulator.Toolbox.PathEditing
 
             PathPersistenceValidationResult result = await PathEditor.SaveValidatedPath(branch, route,
                 TrackWorldTestFixture.CreateSingleVectorNodeTrackWorld(), TestContext.CancellationToken).ConfigureAwait(false);
-            PathModelHeader savedHeader = (await route.GetPaths(CancellationToken.None).ConfigureAwait(false)).Single(path => path.Id == branch.Id);
-            PathModel reloaded = await savedHeader.GetExtended(CancellationToken.None).ConfigureAwait(false);
 
-            Assert.IsTrue(result.PersistenceAllowed);
-            Assert.AreEqual(PathValidationState.Valid, reloaded.ValidationState);
-            Assert.IsTrue(reloaded.PathNodes.Any(node => node.NextSidingNode >= 0));
-            Assert.IsTrue(PathRouteResolver.Resolve(reloaded, TrackWorldTestFixture.CreateSingleVectorNodeTrackWorld(), CancellationToken.None).IsValid);
+            Assert.IsFalse(result.PersistenceAllowed);
+            Assert.IsFalse((await route.GetPaths(CancellationToken.None).ConfigureAwait(false)).Any(path => path.Id == branch.Id));
         }
 
         [TestMethod]

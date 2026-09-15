@@ -51,6 +51,38 @@ namespace Tests.FreeTrainSimulator.Toolbox.ViewModels
             }
         }
 
+        [DataTestMethod]
+        [DataRow(false)]
+        [DataRow(true)]
+        public void WhenPassingRejoinPhaseIsAppliedThenCompleteReflectsSelectedNodeCapability(bool canComplete)
+        {
+            TrainPathToolWindow bridge = CreateBridge(action => action());
+            SetBridgeSnapshot(bridge, TrainPathSnapshot.Empty with
+            {
+                PassingBranchPhase = PassingBranchAuthoringPhase.SelectingRejoin,
+                Nodes = [new TrainPathNodeRow(2, PathNodeType.Via, true, 1, 3, -1, null, null)],
+                SelectedNodeIndex = 2,
+                CanCompletePassingBranch = canComplete,
+                CanCancelPassingBranch = true,
+                CanCancelPathInteraction = true,
+                CanMoveSelectedNode = true,
+                CanRemoveSelectedViaPoint = true,
+            });
+            using (ToolWindowRefreshScheduler refreshScheduler = new ToolWindowRefreshScheduler(Dispatcher.CurrentDispatcher))
+            {
+                using (TrainPathToolWindowViewModel viewModel = new TrainPathToolWindowViewModel(bridge, refreshScheduler))
+                {
+                    viewModel.Start();
+
+                    Assert.AreEqual(PassingBranchAuthoringPhase.SelectingRejoin, viewModel.PassingBranchPhase);
+                    Assert.AreEqual(canComplete, viewModel.CompletePassingBranchCommand.CanExecute(null));
+                    Assert.IsTrue(viewModel.CancelPassingBranchCommand.CanExecute(null));
+                    Assert.IsFalse(viewModel.MoveSelectedNodeCommand.CanExecute(null));
+                    Assert.IsFalse(viewModel.RemoveViaPointCommand.CanExecute(null));
+                }
+            }
+        }
+
         [TestMethod]
         public void WhenSaveIsBlockedThenDiagnosticTargetHighlightIsMarshaled()
         {
