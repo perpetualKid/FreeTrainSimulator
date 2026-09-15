@@ -51,7 +51,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.ViewModels
             }
         }
 
-        [DataTestMethod]
+        [TestMethod]
         [DataRow(false)]
         [DataRow(true)]
         public void WhenPassingRejoinPhaseIsAppliedThenCompleteReflectsSelectedNodeCapability(bool canComplete)
