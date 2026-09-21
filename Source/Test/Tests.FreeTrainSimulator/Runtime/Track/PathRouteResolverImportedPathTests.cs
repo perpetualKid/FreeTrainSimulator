@@ -8,7 +8,9 @@ using System.Threading.Tasks;
 using FreeTrainSimulator.Common.Position;
 using FreeTrainSimulator.Models.Content;
 using FreeTrainSimulator.Models.Imported.ImportHandler.TrainSimulator;
+using FreeTrainSimulator.Models.Shim;
 using FreeTrainSimulator.Runtime.Track;
+using FreeTrainSimulator.Toolbox.PathEditing;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.Xna.Framework;
@@ -95,6 +97,44 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
             Assert.IsTrue(result.Diagnostics.Any(diagnostic => diagnostic.Code == PathRouteDiagnosticCode.PassingBranchDoesNotRejoinMain && diagnostic.FromNodeIndex == 0 && diagnostic.ToNodeIndex == 2));
         }
 
+        [TestMethod]
+        public async Task SaveWhenImportedPathHasDisconnectedTerminalNodeRefusesNormalizationAndPreservesNativeModel()
+        {
+            string contentRoot = CreateContentRoot();
+            string routeName = "Route" + Guid.NewGuid().ToString("N");
+            string pathId = "ImportedDisconnected" + Guid.NewGuid().ToString("N");
+            string pathFile = CreatePathFile(contentRoot, routeName, pathId,
+                """
+                        TrPathNode ( 00000000 1 4294967295 0 )
+                        TrPathNode ( 00000000 3 4294967295 1 )
+                        TrPathNode ( 00000000 4294967295 4294967295 2 )
+                        TrPathNode ( 00000000 4294967295 4294967295 3 )
+                """);
+            string sourceContent = File.ReadAllText(pathFile);
+            FolderModel folderModel = new FolderModel("Folder" + Guid.NewGuid().ToString("N"), contentRoot, null);
+            RouteModel routeModel = new RouteModel(new WorldLocation(new Tile(0, 0), Vector3.Zero))
+            {
+                Id = routeName,
+                Name = routeName,
+                Tags = ImmutableDictionary.Create<string, string>().Add(RouteModelImportHandler.SourceNameKey, routeName),
+            };
+            routeModel.Initialize(folderModel);
+            ImmutableArray<PathModelHeader> importedPaths = await PathModelImportHandler.ExpandPathModels(routeModel, TestContext.CancellationToken).ConfigureAwait(false);
+            PathModel importedPath = importedPaths.OfType<PathModel>().Single(path => string.Equals(path.Id, pathId, StringComparison.OrdinalIgnoreCase));
+            ImmutableArray<PathNode> importedNodes = importedPath.PathNodes;
+
+            PathPersistenceValidationResult result = await PathEditor.SaveValidatedPath(importedPath, routeModel, null,
+                TestContext.CancellationToken).ConfigureAwait(false);
+
+            PathModelHeader reloadedHeader = (await routeModel.GetPaths(CancellationToken.None).ConfigureAwait(false)).Single(path => path.Id == pathId);
+            PathModel reloaded = await reloadedHeader.GetExtended(CancellationToken.None).ConfigureAwait(false);
+            Assert.IsFalse(result.PersistenceAllowed);
+            Assert.AreEqual(PathRouteDiagnosticCode.UnreachableNode, result.HighestActionableDiagnostic?.Code);
+            Assert.Contains("Connect the node to the main or passing path, or remove it.", result.FailureMessage);
+            Assert.AreSequenceEqual(importedNodes, reloaded.PathNodes);
+            Assert.AreEqual(sourceContent, File.ReadAllText(pathFile));
+        }
+
         private static string CreateContentRoot()
         {
             string contentRoot = Path.Combine(Path.GetTempPath(), "FreeTrainSimulator", "ImportedPathTests", Guid.NewGuid().ToString("N"));
@@ -102,7 +142,7 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
             return contentRoot;
         }
 
-        private static void CreatePathFile(string contentRoot, string routeName, string pathId, string pathNodes)
+        private static string CreatePathFile(string contentRoot, string routeName, string pathId, string pathNodes)
         {
             string pathsFolder = Path.Combine(contentRoot, "Routes", routeName, "Paths");
             _ = Directory.CreateDirectory(pathsFolder);
@@ -128,6 +168,7 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
                     )
                 )
                 """);
+            return pathFile;
         }
 
         public TestContext TestContext { get; set; }

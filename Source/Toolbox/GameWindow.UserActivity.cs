@@ -50,6 +50,7 @@ namespace FreeTrainSimulator.Toolbox
         // Pointer radius, in screen pixels, used to hit test path nodes on the map surface.
         private const int nodeHitTestRadiusPixels = 10;
         private long pathListRefreshVersion;
+        private long routeContentVersion;
 
         /// <summary>
         /// Raised on the game thread when the user requests the map context menu. The WPF shell re-raises this
@@ -195,8 +196,7 @@ namespace FreeTrainSimulator.Toolbox
             if (!result.Success)
                 Trace.TraceWarning(result.Message);
 
-            if (userCommandArgs != null)
-                userCommandArgs.Handled = true;
+            userCommandArgs?.Handled = true;
         }
 
         // Cancels an in-progress node move, leaving the path unchanged.
@@ -585,10 +585,11 @@ namespace FreeTrainSimulator.Toolbox
 
         internal async Task<bool> TrainPathIdExistsAsync(string pathId)
         {
-            if (string.IsNullOrWhiteSpace(pathId) || selectedRoute == null)
+            RouteModelHeader route = selectedRoute;
+            if (string.IsNullOrWhiteSpace(pathId) || route == null)
                 return false;
 
-            ImmutableArray<PathModelHeader> paths = await selectedRoute.GetRoutePaths(ctsProfileLoading?.Token ?? CancellationToken.None).ConfigureAwait(false);
+            ImmutableArray<PathModelHeader> paths = await route.GetRoutePaths(ctsProfileLoading?.Token ?? CancellationToken.None).ConfigureAwait(false);
             return paths.Any(path => string.Equals(path.Id, pathId, StringComparison.OrdinalIgnoreCase));
         }
 
@@ -615,16 +616,31 @@ namespace FreeTrainSimulator.Toolbox
                 Trace.TraceWarning("Cannot save train path because no route is selected.");
                 return;
             }
+            long saveRouteContentVersion = Interlocked.Read(ref routeContentVersion);
+            PathModel submittedSourceModel = editor.TryCaptureCurrentPathModel();
 
+            PathSaveOperation operation = null;
             try
             {
-                if (!saveRequest.CanSubmit(await TrainPathIdExistsAsync(saveRequest.PathDetails.Id).ConfigureAwait(false)))
+                ImmutableArray<PathModelHeader> routePaths = await route.GetRoutePaths(ctsProfileLoading?.Token ?? CancellationToken.None).ConfigureAwait(false);
+                bool targetPathExists = routePaths.Any(path => string.Equals(path.Id, saveRequest.PathDetails.Id, StringComparison.OrdinalIgnoreCase));
+
+                if (!saveRequest.CanSubmit(targetPathExists))
                 {
                     Trace.TraceInformation($"Save As for train path '{saveRequest.PathDetails.Id}' was not confirmed.");
                     return;
                 }
 
-                PathSaveOperation operation = editor.BeginSave(saveRequest.PathDetails);
+                if (saveRouteContentVersion != Interlocked.Read(ref routeContentVersion)
+                    || !ReferenceEquals(selectedRoute, route)
+                    || !ReferenceEquals(pathEditor, editor)
+                    || !ReferenceEquals(editor.TryCaptureCurrentPathModel(), submittedSourceModel))
+                {
+                    Trace.TraceWarning("Cannot save train path because the active route or path changed before persistence began.");
+                    return;
+                }
+
+                operation = editor.BeginSave(saveRequest.PathDetails);
                 PathPersistenceValidationResult validation = await PathSaveOperationConsumer.ConsumeAsync(editor, operation,
                     InvokeOnGameThreadAsync).ConfigureAwait(false);
 
@@ -633,23 +649,113 @@ namespace FreeTrainSimulator.Toolbox
                     Trace.TraceWarning(validation.FailureMessage);
                     await InvokeOnGameThreadAsync(() =>
                     {
-                        hostedTrainPathToolWindow?.ReportBlockedSave(validation, editor.TryCaptureCurrentPathModel());
+                        hostedTrainPathToolWindow?.ReportBlockedSave(validation, operation.SourceModel);
                         return Task.CompletedTask;
                     }).ConfigureAwait(false);
                     return;
                 }
 
+                bool saveCompletionApplied = false;
                 await InvokeOnGameThreadAsync(() =>
                 {
-                    hostedTrainPathToolWindow?.CompleteSavedPath(operation.SourcePathId, validation.PathModel.Id);
+                    if (ReferenceEquals(pathEditor, editor)
+                        && ReferenceEquals(editor.TryCaptureCurrentPathModel(), validation.PathModel))
+                    {
+                        saveCompletionApplied = hostedTrainPathToolWindow?.CompleteSavedPath(operation.SourcePathId,
+                            validation.PathModel.Id, validation.PathModel, Catalog.GetString("Path saved.")) ?? true;
+                    }
                     return Task.CompletedTask;
                 }).ConfigureAwait(false);
 
+                if (!saveCompletionApplied)
+                    return;
+            }
+            catch (OperationCanceledException ex)
+            {
+                if (PersistenceSucceeded(operation))
+                {
+                    Trace.TraceWarning($"Train path persistence succeeded, but save finalization was canceled: {ex.Message}");
+                    return;
+                }
+
+                Trace.TraceInformation($"Train path save was canceled: {ex.Message}");
+                await ReportTrainPathStatusWarningAsync(editor, saveRequest.SourcePathId, operation?.SourceModel ?? submittedSourceModel,
+                    Catalog.GetString("Path save was canceled. Your changes are still available; try saving again.")).ConfigureAwait(false);
+                return;
+            }
+            catch (InvalidOperationException ex)
+            {
+                if (PersistenceSucceeded(operation))
+                {
+                    Trace.TraceError($"Train path persistence succeeded, but save finalization failed: {ex}");
+                    return;
+                }
+
+                Trace.TraceError($"Failed to save train path: {ex}");
+                await ReportTrainPathStatusWarningAsync(editor, saveRequest.SourcePathId, operation?.SourceModel ?? submittedSourceModel,
+                    Catalog.GetString("The path could not be saved. Your changes are still available; try saving again.")).ConfigureAwait(false);
+                return;
+            }
+            catch (IOException ex)
+            {
+                if (PersistenceSucceeded(operation))
+                {
+                    Trace.TraceError($"Train path persistence succeeded, but save finalization failed: {ex}");
+                    return;
+                }
+
+                Trace.TraceError($"Failed to save train path: {ex}");
+                await ReportTrainPathStatusWarningAsync(editor, saveRequest.SourcePathId, operation?.SourceModel ?? submittedSourceModel,
+                    Catalog.GetString("The path could not be saved. Your changes are still available; try saving again.")).ConfigureAwait(false);
+                return;
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                if (PersistenceSucceeded(operation))
+                {
+                    Trace.TraceError($"Train path persistence succeeded, but save finalization failed: {ex}");
+                    return;
+                }
+
+                Trace.TraceError($"Failed to save train path: {ex}");
+                await ReportTrainPathStatusWarningAsync(editor, saveRequest.SourcePathId, operation?.SourceModel ?? submittedSourceModel,
+                    Catalog.GetString("The path could not be saved because access was denied. Your changes are still available; try saving again.")).ConfigureAwait(false);
+                return;
+            }
+
+            await RefreshPathListAfterSaveAsync(route, saveRouteContentVersion).ConfigureAwait(false);
+        }
+
+        private static bool PersistenceSucceeded(PathSaveOperation operation)
+        {
+            return operation?.PersistenceTask.IsCompletedSuccessfully == true
+                && operation.PersistenceTask.Result.PersistenceAllowed;
+        }
+
+        private Task ReportTrainPathStatusWarningAsync(PathEditor editor, string expectedPathId, PathModel expectedSourceModel, string message)
+        {
+            return InvokeOnGameThreadAsync(() =>
+            {
+                if (ReferenceEquals(pathEditor, editor)
+                    && string.Equals(editor.PathId, expectedPathId, StringComparison.OrdinalIgnoreCase))
+                {
+                    hostedTrainPathToolWindow?.ReportSaveFailure(message, expectedSourceModel);
+                }
+                return Task.CompletedTask;
+            });
+        }
+
+        private async Task RefreshPathListAfterSaveAsync(RouteModelHeader route, long saveRouteContentVersion)
+        {
+            try
+            {
                 long refreshVersion = Interlocked.Increment(ref pathListRefreshVersion);
                 ImmutableArray<PathModelHeader> paths = await route.GetRoutePaths(ctsProfileLoading?.Token ?? CancellationToken.None).ConfigureAwait(false);
                 await InvokeOnGameThreadAsync(() =>
                 {
-                    if (refreshVersion == Interlocked.Read(ref pathListRefreshVersion))
+                    if (refreshVersion == Interlocked.Read(ref pathListRefreshVersion)
+                        && saveRouteContentVersion == Interlocked.Read(ref routeContentVersion)
+                        && ReferenceEquals(selectedRoute, route))
                     {
                         menu.PopulatePaths(paths);
                         hostedTrainPathToolWindow?.UpdatePaths(paths);
@@ -659,19 +765,19 @@ namespace FreeTrainSimulator.Toolbox
             }
             catch (OperationCanceledException ex)
             {
-                Trace.TraceInformation($"Train path save was canceled: {ex.Message}");
+                Trace.TraceInformation($"Train path list refresh was canceled after save: {ex.Message}");
             }
             catch (InvalidOperationException ex)
             {
-                Trace.TraceError($"Failed to save train path: {ex}");
+                Trace.TraceError($"Failed to refresh the train path list after save: {ex}");
             }
             catch (IOException ex)
             {
-                Trace.TraceError($"Failed to save train path: {ex}");
+                Trace.TraceError($"Failed to refresh the train path list after save: {ex}");
             }
             catch (UnauthorizedAccessException ex)
             {
-                Trace.TraceError($"Failed to save train path: {ex}");
+                Trace.TraceError($"Failed to refresh the train path list after save: {ex}");
             }
         }
 

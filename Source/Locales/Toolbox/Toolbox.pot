@@ -240,6 +240,23 @@ msgstr ""
 msgid "Platform Names"
 msgstr ""
 
+#: ..\..\..\Toolbox\GameWindow.UserActivity.cs:683
+msgid "Path save was canceled. Your changes are still available; try saving again."
+msgstr ""
+
+#: ..\..\..\Toolbox\GameWindow.UserActivity.cs:665
+msgid "Path saved."
+msgstr ""
+
+#: ..\..\..\Toolbox\GameWindow.UserActivity.cs:697
+#: ..\..\..\Toolbox\GameWindow.UserActivity.cs:711
+msgid "The path could not be saved. Your changes are still available; try saving again."
+msgstr ""
+
+#: ..\..\..\Toolbox\GameWindow.UserActivity.cs:725
+msgid "The path could not be saved because access was denied. Your changes are still available; try saving again."
+msgstr ""
+
 #: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:327
 msgid "Platforms"
 msgstr ""

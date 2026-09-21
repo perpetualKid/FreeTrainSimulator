@@ -274,6 +274,7 @@ namespace FreeTrainSimulator.Toolbox
 
         internal void UnloadRoute()
         {
+            _ = Interlocked.Increment(ref routeContentVersion);
             ContentArea = null;
             selectedRoute = null;
             menu.ClearPathMenu();

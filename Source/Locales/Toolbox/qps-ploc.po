@@ -242,6 +242,23 @@ msgstr "[Þℓáƭƒôř₥ Çôℓôř !!!]"
 msgid "Platform Names"
 msgstr "[Þℓáƭƒôř₥ Ná₥èƨ !!!]"
 
+#: ..\..\..\Toolbox\GameWindow.UserActivity.cs:683
+msgid "Path save was canceled. Your changes are still available; try saving again."
+msgstr "[Þáƭλ ƨáƲè ωáƨ çáñçèℓèδ. Ýôúř çλáñϱèƨ ářè ƨƭïℓℓ áƲáïℓáβℓè; ƭř¥ ƨáƲïñϱ áϱáïñ. !!!]"
+
+#: ..\..\..\Toolbox\GameWindow.UserActivity.cs:665
+msgid "Path saved."
+msgstr "[Þáƭλ ƨáƲèδ. !!!]"
+
+#: ..\..\..\Toolbox\GameWindow.UserActivity.cs:697
+#: ..\..\..\Toolbox\GameWindow.UserActivity.cs:711
+msgid "The path could not be saved. Your changes are still available; try saving again."
+msgstr "[Tλè ƥáƭλ çôúℓδ ñôƭ βè ƨáƲèδ. Ýôúř çλáñϱèƨ ářè ƨƭïℓℓ áƲáïℓáβℓè; ƭř¥ ƨáƲïñϱ áϱáïñ. !!!]"
+
+#: ..\..\..\Toolbox\GameWindow.UserActivity.cs:725
+msgid "The path could not be saved because access was denied. Your changes are still available; try saving again."
+msgstr "[Tλè ƥáƭλ çôúℓδ ñôƭ βè ƨáƲèδ βèçáúƨè áççèƨƨ ωáƨ δèñïèδ. Ýôúř çλáñϱèƨ ářè ƨƭïℓℓ áƲáïℓáβℓè; ƭř¥ ƨáƲïñϱ áϱáïñ. !!!]"
+
 #: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:327
 msgid "Platforms"
 msgstr "[Þℓáƭƒôř₥ƨ !!!]"

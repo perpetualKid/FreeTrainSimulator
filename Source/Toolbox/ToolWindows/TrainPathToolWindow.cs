@@ -601,15 +601,32 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
             }
         }
 
-        internal void ReportBlockedSave(PathPersistenceValidationResult validation, PathModel sourceModel)
+        internal bool ReportBlockedSave(PathPersistenceValidationResult validation, PathModel sourceModel)
         {
             ArgumentNullException.ThrowIfNull(validation);
             ArgumentNullException.ThrowIfNull(sourceModel);
+
+            if (!ReferenceEquals(pathEditorAccessor()?.TryCaptureCurrentPathModel(), sourceModel))
+                return false;
 
             blockedSaveValidation = validation;
             blockedSaveSourceModel = sourceModel;
             blockedSaveFeedbackVersion++;
             MarkDirty();
+            return true;
+        }
+
+        internal bool ReportSaveFailure(string message, PathModel sourceModel)
+        {
+            ArgumentException.ThrowIfNullOrWhiteSpace(message);
+            ArgumentNullException.ThrowIfNull(sourceModel);
+
+            if (!ReferenceEquals(pathEditorAccessor()?.TryCaptureCurrentPathModel(), sourceModel))
+                return false;
+
+            PublishCommandResult(PathEditorCommandResult.Failed(message, sourceModel));
+            MarkDirty();
+            return true;
         }
 
         private void ClearBlockedSaveFeedback()
@@ -695,7 +712,11 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
                 return false;
 
             ImmutableArray<PathModelHeader> paths = await toolingContext.ValidateAllPaths().ConfigureAwait(false);
-            gameThreadInvoker(() => UpdatePaths(paths));
+            gameThreadInvoker(() =>
+            {
+                if (ReferenceEquals(toolingContextAccessor(), toolingContext))
+                    UpdatePaths(paths);
+            });
             return true;
         }
 
@@ -931,20 +952,28 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
         internal void UpdatePaths(ImmutableArray<PathModelHeader> paths)
         {
             cachedPaths = paths.IsDefault ? ImmutableArray<PathModelHeader>.Empty : paths;
-            foreach (PathModelHeader path in cachedPaths)
-                transientPaths.Remove(path.Id);
             MarkDirty();
         }
 
         /// <summary>Removes transient identities replaced by a successful persisted save.</summary>
-        internal void CompleteSavedPath(string sourcePathId, string savedPathId)
+        internal bool CompleteSavedPath(string sourcePathId, string savedPathId, PathModel savedModel, string successMessage)
         {
+            ArgumentNullException.ThrowIfNull(savedModel);
+            ArgumentException.ThrowIfNullOrWhiteSpace(successMessage);
+
+            if (!ReferenceEquals(pathEditorAccessor()?.TryCaptureCurrentPathModel(), savedModel))
+                return false;
+
             if (!string.IsNullOrWhiteSpace(sourcePathId))
                 transientPaths.Remove(sourcePathId);
+
             if (!string.IsNullOrWhiteSpace(savedPathId))
                 transientPaths.Remove(savedPathId);
+
             ClearBlockedSaveFeedback();
+            PublishCommandResult(PathEditorCommandResult.Succeeded(successMessage, pathEditorAccessor()?.TryCaptureCurrentPathModel()));
             MarkDirty();
+            return true;
         }
 
         // Preserves in-memory edits of the path being left behind, so switching paths does not discard them.

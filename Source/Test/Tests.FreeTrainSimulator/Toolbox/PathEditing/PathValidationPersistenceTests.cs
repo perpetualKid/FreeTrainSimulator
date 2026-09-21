@@ -127,6 +127,28 @@ namespace Tests.FreeTrainSimulator.Toolbox.PathEditing
         }
 
         [TestMethod]
+        public async Task WhenWarningOnlyUnreachableNodeWouldBeOmittedThenSaveIsBlockedAndPersistedContentIsUnchanged()
+        {
+            RouteModel route = CreateRoute();
+            PathModel persisted = CreateLinearPath("disconnected-node-path");
+            _ = await route.Save(persisted, TestContext.CancellationToken).ConfigureAwait(false);
+            PathModel imported = persisted with
+            {
+                Name = "Imported Path With Disconnected Node",
+                PathNodes = persisted.PathNodes.Add(CreatePathNode(50, PathNodeType.Via, -1)),
+            };
+
+            PathPersistenceValidationResult result = await PathEditor.SaveValidatedPath(imported, route, TrackWorldTestFixture.CreateSingleVectorNodeTrackWorld(), TestContext.CancellationToken).ConfigureAwait(false);
+
+            PathModelHeader reloadedHeader = (await route.GetPaths(CancellationToken.None).ConfigureAwait(false)).Single(path => path.Id == persisted.Id);
+            PathModel reloaded = await reloadedHeader.GetExtended(CancellationToken.None).ConfigureAwait(false);
+            Assert.IsFalse(result.PersistenceAllowed);
+            Assert.AreEqual(PathRouteDiagnosticCode.UnreachableNode, result.HighestActionableDiagnostic?.Code);
+            Assert.AreEqual(persisted.Name, reloaded.Name);
+            Assert.AreSequenceEqual(persisted.PathNodes, reloaded.PathNodes);
+        }
+
+        [TestMethod]
         public async Task WhenFatalPathSaveIsBlockedThenNoContentIsPersisted()
         {
             RouteModel route = CreateRoute();

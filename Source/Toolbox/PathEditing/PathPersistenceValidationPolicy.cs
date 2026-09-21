@@ -40,12 +40,22 @@ namespace FreeTrainSimulator.Toolbox.PathEditing
                 .Where(diagnostic => diagnostic.Severity >= PathRouteDiagnosticSeverity.Error)
                 .OrderByDescending(diagnostic => diagnostic.Severity)
                 .FirstOrDefault();
+
             if (blockingDiagnostic != null)
             {
                 PathRouteDiagnostic actionableDiagnostic = HighestActionableDiagnostic(resolution, PathRouteDiagnosticSeverity.Error);
                 string failureMessage = BuildBlockedSaveMessage(blockingDiagnostic, actionableDiagnostic);
                 return new PathPersistenceValidationResult(false, pathModel, resolution, resolution.Diagnostics,
                     default, failureMessage, actionableDiagnostic ?? blockingDiagnostic);
+            }
+
+            PathRouteDiagnostic unreachableNodeDiagnostic = resolution.Diagnostics.FirstOrDefault(diagnostic => diagnostic.Code == PathRouteDiagnosticCode.UnreachableNode);
+            
+            if (unreachableNodeDiagnostic != null)
+            {
+                string failureMessage = BuildBlockedSaveMessage(unreachableNodeDiagnostic, unreachableNodeDiagnostic);
+                return new PathPersistenceValidationResult(false, pathModel, resolution, resolution.Diagnostics,
+                    default, failureMessage, unreachableNodeDiagnostic);
             }
 
             if (resolution.Diagnostics.Any(diagnostic => diagnostic.Code == PathRouteDiagnosticCode.AmbiguousRoute))

@@ -321,6 +321,21 @@ namespace Tests.FreeTrainSimulator.Toolbox.ToolWindows
         }
 
         [TestMethod]
+        public void WhenPathListRefreshContainsTransientPathThenUnsavedModelIsPreserved()
+        {
+            TrainPathToolWindow trainPathToolWindow = CreateTrainPathToolWindow(action => action());
+            Dictionary<string, PathModel> transientPaths = (Dictionary<string, PathModel>)typeof(TrainPathToolWindow)
+                .GetField("transientPaths", BindingFlags.Instance | BindingFlags.NonPublic)
+                .GetValue(trainPathToolWindow);
+            PathModel transientPath = new PathModel { Id = "edited", Name = "Unsaved Name" };
+            transientPaths.Add(transientPath.Id, transientPath);
+
+            trainPathToolWindow.UpdatePaths(ImmutableArray.Create(new PathModelHeader { Id = transientPath.Id, Name = "Persisted Name" }));
+
+            Assert.AreSame(transientPath, transientPaths[transientPath.Id]);
+        }
+
+        [TestMethod]
         public void WhenCurrentPathIsNotSavedThenBuildPathRowsAddsVirtualCurrentPathFirst()
         {
             ImmutableArray<PathModelHeader> savedPaths = ImmutableArray.Create(new PathModelHeader { Id = "saved", Name = "Saved Path", ValidationState = PathValidationState.Valid });
@@ -406,16 +421,22 @@ namespace Tests.FreeTrainSimulator.Toolbox.ToolWindows
         [TestMethod]
         public void WhenTransientNewPathIsSavedThenSourceAndTargetAreNoLongerUnsaved()
         {
-            TrainPathToolWindow trainPathToolWindow = CreateTrainPathToolWindow(action => action());
-            Dictionary<string, PathModel> transientPaths = (Dictionary<string, PathModel>)typeof(TrainPathToolWindow)
-                .GetField("transientPaths", BindingFlags.Instance | BindingFlags.NonPublic)
-                .GetValue(trainPathToolWindow);
-            transientPaths.Add(PathEditor.NewPathId, new PathModel { Id = PathEditor.NewPathId, Name = "New Path" });
-            transientPaths.Add("saved-path", new PathModel { Id = "saved-path", Name = "Saved Path" });
+            PathModel savedModel = CreatePathModel(PathNodeType.Start, PathNodeType.End) with { Id = "saved-path" };
+            using (PathEditor editor = CreatePathEditor(savedModel))
+            {
+                TrainPathToolWindow trainPathToolWindow = new TrainPathToolWindow(() => editor, () => null, action => action(), () => { }, () => { }, _ => { }, () => { }, () => { });
+                Dictionary<string, PathModel> transientPaths = (Dictionary<string, PathModel>)typeof(TrainPathToolWindow)
+                    .GetField("transientPaths", BindingFlags.Instance | BindingFlags.NonPublic)
+                    .GetValue(trainPathToolWindow);
+                transientPaths.Add(PathEditor.NewPathId, new PathModel { Id = PathEditor.NewPathId, Name = "New Path" });
+                transientPaths.Add("saved-path", savedModel);
 
-            trainPathToolWindow.CompleteSavedPath(PathEditor.NewPathId, "saved-path");
+                bool completed = trainPathToolWindow.CompleteSavedPath(PathEditor.NewPathId, "saved-path",
+                    editor.TryCaptureCurrentPathModel(), "Path saved.");
 
-            Assert.IsFalse(trainPathToolWindow.HasUnsavedPathChanges);
+                Assert.IsTrue(completed);
+                Assert.IsEmpty(transientPaths);
+            }
         }
 
         [TestMethod]
@@ -751,6 +772,147 @@ namespace Tests.FreeTrainSimulator.Toolbox.ToolWindows
         }
 
         [TestMethod]
+        public void WhenBlockedSaveSourceIsStaleThenFeedbackIsNotPublished()
+        {
+            PathModel invalidPath = CreatePathModel(PathNodeType.Start | PathNodeType.Junction, PathNodeType.Via, PathNodeType.End);
+            using (PathEditor editor = CreatePathEditor(invalidPath))
+            {
+                PathModel staleSource = editor.TryCaptureCurrentPathModel();
+                PathPersistenceValidationResult validation = PathPersistenceValidationPolicy.ValidateForPersistence(staleSource, CreateInitializedTrackWorld());
+                _ = editor.SetMetadataCommand("Newer Edit", staleSource.Start, staleSource.End, staleSource.PlayerPath);
+                TrainPathToolWindow trainPathToolWindow = new TrainPathToolWindow(() => editor, () => null, action => action(), () => { }, () => { }, _ => { }, () => { }, () => { })
+                {
+                    Active = true,
+                };
+
+                bool published = trainPathToolWindow.ReportBlockedSave(validation, staleSource);
+                trainPathToolWindow.RefreshSnapshot();
+
+                Assert.IsFalse(published);
+                Assert.IsNull(trainPathToolWindow.CaptureTrainPathSnapshot().BlockedSaveMessage);
+            }
+        }
+
+        [TestMethod]
+        public void WhenSaveFailureIsReportedRepeatedlyThenEachWarningIsPublished()
+        {
+            using (PathEditor editor = CreatePathEditor(CreatePathModel(PathNodeType.Start, PathNodeType.End)))
+            {
+                TrainPathToolWindow trainPathToolWindow = new TrainPathToolWindow(() => editor, () => null, action => action(), () => { }, () => { }, _ => { }, () => { }, () => { })
+                {
+                    Active = true,
+                };
+                trainPathToolWindow.RefreshSnapshot();
+                int initialVersion = trainPathToolWindow.CaptureTrainPathSnapshot().CommandResultVersion;
+                PathModel sourceModel = editor.TryCaptureCurrentPathModel();
+
+                trainPathToolWindow.ReportSaveFailure("The path could not be saved. Your changes are still available; try saving again.", sourceModel);
+                trainPathToolWindow.RefreshSnapshot();
+                TrainPathSnapshot firstFailure = trainPathToolWindow.CaptureTrainPathSnapshot();
+                trainPathToolWindow.ReportSaveFailure("The path could not be saved. Your changes are still available; try saving again.", sourceModel);
+                trainPathToolWindow.RefreshSnapshot();
+                TrainPathSnapshot secondFailure = trainPathToolWindow.CaptureTrainPathSnapshot();
+
+                Assert.AreEqual("The path could not be saved. Your changes are still available; try saving again.", secondFailure.CommandResultMessage);
+                Assert.IsTrue(secondFailure.CommandResultIsWarning);
+                Assert.IsGreaterThan(initialVersion, firstFailure.CommandResultVersion);
+                Assert.IsGreaterThan(firstFailure.CommandResultVersion, secondFailure.CommandResultVersion);
+            }
+        }
+
+        [TestMethod]
+        public void WhenSaveFailureSourceIsStaleThenWarningIsNotPublished()
+        {
+            using (PathEditor editor = CreatePathEditor(CreatePathModel(PathNodeType.Start, PathNodeType.End)))
+            {
+                PathModel staleSource = editor.TryCaptureCurrentPathModel();
+                _ = editor.SetMetadataCommand("Newer Edit", staleSource.Start, staleSource.End, staleSource.PlayerPath);
+                TrainPathToolWindow trainPathToolWindow = new TrainPathToolWindow(() => editor, () => null, action => action(), () => { }, () => { }, _ => { }, () => { }, () => { })
+                {
+                    Active = true,
+                };
+                trainPathToolWindow.RefreshSnapshot();
+                int commandVersion = trainPathToolWindow.CaptureTrainPathSnapshot().CommandResultVersion;
+
+                bool published = trainPathToolWindow.ReportSaveFailure("Stale save failure.", staleSource);
+                trainPathToolWindow.RefreshSnapshot();
+
+                TrainPathSnapshot snapshot = trainPathToolWindow.CaptureTrainPathSnapshot();
+                Assert.IsFalse(published);
+                Assert.AreEqual(commandVersion, snapshot.CommandResultVersion);
+                Assert.IsNull(snapshot.CommandResultMessage);
+            }
+        }
+
+        [TestMethod]
+        public async Task WhenValidateAllContextChangesBeforeCompletionThenOldPathsAreNotPublished()
+        {
+            TaskCompletionSource<ImmutableArray<PathModelHeader>> validationCompletion = new(TaskCreationOptions.RunContinuationsAsynchronously);
+            ITrainPathToolingContext currentContext = new TestToolingContext(() => validationCompletion.Task);
+            TrainPathToolWindow trainPathToolWindow = new TrainPathToolWindow(() => null, () => currentContext, action => action(), () => { }, () => { }, _ => { }, () => { }, () => { })
+            {
+                Active = true,
+            };
+
+            Task<bool> validation = trainPathToolWindow.ValidateAllPaths();
+            currentContext = new TestToolingContext(() => Task.FromResult(ImmutableArray<PathModelHeader>.Empty));
+            validationCompletion.SetResult(ImmutableArray.Create(new PathModelHeader { Id = "old-route-path", Name = "Old Route Path" }));
+            _ = await validation.ConfigureAwait(false);
+            trainPathToolWindow.RefreshSnapshot();
+
+            Assert.IsTrue(trainPathToolWindow.CaptureTrainPathSnapshot().Paths.IsEmpty);
+        }
+
+        [TestMethod]
+        public void WhenSaveSucceedsAfterFailureThenSuccessFeedbackReplacesTheWarning()
+        {
+            using (PathEditor editor = CreatePathEditor(CreatePathModel(PathNodeType.Start, PathNodeType.End)))
+            {
+                TrainPathToolWindow trainPathToolWindow = new TrainPathToolWindow(() => editor, () => null, action => action(), () => { }, () => { }, _ => { }, () => { }, () => { })
+                {
+                    Active = true,
+                };
+                trainPathToolWindow.ReportSaveFailure("The path could not be saved.", editor.TryCaptureCurrentPathModel());
+                trainPathToolWindow.CompleteSavedPath(editor.PathId, editor.PathId,
+                    editor.TryCaptureCurrentPathModel(), "Path saved.");
+                trainPathToolWindow.RefreshSnapshot();
+
+                TrainPathSnapshot snapshot = trainPathToolWindow.CaptureTrainPathSnapshot();
+                Assert.AreEqual("Path saved.", snapshot.CommandResultMessage);
+                Assert.IsFalse(snapshot.CommandResultIsWarning);
+            }
+        }
+
+        [TestMethod]
+        public void WhenSavedModelIsNoLongerCurrentThenCompletionDoesNotPublishOrRemoveTransientState()
+        {
+            PathModel currentModel = CreatePathModel(PathNodeType.Start, PathNodeType.End) with { Id = "current-path" };
+            PathModel staleSavedModel = currentModel with { Name = "Stale Saved Path" };
+            using (PathEditor editor = CreatePathEditor(currentModel))
+            {
+                TrainPathToolWindow trainPathToolWindow = new TrainPathToolWindow(() => editor, () => null,
+                    action => action(), () => { }, () => { }, _ => { }, () => { }, () => { })
+                {
+                    Active = true,
+                };
+                Dictionary<string, PathModel> transientPaths = (Dictionary<string, PathModel>)typeof(TrainPathToolWindow)
+                    .GetField("transientPaths", BindingFlags.Instance | BindingFlags.NonPublic)
+                    .GetValue(trainPathToolWindow);
+                transientPaths.Add(currentModel.Id, currentModel);
+                trainPathToolWindow.RefreshSnapshot();
+                int commandVersion = trainPathToolWindow.CaptureTrainPathSnapshot().CommandResultVersion;
+
+                bool completed = trainPathToolWindow.CompleteSavedPath(currentModel.Id, currentModel.Id,
+                    staleSavedModel, "Path saved.");
+                trainPathToolWindow.RefreshSnapshot();
+
+                Assert.IsFalse(completed);
+                Assert.IsTrue(trainPathToolWindow.HasUnsavedPathChanges);
+                Assert.AreEqual(commandVersion, trainPathToolWindow.CaptureTrainPathSnapshot().CommandResultVersion);
+            }
+        }
+
+        [TestMethod]
         public void WhenHighlightNodeInvokedWithNullEditorThenMarshaledActionIsSafeNoOp()
         {
             TrainPathToolWindow trainPathToolWindow = CreateTrainPathToolWindow(action => action());
@@ -914,15 +1076,9 @@ namespace Tests.FreeTrainSimulator.Toolbox.ToolWindows
             });
             trainPath.PathPoints.Add(new TestTrainPathPoint(PathNodeType.Start));
 
-            try
-            {
-                trainPath.ConvertToPathModel(new PathModelHeader());
-                Assert.Fail("Expected InvalidOperationException.");
-            }
-            catch (InvalidOperationException exception)
-            {
-                Assert.AreEqual("Invalid path point not on track segment", exception.Message);
-            }
+            InvalidOperationException exception = Assert.Throws<InvalidOperationException>(() => trainPath.ConvertToPathModel(new PathModelHeader()));
+
+            Assert.AreEqual("Invalid path point not on track segment", exception.Message);
         }
 
         private sealed record TestTrainPath : TrainPathBase
@@ -1067,6 +1223,24 @@ namespace Tests.FreeTrainSimulator.Toolbox.ToolWindows
             editor.InitializeNewPath();
             typeof(PathEditor).GetMethod("RestoreSnapshot", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(editor, new object[] { pathModel });
             return editor;
+        }
+
+        private sealed class TestToolingContext : ITrainPathToolingContext
+        {
+            private readonly Func<Task<ImmutableArray<PathModelHeader>>> validateAllPaths;
+
+            public TestToolingContext(Func<Task<ImmutableArray<PathModelHeader>>> validateAllPaths)
+            {
+                this.validateAllPaths = validateAllPaths;
+            }
+
+            public bool UseMetricUnits => true;
+
+            public TrackWorld TrackWorld => null;
+
+            public Task<ImmutableArray<PathModelHeader>> GetPaths() => Task.FromResult(ImmutableArray<PathModelHeader>.Empty);
+
+            public Task<ImmutableArray<PathModelHeader>> ValidateAllPaths() => validateAllPaths();
         }
 
         private sealed class TestPathEditorContext : IPathEditorContext, IPathEditorContextServicesAccessor
