@@ -970,7 +970,8 @@ namespace FreeTrainSimulator.Toolbox.PathEditing
         /// <summary>
         /// Whether the current path can be appended to interactively.
         /// </summary>
-        public bool CanContinuePath => TrainPath != null && !EditMode && !IsMovingNode && !HasPendingRouteCandidateInteraction;
+        public bool CanContinuePath => TrainPath != null && !EditMode && !repairMode && !IsSaveInProgress && !IsMovingNode && !CanCancelPathInteraction
+            && TryGetEditablePathModel() is PathModel currentModel && HasFlag(currentModel, PathNodeType.End);
 
         /// <summary>
         /// Starts resolver-backed interactive appending on the current path. Each click commits one resolved span
@@ -981,6 +982,9 @@ namespace FreeTrainSimulator.Toolbox.PathEditing
             PathModel currentModel = TryGetEditablePathModel();
             if (currentModel == null)
                 return PathEditorCommandResult.Failed("No editable path is currently loaded.", null);
+
+            if (IsSaveInProgress || repairMode)
+                return PathEditorCommandResult.Failed("Cannot continue the current path.", currentModel);
 
             if (!HasFlag(currentModel, PathNodeType.End))
                 return PathEditorCommandResult.Failed("Set an end anchor before extending the path.", currentModel);

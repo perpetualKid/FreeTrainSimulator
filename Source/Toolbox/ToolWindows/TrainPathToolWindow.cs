@@ -114,6 +114,7 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
                     && !snapshot.CanCancelMoveNode
                     && !snapshot.CanCommitMoveNode
                     && !snapshot.CanCancelPathInteraction
+                    && !snapshot.CanContinuePath
                     && !snapshot.CanCommitPlacement;
                 if (snapshotIsPathsOnly && pathsSnapshotVersion == lastSnapshotVersion)
                     return;
@@ -157,6 +158,7 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
             bool canRemoveSelectedViaPoint = pathEditor.CanRemoveViaPoint(selectedNodeIndex);
             bool canCancelNewPath = pathEditor.IsNewPath;
             bool isBuildingRoute = pathEditor.IsBuildingRoute;
+            bool canContinuePath = pathEditor.CanContinuePath;
             bool canFinishPath = isBuildingRoute && pathEditor.CanRemoveEnd;
             bool canBeginPassingBranch = pathEditor.CanBeginPassingBranch(selectedNodeIndex);
             bool canCompletePassingBranch = pathEditor.CanCompletePassingBranch(selectedNodeIndex);
@@ -189,6 +191,7 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
                 && canRemoveSelectedViaPoint == snapshot.CanRemoveSelectedViaPoint
                 && canCancelNewPath == snapshot.CanCancelNewPath
                 && isBuildingRoute == snapshot.IsBuildingRoute
+                && canContinuePath == snapshot.CanContinuePath
                 && canFinishPath == snapshot.CanFinishPath
                 && canBeginPassingBranch == snapshot.CanBeginPassingBranch
                 && canCompletePassingBranch == snapshot.CanCompletePassingBranch
@@ -246,6 +249,7 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
                 CanRemoveSelectedViaPoint = canRemoveSelectedViaPoint,
                 CanCancelNewPath = canCancelNewPath,
                 IsBuildingRoute = isBuildingRoute,
+                CanContinuePath = canContinuePath,
                 CanFinishPath = canFinishPath,
                 CanBeginPassingBranch = canBeginPassingBranch,
                 CanCompletePassingBranch = canCompletePassingBranch,

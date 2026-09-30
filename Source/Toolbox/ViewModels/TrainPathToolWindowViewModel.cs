@@ -36,6 +36,7 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
         private bool canSavePath;
         private bool canCancelNewPath;
         private bool isBuildingRoute;
+        private bool canContinuePath;
         private bool canFinishPath;
         private bool canCancelMoveNode;
         private bool canCommitMoveNode;
@@ -286,7 +287,15 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
             }
         }
 
-        public bool CanContinuePath => !IsRepairMode && CanSavePath && !CanCancelPathInteraction;
+        public bool CanContinuePath
+        {
+            get => canContinuePath;
+            private set
+            {
+                if (SetProperty(ref canContinuePath, value))
+                    ContinuePathCommand.RaiseCanExecuteChanged();
+            }
+        }
 
         public bool CanFinishPath
         {
@@ -549,10 +558,7 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
             private set
             {
                 if (SetProperty(ref canSavePath, value))
-                {
                     SavePathCommand.RaiseCanExecuteChanged();
-                    ContinuePathCommand.RaiseCanExecuteChanged();
-                }
             }
         }
 
@@ -662,6 +668,7 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
             CanSavePath = toolWindow.CanSavePath;
             CanCancelNewPath = snapshot.CanCancelNewPath;
             IsBuildingRoute = snapshot.IsBuildingRoute;
+            CanContinuePath = snapshot.CanContinuePath;
             CanFinishPath = snapshot.CanFinishPath;
             canBeginPassingBranch = snapshot.CanBeginPassingBranch;
             canCompletePassingBranch = snapshot.CanCompletePassingBranch;

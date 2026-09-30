@@ -26,6 +26,29 @@ namespace Tests.FreeTrainSimulator.Toolbox.ViewModels
         }
 
         [TestMethod]
+        public void WhenCleanPathCanContinueThenContinueCommandIsEnabledWithoutSave()
+        {
+            TrainPathToolWindow bridge = CreateBridge(action => action());
+            SetBridgeSnapshot(bridge, TrainPathSnapshot.Empty with { CanContinuePath = true });
+            using (ToolWindowRefreshScheduler refreshScheduler = new ToolWindowRefreshScheduler(Dispatcher.CurrentDispatcher))
+            {
+                using (TrainPathToolWindowViewModel viewModel = new(bridge, refreshScheduler))
+                {
+                    viewModel.Start();
+
+                    Assert.IsTrue(viewModel.ContinuePathCommand.CanExecute(null));
+                    Assert.IsFalse(viewModel.SavePathCommand.CanExecute(null));
+
+                    SetBridgeSnapshot(bridge, TrainPathSnapshot.Empty with { CanCancelPathInteraction = true });
+                    viewModel.Start();
+
+                    Assert.IsFalse(viewModel.ContinuePathCommand.CanExecute(null));
+                    Assert.IsFalse(viewModel.SavePathCommand.CanExecute(null));
+                }
+            }
+        }
+
+        [TestMethod]
         public void WhenPassingBranchCandidatePhaseIsAppliedThenOnlyCancelPhaseActionIsEnabled()
         {
             TrainPathToolWindow bridge = CreateBridge(action => action());

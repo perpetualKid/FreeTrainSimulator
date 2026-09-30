@@ -155,6 +155,9 @@ namespace Tests.FreeTrainSimulator.Toolbox.PathEditing
                 Assert.IsTrue(initialized);
                 Assert.IsTrue(editor.IsRepairMode);
                 Assert.IsNull(editor.TrainPath);
+                Assert.IsFalse(editor.CanContinuePath);
+                Assert.IsFalse(editor.ContinuePathCommand().Success);
+                Assert.IsFalse(editor.IsBuildingRoute);
             }
         }
 
@@ -351,6 +354,44 @@ namespace Tests.FreeTrainSimulator.Toolbox.PathEditing
                 Assert.IsTrue(editor.IsBuildingRoute);
                 Assert.IsFalse(editor.EditMode);
                 Assert.AreSequenceEqual(source.PathNodes, editor.TryCaptureCurrentPathModel().PathNodes);
+            }
+        }
+
+        [TestMethod]
+        public async Task WhenCleanPathIsReopenedThenContinuationDoesNotDirtyItUntilRoutePointIsCommitted()
+        {
+            PathModel source = CreateEditablePath();
+            using (PathEditor editor = new(new TestPathEditorContext(TrackWorldTestFixture.CreateSingleVectorNodeTrackWorld())))
+            {
+                Assert.IsTrue(await editor.InitializePathAsync(source, CancellationToken.None).ConfigureAwait(false));
+                Assert.IsFalse(editor.HasUnsavedChanges);
+                Assert.IsTrue(editor.CanContinuePath);
+
+                Assert.IsTrue(editor.ContinuePathCommand().Success);
+                Assert.IsFalse(editor.CanContinuePath);
+                Assert.IsFalse(editor.HasUnsavedChanges);
+                Assert.IsTrue(editor.CancelPlacement());
+                Assert.IsTrue(editor.CanContinuePath);
+                Assert.IsFalse(editor.HasUnsavedChanges);
+
+                Assert.IsTrue(editor.ContinuePathCommand().Success);
+                PathEditResult preview = InvokeAddRoutePoint(source, CreateNodeAt(200, PathNodeType.None, -1));
+                SetPrivateField(editor, "movePreviewModel", preview.PathModel);
+
+                Assert.IsTrue(editor.CommitPlacement().Success);
+                Assert.IsTrue(editor.HasUnsavedChanges);
+            }
+        }
+
+        [TestMethod]
+        public void WhenPathHasNoEndAnchorThenContinuationIsUnavailable()
+        {
+            using (PathEditor editor = CreateEditor(CreateEditablePath() with
+            {
+                PathNodes = ImmutableArray.Create(CreateNodeAt(0, PathNodeType.Start, -1)),
+            }))
+            {
+                Assert.IsFalse(editor.CanContinuePath);
             }
         }
 
@@ -1867,6 +1908,31 @@ namespace Tests.FreeTrainSimulator.Toolbox.PathEditing
                 _ = await PathSaveOperationConsumer.ConsumeAsync(editor, first, action => action()).ConfigureAwait(false);
 
                 Assert.IsFalse(editor.IsSaveInProgress);
+            }
+        }
+
+        [TestMethod]
+        public async Task WhenCleanLoadedPathIsSavingThenContinuationIsUnavailableUntilSaveEnds()
+        {
+            PathModel source = CreateEditablePath();
+            using (PathEditor editor = new(new TestPathEditorContext(TrackWorldTestFixture.CreateSingleVectorNodeTrackWorld())))
+            {
+                Assert.IsTrue(await editor.InitializePathAsync(source, CancellationToken.None).ConfigureAwait(false));
+                Assert.IsTrue(editor.CanContinuePath);
+
+                TaskCompletionSource<PathPersistenceValidationResult> persistence = new(TaskCreationOptions.RunContinuationsAsynchronously);
+                PathSaveOperation save = CreatePendingSaveOperation(editor, source, persistence.Task);
+
+                Assert.IsTrue(editor.IsSaveInProgress);
+                Assert.IsFalse(editor.CanContinuePath);
+                Assert.IsFalse(editor.ContinuePathCommand().Success);
+                Assert.IsFalse(editor.IsBuildingRoute);
+
+                persistence.SetResult(new PathPersistenceValidationResult(true, source, null, default, default, null, null));
+                _ = await PathSaveOperationConsumer.ConsumeAsync(editor, save, action => action()).ConfigureAwait(false);
+
+                Assert.IsFalse(editor.IsSaveInProgress);
+                Assert.IsTrue(editor.CanContinuePath);
             }
         }
 

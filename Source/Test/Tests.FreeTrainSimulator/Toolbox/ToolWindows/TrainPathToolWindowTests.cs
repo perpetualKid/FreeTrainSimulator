@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Threading;
 using System.Threading.Tasks;
 
 using FreeTrainSimulator.Common;
@@ -231,6 +232,35 @@ namespace Tests.FreeTrainSimulator.Toolbox.ToolWindows
                     () => { }, () => { }, _ => { }, () => { }, () => { });
 
                 Assert.IsFalse(trainPathToolWindow.CanSavePath);
+            }
+        }
+
+        [TestMethod]
+        public async Task WhenCleanPathIsReopenedThenSnapshotAllowsContinueWhileSaveRemainsDisabled()
+        {
+            PathModel source = CreatePathModel(PathNodeType.Start, PathNodeType.End);
+            using (PathEditor editor = new(new TestPathEditorContext(CreateInitializedTrackWorld())))
+            {
+                Assert.IsTrue(await editor.InitializePathAsync(source, CancellationToken.None).ConfigureAwait(false));
+                TrainPathToolWindow trainPathToolWindow = new(() => editor, () => null, action => action(),
+                    () => { }, () => { }, _ => { }, () => { }, () => { }) { Active = true };
+
+                trainPathToolWindow.RefreshSnapshot();
+                Assert.IsTrue(trainPathToolWindow.CaptureTrainPathSnapshot().CanContinuePath);
+                Assert.IsFalse(trainPathToolWindow.CanSavePath);
+
+                trainPathToolWindow.ContinuePath();
+                trainPathToolWindow.RefreshSnapshot();
+                Assert.IsFalse(trainPathToolWindow.CaptureTrainPathSnapshot().CanContinuePath);
+                Assert.IsFalse(trainPathToolWindow.CanSavePath);
+
+                Assert.IsTrue(editor.CancelPlacement());
+                trainPathToolWindow.RefreshSnapshot();
+                Assert.IsTrue(trainPathToolWindow.CaptureTrainPathSnapshot().CanContinuePath);
+                Assert.IsFalse(trainPathToolWindow.CanSavePath);
+
+                trainPathToolWindow.SetMetadata("Updated Name", source.Start, source.End, source.PlayerPath);
+                Assert.IsTrue(trainPathToolWindow.CanSavePath);
             }
         }
 

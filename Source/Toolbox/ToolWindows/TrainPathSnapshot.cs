@@ -97,6 +97,9 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
         /// <summary>Whether progressive route building is active.</summary>
         public bool IsBuildingRoute { get; init; }
 
+        /// <summary>Whether the current path can begin resolver-backed continuation.</summary>
+        public bool CanContinuePath { get; init; }
+
         /// <summary>Whether route building can finish at its last committed point.</summary>
         public bool CanFinishPath { get; init; }
 
@@ -146,6 +149,7 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
             CanRepairSelectedNode = false,
             CanRemoveSelectedViaPoint = false,
             CanBeginPassingBranch = false,
+            CanContinuePath = false,
             CanCompletePassingBranch = false,
             CanCancelPassingBranch = false,
             CanRemovePassingBranch = false,
