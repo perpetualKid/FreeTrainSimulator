@@ -74,6 +74,9 @@ namespace FreeTrainSimulator.Toolbox
             MapHost.ExitRequested += MapHost_ExitRequested;
             MapHost.LanguageChanged += MapHost_LanguageChanged;
             MapHost.MapContextMenuRequested += MapHost_MapContextMenuRequested;
+            MapHost.ToolWindowShortcutRequested += MapHost_ToolWindowShortcutRequested;
+            shortcutInputManager.PreProcessInput += InputManager_PreProcessInput;
+            shortcutApplication?.Deactivated += ShortcutApplication_Deactivated;
             DockingManager.ActiveContentChanged += DockingManager_ActiveContentChanged;
         }
 
@@ -175,6 +178,7 @@ namespace FreeTrainSimulator.Toolbox
 
             anchorable.FloatingWidth = size.Width;
             anchorable.FloatingHeight = size.Height;
+            Views.ToolWindow.ApplyDefaultAutoHideSize(anchorable);
         }
 
         private void HookToolWindowAnchorables()
@@ -542,7 +546,10 @@ namespace FreeTrainSimulator.Toolbox
         {
             LayoutAnchorable existing = FindToolWindowAnchorable(descriptor.ContentId);
             if (existing is not null)
+            {
+                Views.ToolWindow.ApplyDefaultAutoHideSize(existing);
                 return existing;
+            }
 
             LayoutAnchorable template = descriptor.TemplateAnchorable();
             if (template is null || DockingManager.Layout?.RootPanel is null)
@@ -694,6 +701,10 @@ namespace FreeTrainSimulator.Toolbox
         {
             byte[] layoutBytes = Encoding.UTF8.GetBytes(layoutJson);
             using MemoryStream stream = new MemoryStream(layoutBytes, writable: false);
+            // Retire the old flyout before layout replacement detaches its manager and title template.
+            if (DockingManager.AutoHideWindow?.Model is LayoutAnchorable { IsAutoHidden: true } openFlyout)
+                openFlyout.HideAnchorable(false);
+
             JsonLayoutSerializer serializer = new JsonLayoutSerializer(DockingManager);
             serializer.Deserialize(stream);
         }
@@ -796,6 +807,8 @@ namespace FreeTrainSimulator.Toolbox
                 return;
 
             isShuttingDown = true;
+
+            UnsubscribeToolWindowShortcuts();
 
             Loaded -= MainWindow_Loaded;
             Activated -= MainWindow_Activated;
@@ -930,6 +943,7 @@ namespace FreeTrainSimulator.Toolbox
 
             if (disposing)
             {
+                UnsubscribeToolWindowShortcuts();
                 MapHost.LanguageChanged -= MapHost_LanguageChanged;
                 refreshScheduler?.Dispose();
             }

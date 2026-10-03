@@ -1,6 +1,8 @@
 using System;
 using System.Windows;
 
+using AvalonDock.Layout;
+
 namespace FreeTrainSimulator.Toolbox.Views
 {
     /// <summary>
@@ -32,6 +34,27 @@ namespace FreeTrainSimulator.Toolbox.Views
         {
             ArgumentNullException.ThrowIfNull(element);
             element.SetValue(DefaultFloatingSizeProperty, value);
+        }
+
+        /// <summary>
+        /// Initializes missing auto-hide dimensions from the view's default size without replacing user sizes.
+        /// </summary>
+        public static void ApplyDefaultAutoHideSize(LayoutAnchorable anchorable)
+        {
+            ArgumentNullException.ThrowIfNull(anchorable);
+            if (anchorable.Content is not FrameworkElement view)
+                return;
+
+            Size size = GetDefaultFloatingSize(view);
+            if (size.IsEmpty)
+                return;
+
+            if ((!double.IsFinite(anchorable.AutoHideWidth) || anchorable.AutoHideWidth <= 0)
+                && double.IsFinite(size.Width) && size.Width > 0)
+                anchorable.AutoHideWidth = size.Width;
+            if ((!double.IsFinite(anchorable.AutoHideHeight) || anchorable.AutoHideHeight <= 0)
+                && double.IsFinite(size.Height) && size.Height > 0)
+                anchorable.AutoHideHeight = size.Height;
         }
     }
 }

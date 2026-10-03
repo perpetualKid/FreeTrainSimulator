@@ -76,6 +76,11 @@ namespace FreeTrainSimulator.Toolbox.Hosting
         internal event EventHandler ExitRequested;
 
         /// <summary>
+        /// Raised asynchronously on the WPF UI thread for a native map tool-window shortcut.
+        /// </summary>
+        internal event EventHandler<ToolWindowShortcutRequestedEventArgs> ToolWindowShortcutRequested;
+
+        /// <summary>
         /// Raised on the WPF UI thread when the hosted game's active language/catalog changes, so the shell
         /// can re-localize its own chrome and dialogs against the shared gettext catalog.
         /// </summary>
@@ -159,6 +164,9 @@ namespace FreeTrainSimulator.Toolbox.Hosting
         // the dispatcher until the game window (and therefore its menu bridge) is available.
         private void PublishHostedBridges()
         {
+            if (disposed)
+                return;
+
             GameWindow game = gameWindow;
             HostedToolboxServices services = game?.HostedServices;
             if (services?.Menu == null)
@@ -184,6 +192,8 @@ namespace FreeTrainSimulator.Toolbox.Hosting
             game.LanguageChanged += Game_LanguageChanged;
             game.MapContextMenuRequested -= Game_MapContextMenuRequested;
             game.MapContextMenuRequested += Game_MapContextMenuRequested;
+            game.ToolWindowShortcutRequested -= Game_ToolWindowShortcutRequested;
+            game.ToolWindowShortcutRequested += Game_ToolWindowShortcutRequested;
             HostedToolWindowsReady?.Invoke(this, EventArgs.Empty);
 
             // The hosted game already loaded its language during construction (before the shell subscribed), so
@@ -195,6 +205,18 @@ namespace FreeTrainSimulator.Toolbox.Hosting
         {
             Dispatcher.BeginInvoke(DispatcherPriority.Normal,
                 new Action(() => UnsavedPathConfirmationRequested?.Invoke(this, e)));
+        }
+
+        private void Game_ToolWindowShortcutRequested(object sender, ToolWindowShortcutRequestedEventArgs e)
+        {
+            if (disposed || Dispatcher.HasShutdownStarted || Dispatcher.HasShutdownFinished)
+                return;
+
+            Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() =>
+            {
+                if (!disposed)
+                    ToolWindowShortcutRequested?.Invoke(this, e);
+            }));
         }
 
         private void AttachHostedWindow()
@@ -453,7 +475,11 @@ namespace FreeTrainSimulator.Toolbox.Hosting
             // using-block in GameThreadStart disposes it on that thread once Run() returns. Disposing
             // here races with the live loop and tears down the GraphicsDevice/Platform mid-Tick, causing
             // a NullReferenceException inside MonoGame's Game.Tick().
-            game?.InvokeOnGameThread(game.Exit);
+            if (game != null)
+            {
+                game.ToolWindowShortcutRequested -= Game_ToolWindowShortcutRequested;
+                game.InvokeOnGameThread(game.Exit);
+            }
 
             // Wait for the game thread to finish its loop and dispose the GameWindow on its owning thread.
             if (gameThread != null && gameThread.IsAlive)

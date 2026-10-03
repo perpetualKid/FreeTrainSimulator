@@ -138,6 +138,24 @@ namespace FreeTrainSimulator.Toolbox
 
         private HostedToolboxServices hostedServices;
 
+        /// <summary>
+        /// Raised on the game thread for a tool-window shortcut while the native map owns keyboard focus.
+        /// </summary>
+        internal event EventHandler<ToolWindowShortcutRequestedEventArgs> ToolWindowShortcutRequested;
+
+        private Microsoft.Xna.Framework.Input.KeyboardState previousShortcutKeyboardState;
+
+        private void RequestToolWindowShortcut(UserCommand command)
+        {
+            // Pointer activation can leave map polling enabled while WPF owns the keyboard. Only the
+            // native window's actual focus grants this adapter permission to request a shell command.
+            if (windowForm.IsDisposed || !windowForm.Focused
+                || !ToolWindowShortcutRouter.IsNewPress(command, Microsoft.Xna.Framework.Input.Keyboard.GetState(), previousShortcutKeyboardState))
+                return;
+
+            ToolWindowShortcutRequested?.Invoke(this, new ToolWindowShortcutRequestedEventArgs(command));
+        }
+
         public GameWindow()
         {
             ImmutableArray<string> options = Environment.GetCommandLineArgs().Where(a => a.StartsWith('-') || a.StartsWith('/')).Select(a => a[1..]).ToImmutableArray();
@@ -835,6 +853,14 @@ namespace FreeTrainSimulator.Toolbox
             userCommandController.AddEvent(UserCommand.PrintScreen, KeyEventType.KeyPressed, PrintScreen);
             userCommandController.AddEvent(UserCommand.ChangeScreenMode, KeyEventType.KeyPressed, ChangeScreenMode);
             userCommandController.AddEvent(UserCommand.QuitWindow, KeyEventType.KeyPressed, CloseWindow);
+            userCommandController.AddEvent(UserCommand.DisplayHelpWindow, KeyEventType.KeyPressed,
+                () => RequestToolWindowShortcut(UserCommand.DisplayHelpWindow));
+            userCommandController.AddEvent(UserCommand.DisplaySettingsWindow, KeyEventType.KeyPressed,
+                () => RequestToolWindowShortcut(UserCommand.DisplaySettingsWindow));
+            userCommandController.AddEvent(UserCommand.DisplayLogWindow, KeyEventType.KeyPressed,
+                () => RequestToolWindowShortcut(UserCommand.DisplayLogWindow));
+            userCommandController.AddEvent(UserCommand.DisplayTrainPathWindow, KeyEventType.KeyPressed,
+                () => RequestToolWindowShortcut(UserCommand.DisplayTrainPathWindow));
             userCommandController.AddEvent(UserCommand.MoveLeft, KeyEventType.KeyDown, MoveByKeyLeft);
             userCommandController.AddEvent(UserCommand.MoveRight, KeyEventType.KeyDown, MoveByKeyRight);
             userCommandController.AddEvent(UserCommand.MoveUp, KeyEventType.KeyDown, MoveByKeyUp);
@@ -945,6 +971,7 @@ namespace FreeTrainSimulator.Toolbox
                 suppressCount = 10;
             }
             base.Update(gameTime);
+            previousShortcutKeyboardState = Microsoft.Xna.Framework.Input.Keyboard.GetState();
         }
 
         public bool InputCaptured { get; internal set; }
