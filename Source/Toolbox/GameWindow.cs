@@ -398,17 +398,6 @@ namespace FreeTrainSimulator.Toolbox
             // map viewport bounds and drawable overlays (inset, overlays, etc.) recompute to the new size
             // without resetting the user's zoom/position state.
             onClientSizeChanged?.Invoke();
-
-            // Keep top-left world position anchored on hosted resize. Default viewport resize behavior centers
-            // around the current center point; here we re-apply a compensating pan so the old top-left world
-            // coordinate remains at screen origin when size changes.
-            if (sizeChanged && contentArea is IMapHostControl hostControl && previousClientWidth > 0 && previousClientHeight > 0)
-            {
-                PointD previousTopLeft = hostControl.CenterPoint + new PointD(-previousClientWidth / (2d * hostControl.Scale), previousClientHeight / (2d * hostControl.Scale));
-                PointD newTopLeft = hostControl.CenterPoint + new PointD(-clientSize.Width / (2d * hostControl.Scale), clientSize.Height / (2d * hostControl.Scale));
-                Vector2 compensate = new Vector2((float)((newTopLeft.X - previousTopLeft.X) * hostControl.Scale), (float)((previousTopLeft.Y - newTopLeft.Y) * hostControl.Scale));
-                hostControl.UpdatePosition(compensate);
-            }
         }
 
         // Marshals a command coming from the WPF UI thread onto the game (windowForm) thread, where all

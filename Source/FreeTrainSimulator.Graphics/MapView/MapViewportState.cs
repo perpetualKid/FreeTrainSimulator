@@ -51,6 +51,7 @@ namespace FreeTrainSimulator.Graphics.MapView
 
         public void UpdateWindowSize(in MapViewportSize windowSize)
         {
+            int previousHeight = WindowSize.Height;
             WindowSize = windowSize;
 
             if (Scale <= 0 || !double.IsFinite(Scale) ||
@@ -58,7 +59,9 @@ namespace FreeTrainSimulator.Graphics.MapView
                 !double.IsFinite(BottomRightBound.X) || !double.IsFinite(BottomRightBound.Y))
                 return;
 
-            CenterAround(CenterPoint);
+            // Screen Y is measured from the top, while the world offset is measured from the bottom.
+            offsetY -= ((double)windowSize.Height - previousHeight) / Scale;
+            SetBounds();
         }
 
         public void ResetSize(in MapViewportSize windowSize, int screenDelta)
