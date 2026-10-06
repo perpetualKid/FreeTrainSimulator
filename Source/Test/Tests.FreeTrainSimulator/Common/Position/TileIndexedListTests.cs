@@ -99,9 +99,9 @@ namespace Tests.FreeTrainSimulator.Common.Position
             List<TestPoint> all = list.ToList();
 
             Assert.HasCount(3, all);
-            CollectionAssert.Contains(all, p10a);
-            CollectionAssert.Contains(all, p10b);
-            CollectionAssert.Contains(all, p20);
+            Assert.Contains(p10a, all);
+            Assert.Contains(p10b, all);
+            Assert.Contains(p20, all);
         }
 
         // Items in the same tile are yielded consecutively before items in later tiles
@@ -170,7 +170,7 @@ namespace Tests.FreeTrainSimulator.Common.Position
 
             Assert.HasCount(1, list);
             Assert.AreEqual(1, list.ItemCount);
-            Assert.AreEqual(1, list[new Tile(1, 0)].Count());
+            Assert.HasCount(1, list[new Tile(1, 0)]);
         }
 
         // A vector spanning two tiles appears in both tiles; ItemCount counts the source item once
@@ -183,8 +183,8 @@ namespace Tests.FreeTrainSimulator.Common.Position
 
             Assert.HasCount(2, list);    // two distinct tiles indexed
             Assert.AreEqual(1, list.ItemCount); // one source item
-            Assert.AreEqual(1, list[new Tile(1, 0)].Count());
-            Assert.AreEqual(1, list[new Tile(2, 0)].Count());
+            Assert.HasCount(1, list[new Tile(1, 0)]);
+            Assert.HasCount(1, list[new Tile(2, 0)]);
         }
 
         // A diagonal vector spanning a 3×3 tile bounding box is indexed only in its start and end tiles;
@@ -199,9 +199,9 @@ namespace Tests.FreeTrainSimulator.Common.Position
 
             Assert.HasCount(2, list);           // only start and end tiles are indexed
             Assert.AreEqual(1, list.ItemCount); // one source item
-            Assert.AreEqual(1, list[new Tile(1, 0)].Count()); // start tile indexed
-            Assert.AreEqual(1, list[new Tile(3, 2)].Count()); // end tile indexed
-            Assert.AreEqual(0, list[new Tile(2, 1)].Count()); // geometrically crossed tile is not indexed
+            Assert.HasCount(1, list[new Tile(1, 0)]); // start tile indexed
+            Assert.HasCount(1, list[new Tile(3, 2)]); // end tile indexed
+            Assert.IsEmpty(list[new Tile(2, 1)]); // geometrically crossed tile is not indexed
         }
 
         // BoundingBox throws ArgumentOutOfRangeException when bottomLeft is greater than topRight
@@ -220,7 +220,7 @@ namespace Tests.FreeTrainSimulator.Common.Position
         {
             TileIndexedList<TestPoint> list = new TileIndexedList<TestPoint>([]);
 
-            Assert.AreEqual(0, list.BoundingBox(new Tile(0, 0), new Tile(5, 5)).Count());
+            Assert.IsEmpty(list.BoundingBox(new Tile(0, 0), new Tile(5, 5)));
         }
 
         // BoundingBox with tileRadius=0 returns only the items on the exact center tile
@@ -250,9 +250,9 @@ namespace Tests.FreeTrainSimulator.Common.Position
             List<TestPoint> result = list.BoundingBox(new Tile(2, 0), 1).ToList();
 
             Assert.HasCount(3, result);
-            CollectionAssert.Contains(result, p10);
-            CollectionAssert.Contains(result, p20);
-            CollectionAssert.Contains(result, p30);
+            Assert.Contains(p10, result);
+            Assert.Contains(p20, result);
+            Assert.Contains(p30, result);
         }
 
         // BoundingBox returns all items within the explicit tile rectangle
@@ -269,10 +269,10 @@ namespace Tests.FreeTrainSimulator.Common.Position
             List<TestPoint> result = list.BoundingBox(new Tile(1, 0), new Tile(2, 1)).ToList();
 
             Assert.HasCount(4, result);
-            CollectionAssert.Contains(result, p10);
-            CollectionAssert.Contains(result, p20);
-            CollectionAssert.Contains(result, p11);
-            CollectionAssert.Contains(result, p21);
+            Assert.Contains(p10, result);
+            Assert.Contains(p20, result);
+            Assert.Contains(p11, result);
+            Assert.Contains(p21, result);
         }
 
         // BoundingBox skips tiles whose Z is below the bottom edge of the bounding box
@@ -289,8 +289,8 @@ namespace Tests.FreeTrainSimulator.Common.Position
             List<TestPoint> result = list.BoundingBox(new Tile(1, 1), new Tile(2, 1)).ToList();
 
             Assert.HasCount(2, result);
-            CollectionAssert.Contains(result, p11);
-            CollectionAssert.Contains(result, p21);
+            Assert.Contains(p11, result);
+            Assert.Contains(p21, result);
         }
 
         // BoundingBox with a range that falls entirely in a gap between occupied tiles returns empty
@@ -318,7 +318,7 @@ namespace Tests.FreeTrainSimulator.Common.Position
             // Query position is inside Tile(1,0)
             IEnumerable<TestPoint> result = list.FindNearest(new PointD(2048, 0));
 
-            CollectionAssert.Contains(result.ToList(), p10);
+            Assert.Contains(p10, result.ToList());
         }
 
         // FindNearest returns items from the geometrically nearest tile when the query position is not on any occupied tile
@@ -332,7 +332,7 @@ namespace Tests.FreeTrainSimulator.Common.Position
             // Position at (5000, 0) in Tile(2,0): distance² to Tile(1,0) center = 8714304, to Tile(3,0) center = 1308736
             IEnumerable<TestPoint> result = list.FindNearest(new PointD(5000, 0));
 
-            CollectionAssert.Contains(result.ToList(), p30);
+            Assert.Contains(p30, result.ToList());
         }
 
         // FindNearest with bounds restricts the nearest-tile search to the given tile rectangle
@@ -346,7 +346,7 @@ namespace Tests.FreeTrainSimulator.Common.Position
             // Position in Tile(2,0) (unoccupied). Bounds Tile(3,0)–Tile(5,0) exclude Tile(1,0).
             IEnumerable<TestPoint> result = list.FindNearest(new PointD(4096, 0), new Tile(3, 0), new Tile(5, 0));
 
-            CollectionAssert.Contains(result.ToList(), p30);
+            Assert.Contains(p30, result.ToList());
         }
     }
 }

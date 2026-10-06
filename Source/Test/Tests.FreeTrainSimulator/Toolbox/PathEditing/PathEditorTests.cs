@@ -414,6 +414,91 @@ namespace Tests.FreeTrainSimulator.Toolbox.PathEditing
         }
 
         [TestMethod]
+        public async Task WhenPointerIsPressedAfterCanceledBuildRoutePanThenDragLatchClearsWithoutChangingCommittedState()
+        {
+            PathModel source = CreateEditablePath();
+            UserCommandController<global::FreeTrainSimulator.Toolbox.UserCommand> commandController = new();
+            using (PathEditor editor = new(new TestPathEditorContext(TrackWorldTestFixture.CreateSingleVectorNodeTrackWorld()), commandController,
+                action => action(), commit => Task.FromResult(commit())))
+            {
+                Assert.IsTrue(await editor.InitializePathAsync(source, CancellationToken.None).ConfigureAwait(false));
+                Assert.IsTrue(editor.ContinuePathCommand().Success);
+                PathEditResult preview = InvokeAddRoutePoint(source, CreateNodeAt(200, PathNodeType.None, -1));
+                SetPrivateField(editor, "movePreviewModel", preview.PathModel);
+                PathModel committedModel = editor.TryCaptureCurrentPathModel();
+                TriggerPointerCommand(commandController, CommonUserCommand.PointerPressed, new PointerCommandArgs());
+                TriggerPointerCommand(commandController, CommonUserCommand.PointerDragged, new PointerCommandArgs());
+                Assert.IsTrue((bool)typeof(PathEditor).GetField("editorDragged", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(editor));
+
+                TriggerPointerCommand(commandController, CommonUserCommand.PointerPressed, new PointerCommandArgs());
+
+                Assert.IsFalse((bool)typeof(PathEditor).GetField("editorDragged", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(editor));
+                Assert.AreSame(committedModel, editor.TryCaptureCurrentPathModel());
+                Assert.IsFalse(editor.HasUnsavedChanges);
+                Assert.IsFalse(editor.CanUndo);
+                Assert.IsFalse(editor.CanRedo);
+                Assert.IsTrue(editor.IsBuildingRoute);
+                Assert.AreSame(preview.PathModel, typeof(PathEditor).GetField("movePreviewModel", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(editor));
+            }
+        }
+
+        [TestMethod]
+        public async Task WhenClickFollowsCanceledBuildRoutePanThenPreviewIsCommittedExactlyOnceAndBuildSessionRemainsActive()
+        {
+            PathModel source = CreateEditablePath();
+            UserCommandController<global::FreeTrainSimulator.Toolbox.UserCommand> commandController = new();
+            using (PathEditor editor = new(new TestPathEditorContext(TrackWorldTestFixture.CreateSingleVectorNodeTrackWorld()), commandController,
+                action => action(), commit => Task.FromResult(commit())))
+            {
+                Assert.IsTrue(await editor.InitializePathAsync(source, CancellationToken.None).ConfigureAwait(false));
+                Assert.IsTrue(editor.ContinuePathCommand().Success);
+                PathEditResult preview = InvokeAddRoutePoint(source, CreateNodeAt(200, PathNodeType.None, -1));
+                SetPrivateField(editor, "movePreviewModel", preview.PathModel);
+                TriggerPointerCommand(commandController, CommonUserCommand.PointerPressed, new PointerCommandArgs());
+                TriggerPointerCommand(commandController, CommonUserCommand.PointerDragged, new PointerCommandArgs());
+                TriggerPointerCommand(commandController, CommonUserCommand.PointerPressed, new PointerCommandArgs());
+                UserCommandArgs release = new PointerCommandArgs();
+
+                TriggerPointerCommand(commandController, CommonUserCommand.PointerReleased, release);
+
+                Assert.IsTrue(release.Handled);
+                Assert.AreSequenceEqual(preview.PathModel.PathNodes, editor.TryCaptureCurrentPathModel().PathNodes);
+                Assert.HasCount(3, editor.TryCaptureCurrentPathModel().PathNodes);
+                Assert.IsTrue(editor.HasUnsavedChanges);
+                Assert.IsTrue(editor.IsBuildingRoute);
+                Assert.IsTrue(editor.CanUndo);
+                Assert.IsFalse(editor.CanRedo);
+                Assert.IsTrue(editor.Undo());
+                Assert.AreSequenceEqual(source.PathNodes, editor.TryCaptureCurrentPathModel().PathNodes);
+                Assert.IsFalse(editor.CanUndo);
+                Assert.IsTrue(editor.CanRedo);
+            }
+        }
+
+        [TestMethod]
+        [DataRow(CommonUserCommand.PointerPressed, true)]
+        [DataRow(CommonUserCommand.PointerReleased, true)]
+        [DataRow(CommonUserCommand.PointerDragged, false)]
+        public void WhenInteractiveEditorIsDisposedThenPointerHandlerIsRemoved(CommonUserCommand command, bool dragged)
+        {
+            UserCommandController<global::FreeTrainSimulator.Toolbox.UserCommand> commandController = new();
+            using (PathEditor editor = new(new TestPathEditorContext(TrackWorldTestFixture.CreateSingleVectorNodeTrackWorld()), commandController,
+                action => action(), commit => Task.FromResult(commit())))
+            {
+                editor.InitializeNewPath();
+                SetPrivateField(editor, "editorDragged", true);
+                TriggerPointerCommand(commandController, CommonUserCommand.PointerPressed, new PointerCommandArgs());
+                Assert.IsFalse((bool)typeof(PathEditor).GetField("editorDragged", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(editor));
+                editor.Dispose();
+                SetPrivateField(editor, "editorDragged", dragged);
+
+                TriggerPointerCommand(commandController, command, new PointerCommandArgs());
+
+                Assert.AreEqual(dragged, (bool)typeof(PathEditor).GetField("editorDragged", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(editor));
+            }
+        }
+
+        [TestMethod]
         public void WhenRoutePointIsCommittedThenBuildRouteRemainsActive()
         {
             PathModel source = CreateEditablePath();
@@ -2537,6 +2622,16 @@ namespace Tests.FreeTrainSimulator.Toolbox.PathEditing
         private static void SetPrivateField(PathEditor editor, string fieldName, object value)
         {
             typeof(PathEditor).GetField(fieldName, BindingFlags.Instance | BindingFlags.NonPublic).SetValue(editor, value);
+        }
+
+        private static void TriggerPointerCommand(UserCommandController<global::FreeTrainSimulator.Toolbox.UserCommand> commandController,
+            CommonUserCommand command, UserCommandArgs commandArgs)
+        {
+            MethodInfo trigger = typeof(UserCommandController<global::FreeTrainSimulator.Toolbox.UserCommand>)
+                .GetMethods(BindingFlags.Instance | BindingFlags.NonPublic)
+                .Single(method => method.Name == "Trigger"
+                    && method.GetParameters()[0].ParameterType == typeof(CommonUserCommand));
+            trigger.Invoke(commandController, new object[] { command, commandArgs, new GameTime(), KeyModifiers.None });
         }
 
         private static PathSaveOperation CreatePendingSaveOperation(PathEditor editor, PathModel sourceModel,

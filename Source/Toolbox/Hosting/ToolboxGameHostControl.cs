@@ -1,12 +1,15 @@
 using System;
 using System.Drawing;
+using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Windows.Forms.Integration;
+using System.Windows.Interop;
 using System.Windows.Threading;
 
 using FreeTrainSimulator.Common.Native;
+using FreeTrainSimulator.Common.Position;
 using FreeTrainSimulator.Models.Content;
 using FreeTrainSimulator.Toolbox.PathEditing;
 using FreeTrainSimulator.Toolbox.Settings;
@@ -21,8 +24,12 @@ namespace FreeTrainSimulator.Toolbox.Hosting
         private Thread gameThread;
         private GameWindow gameWindow;
         private bool hostedWindowAttached;
+        private bool hostedWindowAttaching;
         private IntPtr hostPanelHandle;
         private bool disposed;
+        private bool geometryMeasurementPending;
+        private HostedViewportGeometry? queuedGeometry;
+        private System.Windows.Window mainWindow;
 
         /// <summary>
         /// Grouped hosted-mode bridge set published by the hosted game window. Null until available.
@@ -102,20 +109,55 @@ namespace FreeTrainSimulator.Toolbox.Hosting
             };
 
             Child = hostPanel;
-            Loaded += ToolboxGameHostControl_Loaded;
-            SizeChanged += ToolboxGameHostControl_SizeChanged;
+            Loaded += HostGeometryChanged;
+            SizeChanged += HostGeometryChanged;
+            LayoutUpdated += HostGeometryChanged;
+            hostPanel.ClientSizeChanged += HostGeometryChanged;
 
             StartHostedGame();
         }
 
-        private void ToolboxGameHostControl_Loaded(object sender, System.Windows.RoutedEventArgs e)
+        private void HostGeometryChanged(object sender, EventArgs e)
         {
-            ApplyHostedSize();
+            QueueHostedGeometryMeasurement();
         }
 
-        private void ToolboxGameHostControl_SizeChanged(object sender, System.Windows.SizeChangedEventArgs e)
+        protected override void OnWindowPositionChanged(System.Windows.Rect rcBoundingBox)
         {
-            ApplyHostedSize();
+            base.OnWindowPositionChanged(rcBoundingBox);
+            QueueHostedGeometryMeasurement();
+        }
+
+        private void QueueHostedGeometryMeasurement()
+        {
+            if (disposed || hostPanel == null || !IsLoaded || geometryMeasurementPending
+                || Dispatcher.HasShutdownStarted || Dispatcher.HasShutdownFinished)
+                return;
+
+            geometryMeasurementPending = true;
+            Dispatcher.BeginInvoke(DispatcherPriority.Loaded, new Action(MeasureHostedGeometry));
+        }
+
+        private void ObserveMainWindow()
+        {
+            System.Windows.Window window = System.Windows.Application.Current?.MainWindow;
+            if (mainWindow == window)
+                return;
+
+            if (mainWindow != null)
+            {
+                mainWindow.LocationChanged -= HostGeometryChanged;
+                mainWindow.SizeChanged -= HostGeometryChanged;
+                mainWindow.StateChanged -= HostGeometryChanged;
+            }
+
+            mainWindow = window;
+            if (mainWindow != null)
+            {
+                mainWindow.LocationChanged += HostGeometryChanged;
+                mainWindow.SizeChanged += HostGeometryChanged;
+                mainWindow.StateChanged += HostGeometryChanged;
+            }
         }
 
         private void StartHostedGame()
@@ -221,34 +263,40 @@ namespace FreeTrainSimulator.Toolbox.Hosting
 
         private void AttachHostedWindow()
         {
-            if (hostPanel.IsDisposed || hostedWindowAttached)
+            if (disposed || !IsLoaded || hostPanel.IsDisposed || !hostPanel.IsHandleCreated
+                || hostedWindowAttached || hostedWindowAttaching)
                 return;
+
             GameWindow game = gameWindow;
+            
             if (game == null)
-            {
-                Dispatcher.BeginInvoke(DispatcherPriority.Background, new Action(AttachHostedWindow));
                 return;
+
+            hostedWindowAttaching = true;
+            try
+            {
+                IntPtr windowHandle = game.HostedWindowHandle;
+                if (windowHandle == IntPtr.Zero)
+                    return;
+
+                // Cache the host panel handle so the game thread can reparent the child window without touching
+                // the WinForms Control across threads.
+                hostPanelHandle = hostPanel.Handle;
+
+                // SetParent is a cross-thread operation (the parent is owned by the WPF UI thread), so it must
+                // only run here, at initial attach, while the WPF thread is pumping messages. It is never called
+                // again on resize.
+                NativeMethods.SetParent(windowHandle, hostPanelHandle);
+                ConfigureChildWindow(windowHandle, hostPanel.ClientSize.Width, hostPanel.ClientSize.Height);
+
+                hostedWindowAttached = true;
+            }
+            finally
+            {
+                hostedWindowAttaching = false;
             }
 
-            IntPtr windowHandle = game.HostedWindowHandle;
-            if (windowHandle == IntPtr.Zero || hostPanel.Handle == IntPtr.Zero)
-            {
-                Dispatcher.BeginInvoke(DispatcherPriority.Background, new Action(AttachHostedWindow));
-                return;
-            }
-
-            // Cache the host panel handle so the game thread can reparent the child window without touching
-            // the WinForms Control across threads.
-            hostPanelHandle = hostPanel.Handle;
-
-            // SetParent is a cross-thread operation (the parent is owned by the WPF UI thread), so it must
-            // only run here, at initial attach, while the WPF thread is pumping messages. It is never called
-            // again on resize.
-            NativeMethods.SetParent(windowHandle, hostPanelHandle);
-            ConfigureChildWindow(windowHandle, hostPanel.ClientSize.Width, hostPanel.ClientSize.Height);
-
-            hostedWindowAttached = true;
-            ApplyHostedSize();
+            QueueHostedGeometryMeasurement();
         }
 
         // Invoked on the game thread (the child window's owning thread) right after a hosted resize applies.
@@ -280,29 +328,63 @@ namespace FreeTrainSimulator.Toolbox.Hosting
                 NativeMethods.SwpNoZOrder | NativeMethods.SwpNoActivate | NativeMethods.SwpFrameChanged);
         }
 
-        private void ApplyHostedSize()
+        private void MeasureHostedGeometry()
         {
-            if (disposed)
+            geometryMeasurementPending = false;
+            if (disposed || !IsLoaded || hostPanel.IsDisposed || !hostPanel.IsHandleCreated)
+                return;
+
+            ObserveMainWindow();
+
+            if (mainWindow == null || mainWindow.WindowState == System.Windows.WindowState.Minimized || !IsVisible)
                 return;
 
             if (!hostedWindowAttached)
             {
                 AttachHostedWindow();
-                return;
+                if (!hostedWindowAttached)
+                    return;
             }
 
             GameWindow game = gameWindow;
             if (game == null)
                 return;
 
-            int width = Math.Max(1, hostPanel.ClientSize.Width);
-            int height = Math.Max(1, hostPanel.ClientSize.Height);
+            Size clientSize = hostPanel.ClientSize;
+            if (clientSize.Width <= 0 || clientSize.Height <= 0)
+                return;
 
-            // ApplyHostedClientSize marshals the resize to the game thread and, after ApplyChanges,
-            // reattaches the child window in-thread via ReattachHostedWindow. The WPF thread must not
-            // manipulate the game-thread-owned window itself.
-            game.ApplyHostedClientSize(new Size(width, height));
+            IntPtr mainWindowHandle = new WindowInteropHelper(mainWindow).Handle;
+            if (mainWindowHandle == IntPtr.Zero || !GetWindowRect(mainWindowHandle, out NativeWindowRectangle bounds)
+                || bounds.Right <= bounds.Left || bounds.Bottom <= bounds.Top)
+                return;
+
+            // Measure both ends in native screen coordinates, never WPF device-independent layout units.
+            Point origin = hostPanel.PointToScreen(Point.Empty);
+            PointD windowCenter = new PointD(((double)bounds.Left + bounds.Right) / 2, ((double)bounds.Top + bounds.Bottom) / 2);
+            HostedViewportGeometry geometry = new HostedViewportGeometry(clientSize, origin, windowCenter);
+            if (queuedGeometry == geometry)
+                return;
+
+            queuedGeometry = geometry;
+            game.ApplyHostedViewportGeometry(geometry);
         }
+
+        [StructLayout(LayoutKind.Sequential)]
+        private struct NativeWindowRectangle
+        {
+            public int Left;
+            public int Top;
+            public int Right;
+            public int Bottom;
+        }
+
+#pragma warning disable SYSLIB1054 // Keep the small native measurement local to the host.
+        [DllImport("user32.dll", ExactSpelling = true, SetLastError = true)]
+        [DefaultDllImportSearchPaths(DllImportSearchPath.System32)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        private static extern bool GetWindowRect(IntPtr windowHandle, out NativeWindowRectangle rectangle);
+#pragma warning restore SYSLIB1054
 
         private void FocusHostedWindow()
         {
@@ -467,6 +549,18 @@ namespace FreeTrainSimulator.Toolbox.Hosting
                 return;
 
             disposed = true;
+
+            Loaded -= HostGeometryChanged;
+            SizeChanged -= HostGeometryChanged;
+            LayoutUpdated -= HostGeometryChanged;
+            hostPanel.ClientSizeChanged -= HostGeometryChanged;
+            if (mainWindow != null)
+            {
+                mainWindow.LocationChanged -= HostGeometryChanged;
+                mainWindow.SizeChanged -= HostGeometryChanged;
+                mainWindow.StateChanged -= HostGeometryChanged;
+                mainWindow = null;
+            }
 
             GameWindow game = gameWindow;
             // Signal the game loop (running on its own STA thread) to exit. Marshal Exit onto the game

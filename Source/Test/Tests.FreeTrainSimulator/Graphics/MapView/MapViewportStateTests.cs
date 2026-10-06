@@ -1,3 +1,5 @@
+using System;
+
 using FreeTrainSimulator.Common.Position;
 using FreeTrainSimulator.Graphics.MapView;
 
@@ -150,6 +152,54 @@ namespace Tests.FreeTrainSimulator.Graphics.MapView
 
             Assert.AreEqual((screenPosition, true),
                 (controller.WorldToScreenCoordinates(new PointD(120, 240)), controller.ConsumeRedrawRequested()));
+        }
+
+        [TestMethod]
+        public void WhenResizedViewportPansThenContentMovesOnlyByTheRequestedPixelDelta()
+        {
+            MapViewportState viewport = new(new MapViewportBounds(-1000, -1000, 1000, 1000));
+            viewport.ResetSize(new MapViewportSize(800, 600), 0);
+            viewport.PresetPosition(new PointD(100, 200), 1.3);
+            PointD worldPoint = new(120, 240);
+            viewport.UpdateWindowSize(new MapViewportSize(1040, 840));
+            PointD original = viewport.WorldToScreenCoordinates(worldPoint);
+
+            viewport.UpdatePosition(20, -35);
+
+            PointD actual = viewport.WorldToScreenCoordinates(worldPoint);
+            double error = Math.Max(Math.Abs(actual.X - (original.X + 20)), Math.Abs(actual.Y - (original.Y - 35)));
+            Assert.AreEqual(0, error, 1e-8);
+        }
+
+        [TestMethod]
+        public void WhenResizedViewportZoomsAtThePointerThenItsWorldPointRemainsUnderThePointer()
+        {
+            MapViewportState viewport = CreateViewport();
+            viewport.PresetPosition(new PointD(100, 200), 1.3);
+            viewport.UpdateWindowSize(new MapViewportSize(1040, 840));
+            PointD pointerWorldPoint = viewport.ScreenToWorldCoordinates(150, 250);
+
+            viewport.UpdateScaleAt(150, 250, 1, 100);
+
+            PointD actual = viewport.WorldToScreenCoordinates(pointerWorldPoint);
+            double error = Math.Max(Math.Abs(actual.X - 150), Math.Abs(actual.Y - 250));
+            Assert.AreEqual(0, error, 1e-8);
+        }
+
+        [TestMethod]
+        public void WhenZoomedViewportResizesThenWorldContentKeepsItsScreenPosition()
+        {
+            MapViewportState viewport = CreateViewport();
+            viewport.PresetPosition(new PointD(100, 200), 1.3);
+            viewport.UpdateScaleAt(150, 250, 1, 100);
+            PointD worldPoint = new(120, 240);
+            PointD original = viewport.WorldToScreenCoordinates(worldPoint);
+
+            viewport.UpdateWindowSize(new MapViewportSize(1040, 840));
+
+            PointD actual = viewport.WorldToScreenCoordinates(worldPoint);
+            double error = Math.Max(Math.Abs(actual.X - original.X), Math.Abs(actual.Y - original.Y));
+            Assert.AreEqual(0, error, 1e-8);
         }
 
         private static MapViewportState CreateViewport()

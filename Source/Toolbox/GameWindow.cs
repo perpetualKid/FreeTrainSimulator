@@ -55,12 +55,17 @@ namespace FreeTrainSimulator.Toolbox
         private ContentArea contentArea;
         private int suppressCount;
         private Action<string> hostedTitleUpdateCallback;
+        private HostedViewportGeometry? appliedHostedGeometry;
+        private ContentArea hostedGeometryContent;
+        private readonly HostedPointerGestureState hostedPointerGesture = new HostedPointerGestureState();
 
         internal ContentArea ContentArea
         {
             get => contentArea;
             set => windowForm.Invoke((System.Windows.Forms.MethodInvoker)delegate
             {
+                hostedPointerGesture.Reset();
+                pointerDraggedSinceLeftPress = false;
                 if (contentArea != null)
                 {
                     contentArea.Enabled = false;
@@ -198,6 +203,9 @@ namespace FreeTrainSimulator.Toolbox
             SetScreenMode(currentScreenMode);
 
             windowForm.ClientSizeChanged += WindowForm_ClientSizeChanged;
+            windowForm.MouseDown += WindowForm_MouseDown;
+            windowForm.MouseUp += WindowForm_MouseUp;
+            windowForm.MouseCaptureChanged += WindowForm_MouseCaptureChanged;
 
             // using reflection to be able to trigger ClientSizeChanged event manually as this is not 
             // reliably raised otherwise with the resize functionality below in SetScreenMode
@@ -251,11 +259,10 @@ namespace FreeTrainSimulator.Toolbox
         #region window size/position handling
         private void WindowForm_ClientSizeChanged(object sender, EventArgs e)
         {
-            if (syncing)
+            if (syncing || hostedReattachCallback != null)
                 return;
 
-            // The WPF host drives sizing of the embedded child window.
-            ApplyHostedClientSize(windowForm.ClientSize);
+            ApplyClientSize(windowForm.ClientSize);
         }
 
         internal IntPtr HostedWindowHandle
@@ -354,7 +361,52 @@ namespace FreeTrainSimulator.Toolbox
         /// </summary>
         internal RouteNavigationToolWindow HostedRouteNavigationToolWindow => hostedRouteNavigationToolWindow;
 
-        internal void ApplyHostedClientSize(System.Drawing.Size clientSize)
+        /// <summary>
+        /// Applies a complete native host measurement while preserving placement relative to the primary shell center.
+        /// </summary>
+        internal void ApplyHostedViewportGeometry(HostedViewportGeometry geometry)
+        {
+            if (geometry.ClientSize.Width <= 0 || geometry.ClientSize.Height <= 0)
+                return;
+
+            InvokeOnGameThread(() =>
+            {
+                if (appliedHostedGeometry == geometry)
+                    return;
+
+                ContentArea map = contentArea;
+                bool initialized = IsHostedMapInitialized(map);
+                double scale = initialized ? map.Scale : 0;
+                PointD center = initialized ? map.CenterPoint : default;
+                bool preserveCenter = initialized && ReferenceEquals(hostedGeometryContent, map)
+                    && appliedHostedGeometry.HasValue;
+                PointD desiredCenter = preserveCenter
+                    ? geometry.PreserveWindowCenter(appliedHostedGeometry.Value, center, scale)
+                    : center;
+
+                if (!appliedHostedGeometry.HasValue || appliedHostedGeometry.Value.ClientSize != geometry.ClientSize)
+                    ApplyClientSize(geometry.ClientSize);
+
+                // Apply the hosted placement once, after native resize notifications, using pre-resize state.
+                if (preserveCenter && ReferenceEquals(contentArea, map))
+                {
+                    map.SetTrackingPosition(desiredCenter);
+                    ((IPathEditorContext)map.Content).RequestRedraw();
+                }
+
+                appliedHostedGeometry = geometry;
+                hostedGeometryContent = IsHostedMapInitialized(contentArea) ? contentArea : null;
+            });
+        }
+
+        private static bool IsHostedMapInitialized(ContentArea map)
+        {
+            return map != null && map.WindowSize.X > 0 && map.WindowSize.Y > 0
+                && map.Scale > 0 && double.IsFinite(map.Scale)
+                && double.IsFinite(map.CenterPoint.X) && double.IsFinite(map.CenterPoint.Y);
+        }
+
+        private void ApplyClientSize(System.Drawing.Size clientSize)
         {
             if (clientSize.Width <= 0 || clientSize.Height <= 0)
                 return;
@@ -363,7 +415,7 @@ namespace FreeTrainSimulator.Toolbox
             {
                 windowForm.BeginInvoke((System.Windows.Forms.MethodInvoker)delegate
                 {
-                    ApplyHostedClientSize(clientSize);
+                    ApplyClientSize(clientSize);
                 });
                 return;
             }
@@ -578,26 +630,57 @@ namespace FreeTrainSimulator.Toolbox
         // Without this the map stays input-captured after startup until the user clicks it once, and it never
         // reactivates while a tool window holds focus. Evaluate the cursor position on the game thread instead.
         //
-        // Mouse and keyboard are gated separately on purpose: hovering the map always enables mouse input
-        // (hover readouts, wheel zoom, drag pan) even while a tool window holds keyboard focus, because that is
-        // never disruptive. Keyboard input is only handed to the map when no tool window is being typed into.
-        private void UpdatePointerActivation()
+        // Mouse and keyboard are gated separately: hovering enables mouse input unless a left/right
+        // gesture originated outside the native map. Keyboard activation still respects tool-window focus.
+        private void UpdatePointerActivation(MouseButtons buttons)
         {
             if (windowForm == null || windowForm.IsDisposed)
+            {
+                hostedPointerGesture.Reset();
+                PointerInputCaptured = true;
                 return;
+            }
 
-            bool pointerOverMap = FreeTrainSimulator.Common.Native.NativeMethods.IsForegroundWindowOwnedByCurrentProcess()
+            bool foregroundOwned = FreeTrainSimulator.Common.Native.NativeMethods.IsForegroundWindowOwnedByCurrentProcess();
+            if (!foregroundOwned)
+                hostedPointerGesture.Reset();
+
+            bool pointerOverMap = foregroundOwned
                 && windowForm.RectangleToScreen(windowForm.ClientRectangle).Contains(Cursor.Position);
 
-            // Mouse follows the pointer unconditionally; when the pointer leaves the map the shell's own
-            // capture rules apply again.
-            if (pointerOverMap)
+            // Keep foreign gestures captured through their release frame so placement and move
+            // subscribers cannot mistake the release for a map click.
+            if (hostedPointerGesture.BeginPolling(buttons) || !foregroundOwned)
+            {
+                PointerInputCaptured = true;
+                pointerDraggedSinceLeftPress = false;
+            }
+            else if (pointerOverMap)
                 PointerInputCaptured = false;
             else if (InputCaptured)
                 PointerInputCaptured = true;
 
             if (pointerOverMap && !pointerActivationSuppressed)
                 InputCaptured = false;
+        }
+
+        private void WindowForm_MouseDown(object sender, MouseEventArgs e)
+        {
+            if (windowForm.ClientRectangle.Contains(e.Location))
+                hostedPointerGesture.RecordNativePress(e.Button);
+        }
+
+        private void WindowForm_MouseUp(object sender, MouseEventArgs e)
+        {
+            hostedPointerGesture.RecordNativeRelease(e.Button);
+        }
+
+        private void WindowForm_MouseCaptureChanged(object sender, EventArgs e)
+        {
+            // WinForms normally releases native capture on MouseUp, before the next polling frame.
+            // Only capture loss with a button still held invalidates the pending map gesture.
+            if (!windowForm.Capture && (Control.MouseButtons & (MouseButtons.Left | MouseButtons.Right)) != MouseButtons.None)
+                hostedPointerGesture.Reset();
         }
 
         internal void UpdateColorPreference(ColorSetting setting, string colorName)
@@ -949,7 +1032,8 @@ namespace FreeTrainSimulator.Toolbox
 
         protected override void Update(GameTime gameTime)
         {
-            UpdatePointerActivation();
+            MouseButtons buttons = Control.MouseButtons;
+            UpdatePointerActivation(buttons);
 
             if ((contentArea?.SuppressDrawing ?? false) && windowManager.SuppressDrawing && suppressCount-- > 0)
             {
@@ -960,6 +1044,7 @@ namespace FreeTrainSimulator.Toolbox
                 suppressCount = 10;
             }
             base.Update(gameTime);
+            hostedPointerGesture.CompletePolling(buttons);
             previousShortcutKeyboardState = Microsoft.Xna.Framework.Input.Keyboard.GetState();
         }
 
@@ -983,6 +1068,12 @@ namespace FreeTrainSimulator.Toolbox
 
         private void GameWindow_OnContentAreaChanged(object sender, ContentAreaChangedEventArgs e)
         {
+            // A freshly initialized route starts at the current geometry, never at an old route's center.
+            hostedGeometryContent = IsHostedMapInitialized(e.ContentArea) && appliedHostedGeometry.HasValue
+                && e.ContentArea.WindowSize.X == appliedHostedGeometry.Value.ClientSize.Width
+                && e.ContentArea.WindowSize.Y == appliedHostedGeometry.Value.ClientSize.Height
+                ? e.ContentArea : null;
+
             hostedLocationToolWindow?.UpdateLocationContext(e.LocationContext);
             hostedTrainPathToolWindow?.InvalidatePaths();
             hostedStatusBarToolWindow?.UpdateContexts(e.LocationContext, e.TrackNodeInfoContext, e.TrackItemInfoContext);

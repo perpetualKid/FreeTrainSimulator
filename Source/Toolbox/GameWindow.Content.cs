@@ -77,6 +77,13 @@ namespace FreeTrainSimulator.Toolbox
 
         protected override void Dispose(bool disposing)
         {
+            hostedPointerGesture.Reset();
+            if (windowForm != null)
+            {
+                windowForm.MouseDown -= WindowForm_MouseDown;
+                windowForm.MouseUp -= WindowForm_MouseUp;
+                windowForm.MouseCaptureChanged -= WindowForm_MouseCaptureChanged;
+            }
             loadRouteSemaphore?.Dispose();
             ctsProfileLoading?.Dispose();
             ctsRouteLoading?.Dispose();

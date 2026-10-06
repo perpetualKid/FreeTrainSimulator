@@ -23,6 +23,8 @@ namespace FreeTrainSimulator.Toolbox.PathEditing
         internal const string NewPathId = "<New Path>";
 
         private readonly UserCommandController<UserCommand> userCommandController;
+        private readonly Action<UserCommandArgs, Microsoft.Xna.Framework.GameTime, KeyModifiers> pointerReleaseHandler;
+        private readonly Action<UserCommandArgs, Microsoft.Xna.Framework.GameTime, KeyModifiers> pointerDragHandler;
         private readonly Action<Action> interactivePreviewDispatcher;
         private readonly Func<Func<bool>, Task<bool>> pathLoadCommitDispatcher;
         private readonly Stack<PathModel> undoHistory = new Stack<PathModel>();
@@ -168,16 +170,21 @@ namespace FreeTrainSimulator.Toolbox.PathEditing
             this.userCommandController = userCommandController;
             this.interactivePreviewDispatcher = interactivePreviewDispatcher ?? throw new ArgumentNullException(nameof(interactivePreviewDispatcher));
             this.pathLoadCommitDispatcher = pathLoadCommitDispatcher ?? throw new ArgumentNullException(nameof(pathLoadCommitDispatcher));
-            userCommandController.AddEvent(CommonUserCommand.PointerReleased, MouseReleasedLeft);
-            userCommandController.AddEvent(CommonUserCommand.PointerDragged, MouseDragged);
+            // Retain the exact controller delegates so disposal removes them rather than newly compiled adapters.
+            pointerReleaseHandler = (args, _, modifiers) => MouseReleasedLeft(args, modifiers);
+            pointerDragHandler = (args, _, modifiers) => MouseDragged(args, modifiers);
+            userCommandController.AddEvent(CommonUserCommand.PointerPressed, MousePressedLeft);
+            userCommandController.AddEvent(CommonUserCommand.PointerReleased, pointerReleaseHandler);
+            userCommandController.AddEvent(CommonUserCommand.PointerDragged, pointerDragHandler);
         }
 
         protected override void Dispose(bool disposing)
         {
             _ = Interlocked.Increment(ref pathLoadGeneration);
             CancelInteractivePreview();
-            userCommandController?.RemoveEvent(CommonUserCommand.PointerReleased, MouseReleasedLeft);
-            userCommandController?.RemoveEvent(CommonUserCommand.PointerDragged, MouseDragged);
+            userCommandController?.RemoveEvent(CommonUserCommand.PointerPressed, MousePressedLeft);
+            userCommandController?.RemoveEvent(CommonUserCommand.PointerReleased, pointerReleaseHandler);
+            userCommandController?.RemoveEvent(CommonUserCommand.PointerDragged, pointerDragHandler);
 
             base.Dispose(disposing);
         }
@@ -2287,6 +2294,11 @@ namespace FreeTrainSimulator.Toolbox.PathEditing
                 Trace.TraceInformation($"Validated {revalidatedCount} path(s) for route '{routeModel.Id}'; {invalidCount} invalid.");
 
             return invalidCount;
+        }
+
+        private void MousePressedLeft(UserCommandArgs userCommandArgs, Microsoft.Xna.Framework.GameTime gameTime, KeyModifiers keyModifiers)
+        {
+            editorDragged = false;
         }
 
         public void MouseDragged(UserCommandArgs userCommandArgs, KeyModifiers keyModifiers)
