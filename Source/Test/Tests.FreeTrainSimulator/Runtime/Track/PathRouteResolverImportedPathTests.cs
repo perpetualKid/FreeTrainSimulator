@@ -110,7 +110,7 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
                         TrPathNode ( 00000000 4294967295 4294967295 2 )
                         TrPathNode ( 00000000 4294967295 4294967295 3 )
                 """);
-            string sourceContent = File.ReadAllText(pathFile);
+            string sourceContent = await File.ReadAllTextAsync(pathFile, CancellationToken.None).ConfigureAwait(false);
             FolderModel folderModel = new FolderModel("Folder" + Guid.NewGuid().ToString("N"), contentRoot, null);
             RouteModel routeModel = new RouteModel(new WorldLocation(new Tile(0, 0), Vector3.Zero))
             {
@@ -132,7 +132,7 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
             Assert.AreEqual(PathRouteDiagnosticCode.UnreachableNode, result.HighestActionableDiagnostic?.Code);
             Assert.Contains("Connect the node to the main or passing path, or remove it.", result.FailureMessage);
             Assert.AreSequenceEqual(importedNodes, reloaded.PathNodes);
-            Assert.AreEqual(sourceContent, File.ReadAllText(pathFile));
+            Assert.AreEqual(sourceContent, await File.ReadAllTextAsync(pathFile, CancellationToken.None).ConfigureAwait(false));
         }
 
         private static string CreateContentRoot()

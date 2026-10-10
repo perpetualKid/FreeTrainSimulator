@@ -9,6 +9,15 @@ namespace Tests.FreeTrainSimulator.Toolbox.Hosting
     [TestClass]
     public class HostedPointerGestureStateTests
     {
+        private static readonly bool[] expectedtruetruetruefalse = new[] { true, true, true, false };
+        private static readonly bool[] expectedtruetruetrue = new[] { true, true, true };
+        private static readonly bool[] expectedfalsefalsefalsefalse = new[] { false, false, false, false };
+        private static readonly bool[] expectedfalsetruetrue = new[] { false, true, true };
+        private static readonly bool[] expectedfalsefalse = new[] { false, false };
+        private static readonly bool[] expectedfalsetruetruefalsefalse = new[] { false, true, true, false, false };
+        private static readonly bool[] expectedfalsefalsefalse = new[] { false, false, false };
+        private static readonly bool[] expectedfalsetrue = new[] { false, true };
+
         [TestMethod]
         [DataRow(MouseButtons.Left)]
         [DataRow(MouseButtons.Right)]
@@ -22,7 +31,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.Hosting
             bool releaseOverMap = Poll(state, MouseButtons.None);
             bool idleAfterRelease = Poll(state, MouseButtons.None);
 
-            Assert.AreSequenceEqual(new[] { true, true, true, false }, new[] { foreignPress, dragEnteringMap, releaseOverMap, idleAfterRelease });
+            Assert.AreSequenceEqual(expectedtruetruetruefalse, new[] { foreignPress, dragEnteringMap, releaseOverMap, idleAfterRelease });
         }
 
         [TestMethod]
@@ -36,7 +45,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.Hosting
             bool heldInsideMap = Poll(state, button);
             bool releaseInsideMap = Poll(state, MouseButtons.None);
 
-            Assert.AreSequenceEqual(new[] { true, true, true }, new[] { dragEnteringMap, heldInsideMap, releaseInsideMap });
+            Assert.AreSequenceEqual(expectedtruetruetrue, new[] { dragEnteringMap, heldInsideMap, releaseInsideMap });
         }
 
         [TestMethod]
@@ -53,7 +62,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.Hosting
             bool release = Poll(state, MouseButtons.None);
             bool idle = Poll(state, MouseButtons.None);
 
-            Assert.AreSequenceEqual(new[] { false, false, false, false }, new[] { press, held, release, idle });
+            Assert.AreSequenceEqual(expectedfalsefalsefalsefalse, new[] { press, held, release, idle });
         }
 
         [TestMethod]
@@ -85,7 +94,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.Hosting
             bool foreignPress = Poll(state, button);
             bool foreignRelease = Poll(state, MouseButtons.None);
 
-            Assert.AreSequenceEqual(new[] { false, true, true }, new[] { release, foreignPress, foreignRelease });
+            Assert.AreSequenceEqual(expectedfalsetruetrue, new[] { release, foreignPress, foreignRelease });
         }
 
         [TestMethod]
@@ -103,7 +112,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.Hosting
             bool foreignRelease = Poll(state, MouseButtons.None);
             bool idle = Poll(state, MouseButtons.None);
 
-            Assert.AreSequenceEqual(new[] { true, true, true, false }, new[] { newForeignPress, foreignHeld, foreignRelease, idle });
+            Assert.AreSequenceEqual(expectedtruetruetruefalse, new[] { newForeignPress, foreignHeld, foreignRelease, idle });
         }
 
         [TestMethod]
@@ -121,7 +130,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.Hosting
             state.RecordNativeRelease(button);
             bool release = Poll(state, MouseButtons.None);
 
-            Assert.AreSequenceEqual(new[] { false, false }, new[] { newNativePress, release });
+            Assert.AreSequenceEqual(expectedfalsefalse, new[] { newNativePress, release });
         }
 
         [TestMethod]
@@ -140,7 +149,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.Hosting
             bool release = Poll(state, MouseButtons.None);
             bool idle = Poll(state, MouseButtons.None);
 
-            Assert.AreSequenceEqual(new[] { false, true, true, true, false }, new[] { nativePress, mixedDrag, remainingNativeDrag, release, idle });
+            Assert.AreSequenceEqual(expectedfalsetruetruefalsefalse, new[] { nativePress, mixedDrag, remainingNativeDrag, release, idle });
         }
 
         [TestMethod]
@@ -156,7 +165,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.Hosting
             bool remainingForeignDrag = Poll(state, foreignButton);
             bool release = Poll(state, MouseButtons.None);
 
-            Assert.AreSequenceEqual(new[] { true, true, true }, new[] { mixedDrag, remainingForeignDrag, release });
+            Assert.AreSequenceEqual(expectedtruetruetrue, new[] { mixedDrag, remainingForeignDrag, release });
         }
 
         [TestMethod]
@@ -174,7 +183,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.Hosting
             bool release = Poll(state, MouseButtons.None);
             bool idle = Poll(state, MouseButtons.None);
 
-            Assert.AreSequenceEqual(new[] { true, true, false }, new[] { held, release, idle });
+            Assert.AreSequenceEqual(expectedtruetruetruefalse, new[] { held, release, idle });
         }
 
         [TestMethod]
@@ -211,7 +220,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.Hosting
             state.RecordNativeRelease(button);
             bool recoveredRelease = Poll(state, MouseButtons.None);
 
-            Assert.AreSequenceEqual(new[] { false, false, false }, new[] { recoveredPress, recoveredHold, recoveredRelease });
+            Assert.AreSequenceEqual(expectedfalsefalsefalse, new[] { recoveredPress, recoveredHold, recoveredRelease });
         }
 
         [TestMethod]
@@ -229,7 +238,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.Hosting
             state.RecordNativeRelease(nativeButton);
             bool release = Poll(state, MouseButtons.None);
 
-            CollectionAssert.AreEqual(new[] { false, false }, new[] { press, release });
+            Assert.AreSequenceEqual(expectedfalsefalse, new[] { press, release });
         }
 
         [TestMethod]
@@ -244,7 +253,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.Hosting
             bool release = Poll(state, MouseButtons.None);
             bool foreignPress = Poll(state, button);
 
-            CollectionAssert.AreEqual(new[] { false, true }, new[] { release, foreignPress });
+            Assert.AreSequenceEqual(expectedfalsetrue, new[] { release, foreignPress });
         }
 
         [TestMethod]
@@ -260,7 +269,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.Hosting
             state.RecordNativeRelease(MouseButtons.Right);
             bool release = Poll(state, MouseButtons.None);
 
-            CollectionAssert.AreEqual(new[] { false, false, false }, new[] { bothHeld, rightHeld, release });
+            Assert.AreSequenceEqual(expectedfalsefalsefalse, new[] { bothHeld, rightHeld, release });
         }
 
         [TestMethod]

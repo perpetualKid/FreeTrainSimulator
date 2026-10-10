@@ -483,19 +483,31 @@ namespace FreeTrainSimulator.Menu
 
                             ProfileModel currentProfile = SelectedProfile;
                             SelectedProfile = null;
+                            // Replace progressForm creation and its following block.
+                            // ShowAsync completes when the form closes—not when it becomes visible.
+                            // Awaiting it before Setup would prevent the import from starting.
                             progressForm = new ModelConverterProgress();
+                            Task progressFormClosed = progressForm.ShowAsync(this);
+                            try
                             {
-                                progressForm.Show(this);
                                 Enabled = false;
                                 ContentModel = await form.ContentModel.Setup(progressForm, CancellationToken.None).ConfigureAwait(true);
                                 await ProfileChanged(currentProfile).ConfigureAwait(true);
                                 await Task.Delay(1200).ConfigureAwait(true);
                                 progressForm.Close();
                             }
+                            finally
+                            {
+                                // Also complete and observe the form task if the import fails.
+                                progressForm.Dispose();
+                                await progressFormClosed.ConfigureAwait(true);
+                            }
                         }
                         finally
                         {
-                            progressForm?.Dispose();
+                            // Keep the existing outer finally to restore the main window.
+                            // ShowAsync addresses CA1849; responsiveness during import still depends
+                            // on Setup not performing lengthy synchronous work on the UI thread.
                             Enabled = true;
                             BringToFront();
                         }
