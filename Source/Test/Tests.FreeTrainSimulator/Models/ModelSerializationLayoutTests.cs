@@ -18,16 +18,16 @@ namespace Tests.FreeTrainSimulator.Models
     // members in base-first declaration order, and because non-[MemoryPackable] base records (e.g. ModelBase) are
     // flattened into their derived types, inserting a member ahead of an existing (including derived) member silently
     // shifts and corrupts reads of pre-existing files. Every [MemoryPackable] type in FreeTrainSimulator.Models has a
-    // checked-in expectedtruetruetruefalse member order below; three guards keep this complete and honest:
-    //   * MemberOrderMatchesSnapshot - each type's reflected order must equal its expectedtruetruetruefalse list.
+    // checked-in expectedmember order below; three guards keep this complete and honest:
+    //   * MemberOrderMatchesSnapshot - each type's reflected order must equal its expectedlist.
     //   * EveryMemoryPackableTypeHasSnapshot - a newly added [MemoryPackable] type with no snapshot fails the build.
     //   * SnapshotDictionaryHasNoStaleEntries - a removed/renamed type must be dropped from the dictionary.
-    // When a change is INTENTIONAL: append the new member LAST in the model, then update its expectedtruetruetruefalse list here. Never
+    // When a change is INTENTIONAL: append the new member LAST in the model, then update its expectedlist here. Never
     // insert ahead of existing members or reorder them (see the versioning remarks on ModelBase and ADR 0001).
     [TestClass]
     public class ModelSerializationLayoutTests
     {
-        // Type -> exact expectedtruetruetruefalse serialized member order (base-first flattened). Keep alphabetical by full name.
+        // Type -> exact expectedserialized member order (base-first flattened). Keep alphabetical by full name.
         private static readonly IReadOnlyDictionary<Type, string[]> Expected = new Dictionary<Type, string[]>
         {
             [typeof(ActivityModel)] = ["Id", "Name", "Version", "Tags", "Description", "Briefing", "StartTime", "Season", "Weather", "Difficulty", "Duration", "ActivityType", "PathId", "ConsistId", "InitialSpeed", "FuelLevels", "HazardProbability", "Settings"],
