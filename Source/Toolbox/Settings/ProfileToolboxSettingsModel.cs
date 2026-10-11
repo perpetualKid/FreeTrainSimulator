@@ -14,6 +14,8 @@ namespace FreeTrainSimulator.Toolbox.Settings
     [ModelResolver(".toolboxsettings")]
     public sealed partial record ProfileToolboxSettingsModel : ProfileSettingsModelBase
     {
+        private int pathEditorSelectedTabIndex;
+
         /// <summary>
         /// Location and Size of the window in screen %
         /// </summary>
@@ -110,5 +112,14 @@ namespace FreeTrainSimulator.Toolbox.Settings
         /// placement has been saved yet, in which case the shell uses its default size and location.
         /// </summary>
         public WindowPlacementSettings WindowPlacements { get; set; }
+
+        /// <summary>
+        /// Last selected internal Path Editor tab: 0 for Paths, 1 for Editor. Invalid values restore Paths.
+        /// </summary>
+        public int PathEditorSelectedTabIndex
+        {
+            get => pathEditorSelectedTabIndex;
+            set => pathEditorSelectedTabIndex = value is 0 or 1 ? value : 0;
+        }
     }
 }

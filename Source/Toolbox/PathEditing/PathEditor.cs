@@ -107,7 +107,14 @@ namespace FreeTrainSimulator.Toolbox.PathEditing
         /// <summary><see langword="true"/> when the editor contains the unsaved path created by New Path.</summary>
         public bool IsNewPath => string.Equals(currentPathModel?.Id, NewPathId, StringComparison.Ordinal);
 
+        /// <summary>Whether a tentative main-route mutation is awaiting explicit ambiguous-span choices.</summary>
         public bool HasPendingAmbiguousSpanCommit => pendingAmbiguousSpanCommit != null;
+
+        /// <summary>Authored start index of the explicitly previewed main or passing candidate span, or -1 when none is selected.</summary>
+        public int PreviewedRouteCandidateFromNodeIndex => previewedRouteCandidateFromNodeIndex;
+
+        /// <summary>Index within the previewed span, or -1 when no candidate was explicitly previewed. Automatic composite previews do not select a candidate.</summary>
+        public int PreviewedRouteCandidateIndex => previewedRouteCandidateIndex;
 
         public bool IsSelectingPassingBranchRejoin => pendingPassingBranchStartNodeIndex >= 0;
 
@@ -845,6 +852,7 @@ namespace FreeTrainSimulator.Toolbox.PathEditing
             }
 
             SetPreviewPath(previewModel);
+            SetPreviewedRouteCandidate(fromNodeIndex, candidateIndex);
             OnPathUpdated?.Invoke(this, new PathEditorChangedEventArgs(TrainPath));
             return PathEditResult.Succeeded($"Previewing route candidate {candidateIndex} for the span starting at node {fromNodeIndex}.",
                 pendingAmbiguousSpanCommit.SourceModel, ImmutableArray<int>.Empty);
@@ -864,6 +872,7 @@ namespace FreeTrainSimulator.Toolbox.PathEditing
             ImmutableArray<int> changedNodeIndexes = pendingAmbiguousSpanCommit.ChangedNodeIndexes;
             bool resumeRouteBuilding = pendingAmbiguousSpanCommit.ResumeRouteBuilding;
             pendingAmbiguousSpanCommit = null;
+            ClearPreviewedRouteCandidate();
             ClearMoveNodeState();
             PushUndoSnapshot(sourceModel);
             unsavedChanges = true;
@@ -884,6 +893,7 @@ namespace FreeTrainSimulator.Toolbox.PathEditing
 
             pendingAmbiguousSpanCommit = null;
             SetPreviewPath(null);
+            ClearPreviewedRouteCandidate();
             OnPathUpdated?.Invoke(this, new PathEditorChangedEventArgs(TrainPath));
         }
         #endregion
@@ -1403,6 +1413,9 @@ namespace FreeTrainSimulator.Toolbox.PathEditing
             if (pendingPassingBranchCandidate != null)
                 return ImmutableArray.Create(pendingPassingBranchCandidate.Span);
 
+            if (pendingAmbiguousSpanCommit != null)
+                return pendingAmbiguousSpanCommit.AmbiguousSpans;
+
             PathModel currentModel = TryGetEditablePathModel();
             if (currentModel == null)
                 return ImmutableArray<ResolvedPathSpan>.Empty;
@@ -1438,10 +1451,7 @@ namespace FreeTrainSimulator.Toolbox.PathEditing
 
             if (pendingAmbiguousSpanCommit != null)
             {
-                PathEditResult pendingResult = PreviewPendingRouteCandidate(fromNodeIndex, candidateIndex);
-                if (pendingResult.Success)
-                    SetPreviewedRouteCandidate(fromNodeIndex, candidateIndex);
-                return pendingResult;
+                return PreviewPendingRouteCandidate(fromNodeIndex, candidateIndex);
             }
 
             PathEditResult result = BuildRouteCandidateModel(fromNodeIndex, candidateIndex);

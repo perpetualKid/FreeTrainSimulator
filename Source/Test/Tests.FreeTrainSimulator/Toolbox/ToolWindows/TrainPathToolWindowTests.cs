@@ -1,6 +1,6 @@
-using System.Collections.Immutable;
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Reflection;
 using System.Threading;
@@ -10,8 +10,8 @@ using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Position;
 using FreeTrainSimulator.Graphics.MapView;
 using FreeTrainSimulator.Models.Content;
+using FreeTrainSimulator.Models.Track;
 using FreeTrainSimulator.Runtime.Track;
-using FreeTrainSimulator.Toolbox;
 using FreeTrainSimulator.Toolbox.PathEditing;
 using FreeTrainSimulator.Toolbox.ToolWindows;
 
@@ -34,6 +34,232 @@ namespace Tests.FreeTrainSimulator.Toolbox.ToolWindows
             trainPathToolWindow.RefreshSnapshot();
 
             Assert.AreEqual(TrainPathSnapshot.Empty, trainPathToolWindow.CaptureTrainPathSnapshot());
+        }
+
+        [TestMethod]
+        public void WhenMainRouteDecisionIsPendingThenSnapshotPublishesTentativeSpanWithoutExplicitPreview()
+        {
+            TrackWorld trackWorld = TrackWorldTestFixture.CreateAmbiguousSwitchTrackWorld();
+            using (PathEditor editor = CreatePathEditor(CreateCandidatePath(trackWorld, false), trackWorld))
+            {
+                TrainPathToolWindow bridge = CreateCandidateBridge(() => editor);
+                bridge.RefreshSnapshot();
+
+                _ = editor.SetEndAnchorCommand(CreateAnchoredNode(trackWorld, 2, PathNodeType.None, -1), false);
+                bridge.RefreshSnapshot();
+                TrainPathSnapshot snapshot = bridge.CaptureTrainPathSnapshot();
+
+                Assert.AreEqual((true, 2, -1, -1), (snapshot.HasPendingAmbiguousSpanCommit, snapshot.RouteCandidates.Length,
+                    snapshot.PreviewedRouteCandidateFromNodeIndex, snapshot.PreviewedRouteCandidateIndex));
+            }
+        }
+
+        [TestMethod]
+        public void WhenOrdinaryAmbiguousPathIsInspectedThenCandidateRowsDoNotImplyPendingDecision()
+        {
+            TrackWorld trackWorld = TrackWorldTestFixture.CreateAmbiguousSwitchTrackWorld();
+            using (PathEditor editor = CreatePathEditor(CreateCandidatePath(trackWorld, true), trackWorld))
+            {
+                TrainPathToolWindow bridge = CreateCandidateBridge(() => editor);
+
+                bridge.RefreshSnapshot();
+                TrainPathSnapshot snapshot = bridge.CaptureTrainPathSnapshot();
+
+                Assert.AreEqual((false, 2, -1, -1), (snapshot.HasPendingAmbiguousSpanCommit, snapshot.RouteCandidates.Length,
+                    snapshot.PreviewedRouteCandidateFromNodeIndex, snapshot.PreviewedRouteCandidateIndex));
+            }
+        }
+
+        [TestMethod]
+        public void WhenKeyboardCyclesCandidateWithoutBridgeInvalidationThenSnapshotPublishesChangedIdentity()
+        {
+            TrackWorld trackWorld = TrackWorldTestFixture.CreateAmbiguousSwitchTrackWorld();
+            using (PathEditor editor = CreatePathEditor(CreateCandidatePath(trackWorld, false), trackWorld))
+            {
+                TrainPathToolWindow bridge = CreateCandidateBridge(() => editor);
+                _ = editor.SetEndAnchorCommand(CreateAnchoredNode(trackWorld, 2, PathNodeType.None, -1), false);
+                _ = editor.PreviewRouteCandidateCommand(0, 0);
+                bridge.RefreshSnapshot();
+
+                _ = editor.CycleRouteCandidateCommand(1);
+                bridge.RefreshSnapshot();
+                TrainPathSnapshot snapshot = bridge.CaptureTrainPathSnapshot();
+
+                Assert.AreEqual((0, 1), (snapshot.PreviewedRouteCandidateFromNodeIndex, snapshot.PreviewedRouteCandidateIndex));
+            }
+        }
+
+        [TestMethod]
+        public void WhenPreviewIdentityChangesThenSnapshotEqualityIncludesIt()
+        {
+            TrackWorld trackWorld = TrackWorldTestFixture.CreateAmbiguousSwitchTrackWorld();
+            using (PathEditor editor = CreatePathEditor(CreateCandidatePath(trackWorld, false), trackWorld))
+            {
+                TrainPathToolWindow bridge = CreateCandidateBridge(() => editor);
+                _ = editor.SetEndAnchorCommand(CreateAnchoredNode(trackWorld, 2, PathNodeType.None, -1), false);
+                _ = editor.PreviewRouteCandidate(0, 0);
+                bridge.RefreshSnapshot();
+                TrainPathSnapshot before = bridge.CaptureTrainPathSnapshot();
+
+                _ = editor.PreviewRouteCandidate(0, 1);
+                bridge.RefreshSnapshot();
+                TrainPathSnapshot after = bridge.CaptureTrainPathSnapshot();
+
+                Assert.AreNotEqual(before, before with { PreviewedRouteCandidateIndex = after.PreviewedRouteCandidateIndex });
+            }
+        }
+
+        [TestMethod]
+        public void WhenPendingPreviewIsUnchangedThenRefreshReusesSnapshot()
+        {
+            TrackWorld trackWorld = TrackWorldTestFixture.CreateAmbiguousSwitchTrackWorld();
+            using (PathEditor editor = CreatePathEditor(CreateCandidatePath(trackWorld, false), trackWorld))
+            {
+                TrainPathToolWindow bridge = CreateCandidateBridge(() => editor);
+                _ = editor.SetEndAnchorCommand(CreateAnchoredNode(trackWorld, 2, PathNodeType.None, -1), false);
+                _ = editor.PreviewRouteCandidate(0, 1);
+                bridge.RefreshSnapshot();
+                TrainPathSnapshot before = bridge.CaptureTrainPathSnapshot();
+
+                bridge.RefreshSnapshot();
+
+                Assert.AreSame(before, bridge.CaptureTrainPathSnapshot());
+            }
+        }
+
+        [TestMethod]
+        public void WhenPendingPreviewIsCanceledThenSnapshotClearsDecisionAndIdentity()
+        {
+            TrackWorld trackWorld = TrackWorldTestFixture.CreateAmbiguousSwitchTrackWorld();
+            using (PathEditor editor = CreatePathEditor(CreateCandidatePath(trackWorld, false), trackWorld))
+            {
+                TrainPathToolWindow bridge = CreateCandidateBridge(() => editor);
+                _ = editor.SetEndAnchorCommand(CreateAnchoredNode(trackWorld, 2, PathNodeType.None, -1), false);
+                _ = editor.PreviewRouteCandidate(0, 1);
+                bridge.RefreshSnapshot();
+
+                editor.ClearRouteCandidatePreview();
+                bridge.RefreshSnapshot();
+                TrainPathSnapshot snapshot = bridge.CaptureTrainPathSnapshot();
+
+                Assert.AreEqual((false, 0, -1, -1), (snapshot.HasPendingAmbiguousSpanCommit, snapshot.RouteCandidates.Length,
+                    snapshot.PreviewedRouteCandidateFromNodeIndex, snapshot.PreviewedRouteCandidateIndex));
+            }
+        }
+
+        [TestMethod]
+        public void WhenEditorIsRemovedThenSnapshotClearsAllCandidateInteractionState()
+        {
+            TrackWorld trackWorld = TrackWorldTestFixture.CreateAmbiguousSwitchTrackWorld();
+            using (PathEditor editor = CreatePathEditor(CreateCandidatePath(trackWorld, false), trackWorld))
+            {
+                PathEditor currentEditor = editor;
+                TrainPathToolWindow bridge = CreateCandidateBridge(() => currentEditor);
+                _ = editor.SetEndAnchorCommand(CreateAnchoredNode(trackWorld, 2, PathNodeType.None, -1), false);
+                _ = editor.PreviewRouteCandidate(0, 1);
+                bridge.RefreshSnapshot();
+                currentEditor = null;
+                bridge.RefreshSnapshot();
+
+                Assert.AreEqual(TrainPathSnapshot.Empty, bridge.CaptureTrainPathSnapshot());
+            }
+        }
+
+        [TestMethod]
+        public void WhenPassingCandidateIsPreviewedThenSnapshotRetainsExclusivePassingPhaseAndIdentity()
+        {
+            TrackWorld trackWorld = CreateThreeRouteTrackWorld();
+            PathModel source = new PathModel
+            {
+                Id = "passing-candidate-path",
+                Name = "Passing Candidate Path",
+                PathNodes = ImmutableArray.Create(CreateAnchoredNode(trackWorld, 1, PathNodeType.Start, 1),
+                    CreateAnchoredNode(trackWorld, 4, PathNodeType.Via, 2), CreateAnchoredNode(trackWorld, 2, PathNodeType.End, -1)),
+            };
+            using (PathEditor editor = CreatePathEditor(source, trackWorld))
+            {
+                TrainPathToolWindow bridge = CreateCandidateBridge(() => editor);
+                _ = editor.BeginPassingBranchCommand(0);
+                _ = editor.CompletePassingBranchCommand(2);
+
+                _ = editor.PreviewRouteCandidate(0, 1);
+                bridge.RefreshSnapshot();
+                TrainPathSnapshot snapshot = bridge.CaptureTrainPathSnapshot();
+
+                Assert.AreEqual((false, true, PassingBranchAuthoringPhase.SelectingCandidate, 0, 1),
+                    (snapshot.HasPendingAmbiguousSpanCommit, snapshot.HasPendingPassingBranchCandidate, snapshot.PassingBranchPhase,
+                    snapshot.PreviewedRouteCandidateFromNodeIndex, snapshot.PreviewedRouteCandidateIndex));
+            }
+        }
+
+        [TestMethod]
+        public void WhenPassingCandidateIsCanceledThenSnapshotClearsPhaseAndIdentity()
+        {
+            TrackWorld trackWorld = CreateThreeRouteTrackWorld();
+            PathModel source = new PathModel
+            {
+                Id = "passing-candidate-path",
+                Name = "Passing Candidate Path",
+                PathNodes = ImmutableArray.Create(CreateAnchoredNode(trackWorld, 1, PathNodeType.Start, 1),
+                    CreateAnchoredNode(trackWorld, 4, PathNodeType.Via, 2), CreateAnchoredNode(trackWorld, 2, PathNodeType.End, -1)),
+            };
+            using (PathEditor editor = CreatePathEditor(source, trackWorld))
+            {
+                TrainPathToolWindow bridge = CreateCandidateBridge(() => editor);
+                _ = editor.BeginPassingBranchCommand(0);
+                _ = editor.CompletePassingBranchCommand(2);
+                _ = editor.PreviewRouteCandidate(0, 1);
+                bridge.RefreshSnapshot();
+
+                _ = editor.CancelPassingBranchCommand();
+                bridge.RefreshSnapshot();
+                TrainPathSnapshot snapshot = bridge.CaptureTrainPathSnapshot();
+
+                Assert.AreEqual((false, false, PassingBranchAuthoringPhase.Idle, -1, -1),
+                    (snapshot.HasPendingAmbiguousSpanCommit, snapshot.HasPendingPassingBranchCandidate, snapshot.PassingBranchPhase,
+                    snapshot.PreviewedRouteCandidateFromNodeIndex, snapshot.PreviewedRouteCandidateIndex));
+            }
+        }
+
+        private static TrackWorld CreateThreeRouteTrackWorld()
+        {
+            TrackDatabase original = TrackWorldTestFixture.CreateParallelTrackWorld().TrackDatabase;
+            TrackDatabase database = new TrackDatabase
+            {
+                TrackNodes = original.TrackNodes.Add(original.TrackNodes[5] with { NodeIndex = 7 }),
+                TrackNodeConnectors = original.TrackNodeConnectors
+                    .SetItem(3, new TrackNodeConnectorIndex
+                    {
+                        NodeIndex = 3,
+                        TrackNodeConnectors = ImmutableArray.Create(
+                        new TrackNodeConnector { Link = 1 }, new TrackNodeConnector { Link = 4 }, new TrackNodeConnector { Link = 5 }, new TrackNodeConnector { Link = 7 })
+                    })
+                    .SetItem(6, new TrackNodeConnectorIndex
+                    {
+                        NodeIndex = 6,
+                        TrackNodeConnectors = ImmutableArray.Create(
+                        new TrackNodeConnector { Link = 2 }, new TrackNodeConnector { Link = 4 }, new TrackNodeConnector { Link = 5 }, new TrackNodeConnector { Link = 7 })
+                    })
+                    .Add(new TrackNodeConnectorIndex { NodeIndex = 7, TrackNodeConnectors = ImmutableArray.Create(new TrackNodeConnector { Link = 3 }, new TrackNodeConnector { Link = 6 }) }),
+            };
+            TrackWorldTestFixture.InitializeTrackDatabase(database);
+            return TrackWorld.Initialize(null, new TrackModel { TrackDatabase = database }, new TrackSectionModel());
+        }
+
+        private static TrainPathToolWindow CreateCandidateBridge(Func<PathEditor> editorAccessor)
+        {
+            return new TrainPathToolWindow(editorAccessor, () => null, action => action(), () => { }, () => { }, _ => { }, () => { }, () => { }) { Active = true };
+        }
+
+        private static PathModel CreateCandidatePath(TrackWorld trackWorld, bool includeEnd)
+        {
+            PathNode start = CreateAnchoredNode(trackWorld, 1, PathNodeType.Start, includeEnd ? 1 : -1);
+            return new PathModel
+            {
+                Id = "candidate-path",
+                Name = "Candidate Path",
+                PathNodes = includeEnd ? ImmutableArray.Create(start, CreateAnchoredNode(trackWorld, 2, PathNodeType.End, -1)) : ImmutableArray.Create(start),
+            };
         }
 
         [TestMethod]
@@ -189,7 +415,8 @@ namespace Tests.FreeTrainSimulator.Toolbox.ToolWindows
             using (PathEditor editor = CreatePathEditor(CreateSidingEndpointPath(trackWorld), trackWorld))
             {
                 TrainPathToolWindow trainPathToolWindow = new(() => editor, () => null, action => action(),
-                    () => { }, () => { }, _ => { }, () => { }, () => { }) { Active = true };
+                    () => { }, () => { }, _ => { }, () => { }, () => { })
+                { Active = true };
                 Assert.IsTrue(editor.BeginPassingBranchCommand(0).Success);
                 editor.SelectAuthoredNode(0);
                 trainPathToolWindow.RefreshSnapshot();
@@ -243,7 +470,8 @@ namespace Tests.FreeTrainSimulator.Toolbox.ToolWindows
             {
                 Assert.IsTrue(await editor.InitializePathAsync(source, CancellationToken.None).ConfigureAwait(false));
                 TrainPathToolWindow trainPathToolWindow = new(() => editor, () => null, action => action(),
-                    () => { }, () => { }, _ => { }, () => { }, () => { }) { Active = true };
+                    () => { }, () => { }, _ => { }, () => { }, () => { })
+                { Active = true };
 
                 trainPathToolWindow.RefreshSnapshot();
                 Assert.IsTrue(trainPathToolWindow.CaptureTrainPathSnapshot().CanContinuePath);
@@ -791,11 +1019,11 @@ namespace Tests.FreeTrainSimulator.Toolbox.ToolWindows
                 TrainPathToolWindow trainPathToolWindow = new TrainPathToolWindow(() => editor, () => null,
                     action => action(), () => { }, () => { }, _ => { }, () => { }, () => { })
                 {
-                Active = true,
-            };
+                    Active = true,
+                };
 
-            trainPathToolWindow.ReportBlockedSave(validation, editor.TryCaptureCurrentPathModel());
-            trainPathToolWindow.RefreshSnapshot();
+                trainPathToolWindow.ReportBlockedSave(validation, editor.TryCaptureCurrentPathModel());
+                trainPathToolWindow.RefreshSnapshot();
 
                 Assert.IsFalse(string.IsNullOrWhiteSpace(trainPathToolWindow.CaptureTrainPathSnapshot().BlockedSaveMessage));
             }
@@ -1055,10 +1283,10 @@ namespace Tests.FreeTrainSimulator.Toolbox.ToolWindows
                 typeof(PathEditor).GetMethod("SetPreviewPath", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(editor, new object[] { previewPath });
                 TrainPathToolWindow trainPathToolWindow = new TrainPathToolWindow(() => editor, () => null, action => action(), () => { }, () => { }, _ => { }, () => { }, () => { })
                 {
-                Active = true,
-            };
+                    Active = true,
+                };
 
-            trainPathToolWindow.RefreshSnapshot();
+                trainPathToolWindow.RefreshSnapshot();
 
                 TrainPathSnapshot snapshot = trainPathToolWindow.CaptureTrainPathSnapshot();
                 Assert.HasCount(authoredPath.PathNodes.Length, snapshot.Nodes);

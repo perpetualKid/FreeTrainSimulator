@@ -780,6 +780,79 @@ namespace Tests.FreeTrainSimulator.Toolbox.PathEditing
             }
         }
 
+        // Interaction-state load sequencing tests.
+        [TestMethod]
+        public void WhenPendingCandidateIsPreviewedThenChangeNotificationSeesItsIdentity()
+        {
+            using (PathEditor editor = CreateEditor(CreateAmbiguousEndpointPath(), CreateAmbiguousTrackWorld()))
+            {
+                _ = editor.SetEndAnchorCommand(CreateNodeAt(200, PathNodeType.None, -1) with { NodeIndex = 2 }, false);
+                (int, int) notifiedIdentity = (-1, -1);
+                editor.OnPathUpdated += (_, _) => notifiedIdentity = (editor.PreviewedRouteCandidateFromNodeIndex, editor.PreviewedRouteCandidateIndex);
+
+                _ = editor.PreviewPendingRouteCandidate(0, 1);
+
+                Assert.AreEqual((0, 1), notifiedIdentity);
+            }
+        }
+
+        [TestMethod]
+        public void WhenPendingCandidatePreviewFailsThenPreviousIdentityIsRetained()
+        {
+            using (PathEditor editor = CreateEditor(CreateAmbiguousEndpointPath(), CreateAmbiguousTrackWorld()))
+            {
+                _ = editor.SetEndAnchorCommand(CreateNodeAt(200, PathNodeType.None, -1) with { NodeIndex = 2 }, false);
+                _ = editor.PreviewPendingRouteCandidate(0, 1);
+
+                _ = editor.PreviewPendingRouteCandidate(0, 99);
+
+                Assert.AreEqual((0, 1), (editor.PreviewedRouteCandidateFromNodeIndex, editor.PreviewedRouteCandidateIndex));
+            }
+        }
+
+        [TestMethod]
+        public void WhenPendingCandidateIsCanceledDirectlyThenNotificationSeesClearedIdentity()
+        {
+            using (PathEditor editor = CreateEditor(CreateAmbiguousEndpointPath(), CreateAmbiguousTrackWorld()))
+            {
+                _ = editor.SetEndAnchorCommand(CreateNodeAt(200, PathNodeType.None, -1) with { NodeIndex = 2 }, false);
+                _ = editor.PreviewPendingRouteCandidate(0, 1);
+                (bool, int, int) notifiedState = (true, 0, 1);
+                editor.OnPathUpdated += (_, _) => notifiedState = (editor.HasPendingAmbiguousSpanCommit, editor.PreviewedRouteCandidateFromNodeIndex, editor.PreviewedRouteCandidateIndex);
+
+                editor.CancelPendingRouteCandidate();
+                Assert.AreEqual((false, -1, -1), notifiedState);
+            }
+        }
+
+        [TestMethod]
+        public void WhenPendingCandidateIsAcceptedDirectlyThenIdentityIsCleared()
+        {
+            using (PathEditor editor = CreateEditor(CreateAmbiguousEndpointPath(), CreateAmbiguousTrackWorld()))
+            {
+                _ = editor.SetEndAnchorCommand(CreateNodeAt(200, PathNodeType.None, -1) with { NodeIndex = 2 }, false);
+                _ = editor.PreviewPendingRouteCandidate(0, 1);
+
+                _ = editor.AcceptPendingRouteCandidate(0, 1);
+
+                Assert.AreEqual((false, -1, -1), (editor.HasPendingAmbiguousSpanCommit, editor.PreviewedRouteCandidateFromNodeIndex, editor.PreviewedRouteCandidateIndex));
+            }
+        }
+
+        [TestMethod]
+        public void WhenNewPathResetsPendingCandidateThenInteractionIdentityIsEmpty()
+        {
+            using (PathEditor editor = CreateEditor(CreateAmbiguousEndpointPath(), CreateAmbiguousTrackWorld()))
+            {
+                _ = editor.SetEndAnchorCommand(CreateNodeAt(200, PathNodeType.None, -1) with { NodeIndex = 2 }, false);
+                _ = editor.PreviewPendingRouteCandidate(0, 1);
+
+                editor.InitializeNewPath();
+
+                Assert.AreEqual((false, -1, -1), (editor.HasPendingAmbiguousSpanCommit, editor.PreviewedRouteCandidateFromNodeIndex, editor.PreviewedRouteCandidateIndex));
+            }
+        }
+
         [TestMethod]
         public async Task WhenSecondPathLoadCompletesFirstThenFirstCannotReplaceIt()
         {

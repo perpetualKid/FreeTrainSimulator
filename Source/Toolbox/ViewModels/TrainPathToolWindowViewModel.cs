@@ -20,6 +20,7 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
     {
         private readonly TrainPathToolWindow toolWindow;
         private string searchText = string.Empty;
+        private bool isPathFilterRowVisible;
         private string statusMessage = string.Empty;
         private bool statusMessageIsWarning;
         private TrainPathListItemViewModel selectedPath;
@@ -67,13 +68,85 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
         private string pathStart = string.Empty;
         private string pathEnd = string.Empty;
         private bool playerPath;
+        private bool hasPendingAmbiguousSpanCommit;
+        private bool isIssuesExpanded;
+        private int? inspectedCandidateFromNodeIndex;
+        private int? inspectedCandidateToNodeIndex;
+        private TrainPathSnapshot presentationSnapshot = TrainPathSnapshot.Empty;
+        private bool syncingDiagnostics;
+
+        public const int PathsTabIndex = 0;
+        public const int EditorTabIndex = 1;
+
+        /// <summary>Whether independent issue inspection is expanded.</summary>
+        public bool IsIssuesExpanded
+        {
+            get => isIssuesExpanded;
+            set => SetProperty(ref isIssuesExpanded, value);
+        }
+
+        /// <summary>Candidate rows scoped to the current decision or explicitly inspected issue.</summary>
+        public ObservableCollection<TrainPathRouteCandidateItemViewModel> VisibleRouteCandidates { get; } = new();
+
+        /// <summary>One representative candidate per span, allowing every pending span to be selected.</summary>
+        public ObservableCollection<TrainPathRouteCandidateItemViewModel> CandidateSpans { get; } = new();
+
+        /// <summary>The representative of the span currently displayed in the candidate panel.</summary>
+        public TrainPathRouteCandidateItemViewModel SelectedCandidateSpan => CandidateSpans.FirstOrDefault(item =>
+            item.FromNodeIndex == VisibleRouteCandidates.FirstOrDefault()?.FromNodeIndex && item.ToNodeIndex == VisibleRouteCandidates.FirstOrDefault()?.ToNodeIndex);
+
+        /// <summary>Selects a span and previews its first candidate without accepting the pending edit.</summary>
+        public void UserSelectCandidateSpan(TrainPathRouteCandidateItemViewModel span)
+        {
+            if (suppressSelectionCommand || span == null || span == SelectedCandidateSpan || !CandidateSpans.Contains(span))
+                return;
+
+            inspectedCandidateFromNodeIndex = span.FromNodeIndex;
+            inspectedCandidateToNodeIndex = span.ToNodeIndex;
+            UpdateVisibleRouteCandidates();
+            ActivateRouteCandidate(span);
+        }
+
+        /// <summary>Whether the authoritative editor is awaiting a tentative main-route decision.</summary>
+        public bool HasPendingAmbiguousSpanCommit => hasPendingAmbiguousSpanCommit;
+
+        /// <summary>Whether a candidate decision or explicit issue inspection is visible.</summary>
+        public bool IsCandidatePanelVisible => HasPendingAmbiguousSpanCommit || HasPendingPassingBranchCandidate
+            || inspectedCandidateFromNodeIndex.HasValue;
+
+        /// <summary>Whether ordinary entry actions can be presented without interrupting a workflow.</summary>
+        public bool IsIdlePanelVisible => !IsCandidatePanelVisible && PlacementMode == PathEditorPlacementMode.None
+            && !IsBuildingRoute && PassingBranchPhase == PassingBranchAuthoringPhase.Idle;
+
+        /// <summary>Whether placement confirmation and cancellation are applicable.</summary>
+        public bool IsPlacementPanelVisible => !IsCandidatePanelVisible && PlacementMode != PathEditorPlacementMode.None
+            && !IsBuildingRoute && PassingBranchPhase == PassingBranchAuthoringPhase.Idle;
+
+        /// <summary>Whether progressive route actions are applicable.</summary>
+        public bool IsBuildingPanelVisible => !IsCandidatePanelVisible && IsBuildingRoute
+            && PassingBranchPhase == PassingBranchAuthoringPhase.Idle;
+
+        /// <summary>Whether a passing rejoin is being selected.</summary>
+        public bool IsRejoinPanelVisible => !IsCandidatePanelVisible && PassingBranchPhase == PassingBranchAuthoringPhase.SelectingRejoin;
 
         public TrainPathToolWindowViewModel(TrainPathToolWindow toolWindow, ToolWindowRefreshScheduler scheduler)
+            : this(toolWindow, scheduler, PathsTabIndex)
+        {
+        }
+
+        /// <summary>Constructs the tool with its persisted internal tab before snapshot polling starts.</summary>
+        public TrainPathToolWindowViewModel(TrainPathToolWindow toolWindow, ToolWindowRefreshScheduler scheduler, int selectedTabIndex)
             : base(scheduler, ToolWindowRefreshScheduler.BaseInterval)
         {
             ArgumentNullException.ThrowIfNull(toolWindow);
 
             this.toolWindow = toolWindow;
+            SelectedTabIndex = selectedTabIndex;
+            TogglePathFilterRowCommand = new RelayCommand(_ =>
+            {
+                if (string.IsNullOrEmpty(SearchText))
+                    IsPathFilterRowVisible = !IsPathFilterRowVisible;
+            });
             UndoCommand = new RelayCommand(_ => toolWindow.Undo(), _ => CanUndo);
             RedoCommand = new RelayCommand(_ => toolWindow.Redo(), _ => CanRedo);
             SnapToTrackCommand = new RelayCommand(_ => toolWindow.SnapToTrack(), _ => CanSnapToTrack);
@@ -83,7 +156,7 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
             SetStartHereCommand = new RelayCommand(_ => toolWindow.BeginStartAnchorPlacement(), _ => CanPlaceStartAnchor);
             SetEndHereCommand = new RelayCommand(_ => toolWindow.BeginEndAnchorPlacement(), _ => CanPlaceEndAnchor);
             CommitPlacementCommand = new RelayCommand(_ => toolWindow.CommitPlacement(), _ => CanCommitPlacement);
-            CancelPathInteractionCommand = new RelayCommand(_ => toolWindow.CancelPathInteraction(), _ => CanCancelPathInteraction);
+            CancelPathInteractionCommand = new RelayCommand(_ => CancelPathInteraction(), _ => CanCancelPathInteraction || IsCandidatePanelVisible);
             RepairSelectedNodeCommand = new RelayCommand(_ => RepairSelectedNode(), _ => CanRepairSelectedNode);
             ToggleReversalPointCommand = new RelayCommand(_ => ToggleReversalPoint(), _ => CanAnnotateSelectedNode);
             AddViaPointCommand = new RelayCommand(_ => AddViaPoint(), _ => CanAddViaPoint);
@@ -100,6 +173,12 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
             ValidateAllPathsCommand = new RelayCommand(_ => ValidateAllPaths(), _ => CanValidatePaths);
             AcceptRouteCandidateCommand = new RelayCommand(_ => AcceptRouteCandidate(), _ => CanAcceptRouteCandidate);
             RepairDiagnosticCommand = new RelayCommand(_ => RepairDiagnostic(), _ => CanRepairDiagnostic);
+            Diagnostics.CollectionChanged += (_, _) =>
+            {
+                if (!syncingDiagnostics)
+                    UpdateVisibleDiagnostics();
+            };
+            UpdateSelectedNodeDetailRows();
         }
 
         public PassingBranchAuthoringPhase PassingBranchPhase
@@ -120,10 +199,11 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
                 if (!SetProperty(ref selectedNodeWaitTime, value))
                     return;
 
-                if (suppressWaitTimeCommand || SelectedNode == null)
+                if (suppressWaitTimeCommand || !CanEditSelectedNodeWaitTime)
                     return;
 
                 int nodeIndex = SelectedNode.Index;
+
                 if (value is int waitTime && waitTime > 0)
                     toolWindow.SetWaitPoint(nodeIndex, waitTime);
                 else if (SelectedNode.HasWaitPoint)
@@ -187,6 +267,9 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
         /// <summary>Resolver diagnostics of the current path.</summary>
         public ObservableCollection<TrainPathDiagnosticItemViewModel> Diagnostics { get; } = new ObservableCollection<TrainPathDiagnosticItemViewModel>();
 
+        /// <summary>All issues when no node is selected; otherwise direct and incident-span issues for that node.</summary>
+        public ObservableCollection<TrainPathDiagnosticItemViewModel> VisibleDiagnostics { get; } = new();
+
         public RelayCommand UndoCommand { get; }
 
         public RelayCommand RedoCommand { get; }
@@ -239,7 +322,8 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
 
         public RelayCommand RepairDiagnosticCommand { get; }
 
-        public bool CanAcceptRouteCandidate => !IsRepairMode && SelectedRouteCandidate != null;
+        public bool CanAcceptRouteCandidate => (!IsRepairMode || HasPendingAmbiguousSpanCommit)
+            && SelectedRouteCandidate != null && VisibleRouteCandidates.Contains(SelectedRouteCandidate);
 
         public bool CanRepairDiagnostic => SelectedDiagnostic?.CanRepair == true && !CanCancelPathInteraction;
 
@@ -370,7 +454,7 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
         public int SelectedTabIndex
         {
             get => selectedTabIndex;
-            set => SetProperty(ref selectedTabIndex, value);
+            set => SetProperty(ref selectedTabIndex, value is PathsTabIndex or EditorTabIndex ? value : PathsTabIndex);
         }
 
         /// <summary>Currently selected resolver diagnostic.</summary>
@@ -394,6 +478,8 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
             if (suppressSelectionCommand)
                 return;
 
+            if (value != null && value == SelectedDiagnostic)
+                RestoreDiagnosticSelection(null);
             ActivateDiagnostic(value);
         }
 
@@ -494,6 +580,12 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
 
         public bool CanAnnotateSelectedNode => !IsRepairMode && SelectedNode != null && !CanCancelPathInteraction;
 
+        /// <summary>Whether the selected non-endpoint, non-junction node supports wait editing.</summary>
+        public bool CanEditSelectedNodeWaitTime => CanAnnotateSelectedNode
+            && !HasPendingAmbiguousSpanCommit && !HasPendingPassingBranchCandidate
+            && PassingBranchPhase == PassingBranchAuthoringPhase.Idle
+            && (SelectedNode.NodeType & (Common.PathNodeType.Start | Common.PathNodeType.End | Common.PathNodeType.Junction)) == Common.PathNodeType.None;
+
         public bool CanAddViaPoint => !IsRepairMode && SelectedNode != null && !CanCancelPathInteraction;
 
         public bool CanRemoveViaPoint => canRemoveSelectedViaPoint && IsSelectedCapabilityNode() && !CanCancelPathInteraction;
@@ -562,13 +654,27 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
             }
         }
 
+        /// <summary>Toggles the lower header row only when no path-name filter is active.</summary>
+        public RelayCommand TogglePathFilterRowCommand { get; }
+
+        /// <summary>List-wide filter-row visibility, retained across focus changes and refreshes.</summary>
+        public bool IsPathFilterRowVisible
+        {
+            get => isPathFilterRowVisible;
+            private set => SetProperty(ref isPathFilterRowVisible, value);
+        }
+
         public string SearchText
         {
             get => searchText;
             set
             {
                 if (SetProperty(ref searchText, value))
+                {
+                    if (!string.IsNullOrEmpty(searchText))
+                        IsPathFilterRowVisible = true;
                     ApplyPathFilter();
+                }
             }
         }
 
@@ -590,6 +696,13 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
             private set => SetProperty(ref selectedPath, value);
         }
 
+        /// <summary>Whether row actions still target the selected path published by the editor snapshot.</summary>
+        public bool IsActivePathActionTarget(TrainPathListItemViewModel path)
+        {
+            return path != null && string.Equals(path.Id, SelectedPath?.Id, StringComparison.Ordinal)
+                && string.Equals(path.Id, snapshotSelectedPathId, StringComparison.Ordinal);
+        }
+
         /// <summary>Handles a user-initiated path pick; see <see cref="UserSelectDiagnostic"/>.</summary>
         public void UserSelectPath(TrainPathListItemViewModel value)
         {
@@ -606,7 +719,14 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
         public TrainPathNodeItemViewModel SelectedNode
         {
             get => selectedNode;
-            private set => SetProperty(ref selectedNode, value);
+            private set
+            {
+                if (SetProperty(ref selectedNode, value))
+                {
+                    OnPropertyChanged(nameof(CanEditSelectedNodeWaitTime));
+                    UpdateVisibleDiagnostics();
+                }
+            }
         }
 
         /// <summary>Handles a user-initiated node pick; see <see cref="UserSelectDiagnostic"/>.</summary>
@@ -647,6 +767,7 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
             SyncEditableMetadata(snapshot);
             SyncRouteCandidates(snapshot.RouteCandidates);
             SyncDiagnostics(snapshot.Diagnostics);
+            ApplyPresentationSnapshot(snapshot);
             ApplyBlockedSaveFeedback(snapshot);
             ApplyCommandResultFeedback(snapshot);
             CanUndo = snapshot.CanUndo;
@@ -676,6 +797,8 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
             canRemovePassingBranch = snapshot.CanRemovePassingBranch;
             HasPendingPassingBranchCandidate = snapshot.HasPendingPassingBranchCandidate;
             PassingBranchPhase = snapshot.PassingBranchPhase;
+            UpdateVisibleRouteCandidates();
+            OnPropertyChanged(nameof(CanEditSelectedNodeWaitTime));
             BeginPassingBranchCommand.RaiseCanExecuteChanged();
             CompletePassingBranchCommand.RaiseCanExecuteChanged();
             CancelPassingBranchCommand.RaiseCanExecuteChanged();
@@ -746,11 +869,14 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
 
             blockedSaveStatusMessage = snapshot.BlockedSaveMessage;
             SetStatusMessage(snapshot.BlockedSaveMessage, true);
-            SelectedTabIndex = 2;
+            SelectedTabIndex = EditorTabIndex;
+            IsIssuesExpanded = true;
 
             if (snapshot.BlockedSaveDiagnostic is not TrainPathDiagnosticRow diagnostic)
                 return;
 
+            RestoreNodeSelection(diagnostic.NodeIndex >= 0 ? diagnostic.NodeIndex : diagnostic.FromNodeIndex);
+            RestoreDiagnosticSelection(null);
             ActivateDiagnostic(Diagnostics.FirstOrDefault(item => item.Code == diagnostic.Code
                 && item.NodeIndex == diagnostic.NodeIndex
                 && item.FromNodeIndex == diagnostic.FromNodeIndex
@@ -762,20 +888,56 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
             if (rows.IsDefault)
                 rows = ImmutableArray<TrainPathDiagnosticRow>.Empty;
 
-            TrainPathDiagnosticItemViewModel selected = SelectedDiagnostic;
-            for (int i = 0; i < rows.Length; i++)
+            syncingDiagnostics = true;
+            try
             {
-                if (i < Diagnostics.Count)
-                    Diagnostics[i].Update(rows[i]);
-                else
-                    Diagnostics.Add(new TrainPathDiagnosticItemViewModel(rows[i]));
+                for (int i = 0; i < rows.Length; i++)
+                {
+                    if (i < Diagnostics.Count)
+                        Diagnostics[i].Update(rows[i]);
+                    else
+                        Diagnostics.Add(new TrainPathDiagnosticItemViewModel(rows[i]));
+                }
+
+                for (int i = Diagnostics.Count - 1; i >= rows.Length; i--)
+                    Diagnostics.RemoveAt(i);
+            }
+            finally
+            {
+                syncingDiagnostics = false;
             }
 
-            for (int i = Diagnostics.Count - 1; i >= rows.Length; i--)
-                Diagnostics.RemoveAt(i);
+            UpdateVisibleDiagnostics();
+        }
 
-            if (selected != null && !Diagnostics.Contains(selected))
-                RestoreDiagnosticSelection(null);
+        private void UpdateVisibleDiagnostics()
+        {
+            TrainPathDiagnosticItemViewModel[] visible = Diagnostics.Where(item => SelectedNode == null
+                || item.NodeIndex == SelectedNode.Index || item.FromNodeIndex == SelectedNode.Index
+                || item.ToNodeIndex == SelectedNode.Index).ToArray();
+
+            bool previousSuppression = suppressSelectionCommand;
+            suppressSelectionCommand = true;
+            try
+            {
+                for (int i = VisibleDiagnostics.Count - 1; i >= 0; i--)
+                {
+                    if (!visible.Contains(VisibleDiagnostics[i]))
+                        VisibleDiagnostics.RemoveAt(i);
+                }
+                for (int i = 0; i < visible.Length; i++)
+                {
+                    if (i >= VisibleDiagnostics.Count || VisibleDiagnostics[i] != visible[i])
+                        VisibleDiagnostics.Insert(i, visible[i]);
+                }
+
+                if (SelectedDiagnostic == null || !visible.Contains(SelectedDiagnostic))
+                    SelectedDiagnostic = SelectedNode == null ? null : visible.FirstOrDefault();
+            }
+            finally
+            {
+                suppressSelectionCommand = previousSuppression;
+            }
         }
 
         private void RestoreDiagnosticSelection(TrainPathDiagnosticItemViewModel diagnostic)
@@ -801,13 +963,138 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
                 return;
             }
 
-            SelectedTabIndex = 3;
+            inspectedCandidateFromNodeIndex = diagnostic.FromNodeIndex;
+            inspectedCandidateToNodeIndex = diagnostic.ToNodeIndex;
+            SelectedTabIndex = EditorTabIndex;
+            UpdateVisibleRouteCandidates();
             ActivateRouteCandidate(candidate);
+        }
+
+        private void ApplyPresentationSnapshot(TrainPathSnapshot snapshot)
+        {
+            bool newWorkflow = snapshot.HasPendingAmbiguousSpanCommit && !presentationSnapshot.HasPendingAmbiguousSpanCommit
+                || snapshot.HasPendingPassingBranchCandidate && !presentationSnapshot.HasPendingPassingBranchCandidate
+                || snapshot.PlacementMode != PathEditorPlacementMode.None && snapshot.PlacementMode != presentationSnapshot.PlacementMode
+                || snapshot.IsBuildingRoute && !presentationSnapshot.IsBuildingRoute
+                || snapshot.PassingBranchPhase != PassingBranchAuthoringPhase.Idle && snapshot.PassingBranchPhase != presentationSnapshot.PassingBranchPhase;
+            bool changedPath = !string.Equals(snapshot.SelectedPathId, presentationSnapshot.SelectedPathId, StringComparison.Ordinal);
+
+            if (changedPath || presentationSnapshot.HasPendingAmbiguousSpanCommit && !snapshot.HasPendingAmbiguousSpanCommit
+                || presentationSnapshot.HasPendingPassingBranchCandidate && !snapshot.HasPendingPassingBranchCandidate)
+            {
+                inspectedCandidateFromNodeIndex = null;
+                inspectedCandidateToNodeIndex = null;
+            }
+
+            hasPendingAmbiguousSpanCommit = snapshot.HasPendingAmbiguousSpanCommit;
+            
+            bool previewChanged = changedPath || newWorkflow
+                || snapshot.PreviewedRouteCandidateFromNodeIndex != presentationSnapshot.PreviewedRouteCandidateFromNodeIndex
+                || snapshot.PreviewedRouteCandidateIndex != presentationSnapshot.PreviewedRouteCandidateIndex;
+            if (previewChanged && snapshot.PreviewedRouteCandidateIndex >= 0)
+            {
+                TrainPathRouteCandidateItemViewModel preview = RouteCandidates.FirstOrDefault(item => item.FromNodeIndex == snapshot.PreviewedRouteCandidateFromNodeIndex
+                    && item.CandidateIndex == snapshot.PreviewedRouteCandidateIndex);
+
+                if (preview != null)
+                {
+                    inspectedCandidateFromNodeIndex = preview.FromNodeIndex;
+                    inspectedCandidateToNodeIndex = preview.ToNodeIndex;
+                }
+                RestoreRouteCandidateSelection(preview);
+            }
+            else if (previewChanged)
+            {
+                RestoreRouteCandidateSelection(null);
+            }
+
+            if (newWorkflow)
+                SelectedTabIndex = EditorTabIndex;
+
+            presentationSnapshot = snapshot;
+            OnPropertyChanged(nameof(HasPendingAmbiguousSpanCommit));
+        }
+
+        private void UpdateVisibleRouteCandidates()
+        {
+            if (inspectedCandidateFromNodeIndex.HasValue && !RouteCandidates.Any(item =>
+                item.FromNodeIndex == inspectedCandidateFromNodeIndex && item.ToNodeIndex == inspectedCandidateToNodeIndex))
+            {
+                inspectedCandidateFromNodeIndex = null;
+                inspectedCandidateToNodeIndex = null;
+            }
+
+            TrainPathRouteCandidateItemViewModel first = RouteCandidates.FirstOrDefault();
+            int? from = inspectedCandidateFromNodeIndex;
+            int? to = inspectedCandidateToNodeIndex;
+            
+            if ((HasPendingAmbiguousSpanCommit || HasPendingPassingBranchCandidate) && !RouteCandidates.Any(item => item.FromNodeIndex == from && item.ToNodeIndex == to))
+            {
+                from = first?.FromNodeIndex;
+                to = first?.ToNodeIndex;
+            }
+            
+            TrainPathRouteCandidateItemViewModel[] visible = RouteCandidates.Where(item => item.FromNodeIndex == from && item.ToNodeIndex == to).ToArray();
+            
+            suppressSelectionCommand = true;
+            try
+            {
+                TrainPathRouteCandidateItemViewModel[] spans = RouteCandidates
+                    .GroupBy(item => (item.FromNodeIndex, item.ToNodeIndex)).Select(group => group.First()).ToArray();
+                for (int i = 0; i < spans.Length; i++)
+                {
+                    if (i >= CandidateSpans.Count)
+                        CandidateSpans.Add(spans[i]);
+                    else if (CandidateSpans[i] != spans[i])
+                        CandidateSpans[i] = spans[i];
+                }
+                while (CandidateSpans.Count > spans.Length)
+                    CandidateSpans.RemoveAt(CandidateSpans.Count - 1);
+
+                if (!VisibleRouteCandidates.SequenceEqual(visible))
+                {
+                    VisibleRouteCandidates.Clear();
+                    foreach (TrainPathRouteCandidateItemViewModel item in visible)
+                        VisibleRouteCandidates.Add(item);
+                }
+                OnPropertyChanged(nameof(SelectedCandidateSpan));
+            }
+            finally
+            {
+                suppressSelectionCommand = false;
+            }
+
+            OnPropertyChanged(nameof(IsCandidatePanelVisible));
+            OnPropertyChanged(nameof(IsIdlePanelVisible));
+            OnPropertyChanged(nameof(IsPlacementPanelVisible));
+            OnPropertyChanged(nameof(IsBuildingPanelVisible));
+            OnPropertyChanged(nameof(IsRejoinPanelVisible));
+            AcceptRouteCandidateCommand.RaiseCanExecuteChanged();
+            CancelPathInteractionCommand.RaiseCanExecuteChanged();
+        }
+
+        private void CancelPathInteraction()
+        {
+            if (CanCancelPathInteraction)
+                toolWindow.CancelPathInteraction();
+            else if (HasPendingPassingBranchCandidate)
+                toolWindow.CancelPassingBranch();
+            else
+                toolWindow.ClearRouteCandidatePreview();
+
+            // Clearing the issue selection allows its next mouse or keyboard selection to reopen the panel.
+            if (inspectedCandidateFromNodeIndex.HasValue)
+                RestoreDiagnosticSelection(null);
+            inspectedCandidateFromNodeIndex = null;
+            inspectedCandidateToNodeIndex = null;
+            RestoreRouteCandidateSelection(null);
+            UpdateVisibleRouteCandidates();
         }
 
         private void RepairDiagnostic()
         {
             TrainPathDiagnosticItemViewModel diagnostic = SelectedDiagnostic;
+
             if (diagnostic?.CanRepair != true)
                 return;
 
@@ -1091,26 +1378,26 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
 
         private static ImmutableArray<ToolWindowRow> BuildSelectedNodeDetailRows(TrainPathNodeItemViewModel selectedNode)
         {
-            if (selectedNode == null)
-                return ImmutableArray<ToolWindowRow>.Empty;
-
             ImmutableArray<ToolWindowRow>.Builder builder = ImmutableArray.CreateBuilder<ToolWindowRow>();
-            builder.Add(new ToolWindowRow { Name = "Index", Value = selectedNode.Index.ToString(System.Globalization.CultureInfo.InvariantCulture) });
-            builder.Add(new ToolWindowRow { Name = "Type", Value = selectedNode.NodeType.ToString() });
-            builder.Add(new ToolWindowRow { Name = "Track Node", Value = selectedNode.TrackNodeIndex.ToString(System.Globalization.CultureInfo.InvariantCulture) });
-            builder.Add(new ToolWindowRow { Name = "Wait", Value = selectedNode.WaitTime?.ToString(System.Globalization.CultureInfo.InvariantCulture) ?? string.Empty });
-            builder.Add(new ToolWindowRow { Name = "Next Main", Value = selectedNode.NextMainNode.ToString(System.Globalization.CultureInfo.InvariantCulture) });
-            builder.Add(new ToolWindowRow { Name = "Next Siding", Value = selectedNode.NextSidingNode.ToString(System.Globalization.CultureInfo.InvariantCulture) });
-            builder.Add(new ToolWindowRow { Name = "Validation", Value = selectedNode.Validation ?? string.Empty, Bold = !selectedNode.Valid });
-            builder.Add(new ToolWindowRow { Name = "Nearest Track Node", Value = selectedNode.NearestTrackNodeIndex?.ToString(System.Globalization.CultureInfo.InvariantCulture) ?? string.Empty });
-            builder.Add(new ToolWindowRow { Name = "Nearest Track Section", Value = selectedNode.NearestTrackSectionIndex?.ToString(System.Globalization.CultureInfo.InvariantCulture) ?? string.Empty });
-            builder.Add(new ToolWindowRow { Name = "Nearest Track Distance", Value = FormatMeters(selectedNode.NearestTrackDistanceMeters) });
+            builder.Add(new ToolWindowRow { Name = "Index", Value = selectedNode?.Index.ToString(System.Globalization.CultureInfo.InvariantCulture) ?? string.Empty });
+            builder.Add(new ToolWindowRow { Name = "Type", Value = selectedNode?.NodeType.ToString() ?? string.Empty });
+            builder.Add(new ToolWindowRow { Name = "Track Node", Value = selectedNode?.TrackNodeIndex.ToString(System.Globalization.CultureInfo.InvariantCulture) ?? string.Empty });
+            builder.Add(new ToolWindowRow { Name = "Wait", Value = selectedNode?.WaitTime?.ToString(System.Globalization.CultureInfo.InvariantCulture) ?? string.Empty });
+            builder.Add(new ToolWindowRow { Name = "Next Main", Value = selectedNode?.NextMainNode.ToString(System.Globalization.CultureInfo.InvariantCulture) ?? string.Empty });
+            builder.Add(new ToolWindowRow { Name = "Next Siding", Value = selectedNode?.NextSidingNode.ToString(System.Globalization.CultureInfo.InvariantCulture) ?? string.Empty });
+            builder.Add(new ToolWindowRow { Name = "Validation", Value = selectedNode?.Validation ?? string.Empty, Bold = selectedNode?.Valid == false });
+            builder.Add(new ToolWindowRow { Name = "Nearest Track Node", Value = selectedNode?.NearestTrackNodeIndex?.ToString(System.Globalization.CultureInfo.InvariantCulture) ?? string.Empty });
+            builder.Add(new ToolWindowRow { Name = "Nearest Track Section", Value = FormatNearestTrackSection(selectedNode?.NearestTrackSectionIndex, selectedNode?.NearestTrackDistanceMeters) });
             return builder.ToImmutable();
         }
 
-        private static string FormatMeters(double? value)
+        private static string FormatNearestTrackSection(int? sectionIndex, double? distanceMeters)
         {
-            return value.HasValue ? FormattableString.Invariant($"{value.Value:0.###} m") : string.Empty;
+            return !sectionIndex.HasValue
+                ? string.Empty
+                : distanceMeters.HasValue
+                ? FormattableString.Invariant($"{sectionIndex.Value} ({distanceMeters.Value:0.###} m)")
+                : sectionIndex.Value.ToString(System.Globalization.CultureInfo.InvariantCulture);
         }
     }
 }

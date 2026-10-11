@@ -114,6 +114,11 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
                     && !snapshot.CanCancelMoveNode
                     && !snapshot.CanCommitMoveNode
                     && !snapshot.CanCancelPathInteraction
+                    && !snapshot.HasPendingAmbiguousSpanCommit
+                    && snapshot.PreviewedRouteCandidateFromNodeIndex == -1
+                    && snapshot.PreviewedRouteCandidateIndex == -1
+                    && !snapshot.HasPendingPassingBranchCandidate
+                    && snapshot.PassingBranchPhase == PassingBranchAuthoringPhase.Idle
                     && !snapshot.CanContinuePath
                     && !snapshot.CanCommitPlacement;
                 if (snapshotIsPathsOnly && pathsSnapshotVersion == lastSnapshotVersion)
@@ -166,6 +171,9 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
             bool canRemovePassingBranch = pathEditor.CanRemovePassingBranch(selectedNodeIndex);
             bool hasPendingPassingBranchCandidate = pathEditor.HasPendingPassingBranchCandidate;
             PassingBranchAuthoringPhase passingBranchPhase = pathEditor.PassingBranchPhase;
+            bool hasPendingAmbiguousSpanCommit = pathEditor.HasPendingAmbiguousSpanCommit;
+            int previewedRouteCandidateFromNodeIndex = pathEditor.PreviewedRouteCandidateFromNodeIndex;
+            int previewedRouteCandidateIndex = pathEditor.PreviewedRouteCandidateIndex;
 
             int currentSnapshotVersion = snapshotVersion;
 
@@ -199,6 +207,9 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
                 && canRemovePassingBranch == snapshot.CanRemovePassingBranch
                 && hasPendingPassingBranchCandidate == snapshot.HasPendingPassingBranchCandidate
                 && passingBranchPhase == snapshot.PassingBranchPhase
+                && hasPendingAmbiguousSpanCommit == snapshot.HasPendingAmbiguousSpanCommit
+                && previewedRouteCandidateFromNodeIndex == snapshot.PreviewedRouteCandidateFromNodeIndex
+                && previewedRouteCandidateIndex == snapshot.PreviewedRouteCandidateIndex
                 && commandResultVersion == snapshot.CommandResultVersion
                 && isRepairMode == snapshot.IsRepairMode
                 && blockedSaveFeedbackVersion == snapshot.BlockedSaveFeedbackVersion
@@ -228,7 +239,10 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
                 PathStart = currentPathModel?.Start,
                 PathEnd = currentPathModel?.End,
                 PlayerPath = currentPathModel?.PlayerPath == true,
-                RouteCandidates = isRepairMode ? ImmutableArray<TrainPathRouteCandidateRow>.Empty : BuildRouteCandidates(pathEditor),
+                RouteCandidates = isRepairMode && !hasPendingAmbiguousSpanCommit ? ImmutableArray<TrainPathRouteCandidateRow>.Empty : BuildRouteCandidates(pathEditor),
+                HasPendingAmbiguousSpanCommit = hasPendingAmbiguousSpanCommit,
+                PreviewedRouteCandidateFromNodeIndex = previewedRouteCandidateFromNodeIndex,
+                PreviewedRouteCandidateIndex = previewedRouteCandidateIndex,
                 Diagnostics = diagnostics,
                 IsRepairMode = isRepairMode,
                 BlockedSaveMessage = blockedSaveValidation?.FailureMessage,

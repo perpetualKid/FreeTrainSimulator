@@ -36,6 +36,9 @@ namespace FreeTrainSimulator.Toolbox.Hosting
         /// </summary>
         internal HostedToolboxServices HostedServices { get; private set; }
 
+        /// <summary>The hosted game's loaded profile settings, available with its tool-window bridges.</summary>
+        internal ProfileToolboxSettingsModel ToolboxSettings => gameWindow?.ToolboxSettings;
+
         /// <summary>
         /// Raised on the WPF UI thread once <see cref="HostedToolboxServices.Menu"/> becomes available.
         /// </summary>
@@ -509,10 +512,10 @@ namespace FreeTrainSimulator.Toolbox.Hosting
         /// Persists the hosted game's live settings model together with the latest WPF dock layout and shell
         /// window placement.
         /// </summary>
-        internal Task SaveHostedSettingsAsync(string dockLayoutJson, WindowPlacementSettings windowPlacement)
+        internal Task SaveHostedSettingsAsync(string dockLayoutJson, WindowPlacementSettings windowPlacement, int pathEditorSelectedTabIndex)
         {
             GameWindow game = gameWindow;
-            return game == null ? Task.CompletedTask : game.SaveHostedSettingsAsync(dockLayoutJson, windowPlacement);
+            return game == null ? Task.CompletedTask : game.SaveHostedSettingsAsync(dockLayoutJson, windowPlacement, pathEditorSelectedTabIndex);
         }
 
         /// <summary>

@@ -566,17 +566,18 @@ namespace FreeTrainSimulator.Toolbox
             }
         }
 
-        internal Task SaveHostedSettingsAsync(string dockLayoutJson, WindowPlacementSettings windowPlacement)
+        internal Task SaveHostedSettingsAsync(string dockLayoutJson, WindowPlacementSettings windowPlacement, int pathEditorSelectedTabIndex)
         {
-            return InvokeOnGameThreadAsync(() => SaveHostedSettingsOnGameThreadAsync(dockLayoutJson, windowPlacement));
+            return InvokeOnGameThreadAsync(() => SaveHostedSettingsOnGameThreadAsync(dockLayoutJson, windowPlacement, pathEditorSelectedTabIndex));
         }
 
-        private async Task SaveHostedSettingsOnGameThreadAsync(string dockLayoutJson, WindowPlacementSettings windowPlacement)
+        private async Task SaveHostedSettingsOnGameThreadAsync(string dockLayoutJson, WindowPlacementSettings windowPlacement, int pathEditorSelectedTabIndex)
         {
             if (ToolboxSettings != null)
             {
                 ToolboxSettings.DockLayoutJson = dockLayoutJson;
                 ToolboxSettings.WindowPlacements = windowPlacement;
+                ToolboxSettings.PathEditorSelectedTabIndex = pathEditorSelectedTabIndex;
             }
 
             await SaveSettings().ConfigureAwait(false);

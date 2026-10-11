@@ -7,12 +7,17 @@
              xmlns:vm="clr-namespace:FreeTrainSimulator.Toolbox.ViewModels"
              xmlns:views="clr-namespace:FreeTrainSimulator.Toolbox.Views"
              xmlns:behaviors="clr-namespace:FreeTrainSimulator.Toolbox.Behaviors"
+             xmlns:gt="clr-namespace:GetText.Wpf;assembly=GetText.Wpf"
              mc:Ignorable="d"
              d:DataContext="{d:DesignInstance Type=vm:TrainPathToolWindowViewModel, IsDesignTimeCreatable=False}"
              views:ToolWindow.DefaultFloatingSize="520,520"
              d:DesignWidth="520"
              d:DesignHeight="520">
     <UserControl.Resources>
+        <ResourceDictionary>
+        <ResourceDictionary.MergedDictionaries>
+            <ResourceDictionary Source="/Toolbox;component/Themes/SharedResources.xaml" />
+        </ResourceDictionary.MergedDictionaries>
         <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
         <DataTemplate x:Key="TrainPathMetadataNameCellTemplate">
             <TextBlock Text="{Binding Name}"
@@ -135,9 +140,25 @@
                 </TextBlock.Style>
             </TextBlock>
         </DataTemplate>
-        <!-- Paths with pending edits are marked with a trailing asterisk (announced by screen readers) and
-             bold text (scannable at a glance). Italic is deliberately avoided: it conventionally denotes
-             preview/temporary items rather than unsaved changes. -->
+        <DataTemplate x:Key="TrainPathNodeValidityCellTemplate">
+            <TextBlock HorizontalAlignment="Center" FontWeight="Bold" ToolTip="{Binding Validation}">
+                <TextBlock.Style>
+                    <Style TargetType="TextBlock">
+                        <Setter Property="Text" Value="&#x2713;" />
+                        <Setter Property="Foreground" Value="Green" />
+                        <Setter Property="AutomationProperties.Name" Value="{gt:Gettext 'Valid path node'}" />
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding Valid}" Value="False">
+                                <Setter Property="Text" Value="&#x26A0;" />
+                                <Setter Property="Foreground" Value="OrangeRed" />
+                                <Setter Property="AutomationProperties.Name" Value="{gt:Gettext 'Invalid path node'}" />
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </TextBlock.Style>
+            </TextBlock>
+        </DataTemplate>
+        <!-- Bold identifies selection; the trailing asterisk independently identifies unsaved changes. -->
         <DataTemplate x:Key="TrainPathNameCellTemplate">
             <StackPanel Orientation="Horizontal">
                 <TextBlock Text="{Binding Name}"
@@ -145,7 +166,7 @@
                     <TextBlock.Style>
                         <Style TargetType="TextBlock">
                             <Style.Triggers>
-                                <DataTrigger Binding="{Binding HasUnsavedChanges}" Value="True">
+                                <DataTrigger Binding="{Binding IsSelected, RelativeSource={RelativeSource AncestorType=ListViewItem}}" Value="True">
                                     <Setter Property="FontWeight" Value="Bold" />
                                 </DataTrigger>
                             </Style.Triggers>
@@ -153,7 +174,6 @@
                     </TextBlock.Style>
                 </TextBlock>
                 <TextBlock Text=" *"
-                           FontWeight="Bold"
                            ToolTip="Unsaved changes">
                     <TextBlock.Style>
                         <Style TargetType="TextBlock">
@@ -168,98 +188,67 @@
                 </TextBlock>
             </StackPanel>
         </DataTemplate>
+        </ResourceDictionary>
     </UserControl.Resources>
-    <TabControl x:Name="PathEditorTabs"
-                Margin="10"
+    <Grid Margin="4">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+        <StackPanel Orientation="Horizontal">
+            <Button x:Name="NewPathButton" Content="New" Command="{Binding NewPathCommand}" Padding="5,2" Margin="0,0,3,0" />
+            <Button Content="Save" Command="{Binding SavePathCommand}" Padding="5,2" Margin="0,0,3,0" />
+            <Button Content="↶" ToolTip="Undo" AutomationProperties.Name="Undo" Command="{Binding UndoCommand}" Padding="5,2" Margin="0,0,3,0" />
+            <Button Content="↷" ToolTip="Redo" AutomationProperties.Name="Redo" Command="{Binding RedoCommand}" Padding="5,2" Margin="0,0,3,0" />
+            <Border BorderBrush="Black" BorderThickness="1" SnapsToDevicePixels="True">
+            <Menu Background="{Binding Background, ElementName=NewPathButton}">
+                <MenuItem Header="Path actions ▾" AutomationProperties.Name="Path actions">
+                    <MenuItem x:Name="ReResolvePathMenuItem" Header="Re-resolve path" Command="{Binding SnapToTrackCommand}" />
+                    <MenuItem Header="Validate all paths" Command="{Binding ValidateAllPathsCommand}" />
+                    <Separator />
+                    <MenuItem x:Name="CancelNewPathMenuItem" Header="Cancel new path" Command="{Binding CancelNewPathCommand}" />
+                </MenuItem>
+            </Menu>
+            </Border>
+        </StackPanel>
+        <TextBlock Grid.Row="1" Text="Repair mode: inspect issues and repair authored nodes. Runtime route rendering is disabled."
+                   TextWrapping="Wrap" Background="Moccasin" Foreground="DarkRed"
+                   Visibility="{Binding IsRepairMode, Converter={StaticResource BooleanToVisibilityConverter}}" />
+        <TextBox Grid.Row="3" Text="{Binding StatusMessage, Mode=OneWay}" IsReadOnly="True" TextWrapping="Wrap"
+                 MaxHeight="54" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled"
+                 AutomationProperties.Name="Command feedback" Margin="0,3,0,0" />
+    <TabControl x:Name="PathEditorTabs" Grid.Row="2"
+                Margin="0,3,0,0"
                 SelectionChanged="PathEditorTabs_SelectionChanged"
                 SelectedIndex="{Binding SelectedTabIndex, Mode=OneWay}">
         <TabItem Header="Paths">
             <Grid Margin="6">
                 <Grid.RowDefinitions>
+                    <RowDefinition Height="*" />
                     <RowDefinition Height="Auto" />
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="*" MinHeight="120" />
-                    <RowDefinition Height="Auto" />
-                    <RowDefinition Height="2*" MinHeight="160" />
+                    <RowDefinition Height="2*" />
                     <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
-                <WrapPanel Grid.Row="0"
-                           HorizontalAlignment="Left"
-                           Margin="0,0,0,6">
-                    <TextBlock Margin="0,2,8,6"
-                               Padding="6,2"
-                               Background="Moccasin"
-                               Foreground="DarkRed"
-                               FontWeight="Bold"
-                               Text="Repair mode: runtime route rendering is disabled. Inspect diagnostics and repair authored nodes.">
-                        <TextBlock.Style>
-                            <Style TargetType="TextBlock">
-                                <Setter Property="Visibility" Value="Collapsed" />
-                                <Style.Triggers>
-                                    <DataTrigger Binding="{Binding IsRepairMode}" Value="True">
-                                        <Setter Property="Visibility" Value="Visible" />
-                                    </DataTrigger>
-                                </Style.Triggers>
-                            </Style>
-                        </TextBlock.Style>
-                    </TextBlock>
-                    <Button Padding="8,2"
-                            Margin="0,0,6,4"
-                            Content="New Path"
-                            Command="{Binding NewPathCommand}"
-                             ToolTip="Start editing a new path for the current route">
-                        <Button.Style>
-                            <Style TargetType="Button">
-                                <Style.Triggers>
-                                    <DataTrigger Binding="{Binding CanCancelNewPath}" Value="True">
-                                        <Setter Property="Visibility" Value="Collapsed" />
-                                    </DataTrigger>
-                                </Style.Triggers>
-                            </Style>
-                        </Button.Style>
-                    </Button>
-                    <Button Padding="8,2"
-                             Margin="0,0,6,4"
-                             Content="Cancel"
-                             Command="{Binding CancelNewPathCommand}"
-                             ToolTip="Cancel the active unsaved new path">
-                        <Button.Style>
-                            <Style TargetType="Button">
-                                <Setter Property="Visibility" Value="Collapsed" />
-                                <Style.Triggers>
-                                    <DataTrigger Binding="{Binding CanCancelNewPath}" Value="True">
-                                        <Setter Property="Visibility" Value="Visible" />
-                                    </DataTrigger>
-                                </Style.Triggers>
-                            </Style>
-                        </Button.Style>
-                    </Button>
-                    <Button Margin="0,0,6,4"
-                            Padding="8,2"
-                            Content="Save"
-                            Command="{Binding SavePathCommand}"
-                            ToolTip="Save the currently edited path" />
-                    <Button Margin="0,0,6,4"
-                            Padding="8,2"
-                            Content="Validate All"
-                            Command="{Binding ValidateAllPathsCommand}"
-                            ToolTip="Re-validate every path against the current track (useful after a route changes)" />
-                </WrapPanel>
-                <TextBox Grid.Row="1"
-                         Margin="0,0,0,6"
-                         VerticalContentAlignment="Center"
-                         Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}"
-                         ToolTip="Search Paths" />
-                <ListView Grid.Row="2"
+                <ListView Grid.Row="0"
                           ItemsSource="{Binding Paths}"
                           SelectedItem="{Binding SelectedPath, Mode=OneWay}"
                           PreviewMouseLeftButtonDown="PathList_PreviewMouseLeftButtonDown"
+                          PreviewMouseRightButtonDown="PathList_PreviewMouseRightButtonDown"
+                          ContextMenuOpening="PathList_ContextMenuOpening"
                           SelectionChanged="PathList_SelectionChanged"
                           behaviors:GridViewColumnBehavior.StretchListView="True">
+                    <ListView.ContextMenu>
+                        <ContextMenu />
+                    </ListView.ContextMenu>
                     <ListView.ItemContainerStyle>
                         <Style TargetType="ListViewItem">
                             <Setter Property="Visibility" Value="Visible" />
                             <Style.Triggers>
+                                <Trigger Property="IsSelected" Value="True">
+                                    <Setter Property="FontWeight" Value="Bold" />
+                                </Trigger>
                                 <DataTrigger Binding="{Binding IsVisible}" Value="False">
                                     <Setter Property="Visibility" Value="Collapsed" />
                                 </DataTrigger>
@@ -270,17 +259,31 @@
                         <GridView>
                             <GridViewColumn Header="" Width="28" CellTemplate="{StaticResource TrainPathValidityCellTemplate}" />
                             <GridViewColumn Header="Name" Width="320" CellTemplate="{StaticResource TrainPathNameCellTemplate}"
-                                            behaviors:GridViewColumnBehavior.StretchColumn="True" />
+                                            behaviors:GridViewColumnBehavior.StretchColumn="True">
+                                <GridViewColumn.HeaderContainerStyle>
+                                    <Style TargetType="GridViewColumnHeader">
+                                        <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                                    </Style>
+                                </GridViewColumn.HeaderContainerStyle>
+                                <GridViewColumn.HeaderTemplate>
+                                    <DataTemplate>
+                                        <views:ColumnFilterHeader Caption="{gt:Gettext 'Name'}" IsSearchable="True"
+                                            FilterText="{Binding DataContext.SearchText, RelativeSource={RelativeSource AncestorType=ListView}, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                            IsFilterRowVisible="{Binding DataContext.IsPathFilterRowVisible, RelativeSource={RelativeSource AncestorType=ListView}}"
+                                            ToggleFilterRowCommand="{Binding DataContext.TogglePathFilterRowCommand, RelativeSource={RelativeSource AncestorType=ListView}}" />
+                                    </DataTemplate>
+                                </GridViewColumn.HeaderTemplate>
+                            </GridViewColumn>
                         </GridView>
                     </ListView.View>
                 </ListView>
-                <GridSplitter Grid.Row="3"
+                <GridSplitter Grid.Row="1"
                               Height="4"
                               HorizontalAlignment="Stretch"
                               VerticalAlignment="Center"
                               ResizeBehavior="PreviousAndNext"
                               ResizeDirection="Rows" />
-                <DockPanel Grid.Row="3" Margin="0,4,0,0" Grid.RowSpan="2">
+                <DockPanel Grid.Row="2" Margin="0,4,0,0">
                     <TextBlock DockPanel.Dock="Top"
                                Margin="0,2,0,4"
                                FontWeight="Bold"
@@ -297,11 +300,11 @@
                             <ColumnDefinition Width="*" />
                         </Grid.ColumnDefinitions>
                         <TextBlock Grid.Row="0" Text="Name" Margin="4,3,8,3" VerticalAlignment="Center" />
-                        <TextBox Grid.Row="0" Grid.Column="1" Margin="3" LostFocus="MetadataEditor_LostFocus" Text="{Binding PathName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                        <TextBox Grid.Row="0" Grid.Column="1" Margin="3" AutomationProperties.Name="Path name" GotKeyboardFocus="MetadataEditor_GotKeyboardFocus" LostFocus="MetadataEditor_LostFocus" Text="{Binding PathName, Mode=TwoWay, UpdateSourceTrigger=Explicit}" />
                         <TextBlock Grid.Row="1" Text="Start" Margin="4,3,8,3" VerticalAlignment="Center" />
-                        <TextBox Grid.Row="1" Grid.Column="1" Margin="3" LostFocus="MetadataEditor_LostFocus" Text="{Binding PathStart, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                        <TextBox Grid.Row="1" Grid.Column="1" Margin="3" AutomationProperties.Name="Path start" GotKeyboardFocus="MetadataEditor_GotKeyboardFocus" LostFocus="MetadataEditor_LostFocus" Text="{Binding PathStart, Mode=TwoWay, UpdateSourceTrigger=Explicit}" />
                         <TextBlock Grid.Row="2" Text="End" Margin="4,3,8,3" VerticalAlignment="Center" />
-                        <TextBox Grid.Row="2" Grid.Column="1" Margin="3" LostFocus="MetadataEditor_LostFocus" Text="{Binding PathEnd, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+                        <TextBox Grid.Row="2" Grid.Column="1" Margin="3" AutomationProperties.Name="Path end" GotKeyboardFocus="MetadataEditor_GotKeyboardFocus" LostFocus="MetadataEditor_LostFocus" Text="{Binding PathEnd, Mode=TwoWay, UpdateSourceTrigger=Explicit}" />
                         <TextBlock Grid.Row="3" Text="Player Path" Margin="4,3,8,3" VerticalAlignment="Center" />
                         <CheckBox Grid.Row="3" Grid.Column="1" Margin="3" VerticalAlignment="Center" Click="MetadataEditor_Click" IsChecked="{Binding PlayerPath, Mode=TwoWay}" />
                     </Grid>
@@ -318,81 +321,73 @@
                         </ListView.View>
                     </ListView>
                 </DockPanel>
-                <TextBlock Grid.Row="5"
-                           Margin="0,6,0,0"
-                           TextWrapping="Wrap"
-                           Text="{Binding StatusMessage}">
-                    <TextBlock.Style>
-                        <Style TargetType="TextBlock">
-                            <Setter Property="Foreground" Value="Gray" />
-                            <Style.Triggers>
-                                <DataTrigger Binding="{Binding StatusMessageIsWarning}" Value="True">
-                                    <Setter Property="Foreground" Value="OrangeRed" />
-                                </DataTrigger>
-                            </Style.Triggers>
-                        </Style>
-                    </TextBlock.Style>
-                </TextBlock>
             </Grid>
         </TabItem>
-        <TabItem Header="Path Nodes">
+        <TabItem Header="Editor">
             <Grid Margin="6">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
-                    <RowDefinition Height="2*" MinHeight="120" />
+                    <RowDefinition Height="*" />
                     <RowDefinition Height="Auto" />
-                    <RowDefinition Height="*" MinHeight="80" />
+                    <RowDefinition Height="*" />
                     <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
-                <WrapPanel Grid.Row="0"
-                           HorizontalAlignment="Left"
-                           Margin="0,0,0,6">
-                    <Button Padding="8,2"
-                            Margin="0,0,6,4"
-                            Content="Undo"
-                            Command="{Binding UndoCommand}" />
-                    <Button Margin="0,0,6,4"
-                            Padding="8,2"
-                            Content="Redo"
-                            Command="{Binding RedoCommand}" />
-                    <Button Margin="0,0,6,4"
-                            Padding="8,2"
-                            Content="Re-resolve Path"
-                            Command="{Binding SnapToTrackCommand}"
-                            ToolTip="Rebuild the whole path from its authored nodes using the path resolver. This may insert generated nodes and update links." />
-                    <Button Margin="0,0,6,4"
-                            Padding="8,2"
-                            Content="Set Start Here"
-                            Command="{Binding SetStartHereCommand}"
-                            ToolTip="Choose a track location for the authored start anchor" />
-                    <Button Margin="0,0,6,4"
-                            Padding="8,2"
-                            Content="Set End Here"
-                            Command="{Binding SetEndHereCommand}"
-                            ToolTip="Choose a track location for the authored end anchor and resolve the route" />
-                    <Button Margin="0,0,6,4"
-                             Padding="8,2"
-                             Content="Continue Path"
-                             Command="{Binding ContinuePathCommand}"
-                             ToolTip="Continue building the path by adding route points on the map" />
-                    <Button Margin="0,0,6,4"
-                             Padding="8,2"
-                             Content="Finish Path"
-                             Command="{Binding FinishPathCommand}"
-                             ToolTip="Finish route building at the last committed route point" />
-                    <Button Margin="0,0,6,4"
-                            Padding="8,2"
-                             Content="Add Route Point"
-                            Command="{Binding CommitPlacementCommand}" />
-                    <Button Margin="0,0,6,4"
-                            Padding="8,2"
-                            Content="Cancel Interaction"
-                            Command="{Binding CancelPathInteractionCommand}" />
-                </WrapPanel>
+                <StackPanel Grid.Row="0">
+                    <StackPanel Visibility="{Binding IsIdlePanelVisible, Converter={StaticResource BooleanToVisibilityConverter}}">
+                        <StackPanel Orientation="Horizontal">
+                            <Button Content="Set start" Command="{Binding SetStartHereCommand}" Padding="6,2" Margin="0,0,4,3" />
+                            <Button Content="Set end" Command="{Binding SetEndHereCommand}" Padding="6,2" Margin="0,0,0,3" />
+                        </StackPanel>
+                    </StackPanel>
+                    <StackPanel Visibility="{Binding IsPlacementPanelVisible, Converter={StaticResource BooleanToVisibilityConverter}}">
+                        <TextBlock Text="Choose a track location on the map, then confirm placement." TextWrapping="Wrap" />
+                        <Button Content="Confirm placement" Command="{Binding CommitPlacementCommand}" />
+                        <Button Content="Cancel interaction" Command="{Binding CancelPathInteractionCommand}" />
+                    </StackPanel>
+                    <StackPanel Visibility="{Binding IsBuildingPanelVisible, Converter={StaticResource BooleanToVisibilityConverter}}">
+                        <Button Content="Add route point" Command="{Binding CommitPlacementCommand}" />
+                        <Button Content="Finish path" Command="{Binding FinishPathCommand}" />
+                        <Button Content="Cancel interaction" Command="{Binding CancelPathInteractionCommand}" />
+                    </StackPanel>
+                    <StackPanel Visibility="{Binding IsRejoinPanelVisible, Converter={StaticResource BooleanToVisibilityConverter}}">
+                        <TextBlock Text="Select a later main-path node to rejoin the passing branch." TextWrapping="Wrap" />
+                        <Button Content="Rejoin at selected node" Command="{Binding CompletePassingBranchCommand}" />
+                        <Button Content="Cancel interaction" Command="{Binding CancelPassingBranchCommand}" />
+                    </StackPanel>
+                    <Grid Visibility="{Binding IsCandidatePanelVisible, Converter={StaticResource BooleanToVisibilityConverter}}">
+                        <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
+                        <TextBlock Text="Choose route — selecting a candidate previews it." TextWrapping="Wrap" />
+                        <ComboBox Grid.Row="1" ItemsSource="{Binding CandidateSpans}" SelectedItem="{Binding SelectedCandidateSpan, Mode=OneWay}"
+                                  SelectionChanged="CandidateSpan_SelectionChanged" AutomationProperties.Name="Route span">
+                            <ComboBox.ItemTemplate><DataTemplate>
+                                <TextBlock><Run Text="Nodes " /><Run Text="{Binding FromNodeIndex, Mode=OneWay}" /><Run Text="–" /><Run Text="{Binding ToNodeIndex, Mode=OneWay}" /></TextBlock>
+                            </DataTemplate></ComboBox.ItemTemplate>
+                        </ComboBox>
+                        <ListView Grid.Row="2" MaxHeight="90" ItemsSource="{Binding VisibleRouteCandidates}" SelectedItem="{Binding SelectedRouteCandidate, Mode=OneWay}" SelectionChanged="RouteCandidateList_SelectionChanged"
+                                  ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                            <ListView.ItemTemplate><DataTemplate><TextBlock Text="{Binding Description}" TextWrapping="Wrap" /></DataTemplate></ListView.ItemTemplate>
+                        </ListView>
+                        <Button Grid.Row="3" Content="Accept candidate" Command="{Binding AcceptRouteCandidateCommand}" />
+                        <Button Grid.Row="4" Content="Cancel interaction" Command="{Binding CancelPathInteractionCommand}" />
+                    </Grid>
+                    <WrapPanel Margin="0,0,0,3">
+                        <Button Content="Continue path" Command="{Binding ContinuePathCommand}" Padding="6,2" Margin="0,0,4,0"
+                                Visibility="{Binding IsIdlePanelVisible, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                        <Border BorderBrush="Black" BorderThickness="1" SnapsToDevicePixels="True" VerticalAlignment="Center">
+                        <Menu Background="{Binding Background, ElementName=NewPathButton}">
+                            <MenuItem Header="{gt:Gettext 'Node actions ▾'}" AutomationProperties.Name="Node actions"
+                                      SubmenuOpened="NodeActions_SubmenuOpened">
+                                <Separator />
+                            </MenuItem>
+                        </Menu>
+                        </Border>
+                    </WrapPanel>
+                </StackPanel>
                 <ListView Grid.Row="1"
                           ContextMenuOpening="PathNodes_ContextMenuOpening"
                           ItemsSource="{Binding Nodes}"
                           SelectedItem="{Binding SelectedNode, Mode=OneWay}"
+                          PreviewMouseLeftButtonDown="NodeList_PreviewMouseLeftButtonDown"
                           SelectionChanged="NodeList_SelectionChanged"
                           behaviors:GridViewColumnBehavior.StretchListView="True">
                     <ListView.ContextMenu>
@@ -402,6 +397,9 @@
                         <Style TargetType="ListViewItem">
                             <Setter Property="ToolTip" Value="{Binding Validation}" />
                             <Style.Triggers>
+                                <Trigger Property="IsSelected" Value="True">
+                                    <Setter Property="FontWeight" Value="Bold" />
+                                </Trigger>
                                 <DataTrigger Binding="{Binding Valid}" Value="False">
                                     <Setter Property="Foreground" Value="OrangeRed" />
                                 </DataTrigger>
@@ -410,11 +408,13 @@
                     </ListView.ItemContainerStyle>
                     <ListView.View>
                         <GridView>
-                            <GridViewColumn Header="Idx" Width="50" DisplayMemberBinding="{Binding Index}" />
-                            <GridViewColumn Header="Type" Width="120" DisplayMemberBinding="{Binding NodeType}" />
-                            <GridViewColumn Header="Valid" Width="60" DisplayMemberBinding="{Binding Valid}" />
-                            <GridViewColumn Header="Validation" Width="180" DisplayMemberBinding="{Binding Validation}"
-                                            behaviors:GridViewColumnBehavior.StretchColumn="True" />
+                            <GridViewColumn Header="" Width="28" CellTemplate="{StaticResource TrainPathNodeValidityCellTemplate}" />
+                            <GridViewColumn Header="#" Width="32" DisplayMemberBinding="{Binding Index}" />
+                            <GridViewColumn Header="{gt:Gettext 'Type'}" Width="200" behaviors:GridViewColumnBehavior.StretchColumn="True">
+                                <GridViewColumn.CellTemplate><DataTemplate>
+                                    <TextBlock Text="{Binding NodeType}" TextWrapping="Wrap" ToolTip="{Binding Validation}" />
+                                </DataTemplate></GridViewColumn.CellTemplate>
+                            </GridViewColumn>
                         </GridView>
                     </ListView.View>
                 </ListView>
@@ -424,81 +424,69 @@
                               VerticalAlignment="Center"
                               ResizeBehavior="PreviousAndNext"
                               ResizeDirection="Rows" />
-                <DockPanel Grid.Row="3">
-                    <TextBlock DockPanel.Dock="Top"
-                               Margin="0,2,0,4"
-                               FontWeight="Bold"
-                               Text="Path Node Details" />
-                    <ListView ItemsSource="{Binding SelectedNodeDetailRows}"
-                              ItemContainerStyle="{StaticResource ToolWindowRowItemStyle}"
-                              behaviors:GridViewColumnBehavior.EqualColumnWidth="True"
-                              behaviors:GridViewColumnBehavior.StretchListView="True">
-                        <ListView.View>
-                            <GridView>
-                                <GridViewColumn Header="Name" Width="250" CellTemplate="{StaticResource ToolWindowNameCellTemplate}" />
-                                <GridViewColumn Header="Value" Width="250" CellTemplate="{StaticResource TrainPathNodeDetailValueCellTemplate}" />
-                            </GridView>
-                        </ListView.View>
-                    </ListView>
-                </DockPanel>
-                <TextBlock Grid.Row="4"
-                           Margin="0,6,0,0"
-                           TextWrapping="Wrap"
-                           Text="{Binding StatusMessage}">
-                    <TextBlock.Style>
-                        <Style TargetType="TextBlock">
-                            <Setter Property="Foreground" Value="Gray" />
-                            <Style.Triggers>
-                                <DataTrigger Binding="{Binding StatusMessageIsWarning}" Value="True">
-                                    <Setter Property="Foreground" Value="OrangeRed" />
-                                </DataTrigger>
-                            </Style.Triggers>
-                        </Style>
-                    </TextBlock.Style>
-                </TextBlock>
-            </Grid>
-        </TabItem>
-        <TabItem Header="Diagnostics">
-            <DockPanel Margin="6">
-                <TextBlock DockPanel.Dock="Top"
-                           Margin="0,2,0,4"
-                           TextWrapping="Wrap"
-                           Text="Select a diagnostic to highlight its affected node or span. Ambiguous routes open their matching route candidates." />
-                <Border DockPanel.Dock="Bottom"
-                        Margin="0,6,0,0"
-                        Padding="6"
-                        BorderBrush="Gainsboro"
-                        BorderThickness="1">
-                    <DockPanel>
-                        <Button DockPanel.Dock="Bottom"
-                                HorizontalAlignment="Left"
-                                Padding="8,2"
-                                Margin="0,6,0,0"
-                                Content="Repair Node"
-                                Command="{Binding RepairDiagnosticCommand}"
-                                ToolTip="Apply the existing safe repair operation to the selected diagnostic node" />
-                        <ScrollViewer MaxHeight="180"
-                                      VerticalScrollBarVisibility="Auto"
-                                      HorizontalScrollBarVisibility="Disabled">
-                            <StackPanel>
-                                <TextBlock FontWeight="Bold"
-                                           Text="Message" />
-                                <TextBlock Margin="0,2,0,6"
-                                           Text="{Binding SelectedDiagnostic.Message}"
-                                           TextWrapping="Wrap" />
-                                <TextBlock FontWeight="Bold"
-                                           Text="Suggested Action" />
-                                <TextBlock Margin="0,2,0,0"
-                                           Text="{Binding SelectedDiagnostic.SuggestedAction}"
-                                           TextWrapping="Wrap" />
+                <ScrollViewer Grid.Row="3" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                    <StackPanel>
+                        <Grid Margin="0,3">
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="Auto" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
+                            <TextBlock Text="Wait (seconds)" VerticalAlignment="Center" Margin="0,0,6,0" />
+                            <TextBox x:Name="WaitTimeEditor" Grid.Column="1" MaxLength="10"
+                                     IsEnabled="{Binding CanEditSelectedNodeWaitTime}"
+                                     Text="{Binding SelectedNodeWaitTime, Mode=TwoWay, UpdateSourceTrigger=Explicit}"
+                                     LostKeyboardFocus="WaitTimeEditor_LostKeyboardFocus" GotKeyboardFocus="WaitTimeEditor_GotKeyboardFocus"
+                                     PreviewTextInput="WaitTimeTextBox_PreviewTextInput" DataObject.Pasting="WaitTimeTextBox_Pasting"
+                                     AutomationProperties.Name="Wait time in seconds">
+                                <TextBox.Style><Style TargetType="TextBox"><Style.Triggers>
+                                    <DataTrigger Binding="{Binding IsRepairMode}" Value="True"><Setter Property="IsEnabled" Value="False" /></DataTrigger>
+                                </Style.Triggers></Style></TextBox.Style>
+                            </TextBox>
+                        </Grid>
+                        <TextBlock Text="{Binding SelectedNode.Validation}" TextWrapping="Wrap" />
+                        <Expander Header="{gt:Gettext 'Details'}" IsExpanded="True">
+                            <Border BorderBrush="DarkGray" BorderThickness="1" SnapsToDevicePixels="True" Margin="0,4,0,0">
+                            <StackPanel Grid.IsSharedSizeScope="True">
+                                <Border BorderBrush="Gainsboro" BorderThickness="0,0,0,1">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto" SharedSizeGroup="NodeDetailNames" />
+                                            <ColumnDefinition Width="*" />
+                                        </Grid.ColumnDefinitions>
+                                        <GridViewColumnHeader Content="{gt:Gettext 'Name'}" IsHitTestVisible="False" Focusable="False" />
+                                        <GridViewColumnHeader Grid.Column="1" Content="{gt:Gettext 'Value'}" IsHitTestVisible="False" Focusable="False" />
+                                    </Grid>
+                                </Border>
+                            <ItemsControl ItemsSource="{Binding SelectedNodeDetailRows}"
+                                          HorizontalContentAlignment="Stretch">
+                                <ItemsControl.ItemContainerStyle>
+                                    <Style TargetType="ContentPresenter">
+                                        <Setter Property="HorizontalAlignment" Value="Stretch" />
+                                    </Style>
+                                </ItemsControl.ItemContainerStyle>
+                                <ItemsControl.ItemTemplate><DataTemplate>
+                                    <Border BorderBrush="Gainsboro" BorderThickness="0,0,0,1">
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="Auto" SharedSizeGroup="NodeDetailNames" />
+                                                <ColumnDefinition Width="*" />
+                                            </Grid.ColumnDefinitions>
+                                            <TextBlock Text="{Binding Name}" TextWrapping="Wrap" MaxWidth="155" Padding="4,3" />
+                                            <Border Grid.Column="1" BorderBrush="Gainsboro" BorderThickness="1,0,0,0" Padding="4,3">
+                                                <TextBlock Text="{Binding Value}" TextWrapping="Wrap" />
+                                            </Border>
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate></ItemsControl.ItemTemplate>
+                            </ItemsControl>
                             </StackPanel>
-                        </ScrollViewer>
-                    </DockPanel>
-                </Border>
-                <ListView ItemsSource="{Binding Diagnostics}"
+                            </Border>
+                        </Expander>
+                <Expander x:Name="IssuesExpander" Margin="0,6,0,0" IsExpanded="{Binding IsIssuesExpanded, Mode=TwoWay}">
+                    <Expander.Header><StackPanel Orientation="Horizontal"><TextBlock Text="Issues" /><TextBlock Text="{Binding VisibleDiagnostics.Count, StringFormat= ({0})}" /></StackPanel></Expander.Header>
+            <StackPanel>
+                <ListView x:Name="DiagnosticList" ItemsSource="{Binding VisibleDiagnostics}"
                           SelectedItem="{Binding SelectedDiagnostic, Mode=OneWay}"
                           SelectionChanged="DiagnosticList_SelectionChanged"
-                          ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                          ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                          MaxHeight="120" Margin="0,4,0,0" AutomationProperties.Name="Path issues">
                     <ListView.ItemContainerStyle>
                         <Style TargetType="ListViewItem">
                             <Setter Property="HorizontalContentAlignment" Value="Stretch" />
@@ -506,84 +494,84 @@
                             <Style.Triggers>
                                 <DataTrigger Binding="{Binding Severity}" Value="Error">
                                     <Setter Property="Foreground" Value="OrangeRed" />
-                                    <Setter Property="FontWeight" Value="Bold" />
                                 </DataTrigger>
                                 <DataTrigger Binding="{Binding Severity}" Value="Fatal">
                                     <Setter Property="Foreground" Value="Red" />
-                                    <Setter Property="FontWeight" Value="Bold" />
                                 </DataTrigger>
+                                <Trigger Property="IsSelected" Value="True">
+                                    <Setter Property="FontWeight" Value="Bold" />
+                                </Trigger>
                             </Style.Triggers>
                         </Style>
                     </ListView.ItemContainerStyle>
                     <ListView.ItemTemplate>
                         <DataTemplate>
-                            <Grid Margin="3,2">
-                                <Grid.RowDefinitions>
-                                    <RowDefinition Height="Auto" />
-                                    <RowDefinition Height="Auto" />
-                                </Grid.RowDefinitions>
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="Auto" />
-                                    <ColumnDefinition Width="*" />
-                                </Grid.ColumnDefinitions>
-                                <TextBlock Margin="0,0,8,0"
-                                           FontWeight="SemiBold"
-                                           Text="{Binding Severity}" />
-                                <TextBlock Grid.Column="1"
-                                           HorizontalAlignment="Right"
-                                           Text="{Binding Target}" />
-                                <TextBlock Grid.Row="1"
-                                           Grid.ColumnSpan="2"
-                                           Margin="0,2,0,0"
-                                           Text="{Binding Code}"
-                                           TextWrapping="Wrap" />
-                            </Grid>
-                        </DataTemplate>
-                    </ListView.ItemTemplate>
-                </ListView>
-            </DockPanel>
-        </TabItem>
-        <TabItem Header="Route Candidates">
-            <DockPanel Margin="6">
-                <TextBlock DockPanel.Dock="Top"
-                           Margin="0,2,0,4"
-                           TextWrapping="Wrap"
-                           Text="Spans with several equal-cost routes. Select a candidate to preview it on the map, then accept it to author main-route via points or passing-branch anchors." />
-                <WrapPanel DockPanel.Dock="Bottom"
-                           HorizontalAlignment="Left"
-                           Margin="0,6,0,0">
-                    <Button Padding="8,2"
-                            Margin="0,0,6,4"
-                            Content="Accept Candidate"
-                            Command="{Binding AcceptRouteCandidateCommand}"
-                            ToolTip="Author the selected candidate route as via points, making the span unambiguous" />
-                </WrapPanel>
-                <ListView ItemsSource="{Binding RouteCandidates}"
-                          SelectedItem="{Binding SelectedRouteCandidate, Mode=OneWay}"
-                          SelectionChanged="RouteCandidateList_SelectionChanged"
-                          ScrollViewer.HorizontalScrollBarVisibility="Disabled">
-                    <ListView.ItemContainerStyle>
-                        <Style TargetType="ListViewItem">
-                            <Setter Property="HorizontalContentAlignment" Value="Stretch" />
-                        </Style>
-                    </ListView.ItemContainerStyle>
-                    <ListView.ItemTemplate>
-                        <DataTemplate>
                             <StackPanel Margin="3,2">
-                                <TextBlock FontWeight="SemiBold">
-                                    <Run Text="Nodes " />
-                                    <Run Text="{Binding FromNodeIndex, Mode=OneWay}" />
-                                    <Run Text="-" />
-                                    <Run Text="{Binding ToNodeIndex, Mode=OneWay}" />
+                                <TextBlock TextWrapping="Wrap">
+                                    <Run Text="{Binding Severity, Mode=OneWay}" />
+                                    <Run Text="{Binding Target, Mode=OneWay}" />
                                 </TextBlock>
-                                <TextBlock Margin="0,2,0,0"
-                                           Text="{Binding Description, Mode=OneWay}"
-                                           TextWrapping="Wrap" />
+                                <TextBlock Text="{Binding Code}" TextWrapping="Wrap" />
                             </StackPanel>
                         </DataTemplate>
                     </ListView.ItemTemplate>
                 </ListView>
-            </DockPanel>
+                <Border Padding="6" Margin="0,6,0,0" BorderBrush="Gainsboro" BorderThickness="1">
+                    <Border.Style>
+                        <Style TargetType="Border">
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding SelectedDiagnostic}" Value="{x:Null}">
+                                    <Setter Property="Visibility" Value="Collapsed" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Border.Style>
+                <StackPanel>
+                    <TextBlock FontWeight="Bold"
+                               Text="{gt:Gettext 'Message'}" />
+                    <TextBlock Margin="0,2,0,6"
+                               Text="{Binding SelectedDiagnostic.Message}"
+                               TextWrapping="Wrap" />
+                    <StackPanel>
+                        <StackPanel.Style>
+                            <Style TargetType="StackPanel">
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding SelectedDiagnostic.SuggestedAction}" Value="">
+                                        <Setter Property="Visibility" Value="Collapsed" />
+                                    </DataTrigger>
+                                    <DataTrigger Binding="{Binding SelectedDiagnostic.SuggestedAction}" Value="{x:Null}">
+                                        <Setter Property="Visibility" Value="Collapsed" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </StackPanel.Style>
+                    <TextBlock FontWeight="Bold"
+                               Text="{gt:Gettext 'Suggested Action'}" />
+                    <TextBlock Margin="0,2,0,0"
+                               Text="{Binding SelectedDiagnostic.SuggestedAction}"
+                               TextWrapping="Wrap" />
+                    </StackPanel>
+                    <Button Content="{gt:Gettext 'Repair node'}" Command="{Binding RepairDiagnosticCommand}"
+                            HorizontalAlignment="Left" Margin="0,6,0,0">
+                        <Button.Style>
+                            <Style TargetType="Button">
+                                <Setter Property="Visibility" Value="Collapsed" />
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding SelectedDiagnostic.CanRepair}" Value="True">
+                                        <Setter Property="Visibility" Value="Visible" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Button.Style>
+                    </Button>
+                </StackPanel>
+                </Border>
+            </StackPanel>
+                </Expander>
+                    </StackPanel>
+                </ScrollViewer>
+            </Grid>
         </TabItem>
     </TabControl>
+    </Grid>
 </UserControl>

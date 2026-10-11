@@ -37,6 +37,15 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
         /// <summary>Equal-cost route candidates of the currently edited path's ambiguous spans.</summary>
         public ImmutableArray<TrainPathRouteCandidateRow> RouteCandidates { get; init; }
 
+        /// <summary>Whether candidate rows belong to a pending tentative main-route mutation, rather than ordinary ambiguous-path inspection.</summary>
+        public bool HasPendingAmbiguousSpanCommit { get; init; }
+
+        /// <summary>Authored start index of the explicitly previewed main or passing candidate span, or -1 when none is selected.</summary>
+        public int PreviewedRouteCandidateFromNodeIndex { get; init; } = -1;
+
+        /// <summary>Index within the previewed span, or -1 when no candidate was explicitly previewed. Automatic composite previews do not select a candidate.</summary>
+        public int PreviewedRouteCandidateIndex { get; init; } = -1;
+
         /// <summary>Resolver diagnostics of the currently edited path.</summary>
         public ImmutableArray<TrainPathDiagnosticRow> Diagnostics { get; init; }
 
@@ -130,6 +139,9 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
             SelectedNodeIndex = -1,
             Metadata = ImmutableArray<ToolWindowRow>.Empty,
             RouteCandidates = ImmutableArray<TrainPathRouteCandidateRow>.Empty,
+            HasPendingAmbiguousSpanCommit = false,
+            PreviewedRouteCandidateFromNodeIndex = -1,
+            PreviewedRouteCandidateIndex = -1,
             Diagnostics = ImmutableArray<TrainPathDiagnosticRow>.Empty,
             IsRepairMode = false,
             BlockedSaveMessage = null,

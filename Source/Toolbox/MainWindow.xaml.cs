@@ -459,9 +459,11 @@ namespace FreeTrainSimulator.Toolbox
             viewModel.LogTool = new LogToolWindowViewModel(services.LogToolWindow, refreshScheduler);
             viewModel.RouteNavigationTool = new RouteNavigationToolWindowViewModel(services.RouteNavigationToolWindow, refreshScheduler);
             viewModel.HelpTool = new HelpToolWindowViewModel(services.HelpToolWindow, refreshScheduler);
-            viewModel.SettingsTool = new SettingsToolWindowViewModel(services.SettingsToolWindow);
-            viewModel.SettingsTool.ResetCommand = viewModel.ResetSettingsCommand;
-            viewModel.TrainPathTool = new TrainPathToolWindowViewModel(services.TrainPathToolWindow, refreshScheduler);
+            viewModel.SettingsTool = new SettingsToolWindowViewModel(services.SettingsToolWindow)
+            {
+                ResetCommand = viewModel.ResetSettingsCommand
+            };
+            viewModel.TrainPathTool = new TrainPathToolWindowViewModel(services.TrainPathToolWindow, refreshScheduler, MapHost.ToolboxSettings?.PathEditorSelectedTabIndex ?? TrainPathToolWindowViewModel.PathsTabIndex);
 
             // The status bar is always visible (not a dockable pane), so it starts pulling snapshots as soon
             // as the hosted bridge is available.
@@ -535,11 +537,7 @@ namespace FreeTrainSimulator.Toolbox
 
         private LayoutAnchorable FindToolWindowAnchorable(string contentId)
         {
-            if (DockingManager.Layout is null)
-                return null;
-
-            return DockingManager.Layout.Descendents().OfType<LayoutAnchorable>().FirstOrDefault(anchorable =>
-                string.Equals(anchorable.ContentId, contentId, StringComparison.Ordinal));
+            return DockingManager.Layout?.Descendents().OfType<LayoutAnchorable>().FirstOrDefault(anchorable => string.Equals(anchorable.ContentId, contentId, StringComparison.Ordinal));
         }
 
         private LayoutAnchorable EnsureToolWindowAnchorable(ToolWindowDescriptor descriptor)
@@ -691,22 +689,26 @@ namespace FreeTrainSimulator.Toolbox
 
         private string SerializeDockLayout()
         {
-            using MemoryStream stream = new MemoryStream();
-            JsonLayoutSerializer serializer = new JsonLayoutSerializer(DockingManager);
-            serializer.Serialize(stream);
-            return Encoding.UTF8.GetString(stream.ToArray());
+            using (MemoryStream stream = new MemoryStream())
+            {
+                JsonLayoutSerializer serializer = new JsonLayoutSerializer(DockingManager);
+                serializer.Serialize(stream);
+                return Encoding.UTF8.GetString(stream.ToArray());
+            }
         }
 
         private void DeserializeDockLayout(string layoutJson)
         {
             byte[] layoutBytes = Encoding.UTF8.GetBytes(layoutJson);
-            using MemoryStream stream = new MemoryStream(layoutBytes, writable: false);
-            // Retire the old flyout before layout replacement detaches its manager and title template.
-            if (DockingManager.AutoHideWindow?.Model is LayoutAnchorable { IsAutoHidden: true } openFlyout)
-                openFlyout.HideAnchorable(false);
+            using (MemoryStream stream = new MemoryStream(layoutBytes, false))
+            {
+                // Retire the old flyout before layout replacement detaches its manager and title template.
+                if (DockingManager.AutoHideWindow?.Model is LayoutAnchorable { IsAutoHidden: true } openFlyout)
+                    openFlyout.HideAnchorable(false);
 
-            JsonLayoutSerializer serializer = new JsonLayoutSerializer(DockingManager);
-            serializer.Deserialize(stream);
+                JsonLayoutSerializer serializer = new JsonLayoutSerializer(DockingManager);
+                serializer.Deserialize(stream);
+            }
         }
 
         private async Task SaveDockLayoutAsync()
@@ -719,7 +721,9 @@ namespace FreeTrainSimulator.Toolbox
                 string dockLayoutJson = SerializeDockLayout();
                 toolboxSettings.DockLayoutJson = dockLayoutJson;
                 WindowBoundsManager.SaveBoundsToSettings(this, toolboxSettings);
-                await MapHost.SaveHostedSettingsAsync(dockLayoutJson, toolboxSettings.WindowPlacements).ConfigureAwait(true);
+                int selectedTabIndex = viewModel.TrainPathTool?.SelectedTabIndex
+                    ?? MapHost.ToolboxSettings?.PathEditorSelectedTabIndex ?? TrainPathToolWindowViewModel.PathsTabIndex;
+                await MapHost.SaveHostedSettingsAsync(dockLayoutJson, toolboxSettings.WindowPlacements, selectedTabIndex).ConfigureAwait(true);
             }
             catch (Exception ex) when (ex is not ObjectDisposedException)
             {
@@ -750,6 +754,9 @@ namespace FreeTrainSimulator.Toolbox
                     return;
 
                 viewModel.SettingsTool.ResetToDefaults();
+
+                viewModel.TrainPathTool?.SelectedTabIndex = TrainPathToolWindowViewModel.PathsTabIndex;
+
                 ResetDockLayoutToDefault();
                 await SaveDockLayoutAsync().ConfigureAwait(true);
             }
