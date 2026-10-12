@@ -25,6 +25,47 @@ namespace Tests.FreeTrainSimulator.Toolbox.Views
     {
         [TestMethod]
         [Timeout(15000)]
+        [DataRow(false, Visibility.Collapsed)]
+        [DataRow(true, Visibility.Visible)]
+        public void WhenRepairModeBindingIsUnavailableThenTheBannerDoesNotFlash(bool repairMode, Visibility expected)
+        {
+            Window window = null;
+            try
+            {
+                TrainPathToolView view = new();
+                window = new Window { Content = view, Width = 520, Height = 520, ShowInTaskbar = false };
+                window.Show();
+                SettleLayout(window);
+                TextBlock banner = Descendants(view).OfType<TextBlock>().Single(element => element.Text.StartsWith("Repair mode:", StringComparison.Ordinal));
+                Assert.AreEqual(Visibility.Collapsed, banner.Visibility);
+                TrainPathToolWindow bridge = new(() => null, () => null, _ => { }, () => { }, () => { }, _ => { }, () => { }, () => { });
+                typeof(TrainPathToolWindow).GetField("snapshot", BindingFlags.Instance | BindingFlags.NonPublic).SetValue(bridge,
+                    TrainPathSnapshot.Empty with { IsRepairMode = repairMode });
+                using (ToolWindowRefreshScheduler scheduler = new(Dispatcher.CurrentDispatcher))
+                {
+                    using (TrainPathToolWindowViewModel viewModel = new(bridge, scheduler))
+                    {
+                        viewModel.Start();
+                        view.DataContext = viewModel;
+                        SettleLayout(window);
+
+                        Assert.AreEqual(expected, banner.Visibility);
+
+                        view.DataContext = null;
+                        SettleLayout(window);
+
+                        Assert.AreEqual(Visibility.Collapsed, banner.Visibility);
+                    }
+                }
+            }
+            finally
+            {
+                window?.Close();
+            }
+        }
+
+        [TestMethod]
+        [Timeout(15000)]
         public void WhenMetadataIsEditedAgainAfterEnterThenLeavingTheEditorCommitsTheLatestText()
         {
             Window window = null;
@@ -327,7 +368,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.Views
                 using TrainPathToolWindowViewModel viewModel = new(bridge, scheduler, TrainPathToolWindowViewModel.EditorTabIndex);
                 TrainPathSnapshot snapshot = TrainPathSnapshot.Empty with
                 {
-                    Nodes = System.Collections.Immutable.ImmutableArray.CreateRange(Enumerable.Range(0, 80).Select(index =>
+                    Nodes = System.Collections.Immutable.ImmutableArray.CreateRange(Enumerable.Range(0, 112).Select(index =>
                         new TrainPathNodeRow(index, global::FreeTrainSimulator.Common.PathNodeType.Via, true, 10, index + 1, -1, null, null))),
                 };
                 typeof(TrainPathToolWindow).GetField("snapshot", BindingFlags.Instance | BindingFlags.NonPublic).SetValue(bridge, snapshot);
@@ -338,7 +379,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.Views
                 SettleLayout(window);
                 ListView list = Descendants(view).OfType<ListView>().Single(element => ReferenceEquals(element.ItemsSource, viewModel.Nodes));
 
-                foreach (int selectedIndex in new[] { 10, 11, 51, 0, 11, 10 })
+                foreach (int selectedIndex in new[] { 10, 100, 101, 109, 110, 111, 51, 0 })
                 {
                     list.ScrollIntoView(viewModel.Nodes[selectedIndex]);
                     SettleLayout(window);
@@ -349,13 +390,25 @@ namespace Tests.FreeTrainSimulator.Toolbox.Views
                     window.Width = selectedIndex % 2 == 0 ? 520 : 320;
                     SettleLayout(window);
 
-                    CollectionAssert.AreEqual(Enumerable.Range(0, 80).ToArray(), viewModel.Nodes.Select(node => node.Index).ToArray());
+                    CollectionAssert.AreEqual(Enumerable.Range(0, 112).ToArray(), viewModel.Nodes.Select(node => node.Index).ToArray());
                     foreach (ListViewItem row in Descendants(list).OfType<ListViewItem>())
                     {
                         TrainPathNodeItemViewModel node = (TrainPathNodeItemViewModel)row.Content;
-                        TextBlock indexCell = Descendants(row).OfType<TextBlock>().Single(text => text.GetBindingExpression(TextBlock.TextProperty)?.ParentBinding.Path?.Path == "Index");
+                        TextBlock indexCell = Descendants(row).OfType<TextBlock>().Single(text => text.Name == "NodeIndexText");
                         Assert.AreEqual(node.Index.ToString(System.Globalization.CultureInfo.InvariantCulture), indexCell.Text,
                             $"Rendered row {node.Index} after selecting {selectedIndex}");
+                        Assert.AreEqual(TextTrimming.CharacterEllipsis, indexCell.TextTrimming);
+                        Assert.AreEqual(node.Index, indexCell.ToolTip);
+                        TextBlock measured = new()
+                        {
+                            Text = indexCell.Text,
+                            FontFamily = indexCell.FontFamily,
+                            FontSize = indexCell.FontSize,
+                            FontWeight = indexCell.FontWeight,
+                        };
+                        measured.Measure(new Size(double.PositiveInfinity, double.PositiveInfinity));
+                        Assert.IsTrue(indexCell.ActualWidth + 0.5 >= measured.DesiredSize.Width,
+                            $"Index {node.Index} needs {measured.DesiredSize.Width} units but has {indexCell.ActualWidth}.");
                     }
                 }
             }

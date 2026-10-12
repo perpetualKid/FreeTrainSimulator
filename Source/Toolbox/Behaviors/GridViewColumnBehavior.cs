@@ -74,6 +74,22 @@ namespace FreeTrainSimulator.Toolbox.Behaviors
 
         public static void SetEqualColumnWidth(ListView listView, bool value) => listView.SetValue(EqualColumnWidthProperty, value);
 
+        /// <summary>Content width reserved when an autosized column's virtualized rows have not all been measured.</summary>
+        public static readonly DependencyProperty MinimumWidthProperty = DependencyProperty.RegisterAttached(
+            "MinimumWidth", typeof(double), typeof(GridViewColumnBehavior), new PropertyMetadata(0d, OnMinimumWidthChanged));
+
+        /// <summary>Gets the reserved content width for a column.</summary>
+        public static double GetMinimumWidth(GridViewColumn column) => (double)column.GetValue(MinimumWidthProperty);
+
+        /// <summary>Reserves content width without requiring every row to be realized.</summary>
+        public static void SetMinimumWidth(GridViewColumn column, double value) => column.SetValue(MinimumWidthProperty, value);
+
+        private static void OnMinimumWidthChanged(DependencyObject sender, DependencyPropertyChangedEventArgs e)
+        {
+            if (sender is GridViewColumn column && column.ActualWidth < (double)e.NewValue)
+                column.Width = (double)e.NewValue;
+        }
+
         private static void OnStretchListViewChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
             if (d is not ListView listView)
@@ -149,6 +165,11 @@ namespace FreeTrainSimulator.Toolbox.Behaviors
                     if (viewport <= 0)
                         return;
 
+                    foreach (GridViewColumn column in gridView.Columns)
+                    {
+                        if (column != stretchColumn && column.ActualWidth < GetMinimumWidth(column))
+                            column.Width = GetMinimumWidth(column);
+                    }
                     double contentWidth = stretchColumn.ActualWidth;
                     double fixedWidth = gridView.Columns.Where(column => column != stretchColumn).Sum(column => column.ActualWidth);
                     double fillWidth = viewport - fixedWidth;

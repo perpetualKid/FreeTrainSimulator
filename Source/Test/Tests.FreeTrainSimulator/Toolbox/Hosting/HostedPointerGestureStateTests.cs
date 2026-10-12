@@ -14,7 +14,6 @@ namespace Tests.FreeTrainSimulator.Toolbox.Hosting
         private static readonly bool[] expectedfalsefalsefalsefalse = new[] { false, false, false, false };
         private static readonly bool[] expectedfalsetruetrue = new[] { false, true, true };
         private static readonly bool[] expectedfalsefalse = new[] { false, false };
-        private static readonly bool[] expectedfalsetruetruefalsefalse = new[] { false, true, true, false, false };
         private static readonly bool[] expectedfalsefalsefalse = new[] { false, false, false };
         private static readonly bool[] expectedfalsetrue = new[] { false, true };
         private static readonly bool[] expectedtruetruefalse = new[] { true, true, false };

@@ -33,12 +33,15 @@ namespace Tests.FreeTrainSimulator.Toolbox.ViewModels
         {
             TrainPathToolWindow bridge = CreateBridge(_ => { });
             SetBridgeSnapshot(bridge, CreateIssueScopeSnapshot(selectedIndex));
-            using ToolWindowRefreshScheduler scheduler = new(Dispatcher.CurrentDispatcher);
-            using TrainPathToolWindowViewModel viewModel = new(bridge, scheduler);
+            using (ToolWindowRefreshScheduler scheduler = new(Dispatcher.CurrentDispatcher))
+            {
+                using (TrainPathToolWindowViewModel viewModel = new(bridge, scheduler))
+                {
+                    viewModel.Start();
 
-            viewModel.Start();
-
-            Assert.AreEqual(expected, string.Join(",", viewModel.VisibleDiagnostics.Select(issue => issue.Message)));
+                    Assert.AreEqual(expected, string.Join(",", viewModel.VisibleDiagnostics.Select(issue => issue.Message)));
+                }
+            }
         }
 
         [TestMethod]
@@ -46,14 +49,18 @@ namespace Tests.FreeTrainSimulator.Toolbox.ViewModels
         {
             TrainPathToolWindow bridge = CreateBridge(_ => { });
             SetBridgeSnapshot(bridge, CreateIssueScopeSnapshot(0));
-            using ToolWindowRefreshScheduler scheduler = new(Dispatcher.CurrentDispatcher);
-            using TrainPathToolWindowViewModel viewModel = new(bridge, scheduler);
-            viewModel.Start();
-            TrainPathDiagnosticItemViewModel[] source = viewModel.Diagnostics.ToArray();
+            using (ToolWindowRefreshScheduler scheduler = new(Dispatcher.CurrentDispatcher))
+            {
+                using (TrainPathToolWindowViewModel viewModel = new(bridge, scheduler))
+                {
+                    viewModel.Start();
+                    TrainPathDiagnosticItemViewModel[] source = viewModel.Diagnostics.ToArray();
 
-            viewModel.UserSelectNode(null);
+                    viewModel.UserSelectNode(null);
 
-            CollectionAssert.AreEqual(source, viewModel.VisibleDiagnostics.ToArray());
+                    Assert.AreSequenceEqual(source, viewModel.VisibleDiagnostics.ToArray());
+                }
+            }
         }
 
         [TestMethod]
@@ -63,13 +70,17 @@ namespace Tests.FreeTrainSimulator.Toolbox.ViewModels
         {
             TrainPathToolWindow bridge = CreateBridge(_ => { });
             SetBridgeSnapshot(bridge, CreateIssueScopeSnapshot(1));
-            using ToolWindowRefreshScheduler scheduler = new(Dispatcher.CurrentDispatcher);
-            using TrainPathToolWindowViewModel viewModel = new(bridge, scheduler);
-            viewModel.Start();
+            using (ToolWindowRefreshScheduler scheduler = new(Dispatcher.CurrentDispatcher))
+            {
+                using (TrainPathToolWindowViewModel viewModel = new(bridge, scheduler))
+                {
+                    viewModel.Start();
 
-            viewModel.UserSelectNode(viewModel.Nodes[selectedIndex]);
+                    viewModel.UserSelectNode(viewModel.Nodes[selectedIndex]);
 
-            Assert.AreEqual(expected, viewModel.SelectedDiagnostic?.Message);
+                    Assert.AreEqual(expected, viewModel.SelectedDiagnostic?.Message);
+                }
+            }
         }
 
         [TestMethod]
@@ -79,15 +90,19 @@ namespace Tests.FreeTrainSimulator.Toolbox.ViewModels
             TrainPathToolWindow bridge = CreateBridge(_ => commands++);
             TrainPathSnapshot snapshot = CreateIssueScopeSnapshot(0);
             SetBridgeSnapshot(bridge, snapshot);
-            using ToolWindowRefreshScheduler scheduler = new(Dispatcher.CurrentDispatcher);
-            using TrainPathToolWindowViewModel viewModel = new(bridge, scheduler);
-            viewModel.Start();
+            using (ToolWindowRefreshScheduler scheduler = new(Dispatcher.CurrentDispatcher))
+            {
+                using (TrainPathToolWindowViewModel viewModel = new(bridge, scheduler))
+                {
+                    viewModel.Start();
 
-            SetBridgeSnapshot(bridge, snapshot with { SelectedNodeIndex = 2 });
-            viewModel.Start();
-            viewModel.Start();
+                    SetBridgeSnapshot(bridge, snapshot with { SelectedNodeIndex = 2 });
+                    viewModel.Start();
+                    viewModel.Start();
 
-            Assert.AreEqual(0, commands);
+                    Assert.AreEqual(0, commands);
+                }
+            }
         }
 
         [TestMethod]
@@ -99,13 +114,17 @@ namespace Tests.FreeTrainSimulator.Toolbox.ViewModels
             {
                 RouteCandidates = [new TrainPathRouteCandidateRow(0, 2, 0, "route")],
             });
-            using ToolWindowRefreshScheduler scheduler = new(Dispatcher.CurrentDispatcher);
-            using TrainPathToolWindowViewModel viewModel = new(bridge, scheduler);
-            viewModel.Start();
+            using (ToolWindowRefreshScheduler scheduler = new(Dispatcher.CurrentDispatcher))
+            {
+                using (TrainPathToolWindowViewModel viewModel = new(bridge, scheduler))
+                {
+                    viewModel.Start();
 
-            viewModel.UserSelectDiagnostic(viewModel.SelectedDiagnostic);
+                    viewModel.UserSelectDiagnostic(viewModel.SelectedDiagnostic);
 
-            Assert.AreEqual(2, commands);
+                    Assert.AreEqual(2, commands);
+                }
+            }
         }
 
         private static TrainPathSnapshot CreateIssueScopeSnapshot(int selectedIndex)
@@ -138,23 +157,28 @@ namespace Tests.FreeTrainSimulator.Toolbox.ViewModels
         public void WhenConstructedWithSavedTabThenTabIsRestoredBeforePolling(int savedTabIndex, int expectedTabIndex)
         {
             TrainPathToolWindow bridge = CreateBridge(action => action());
-            using ToolWindowRefreshScheduler scheduler = new(Dispatcher.CurrentDispatcher);
-
-            using TrainPathToolWindowViewModel viewModel = new(bridge, scheduler, savedTabIndex);
-
-            Assert.AreEqual(expectedTabIndex, viewModel.SelectedTabIndex);
+            using (ToolWindowRefreshScheduler scheduler = new(Dispatcher.CurrentDispatcher))
+            {
+                using (TrainPathToolWindowViewModel viewModel = new(bridge, scheduler, savedTabIndex))
+                {
+                    Assert.AreEqual(expectedTabIndex, viewModel.SelectedTabIndex);
+                }
+            }
         }
 
         [TestMethod]
         public void WhenRestoredEditorTabPollsEmptySnapshotThenEditorTabIsRetained()
         {
             TrainPathToolWindow bridge = CreateBridge(action => action());
-            using ToolWindowRefreshScheduler scheduler = new(Dispatcher.CurrentDispatcher);
-            using TrainPathToolWindowViewModel viewModel = new(bridge, scheduler, TrainPathToolWindowViewModel.EditorTabIndex);
+            using (ToolWindowRefreshScheduler scheduler = new(Dispatcher.CurrentDispatcher))
+            {
+                using (TrainPathToolWindowViewModel viewModel = new(bridge, scheduler, TrainPathToolWindowViewModel.EditorTabIndex))
+                {
+                    viewModel.Start();
 
-            viewModel.Start();
-
-            Assert.AreEqual(TrainPathToolWindowViewModel.EditorTabIndex, viewModel.SelectedTabIndex);
+                    Assert.AreEqual(TrainPathToolWindowViewModel.EditorTabIndex, viewModel.SelectedTabIndex);
+                }
+            }
         }
 
         [TestMethod]
@@ -163,18 +187,26 @@ namespace Tests.FreeTrainSimulator.Toolbox.ViewModels
         public async Task WhenLastTabIsCapturedAndProfileReloadedThenNewViewModelRestoresLastTab(int lastTabIndex)
         {
             ProfileModel profile = new("last-tab-" + Guid.NewGuid().ToString("N"));
-            ProfileToolboxSettingsModel settings = await profile.LoadSettingsModel<ProfileToolboxSettingsModel>(CancellationToken.None);
+            ProfileToolboxSettingsModel settings = await profile.LoadSettingsModel<ProfileToolboxSettingsModel>(CancellationToken.None).ConfigureAwait(false);
             TrainPathToolWindow bridge = CreateBridge(action => action());
-            using ToolWindowRefreshScheduler scheduler = new(Dispatcher.CurrentDispatcher);
-            using TrainPathToolWindowViewModel viewModel = new(bridge, scheduler, 1 - lastTabIndex);
-            viewModel.SelectedTabIndex = lastTabIndex;
-            settings.PathEditorSelectedTabIndex = viewModel.SelectedTabIndex;
-            await profile.UpdateSettingsModel(settings, CancellationToken.None);
+            using (ToolWindowRefreshScheduler scheduler = new(Dispatcher.CurrentDispatcher))
+            {
+                using (TrainPathToolWindowViewModel viewModel = new(bridge, scheduler, 1 - lastTabIndex))
+                {
+                    viewModel.SelectedTabIndex = lastTabIndex;
+                    settings.PathEditorSelectedTabIndex = viewModel.SelectedTabIndex;
+                    _ = await profile.UpdateSettingsModel(settings, CancellationToken.None).ConfigureAwait(false);
+                }
+            }
 
-            ProfileToolboxSettingsModel restored = await profile.LoadSettingsModel<ProfileToolboxSettingsModel>(CancellationToken.None);
-            using TrainPathToolWindowViewModel restartedViewModel = new(bridge, scheduler, restored.PathEditorSelectedTabIndex);
-
-            Assert.AreEqual(lastTabIndex, restartedViewModel.SelectedTabIndex);
+            ProfileToolboxSettingsModel restored = await profile.LoadSettingsModel<ProfileToolboxSettingsModel>(CancellationToken.None).ConfigureAwait(false);
+            using (ToolWindowRefreshScheduler scheduler = new(Dispatcher.CurrentDispatcher))
+            {
+                using (TrainPathToolWindowViewModel restartedViewModel = new(bridge, scheduler, restored.PathEditorSelectedTabIndex))
+                {
+                    Assert.AreEqual(lastTabIndex, restartedViewModel.SelectedTabIndex);
+                }
+            }
         }
 
         [TestMethod]
@@ -182,12 +214,16 @@ namespace Tests.FreeTrainSimulator.Toolbox.ViewModels
         {
             TrainPathToolWindow bridge = CreateBridge(action => action());
             SetBridgeSnapshot(bridge, TrainPathSnapshot.Empty with { PlacementMode = PathEditorPlacementMode.StartAnchor });
-            using ToolWindowRefreshScheduler scheduler = new(Dispatcher.CurrentDispatcher);
-            using TrainPathToolWindowViewModel viewModel = new(bridge, scheduler, TrainPathToolWindowViewModel.PathsTabIndex);
+            using (ToolWindowRefreshScheduler scheduler = new(Dispatcher.CurrentDispatcher))
+            {
+                using (TrainPathToolWindowViewModel viewModel = new(bridge, scheduler, TrainPathToolWindowViewModel.PathsTabIndex))
+                {
 
-            viewModel.Start();
+                    viewModel.Start();
 
-            Assert.AreEqual(TrainPathToolWindowViewModel.EditorTabIndex, viewModel.SelectedTabIndex);
+                    Assert.AreEqual(TrainPathToolWindowViewModel.EditorTabIndex, viewModel.SelectedTabIndex);
+                }
+            }
         }
 
         [TestMethod]
@@ -748,7 +784,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.ViewModels
 
                     Assert.AreEqual("42", trainPathToolWindowViewModel.SelectedNodeDetailRows.Single(row => row.Name == "Nearest Track Node").Value);
                     Assert.AreEqual("3 (1.25 m)", trainPathToolWindowViewModel.SelectedNodeDetailRows.Single(row => row.Name == "Nearest Track Section").Value);
-                    Assert.IsFalse(trainPathToolWindowViewModel.SelectedNodeDetailRows.Any(row => row.Name == "Nearest Track Distance"));
+                    Assert.DoesNotContain(row => row.Name == "Nearest Track Distance", trainPathToolWindowViewModel.SelectedNodeDetailRows);
                 }
             }
         }
@@ -792,7 +828,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.ViewModels
 
                     Assert.AreSequenceEqual(names, viewModel.SelectedNodeDetailRows.Select(row => row.Name).ToArray());
                     Assert.AreSequenceEqual(originalRows, viewModel.SelectedNodeDetailRows.Cast<object>().ToArray());
-                    Assert.IsTrue(viewModel.SelectedNodeDetailRows.All(row => row.Value == string.Empty && !row.Bold));
+                    Assert.IsTrue(viewModel.SelectedNodeDetailRows.All(row => string.IsNullOrEmpty(row.Value) && !row.Bold));
                     Assert.IsFalse(viewModel.CanEditSelectedNodeWaitTime);
                 }
             }

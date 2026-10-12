@@ -83,12 +83,12 @@ namespace Tests.FreeTrainSimulator.Toolbox.Settings
         public async Task WhenProfileSettingsAreSavedThenTabPreferenceLoadsIndependentlyOfRestoreLastView(bool restoreLastView)
         {
             ProfileModel profile = new("tab-preference-" + Guid.NewGuid().ToString("N"));
-            ProfileToolboxSettingsModel settings = await profile.LoadSettingsModel<ProfileToolboxSettingsModel>(CancellationToken.None);
+            ProfileToolboxSettingsModel settings = await profile.LoadSettingsModel<ProfileToolboxSettingsModel>(CancellationToken.None).ConfigureAwait(false);
             settings.RestoreLastView = restoreLastView;
             settings.PathEditorSelectedTabIndex = 1;
-            await profile.UpdateSettingsModel(settings, CancellationToken.None);
+            await profile.UpdateSettingsModel(settings, CancellationToken.None).ConfigureAwait(false);
 
-            ProfileToolboxSettingsModel restored = await profile.LoadSettingsModel<ProfileToolboxSettingsModel>(CancellationToken.None);
+            ProfileToolboxSettingsModel restored = await profile.LoadSettingsModel<ProfileToolboxSettingsModel>(CancellationToken.None).ConfigureAwait(false);
 
             Assert.AreEqual(1, restored.PathEditorSelectedTabIndex);
         }

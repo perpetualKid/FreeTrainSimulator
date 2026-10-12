@@ -215,7 +215,7 @@
         </StackPanel>
         <TextBlock Grid.Row="1" Text="Repair mode: inspect issues and repair authored nodes. Runtime route rendering is disabled."
                    TextWrapping="Wrap" Background="Moccasin" Foreground="DarkRed"
-                   Visibility="{Binding IsRepairMode, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                   Visibility="{Binding IsRepairMode, Converter={StaticResource BooleanToVisibilityConverter}, FallbackValue=Collapsed}" />
         <TextBox Grid.Row="3" Text="{Binding StatusMessage, Mode=OneWay}" IsReadOnly="True" TextWrapping="Wrap"
                  MaxHeight="54" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled"
                  AutomationProperties.Name="Command feedback" Margin="0,3,0,0" />
@@ -409,7 +409,13 @@
                     <ListView.View>
                         <GridView>
                             <GridViewColumn Header="" Width="28" CellTemplate="{StaticResource TrainPathNodeValidityCellTemplate}" />
-                            <GridViewColumn Header="#" Width="32" DisplayMemberBinding="{Binding Index}" />
+                            <GridViewColumn Header="#" Width="44" behaviors:GridViewColumnBehavior.MinimumWidth="44">
+                                <GridViewColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <TextBlock x:Name="NodeIndexText" Text="{Binding Index}" TextTrimming="CharacterEllipsis" ToolTip="{Binding Index}" />
+                                    </DataTemplate>
+                                </GridViewColumn.CellTemplate>
+                            </GridViewColumn>
                             <GridViewColumn Header="{gt:Gettext 'Type'}" Width="200" behaviors:GridViewColumnBehavior.StretchColumn="True">
                                 <GridViewColumn.CellTemplate><DataTemplate>
                                     <TextBlock Text="{Binding NodeType}" TextWrapping="Wrap" ToolTip="{Binding Validation}" />
