@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 
@@ -49,14 +50,8 @@ namespace FreeTrainSimulator.Toolbox.PathEditing
                     default, failureMessage, actionableDiagnostic ?? blockingDiagnostic);
             }
 
-            PathRouteDiagnostic unreachableNodeDiagnostic = resolution.Diagnostics.FirstOrDefault(diagnostic => diagnostic.Code == PathRouteDiagnosticCode.UnreachableNode);
-            
-            if (unreachableNodeDiagnostic != null)
-            {
-                string failureMessage = BuildBlockedSaveMessage(unreachableNodeDiagnostic, unreachableNodeDiagnostic);
-                return new PathPersistenceValidationResult(false, pathModel, resolution, resolution.Diagnostics,
-                    default, failureMessage, unreachableNodeDiagnostic);
-            }
+            if (TryGetPreservationFailure(pathModel, resolution, out PathPersistenceValidationResult preservationFailure))
+                return preservationFailure;
 
             if (resolution.Diagnostics.Any(diagnostic => diagnostic.Code == PathRouteDiagnosticCode.AmbiguousRoute))
             {
@@ -73,7 +68,37 @@ namespace FreeTrainSimulator.Toolbox.PathEditing
         }
 
         /// <summary>
-        /// Materializes an already resolved path and refuses the operation when generation fails.
+        /// Materializes explicit main-route choices and compatible unselected spans without inserting detours between choices.
+        /// </summary>
+        public static PathPersistenceValidationResult MaterializeSelectedRoutes(PathModel pathModel, TrackWorld trackWorld, IReadOnlyDictionary<int, ResolvedRouteCandidate> selectedCandidates)
+        {
+            PathRouteResolution resolution = PathRouteResolver.ResolveSelectedRoutes(pathModel, trackWorld, PersistenceOptions,
+                selectedCandidates, CancellationToken.None);
+            return MaterializeResolvedPath(pathModel, resolution, trackWorld, PersistenceOptions);
+        }
+
+        /// <summary>
+        /// Identifies authored content that materialization would omit, retaining the input model and diagnostics.
+        /// </summary>
+        public static bool TryGetPreservationFailure(PathModel pathModel, PathRouteResolution resolution, out PathPersistenceValidationResult failure)
+        {
+            ArgumentNullException.ThrowIfNull(pathModel);
+            ArgumentNullException.ThrowIfNull(resolution);
+
+            PathRouteDiagnostic unreachableNodeDiagnostic = resolution.Diagnostics.FirstOrDefault(diagnostic => diagnostic.Code == PathRouteDiagnosticCode.UnreachableNode);
+            if (unreachableNodeDiagnostic != null)
+            {
+                string failureMessage = BuildBlockedSaveMessage(unreachableNodeDiagnostic, unreachableNodeDiagnostic);
+                failure = new PathPersistenceValidationResult(false, pathModel, resolution, resolution.Diagnostics, default, failureMessage, unreachableNodeDiagnostic);
+                return true;
+            }
+
+            failure = null;
+            return false;
+        }
+
+        /// <summary>
+        /// Materializes an already resolved path and refuses the operation when authored content would be omitted or generation fails.
         /// </summary>
         public static PathPersistenceValidationResult MaterializeResolvedPath(PathModel pathModel, PathRouteResolution resolution, TrackWorld trackWorld)
         {
@@ -86,6 +111,9 @@ namespace FreeTrainSimulator.Toolbox.PathEditing
             ArgumentNullException.ThrowIfNull(pathModel);
             ArgumentNullException.ThrowIfNull(resolution);
             ArgumentNullException.ThrowIfNull(options);
+
+            if (TryGetPreservationFailure(pathModel, resolution, out PathPersistenceValidationResult preservationFailure))
+                return preservationFailure;
 
             PathGenerationResult generation = PathModelRouteGenerator.GeneratePath(pathModel, resolution, trackWorld, options);
             if (generation.Success)

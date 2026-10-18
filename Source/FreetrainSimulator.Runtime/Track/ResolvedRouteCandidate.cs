@@ -23,6 +23,9 @@ namespace FreeTrainSimulator.Runtime.Track
 
         internal ImmutableArray<TrackRouteTraversal> PhysicalTraversals { get; init; }
 
+        /// <summary>Exact arrival context retained until authored-boundary continuation has been checked.</summary>
+        internal TrackRouteArrival? Arrival { get; init; }
+
         /// <summary>
         /// Initializes a new instance of the <see cref="ResolvedRouteCandidate"/> record.
         /// </summary>
@@ -43,6 +46,4 @@ namespace FreeTrainSimulator.Runtime.Track
             PhysicalTraversals = physicalTraversals.IsDefault ? ImmutableArray<TrackRouteTraversal>.Empty : physicalTraversals;
         }
     }
-
-    internal readonly record struct TrackRouteTraversal(int FromNodeIndex, int FromConnectorIndex, int ToNodeIndex);
 }

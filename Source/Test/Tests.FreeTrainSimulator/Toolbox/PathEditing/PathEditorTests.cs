@@ -384,6 +384,140 @@ namespace Tests.FreeTrainSimulator.Toolbox.PathEditing
         }
 
         [TestMethod]
+        public async Task WhenLoadedPathHasDisconnectedNodeThenStartPlacementPreservesCommittedState()
+        {
+            PathModel source = CreateEditablePath() with
+            {
+                PathNodes = CreateEditablePath().PathNodes.Add(CreateNodeAt(50, PathNodeType.Via, -1)),
+            };
+            using (PathEditor editor = new(new TestPathEditorContext(TrackWorldTestFixture.CreateSingleVectorNodeTrackWorld())))
+            {
+                _ = await editor.InitializePathAsync(source, CancellationToken.None).ConfigureAwait(false);
+                (PathModel, bool HasUnsavedChanges, bool CanUndo, bool CanRedo) originalState = (editor.TryCaptureCurrentPathModel(), editor.HasUnsavedChanges, editor.CanUndo, editor.CanRedo);
+                _ = editor.BeginStartAnchorPlacementCommand();
+
+                _ = editor.SetStartAnchorCommand(CreateNodeAt(25, PathNodeType.None, -1), false);
+
+                Assert.AreEqual(originalState, (editor.TryCaptureCurrentPathModel(), editor.HasUnsavedChanges, editor.CanUndo, editor.CanRedo));
+            }
+        }
+
+        [TestMethod]
+        public async Task WhenLoadedPathHasDisconnectedNodeThenStartPlacementReportsPreservationFailure()
+        {
+            PathModel source = CreateEditablePath() with
+            {
+                PathNodes = CreateEditablePath().PathNodes.Add(CreateNodeAt(50, PathNodeType.Via, -1)),
+            };
+            using (PathEditor editor = new(new TestPathEditorContext(TrackWorldTestFixture.CreateSingleVectorNodeTrackWorld())))
+            {
+                _ = await editor.InitializePathAsync(source, CancellationToken.None).ConfigureAwait(false);
+                _ = editor.BeginStartAnchorPlacementCommand();
+
+                PathEditorCommandResult result = editor.SetStartAnchorCommand(CreateNodeAt(25, PathNodeType.None, -1), false);
+
+                Assert.Contains(nameof(PathRouteDiagnosticCode.UnreachableNode), result.Message);
+            }
+        }
+
+        [TestMethod]
+        public async Task WhenDisconnectedNodeWouldRequireRouteChoiceThenStartPlacementDoesNotCreatePendingCandidate()
+        {
+            PathModel source = new PathModel
+            {
+                Id = "disconnected-ambiguous-path",
+                Name = "Disconnected Ambiguous Path",
+                PathNodes = ImmutableArray.Create(
+                    CreateNodeAt(100, PathNodeType.Start, 1),
+                    CreateNodeAt(200, PathNodeType.End, -1) with { NodeIndex = 2 },
+                    CreateNodeAt(125, PathNodeType.Via, -1)),
+            };
+            using (PathEditor editor = new(new TestPathEditorContext(CreateAmbiguousTrackWorld())))
+            {
+                _ = await editor.InitializePathAsync(source, CancellationToken.None).ConfigureAwait(false);
+                _ = editor.BeginStartAnchorPlacementCommand();
+
+                _ = editor.SetStartAnchorCommand(CreateNodeAt(110, PathNodeType.None, -1), false);
+
+                Assert.IsFalse(editor.HasPendingAmbiguousSpanCommit);
+            }
+        }
+
+        [TestMethod]
+        [DataRow(0, 25)]
+        [DataRow(1, 75)]
+        public async Task WhenLoadedPathHasDisconnectedNodeThenMoveReportsPreservationFailure(int nodeIndex, int targetX)
+        {
+            PathModel source = CreateEditablePath() with
+            {
+                PathNodes = CreateEditablePath().PathNodes.Add(CreateNodeAt(50, PathNodeType.Via, -1)),
+            };
+            TrackWorld trackWorld = CreatePlacementTrackWorld(out TestTrackSegment segment);
+            using (PathEditor editor = new(new TestPathEditorContext(trackWorld)))
+            {
+                _ = await editor.InitializePathAsync(source, CancellationToken.None).ConfigureAwait(false);
+                _ = editor.BeginMoveNode(nodeIndex);
+                editor.UpdatePointerLocation(new PointD(targetX, 0), segment);
+
+                PathEditResult result = editor.CommitMoveNode();
+
+                Assert.Contains(nameof(PathRouteDiagnosticCode.UnreachableNode), result.Message);
+            }
+        }
+
+        [TestMethod]
+        [DataRow(0, 25)]
+        [DataRow(1, 75)]
+        public async Task WhenMoveIsRefusedThenCommittedContentAndExistingHistoryArePreserved(int nodeIndex, int targetX)
+        {
+            PathModel source = CreateEditablePath() with
+            {
+                PathNodes = CreateEditablePath().PathNodes.Add(CreateNodeAt(50, PathNodeType.Via | PathNodeType.Wait, -1)
+                    with
+                { WaitInfo = new PathNodeWaitInfo { WaitTime = 17 } }),
+            };
+            TrackWorld trackWorld = CreatePlacementTrackWorld(out TestTrackSegment segment);
+            using (PathEditor editor = new(new TestPathEditorContext(trackWorld)))
+            {
+                _ = await editor.InitializePathAsync(source, CancellationToken.None).ConfigureAwait(false);
+                _ = editor.SetMetadataCommand("First edit", "Start", "End", false);
+                _ = editor.SetMetadataCommand("Second edit", "Start", "End", false);
+                _ = editor.Undo();
+                (PathModel, bool HasUnsavedChanges, bool CanUndo, bool CanRedo) originalState = (editor.TryCaptureCurrentPathModel(), editor.HasUnsavedChanges, editor.CanUndo, editor.CanRedo);
+                _ = editor.BeginMoveNode(nodeIndex);
+                editor.UpdatePointerLocation(new PointD(targetX, 0), segment);
+
+                _ = editor.CommitMoveNode();
+
+                Assert.AreEqual(originalState, (editor.TryCaptureCurrentPathModel(), editor.HasUnsavedChanges, editor.CanUndo, editor.CanRedo));
+            }
+        }
+
+        [TestMethod]
+        public async Task WhenRefusedMoveIsCanceledThenCleanLoadedStateIsRestored()
+        {
+            PathModel source = CreateEditablePath() with
+            {
+                PathNodes = CreateEditablePath().PathNodes.Add(CreateNodeAt(50, PathNodeType.Via, -1)),
+            };
+            TrackWorld trackWorld = CreatePlacementTrackWorld(out TestTrackSegment segment);
+            using (PathEditor editor = new(new TestPathEditorContext(trackWorld)))
+            {
+                _ = await editor.InitializePathAsync(source, CancellationToken.None).ConfigureAwait(false);
+                (PathModel, bool HasUnsavedChanges, bool CanUndo, bool CanRedo, bool EditMode, bool IsPlacementActive) originalState = (editor.TryCaptureCurrentPathModel(), editor.HasUnsavedChanges, editor.CanUndo, editor.CanRedo,
+                    editor.EditMode, editor.IsPlacementActive);
+                _ = editor.BeginMoveNode(0);
+                editor.UpdatePointerLocation(new PointD(25, 0), segment);
+                _ = editor.CommitMoveNode();
+
+                _ = editor.CancelPlacement();
+
+                Assert.AreEqual(originalState, (editor.TryCaptureCurrentPathModel(), editor.HasUnsavedChanges, editor.CanUndo, editor.CanRedo,
+                    editor.EditMode, editor.IsPlacementActive));
+            }
+        }
+
+        [TestMethod]
         public void WhenPathHasNoEndAnchorThenContinuationIsUnavailable()
         {
             using (PathEditor editor = CreateEditor(CreateEditablePath() with
@@ -418,8 +552,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.PathEditing
         {
             PathModel source = CreateEditablePath();
             UserCommandController<global::FreeTrainSimulator.Toolbox.UserCommand> commandController = new();
-            using (PathEditor editor = new(new TestPathEditorContext(TrackWorldTestFixture.CreateSingleVectorNodeTrackWorld()), commandController,
-                action => action(), commit => Task.FromResult(commit())))
+            using (PathEditor editor = new(new TestPathEditorContext(TrackWorldTestFixture.CreateSingleVectorNodeTrackWorld()), commandController, action => action(), commit => Task.FromResult(commit())))
             {
                 Assert.IsTrue(await editor.InitializePathAsync(source, CancellationToken.None).ConfigureAwait(false));
                 Assert.IsTrue(editor.ContinuePathCommand().Success);
@@ -447,8 +580,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.PathEditing
         {
             PathModel source = CreateEditablePath();
             UserCommandController<global::FreeTrainSimulator.Toolbox.UserCommand> commandController = new();
-            using (PathEditor editor = new(new TestPathEditorContext(TrackWorldTestFixture.CreateSingleVectorNodeTrackWorld()), commandController,
-                action => action(), commit => Task.FromResult(commit())))
+            using (PathEditor editor = new(new TestPathEditorContext(TrackWorldTestFixture.CreateSingleVectorNodeTrackWorld()), commandController, action => action(), commit => Task.FromResult(commit())))
             {
                 Assert.IsTrue(await editor.InitializePathAsync(source, CancellationToken.None).ConfigureAwait(false));
                 Assert.IsTrue(editor.ContinuePathCommand().Success);
@@ -579,11 +711,13 @@ namespace Tests.FreeTrainSimulator.Toolbox.PathEditing
         public void WhenBuildRouteBeginsThenPointerInputModeRemainsActive()
         {
             TestPathEditorContext context = new(CreateInitializedTrackWorld());
-            using PathEditor editor = new(context);
-            editor.InitializeNewPath();
-            _ = editor.SetStartAnchorCommand(CreateNodeAt(0, PathNodeType.None, -1), false);
+            using (PathEditor editor = new(context))
+            {
+                editor.InitializeNewPath();
+                _ = editor.SetStartAnchorCommand(CreateNodeAt(0, PathNodeType.None, -1), false);
 
-            Assert.AreEqual(ToolboxContentMode.EditPath, context.ContentMode);
+                Assert.AreEqual(ToolboxContentMode.EditPath, context.ContentMode);
+            }
         }
 
         [TestMethod]
@@ -591,14 +725,16 @@ namespace Tests.FreeTrainSimulator.Toolbox.PathEditing
         {
             TrackWorld trackWorld = CreateInitializedTrackWorld();
             TestPathEditorContext context = new(trackWorld);
-            using PathEditor editor = new(context);
-            editor.InitializeNewPath();
-            TestTrackSegment segment = new(new PointD(0, 0), new PointD(100, 0));
+            using (PathEditor editor = new(context))
+            {
+                editor.InitializeNewPath();
+                TestTrackSegment segment = new(new PointD(0, 0), new PointD(100, 0));
 
-            editor.UpdatePointerLocation(segment.Location, segment);
+                editor.UpdatePointerLocation(segment.Location, segment);
 
-            TrainPathPointBase activePoint = (TrainPathPointBase)typeof(PathEditorBase).GetProperty("ActivePathPoint", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(editor);
-            Assert.AreSame(segment, activePoint.ConnectedSegments.Single());
+                TrainPathPointBase activePoint = (TrainPathPointBase)typeof(PathEditorBase).GetProperty("ActivePathPoint", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(editor);
+                Assert.AreSame(segment, activePoint.ConnectedSegments.Single());
+            }
         }
 
         [TestMethod]
@@ -1892,13 +2028,14 @@ namespace Tests.FreeTrainSimulator.Toolbox.PathEditing
             {
                 PathNodes = ImmutableArray.Create(
                     CreateNodeAt(100, PathNodeType.Start, 1) with { NodeIndex = 1 },
-                    CreateNodeAt(400, PathNodeType.End, -1) with { NodeIndex = 4 }),
+                    CreateNodeAt(200, PathNodeType.End, -1) with { NodeIndex = 2 }),
             };
             using (PathEditor editor = CreateEditor(source, CreateAmbiguousTrackWorld()))
             {
-                PathEditorCommandResult result = editor.AddViaPointHereCommand(0, CreateNodeAt(300, PathNodeType.None, -1) with { NodeIndex = 3 }, true);
+                PathEditorCommandResult result = editor.AddViaPointHereCommand(0, CreateNodeAt(125, PathNodeType.None, -1) with { NodeIndex = 1 }, false);
 
                 Assert.IsFalse(result.Success);
+                Assert.Contains("equal-cost", result.Message);
                 Assert.IsTrue(editor.HasPendingAmbiguousSpanCommit);
                 Assert.IsFalse(editor.CanUndo);
                 Assert.AreSequenceEqual(source.PathNodes, editor.TryCaptureCurrentPathModel().PathNodes);
@@ -2472,6 +2609,40 @@ namespace Tests.FreeTrainSimulator.Toolbox.PathEditing
 
             Assert.IsFalse(found);
             Assert.AreEqual(-1, nodeIndex);
+        }
+
+        private static TrackWorld CreatePlacementTrackWorld(out TestTrackSegment segment)
+        {
+            WorldLocation start = new WorldLocation(new Tile(0, 0), Vector3.Zero);
+            WorldLocation end = new WorldLocation(new Tile(0, 0), new Vector3(100, 0, 0));
+            VectorSectionNode section = new VectorSectionNode(start, new Tile(0, 0), new Vector3(0, MathHelper.PiOver2, 0), end)
+            {
+                NodeIndex = 1,
+            };
+            VectorNode vectorNode = new VectorNode(start, new Tile(0, 0), end)
+            {
+                NodeIndex = 1,
+                VectorSections = ImmutableArray.Create(section),
+            };
+            TrackDatabase trackDatabase = new TrackDatabase
+            {
+                TrackNodes = ImmutableArray.Create<TrackNodeBase>(null, vectorNode),
+                TrackNodeConnectors = ImmutableArray.Create(new TrackNodeConnectorIndex(), new TrackNodeConnectorIndex()),
+            };
+            TrackWorldTestFixture.InitializeTrackDatabase(trackDatabase);
+            TrackSectionModel trackSections = new TrackSectionModel
+            {
+                TrackSections = ImmutableDictionary<int, TrackSection>.Empty.Add(1, new TrackSection
+                {
+                    SectionIndex = 1,
+                    Gauge = 1.435f,
+                    Length = 100,
+                }),
+            };
+            TrackWorld trackWorld = TrackWorld.Initialize(null, new TrackModel { TrackDatabase = trackDatabase }, trackSections);
+            segment = new TestTrackSegment(new PointD(0, 0), new PointD(100, 0));
+            trackWorld.SetSegmentSections(new[] { new TrackSegmentSection(1, new[] { segment }) });
+            return trackWorld;
         }
 
         private static PathEditor CreateEditor(PathModel pathModel)

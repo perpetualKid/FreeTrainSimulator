@@ -53,15 +53,35 @@ namespace FreeTrainSimulator.Runtime.Track
         /// </summary>
         public static PathRouteResolution Resolve(PathModel pathModel, TrackWorld trackWorld, PathRouteResolverOptions options, CancellationToken cancellationToken)
         {
+            return ResolveSelectedRoutes(pathModel, trackWorld, options, ImmutableDictionary<int, ResolvedRouteCandidate>.Empty, cancellationToken);
+        }
+
+        /// <summary>
+        /// Resolves a path while constraining selected main-route spans to the chosen track-node sequences.
+        /// Selection keys identify authored main-route span sources, not terminal or siding-only nodes.
+        /// Unselected spans retain compatible shortest alternatives; contradictory choices remain unresolved.
+        /// </summary>
+        public static PathRouteResolution ResolveSelectedRoutes(PathModel pathModel, TrackWorld trackWorld,
+            PathRouteResolverOptions options, IReadOnlyDictionary<int, ResolvedRouteCandidate> selectedCandidates,
+            CancellationToken cancellationToken)
+        {
             ArgumentNullException.ThrowIfNull(pathModel);
             ArgumentNullException.ThrowIfNull(options);
+            ArgumentNullException.ThrowIfNull(selectedCandidates);
 
             List<PathRouteDiagnostic> diagnostics = new List<PathRouteDiagnostic>();
             ImmutableArray<PathNode> pathNodes = pathModel.PathNodes.IsDefault ? ImmutableArray<PathNode>.Empty : pathModel.PathNodes;
+            foreach (KeyValuePair<int, ResolvedRouteCandidate> selection in selectedCandidates)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                ArgumentNullException.ThrowIfNull(selection.Value);
+                ArgumentOutOfRangeException.ThrowIfNegative(selection.Key, nameof(selectedCandidates));
+                ArgumentOutOfRangeException.ThrowIfGreaterThanOrEqual(selection.Key, pathNodes.Length, nameof(selectedCandidates));
+            }
+
             if (pathNodes.IsEmpty)
             {
-                diagnostics.Add(new PathRouteDiagnostic(PathRouteDiagnosticSeverity.Fatal, PathRouteDiagnosticCode.EmptyPath,
-                    "Path has no authored nodes.", "Add a start node and an end node."));
+                diagnostics.Add(new PathRouteDiagnostic(PathRouteDiagnosticSeverity.Fatal, PathRouteDiagnosticCode.EmptyPath, "Path has no authored nodes.", "Add a start node and an end node."));
 
                 return new PathRouteResolution(null, diagnostics.ToImmutableArray());
             }
@@ -70,6 +90,24 @@ namespace FreeTrainSimulator.Runtime.Track
 
             int startNodeIndex = FindFirstNodeOfType(pathNodes, PathNodeType.Start);
             int endNodeIndex = FindLastNodeOfType(pathNodes, PathNodeType.End);
+
+            if (selectedCandidates.Count > 0)
+            {
+                HashSet<int> mainSpanSources = new HashSet<int>();
+                int current = startNodeIndex;
+
+                while (IsInRange(current, pathNodes.Length) && IsInRange(pathNodes[current].NextMainNode, pathNodes.Length) && mainSpanSources.Add(current))
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+                    current = pathNodes[current].NextMainNode;
+                }
+
+                foreach (int sourceIndex in selectedCandidates.Keys)
+                {
+                    if (!mainSpanSources.Contains(sourceIndex))
+                        throw new ArgumentOutOfRangeException(nameof(selectedCandidates));
+                }
+            }
 
             if (startNodeIndex < 0)
             {
@@ -92,7 +130,7 @@ namespace FreeTrainSimulator.Runtime.Track
             ImmutableArray<PathRouteAnchor> anchors = ResolveAnchors(pathNodes, trackWorld, diagnostics, cancellationToken);
             ResolvedPathRoute mainRoute = startNodeIndex >= 0
                 ? BuildRoute(PathRouteBranchKind.Main, pathNodes, anchors, trackWorld, options, diagnostics, startNodeIndex,
-                    static node => node.NextMainNode, TrackRouteSearchConstraints.Default, cancellationToken)
+                    static node => node.NextMainNode, TrackRouteSearchConstraints.Default, null, selectedCandidates, cancellationToken)
                 : null;
             ValidateMainRouteReachesEnd(mainRoute, endNodeIndex, diagnostics);
             ImmutableArray<ResolvedPathRoute> passingRoutes = options.ResolvePassingBranches
@@ -357,15 +395,12 @@ namespace FreeTrainSimulator.Runtime.Track
                     ResolveNonVectorTrackNodeIndexByLocation<JunctionNode>(node.Location, trackWorld.TrackDatabase, out _) == junctionNode.NodeIndex;
             }
 
-            switch (trackNode)
+            return trackNode switch
             {
-                case JunctionNode junctionNode:
-                    return ResolveNonVectorTrackNodeIndexByLocation<JunctionNode>(node.Location, trackWorld.TrackDatabase, out _) == junctionNode.NodeIndex;
-                case EndNode endNode:
-                    return ResolveNonVectorTrackNodeIndexByLocation<EndNode>(node.Location, trackWorld.TrackDatabase, out _) == endNode.NodeIndex;
-                default:
-                    return false;
-            }
+                JunctionNode junctionNode => ResolveNonVectorTrackNodeIndexByLocation<JunctionNode>(node.Location, trackWorld.TrackDatabase, out _) == junctionNode.NodeIndex,
+                EndNode endNode => ResolveNonVectorTrackNodeIndexByLocation<EndNode>(node.Location, trackWorld.TrackDatabase, out _) == endNode.NodeIndex,
+                _ => false,
+            };
         }
 
         private static int ResolveNonVectorTrackNodeIndexByLocation(in WorldLocation location,
@@ -446,34 +481,131 @@ namespace FreeTrainSimulator.Runtime.Track
             return geometry.Node.NodeIndex;
         }
 
-        private static ResolvedPathRoute BuildRoute(PathRouteBranchKind branchKind, ImmutableArray<PathNode> pathNodes,
-            ImmutableArray<PathRouteAnchor> anchors, TrackWorld trackWorld, PathRouteResolverOptions options,
-            List<PathRouteDiagnostic> diagnostics, int startNodeIndex, Func<PathNode, int> nextNodeSelector,
-            TrackRouteSearchConstraints searchConstraints, CancellationToken cancellationToken)
+        private static ResolvedPathRoute BuildRoute(PathRouteBranchKind branchKind, ImmutableArray<PathNode> pathNodes, ImmutableArray<PathRouteAnchor> anchors, TrackWorld trackWorld, PathRouteResolverOptions options,
+            List<PathRouteDiagnostic> diagnostics, int startNodeIndex, Func<PathNode, int> nextNodeSelector, TrackRouteSearchConstraints searchConstraints, ResolvedPathRoute mainRoute,
+            IReadOnlyDictionary<int, ResolvedRouteCandidate> selectedCandidates, CancellationToken cancellationToken)
         {
-            List<ResolvedPathSpan> spans = new List<ResolvedPathSpan>();
+            List<RouteSpanLayer> layers = new List<RouteSpanLayer>();
+            HashSet<TrackRouteArrival?> frontier = new HashSet<TrackRouteArrival?> { searchConstraints.Arrival };
+
+            if (mainRoute != null && mainRoute.Spans.TakeWhile(span => span.FromNodeIndex != startNodeIndex).Any(span => span.Candidates.IsEmpty))
+                frontier.Clear();
+
             HashSet<int> visited = new HashSet<int>();
             int currentNodeIndex = startNodeIndex;
             int endNodeIndex = startNodeIndex;
-            int previousNodeIndex = -1;
 
             while (currentNodeIndex >= 0 && currentNodeIndex < pathNodes.Length && visited.Add(currentNodeIndex))
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
                 int nextNodeIndex = nextNodeSelector(pathNodes[currentNodeIndex]);
+
                 if (!IsInRange(nextNodeIndex, pathNodes.Length))
                     break;
 
-                TrackDirection? departureDirection = InferDepartureDirection(previousNodeIndex, currentNodeIndex, pathNodes, anchors, trackWorld);
-                spans.Add(ResolveSpan(currentNodeIndex, nextNodeIndex, anchors, trackWorld, options, diagnostics,
-                    searchConstraints.WithDepartureDirection(departureDirection), cancellationToken));
+                RouteSpanLayer layer = new RouteSpanLayer(currentNodeIndex, nextNodeIndex);
+                
+                if (trackWorld != null && anchors[currentNodeIndex].HasTrackAnchor && anchors[nextNodeIndex].HasTrackAnchor)
+                {
+                    foreach (TrackRouteArrival? arrival in frontier)
+                    {
+                        cancellationToken.ThrowIfCancellationRequested();
+                        TrackRouteArrival? departure = DepartureArrival(arrival, pathNodes[currentNodeIndex]);
+                        TrackRouteSearchResult result = FindTrackRoute(anchors[currentNodeIndex], anchors[nextNodeIndex], trackWorld, options, searchConstraints.WithArrival(departure), cancellationToken);
+
+                        foreach (ResolvedRouteCandidate candidate in result.Candidates)
+                        {
+                            if (!selectedCandidates.TryGetValue(currentNodeIndex, out ResolvedRouteCandidate selectedCandidate)
+                                || candidate.RouteNodeIndexes.AsSpan().SequenceEqual(selectedCandidate.RouteNodeIndexes.AsSpan()))
+                            {
+                                layer.Transitions.Add(new RouteBoundaryTransition(arrival, candidate));
+                            }
+                        }
+                    }
+
+                    // This is a local shortest frontier, not a total-path optimization. Once a boundary's
+                    // longer approaches are discarded, a later failure must request a via, not revive them.
+                    if (layer.Transitions.Count > 0)
+                    {
+                        double minimumCost = layer.Transitions.Min(transition => transition.Candidate.Cost);
+                        layer.Transitions.RemoveAll(transition => transition.Candidate.Cost > minimumCost + CostEpsilon);
+                    }
+                }
+                layers.Add(layer);
+                frontier = layer.Transitions.Select(transition => transition.Candidate.Arrival).ToHashSet();
                 endNodeIndex = nextNodeIndex;
-                previousNodeIndex = currentNodeIndex;
                 currentNodeIndex = nextNodeIndex;
             }
 
+            // A branch must join the selected coherent main chain, not merely reach its anchor node.
+            if (mainRoute != null && layers.Count > 0 && trackWorld != null)
+                layers[^1].Transitions.RemoveAll(transition => !CanRejoinSelectedMain(transition.Candidate.Arrival, endNodeIndex, mainRoute, pathNodes, anchors, trackWorld, cancellationToken));
+
+            // Keep the longest reachable prefix on failure, but never restart a failed prefix unconstrained.
+            // Backward reachability prunes dead equal-cost approaches without multiplying complete chains.
+            int lastReachable = layers.FindIndex(layer => layer.Transitions.Count == 0);
+            
+            if (lastReachable < 0)
+                lastReachable = layers.Count;
+
+            for (int index = lastReachable - 2; index >= 0; index--)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                HashSet<TrackRouteArrival?> viable = layers[index + 1].Transitions.Select(transition => transition.SourceArrival).ToHashSet();
+                layers[index].Transitions.RemoveAll(transition => !viable.Contains(transition.Candidate.Arrival));
+            }
+
+            List<ResolvedPathSpan> spans = new List<ResolvedPathSpan>();
+            TrackRouteArrival? selectedArrival = searchConstraints.Arrival;
+            foreach (RouteSpanLayer layer in layers)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                RouteBoundaryTransition selected = layer.Transitions.Where(transition => transition.SourceArrival == selectedArrival).OrderBy(transition => transition.Candidate.RouteNodeIndexes, RouteComparer.Instance).FirstOrDefault();
+                ImmutableArray<ResolvedRouteCandidate> candidates = selected == null
+                    ? ImmutableArray<ResolvedRouteCandidate>.Empty
+                    : layer.Transitions.OrderBy(transition => ReferenceEquals(transition, selected) ? 0 : 1)
+                        .ThenBy(transition => transition.Candidate.RouteNodeIndexes, RouteComparer.Instance)
+                        .GroupBy(transition => transition.Candidate.RouteNodeIndexes, RouteEqualityComparer.Instance)
+                        .Select(group => group.First().Candidate).ToImmutableArray();
+                spans.Add(PresentSpan(layer.FromNodeIndex, layer.ToNodeIndex, candidates, trackWorld, options, diagnostics));
+                selectedArrival = selected?.Candidate.Arrival;
+            }
             return new ResolvedPathRoute(branchKind, startNodeIndex, endNodeIndex, spans.ToImmutableArray());
+        }
+
+        private static TrackRouteArrival? DepartureArrival(TrackRouteArrival? arrival, PathNode node)
+        {
+            return arrival.HasValue && arrival.Value.Direction.HasValue && node.NodeType.Includes(PathNodeType.Reversal)
+                ? arrival.Value with { Direction = arrival.Value.Direction.Value.Reverse() }
+                : arrival;
+        }
+
+        private static bool CanRejoinSelectedMain(TrackRouteArrival? arrival, int rejoinNodeIndex, ResolvedPathRoute mainRoute, ImmutableArray<PathNode> pathNodes, ImmutableArray<PathRouteAnchor> anchors, TrackWorld trackWorld,
+            CancellationToken cancellationToken)
+        {
+            foreach (ResolvedPathSpan span in mainRoute.Spans.SkipWhile(span => span.FromNodeIndex != rejoinNodeIndex))
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                ResolvedRouteCandidate candidate = span.Candidates.FirstOrDefault();
+
+                if (candidate == null)
+                    return false;
+                
+                arrival = DepartureArrival(arrival, pathNodes[span.FromNodeIndex]);
+                
+                if (!candidate.PhysicalTraversals.IsEmpty)
+                {
+                    TrackRouteTraversal departure = candidate.PhysicalTraversals[0];
+                    TrackRouteSearchState state = SeedState(departure.FromNodeIndex, arrival, true);
+                    TrackNodeConnector connector = trackWorld.TrackDatabase.TrackNodeConnectors[departure.FromNodeIndex].TrackNodeConnectors[departure.FromConnectorIndex];
+                    return CanTraverse(state, departure.FromConnectorIndex, connector, trackWorld.TrackDatabase, arrival?.Direction);
+                }
+                
+                if (!TryDirectArrival(anchors[span.FromNodeIndex], anchors[span.ToNodeIndex], trackWorld, arrival, out arrival))
+                    return false;
+            }
+            return true;
         }
 
         private static ImmutableArray<ResolvedPathRoute> BuildPassingRoutes(ImmutableArray<PathNode> pathNodes, ImmutableArray<PathRouteAnchor> anchors, ResolvedPathRoute mainRoute, TrackWorld trackWorld,
@@ -492,10 +624,10 @@ namespace FreeTrainSimulator.Runtime.Track
                     int rejoinNodeIndex = FindRouteEnd(pathNodes, i, static pathNode => pathNode.NextSidingNode);
                     ImmutableHashSet<TrackRouteTraversal> mainRouteEdges = MainRouteTraversalsBetween(mainRoute, i, rejoinNodeIndex);
                     bool requireAlternativeRoute = node.NextSidingNode == rejoinNodeIndex;
-                    TrackRouteSearchConstraints searchConstraints = new TrackRouteSearchConstraints(null, mainRouteEdges,
-                        requireAlternativeRoute);
+                    TrackRouteArrival? arrival = mainRoute?.Spans.LastOrDefault(span => span.ToNodeIndex == i)?.Candidates.FirstOrDefault()?.Arrival;
+                    TrackRouteSearchConstraints searchConstraints = new TrackRouteSearchConstraints(arrival, mainRouteEdges, requireAlternativeRoute);
                     ResolvedPathRoute route = BuildRoute(PathRouteBranchKind.Passing, pathNodes, anchors, trackWorld, options, diagnostics, i,
-                        static pathNode => pathNode.NextSidingNode, searchConstraints, cancellationToken);
+                        static pathNode => pathNode.NextSidingNode, searchConstraints, mainRoute, ImmutableDictionary<int, ResolvedRouteCandidate>.Empty, cancellationToken);
                     routes.Add(route);
 
                     if (requireAlternativeRoute && trackWorld != null && route.Spans.Any(span => span.Status == PathRouteSpanStatus.Unresolved))
@@ -636,44 +768,35 @@ namespace FreeTrainSimulator.Runtime.Track
             return nodes.ToImmutable();
         }
 
-        private static ResolvedPathSpan ResolveSpan(int fromNodeIndex, int toNodeIndex,
-            ImmutableArray<PathRouteAnchor> anchors, TrackWorld trackWorld, PathRouteResolverOptions options,
-            List<PathRouteDiagnostic> diagnostics, TrackRouteSearchConstraints searchConstraints,
-            CancellationToken cancellationToken)
+        private static ResolvedPathSpan PresentSpan(int fromNodeIndex, int toNodeIndex, ImmutableArray<ResolvedRouteCandidate> candidates, TrackWorld trackWorld, PathRouteResolverOptions options, List<PathRouteDiagnostic> diagnostics)
         {
-            if (trackWorld == null || anchors.IsDefaultOrEmpty || !IsInRange(fromNodeIndex, anchors.Length) || !IsInRange(toNodeIndex, anchors.Length))
+            if (trackWorld == null)
                 return new ResolvedPathSpan(fromNodeIndex, toNodeIndex, PathRouteSpanStatus.NotResolved);
 
-            PathRouteAnchor fromAnchor = anchors[fromNodeIndex];
-            PathRouteAnchor toAnchor = anchors[toNodeIndex];
-            if (!fromAnchor.HasTrackAnchor || !toAnchor.HasTrackAnchor)
-                return new ResolvedPathSpan(fromNodeIndex, toNodeIndex, PathRouteSpanStatus.Unresolved);
-
-            TrackRouteSearchResult routeSearchResult = FindTrackRoute(fromAnchor, toAnchor, trackWorld, options,
-                searchConstraints, cancellationToken);
-            if (routeSearchResult.Resolved)
+            if (!candidates.IsEmpty)
             {
-                if (routeSearchResult.Ambiguous && options.AllowMainRouteFirstTieBreaking)
+                ResolvedRouteCandidate primary = candidates[0];
+                if (candidates.Length > 1 && options.AllowMainRouteFirstTieBreaking)
                 {
                     diagnostics.Add(new PathRouteDiagnostic(PathRouteDiagnosticSeverity.Warning, PathRouteDiagnosticCode.AmbiguousRoute,
-                        $"Path span from node {fromNodeIndex} to node {toNodeIndex} has {routeSearchResult.Candidates.Length} equal-cost routes; the deterministic first route was selected.",
+                        $"Path span from node {fromNodeIndex} to node {toNodeIndex} has {candidates.Length} equal-cost routes; the deterministic first route was selected.",
                         fromNodeIndex, toNodeIndex, "Choose a candidate route or add an explicit via node if a different route is intended."));
                     return new ResolvedPathSpan(fromNodeIndex, toNodeIndex, PathRouteSpanStatus.Resolved,
-                        routeSearchResult.TrackVectorNodeIndexes, routeSearchResult.GeneratedIntermediaryAnchors, routeSearchResult.Candidates);
+                        primary.TrackVectorNodeIndexes, primary.GeneratedIntermediaryAnchors, candidates);
                 }
 
-                if (routeSearchResult.Ambiguous)
+                if (candidates.Length > 1)
                 {
                     diagnostics.Add(new PathRouteDiagnostic(options.TreatAmbiguityAsError ? PathRouteDiagnosticSeverity.Error : PathRouteDiagnosticSeverity.Warning,
                         PathRouteDiagnosticCode.AmbiguousRoute,
-                        $"Path span from node {fromNodeIndex} to node {toNodeIndex} has {routeSearchResult.Candidates.Length} equal-cost routes.",
+                        $"Path span from node {fromNodeIndex} to node {toNodeIndex} has {candidates.Length} equal-cost routes.",
                         fromNodeIndex, toNodeIndex, "Choose a candidate route or add an explicit via node to choose the intended route."));
                     return new ResolvedPathSpan(fromNodeIndex, toNodeIndex, PathRouteSpanStatus.Ambiguous,
-                        routeSearchResult.TrackVectorNodeIndexes, routeSearchResult.GeneratedIntermediaryAnchors, routeSearchResult.Candidates);
+                        primary.TrackVectorNodeIndexes, primary.GeneratedIntermediaryAnchors, candidates);
                 }
 
                 return new ResolvedPathSpan(fromNodeIndex, toNodeIndex, PathRouteSpanStatus.Resolved,
-                    routeSearchResult.TrackVectorNodeIndexes, routeSearchResult.GeneratedIntermediaryAnchors, routeSearchResult.Candidates);
+                    primary.TrackVectorNodeIndexes, primary.GeneratedIntermediaryAnchors, candidates);
             }
 
             diagnostics.Add(new PathRouteDiagnostic(PathRouteDiagnosticSeverity.Warning, PathRouteDiagnosticCode.UnresolvedDenseSpan,
@@ -697,23 +820,17 @@ namespace FreeTrainSimulator.Runtime.Track
 
             if (fromAnchor.TrackNodeIndex == toAnchor.TrackNodeIndex && !searchConstraints.RequireAlternativeRoute)
             {
-                if (searchConstraints.DepartureDirection.HasValue && trackDatabase.TrackNodes[fromAnchor.TrackNodeIndex] is VectorNode sameVectorNode)
-                {
-                    double fromPosition = AnchorPosition(fromAnchor, sameVectorNode, trackWorld);
-                    double toPosition = AnchorPosition(toAnchor, sameVectorNode, trackWorld);
-                    if (!double.IsNaN(fromPosition) && !double.IsNaN(toPosition) &&
-                        (searchConstraints.DepartureDirection == TrackDirection.Ahead && toPosition + CostEpsilon < fromPosition ||
-                        searchConstraints.DepartureDirection == TrackDirection.Reverse && toPosition - CostEpsilon > fromPosition))
-                    {
-                        return TrackRouteSearchResult.Unresolved;
-                    }
-                }
+                if (!TryDirectArrival(fromAnchor, toAnchor, trackWorld, searchConstraints.Arrival, out TrackRouteArrival? arrival))
+                    return TrackRouteSearchResult.Unresolved;
 
-                return BuildTrackRouteSearchResult(ImmutableArray.Create(fromAnchor.TrackNodeIndex), trackWorld, options, 0.0);
+                ResolvedRouteCandidate direct = BuildRouteCandidate(ImmutableArray.Create(fromAnchor.TrackNodeIndex),
+                    trackWorld, options, 0.0, null, null, ImmutableArray<TrackRouteTraversal>.Empty) with { Arrival = arrival };
+                return new TrackRouteSearchResult(direct.RouteNodeIndexes, direct.TrackVectorNodeIndexes,
+                    direct.GeneratedIntermediaryAnchors, false, ImmutableArray.Create(direct));
             }
 
             double maximumCost = EffectiveSearchDistance(fromAnchor, toAnchor, options);
-            TrackRouteSearchState startState = new TrackRouteSearchState(-1, fromAnchor.TrackNodeIndex, -1, -1,
+            TrackRouteSearchState startState = SeedState(fromAnchor.TrackNodeIndex, searchConstraints.Arrival,
                 !searchConstraints.RequireAlternativeRoute);
             TrackRouteSearchWorkspace workspace = new TrackRouteSearchWorkspace(startState);
 
@@ -724,6 +841,7 @@ namespace FreeTrainSimulator.Runtime.Track
                 double currentCost = workspace.Cost(currentState);
                 if (queuedCost > currentCost + CostEpsilon || currentCost > maximumCost)
                     continue;
+
                 if (currentState != startState && currentState.CurrentNodeIndex == toAnchor.TrackNodeIndex)
                     continue;
 
@@ -740,7 +858,7 @@ namespace FreeTrainSimulator.Runtime.Track
                     int nextNodeIndex = connector.Link;
                     if (!IsInRange(nextNodeIndex, trackDatabase.TrackNodes.Length) || trackDatabase.TrackNodes[nextNodeIndex] == null ||
                         !CanTraverse(currentState, connectorIndex, connector, trackDatabase,
-                            searchConstraints.DepartureDirection))
+                            currentState == startState ? searchConstraints.DepartureDirection : null))
                     {
                         continue;
                     }
@@ -818,7 +936,7 @@ namespace FreeTrainSimulator.Runtime.Track
                 .ThenBy(state => state.IncomingConnectorIndex)
                 .ToImmutableArray();
             ImmutableArray<ResolvedRouteCandidate> candidates = EnumerateRouteCandidates(workspace.OptimalPredecessors,
-                startState, minimumTargetStates, fromAnchor, trackWorld, options, minimumCost,
+                startState, minimumTargetStates, fromAnchor, toAnchor, trackWorld, options, minimumCost,
                 searchConstraints.DepartureDirection, cancellationToken);
             return candidates.IsEmpty
                 ? TrackRouteSearchResult.Unresolved
@@ -829,7 +947,7 @@ namespace FreeTrainSimulator.Runtime.Track
         // route. Predecessors are visited in ascending track node order and the resulting candidates are ordered
         // lexicographically, so both the selected route and a candidate index stay stable across resolutions.
         private static ImmutableArray<ResolvedRouteCandidate> EnumerateRouteCandidates(Dictionary<TrackRouteSearchState, List<TrackRouteSearchState>> optimalPredecessors, TrackRouteSearchState startState,
-            ImmutableArray<TrackRouteSearchState> endStates, PathRouteAnchor fromAnchor, TrackWorld trackWorld, PathRouteResolverOptions options, double cost, TrackDirection? departureDirection, CancellationToken cancellationToken)
+            ImmutableArray<TrackRouteSearchState> endStates, PathRouteAnchor fromAnchor, PathRouteAnchor toAnchor, TrackWorld trackWorld, PathRouteResolverOptions options, double cost, TrackDirection? departureDirection, CancellationToken cancellationToken)
         {
             List<ImmutableArray<TrackRouteSearchState>> routes = new List<ImmutableArray<TrackRouteSearchState>>();
             List<TrackRouteSearchState> reversedRoute = new List<TrackRouteSearchState>();
@@ -869,11 +987,57 @@ namespace FreeTrainSimulator.Runtime.Track
 
             return routes
                 .OrderBy(route => route.Select(state => state.CurrentNodeIndex).ToImmutableArray(), RouteComparer.Instance)
-                .GroupBy(route => route.Select(state => state.CurrentNodeIndex).ToImmutableArray(), RouteEqualityComparer.Instance)
-                .Select(group => group.First())
+                .ThenBy(route => route.Select(state => state.PreviousConnectorIndex).ToImmutableArray(), RouteComparer.Instance)
                 .Select(route => BuildRouteCandidate(route.Select(state => state.CurrentNodeIndex).ToImmutableArray(), trackWorld, options,
-                    cost, fromAnchor, departureDirection, BuildPhysicalTraversals(route)))
+                    cost, fromAnchor, departureDirection, BuildPhysicalTraversals(route)) with
+                    {
+                        Arrival = TerminalArrival(route[^1], toAnchor, trackWorld),
+                    })
                 .ToImmutableArray();
+        }
+
+        private static TrackRouteSearchState SeedState(int trackNodeIndex, TrackRouteArrival? arrival, bool alternativeEdgeUsed)
+        {
+            return new TrackRouteSearchState(arrival?.PreviousNodeIndex ?? -1, trackNodeIndex, arrival?.PreviousConnectorIndex ?? -1, arrival?.IncomingConnectorIndex ?? -1, alternativeEdgeUsed);
+        }
+
+        private static TrackRouteArrival TerminalArrival(TrackRouteSearchState state, PathRouteAnchor anchor, TrackWorld trackWorld)
+        {
+            TrackDirection? direction = null;
+            ImmutableArray<TrackNodeConnector> connectors = trackWorld.TrackDatabase.TrackNodeConnectors[state.CurrentNodeIndex].TrackNodeConnectors;
+
+            if (trackWorld.TrackDatabase.TrackNodes[state.CurrentNodeIndex] is VectorNode vector && !double.IsNaN(AnchorPosition(anchor, vector, trackWorld)) && IsInRange(state.IncomingConnectorIndex, connectors.Length))
+            {
+                direction = state.IncomingConnectorIndex switch
+                {
+                    0 => TrackDirection.Ahead,
+                    1 => TrackDirection.Reverse,
+                    _ => null,
+                };
+            }
+            return new TrackRouteArrival(state.PreviousNodeIndex, state.PreviousConnectorIndex, state.IncomingConnectorIndex, direction);
+        }
+
+        private static bool TryDirectArrival(PathRouteAnchor fromAnchor, PathRouteAnchor toAnchor, TrackWorld trackWorld, TrackRouteArrival? departure, out TrackRouteArrival? arrival)
+        {
+            arrival = departure;
+
+            if (trackWorld.TrackDatabase.TrackNodes[fromAnchor.TrackNodeIndex] is not VectorNode vector)
+                return true;
+
+            double fromPosition = AnchorPosition(fromAnchor, vector, trackWorld);
+            double toPosition = AnchorPosition(toAnchor, vector, trackWorld);
+
+            if (double.IsNaN(fromPosition) || double.IsNaN(toPosition) || Math.Abs(toPosition - fromPosition) <= CostEpsilon)
+                return true;
+
+            TrackDirection direction = toPosition > fromPosition ? TrackDirection.Ahead : TrackDirection.Reverse;
+
+            if (departure?.Direction.HasValue == true && departure.Value.Direction.Value != direction)
+                return false;
+
+            arrival = (departure ?? new TrackRouteArrival(-1, -1, -1, null)) with { Direction = direction };
+            return true;
         }
 
         private static ImmutableArray<TrackRouteTraversal> BuildPhysicalTraversals(ImmutableArray<TrackRouteSearchState> route)
@@ -890,18 +1054,18 @@ namespace FreeTrainSimulator.Runtime.Track
 
         private static bool CanTraverse(TrackRouteSearchState currentState, int outgoingConnectorIndex, TrackNodeConnector outgoingConnector, TrackDatabase trackDatabase, TrackDirection? departureDirection)
         {
-            if (currentState.PreviousNodeIndex < 0)
+            // A seeded vector heading is authoritative even with a previous physical connector: an explicit
+            // reversal deliberately allows departure back through that connector, once at the authored boundary.
+            if (departureDirection.HasValue && trackDatabase.TrackNodes[currentState.CurrentNodeIndex] is VectorNode)
             {
-                if (!departureDirection.HasValue)
-                    return true;
-
                 ImmutableArray<TrackNodeConnector> departureConnectors = trackDatabase.TrackNodeConnectors[currentState.CurrentNodeIndex].TrackNodeConnectors;
-                if (departureConnectors.Length < 2)
-                    return true;
-
                 int requiredConnectorIndex = departureDirection == TrackDirection.Ahead ? 1 : 0;
-                return outgoingConnectorIndex == requiredConnectorIndex;
+                return requiredConnectorIndex < departureConnectors.Length && outgoingConnectorIndex == requiredConnectorIndex;
             }
+
+            if (currentState.PreviousNodeIndex < 0)
+                return true;
+            
             if (currentState.IncomingConnectorIndex == outgoingConnectorIndex)
                 return false;
 
@@ -911,6 +1075,7 @@ namespace FreeTrainSimulator.Runtime.Track
             ImmutableArray<TrackNodeConnector> connectors = trackDatabase.TrackNodeConnectors[currentState.CurrentNodeIndex].TrackNodeConnectors;
             bool hasInPins = connectors.Any(connector => connector.ConnectorType == ConnectorType.InPin);
             bool hasOutPins = connectors.Any(connector => connector.ConnectorType == ConnectorType.OutPin);
+            
             if (!hasInPins || !hasOutPins)
                 return true;
 
@@ -918,30 +1083,6 @@ namespace FreeTrainSimulator.Runtime.Track
                 ? connectors[currentState.IncomingConnectorIndex]
                 : connectors.FirstOrDefault(connector => connector.Link == currentState.PreviousNodeIndex);
             return incomingConnector != null && incomingConnector.ConnectorType != outgoingConnector.ConnectorType;
-        }
-
-        private static TrackDirection? InferDepartureDirection(int previousNodeIndex, int currentNodeIndex, ImmutableArray<PathNode> pathNodes, ImmutableArray<PathRouteAnchor> anchors, TrackWorld trackWorld)
-        {
-            if (trackWorld?.TrackDatabase == null || !IsInRange(previousNodeIndex, anchors.Length) ||
-                !IsInRange(currentNodeIndex, anchors.Length))
-                return null;
-
-            PathRouteAnchor previous = anchors[previousNodeIndex];
-            PathRouteAnchor current = anchors[currentNodeIndex];
-            if (!IsInRange(current.TrackNodeIndex, trackWorld.TrackDatabase.TrackNodes.Length) ||
-                previous.TrackNodeIndex != current.TrackNodeIndex ||
-                trackWorld.TrackDatabase.TrackNodes[current.TrackNodeIndex] is not VectorNode vectorNode)
-                return null;
-
-            double previousPosition = AnchorPosition(previous, vectorNode, trackWorld);
-            double currentPosition = AnchorPosition(current, vectorNode, trackWorld);
-            if (double.IsNaN(previousPosition) || double.IsNaN(currentPosition) || Math.Abs(previousPosition - currentPosition) <= CostEpsilon)
-                return null;
-
-            TrackDirection direction = currentPosition > previousPosition ? TrackDirection.Ahead : TrackDirection.Reverse;
-            bool reversal = pathNodes[currentNodeIndex].NodeType.Includes(PathNodeType.Reversal);
-            TrackDirection result = reversal ? direction.Reverse() : direction;
-            return result;
         }
 
         private static double AnchorPosition(PathRouteAnchor anchor, VectorNode vectorNode, TrackWorld trackWorld)
@@ -959,41 +1100,53 @@ namespace FreeTrainSimulator.Runtime.Track
                 : double.NaN;
         }
 
-        private static ResolvedRouteCandidate BuildRouteCandidate(ImmutableArray<int> routeNodeIndexes, TrackWorld trackWorld,
-            PathRouteResolverOptions options, double cost, PathRouteAnchor fromAnchor, TrackDirection? departureDirection,
-            ImmutableArray<TrackRouteTraversal> physicalTraversals)
+        private static ResolvedRouteCandidate BuildRouteCandidate(ImmutableArray<int> routeNodeIndexes, TrackWorld trackWorld, PathRouteResolverOptions options, double cost, PathRouteAnchor fromAnchor, 
+            TrackDirection? departureDirection, ImmutableArray<TrackRouteTraversal> physicalTraversals)
         {
             ImmutableArray<int>.Builder trackVectorNodeIndexes = ImmutableArray.CreateBuilder<int>();
             ImmutableArray<PathRouteAnchor>.Builder generatedAnchors = ImmutableArray.CreateBuilder<PathRouteAnchor>();
             TrackDatabase trackDatabase = trackWorld.TrackDatabase;
-            // A departure direction is only known when the previous point sits on the same vector node. Materializing
-            // it as an anchor near the departure end keeps that direction readable after the path is persisted.
+            // Materialize a known departure heading only when leaving the vector. A direct same-vector span
+            // must not acquire a witness beyond its target.
             if (options.IncludeGeneratedIntermediaryNodes && departureDirection.HasValue && fromAnchor != null && trackDatabase.TrackNodes[fromAnchor.TrackNodeIndex] is VectorNode departureNode)
             {
                 int sectionIndex = departureDirection == TrackDirection.Ahead ? departureNode.VectorSections.Length - 1 : 0;
                 VectorSectionNode boundarySection = departureNode.VectorSections[sectionIndex];
                 WorldLocation boundary = boundarySection.Location;
+
                 if (trackWorld.SectionGeometry.TryGetValue(boundarySection, out SectionGeometry boundaryGeometry))
                 {
                     double inset = Math.Min(boundaryGeometry.Length / 2, WorldLocation.ProximityTolerance * 2);
+
+                    if (fromAnchor.TrackVectorSectionIndex == sectionIndex)
+                    {
+                        double sourceOffset = boundaryGeometry.DistanceOnSection(fromAnchor.Location);
+                        double remaining = departureDirection == TrackDirection.Ahead
+                            ? boundaryGeometry.Length - sourceOffset
+                            : sourceOffset;
+                        inset = Math.Min(inset, Math.Max(0.0, remaining) / 2);
+                    }
                     boundary = boundaryGeometry.LocationAt(departureDirection == TrackDirection.Ahead
                         ? boundaryGeometry.Length - inset
                         : inset);
                 }
-                generatedAnchors.Add(new PathRouteAnchor(-1, boundary, PathNodeType.Via,
-                    departureNode.NodeIndex, sectionIndex));
+                if (WorldLocation.GetDistanceSquared2D(boundary, fromAnchor.Location) > CostEpsilon * CostEpsilon)
+                {
+                    generatedAnchors.Add(new PathRouteAnchor(-1, boundary, PathNodeType.Via,
+                        departureNode.NodeIndex, sectionIndex));
+                }
             }
+
             for (int i = 0; i < routeNodeIndexes.Length; i++)
             {
                 int trackNodeIndex = routeNodeIndexes[i];
                 TrackNodeBase trackNode = trackDatabase.TrackNodes[trackNodeIndex];
+
                 if (trackNode is VectorNode)
                     trackVectorNodeIndexes.Add(trackNodeIndex);
 
                 if (options.IncludeGeneratedIntermediaryNodes && i > 0 && i < routeNodeIndexes.Length - 1)
-                    AddGeneratedRouteAnchor(generatedAnchors,
-                        new PathRouteAnchor(-1, trackNode.Location, PathNodeType.Via, trackNodeIndex, -1),
-                        trackDatabase);
+                    AddGeneratedRouteAnchor(generatedAnchors, new PathRouteAnchor(-1, trackNode.Location, PathNodeType.Via, trackNodeIndex, -1), trackDatabase);
             }
 
             return new ResolvedRouteCandidate(routeNodeIndexes, trackVectorNodeIndexes.ToImmutable(), generatedAnchors.ToImmutable(), cost, physicalTraversals);
@@ -1049,14 +1202,6 @@ namespace FreeTrainSimulator.Runtime.Track
             }
         }
 
-        private static TrackRouteSearchResult BuildTrackRouteSearchResult(ImmutableArray<int> routeNodeIndexes, TrackWorld trackWorld, PathRouteResolverOptions options, double cost)
-        {
-            ResolvedRouteCandidate candidate = BuildRouteCandidate(routeNodeIndexes, trackWorld, options, cost, null, null,
-                ImmutableArray<TrackRouteTraversal>.Empty);
-            return new TrackRouteSearchResult(candidate.RouteNodeIndexes, candidate.TrackVectorNodeIndexes,
-                candidate.GeneratedIntermediaryAnchors, false, ImmutableArray.Create(candidate));
-        }
-
         private static double RouteSearchNodeCost(TrackWorld trackWorld, TrackNodeBase trackNode, int trackNodeIndex,
             PathRouteAnchor targetAnchor, TrackNodeConnector incomingConnector)
         {
@@ -1094,23 +1239,59 @@ namespace FreeTrainSimulator.Runtime.Track
             internal static TrackRouteSearchConstraints Default { get; } = new TrackRouteSearchConstraints(
                 null, ImmutableHashSet<TrackRouteTraversal>.Empty, false);
 
-            internal TrackDirection? DepartureDirection { get; }
+            /// <summary>Exact arrival at this authored boundary, absent only at a true route start.</summary>
+            internal TrackRouteArrival? Arrival { get; }
+
+            internal TrackDirection? DepartureDirection => Arrival?.Direction;
 
             internal ImmutableHashSet<TrackRouteTraversal> MainRouteTraversals { get; }
 
             internal bool RequireAlternativeRoute { get; }
 
-            internal TrackRouteSearchConstraints(TrackDirection? departureDirection,
+            internal TrackRouteSearchConstraints(TrackRouteArrival? arrival,
                 ImmutableHashSet<TrackRouteTraversal> mainRouteTraversals, bool requireAlternativeRoute)
             {
-                DepartureDirection = departureDirection;
+                Arrival = arrival;
                 MainRouteTraversals = mainRouteTraversals ?? ImmutableHashSet<TrackRouteTraversal>.Empty;
                 RequireAlternativeRoute = requireAlternativeRoute;
             }
 
-            internal TrackRouteSearchConstraints WithDepartureDirection(TrackDirection? departureDirection)
+            internal TrackRouteSearchConstraints WithArrival(TrackRouteArrival? arrival)
             {
-                return new TrackRouteSearchConstraints(departureDirection, MainRouteTraversals, RequireAlternativeRoute);
+                return new TrackRouteSearchConstraints(arrival, MainRouteTraversals, RequireAlternativeRoute);
+            }
+        }
+
+        private sealed class RouteSpanLayer
+        {
+            /// <summary>Authored source of this boundary layer.</summary>
+            internal int FromNodeIndex { get; }
+
+            /// <summary>Authored target of this boundary layer.</summary>
+            internal int ToNodeIndex { get; }
+
+            /// <summary>Shortest physical transitions, retaining predecessor correlation.</summary>
+            internal List<RouteBoundaryTransition> Transitions { get; } = new List<RouteBoundaryTransition>();
+
+            internal RouteSpanLayer(int fromNodeIndex, int toNodeIndex)
+            {
+                FromNodeIndex = fromNodeIndex;
+                ToNodeIndex = toNodeIndex;
+            }
+        }
+
+        private sealed class RouteBoundaryTransition
+        {
+            /// <summary>Boundary context before applying this source anchor's reversal.</summary>
+            internal TrackRouteArrival? SourceArrival { get; }
+
+            /// <summary>Physical route and resulting boundary context.</summary>
+            internal ResolvedRouteCandidate Candidate { get; }
+
+            internal RouteBoundaryTransition(TrackRouteArrival? sourceArrival, ResolvedRouteCandidate candidate)
+            {
+                SourceArrival = sourceArrival;
+                Candidate = candidate;
             }
         }
 

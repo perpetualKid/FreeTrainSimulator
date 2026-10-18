@@ -563,8 +563,7 @@ namespace FreeTrainSimulator.Toolbox.PathEditing
         private PathSpanCommitResult ResolveAnchorSpan(PathModel sourceModel, Func<PathModel, PathEditResult> anchorEdit)
             => ResolveAnchorSpan(sourceModel, anchorEdit, false);
 
-        private PathSpanCommitResult ResolveAnchorSpan(PathModel sourceModel, Func<PathModel, PathEditResult> anchorEdit,
-            bool allowAutomaticReversal)
+        private PathSpanCommitResult ResolveAnchorSpan(PathModel sourceModel, Func<PathModel, PathEditResult> anchorEdit, bool allowAutomaticReversal)
         {
             ArgumentNullException.ThrowIfNull(sourceModel);
             ArgumentNullException.ThrowIfNull(anchorEdit);
@@ -583,8 +582,7 @@ namespace FreeTrainSimulator.Toolbox.PathEditing
         private PathSpanCommitResult EvaluateSpanCommit(PathModel tentativeModel, ImmutableArray<int> changedNodeIndexes, string message, PathModel sourceModel)
             => EvaluateSpanCommit(tentativeModel, changedNodeIndexes, message, sourceModel, false);
 
-        private PathSpanCommitResult EvaluateSpanCommit(PathModel tentativeModel, ImmutableArray<int> changedNodeIndexes, string message,
-            PathModel sourceModel, bool allowAutomaticReversal)
+        private PathSpanCommitResult EvaluateSpanCommit(PathModel tentativeModel, ImmutableArray<int> changedNodeIndexes, string message, PathModel sourceModel, bool allowAutomaticReversal)
             => EvaluateSpanCommit(tentativeModel, changedNodeIndexes, message, sourceModel, allowAutomaticReversal, CancellationToken.None);
 
         // allowAutomaticReversal is set by the endpoint-authoring commands (route building, Set End Here). When the
@@ -594,6 +592,12 @@ namespace FreeTrainSimulator.Toolbox.PathEditing
             PathModel sourceModel, bool allowAutomaticReversal, CancellationToken cancellationToken)
         {
             PathRouteResolution resolution = PathRouteResolver.Resolve(tentativeModel, TrackWorld, PathRouteResolverOptions.Default, cancellationToken);
+            if (PathPersistenceValidationPolicy.TryGetPreservationFailure(tentativeModel, resolution,
+                out PathPersistenceValidationResult preservationFailure))
+            {
+                return PathSpanCommitResult.Unresolved(preservationFailure.FailureMessage, sourceModel);
+            }
+
             ImmutableArray<ResolvedPathSpan> affectedSpans = AffectedSpans(resolution, changedNodeIndexes);
 
             if (affectedSpans.IsEmpty)
@@ -639,8 +643,7 @@ namespace FreeTrainSimulator.Toolbox.PathEditing
         // Marks the route point preceding the end anchor as a reversal and re-evaluates. Returns null when the
         // reversal is not applicable (no preceding point, or it is a junction/terminus) or still does not resolve,
         // so the caller reports its original failure.
-        private PathSpanCommitResult TryReverseAndResolve(PathModel tentativeModel, ImmutableArray<int> changedNodeIndexes,
-            string message, PathModel sourceModel, bool allowAutomaticReversal, CancellationToken cancellationToken)
+        private PathSpanCommitResult TryReverseAndResolve(PathModel tentativeModel, ImmutableArray<int> changedNodeIndexes, string message, PathModel sourceModel, bool allowAutomaticReversal, CancellationToken cancellationToken)
         {
             if (!allowAutomaticReversal)
                 return null;
@@ -678,6 +681,7 @@ namespace FreeTrainSimulator.Toolbox.PathEditing
         {
             ImmutableArray<PathNode> nodes = pathModel?.PathNodes ?? ImmutableArray<PathNode>.Empty;
             int endIndex = -1;
+
             for (int i = 0; i < nodes.Length; i++)
             {
                 if (nodes[i].NodeType.Includes(PathNodeType.End))
@@ -686,6 +690,7 @@ namespace FreeTrainSimulator.Toolbox.PathEditing
                     break;
                 }
             }
+
             if (endIndex < 0)
                 return -1;
 
@@ -698,8 +703,7 @@ namespace FreeTrainSimulator.Toolbox.PathEditing
             return -1;
         }
 
-        internal static bool HasImplicitRouteBack(PathModel pathModel, ImmutableArray<ResolvedPathSpan> allSpans,
-            ImmutableArray<ResolvedPathSpan> affectedSpans)
+        internal static bool HasImplicitRouteBack(PathModel pathModel, ImmutableArray<ResolvedPathSpan> allSpans, ImmutableArray<ResolvedPathSpan> affectedSpans)
         {
             if (pathModel == null || allSpans.IsDefaultOrEmpty || affectedSpans.IsDefaultOrEmpty)
                 return false;
@@ -707,8 +711,7 @@ namespace FreeTrainSimulator.Toolbox.PathEditing
             HashSet<(int From, int To)> precedingEdges = new();
             foreach (ResolvedPathSpan span in allSpans)
             {
-                if (affectedSpans.Contains(span) &&
-                    !(span.FromNodeIndex >= 0 && span.FromNodeIndex < pathModel.PathNodes.Length &&
+                if (affectedSpans.Contains(span) && !(span.FromNodeIndex >= 0 && span.FromNodeIndex < pathModel.PathNodes.Length &&
                     pathModel.PathNodes[span.FromNodeIndex].NodeType.Includes(PathNodeType.Reversal)))
                 {
                     ImmutableArray<int> route = PrimaryRoute(span);
@@ -783,7 +786,7 @@ namespace FreeTrainSimulator.Toolbox.PathEditing
         private PathModel BuildPendingCandidateModel(bool requireExplicitSelections, out string failure)
         {
             failure = null;
-            PathModel candidateModel = pendingAmbiguousSpanCommit.TentativeModel;
+            Dictionary<int, ResolvedRouteCandidate> selectedCandidates = new Dictionary<int, ResolvedRouteCandidate>();
             foreach (ResolvedPathSpan span in pendingAmbiguousSpanCommit.AmbiguousSpans.OrderByDescending(span => span.FromNodeIndex))
             {
                 int candidateIndex;
@@ -795,7 +798,7 @@ namespace FreeTrainSimulator.Toolbox.PathEditing
                         return null;
                     }
 
-                    candidateIndex = 0;
+                    continue;
                 }
 
                 if (candidateIndex < 0 || candidateIndex >= span.Candidates.Length)
@@ -804,24 +807,18 @@ namespace FreeTrainSimulator.Toolbox.PathEditing
                     return null;
                 }
 
-                PathEditResult applied = PathModelEditor.ApplyRouteCandidate(candidateModel, span.FromNodeIndex, span.Candidates[candidateIndex]);
-                if (!applied.Success)
-                {
-                    failure = applied.Message;
-                    return null;
-                }
-
-                candidateModel = applied.PathModel;
+                selectedCandidates.Add(span.FromNodeIndex, span.Candidates[candidateIndex]);
             }
 
-            PathGenerationResult generated = GenerateTrackSnappedPath(candidateModel, TrackWorld);
-            if (!generated.Success)
+            PathPersistenceValidationResult materialization = PathPersistenceValidationPolicy.MaterializeSelectedRoutes(
+                pendingAmbiguousSpanCommit.TentativeModel, TrackWorld, selectedCandidates);
+            if (!materialization.PersistenceAllowed)
             {
-                failure = generated.Message;
+                failure = materialization.FailureMessage;
                 return null;
             }
 
-            return generated.PathModel;
+            return materialization.PathModel;
         }
 
         public PathEditResult PreviewPendingRouteCandidate(int fromNodeIndex, int candidateIndex)

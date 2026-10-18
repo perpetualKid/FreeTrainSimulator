@@ -26,6 +26,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.PathEditing
 {
     // Integration coverage for path validation and guarded persistence using the assembly-wide isolated model store.
     [TestClass]
+    [OSCondition(OperatingSystems.Windows)]
     public class PathValidationPersistenceTests
     {
         [TestMethod]
@@ -146,6 +147,166 @@ namespace Tests.FreeTrainSimulator.Toolbox.PathEditing
             Assert.AreEqual(PathRouteDiagnosticCode.UnreachableNode, result.HighestActionableDiagnostic?.Code);
             Assert.AreEqual(persisted.Name, reloaded.Name);
             Assert.AreSequenceEqual(persisted.PathNodes, reloaded.PathNodes);
+        }
+
+        [TestMethod]
+        public void WhenDisconnectedNodeWouldBeOmittedThenMaterializationRetainsSourceAndDiagnostics()
+        {
+            PathModel source = CreateLinearPath("disconnected-materialization") with
+            {
+                PathNodes = CreateLinearPath("disconnected-materialization").PathNodes.Add(CreatePathNode(50, PathNodeType.Via, -1)),
+            };
+            TrackWorld trackWorld = TrackWorldTestFixture.CreateSingleVectorNodeTrackWorld();
+            PathRouteResolution resolution = PathRouteResolver.Resolve(source, trackWorld, TestContext.CancellationToken);
+            PathRouteDiagnostic unreachableNode = resolution.Diagnostics.Single(diagnostic => diagnostic.Code == PathRouteDiagnosticCode.UnreachableNode);
+
+            PathPersistenceValidationResult result = PathPersistenceValidationPolicy.MaterializeResolvedPath(source, resolution, trackWorld);
+
+            Assert.AreEqual((false, source, resolution, unreachableNode, 0),
+                (result.PersistenceAllowed, result.PathModel, result.Resolution, result.HighestActionableDiagnostic, result.ChangedNodeIndexes.Length));
+        }
+
+        [TestMethod]
+        public void WhenDisconnectedNodeBlocksMaterializationThenFailureIncludesSuggestedAction()
+        {
+            PathModel source = CreateLinearPath("disconnected-materialization-action") with
+            {
+                PathNodes = CreateLinearPath("disconnected-materialization-action").PathNodes.Add(CreatePathNode(50, PathNodeType.Via, -1)),
+            };
+            TrackWorld trackWorld = TrackWorldTestFixture.CreateSingleVectorNodeTrackWorld();
+            PathRouteResolution resolution = PathRouteResolver.Resolve(source, trackWorld, TestContext.CancellationToken);
+            PathRouteDiagnostic unreachableNode = resolution.Diagnostics.Single(diagnostic => diagnostic.Code == PathRouteDiagnosticCode.UnreachableNode);
+
+            PathPersistenceValidationResult result = PathPersistenceValidationPolicy.MaterializeResolvedPath(source, resolution, trackWorld);
+
+            Assert.Contains(unreachableNode.SuggestedAction, result.FailureMessage);
+        }
+
+        [TestMethod]
+        public void WhenErrorAndDisconnectedNodeExistThenSaveRetainsErrorDiagnosticPrecedence()
+        {
+            PathModel source = CreateLinearPath("disconnected-error") with
+            {
+                PathNodes = ImmutableArray.Create(
+                    CreatePathNode(0, PathNodeType.Start | PathNodeType.Junction, 1),
+                    CreatePathNode(100, PathNodeType.End, -1),
+                    CreatePathNode(50, PathNodeType.Via, -1)),
+            };
+
+            PathPersistenceValidationResult result = PathPersistenceValidationPolicy.ValidateForPersistence(source,
+                TrackWorldTestFixture.CreateSingleVectorNodeTrackWorld());
+
+            Assert.AreEqual(PathRouteDiagnosticCode.NoJunctionNode, result.HighestActionableDiagnostic?.Code);
+        }
+
+        [TestMethod]
+        public async Task WhenAmbiguityAndDisconnectedNodeExistThenSavePreservesExistingBytes()
+        {
+            RouteModel route = CreateRoute();
+            PathModel persisted = new PathModel
+            {
+                Id = "disconnected-ambiguous-save",
+                Name = "Disconnected Ambiguous Save",
+                PathNodes = ImmutableArray.Create(
+                    CreatePathNode(100, PathNodeType.Start, 1),
+                    CreatePathNode(200, PathNodeType.End, -1) with { NodeIndex = 2 }),
+            };
+            _ = await route.Save(persisted, TestContext.CancellationToken).ConfigureAwait(false);
+            string targetFileName = ModelFileResolver<PathModelHeader>.FilePath(persisted) + ContentHandlerBase<PathModelHeader>.SaveStateExtension;
+            byte[] originalBytes = await File.ReadAllBytesAsync(targetFileName, TestContext.CancellationToken).ConfigureAwait(false);
+            PathModel source = persisted with
+            {
+                PathNodes = persisted.PathNodes.Add(CreatePathNode(125, PathNodeType.Via, -1)),
+            };
+
+            _ = await PathEditor.SaveValidatedPath(source, route, CreateAmbiguousRouteTrackWorld(), TestContext.CancellationToken).ConfigureAwait(false);
+
+            byte[] savedBytes = await File.ReadAllBytesAsync(targetFileName, TestContext.CancellationToken).ConfigureAwait(false);
+            Assert.AreSequenceEqual(originalBytes, savedBytes);
+        }
+
+        [TestMethod]
+        public void WhenAmbiguityAndDisconnectedNodeExistThenPreservationDiagnosticTakesPrecedence()
+        {
+            PathModel source = new PathModel
+            {
+                Id = "disconnected-ambiguous-diagnostic",
+                Name = "Disconnected Ambiguous Diagnostic",
+                PathNodes = ImmutableArray.Create(
+                    CreatePathNode(100, PathNodeType.Start, 1),
+                    CreatePathNode(200, PathNodeType.End, -1) with { NodeIndex = 2 },
+                    CreatePathNode(125, PathNodeType.Via, -1)),
+            };
+
+            PathPersistenceValidationResult result = PathPersistenceValidationPolicy.ValidateForPersistence(source, CreateAmbiguousRouteTrackWorld());
+
+            Assert.AreEqual(PathRouteDiagnosticCode.UnreachableNode, result.HighestActionableDiagnostic?.Code);
+        }
+
+        /// <summary>An authored junction cannot conceal an illegal turn and overwrite existing content.</summary>
+        [TestMethod]
+        public async Task WhenAuthoredJunctionContinuationIsIllegalThenSavePreservesExistingBytes()
+        {
+            RouteModel route = CreateRoute();
+            TrackWorld world = CreateJunctionContinuityWorld(ConnectorType.InPin);
+            PathModel persisted = new PathModel
+            {
+                Id = "junction-continuity-protected",
+                Name = "Protected Junction Path",
+                PathNodes = ImmutableArray.Create(
+                    CreateAnchoredPathNode(world, 1, PathNodeType.Start | PathNodeType.Junction, 1, -1),
+                    CreateAnchoredPathNode(world, 3, PathNodeType.End | PathNodeType.Junction, -1, -1)),
+            };
+            _ = await route.Save(persisted, TestContext.CancellationToken).ConfigureAwait(false);
+            string targetFileName = ModelFileResolver<PathModelHeader>.FilePath(persisted) + ContentHandlerBase<PathModelHeader>.SaveStateExtension;
+            byte[] originalBytes = await File.ReadAllBytesAsync(targetFileName, TestContext.CancellationToken).ConfigureAwait(false);
+            PathModel invalid = persisted with
+            {
+                PathNodes = ImmutableArray.Create(
+                    CreateAnchoredPathNode(world, 1, PathNodeType.Start | PathNodeType.Junction, 1, -1),
+                    CreateAnchoredPathNode(world, 3, PathNodeType.Via | PathNodeType.Junction, 2, -1),
+                    CreateAnchoredPathNode(world, 2, PathNodeType.End | PathNodeType.Junction, -1, -1)),
+            };
+
+            PathPersistenceValidationResult result = await PathEditor.SaveValidatedPath(invalid, route, world,
+                TestContext.CancellationToken).ConfigureAwait(false);
+
+            Assert.IsFalse(result.PersistenceAllowed);
+            Assert.AreEqual(PathRouteDiagnosticCode.UnresolvedDenseSpan, result.HighestActionableDiagnostic?.Code);
+            byte[] savedBytes = await File.ReadAllBytesAsync(targetFileName, TestContext.CancellationToken).ConfigureAwait(false);
+            Assert.AreSequenceEqual(originalBytes, savedBytes);
+        }
+
+        /// <summary>A legal authored junction continuation retains its complete graph after native save/reload.</summary>
+        [TestMethod]
+        public async Task WhenAuthoredJunctionContinuationIsLegalThenSavedRouteRemainsResolved()
+        {
+            RouteModel route = CreateRoute();
+            TrackWorld world = CreateJunctionContinuityWorld(ConnectorType.OutPin);
+            PathModel source = new PathModel
+            {
+                Id = "junction-continuity-round-trip",
+                Name = "Legal Junction Path",
+                Start = "Origin",
+                End = "Destination",
+                PlayerPath = true,
+                PathNodes = ImmutableArray.Create(
+                    CreateAnchoredPathNode(world, 1, PathNodeType.Start | PathNodeType.Junction, 1, -1),
+                    CreateAnchoredPathNode(world, 3, PathNodeType.Via | PathNodeType.Junction, 2, -1),
+                    CreateAnchoredPathNode(world, 2, PathNodeType.End | PathNodeType.Junction, -1, -1)),
+            };
+
+            PathPersistenceValidationResult result = await PathEditor.SaveValidatedPath(source, route, world,
+                TestContext.CancellationToken).ConfigureAwait(false);
+            PathModelHeader header = (await route.GetPaths(TestContext.CancellationToken).ConfigureAwait(false)).Single(path => path.Id == source.Id);
+            PathModel reloaded = await header.GetExtended(TestContext.CancellationToken).ConfigureAwait(false);
+            PathRouteResolution resolution = PathRouteResolver.Resolve(reloaded, world, TestContext.CancellationToken);
+
+            Assert.IsTrue(result.PersistenceAllowed);
+            Assert.AreSequenceEqual(source.PathNodes, reloaded.PathNodes);
+            Assert.AreEqual((source.Id, source.Name, source.Start, source.End, source.PlayerPath),
+                (reloaded.Id, reloaded.Name, reloaded.Start, reloaded.End, reloaded.PlayerPath));
+            Assert.IsTrue(resolution.IsValid && resolution.MainRoute.Spans.All(span => span.Status == PathRouteSpanStatus.Resolved));
         }
 
         [TestMethod]
@@ -553,6 +714,29 @@ namespace Tests.FreeTrainSimulator.Toolbox.PathEditing
                 NextMainNode = nextMainNode,
                 NextSidingNode = -1,
             };
+        }
+
+        private static TrackWorld CreateJunctionContinuityWorld(ConnectorType outgoingType)
+        {
+            TrackNodeBase[] nodes = new TrackNodeBase[] { null }.Concat(Enumerable.Range(1, 4).Select(index =>
+                (TrackNodeBase)new JunctionNode(new WorldLocation(new Tile(1, 0), new Vector3(index * 100, 0, 0)),
+                    new Tile(1, 0), Vector3.Zero) { NodeIndex = index })).ToArray();
+            TrackNodeConnectorIndex junction = new TrackNodeConnectorIndex
+            {
+                NodeIndex = 3,
+                TrackNodeConnectors = ImmutableArray.Create(
+                    new TrackNodeConnector { Link = 1, ConnectorType = ConnectorType.InPin },
+                    new TrackNodeConnector { Link = 2, ConnectorType = outgoingType },
+                    new TrackNodeConnector { Link = 4, ConnectorType = ConnectorType.OutPin }),
+            };
+            TrackDatabase database = new TrackDatabase
+            {
+                TrackNodes = nodes.ToImmutableArray(),
+                TrackNodeConnectors = ImmutableArray.Create(new TrackNodeConnectorIndex(), CreateConnectors(1, 3),
+                    CreateConnectors(2, 3), junction, CreateConnectors(4, 3)),
+            };
+            TrackWorldTestFixture.InitializeTrackDatabase(database);
+            return TrackWorld.Initialize(null, new TrackModel { TrackDatabase = database }, new TrackSectionModel());
         }
 
         private static TrackWorld CreateAmbiguousRouteTrackWorld()
