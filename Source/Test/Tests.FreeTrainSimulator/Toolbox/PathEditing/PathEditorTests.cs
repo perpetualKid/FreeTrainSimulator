@@ -2909,7 +2909,8 @@ namespace Tests.FreeTrainSimulator.Toolbox.PathEditing
             }
         }
 
-        private sealed class TestPathModelHandler : ContentHandlerBase<PathModelHeader>
+        /// <summary>Non-instantiable test accessor for the base handler's protected static model cache.</summary>
+        private abstract class TestPathModelHandler : ContentHandlerBase<PathModelHeader>
         {
             public static void SetLoadTask(string key, Task<PathModelHeader> loadTask)
                 => modelTaskCache[key] = loadTask;

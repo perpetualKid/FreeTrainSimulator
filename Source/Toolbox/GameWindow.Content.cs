@@ -50,7 +50,8 @@ namespace FreeTrainSimulator.Toolbox
 
         protected override void Dispose(bool disposing)
         {
-            routeLoads?.Invalidate();
+            if (disposing)
+                routeLoads?.Stop();
             _ = Interlocked.Increment(ref routeContentVersion);
             hostedPointerGesture.Reset();
             if (windowForm != null)

@@ -104,7 +104,7 @@ namespace Tests.FreeTrainSimulator.Runtime
             RouteModel route = await CreateRouteAsync().ConfigureAwait(false);
             using (CancellationTokenSource cancellation = new CancellationTokenSource())
             {
-                cancellation.Cancel();
+                await cancellation.CancelAsync().ConfigureAwait(false);
 
                 _ = await Assert.ThrowsAsync<OperationCanceledException>(() =>
                     RuntimeDataResolver.PrepareAsync(route, true, null, cancellation.Token)).ConfigureAwait(false);
@@ -119,7 +119,7 @@ namespace Tests.FreeTrainSimulator.Runtime
             RouteModel route = await CreateRouteAsync().ConfigureAwait(false);
             using (CancellationTokenSource cancellation = new CancellationTokenSource())
             {
-                cancellation.Cancel();
+                await cancellation.CancelAsync().ConfigureAwait(false);
 
                 _ = await Assert.ThrowsAsync<OperationCanceledException>(() =>
                     RuntimeDataResolver.Initialize(route, true, null, cancellation.Token)).ConfigureAwait(false);
@@ -139,7 +139,7 @@ namespace Tests.FreeTrainSimulator.Runtime
             using (CancellationTokenSource cancellation = new CancellationTokenSource())
             {
                 Task<RuntimeDataResolver> preparation = RuntimeDataResolver.PrepareAsync(route, true, null, cancellation.Token);
-                cancellation.Cancel();
+                await cancellation.CancelAsync().ConfigureAwait(false);
 
                 try
                 {
@@ -163,7 +163,7 @@ namespace Tests.FreeTrainSimulator.Runtime
             using (CancellationTokenSource cancellation = new CancellationTokenSource())
             {
                 Task<RuntimeDataResolver> preparation = RuntimeDataResolver.PrepareAsync(route, true, null, cancellation.Token);
-                cancellation.Cancel();
+                await cancellation.CancelAsync().ConfigureAwait(false);
 
                 try
                 {

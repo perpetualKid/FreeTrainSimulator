@@ -14,7 +14,9 @@ namespace FreeTrainSimulator.Toolbox.Hosting
     internal sealed class RouteLoadCoordinator
     {
         private readonly Func<Func<Task>, Task> dispatchAsync;
-        private readonly SemaphoreSlim mapPhase = new SemaphoreSlim(1, 1);
+        private readonly object mapPhaseLock = new object();
+        private Task mapTail = Task.CompletedTask;
+        private volatile bool stopped;
         private long selection;
 
         /// <summary>The accepted route request; identity remains available after its load scope completes.</summary>
@@ -26,9 +28,14 @@ namespace FreeTrainSimulator.Toolbox.Hosting
         }
 
         /// <summary>Records intent without canceling a load until unsaved-change confirmation succeeds.</summary>
-        public long BeginSelection() => ++selection;
+        public long BeginSelection()
+        {
+            if (stopped)
+                throw new InvalidOperationException("Route loading has stopped.");
+            return ++selection;
+        }
 
-        public bool IsLatestSelection(long intent) => intent == selection;
+        public bool IsLatestSelection(long intent) => !stopped && intent == selection;
 
         /// <summary>Accepts a selection synchronously, before starting any asynchronous route work.</summary>
         public Request BeginRequest(long intent)
@@ -40,12 +47,12 @@ namespace FreeTrainSimulator.Toolbox.Hosting
             return Current = new Request();
         }
 
-        public bool IsCurrent(Request request) => request != null && ReferenceEquals(Current, request) && !request.Token.IsCancellationRequested;
+        public bool IsCurrent(Request request) => !stopped && request != null && ReferenceEquals(Current, request) && !request.Token.IsCancellationRequested;
 
         /// <summary>Invalidates loads and pending confirmations/discovery without clearing runtime globals.</summary>
         public void Invalidate()
         {
-            _ = BeginSelection();
+            ++selection;
             CancelCurrent();
         }
 
@@ -60,6 +67,10 @@ namespace FreeTrainSimulator.Toolbox.Hosting
         /// <summary>Runs a route-owned UI completion only if the request still owns the game thread.</summary>
         public async Task<bool> CommitAsync(Request request, Action action)
         {
+            // Followups begun after shutdown must not enqueue new UI work.
+            if (stopped)
+                return false;
+
             bool committed = false;
             await dispatchAsync(() =>
             {
@@ -83,6 +94,10 @@ namespace FreeTrainSimulator.Toolbox.Hosting
             Func<RuntimeDataResolver, Func<Action, Task>, Task> initializeMapAsync, Action commit, Action discard)
         {
             CancellationToken token = request.Token;
+            if (stopped)
+                return false;
+
+            TaskCompletionSource mapCompleted = null;
             bool entered = false;
             bool committed = false;
             try
@@ -90,7 +105,16 @@ namespace FreeTrainSimulator.Toolbox.Hosting
                 RuntimeDataResolver prepared = await RuntimeDataResolver.PrepareAsync(route, metricUnits, null, token).ConfigureAwait(false);
                 // Map widgets still read runtime globals; serialize the full map phase until
                 // those readers can use a route-local runtime instead.
-                await mapPhase.WaitAsync(token).ConfigureAwait(false);
+                mapCompleted = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+                Task previous;
+                lock (mapPhaseLock)
+                {
+                    previous = mapTail;
+                    // Canceling this waiter must not let its successor overtake the previous map.
+                    mapTail = Task.WhenAll(previous, mapCompleted.Task);
+                }
+                await previous.WaitAsync(token).ConfigureAwait(false);
+                token.ThrowIfCancellationRequested();
                 entered = true;
                 await dispatchAsync(async () =>
                 {
@@ -107,29 +131,37 @@ namespace FreeTrainSimulator.Toolbox.Hosting
                 committed = await CommitAsync(request, commit).ConfigureAwait(false);
                 return committed;
             }
-            catch (OperationCanceledException) when (token.IsCancellationRequested)
+            catch (OperationCanceledException) when (token.IsCancellationRequested || stopped)
             {
                 return false;
             }
             finally
             {
-                if (entered)
+                try
                 {
-                    try
-                    {
-                        if (!committed)
-                            await dispatchAsync(() =>
-                            {
-                                discard();
-                                return Task.CompletedTask;
-                            }).ConfigureAwait(false);
-                    }
-                    finally
-                    {
-                        mapPhase.Release();
-                    }
+                    if (entered && !committed)
+                        await dispatchAsync(() =>
+                        {
+                            discard();
+                            return Task.CompletedTask;
+                        }).ConfigureAwait(false);
+                }
+                finally
+                {
+                    // Only successful completion signals enter the tail; load failures cannot poison it.
+                    mapCompleted?.SetResult();
                 }
             }
+        }
+
+        /// <summary>Permanently rejects new work and cancels ownership; already-started maps still drain and discard.</summary>
+        public void Stop()
+        {
+            if (stopped)
+                return;
+
+            stopped = true;
+            Invalidate();
         }
 
         /// <summary>Owns cancellation for one route load and its awaited startup followups.</summary>

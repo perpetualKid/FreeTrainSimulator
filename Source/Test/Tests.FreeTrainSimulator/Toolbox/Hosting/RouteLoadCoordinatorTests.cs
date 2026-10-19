@@ -25,6 +25,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.Hosting
 {
     [TestClass]
     [DoNotParallelize]
+    [OSCondition(OperatingSystems.Windows)]
     public sealed class RouteLoadCoordinatorTests : IDisposable
     {
         private readonly RuntimeDataResolver previousResolver = RuntimeDataResolver.Instance;
@@ -34,6 +35,10 @@ namespace Tests.FreeTrainSimulator.Toolbox.Hosting
 
         /// <summary>Provides cancellation and reports the isolated native model locations.</summary>
         public TestContext TestContext { get; set; }
+
+        private static readonly string[] expectedStrings = new string[] { "A map", "A drained", "A discard", "B map", "B map update", "B commit" };
+        private static readonly string[] expectedStringsDiscard = new string[] { "A map", "A discard", "B map", "B commit" };
+        private static readonly string[] expectedStringsCanceledWaiter = new string[] { "A map", "A drained", "A discard", "C map", "C commit" };
 
         /// <summary>Late shared native reads must not replace an already accepted newer route.</summary>
         [TestMethod]
@@ -51,12 +56,14 @@ namespace Tests.FreeTrainSimulator.Toolbox.Hosting
             int maps = 0;
             int commits = 0;
             RuntimeDataResolver published = null;
-            using (RouteLoadCoordinator.Request requestA = coordinator.BeginRequest(coordinator.BeginSelection()))
+            RequestScope requestA = new RequestScope(coordinator, dispatcher, TestContext.CancellationToken);
+            await using (requestA.ConfigureAwait(false))
             {
-                Task<bool> loadA = coordinator.LoadAsync(requestA, routeA.Route, false, (_, _) => throw new AssertFailedException("Stale A initialized a map."), () => Assert.Fail("Stale A committed."), () => Assert.Fail("Unpublished A discarded a map."));
-                using (RouteLoadCoordinator.Request requestB = coordinator.BeginRequest(coordinator.BeginSelection()))
+                Task<bool> loadA = requestA.LoadAsync(routeA.Route, false, (_, _) => throw new AssertFailedException("Stale A initialized a map."), () => Assert.Fail("Stale A committed."), () => Assert.Fail("Unpublished A discarded a map."));
+                RequestScope requestB = new RequestScope(coordinator, dispatcher, TestContext.CancellationToken);
+                await using (requestB.ConfigureAwait(false))
                 {
-                    Task<bool> loadB = coordinator.LoadAsync(requestB, routeB.Route, true, (resolver, _) =>
+                    Task<bool> loadB = requestB.LoadAsync(routeB.Route, true, (resolver, _) =>
                     {
                         Assert.IsTrue(dispatcher.IsDispatching);
                         AssertPublished(routeB, resolver, true);
@@ -79,7 +86,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.Hosting
                     bool acceptedA = await loadA.WaitAsync(TestContext.CancellationToken).ConfigureAwait(false);
 
                     AssertPublished(routeB, published, true);
-                    Assert.AreEqual((false, true, 1, 1, requestB), (acceptedA, acceptedB, maps, commits, coordinator.Current));
+                    Assert.AreEqual((false, true, 1, 1, requestB.Request), (acceptedA, acceptedB, maps, commits, coordinator.Current));
                 }
             }
         }
@@ -94,9 +101,10 @@ namespace Tests.FreeTrainSimulator.Toolbox.Hosting
             NativeModelCache<TrackSectionModel>.Set(route.Route.Id, preparation.Task);
             QueuedDispatcher dispatcher = new QueuedDispatcher(TestContext.CancellationToken);
             RouteLoadCoordinator coordinator = CreateCoordinator(dispatcher);
-            using (RouteLoadCoordinator.Request request = coordinator.BeginRequest(coordinator.BeginSelection()))
+            RequestScope request = new RequestScope(coordinator, dispatcher, TestContext.CancellationToken);
+            await using (request.ConfigureAwait(false))
             {
-                Task<bool> load = coordinator.LoadAsync(request, route.Route, true,
+                Task<bool> load = request.LoadAsync(route.Route, true,
                     (_, _) => throw new AssertFailedException("Unloaded route initialized a map."),
                     () => Assert.Fail("Unloaded route committed."), () => Assert.Fail("Unpublished route discarded a map."));
 
@@ -119,10 +127,11 @@ namespace Tests.FreeTrainSimulator.Toolbox.Hosting
         {
             QueuedDispatcher dispatcher = new QueuedDispatcher(TestContext.CancellationToken);
             RouteLoadCoordinator coordinator = CreateCoordinator(dispatcher);
-            using (RouteLoadCoordinator.Request request = coordinator.BeginRequest(coordinator.BeginSelection()))
+            RequestScope request = new RequestScope(coordinator, dispatcher, TestContext.CancellationToken);
+            await using (request.ConfigureAwait(false))
             {
                 int commits = 0;
-                Task<bool> commit = coordinator.CommitAsync(request, () => commits++);
+                Task<bool> commit = request.CommitAsync(() => commits++);
                 Assert.IsTrue(dispatcher.HasPending);
 
                 coordinator.Invalidate();
@@ -142,10 +151,11 @@ namespace Tests.FreeTrainSimulator.Toolbox.Hosting
             NativeRoute route = await CreateRouteAsync().ConfigureAwait(false);
             QueuedDispatcher dispatcher = new QueuedDispatcher(TestContext.CancellationToken);
             RouteLoadCoordinator coordinator = CreateCoordinator(dispatcher);
-            using (RouteLoadCoordinator.Request request = coordinator.BeginRequest(coordinator.BeginSelection()))
+            RequestScope request = new RequestScope(coordinator, dispatcher, TestContext.CancellationToken);
+            await using (request.ConfigureAwait(false))
             {
                 int discards = 0;
-                Task<bool> load = coordinator.LoadAsync(request, route.Route, true,
+                Task<bool> load = request.LoadAsync(route.Route, true,
                     (_, _) => throw new AssertFailedException("Queued stale publication initialized a map."),
                     () => Assert.Fail("Queued stale publication committed."), () =>
                     {
@@ -183,15 +193,16 @@ namespace Tests.FreeTrainSimulator.Toolbox.Hosting
             string status = "Loading A";
             RuntimeDataResolver resolverA = null;
             RuntimeDataResolver resolverB = null;
-            using (RouteLoadCoordinator.Request requestA = coordinator.BeginRequest(coordinator.BeginSelection()))
+            RequestScope requestA = new RequestScope(coordinator, dispatcher, TestContext.CancellationToken);
+            await using (requestA.ConfigureAwait(false))
             {
-                Task<bool> loadA = coordinator.LoadAsync(requestA, routeA.Route, false, async (resolver, _) =>
+                Task<bool> loadA = requestA.LoadAsync(routeA.Route, false, async (resolver, _) =>
                 {
                     Assert.IsTrue(dispatcher.IsDispatching);
                     AssertPublished(routeA, resolver, false);
                     resolverA = resolver;
                     events.Add("A map");
-                    await resumeA.Task.WaitAsync(TestContext.CancellationToken).ConfigureAwait(false);
+                    await resumeA.Task.WaitAsync(requestA.CancellationToken).ConfigureAwait(false);
                     AssertPublished(routeA, resolver, false);
                     events.Add("A drained");
                 }, () => Assert.Fail("Superseded A committed."), () =>
@@ -201,10 +212,11 @@ namespace Tests.FreeTrainSimulator.Toolbox.Hosting
                     events.Add("A discard");
                 });
                 Task mapA = await dispatcher.StartNextAsync().ConfigureAwait(false);
-                using (RouteLoadCoordinator.Request requestB = coordinator.BeginRequest(coordinator.BeginSelection()))
+                RequestScope requestB = new RequestScope(coordinator, dispatcher, TestContext.CancellationToken);
+                await using (requestB.ConfigureAwait(false))
                 {
                     status = "Loading B";
-                    Task<bool> loadB = coordinator.LoadAsync(requestB, routeB.Route, true, async (resolver, guardedActionAsync) =>
+                    Task<bool> loadB = requestB.LoadAsync(routeB.Route, true, async (resolver, guardedActionAsync) =>
                     {
                         Assert.IsTrue(dispatcher.IsDispatching);
                         AssertPublished(routeB, resolver, true);
@@ -240,8 +252,90 @@ namespace Tests.FreeTrainSimulator.Toolbox.Hosting
                     bool acceptedB = await loadB.WaitAsync(TestContext.CancellationToken).ConfigureAwait(false);
 
                     AssertPublished(routeB, resolverB, true);
-                    Assert.AreSequenceEqual(new[] { "A map", "A drained", "A discard", "B map", "B map update", "B commit" }, events);
+                    Assert.AreSequenceEqual(expectedStrings, events);
                     Assert.AreEqual((false, true, "Ready B", false), (acceptedA, acceptedB, status, dispatcher.HasPending));
+                }
+            }
+        }
+
+        /// <summary>Canceling a queued map must not let its successor bypass an earlier map that is still draining.</summary>
+        [TestMethod]
+        [Timeout(10000, CooperativeCancellation = true)]
+        public async Task WhenWaitingMapIsCanceledThenSuccessorStillWaitsForActiveMapToDrainAndDiscard()
+        {
+            NativeRoute routeA = await CreateRouteAsync().ConfigureAwait(false);
+            NativeRoute routeB = await CreateRouteAsync().ConfigureAwait(false);
+            NativeRoute routeC = await CreateRouteAsync().ConfigureAwait(false);
+            QueuedDispatcher dispatcher = new QueuedDispatcher(TestContext.CancellationToken);
+            RouteLoadCoordinator coordinator = CreateCoordinator(dispatcher);
+            TaskCompletionSource resumeA = Completion();
+            List<string> events = new List<string>();
+            RuntimeDataResolver resolverA = null;
+            RuntimeDataResolver resolverC = null;
+            RequestScope requestA = new RequestScope(coordinator, dispatcher, TestContext.CancellationToken);
+            await using (requestA.ConfigureAwait(false))
+            {
+                Task<bool> loadA = requestA.LoadAsync(routeA.Route, false, async (resolver, _) =>
+                {
+                    Assert.IsTrue(dispatcher.IsDispatching);
+                    AssertPublished(routeA, resolver, false);
+                    resolverA = resolver;
+                    events.Add("A map");
+                    await resumeA.Task.WaitAsync(requestA.CancellationToken).ConfigureAwait(false);
+                    AssertPublished(routeA, resolver, false);
+                    events.Add("A drained");
+                }, () => Assert.Fail("Superseded A committed."), () =>
+                {
+                    Assert.IsTrue(dispatcher.IsDispatching);
+                    AssertPublished(routeA, resolverA, false);
+                    events.Add("A discard");
+                });
+                Task mapA = await dispatcher.StartNextAsync().ConfigureAwait(false);
+                RequestScope requestB = new RequestScope(coordinator, dispatcher, TestContext.CancellationToken);
+                await using (requestB.ConfigureAwait(false))
+                {
+                    Task<bool> loadB = requestB.LoadAsync(routeB.Route, true,
+                        (_, _) => throw new AssertFailedException("Canceled B initialized a map."),
+                        () => Assert.Fail("Canceled B committed."), () => Assert.Fail("Unpublished B discarded a map."));
+                    Assert.AreEqual((false, false), (dispatcher.HasPending, loadB.IsCompleted));
+
+                    coordinator.CancelCurrent();
+                    bool acceptedB = await loadB.WaitAsync(TestContext.CancellationToken).ConfigureAwait(false);
+                    Assert.IsFalse(acceptedB);
+
+                    // B has completed its own turn, but its tail must still include A's unfinished turn.
+                    RequestScope requestC = new RequestScope(coordinator, dispatcher, TestContext.CancellationToken);
+                    await using (requestC.ConfigureAwait(false))
+                    {
+                        Task<bool> loadC = requestC.LoadAsync(routeC.Route, true, (resolver, _) =>
+                        {
+                            Assert.IsTrue(dispatcher.IsDispatching);
+                            AssertPublished(routeC, resolver, true);
+                            resolverC = resolver;
+                            events.Add("C map");
+                            return Task.CompletedTask;
+                        }, () =>
+                        {
+                            Assert.IsTrue(dispatcher.IsDispatching);
+                            AssertPublished(routeC, resolverC, true);
+                            events.Add("C commit");
+                        }, () => Assert.Fail("Accepted C was discarded."));
+                        Assert.AreEqual((false, false, false), (mapA.IsCompleted, dispatcher.HasPending, loadC.IsCompleted));
+                        AssertPublished(routeA, resolverA, false);
+
+                        resumeA.SetResult();
+                        await mapA.WaitAsync(TestContext.CancellationToken).ConfigureAwait(false);
+                        await dispatcher.RunNextAsync().ConfigureAwait(false); // Reject A's final commit.
+                        await dispatcher.RunNextAsync().ConfigureAwait(false); // Discard A before releasing C.
+                        bool acceptedA = await loadA.WaitAsync(TestContext.CancellationToken).ConfigureAwait(false);
+                        await dispatcher.RunNextAsync().ConfigureAwait(false); // Publish C, not B.
+                        await dispatcher.RunNextAsync().ConfigureAwait(false); // Commit C.
+                        bool acceptedC = await loadC.WaitAsync(TestContext.CancellationToken).ConfigureAwait(false);
+
+                        AssertPublished(routeC, resolverC, true);
+                        Assert.AreSequenceEqual(expectedStringsCanceledWaiter, events);
+                        Assert.AreEqual((false, true, requestC.Request, false), (acceptedA, acceptedC, coordinator.Current, dispatcher.HasPending));
+                    }
                 }
             }
         }
@@ -261,15 +355,16 @@ namespace Tests.FreeTrainSimulator.Toolbox.Hosting
             string status = "Loading A";
             RuntimeDataResolver resolverA = null;
             RuntimeDataResolver resolverB = null;
-            using (RouteLoadCoordinator.Request requestA = coordinator.BeginRequest(coordinator.BeginSelection()))
+            RequestScope requestA = new RequestScope(coordinator, dispatcher, TestContext.CancellationToken);
+            await using (requestA.ConfigureAwait(false))
             {
-                Task<bool> loadA = coordinator.LoadAsync(requestA, routeA.Route, false, async (resolver, _) =>
+                Task<bool> loadA = requestA.LoadAsync(routeA.Route, false, async (resolver, _) =>
                 {
                     Assert.IsTrue(dispatcher.IsDispatching);
                     AssertPublished(routeA, resolver, false);
                     resolverA = resolver;
                     events.Add("A map");
-                    await failMap.Task.WaitAsync(TestContext.CancellationToken).ConfigureAwait(false);
+                    await failMap.Task.WaitAsync(requestA.CancellationToken).ConfigureAwait(false);
                     throw failure;
                 }, () => Assert.Fail("Failed A committed."), () =>
                 {
@@ -278,10 +373,11 @@ namespace Tests.FreeTrainSimulator.Toolbox.Hosting
                     events.Add("A discard");
                 });
                 Task mapA = await dispatcher.StartNextAsync().ConfigureAwait(false);
-                using (RouteLoadCoordinator.Request requestB = coordinator.BeginRequest(coordinator.BeginSelection()))
+                RequestScope requestB = new RequestScope(coordinator, dispatcher, TestContext.CancellationToken);
+                await using (requestB.ConfigureAwait(false))
                 {
                     status = "Loading B";
-                    Task<bool> loadB = coordinator.LoadAsync(requestB, routeB.Route, true, (resolver, _) =>
+                    Task<bool> loadB = requestB.LoadAsync(routeB.Route, true, (resolver, _) =>
                     {
                         Assert.IsTrue(dispatcher.IsDispatching);
                         AssertPublished(routeB, resolver, true);
@@ -305,13 +401,13 @@ namespace Tests.FreeTrainSimulator.Toolbox.Hosting
                     await dispatcher.RunNextAsync().ConfigureAwait(false);
                     await dispatcher.RunNextAsync().ConfigureAwait(false);
                     bool acceptedB = await loadB.WaitAsync(TestContext.CancellationToken).ConfigureAwait(false);
-                    Task<bool> lateFailure = coordinator.CommitAsync(requestA, () => status = "Late A failure");
+                    Task<bool> lateFailure = requestA.CommitAsync(() => status = "Late A failure");
                     await dispatcher.RunNextAsync().ConfigureAwait(false);
                     bool failureApplied = await lateFailure.WaitAsync(TestContext.CancellationToken).ConfigureAwait(false);
 
                     Assert.AreSame(failure, observed);
                     AssertPublished(routeB, resolverB, true);
-                    Assert.AreSequenceEqual(new[] { "A map", "A discard", "B map", "B commit" }, events);
+                    Assert.AreSequenceEqual(expectedStringsDiscard, events);
                     Assert.AreEqual((true, false, "Ready B", false), (acceptedB, failureApplied, status, dispatcher.HasPending));
                 }
             }
@@ -325,11 +421,12 @@ namespace Tests.FreeTrainSimulator.Toolbox.Hosting
             NativeRoute route = await CreateRouteAsync().ConfigureAwait(false);
             QueuedDispatcher dispatcher = new QueuedDispatcher(TestContext.CancellationToken);
             RouteLoadCoordinator coordinator = CreateCoordinator(dispatcher);
-            using (RouteLoadCoordinator.Request request = coordinator.BeginRequest(coordinator.BeginSelection()))
+            RequestScope request = new RequestScope(coordinator, dispatcher, TestContext.CancellationToken);
+            await using (request.ConfigureAwait(false))
             {
                 int discards = 0;
                 string status = "Loading";
-                Task<bool> load = coordinator.LoadAsync(request, route.Route, true, async (resolver, guardedActionAsync) =>
+                Task<bool> load = request.LoadAsync(route.Route, true, async (resolver, guardedActionAsync) =>
                 {
                     Assert.IsTrue(dispatcher.IsDispatching);
                     AssertPublished(route, resolver, true);
@@ -433,21 +530,23 @@ namespace Tests.FreeTrainSimulator.Toolbox.Hosting
             NativeModelCache<TrackSectionModel>.Set(route.Route.Id, preparation.Task);
             QueuedDispatcher dispatcher = new QueuedDispatcher(TestContext.CancellationToken);
             RouteLoadCoordinator coordinator = CreateCoordinator(dispatcher);
-            using (RouteLoadCoordinator.Request canceled = coordinator.BeginRequest(coordinator.BeginSelection()))
+            RequestScope canceled = new RequestScope(coordinator, dispatcher, TestContext.CancellationToken);
+            await using (canceled.ConfigureAwait(false))
             {
-                Task<bool> firstLoad = coordinator.LoadAsync(canceled, route.Route, false,
+                Task<bool> firstLoad = canceled.LoadAsync(route.Route, false,
                     (_, _) => throw new AssertFailedException("Canceled attempt initialized a map."),
                     () => Assert.Fail("Canceled attempt committed."), () => Assert.Fail("Unpublished attempt discarded a map."));
 
                 coordinator.CancelCurrent();
                 bool firstAccepted = await firstLoad.WaitAsync(TestContext.CancellationToken).ConfigureAwait(false);
                 Assert.IsFalse(preparation.Task.IsCompleted, "Canceling one waiter must not cancel the cached native read.");
-                using (RouteLoadCoordinator.Request retry = coordinator.BeginRequest(coordinator.BeginSelection()))
+                RequestScope retry = new RequestScope(coordinator, dispatcher, TestContext.CancellationToken);
+                await using (retry.ConfigureAwait(false))
                 {
                     int maps = 0;
                     int commits = 0;
                     RuntimeDataResolver published = null;
-                    Task<bool> retryLoad = coordinator.LoadAsync(retry, route.Route, true, (resolver, _) =>
+                    Task<bool> retryLoad = retry.LoadAsync(route.Route, true, (resolver, _) =>
                     {
                         Assert.IsTrue(dispatcher.IsDispatching);
                         AssertPublished(route, resolver, true);
@@ -455,10 +554,10 @@ namespace Tests.FreeTrainSimulator.Toolbox.Hosting
                         maps++;
                         return Task.CompletedTask;
                     }, () =>
-                {
-                    Assert.IsTrue(dispatcher.IsDispatching);
-                    commits++;
-                }, () => Assert.Fail("Successful retry was discarded."));
+                    {
+                        Assert.IsTrue(dispatcher.IsDispatching);
+                        commits++;
+                    }, () => Assert.Fail("Successful retry was discarded."));
                     // No cache reset or fresh model: the retry shares the original native read.
                     preparation.SetResult(route.Sections);
                     await dispatcher.RunNextAsync().ConfigureAwait(false);
@@ -466,9 +565,52 @@ namespace Tests.FreeTrainSimulator.Toolbox.Hosting
                     bool retryAccepted = await retryLoad.WaitAsync(TestContext.CancellationToken).ConfigureAwait(false);
 
                     AssertPublished(route, published, true);
-                    Assert.AreEqual((false, true, 1, 1, true), (firstAccepted, retryAccepted, maps, commits, coordinator.IsCurrent(retry)));
+                    Assert.AreEqual((false, true, 1, 1, true), (firstAccepted, retryAccepted, maps, commits, coordinator.IsCurrent(retry.Request)));
                 }
             }
+        }
+
+        /// <summary>Early scope exit must drain paused map work before disposing its request.</summary>
+        [TestMethod]
+        [Timeout(10000, CooperativeCancellation = true)]
+        public async Task WhenRequestScopeEndsWithPausedMapThenWorkDrainsBeforeRequestIsDisposed()
+        {
+            NativeRoute route = await CreateRouteAsync().ConfigureAwait(false);
+            QueuedDispatcher dispatcher = new QueuedDispatcher(TestContext.CancellationToken);
+            RouteLoadCoordinator coordinator = CreateCoordinator(dispatcher);
+            TaskCompletionSource resumeMap = Completion();
+            Task<bool> load;
+            WaitHandle cancellationHandle;
+            bool drained = false;
+            int discards = 0;
+            RequestScope request = new RequestScope(coordinator, dispatcher, TestContext.CancellationToken);
+            await using (request.ConfigureAwait(false))
+            {
+                cancellationHandle = request.Request.Token.WaitHandle;
+                load = request.LoadAsync(route.Route, true, async (_, _) =>
+                {
+                    try
+                    {
+                        await resumeMap.Task.WaitAsync(request.CancellationToken).ConfigureAwait(false);
+                    }
+                    finally
+                    {
+                        Assert.IsFalse(cancellationHandle.SafeWaitHandle.IsClosed, "The request must outlive its map work.");
+                        drained = true;
+                    }
+                }, () => Assert.Fail("An abandoned load committed."), () =>
+                {
+                    Assert.IsTrue(dispatcher.IsDispatching);
+                    Assert.IsFalse(cancellationHandle.SafeWaitHandle.IsClosed, "The request must outlive candidate cleanup.");
+                    discards++;
+                });
+                Task map = await dispatcher.StartNextAsync().ConfigureAwait(false);
+                Assert.IsFalse(map.IsCompleted);
+            }
+
+            bool accepted = await load.WaitAsync(TestContext.CancellationToken).ConfigureAwait(false);
+            Assert.AreEqual((false, true, 1, true, false),
+                (accepted, drained, discards, cancellationHandle.SafeWaitHandle.IsClosed, dispatcher.HasPending));
         }
 
         /// <summary>Completing a load scope releases resources without invalidating the accepted route.</summary>
@@ -508,11 +650,86 @@ namespace Tests.FreeTrainSimulator.Toolbox.Hosting
             }
         }
 
+        /// <summary>Stopping invalidates ownership permanently while request resources remain caller-owned.</summary>
+        [TestMethod]
+        public void WhenCoordinatorIsStoppedThenRequestIsCanceledAndNewSelectionsAreRejected()
+        {
+            QueuedDispatcher dispatcher = new QueuedDispatcher(TestContext.CancellationToken);
+            RouteLoadCoordinator coordinator = CreateCoordinator(dispatcher);
+            long intent = coordinator.BeginSelection();
+            using (RouteLoadCoordinator.Request request = coordinator.BeginRequest(intent))
+            {
+                CancellationToken token = request.Token;
+                WaitHandle cancellationHandle = token.WaitHandle;
+
+                coordinator.Stop();
+                coordinator.Stop();
+
+                Assert.AreEqual((true, true, false, false, true, false),
+                    (token.IsCancellationRequested, coordinator.Current is null, coordinator.IsCurrent(request),
+                    coordinator.IsLatestSelection(intent), coordinator.BeginRequest(intent) is null, cancellationHandle.SafeWaitHandle.IsClosed));
+                _ = Assert.ThrowsExactly<InvalidOperationException>(() => coordinator.BeginSelection());
+            }
+        }
+
+        /// <summary>Shutdown cancels waiting work without interrupting the active map's drain and cleanup.</summary>
+        [TestMethod]
+        [Timeout(10000, CooperativeCancellation = true)]
+        public async Task WhenCoordinatorIsStoppedDuringMapPhaseThenOwnerAndWaiterDrainSafely()
+        {
+            NativeRoute routeA = await CreateRouteAsync().ConfigureAwait(false);
+            NativeRoute routeB = await CreateRouteAsync().ConfigureAwait(false);
+            QueuedDispatcher dispatcher = new QueuedDispatcher(TestContext.CancellationToken);
+            RouteLoadCoordinator coordinator = CreateCoordinator(dispatcher);
+            TaskCompletionSource resumeA = Completion();
+            int discards = 0;
+            RequestScope requestA = new RequestScope(coordinator, dispatcher, TestContext.CancellationToken);
+            await using (requestA.ConfigureAwait(false))
+            {
+                Task<bool> loadA = requestA.LoadAsync(routeA.Route, false, async (resolver, _) =>
+                {
+                    AssertPublished(routeA, resolver, false);
+                    await resumeA.Task.WaitAsync(requestA.CancellationToken).ConfigureAwait(false);
+                }, () => Assert.Fail("A committed during shutdown."), () =>
+                {
+                    Assert.IsTrue(dispatcher.IsDispatching);
+                    discards++;
+                });
+                Task mapA = await dispatcher.StartNextAsync().ConfigureAwait(false);
+                RequestScope requestB = new RequestScope(coordinator, dispatcher, TestContext.CancellationToken);
+                await using (requestB.ConfigureAwait(false))
+                {
+                    Task<bool> loadB = requestB.LoadAsync(routeB.Route, true,
+                        (_, _) => throw new AssertFailedException("Waiting B initialized during shutdown."),
+                        () => Assert.Fail("Waiting B committed during shutdown."), () => Assert.Fail("Unpublished B was discarded."));
+                    Assert.AreEqual((false, false), (dispatcher.HasPending, loadB.IsCompleted));
+
+                    coordinator.Stop();
+                    coordinator.Stop();
+                    bool acceptedB = await loadB.WaitAsync(TestContext.CancellationToken).ConfigureAwait(false);
+                    Assert.AreEqual((false, false, true, true, true),
+                        (acceptedB, mapA.IsCompleted, requestA.Request.Token.IsCancellationRequested,
+                        requestB.Request.Token.IsCancellationRequested, coordinator.Current is null));
+
+                    resumeA.SetResult();
+                    await mapA.WaitAsync(TestContext.CancellationToken).ConfigureAwait(false);
+                    await dispatcher.RunNextAsync().ConfigureAwait(false); // Discard A before completing its map turn.
+                    bool acceptedA = await loadA.WaitAsync(TestContext.CancellationToken).ConfigureAwait(false);
+                    bool lateCommit = await requestA.CommitAsync(() => Assert.Fail("A committed after shutdown.")).ConfigureAwait(false);
+                    bool lateLoad = await requestA.LoadAsync(routeA.Route, false,
+                        (_, _) => throw new AssertFailedException("A load started after shutdown."),
+                        () => Assert.Fail("A new load committed after shutdown."), () => Assert.Fail("A new load discarded after shutdown.")).ConfigureAwait(false);
+
+                    Assert.AreEqual((false, false, false, 1, false), (acceptedA, lateCommit, lateLoad, discards, dispatcher.HasPending));
+                }
+            }
+        }
+
         /// <summary>Restores services and removes only cache entries owned by this test.</summary>
         public void Dispose()
         {
             foreach (RouteLoadCoordinator coordinator in coordinators)
-                coordinator.Invalidate();
+                coordinator.Stop();
             foreach (NativeRoute route in routes)
             {
                 NativeModelCache<TrackSectionModel>.Remove(route.Route.Id);
@@ -600,6 +817,62 @@ namespace Tests.FreeTrainSimulator.Toolbox.Hosting
                 resolver.MetricUnits), "The map and both globals must refer to exactly the published native route.");
         }
 
+        /// <summary>Owns a request until all deliberately overlapping test operations have drained.</summary>
+        private sealed class RequestScope : IAsyncDisposable
+        {
+            private readonly RouteLoadCoordinator coordinator;
+            private readonly QueuedDispatcher dispatcher;
+            private readonly CancellationTokenSource cancellation;
+            private readonly List<Task> operations = new List<Task>();
+
+            internal RouteLoadCoordinator.Request Request { get; }
+
+            internal CancellationToken CancellationToken => cancellation.Token;
+
+            internal RequestScope(RouteLoadCoordinator coordinator, QueuedDispatcher dispatcher, CancellationToken cancellationToken)
+            {
+                this.coordinator = coordinator;
+                this.dispatcher = dispatcher;
+                cancellation = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+                Request = coordinator.BeginRequest(coordinator.BeginSelection());
+            }
+
+            internal Task<bool> LoadAsync(RouteModel route, bool metricUnits,
+                Func<RuntimeDataResolver, Func<Action, Task>, Task> initializeMapAsync, Action commit, Action discard)
+            {
+                Task<bool> operation = coordinator.LoadAsync(Request, route, metricUnits, initializeMapAsync, commit, discard);
+                operations.Add(operation);
+                return operation;
+            }
+
+            internal Task<bool> CommitAsync(Action action)
+            {
+                Task<bool> operation = coordinator.CommitAsync(Request, action);
+                operations.Add(operation);
+                return operation;
+            }
+
+            public async ValueTask DisposeAsync()
+            {
+                try
+                {
+                    if (operations.Exists(operation => !operation.IsCompleted))
+                    {
+                        Request.Cancel();
+                        // Release test-only pauses as well as canceling the production request.
+                        await cancellation.CancelAsync().ConfigureAwait(false);
+                    }
+
+                    await dispatcher.DrainAsync(Task.WhenAll(operations)).ConfigureAwait(false);
+                }
+                finally
+                {
+                    Request.Dispose();
+                    cancellation.Dispose();
+                }
+            }
+        }
+
         private sealed class NativeRoute
         {
             /// <summary>The persisted and reloaded route.</summary>
@@ -667,6 +940,37 @@ namespace Tests.FreeTrainSimulator.Toolbox.Hosting
             {
                 Task execution = await StartNextAsync().ConfigureAwait(false);
                 await execution.WaitAsync(cancellationToken).ConfigureAwait(false);
+            }
+
+            /// <summary>Finishes owned work during teardown, even after the test token is canceled.</summary>
+            internal async Task DrainAsync(Task completion)
+            {
+                using (CancellationTokenSource finished = new CancellationTokenSource())
+                {
+                    try
+                    {
+                        while (!completion.IsCompleted)
+                        {
+                            if (queue.Reader.TryRead(out QueuedAction next))
+                            {
+                                // A map action can await another queued action; do not block the pump.
+                                _ = next.StartAsync(dispatching);
+                            }
+                            else
+                            {
+                                _ = await Task.WhenAny(completion, queue.Reader.WaitToReadAsync(finished.Token).AsTask()).ConfigureAwait(false);
+                            }
+                        }
+
+                        // Tests await the original tasks to assert results and expected exceptions.
+                        // Teardown observes failures without replacing an assertion already in flight.
+                        await completion.ConfigureAwait(ConfigureAwaitOptions.SuppressThrowing);
+                    }
+                    finally
+                    {
+                        await finished.CancelAsync().ConfigureAwait(false);
+                    }
+                }
             }
 
             private sealed class QueuedAction
