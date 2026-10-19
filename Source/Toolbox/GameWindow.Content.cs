@@ -5,14 +5,13 @@ using System.Threading;
 using System.Threading.Tasks;
 
 using FreeTrainSimulator.Common;
-using FreeTrainSimulator.Common.DebugInfo;
 using FreeTrainSimulator.Common.Input;
 using FreeTrainSimulator.Graphics.DrawableComponents;
 using FreeTrainSimulator.Graphics.MapView;
 using FreeTrainSimulator.Graphics.Xna;
 using FreeTrainSimulator.Models.Content;
 using FreeTrainSimulator.Models.Shim;
-using FreeTrainSimulator.Runtime;
+using FreeTrainSimulator.Toolbox.Hosting;
 using FreeTrainSimulator.Toolbox.PathEditing;
 using FreeTrainSimulator.Toolbox.PopupWindows;
 
@@ -20,41 +19,15 @@ using Microsoft.Xna.Framework;
 
 namespace FreeTrainSimulator.Toolbox
 {
-    public class ContentAreaChangedEventArgs : EventArgs
-    {
-        public ContentArea ContentArea { get; }
-
-        public IMapRenderer Renderer => ContentArea;
-
-        public IMapViewport Viewport => ContentArea;
-
-        public IMapHostControl HostControl => ContentArea;
-
-        public IMapLocationContext LocationContext => ContentArea as IMapLocationContext;
-
-        public IMapDisplaySettingsContext DisplaySettingsContext => ContentArea as IMapDisplaySettingsContext;
-
-        public ITrackNodeInfoContext TrackNodeInfoContext => ContentArea?.Content as ITrackNodeInfoContext;
-
-        public ITrackItemInfoContext TrackItemInfoContext => ContentArea?.Content as ITrackItemInfoContext;
-
-        public INameValueInformationProvider RouteInformationProvider => ContentArea?.Content;
-
-        public ContentAreaChangedEventArgs(ContentArea contentArea)
-        {
-            ContentArea = contentArea;
-        }
-    }
 
     public partial class GameWindow : Game
     {
         private ContentModel contentModel;
         private FolderModel selectedFolder;
         private RouteModelHeader selectedRoute;
-        private ImmutableArray<RouteModelHeader> routeModels;
         private readonly SemaphoreSlim loadRouteSemaphore = new SemaphoreSlim(1);
         private CancellationTokenSource ctsProfileLoading;
-        private CancellationTokenSource ctsRouteLoading;
+        private readonly RouteLoadCoordinator routeLoads;
         private PathEditor pathEditor;
         private ToolboxContent toolboxContent;
 
@@ -77,6 +50,8 @@ namespace FreeTrainSimulator.Toolbox
 
         protected override void Dispose(bool disposing)
         {
+            routeLoads?.Invalidate();
+            _ = Interlocked.Increment(ref routeContentVersion);
             hostedPointerGesture.Reset();
             if (windowForm != null)
             {
@@ -86,7 +61,6 @@ namespace FreeTrainSimulator.Toolbox
             }
             loadRouteSemaphore?.Dispose();
             ctsProfileLoading?.Dispose();
-            ctsRouteLoading?.Dispose();
             pathEditor?.Dispose();
             windowManager?.Dispose();
             spriteBatch?.Dispose();
@@ -111,7 +85,7 @@ namespace FreeTrainSimulator.Toolbox
         private void PathEditor_OnEditorPathChanged(object sender, PathEditorChangedEventArgs e)
         {
             hostedTrainPathToolWindow?.MarkDirty();
-            menu.PreSelectPath(e.Path?.PathModel);
+            menu.PreSelectPath(e.Path?.PathModel ?? pathEditor?.TryCaptureCurrentPathModel());
         }
 
         private void PathEditor_OnEditorPathUpdated(object sender, PathEditorChangedEventArgs e)
@@ -130,86 +104,115 @@ namespace FreeTrainSimulator.Toolbox
                 {
                     return false;
                 }
-                menu.PopulateContentFolders(contentModel.ContentFolders);
+                await InvokeOnGameThreadAsync(() =>
+                {
+                    menu.PopulateContentFolders(contentModel.ContentFolders);
+                    return Task.CompletedTask;
+                }).ConfigureAwait(false);
             }
             catch (TaskCanceledException)
             {
-                menu.PopulateContentFolders(ImmutableArray<FolderModel>.Empty);
+                await InvokeOnGameThreadAsync(() =>
+                {
+                    menu.PopulateContentFolders(ImmutableArray<FolderModel>.Empty);
+                    return Task.CompletedTask;
+                }).ConfigureAwait(false);
             }
             return true;
         }
 
-        internal async Task<ImmutableArray<RouteModelHeader>> FindRoutes(FolderModel contentFolder)
+        internal long BeginRouteSelection() => routeLoads.BeginSelection();
+
+        internal bool IsLatestRouteSelection(long selection) => routeLoads.IsLatestSelection(selection);
+
+        internal async Task<ImmutableArray<RouteModelHeader>> FindRoutesAsync(FolderModel contentFolder, long selection)
         {
-            ctsProfileLoading = await ctsProfileLoading.ResetCancellationTokenSource(loadRouteSemaphore, true).ConfigureAwait(false);
+            ArgumentNullException.ThrowIfNull(contentFolder);
+            ImmutableArray<RouteModelHeader> routes = await contentFolder.GetRoutes(CancellationToken.None).ConfigureAwait(false);
+            await InvokeOnGameThreadAsync(() =>
+            {
+                if (routeLoads.IsLatestSelection(selection))
+                {
+                    selectedFolder = contentFolder;
+                }
+                return Task.CompletedTask;
+            }).ConfigureAwait(false);
+            return routes;
+        }
+
+        // Called on the game thread before the first await, including startup and single-route discovery.
+        private RouteLoadCoordinator.Request BeginRouteLoad(RouteModelHeader route, long selection)
+        {
+            RouteLoadCoordinator.Request request = routeLoads.BeginRequest(selection);
+            if (request == null)
+                return null;
+
+            ClearRoute();
+            (windowManager[ToolboxWindowType.StatusWindow] as StatusTextWindow).RouteName = route.Name;
+            _ = windowManager[ToolboxWindowType.StatusWindow].Open();
+            return request;
+        }
+
+        internal async Task<bool> LoadRouteAsync(RouteModelHeader route, long selection)
+        {
+            ArgumentNullException.ThrowIfNull(route);
+            using (RouteLoadCoordinator.Request request = BeginRouteLoad(route, selection))
+            {
+                return request != null && await LoadRouteAsync(route, request).ConfigureAwait(false);
+            }
+        }
+
+        private async Task<bool> LoadRouteAsync(RouteModelHeader route, RouteLoadCoordinator.Request request)
+        {
+            CancellationToken token = request.Token;
+            ToolboxContent candidate = null;
             try
             {
-                await loadRouteSemaphore.WaitAsync().ConfigureAwait(false);
-                if (contentFolder != selectedFolder)
+                // Shared model caches must not retain a task canceled by an individual route request.
+                RouteModel routeModel = await route.GetExtended(CancellationToken.None).AsTask().WaitAsync(token).ConfigureAwait(false);
+                ImmutableArray<PathModelHeader> paths = await routeModel.GetRoutePaths(CancellationToken.None).WaitAsync(token).ConfigureAwait(false);
+                bool useMetricUnits = ToolboxUserSettings.MeasurementUnit == MeasurementUnit.Metric || (ToolboxUserSettings.MeasurementUnit == MeasurementUnit.System && System.Globalization.RegionInfo.CurrentRegion.IsMetric);
+                if (ToolboxUserSettings.MeasurementUnit == MeasurementUnit.Route)
+                    useMetricUnits = routeModel.MetricUnits;
+
+                return await routeLoads.LoadAsync(request, routeModel, useMetricUnits, async (prepared, completeAsync) =>
                 {
-                    try
-                    {
-                        routeModels = await contentFolder.GetRoutes(ctsProfileLoading.Token).ConfigureAwait(false);
-                        // Only commit the folder as selected once its routes have actually loaded. Committing
-                        // after a cancelled fetch would leave selectedFolder pointing at a folder whose routes
-                        // were never populated, so re-selecting it later would be skipped by this guard and the
-                        // folder change would silently do nothing.
-                        selectedFolder = contentFolder;
-                    }
-                    catch (TaskCanceledException) { }
-                }
+                    candidate = new XnaMapContentFactory().CreateToolboxContent(
+                        this,
+                        Components.OfType<MouseInputGameComponent>().FirstOrDefault(),
+                        new XnaMapInsetHost(Components.OfType<InsetComponent>().FirstOrDefault()),
+                        new XnaMapTextureHelperHost(Components.OfType<TextureContentComponent>()));
+                    await candidate.InitializeAsync(completeAsync).ConfigureAwait(false);
+                    // Validation seeds shared model caches; drain it before publishing the route's paths.
+                    token.ThrowIfCancellationRequested();
+                    await PathEditor.ValidateRoutePaths(routeModel, prepared.TrackWorld, false, CancellationToken.None).ConfigureAwait(false);
+                    paths = await routeModel.GetRoutePaths(CancellationToken.None).WaitAsync(token).ConfigureAwait(false);
+                }, () =>
+                {
+                    candidate.InitializeItemVisiblity(ToolboxSettings.ViewSettings);
+                    candidate.UpdateWidgetColorSettings(ToolboxSettings.ColorSettings, ToolboxSettings.FontOutline, ToolboxSettings.LimitTrackWidth);
+                    toolboxContent = candidate;
+                    selectedRoute = route;
+                    ContentArea = ((IXnaMapShellHost)candidate.ShellHost).Component as ContentArea;
+                    menu.PreSelectRoute(route.Name);
+                    menu.PopulatePaths(paths);
+                    hostedTrainPathToolWindow?.UpdatePaths(paths);
+                }, () =>
+                {
+                    if (candidate != null && ReferenceEquals(toolboxContent, candidate))
+                        ClearRoute();
+                    else
+                        ((candidate?.ShellHost as IXnaMapShellHost)?.Component as ContentArea)?.Dispose();
+                }).ConfigureAwait(false);
+            }
+            catch (OperationCanceledException) when (token.IsCancellationRequested)
+            {
+                return false;
             }
             finally
             {
-                _ = loadRouteSemaphore.Release();
+                await routeLoads.CommitAsync(request, () => windowManager[ToolboxWindowType.StatusWindow].Close()).ConfigureAwait(false);
             }
-            return routeModels;
-        }
-
-        internal async Task LoadRoute(RouteModelHeader route)
-        {
-            (windowManager[ToolboxWindowType.StatusWindow] as StatusTextWindow).RouteName = route.Name;
-            _ = windowManager[ToolboxWindowType.StatusWindow].Open();
-            UnloadRoute();
-
-            ctsRouteLoading = await ctsRouteLoading.ResetCancellationTokenSource(loadRouteSemaphore, true).ConfigureAwait(true);
-
-            RouteModel routeModel = await route.GetExtended(ctsProfileLoading.Token).ConfigureAwait(true);
-            Task<ImmutableArray<PathModelHeader>> pathTask = routeModel.GetRoutePaths(ctsProfileLoading.Token);
-
-            bool useMetricUnits = ToolboxUserSettings.MeasurementUnit == MeasurementUnit.Metric || (ToolboxUserSettings.MeasurementUnit == MeasurementUnit.System && System.Globalization.RegionInfo.CurrentRegion.IsMetric);
-            if (ToolboxUserSettings.MeasurementUnit == MeasurementUnit.Route)
-                useMetricUnits = routeModel.MetricUnits;
-
-            await RuntimeDataResolver.Initialize(routeModel, useMetricUnits, null, CancellationToken.None).ConfigureAwait(true);
-            if (ctsProfileLoading.Token.IsCancellationRequested)
-                return;
-
-            XnaMapContentFactory contentFactory = new XnaMapContentFactory();
-            toolboxContent = contentFactory.CreateToolboxContent(
-                this,
-                Components.OfType<MouseInputGameComponent>().FirstOrDefault(),
-                new XnaMapInsetHost(Components.OfType<InsetComponent>().FirstOrDefault()),
-                new XnaMapTextureHelperHost(Components.OfType<TextureContentComponent>()));
-
-            await toolboxContent.Initialize().ConfigureAwait(true);
-            toolboxContent.InitializeItemVisiblity(ToolboxSettings.ViewSettings);
-            toolboxContent.UpdateWidgetColorSettings(ToolboxSettings.ColorSettings, ToolboxSettings.FontOutline, ToolboxSettings.LimitTrackWidth);
-            ContentArea = ((IXnaMapShellHost)toolboxContent.ShellHost).Component as ContentArea;
-            selectedRoute = route;
-            ImmutableArray<PathModelHeader> paths = await pathTask.ConfigureAwait(true);
-
-            // Lazily validate paths that have never been validated (Valid is null), persisting the resulting
-            // flag so subsequent loads only read the lightweight header. Legacy/imported paths get flagged here
-            // without their node data being altered. Re-fetch afterwards so the menu/tool window show the marker.
-            await PathEditor.ValidateRoutePaths(routeModel, RuntimeDataResolver.Instance.TrackWorld, false, ctsProfileLoading.Token).ConfigureAwait(true);
-            if (ctsProfileLoading.Token.IsCancellationRequested)
-                return;
-            paths = await routeModel.GetRoutePaths(ctsProfileLoading.Token).ConfigureAwait(true);
-
-            menu.PopulatePaths(paths);
-            hostedTrainPathToolWindow?.UpdatePaths(paths);
-            _ = windowManager[ToolboxWindowType.StatusWindow].Close();
         }
 
         internal async Task<bool> LoadPathAsync(PathModelHeader path)
@@ -251,35 +254,82 @@ namespace FreeTrainSimulator.Toolbox
             SaveTrainPathRequested?.Invoke(this, EventArgs.Empty);
         }
 
-        internal async Task PreSelectRoute(string folderName, string routeId, string pathId)
+        private async Task PreSelectRouteAsync(string folderName, string routeId, string pathId, long selection)
         {
-            if (!string.IsNullOrEmpty(folderName))
-            {
-                FolderModel folder = menu.SelectContentFolder(folderName);
+            if (!routeLoads.IsLatestSelection(selection) || string.IsNullOrEmpty(folderName))
+                return;
 
-                if (!string.IsNullOrEmpty(routeId) && ToolboxSettings.RestoreLastView)
+            FolderModel folder = await InvokeOnGameThreadAsync(() => Task.FromResult(
+                routeLoads.IsLatestSelection(selection) ? menu.SelectContentFolder(folderName) : null)).ConfigureAwait(false);
+            if (folder == null)
+                return;
+
+            ImmutableArray<RouteModelHeader> routes = await FindRoutesAsync(folder, selection).ConfigureAwait(false);
+            await InvokeOnGameThreadAsync(async () =>
+            {
+            if (!routeLoads.IsLatestSelection(selection))
+                return;
+
+            menu.PopulateRoutes(routes);
+            RouteModelHeader route = routes.GetById(routeId);
+            if (route == null || !ToolboxSettings.RestoreLastView)
+                return;
+
+                using (RouteLoadCoordinator.Request request = BeginRouteLoad(route, selection))
                 {
-                    RouteModelHeader route = (routeModels.IsDefaultOrEmpty ? routeModels = await FindRoutes(folder).ConfigureAwait(true) : routeModels).GetById(routeId);
-                    if (null != route)
+                    if (request == null || !await LoadRouteAsync(route, request).ConfigureAwait(false))
+                        return;
+
+                    try
                     {
-                        await LoadRoute(route).ConfigureAwait(true);
-                        menu.PreSelectRoute(route.Name);
-                        if (!string.IsNullOrEmpty(pathId))
+                        PathModelHeader path = string.IsNullOrEmpty(pathId) ? null
+                            : (await route.GetRoutePaths(CancellationToken.None).WaitAsync(request.Token).ConfigureAwait(false)).GetById(pathId);
+                        bool restoreView = false;
+                        PathEditor restoredEditor = null;
+                        Task<bool> loadPath = Task.FromResult(true);
+                        _ = await routeLoads.CommitAsync(request, () =>
                         {
-                            // only restore first path for now
-                            PathModelHeader path = (await route.GetRoutePaths(CancellationToken.None).ConfigureAwait(true)).GetById(pathId);
-                            if (null != path)
+                            restoreView = pathEditor == null && routeLoads.IsLatestSelection(selection);
+                            if (path != null && restoreView)
                             {
-                                if (await LoadPathAsync(path).ConfigureAwait(true))
-                                    menu.PreSelectPath(path);
+                                loadPath = LoadPathAsync(path);
+                                restoredEditor = pathEditor;
                             }
-                        }
+                        }).ConfigureAwait(false);
+                        restoreView = await loadPath.ConfigureAwait(false) && restoreView;
+                        await routeLoads.CommitAsync(request, () =>
+                        {
+                            bool restoredSessionIsCurrent = ReferenceEquals(pathEditor, restoredEditor)
+                                && (path == null || !pathEditor.HasUnsavedChanges
+                                    && string.Equals(pathEditor.PathId, path.Id, StringComparison.OrdinalIgnoreCase));
+                            if (restoreView && restoredSessionIsCurrent && routeLoads.IsLatestSelection(selection))
+                                ContentArea?.PresetPosition(ToolboxSettings.ContentPosition, ToolboxSettings.ContentScale);
+                        }).ConfigureAwait(false);
+                    }
+                    catch (OperationCanceledException) when (request.Token.IsCancellationRequested)
+                    {
+                        // A newer route owns startup followups now.
                     }
                 }
-            }
+            }).ConfigureAwait(false); 
         }
 
         internal void UnloadRoute()
+        {
+            routeLoads.Invalidate();
+            ClearRoute();
+        }
+
+        internal void UnloadRoute(long selection)
+        {
+            if (!routeLoads.IsLatestSelection(selection))
+                return;
+
+            routeLoads.CancelCurrent();
+            ClearRoute();
+        }
+
+        private void ClearRoute()
         {
             _ = Interlocked.Increment(ref routeContentVersion);
             ContentArea = null;
@@ -296,6 +346,7 @@ namespace FreeTrainSimulator.Toolbox
                 OnPathEditorChanged?.Invoke(this, new PathEditorAvailabilityChangedEventArgs(null));
             }
             toolboxContent = null;
+            _ = windowManager[ToolboxWindowType.StatusWindow].Close();
         }
 
         internal Task UnloadPathAsync()

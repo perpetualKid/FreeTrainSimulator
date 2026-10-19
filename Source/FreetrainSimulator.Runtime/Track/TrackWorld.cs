@@ -94,9 +94,17 @@ namespace FreeTrainSimulator.Runtime.Track
 
         public static TrackWorld Initialize(Game game, TrackModel trackModel, TrackSectionModel trackSectionModel)
         {
+            return GameService<TrackWorld>.Set(game, Create(trackModel, trackSectionModel));
+        }
+
+        /// <summary>
+        /// Builds an initialized world without publishing it as a game service.
+        /// </summary>
+        internal static TrackWorld Create(TrackModel trackModel, TrackSectionModel trackSectionModel)
+        {
             TrackWorld world = new TrackWorld(trackModel);
             world.Initialize(trackSectionModel);
-            return GameService<TrackWorld>.Set(game, world);
+            return world;
         }
 
         /// <summary>

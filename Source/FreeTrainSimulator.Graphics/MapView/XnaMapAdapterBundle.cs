@@ -54,7 +54,8 @@ namespace FreeTrainSimulator.Graphics.MapView
             TextCache = OwnedTextCache;
             TextRenderer = new XnaMapTextRenderer(TextCache, SpriteBatch);
             RenderBackend = new XnaMapRenderBackend(SpriteBatch, RenderingResources.BasicShapes, TextRenderer);
-            HostEnvironment = new XnaMapHostEnvironment(game, mouseInputGameComponent);
+            XnaMapHostEnvironment hostEnvironment = new XnaMapHostEnvironment(game, mouseInputGameComponent);
+            HostEnvironment = hostEnvironment;
             BasicShapes = RenderingResources.BasicShapes;
             OverlayShapeAdapter = new XnaMapOverlayShapeAdapter(BasicShapes);
             Controller = new MapViewController(new MapViewportBounds(content.Bounds.Left, content.Bounds.Top, content.Bounds.Right, content.Bounds.Bottom));
@@ -65,7 +66,7 @@ namespace FreeTrainSimulator.Graphics.MapView
             ViewStateAdapter = new MapViewStateAdapter(Controller, constantSizeFont);
             RenderAdapter = new MapRenderAdapter(Controller, RenderBackend);
             InteractionAdapter = new MapInteractionAdapter(fontManager, Controller, HostEnvironment, (IMapViewFontState)ViewStateAdapter);
-            HostResources = new XnaMapHostResources(SpriteBatch, OwnedTextCache);
+            HostResources = new XnaMapHostResources(SpriteBatch, OwnedTextCache, hostEnvironment);
         }
     }
 }

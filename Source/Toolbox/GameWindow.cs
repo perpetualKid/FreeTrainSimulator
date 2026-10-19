@@ -171,6 +171,7 @@ namespace FreeTrainSimulator.Toolbox
             InitializeLoggingFromSettings();
 
             windowForm = (Form)Control.FromHandle(Window.Handle);
+            routeLoads = new RouteLoadCoordinator(InvokeOnGameThreadAsync);
             currentScreen = ToolboxSettings.WindowScreen < Screen.AllScreens.Length
                 ? Screen.AllScreens[ToolboxSettings.WindowScreen]
                 : Screen.PrimaryScreen;
@@ -243,17 +244,8 @@ namespace FreeTrainSimulator.Toolbox
 
         private void GameWindow_Exiting(object sender, ExitingEventArgs e)
         {
-            // Cancel any in-flight route/profile load when the game loop is exiting (the WPF shell drives the
-            // shutdown). Runs on the game thread, the owner of these token sources.
-            try
-            {
-                if (ctsRouteLoading?.IsCancellationRequested == false)
-                    ctsRouteLoading.Cancel();
-            }
-            catch (ObjectDisposedException)
-            {
-                // The token source may already have been disposed by a concurrent reset; nothing to cancel.
-            }
+            routeLoads.Invalidate();
+            _ = Interlocked.Increment(ref routeContentVersion);
         }
 
         #region window size/position handling
@@ -894,6 +886,7 @@ namespace FreeTrainSimulator.Toolbox
 
         protected override async void Initialize()
         {
+            long startupSelection = BeginRouteSelection();
             Task<bool> loadFolders = LoadFolders();
 
             spriteBatch = new SpriteBatch(GraphicsDevice);
@@ -997,18 +990,24 @@ namespace FreeTrainSimulator.Toolbox
                     $"Please close {RuntimeInfo.ApplicationName}, and use the Menu-application to review current content folder settings for further analysis.", "Please read!");
                 return;
             }
-            if (ToolboxSettings.RestoreLastView)
+            if (ToolboxSettings.RestoreLastView && IsLatestRouteSelection(startupSelection))
             {
                 try
                 {
-                    await PreSelectRoute(ToolboxSettings.Folder, ToolboxSettings.RouteId, ToolboxSettings.PathId).ConfigureAwait(true);
-                    ContentArea?.PresetPosition(ToolboxSettings.ContentPosition, ToolboxSettings.ContentScale);
+                    await PreSelectRouteAsync(ToolboxSettings.Folder, ToolboxSettings.RouteId, ToolboxSettings.PathId, startupSelection).ConfigureAwait(true);
                 }
                 catch (Exception ex) when (ex is not OperationCanceledException)
                 {
                     Trace.TraceError($"Error restoring last view: {ex}");
-                    windowManager[ToolboxWindowType.StatusWindow].Close();
-                    ToolboxSettings.RestoreLastView = false;
+                    await InvokeOnGameThreadAsync(() =>
+                    {
+                        if (IsLatestRouteSelection(startupSelection))
+                        {
+                            windowManager[ToolboxWindowType.StatusWindow].Close();
+                            ToolboxSettings.RestoreLastView = false;
+                        }
+                        return Task.CompletedTask;
+                    }).ConfigureAwait(false);
                 }
             }
         }

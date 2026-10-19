@@ -131,10 +131,10 @@ namespace FreeTrainSimulator.Toolbox.Hosting
             {
                 if (folder.Name.Equals(folderName, StringComparison.OrdinalIgnoreCase))
                 {
-                    // Restore path: only set the folder and populate its routes. The caller (PreSelectRoute)
-                    // loads the persisted route itself, so this must NOT auto-load a single route - doing so
-                    // would race the caller's load and can draw against half-initialized content.
-                    SelectFolder(folder, autoLoadSingleRoute: false);
+                    // Startup owns discovery and loading under its captured selection intent. Do not
+                    // launch a second asynchronous selection/confirmation from this synchronous lookup.
+                    SelectedFolder = folder;
+                    SelectedFolderChanged?.Invoke(this, EventArgs.Empty);
                     return folder;
                 }
             }
@@ -146,14 +146,7 @@ namespace FreeTrainSimulator.Toolbox.Hosting
         #region Commands (in from the WPF UI thread, marshaled to the game thread)
 
         /// <summary>Selects a content folder and loads its routes.</summary>
-        public void SelectFolder(FolderModel folder) => SelectFolder(folder, autoLoadSingleRoute: true);
-
-        /// <summary>
-        /// Selects a content folder and loads its routes. When <paramref name="autoLoadSingleRoute"/> is true
-        /// and the folder has exactly one route, that route is loaded immediately. The restore flow passes
-        /// false because it loads the persisted route itself.
-        /// </summary>
-        private void SelectFolder(FolderModel folder, bool autoLoadSingleRoute)
+        public void SelectFolder(FolderModel folder)
         {
             ArgumentNullException.ThrowIfNull(folder);
 
@@ -163,30 +156,37 @@ namespace FreeTrainSimulator.Toolbox.Hosting
             // folder dropdown appears to ignore the choice).
             InvokeOnGameThreadAsync($"Select content folder '{folder.Name}'", async () =>
             {
-                if (!await game.ConfirmDiscardUnsavedPathsAsync().ConfigureAwait(true))
+                long selection = game.BeginRouteSelection();
+                bool confirmed = await game.ConfirmDiscardUnsavedPathsAsync().ConfigureAwait(false);
+                bool accepted = await game.InvokeOnGameThreadAsync(() =>
                 {
+                    if (!game.IsLatestRouteSelection(selection))
+                        return Task.FromResult(false);
+                    if (!confirmed)
+                    {
+                        SelectedFolderChanged?.Invoke(this, EventArgs.Empty);
+                        return Task.FromResult(false);
+                    }
+
+                    SelectedFolder = folder;
                     SelectedFolderChanged?.Invoke(this, EventArgs.Empty);
+                    ((IToolboxMenu)this).PopulateRoutes(ImmutableArray<RouteModelHeader>.Empty);
+                    game.UnloadRoute(selection);
+                    return Task.FromResult(true);
+                }).ConfigureAwait(false);
+                if (!accepted)
                     return;
-                }
 
-                SelectedFolder = folder;
-                SelectedFolderChanged?.Invoke(this, EventArgs.Empty);
-
-                // Confirmation succeeded, so the previous folder's routes are no longer valid choices. Publish
-                // the empty transition before route discovery begins; cancellation returns above and preserves
-                // the existing route collection and selection.
-                ((IToolboxMenu)this).PopulateRoutes(ImmutableArray<RouteModelHeader>.Empty);
-                game.UnloadRoute();
-                ImmutableArray<RouteModelHeader> routes = await game.FindRoutes(folder).ConfigureAwait(true);
-                ((IToolboxMenu)this).PopulateRoutes(routes);
-
-                // When a folder has exactly one route, load it immediately instead of waiting for the user to
-                // pick it from a single-item dropdown. Skipped during restore, which loads its own route.
-                if (autoLoadSingleRoute && routes.Length == 1)
+                ImmutableArray<RouteModelHeader> routes = await game.FindRoutesAsync(folder, selection).ConfigureAwait(false);
+                await game.InvokeOnGameThreadAsync(async () =>
                 {
-                    await game.LoadRoute(routes[0]).ConfigureAwait(true);
-                    ((IToolboxMenu)this).PreSelectRoute(routes[0].Name);
-                }
+                    if (!game.IsLatestRouteSelection(selection))
+                        return;
+
+                    ((IToolboxMenu)this).PopulateRoutes(routes);
+                    if (routes.Length == 1)
+                        _ = await game.LoadRouteAsync(routes[0], selection).ConfigureAwait(false);
+                }).ConfigureAwait(false);
             });
         }
 
@@ -197,22 +197,23 @@ namespace FreeTrainSimulator.Toolbox.Hosting
 
             InvokeOnGameThreadAsync($"Toggle route '{route.Name}'", async () =>
             {
-                if (!await game.ConfirmDiscardUnsavedPathsAsync().ConfigureAwait(true))
+                long selection = game.BeginRouteSelection();
+                bool confirmed = await game.ConfirmDiscardUnsavedPathsAsync().ConfigureAwait(false);
+                await game.InvokeOnGameThreadAsync(async () =>
                 {
-                    SelectedRouteChanged?.Invoke(this, EventArgs.Empty);
-                    return;
-                }
+                    if (!game.IsLatestRouteSelection(selection))
+                        return;
+                    if (!confirmed)
+                    {
+                        SelectedRouteChanged?.Invoke(this, EventArgs.Empty);
+                        return;
+                    }
 
-                if (string.Equals(SelectedRouteName, route.Name, StringComparison.Ordinal))
-                {
-                    game.UnloadRoute();
-                    ((IToolboxMenu)this).PreSelectRoute(null);
-                }
-                else
-                {
-                    await game.LoadRoute(route).ConfigureAwait(true);
-                    ((IToolboxMenu)this).PreSelectRoute(route.Name);
-                }
+                    if (string.Equals(SelectedRouteName, route.Name, StringComparison.Ordinal))
+                        game.UnloadRoute(selection);
+                    else
+                        _ = await game.LoadRouteAsync(route, selection).ConfigureAwait(false);
+                }).ConfigureAwait(false);
             });
         }
 
@@ -224,12 +225,11 @@ namespace FreeTrainSimulator.Toolbox.Hosting
             {
                 if (SelectedPath != null && string.Equals(SelectedPath.Id, path.Id, StringComparison.OrdinalIgnoreCase))
                 {
-                    await game.UnloadPathAsync().ConfigureAwait(true);
-                    ((IToolboxMenu)this).PreSelectPath(null);
+                    await game.UnloadPathAsync().ConfigureAwait(false);
                 }
-                else if (await game.LoadPathAsync(path).ConfigureAwait(true))
+                else
                 {
-                    ((IToolboxMenu)this).PreSelectPath(path);
+                    _ = await game.LoadPathAsync(path).ConfigureAwait(false);
                 }
             });
         }

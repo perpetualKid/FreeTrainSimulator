@@ -164,11 +164,25 @@ namespace FreeTrainSimulator.Graphics.MapView
             DetailInfo["Route Name"] = runtimeServices.RouteName;
         }
 
-        public override async Task Initialize()
+        public override Task Initialize() => InitializeAsync(action =>
         {
+            action();
+            return Task.CompletedTask;
+        });
+
+        /// <summary>Builds map data on workers and completes shared graphics state through the owning host.</summary>
+        public async Task InitializeAsync(Func<Action, Task> completeAsync)
+        {
+            ArgumentNullException.ThrowIfNull(completeAsync);
             await Task.Run(AddTrackSegments).ConfigureAwait(true);
             await Task.Run(AddTrackItems).ConfigureAwait(true);
 
+            await completeAsync(CompleteInitialization).ConfigureAwait(false);
+        }
+
+        private void CompleteInitialization()
+        {
+            InsetHost?.SetTrackSegments(ContentByTile[MapContentType.Tracks].OfType<TrackSegment>());
             ShellServices.Initialize();
             //just put an empty list so the draw method does not skip the paths
             ContentByTile[MapContentType.Paths] = new TileIndexedList<EditorTrainPath>(new List<EditorTrainPath>() { });
@@ -391,8 +405,6 @@ namespace FreeTrainSimulator.Graphics.MapView
                     }
                 });
             }
-
-            InsetHost?.SetTrackSegments(trackSegments);
 
             ContentByTile[MapContentType.Tracks] = new TileIndexedList<TrackSegmentBase>(trackSegments);
             ContentByTile[MapContentType.JunctionNodes] = new TileIndexedList<JunctionNodeBase>(junctionSegments);

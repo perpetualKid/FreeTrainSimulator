@@ -6,7 +6,7 @@ using Microsoft.Xna.Framework;
 
 namespace FreeTrainSimulator.Graphics.MapView
 {
-    internal sealed class XnaMapHostEnvironment : IMapHostEnvironment
+    internal sealed class XnaMapHostEnvironment : IMapHostEnvironment, IDisposable
     {
         private readonly Game game;
         private readonly MouseInputGameComponent inputComponent;
@@ -37,6 +37,15 @@ namespace FreeTrainSimulator.Graphics.MapView
         private void GameWindow_ClientSizeChanged(object sender, EventArgs e)
         {
             ClientSizeChanged?.Invoke(this, e);
+        }
+
+        public void Dispose()
+        {
+            GameWindow window = game.Window;
+            if (window != null)
+            {
+                window.ClientSizeChanged -= GameWindow_ClientSizeChanged;
+            }
         }
     }
 }
