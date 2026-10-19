@@ -276,8 +276,8 @@ namespace Orts.Simulation.Track
         internal TrackCircuitSection(SignalEnvironment signals) :
             this(0)
         {
-            if (null != TrackCircuitSection.signals)
-                throw new InvalidOperationException(nameof(TrackCircuitSection.signals));
+            // A new signal environment rebuilds the complete, index-addressed circuit database.
+            TrackCircuitList.Clear();
             TrackCircuitSection.signals = signals;
 
             CircuitItems = new TrackCircuitItems(signals.OrtsSignalTypeCount);

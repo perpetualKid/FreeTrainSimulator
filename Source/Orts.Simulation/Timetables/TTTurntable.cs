@@ -249,7 +249,7 @@ namespace Orts.Simulation.Timetables
 
                                 AccessPathDetails thisAccess = new AccessPathDetails();
                                 thisAccess.AccessPath = new TrackCircuitPartialPathRoute(usedRoute);
-                                thisAccess.AccessTraveller = TrackTraveller.InitializeDirectedTraveller(newPath.FirstNode.Location, newPath.FirstNode.NextMainNode.Location);
+                                thisAccess.AccessTraveller = newPath.CreateInitialTraveller();
                                 thisAccess.AccessPathName = accessPath;
                                 AdditionalTurntableDetails.AccessPaths.Add(thisAccess);
                             }

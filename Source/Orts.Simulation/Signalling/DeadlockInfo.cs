@@ -880,7 +880,7 @@ namespace Orts.Simulation.Signalling
 
             // search if trains path has valid equivalent
 
-            if (elementRouteIndex <= 0 || elementRouteIndex >= subpath.Count)
+            if (elementRouteIndex < 0 || elementRouteIndex >= subpath.Count)
             {
                 Trace.TraceWarning("Invalid route element in SetTrainDetails : value =  {0}, max. is {1}", elementRouteIndex, subpath.Count);
                 return (-1);

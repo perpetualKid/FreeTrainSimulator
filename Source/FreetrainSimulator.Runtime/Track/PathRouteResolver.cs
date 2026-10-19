@@ -328,7 +328,7 @@ namespace FreeTrainSimulator.Runtime.Track
                         VectorNode => ResolveTrackNodeIndexByLocation(node, trackWorld, out _, out _),
                         _ => node.NodeType switch
                         {
-                            var nodeType when nodeType.Includes(PathNodeType.Junction) =>
+                            PathNodeType nodeType when nodeType.Includes(PathNodeType.Junction) =>
                                 ResolveNonVectorTrackNodeIndexByLocation<JunctionNode>(node.Location, trackDatabase, out _),
                             _ => ResolveNonVectorTrackNodeIndexByLocation(node.Location, trackDatabase, out _),
                         },
@@ -1146,7 +1146,18 @@ namespace FreeTrainSimulator.Runtime.Track
                     trackVectorNodeIndexes.Add(trackNodeIndex);
 
                 if (options.IncludeGeneratedIntermediaryNodes && i > 0 && i < routeNodeIndexes.Length - 1)
-                    AddGeneratedRouteAnchor(generatedAnchors, new PathRouteAnchor(-1, trackNode.Location, PathNodeType.Via, trackNodeIndex, -1), trackDatabase);
+                {
+                    WorldLocation location = trackNode.Location;
+                    int sectionIndex = -1;
+                    if (trackNode is VectorNode vectorNode && !vectorNode.VectorSections.IsDefaultOrEmpty &&
+                        trackWorld.SectionGeometry.TryGetValue(vectorNode.VectorSections[0], out SectionGeometry geometry) && geometry.Length > CostEpsilon)
+                    {
+                        // A vector's start can coincide with a junction; retain an interior witness for parallel routes.
+                        location = geometry.LocationAt(geometry.Length / 2);
+                        sectionIndex = 0;
+                    }
+                    AddGeneratedRouteAnchor(generatedAnchors, new PathRouteAnchor(-1, location, PathNodeType.Via, trackNodeIndex, sectionIndex), trackDatabase);
+                }
             }
 
             return new ResolvedRouteCandidate(routeNodeIndexes, trackVectorNodeIndexes.ToImmutable(), generatedAnchors.ToImmutable(), cost, physicalTraversals);

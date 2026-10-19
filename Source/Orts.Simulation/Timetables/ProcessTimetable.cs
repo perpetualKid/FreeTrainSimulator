@@ -727,7 +727,7 @@ namespace Orts.Simulation.Timetables
                 if (trainRouteCrossRef.ContainsKey(reqTrain.Index) && Paths.TryGetValue(trainRouteCrossRef[reqTrain.Index], out AIPath value))
                 {
                     AIPath usedPath = new AIPath(value);
-                    reqTrain.TTTrain.RearTrackTraveller = TrackTraveller.InitializeDirectedTraveller(usedPath.FirstNode.Location, usedPath.FirstNode.NextMainNode.Location);
+                    reqTrain.TTTrain.RearTrackTraveller = usedPath.CreateInitialTraveller();
                     reqTrain.TTTrain.Path = usedPath;
                     reqTrain.TTTrain.CreateRoute(false);  // create route without use of FrontTrackTraveller
                     reqTrain.TTTrain.EndRouteAtLastSignal();
@@ -811,7 +811,7 @@ namespace Orts.Simulation.Timetables
 
             // create traveller
             AIPath usedPath = Paths[trainRouteCrossRef[reqTrain.Index]];
-            playerTrain.RearTrackTraveller = TrackTraveller.InitializeDirectedTraveller(usedPath.FirstNode.Location, usedPath.FirstNode.NextMainNode.Location);
+            playerTrain.RearTrackTraveller = usedPath.CreateInitialTraveller();
 
             // extract train path
             playerTrain.SetRoutePath(usedPath, false);
@@ -2721,7 +2721,7 @@ namespace Orts.Simulation.Timetables
                     }
                     else
                     {
-                        outTrain.RearTrackTraveller = TrackTraveller.InitializeDirectedTraveller(outPath.FirstNode.Location, outPath.FirstNode.NextMainNode.Location);
+                        outTrain.RearTrackTraveller = outPath.CreateInitialTraveller();
                         outTrain.Path = outPath;
                         outTrain.CreateRoute(false);
                         outTrain.ValidRoutes[Direction.Forward] = new TrackCircuitPartialPathRoute(outTrain.TCRoute.TCRouteSubpaths[0]);
@@ -2774,7 +2774,7 @@ namespace Orts.Simulation.Timetables
                         }
                         else
                         {
-                            inTrain.RearTrackTraveller = TrackTraveller.InitializeDirectedTraveller(inPath.FirstNode.Location, inPath.FirstNode.NextMainNode.Location);
+                            inTrain.RearTrackTraveller = inPath.CreateInitialTraveller();
                             inTrain.Path = inPath;
                             inTrain.CreateRoute(false);
                             inTrain.ValidRoutes[Direction.Forward] = new TrackCircuitPartialPathRoute(inTrain.TCRoute.TCRouteSubpaths[0]);
@@ -2919,7 +2919,7 @@ namespace Orts.Simulation.Timetables
                 }
                 else
                 {
-                    formedTrain.RearTrackTraveller = TrackTraveller.InitializeDirectedTraveller(formedPath.FirstNode.Location, formedPath.FirstNode.NextMainNode.Location);
+                    formedTrain.RearTrackTraveller = formedPath.CreateInitialTraveller();
                     formedTrain.Path = formedPath;
                     formedTrain.CreateRoute(false);
                     formedTrain.ValidRoutes[Direction.Forward] = new TrackCircuitPartialPathRoute(formedTrain.TCRoute.TCRouteSubpaths[0]);

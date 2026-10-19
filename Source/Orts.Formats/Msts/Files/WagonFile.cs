@@ -31,7 +31,8 @@ namespace Orts.Formats.Msts.Files
         public WagonFile(string fileName)
         {
             Name = Path.GetFileNameWithoutExtension(fileName);
-            using (var stf = new STFReader(fileName, false))
+            using (STFReader stf = new STFReader(fileName, false))
+            {
                 stf.ParseFile(new STFReader.TokenProcessor[] {
                     new STFReader.TokenProcessor("wagon", ()=>{
                         stf.ReadString();
@@ -40,6 +41,7 @@ namespace Orts.Formats.Msts.Files
                         });
                     }),
                 });
+            }
         }
 
         public override string ToString()

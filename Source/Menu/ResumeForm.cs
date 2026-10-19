@@ -187,7 +187,7 @@ namespace FreeTrainSimulator.Menu
                 gridSaves.Rows.Clear();
 
             int invalidCount = 0;
-            foreach (var item in savePoints)
+            foreach (SavePointModel item in savePoints)
             {
                 if (item.ValidState == false)
                 {

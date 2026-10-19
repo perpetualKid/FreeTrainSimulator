@@ -29,7 +29,7 @@ namespace Orts.Formats.Msts.Files
 		{
             using (STFReader stf = new STFReader(fileName, false))
             {
-                var count = stf.ReadInt(null);
+                int count = stf.ReadInt(null);
                 stf.ParseBlock(new STFReader.TokenProcessor[] {
                     new STFReader.TokenProcessor("tracktype", ()=>{
                         if (--count < 0)

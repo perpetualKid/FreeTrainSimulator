@@ -16,16 +16,16 @@ namespace FreeTrainSimulator.Common.Input
         {
             StringBuilder errors = new StringBuilder();
 
-            IOrderedEnumerable<IGrouping<byte, dynamic>> duplicates = buttonSettings.Where(button => button < 255).
-                Select((value, index) => new { Index = index, Button = value }).
+            IOrderedEnumerable<IGrouping<byte, (int Index, byte Button)>> duplicates = buttonSettings.Where(button => button < 255).
+                Select((value, index) => (Index: index, Button: value)).
                 GroupBy(g => g.Button).
                 Where(g => g.Count() > 1).
                 OrderBy(g => g.Key);
 
-            foreach (IGrouping<byte, dynamic> duplicate in duplicates)
+            foreach (IGrouping<byte, (int Index, byte Button)> duplicate in duplicates)
             {
                 errors.Append(catalog.GetString("Button {0} is assigned to \r\n\t", duplicate.Key));
-                foreach (var buttonMapping in duplicate)
+                foreach ((int Index, byte Button) buttonMapping in duplicate)
                 {
                     errors.Append(catalog.GetString($"\"{((UserCommand)buttonMapping.Index).GetLocalizedDescription()}\" and "));
                 }

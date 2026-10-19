@@ -266,7 +266,7 @@ namespace Orts.Formats.Msts.Models
         private protected virtual void ParseScreen(STFReader stf)
         {
             stf.MustMatch("(");
-            var newScreen = stf.ReadString();
+            string newScreen = stf.ReadString();
             stf.SkipRestOfBlock();
             Screens ??= new Collection<string>();
             Screens.Add(newScreen);
@@ -968,7 +968,7 @@ namespace Orts.Formats.Msts.Models
         {
             ArgumentNullException.ThrowIfNull(stf, nameof(stf));
             stf.MustMatch("(");
-            var newScreen = new CabViewScreenData(stf.ReadString(), stf.ReadInt(-1));
+            CabViewScreenData newScreen = new CabViewScreenData(stf.ReadString(), stf.ReadInt(-1));
             stf.SkipRestOfBlock();
             NewScreens ??= new Collection<CabViewScreenData>();
             NewScreens.Add(newScreen);

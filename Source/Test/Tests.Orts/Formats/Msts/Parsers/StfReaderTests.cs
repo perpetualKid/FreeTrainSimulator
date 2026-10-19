@@ -28,6 +28,7 @@ namespace Tests.Orts.Formats.Msts.Parsers
     // Since most unit tests do not actually open a file, this is no big issue.
 
     [TestClass]
+    [OSCondition(OperatingSystems.Windows)]
     public class StfReaderTests
     {
 #pragma warning disable CA1861 // Avoid constant arrays as arguments
@@ -1708,6 +1709,7 @@ namespace Tests.Orts.Formats.Msts.Parsers
 
         #region Vector3
         [TestClass]
+        [OSCondition(OperatingSystems.Windows)]
         public class ReadVector3LegacyBlockTests
         {
             private static readonly Vector3 SOMEDEFAULT = new Vector3(1.1f, 1.2f, 1.3f);
@@ -1752,6 +1754,7 @@ namespace Tests.Orts.Formats.Msts.Parsers
         }
 
         [TestClass]
+        [OSCondition(OperatingSystems.Windows)]
         public class ReadVector3BlockTests
         {
             private static readonly Vector3 SOMEDEFAULT = new Vector3(1.1f, 1.2f, 1.3f);
@@ -1800,6 +1803,7 @@ namespace Tests.Orts.Formats.Msts.Parsers
 
         #region Vector4
         [TestClass]
+        [OSCondition(OperatingSystems.Windows)]
         public class ReadVector4BlockTests
         {
             private static readonly Vector4 SOMEDEFAULT = new Vector4(1.1f, 1.2f, 1.3f, 1.4f);
@@ -2550,6 +2554,7 @@ namespace Tests.Orts.Formats.Msts.Parsers
     }
 
     [TestClass]
+    [OSCondition(OperatingSystems.Windows)]
     public class StfExceptionTests
     {
         [TestMethod]

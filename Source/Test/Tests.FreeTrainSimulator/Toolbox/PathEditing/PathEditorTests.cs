@@ -23,6 +23,7 @@ using Tests.FreeTrainSimulator.Common;
 namespace Tests.FreeTrainSimulator.Toolbox.PathEditing
 {
     [TestClass]
+    [OSCondition(OperatingSystems.Windows)]
     public class PathEditorTests
     {
         [TestMethod]
@@ -1431,7 +1432,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.PathEditing
 
                 Assert.IsTrue(result.Success, result.Message);
                 int selectedNodeIndex = editor.SelectedAuthoredNodeIndex;
-                Assert.IsTrue(selectedNodeIndex >= 0);
+                Assert.IsGreaterThanOrEqualTo(0, selectedNodeIndex);
                 Assert.IsTrue(editor.TryCaptureCurrentPathModel().PathNodes[selectedNodeIndex].NodeType.Includes(PathNodeType.End));
                 Assert.IsTrue(editor.Undo());
                 Assert.AreSequenceEqual(source.PathNodes, editor.TryCaptureCurrentPathModel().PathNodes);
@@ -2016,7 +2017,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.PathEditing
             PathEditorCommandResult result = editor.AddViaPointHereCommand(0, CreateNodeAt(50, PathNodeType.None, -1), false);
 
             Assert.IsTrue(result.Success);
-            Assert.AreEqual(3, editor.TryCaptureCurrentPathModel().PathNodes.Length);
+            Assert.HasCount(3, editor.TryCaptureCurrentPathModel().PathNodes);
             Assert.IsTrue(editor.Undo());
             Assert.AreSequenceEqual(source.PathNodes, editor.TryCaptureCurrentPathModel().PathNodes);
         }

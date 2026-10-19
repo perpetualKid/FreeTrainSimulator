@@ -401,7 +401,7 @@ namespace FreeTrainSimulator.Toolbox
             if (nearest == null || nearest.DistanceMeters > Math.Max(1.0, toleranceMeters))
                 return null;
 
-            foreach (var geometry in trackWorld.SectionGeometry.Values)
+            foreach (SectionGeometry geometry in trackWorld.SectionGeometry.Values)
             {
                 if (geometry.Node.NodeIndex != nearest.TrackNodeIndex || geometry.SectionIndex != nearest.TrackVectorSectionIndex)
                     continue;

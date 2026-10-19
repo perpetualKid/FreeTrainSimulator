@@ -344,7 +344,7 @@ namespace Orts.Simulation.Timetables
 
                 // front traveller
                 newPool.StoragePath = new TrackCircuitPartialPathRoute(fullRoute.TCRouteSubpaths[0]);
-                newPool.StoragePathTraveller = TrackTraveller.InitializeDirectedTraveller(newPath.FirstNode.Location, newPath.FirstNode.NextMainNode.Location);
+                newPool.StoragePathTraveller = newPath.CreateInitialTraveller();
                 // rear traveller (for moving tables)
                 AIPathNode lastNode = newPath.Nodes.Last();
                 newPool.StoragePathReverseTraveller = TrackTraveller.InitializeTraveller(lastNode.Location, newPool.StoragePathTraveller.Direction.Reverse()).Value;
