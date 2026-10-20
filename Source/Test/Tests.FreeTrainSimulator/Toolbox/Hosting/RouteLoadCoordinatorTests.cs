@@ -53,8 +53,8 @@ namespace Tests.FreeTrainSimulator.Toolbox.Hosting
             NativeRoute routeB = await CreateRouteAsync().ConfigureAwait(false);
             TaskCompletionSource<TrackSectionModel> preparationA = Completion<TrackSectionModel>();
             TaskCompletionSource<TrackSectionModel> preparationB = Completion<TrackSectionModel>();
-            NativeModelCache<TrackSectionModel>.Set(routeA.Route.Id, preparationA.Task);
-            NativeModelCache<TrackSectionModel>.Set(routeB.Route.Id, preparationB.Task);
+            NativeModelCache<TrackSectionModel>.Set(routeA.Route.Hierarchy(routeA.Route.Id), preparationA.Task);
+            NativeModelCache<TrackSectionModel>.Set(routeB.Route.Hierarchy(routeB.Route.Id), preparationB.Task);
             QueuedDispatcher dispatcher = new QueuedDispatcher(TestContext.CancellationToken);
             RouteLoadCoordinator coordinator = CreateCoordinator(dispatcher);
             int maps = 0;
@@ -102,7 +102,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.Hosting
         {
             NativeRoute route = await CreateRouteAsync().ConfigureAwait(false);
             TaskCompletionSource<TrackSectionModel> preparation = Completion<TrackSectionModel>();
-            NativeModelCache<TrackSectionModel>.Set(route.Route.Id, preparation.Task);
+            NativeModelCache<TrackSectionModel>.Set(route.Route.Hierarchy(route.Route.Id), preparation.Task);
             QueuedDispatcher dispatcher = new QueuedDispatcher(TestContext.CancellationToken);
             RouteLoadCoordinator coordinator = CreateCoordinator(dispatcher);
             RequestScope request = new RequestScope(coordinator, dispatcher, TestContext.CancellationToken);
@@ -531,7 +531,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.Hosting
         {
             NativeRoute route = await CreateRouteAsync().ConfigureAwait(false);
             TaskCompletionSource<TrackSectionModel> preparation = Completion<TrackSectionModel>();
-            NativeModelCache<TrackSectionModel>.Set(route.Route.Id, preparation.Task);
+            NativeModelCache<TrackSectionModel>.Set(route.Route.Hierarchy(route.Route.Id), preparation.Task);
             QueuedDispatcher dispatcher = new QueuedDispatcher(TestContext.CancellationToken);
             RouteLoadCoordinator coordinator = CreateCoordinator(dispatcher);
             RequestScope canceled = new RequestScope(coordinator, dispatcher, TestContext.CancellationToken);
@@ -792,9 +792,9 @@ namespace Tests.FreeTrainSimulator.Toolbox.Hosting
                 coordinator.Stop();
             foreach (NativeRoute route in routes)
             {
-                NativeModelCache<TrackSectionModel>.Remove(route.Route.Id);
-                NativeModelCache<TrackModel>.Remove(route.Route.Id);
-                NativeModelCache<SignalConfigurationModel>.Remove(route.Route.Id);
+                NativeModelCache<TrackSectionModel>.Remove(route.Route.Hierarchy(route.Route.Id));
+                NativeModelCache<TrackModel>.Remove(route.Route.Hierarchy(route.Route.Id));
+                NativeModelCache<SignalConfigurationModel>.Remove(route.Route.Hierarchy(route.Route.Id));
                 NativeModelCache<RouteModelHeader>.Remove(route.Route.Hierarchy());
                 NativeModelCache<RouteModelHeader>.RemoveCollection(route.Route.Parent.Hierarchy());
             }

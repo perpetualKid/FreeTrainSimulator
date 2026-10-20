@@ -28,7 +28,7 @@ namespace FreeTrainSimulator.Models.Imported.ImportHandler.TrainSimulator
             ArgumentNullException.ThrowIfNull(routeModel, nameof(routeModel));
 
             Task<SignalConfigurationModel> modelTask = Convert(routeModel, cancellationToken);
-            modelTaskCache[routeModel.Id] = modelTask;
+            modelTaskCache[routeModel.Hierarchy(routeModel.Id)] = modelTask;
             return modelTask;
         }
 

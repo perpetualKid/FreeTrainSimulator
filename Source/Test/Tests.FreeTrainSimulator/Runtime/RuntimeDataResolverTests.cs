@@ -253,7 +253,7 @@ namespace Tests.FreeTrainSimulator.Runtime
         private static (Task Read, Action Complete, Action<Exception> Fail) DelayRead<TModel>(RouteModel route, TModel model) where TModel : ModelBase
         {
             TaskCompletionSource<TModel> completion = new TaskCompletionSource<TModel>(TaskCreationOptions.RunContinuationsAsynchronously);
-            TestModelHandler<TModel>.SetLoadTask(route.Id, completion.Task);
+            TestModelHandler<TModel>.SetLoadTask(route.Hierarchy(route.Id), completion.Task);
             return (completion.Task, () => completion.SetResult(model), completion.SetException);
         }
 

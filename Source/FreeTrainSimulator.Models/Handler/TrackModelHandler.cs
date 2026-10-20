@@ -17,11 +17,11 @@ namespace FreeTrainSimulator.Models.Handler
         public static Task<TrackModel> GetCore(RouteModelHeader routeModel, CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(routeModel, nameof(routeModel));
-            string key = routeModel.Id;
+            string key = routeModel.Hierarchy(routeModel.Id);
 
             if (!modelTaskCache.TryGetValue(key, out Task<TrackModel> modelTask) || modelTask.IsFaulted)
             {
-                modelTaskCache[key] = modelTask = FromFile(key, routeModel, cancellationToken);
+                modelTaskCache[key] = modelTask = FromFile(routeModel.Id, routeModel, cancellationToken);
             }
 
             return modelTask;
