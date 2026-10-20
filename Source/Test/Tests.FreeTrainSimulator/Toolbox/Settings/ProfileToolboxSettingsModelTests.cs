@@ -23,7 +23,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.Settings
         [DataRow(1)]
         public void WhenTabPreferenceRoundTripsThenSelectedTabIsPreserved(int selectedTabIndex)
         {
-            ProfileToolboxSettingsModel settings = new() { PathEditorSelectedTabIndex = selectedTabIndex };
+            ProfileToolboxSettingsModel settings = new ProfileToolboxSettingsModel() { PathEditorSelectedTabIndex = selectedTabIndex };
 
             ProfileToolboxSettingsModel restored = MemoryPackSerializer.Deserialize<ProfileToolboxSettingsModel>(MemoryPackSerializer.Serialize(settings));
 
@@ -82,7 +82,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.Settings
         [DataRow(true)]
         public async Task WhenProfileSettingsAreSavedThenTabPreferenceLoadsIndependentlyOfRestoreLastView(bool restoreLastView)
         {
-            ProfileModel profile = new("tab-preference-" + Guid.NewGuid().ToString("N"));
+            ProfileModel profile = new ProfileModel("tab-preference-" + Guid.NewGuid().ToString("N"));
             ProfileToolboxSettingsModel settings = await profile.LoadSettingsModel<ProfileToolboxSettingsModel>(CancellationToken.None).ConfigureAwait(false);
             settings.RestoreLastView = restoreLastView;
             settings.PathEditorSelectedTabIndex = 1;
@@ -105,7 +105,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.Settings
         public double ContentScale { get; set; }
         public EnumArray<string, ColorSetting> ColorSettings { get; set; } = new ProfileToolboxSettingsModel().ColorSettings;
         public EnumArray<bool, MapContentType> ViewSettings { get; set; } = new ProfileToolboxSettingsModel().ViewSettings;
-        public ToolWindowSettingsStore ToolWindowSettings { get; set; } = new();
+        public ToolWindowSettingsStore ToolWindowSettings { get; set; } = new ToolWindowSettingsStore();
         public bool RestoreLastView { get; set; } = true;
         public bool FontOutline { get; set; } = true;
         public string Folder { get; set; }

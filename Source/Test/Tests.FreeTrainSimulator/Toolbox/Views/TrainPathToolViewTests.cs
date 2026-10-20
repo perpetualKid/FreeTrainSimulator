@@ -32,18 +32,18 @@ namespace Tests.FreeTrainSimulator.Toolbox.Views
             Window window = null;
             try
             {
-                TrainPathToolView view = new();
+                TrainPathToolView view = new TrainPathToolView();
                 window = new Window { Content = view, Width = 520, Height = 520, ShowInTaskbar = false };
                 window.Show();
                 SettleLayout(window);
                 TextBlock banner = Descendants(view).OfType<TextBlock>().Single(element => element.Text.StartsWith("Repair mode:", StringComparison.Ordinal));
                 Assert.AreEqual(Visibility.Collapsed, banner.Visibility);
-                TrainPathToolWindow bridge = new(() => null, () => null, _ => { }, () => { }, () => { }, _ => { }, () => { }, () => { });
+                TrainPathToolWindow bridge = new TrainPathToolWindow(() => null, () => null, _ => { }, () => { }, () => { }, _ => { }, () => { }, () => { });
                 typeof(TrainPathToolWindow).GetField("snapshot", BindingFlags.Instance | BindingFlags.NonPublic).SetValue(bridge,
                     TrainPathSnapshot.Empty with { IsRepairMode = repairMode });
-                using (ToolWindowRefreshScheduler scheduler = new(Dispatcher.CurrentDispatcher))
+                using (ToolWindowRefreshScheduler scheduler = new ToolWindowRefreshScheduler(Dispatcher.CurrentDispatcher))
                 {
-                    using (TrainPathToolWindowViewModel viewModel = new(bridge, scheduler))
+                    using (TrainPathToolWindowViewModel viewModel = new TrainPathToolWindowViewModel(bridge, scheduler))
                     {
                         viewModel.Start();
                         view.DataContext = viewModel;
@@ -71,12 +71,12 @@ namespace Tests.FreeTrainSimulator.Toolbox.Views
             Window window = null;
             try
             {
-                TrainPathToolWindow bridge = new(() => null, () => null, _ => { }, () => { }, () => { }, _ => { }, () => { }, () => { });
-                using (ToolWindowRefreshScheduler scheduler = new(Dispatcher.CurrentDispatcher))
+                TrainPathToolWindow bridge = new TrainPathToolWindow(() => null, () => null, _ => { }, () => { }, () => { }, _ => { }, () => { }, () => { });
+                using (ToolWindowRefreshScheduler scheduler = new ToolWindowRefreshScheduler(Dispatcher.CurrentDispatcher))
                 {
-                    using (TrainPathToolWindowViewModel viewModel = new(bridge, scheduler))
+                    using (TrainPathToolWindowViewModel viewModel = new TrainPathToolWindowViewModel(bridge, scheduler))
                     {
-                        TrainPathToolView view = new() { DataContext = viewModel };
+                        TrainPathToolView view = new TrainPathToolView() { DataContext = viewModel };
                         window = new Window { Content = view, Width = 520, Height = 520, ShowInTaskbar = false };
                         window.Show();
                         window.UpdateLayout();
@@ -113,10 +113,10 @@ namespace Tests.FreeTrainSimulator.Toolbox.Views
             Window window = null;
             try
             {
-                TrainPathToolWindow bridge = new(() => null, () => null, _ => { }, () => { }, () => { }, _ => { }, () => { }, () => { });
-                using (ToolWindowRefreshScheduler scheduler = new(Dispatcher.CurrentDispatcher))
+                TrainPathToolWindow bridge = new TrainPathToolWindow(() => null, () => null, _ => { }, () => { }, () => { }, _ => { }, () => { }, () => { });
+                using (ToolWindowRefreshScheduler scheduler = new ToolWindowRefreshScheduler(Dispatcher.CurrentDispatcher))
                 {
-                    using (TrainPathToolWindowViewModel viewModel = new(bridge, scheduler))
+                    using (TrainPathToolWindowViewModel viewModel = new TrainPathToolWindowViewModel(bridge, scheduler))
                     {
                         typeof(TrainPathToolWindow).GetField("snapshot", BindingFlags.Instance | BindingFlags.NonPublic).SetValue(bridge,
                             TrainPathSnapshot.Empty with
@@ -129,7 +129,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.Views
                         viewModel.Start();
                         TrainPathListItemViewModel path = viewModel.Paths.Single(item => item.Id == "path");
                         TrainPathListItemViewModel otherPath = viewModel.Paths.Single(item => item.Id == "other");
-                        TrainPathToolView view = new() { DataContext = viewModel };
+                        TrainPathToolView view = new TrainPathToolView() { DataContext = viewModel };
                         window = new Window { Content = view, Width = width, Height = 520, ShowInTaskbar = false };
                         window.Show();
                         SettleLayout(window);
@@ -203,9 +203,9 @@ namespace Tests.FreeTrainSimulator.Toolbox.Views
             Window window = null;
             try
             {
-                ColumnFilterHeader searchable = new() { Caption = "Name", IsSearchable = true, IsFilterRowVisible = true };
-                ColumnFilterHeader reserved = new() { Caption = "Status", IsSearchable = false, IsFilterRowVisible = true };
-                StackPanel panel = new();
+                ColumnFilterHeader searchable = new ColumnFilterHeader() { Caption = "Name", IsSearchable = true, IsFilterRowVisible = true };
+                ColumnFilterHeader reserved = new ColumnFilterHeader() { Caption = "Status", IsSearchable = false, IsFilterRowVisible = true };
+                StackPanel panel = new StackPanel();
                 panel.Children.Add(searchable);
                 panel.Children.Add(reserved);
                 window = new Window { Content = panel, Width = 220, Height = 160, ShowInTaskbar = false };
@@ -233,15 +233,15 @@ namespace Tests.FreeTrainSimulator.Toolbox.Views
             Window window = null;
             try
             {
-                TrainPathToolWindow bridge = new(() => null, () => null, _ => { }, () => { }, () => { }, _ => { }, () => { }, () => { });
-                using (ToolWindowRefreshScheduler scheduler = new(Dispatcher.CurrentDispatcher))
+                TrainPathToolWindow bridge = new TrainPathToolWindow(() => null, () => null, _ => { }, () => { }, () => { }, _ => { }, () => { }, () => { });
+                using (ToolWindowRefreshScheduler scheduler = new ToolWindowRefreshScheduler(Dispatcher.CurrentDispatcher))
                 {
-                    using (TrainPathToolWindowViewModel viewModel = new(bridge, scheduler))
+                    using (TrainPathToolWindowViewModel viewModel = new TrainPathToolWindowViewModel(bridge, scheduler))
                     {
-                        TrainPathListItemViewModel path = new("dirty", "Unsaved path",
+                        TrainPathListItemViewModel path = new TrainPathListItemViewModel("dirty", "Unsaved path",
                             global::FreeTrainSimulator.Models.Content.PathValidationState.NotValidated, true);
                         viewModel.Paths.Add(path);
-                        TrainPathToolView view = new() { DataContext = viewModel };
+                        TrainPathToolView view = new TrainPathToolView() { DataContext = viewModel };
                         window = new Window { Content = view, Width = 520, Height = 520, ShowInTaskbar = false };
                         window.Show();
                         SettleLayout(window);
@@ -276,15 +276,15 @@ namespace Tests.FreeTrainSimulator.Toolbox.Views
             Window window = null;
             try
             {
-                TrainPathToolWindow bridge = new(() => null, () => null, _ => { }, () => { }, () => { }, _ => { }, () => { }, () => { });
-                using (ToolWindowRefreshScheduler scheduler = new(Dispatcher.CurrentDispatcher))
+                TrainPathToolWindow bridge = new TrainPathToolWindow(() => null, () => null, _ => { }, () => { }, () => { }, _ => { }, () => { }, () => { });
+                using (ToolWindowRefreshScheduler scheduler = new ToolWindowRefreshScheduler(Dispatcher.CurrentDispatcher))
                 {
-                    using (TrainPathToolWindowViewModel viewModel = new(bridge, scheduler))
+                    using (TrainPathToolWindowViewModel viewModel = new TrainPathToolWindowViewModel(bridge, scheduler))
                     {
                         viewModel.Nodes.Add(new TrainPathNodeItemViewModel(new TrainPathNodeRow(0,
                             global::FreeTrainSimulator.Common.PathNodeType.Via, valid, 1, -1, -1, null, valid ? null : "Off track")));
                         viewModel.SelectedTabIndex = TrainPathToolWindowViewModel.EditorTabIndex;
-                        TrainPathToolView view = new() { DataContext = viewModel };
+                        TrainPathToolView view = new TrainPathToolView() { DataContext = viewModel };
                         window = new Window { Content = view, Width = 320, Height = 520, ShowInTaskbar = false };
                         window.Show();
                         SettleLayout(window);
@@ -315,19 +315,19 @@ namespace Tests.FreeTrainSimulator.Toolbox.Views
             Window window = null;
             try
             {
-                TrainPathToolWindow bridge = new(() => null, () => null, _ => { }, () => { }, () => { }, _ => { }, () => { }, () => { });
-                using (ToolWindowRefreshScheduler scheduler = new(Dispatcher.CurrentDispatcher))
+                TrainPathToolWindow bridge = new TrainPathToolWindow(() => null, () => null, _ => { }, () => { }, () => { }, _ => { }, () => { }, () => { });
+                using (ToolWindowRefreshScheduler scheduler = new ToolWindowRefreshScheduler(Dispatcher.CurrentDispatcher))
                 {
-                    using (TrainPathToolWindowViewModel viewModel = new(bridge, scheduler))
+                    using (TrainPathToolWindowViewModel viewModel = new TrainPathToolWindowViewModel(bridge, scheduler))
                     {
-                        TrainPathDiagnosticItemViewModel issue = new(new TrainPathDiagnosticRow(
+                        TrainPathDiagnosticItemViewModel issue = new TrainPathDiagnosticItemViewModel(new TrainPathDiagnosticRow(
                             global::FreeTrainSimulator.Runtime.Track.PathRouteDiagnosticSeverity.Error,
                             global::FreeTrainSimulator.Runtime.Track.PathRouteDiagnosticCode.AnchorNotOnTrack,
                             "The selected node is off track.", 0, -1, -1, "Move the node onto track.", true));
                         viewModel.Diagnostics.Add(issue);
                         viewModel.SelectedTabIndex = TrainPathToolWindowViewModel.EditorTabIndex;
                         viewModel.IsIssuesExpanded = true;
-                        TrainPathToolView view = new() { DataContext = viewModel };
+                        TrainPathToolView view = new TrainPathToolView() { DataContext = viewModel };
                         window = new Window { Content = view, Width = width, Height = 900, ShowInTaskbar = false };
                         window.Show();
                         SettleLayout(window);
@@ -363,9 +363,9 @@ namespace Tests.FreeTrainSimulator.Toolbox.Views
             Window window = null;
             try
             {
-                TrainPathToolWindow bridge = new(() => null, () => null, _ => { }, () => { }, () => { }, _ => { }, () => { }, () => { });
-                using ToolWindowRefreshScheduler scheduler = new(Dispatcher.CurrentDispatcher);
-                using TrainPathToolWindowViewModel viewModel = new(bridge, scheduler, TrainPathToolWindowViewModel.EditorTabIndex);
+                TrainPathToolWindow bridge = new TrainPathToolWindow(() => null, () => null, _ => { }, () => { }, () => { }, _ => { }, () => { }, () => { });
+                using ToolWindowRefreshScheduler scheduler = new ToolWindowRefreshScheduler(Dispatcher.CurrentDispatcher);
+                using TrainPathToolWindowViewModel viewModel = new TrainPathToolWindowViewModel(bridge, scheduler, TrainPathToolWindowViewModel.EditorTabIndex);
                 TrainPathSnapshot snapshot = TrainPathSnapshot.Empty with
                 {
                     Nodes = System.Collections.Immutable.ImmutableArray.CreateRange(Enumerable.Range(0, 112).Select(index =>
@@ -373,7 +373,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.Views
                 };
                 typeof(TrainPathToolWindow).GetField("snapshot", BindingFlags.Instance | BindingFlags.NonPublic).SetValue(bridge, snapshot);
                 viewModel.Start();
-                TrainPathToolView view = new() { DataContext = viewModel };
+                TrainPathToolView view = new TrainPathToolView() { DataContext = viewModel };
                 window = new Window { Content = view, Width = 320, Height = 520, ShowInTaskbar = false };
                 window.Show();
                 SettleLayout(window);
@@ -399,7 +399,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.Views
                             $"Rendered row {node.Index} after selecting {selectedIndex}");
                         Assert.AreEqual(TextTrimming.CharacterEllipsis, indexCell.TextTrimming);
                         Assert.AreEqual(node.Index, indexCell.ToolTip);
-                        TextBlock measured = new()
+                        TextBlock measured = new TextBlock()
                         {
                             Text = indexCell.Text,
                             FontFamily = indexCell.FontFamily,

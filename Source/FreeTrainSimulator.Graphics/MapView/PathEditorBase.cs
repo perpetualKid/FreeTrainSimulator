@@ -23,12 +23,13 @@ namespace FreeTrainSimulator.Graphics.MapView
 
         protected bool UseStandaloneActivePathPointPreview { get; set; }
 
+        protected bool PointerInputEnabled { get; set; } = true;
+
         protected PathModel PreviewPathModel { get; private set; }
 
         protected void SetHiddenPathNodeIndex(int nodeIndex)
         {
-            if (trainPath != null)
-                trainPath.HiddenNodeIndex = nodeIndex;
+            trainPath?.HiddenNodeIndex = nodeIndex;
         }
 
         protected bool InitializeActivePathPointPreview(int nodeIndex)
@@ -76,7 +77,7 @@ namespace FreeTrainSimulator.Graphics.MapView
 
         internal void UpdatePointerLocation(in PointD location, TrackSegmentBase nearestSegment)
         {
-            if (trainPath == null && !UseStandaloneActivePathPointPreview)
+            if (!PointerInputEnabled || trainPath == null && !UseStandaloneActivePathPointPreview)
                 return;
 
             // if a tracksegment is nearby, snap to the segment

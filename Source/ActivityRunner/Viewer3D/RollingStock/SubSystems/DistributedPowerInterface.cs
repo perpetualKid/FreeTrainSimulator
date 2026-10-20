@@ -378,7 +378,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock.SubSystems
 
     public class DPITable : DPIWindow
     {
-        public DistributedPowerInterface DPI;
+        public new DistributedPowerInterface DPI;
         public const int NumberOfRowsFull = 9;
         public const int NumberOfRowsPartial = 6;
         private const int NumberOfColumns = 7;

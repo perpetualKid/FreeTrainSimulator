@@ -9,6 +9,7 @@ using Microsoft.Xna.Framework;
 namespace Tests.FreeTrainSimulator.Graphics.MapView
 {
     [TestClass]
+    [OSCondition(OperatingSystems.Windows)]
     public class MapViewportStateTests
     {
         [TestMethod]
@@ -22,7 +23,7 @@ namespace Tests.FreeTrainSimulator.Graphics.MapView
         public void WhenViewportResizesThenWorldContentKeepsItsScreenPosition(int width, int height)
         {
             MapViewportState viewport = CreateViewport();
-            PointD worldPoint = new(120, 240);
+            PointD worldPoint = new PointD(120, 240);
             PointD screenPosition = viewport.WorldToScreenCoordinates(worldPoint);
 
             viewport.UpdateWindowSize(new MapViewportSize(width, height));
@@ -129,7 +130,7 @@ namespace Tests.FreeTrainSimulator.Graphics.MapView
         [TestMethod]
         public void WhenUninitializedViewportResizesThenWindowSizeIsRecordedWithoutCreatingAnInvalidScale()
         {
-            MapViewportState viewport = new(new MapViewportBounds(-1000, 1000, 1000, -1000));
+            MapViewportState viewport = new MapViewportState(new MapViewportBounds(-1000, 1000, 1000, -1000));
 
             viewport.UpdateWindowSize(new MapViewportSize(1040, 840));
 
@@ -139,8 +140,8 @@ namespace Tests.FreeTrainSimulator.Graphics.MapView
         [TestMethod]
         public void WhenControllerSynchronizesResizedViewportThenContentRemainsStableAndRedrawIsRequested()
         {
-            MapViewportBounds bounds = new(-1000, 1000, 1000, -1000);
-            MapViewController controller = new(bounds);
+            MapViewportBounds bounds = new MapViewportBounds(-1000, 1000, 1000, -1000);
+            MapViewController controller = new MapViewController(bounds);
             controller.ResetSize(new Point(800, 600), 0, new Point(0, 0));
             controller.PresetPosition(new PointD(100, 200), 2.5);
             _ = controller.UpdateFrameState();
@@ -157,10 +158,10 @@ namespace Tests.FreeTrainSimulator.Graphics.MapView
         [TestMethod]
         public void WhenResizedViewportPansThenContentMovesOnlyByTheRequestedPixelDelta()
         {
-            MapViewportState viewport = new(new MapViewportBounds(-1000, -1000, 1000, 1000));
+            MapViewportState viewport = new MapViewportState(new MapViewportBounds(-1000, -1000, 1000, 1000));
             viewport.ResetSize(new MapViewportSize(800, 600), 0);
             viewport.PresetPosition(new PointD(100, 200), 1.3);
-            PointD worldPoint = new(120, 240);
+            PointD worldPoint = new PointD(120, 240);
             viewport.UpdateWindowSize(new MapViewportSize(1040, 840));
             PointD original = viewport.WorldToScreenCoordinates(worldPoint);
 
@@ -192,7 +193,7 @@ namespace Tests.FreeTrainSimulator.Graphics.MapView
             MapViewportState viewport = CreateViewport();
             viewport.PresetPosition(new PointD(100, 200), 1.3);
             viewport.UpdateScaleAt(150, 250, 1, 100);
-            PointD worldPoint = new(120, 240);
+            PointD worldPoint = new PointD(120, 240);
             PointD original = viewport.WorldToScreenCoordinates(worldPoint);
 
             viewport.UpdateWindowSize(new MapViewportSize(1040, 840));
@@ -204,7 +205,7 @@ namespace Tests.FreeTrainSimulator.Graphics.MapView
 
         private static MapViewportState CreateViewport()
         {
-            MapViewportState viewport = new(new MapViewportBounds(-1000, 1000, 1000, -1000));
+            MapViewportState viewport = new MapViewportState(new MapViewportBounds(-1000, 1000, 1000, -1000));
             viewport.ResetSize(new MapViewportSize(800, 600), 0);
             viewport.PresetPosition(new PointD(100, 200), 2.5);
             return viewport;

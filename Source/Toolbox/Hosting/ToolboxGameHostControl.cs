@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Drawing;
 using System.Runtime.InteropServices;
 using System.Threading;
@@ -20,9 +20,15 @@ namespace FreeTrainSimulator.Toolbox.Hosting
     {
         private readonly HostPanel hostPanel;
         private readonly Lock syncLock = new Lock();
+        private readonly TaskCompletionSource<GameWindow> ready = new TaskCompletionSource<GameWindow>(TaskCreationOptions.RunContinuationsAsynchronously);
+        private readonly TaskCompletionSource gameThreadCompletion = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
 
         private Thread gameThread;
-        private GameWindow gameWindow;
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Usage", "CA2213:Disposable fields should be disposed",
+            Justification = "GameThreadStart owns and disposes the game in a using block on its STA after draining the session; this field only publishes the instance.")]
+        private volatile GameWindow gameWindow;
+        private Task stopTask;
+        private volatile bool stopping;
         private bool hostedWindowAttached;
         private bool hostedWindowAttaching;
         private IntPtr hostPanelHandle;
@@ -179,46 +185,147 @@ namespace FreeTrainSimulator.Toolbox.Hosting
                     Name = "Toolbox.HostedGameThread",
                 };
                 gameThread.SetApartmentState(ApartmentState.STA);
-                gameThread.Start();
+                GameWindow.ObserveGameThreadOperation(ready.Task);
+                GameWindow.ObserveGameThreadOperation(gameThreadCompletion.Task);
+                try
+                {
+                    gameThread.Start();
+                }
+                catch (SystemException exception)
+                {
+                    ready.TrySetException(exception);
+                    gameThreadCompletion.TrySetException(exception);
+                    throw;
+                }
             }
         }
 
         private void GameThreadStart()
         {
+            Exception failure = null;
             try
             {
                 using (GameWindow game = new GameWindow())
                 {
                     gameWindow = game;
                     game.EnableHostedMode(ReattachHostedWindow, UpdateHostWindowTitle);
-
-                    Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(AttachHostedWindow));
-                    Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(PublishHostedBridges));
-
-                    game.Run();
-                    gameWindow = null;
+                    game.HostedReady += Game_HostedReady;
+                    try
+                    {
+                        game.Run();
+                    }
+                    catch (Exception ex) when (ex is not ThreadAbortException)
+                    {
+                        failure = ex;
+                        throw;
+                    }
+                    finally
+                    {
+                        game.HostedReady -= Game_HostedReady;
+                        try
+                        {
+                            DrainSessionOnOwner(game);
+                        }
+                        catch (Exception ex) when (failure != null && ex is not ThreadAbortException)
+                        {
+                            // Preserve the Run failure for owner completion; report cleanup failures as well.
+                            System.Diagnostics.Trace.TraceError($"[ToolboxGameHost] Session cleanup after Run failure failed: {ex}");
+                        }
+                    }
                 }
             }
             catch (Exception ex) when (ex is not ThreadAbortException)
             {
+                failure ??= ex;
                 System.Diagnostics.Trace.TraceError($"[ToolboxGameHost] Hosted game thread terminated unexpectedly: {ex}");
+                if (!ReferenceEquals(failure, ex))
+                    System.Diagnostics.Trace.TraceError($"[ToolboxGameHost] Original Run failure: {failure}");
+            }
+            finally
+            {
+                gameWindow = null;
+                ready.TrySetException(failure ?? new InvalidOperationException("The hosted game stopped before becoming ready."));
+                // This is deliberately after Run AND the using block's owner-thread disposal.
+                if (failure == null)
+                    gameThreadCompletion.TrySetResult();
+                else
+                    gameThreadCompletion.TrySetException(failure);
             }
         }
 
-        // Publishes the hosted menu bridge to the WPF shell once the game window has been created. Retries on
-        // the dispatcher until the game window (and therefore its menu bridge) is available.
+        /// <summary>Drains and releases the session on its STA after MonoGame has destroyed the render form.</summary>
+        internal static void DrainSessionOnOwner(GameWindow game)
+        {
+            Task drain = game.Session.StopAndDrainAsync();
+            if (!drain.IsCompleted)
+            {
+                using ApplicationContext context = new ApplicationContext();
+                // Both successful and failed drains must end the fallback loop through the live owner HWND.
+                _ = drain.ContinueWith(_ => game.InvokeOnGameThread(context.ExitThread),
+                    CancellationToken.None, TaskContinuationOptions.None, TaskScheduler.Default);
+                Application.Run(context);
+            }
+            try
+            {
+                drain.GetAwaiter().GetResult();
+            }
+            finally
+            {
+                // Faulted jobs have also finished borrowing resources. Release them before reporting failure.
+                game.Session.Dispose();
+            }
+        }
+
+        private void Game_HostedReady(object sender, EventArgs e)
+        {
+            ready.TrySetResult((GameWindow)sender);
+            if (!stopping && !Dispatcher.HasShutdownStarted && !Dispatcher.HasShutdownFinished)
+                Dispatcher.BeginInvoke(DispatcherPriority.Normal, new Action(() =>
+                {
+                    AttachHostedWindow();
+                    PublishHostedBridges();
+                }));
+        }
+
+        /// <summary>Shares shutdown completion; both owners must keep pumping until this task completes.</summary>
+        internal Task StopAsync()
+        {
+            lock (syncLock)
+            {
+                stopping = true;
+                return stopTask ??= StopCoreAsync();
+            }
+        }
+
+        private async Task StopCoreAsync()
+        {
+            await Task.WhenAny(ready.Task, gameThreadCompletion.Task).ConfigureAwait(false);
+            if (gameThreadCompletion.Task.IsCompleted)
+            {
+                await gameThreadCompletion.Task.ConfigureAwait(false);
+                await ready.Task.ConfigureAwait(false);
+                return;
+            }
+
+            GameWindow game = await ready.Task.ConfigureAwait(false);
+            Task stop = game.StopForExitAsync();
+            GameWindow.ObserveGameThreadOperation(stop);
+            await Task.WhenAny(stop, gameThreadCompletion.Task).ConfigureAwait(false);
+            if (!gameThreadCompletion.Task.IsCompleted)
+                await stop.ConfigureAwait(false);
+            await gameThreadCompletion.Task.ConfigureAwait(false);
+        }
+
+        // Initialization publishes once. Failed/stopping startups never leave dispatcher retry callbacks.
         private void PublishHostedBridges()
         {
-            if (disposed)
+            if (disposed || stopping || gameThreadCompletion.Task.IsCompleted)
                 return;
 
             GameWindow game = gameWindow;
             HostedToolboxServices services = game?.HostedServices;
             if (services?.Menu == null)
-            {
-                Dispatcher.BeginInvoke(DispatcherPriority.Background, new Action(PublishHostedBridges));
                 return;
-            }
 
             HostedServices = services;
             HostedMenuReady?.Invoke(this, EventArgs.Empty);
@@ -248,8 +355,15 @@ namespace FreeTrainSimulator.Toolbox.Hosting
 
         private void Game_UnsavedPathConfirmationRequested(object sender, UnsavedPathConfirmationEventArgs e)
         {
+            if (e.Completion.Task.IsCompleted)
+                return;
+
             Dispatcher.BeginInvoke(DispatcherPriority.Normal,
-                new Action(() => UnsavedPathConfirmationRequested?.Invoke(this, e)));
+                new Action(() =>
+                {
+                    if (!e.Completion.Task.IsCompleted)
+                        UnsavedPathConfirmationRequested?.Invoke(this, e);
+                }));
         }
 
         private void Game_ToolWindowShortcutRequested(object sender, ToolWindowShortcutRequestedEventArgs e)
@@ -266,7 +380,7 @@ namespace FreeTrainSimulator.Toolbox.Hosting
 
         private void AttachHostedWindow()
         {
-            if (disposed || !IsLoaded || hostPanel.IsDisposed || !hostPanel.IsHandleCreated
+            if (disposed || stopping || !IsLoaded || hostPanel.IsDisposed || !hostPanel.IsHandleCreated
                 || hostedWindowAttached || hostedWindowAttaching)
                 return;
 
@@ -535,10 +649,7 @@ namespace FreeTrainSimulator.Toolbox.Hosting
             GameWindow game = gameWindow;
             if (game == null)
                 return Task.FromResult(false);
-
-            TaskCompletionSource<bool> completion = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
-            game.InvokeOnGameThread(() => completion.TrySetResult(game.HasUnsavedPathChanges));
-            return completion.Task;
+            return game.InvokeOnGameThreadAsync(() => Task.FromResult(game.HasUnsavedPathChanges));
         }
 
         private void OnHostedWindowPointerDown()
@@ -550,6 +661,14 @@ namespace FreeTrainSimulator.Toolbox.Hosting
         {
             if (disposed)
                 return;
+
+            // WPF must await StopAsync first. Never block its dispatcher or destroy a live child's parent.
+            if (!gameThreadCompletion.Task.IsCompletedSuccessfully)
+            {
+                if (disposing)
+                    throw new InvalidOperationException("Await successful hosted game shutdown before disposing the host.");
+                return;
+            }
 
             disposed = true;
 
@@ -565,28 +684,8 @@ namespace FreeTrainSimulator.Toolbox.Hosting
                 mainWindow = null;
             }
 
-            GameWindow game = gameWindow;
-            // Signal the game loop (running on its own STA thread) to exit. Marshal Exit onto the game
-            // thread because that is where the MonoGame/WinForms state lives. Do NOT call game.Dispose()
-            // here: the game owns a separate thread that is actively running game.Run(), and the
-            // using-block in GameThreadStart disposes it on that thread once Run() returns. Disposing
-            // here races with the live loop and tears down the GraphicsDevice/Platform mid-Tick, causing
-            // a NullReferenceException inside MonoGame's Game.Tick().
-            if (game != null)
-            {
-                game.ToolWindowShortcutRequested -= Game_ToolWindowShortcutRequested;
-                game.InvokeOnGameThread(game.Exit);
-            }
-
-            // Wait for the game thread to finish its loop and dispose the GameWindow on its owning thread.
-            if (gameThread != null && gameThread.IsAlive)
-            {
-                gameThread.Join(TimeSpan.FromSeconds(5));
-            }
-
             gameThread = null;
-            gameWindow?.Dispose();
-            gameWindow = null;
+            HostedServices = null;
 
             // Dispose the panel only after the game thread has stopped touching the child window.
             hostPanel?.Dispose();

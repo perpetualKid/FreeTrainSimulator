@@ -362,7 +362,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.PathEditing
         public async Task WhenCleanPathIsReopenedThenContinuationDoesNotDirtyItUntilRoutePointIsCommitted()
         {
             PathModel source = CreateEditablePath();
-            using (PathEditor editor = new(new TestPathEditorContext(TrackWorldTestFixture.CreateSingleVectorNodeTrackWorld())))
+            using (PathEditor editor = new PathEditor(new TestPathEditorContext(TrackWorldTestFixture.CreateSingleVectorNodeTrackWorld())))
             {
                 Assert.IsTrue(await editor.InitializePathAsync(source, CancellationToken.None).ConfigureAwait(false));
                 Assert.IsFalse(editor.HasUnsavedChanges);
@@ -391,7 +391,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.PathEditing
             {
                 PathNodes = CreateEditablePath().PathNodes.Add(CreateNodeAt(50, PathNodeType.Via, -1)),
             };
-            using (PathEditor editor = new(new TestPathEditorContext(TrackWorldTestFixture.CreateSingleVectorNodeTrackWorld())))
+            using (PathEditor editor = new PathEditor(new TestPathEditorContext(TrackWorldTestFixture.CreateSingleVectorNodeTrackWorld())))
             {
                 _ = await editor.InitializePathAsync(source, CancellationToken.None).ConfigureAwait(false);
                 (PathModel, bool HasUnsavedChanges, bool CanUndo, bool CanRedo) originalState = (editor.TryCaptureCurrentPathModel(), editor.HasUnsavedChanges, editor.CanUndo, editor.CanRedo);
@@ -410,7 +410,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.PathEditing
             {
                 PathNodes = CreateEditablePath().PathNodes.Add(CreateNodeAt(50, PathNodeType.Via, -1)),
             };
-            using (PathEditor editor = new(new TestPathEditorContext(TrackWorldTestFixture.CreateSingleVectorNodeTrackWorld())))
+            using (PathEditor editor = new PathEditor(new TestPathEditorContext(TrackWorldTestFixture.CreateSingleVectorNodeTrackWorld())))
             {
                 _ = await editor.InitializePathAsync(source, CancellationToken.None).ConfigureAwait(false);
                 _ = editor.BeginStartAnchorPlacementCommand();
@@ -433,7 +433,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.PathEditing
                     CreateNodeAt(200, PathNodeType.End, -1) with { NodeIndex = 2 },
                     CreateNodeAt(125, PathNodeType.Via, -1)),
             };
-            using (PathEditor editor = new(new TestPathEditorContext(CreateAmbiguousTrackWorld())))
+            using (PathEditor editor = new PathEditor(new TestPathEditorContext(CreateAmbiguousTrackWorld())))
             {
                 _ = await editor.InitializePathAsync(source, CancellationToken.None).ConfigureAwait(false);
                 _ = editor.BeginStartAnchorPlacementCommand();
@@ -454,7 +454,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.PathEditing
                 PathNodes = CreateEditablePath().PathNodes.Add(CreateNodeAt(50, PathNodeType.Via, -1)),
             };
             TrackWorld trackWorld = CreatePlacementTrackWorld(out TestTrackSegment segment);
-            using (PathEditor editor = new(new TestPathEditorContext(trackWorld)))
+            using (PathEditor editor = new PathEditor(new TestPathEditorContext(trackWorld)))
             {
                 _ = await editor.InitializePathAsync(source, CancellationToken.None).ConfigureAwait(false);
                 _ = editor.BeginMoveNode(nodeIndex);
@@ -478,7 +478,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.PathEditing
                 { WaitInfo = new PathNodeWaitInfo { WaitTime = 17 } }),
             };
             TrackWorld trackWorld = CreatePlacementTrackWorld(out TestTrackSegment segment);
-            using (PathEditor editor = new(new TestPathEditorContext(trackWorld)))
+            using (PathEditor editor = new PathEditor(new TestPathEditorContext(trackWorld)))
             {
                 _ = await editor.InitializePathAsync(source, CancellationToken.None).ConfigureAwait(false);
                 _ = editor.SetMetadataCommand("First edit", "Start", "End", false);
@@ -502,7 +502,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.PathEditing
                 PathNodes = CreateEditablePath().PathNodes.Add(CreateNodeAt(50, PathNodeType.Via, -1)),
             };
             TrackWorld trackWorld = CreatePlacementTrackWorld(out TestTrackSegment segment);
-            using (PathEditor editor = new(new TestPathEditorContext(trackWorld)))
+            using (PathEditor editor = new PathEditor(new TestPathEditorContext(trackWorld)))
             {
                 _ = await editor.InitializePathAsync(source, CancellationToken.None).ConfigureAwait(false);
                 (PathModel, bool HasUnsavedChanges, bool CanUndo, bool CanRedo, bool EditMode, bool IsPlacementActive) originalState = (editor.TryCaptureCurrentPathModel(), editor.HasUnsavedChanges, editor.CanUndo, editor.CanRedo,
@@ -552,8 +552,8 @@ namespace Tests.FreeTrainSimulator.Toolbox.PathEditing
         public async Task WhenPointerIsPressedAfterCanceledBuildRoutePanThenDragLatchClearsWithoutChangingCommittedState()
         {
             PathModel source = CreateEditablePath();
-            UserCommandController<global::FreeTrainSimulator.Toolbox.UserCommand> commandController = new();
-            using (PathEditor editor = new(new TestPathEditorContext(TrackWorldTestFixture.CreateSingleVectorNodeTrackWorld()), commandController, action => action(), commit => Task.FromResult(commit())))
+            UserCommandController<global::FreeTrainSimulator.Toolbox.UserCommand> commandController = new UserCommandController<global::FreeTrainSimulator.Toolbox.UserCommand>();
+            using (PathEditor editor = new PathEditor(new TestPathEditorContext(TrackWorldTestFixture.CreateSingleVectorNodeTrackWorld()), commandController, action => action(), commit => Task.FromResult(commit())))
             {
                 Assert.IsTrue(await editor.InitializePathAsync(source, CancellationToken.None).ConfigureAwait(false));
                 Assert.IsTrue(editor.ContinuePathCommand().Success);
@@ -580,8 +580,8 @@ namespace Tests.FreeTrainSimulator.Toolbox.PathEditing
         public async Task WhenClickFollowsCanceledBuildRoutePanThenPreviewIsCommittedExactlyOnceAndBuildSessionRemainsActive()
         {
             PathModel source = CreateEditablePath();
-            UserCommandController<global::FreeTrainSimulator.Toolbox.UserCommand> commandController = new();
-            using (PathEditor editor = new(new TestPathEditorContext(TrackWorldTestFixture.CreateSingleVectorNodeTrackWorld()), commandController, action => action(), commit => Task.FromResult(commit())))
+            UserCommandController<global::FreeTrainSimulator.Toolbox.UserCommand> commandController = new UserCommandController<global::FreeTrainSimulator.Toolbox.UserCommand>();
+            using (PathEditor editor = new PathEditor(new TestPathEditorContext(TrackWorldTestFixture.CreateSingleVectorNodeTrackWorld()), commandController, action => action(), commit => Task.FromResult(commit())))
             {
                 Assert.IsTrue(await editor.InitializePathAsync(source, CancellationToken.None).ConfigureAwait(false));
                 Assert.IsTrue(editor.ContinuePathCommand().Success);
@@ -614,8 +614,8 @@ namespace Tests.FreeTrainSimulator.Toolbox.PathEditing
         [DataRow(CommonUserCommand.PointerDragged, false)]
         public void WhenInteractiveEditorIsDisposedThenPointerHandlerIsRemoved(CommonUserCommand command, bool dragged)
         {
-            UserCommandController<global::FreeTrainSimulator.Toolbox.UserCommand> commandController = new();
-            using (PathEditor editor = new(new TestPathEditorContext(TrackWorldTestFixture.CreateSingleVectorNodeTrackWorld()), commandController,
+            UserCommandController<global::FreeTrainSimulator.Toolbox.UserCommand> commandController = new UserCommandController<global::FreeTrainSimulator.Toolbox.UserCommand>();
+            using (PathEditor editor = new PathEditor(new TestPathEditorContext(TrackWorldTestFixture.CreateSingleVectorNodeTrackWorld()), commandController,
                 action => action(), commit => Task.FromResult(commit())))
             {
                 editor.InitializeNewPath();
@@ -711,8 +711,8 @@ namespace Tests.FreeTrainSimulator.Toolbox.PathEditing
         [TestMethod]
         public void WhenBuildRouteBeginsThenPointerInputModeRemainsActive()
         {
-            TestPathEditorContext context = new(CreateInitializedTrackWorld());
-            using (PathEditor editor = new(context))
+            TestPathEditorContext context = new TestPathEditorContext(CreateInitializedTrackWorld());
+            using (PathEditor editor = new PathEditor(context))
             {
                 editor.InitializeNewPath();
                 _ = editor.SetStartAnchorCommand(CreateNodeAt(0, PathNodeType.None, -1), false);
@@ -725,11 +725,11 @@ namespace Tests.FreeTrainSimulator.Toolbox.PathEditing
         public void WhenPointerHasNearestTrackSegmentThenPreviewKeepsSegmentAnchor()
         {
             TrackWorld trackWorld = CreateInitializedTrackWorld();
-            TestPathEditorContext context = new(trackWorld);
-            using (PathEditor editor = new(context))
+            TestPathEditorContext context = new TestPathEditorContext(trackWorld);
+            using (PathEditor editor = new PathEditor(context))
             {
                 editor.InitializeNewPath();
-                TestTrackSegment segment = new(new PointD(0, 0), new PointD(100, 0));
+                TestTrackSegment segment = new TestTrackSegment(new PointD(0, 0), new PointD(100, 0));
 
                 editor.UpdatePointerLocation(segment.Location, segment);
 
@@ -765,7 +765,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.PathEditing
                 PathNode previewAnchor = CreateNodeAt(200, PathNodeType.None, -1);
                 SetPrivateField(editor, "resolvingPreviewAnchor", previewAnchor);
                 SetPrivateField(editor, "interactivePreviewGeneration", 1);
-                using (CancellationTokenSource cancellation = new())
+                using (CancellationTokenSource cancellation = new CancellationTokenSource())
                 {
                     SetPrivateField(editor, "interactivePreviewCancellation", cancellation);
                     cancellation.Cancel();
@@ -778,6 +778,104 @@ namespace Tests.FreeTrainSimulator.Toolbox.PathEditing
 
 
                 Assert.IsFalse(editor.CanCommitPlacement);
+            }
+        }
+
+        [TestMethod]
+        public void WhenStoppedThenPointerCannotUpdateOrLaunchPreview()
+        {
+            using (PathEditor editor = CreateEditor(CreateEditablePath()))
+            {
+                _ = editor.ContinuePathCommand();
+                object point = typeof(PathEditorBase).GetProperty("ActivePathPoint", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(editor);
+                Task preview = (Task)typeof(PathEditor).GetField("interactivePreviewTask", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(editor);
+
+                editor.Stop();
+                editor.Stop();
+                editor.UpdatePointerLocation(new PointD(50, 0), new TestTrackSegment(new PointD(0, 0), new PointD(100, 0)));
+
+                Assert.AreEqual((point, preview, false),
+                    (typeof(PathEditorBase).GetProperty("ActivePathPoint", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(editor),
+                    typeof(PathEditor).GetField("interactivePreviewTask", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(editor), editor.IsPlacementActive));
+            }
+        }
+
+        [TestMethod]
+        public void WhenStoppedThenPlacementCannotRestart()
+        {
+            using (PathEditor editor = CreateEditor(CreateEditablePath()))
+            {
+                editor.Stop();
+
+                Assert.AreEqual((false, false, false, false), (editor.BeginStartAnchorPlacementCommand().Success,
+                    editor.BeginEndAnchorPlacementCommand().Success, editor.BeginMoveNode(0), editor.ContinuePathCommand().Success));
+            }
+        }
+
+        [TestMethod]
+        public void WhenStoppedThenContinueDoesNotRestorePresentation()
+        {
+            using (PathEditor editor = CreateEditor(CreateEditablePath()))
+            {
+                PathModel source = editor.TryCaptureCurrentPathModel();
+                editor.Stop();
+
+            PathEditorCommandResult result = editor.ContinuePathCommand();
+
+                Assert.AreEqual((false, true, source, false, false),
+                    (result.Success, editor.EditMode, editor.TryCaptureCurrentPathModel(), editor.CanContinuePath, editor.CanMoveNode(0)));
+            }
+        }
+
+        [TestMethod]
+        public void WhenStoppedThenPlacementCommitAndReleaseLeaveModelUnchanged()
+        {
+            using (PathEditor editor = CreateEditor(CreateEditablePath()))
+            {
+                _ = editor.ContinuePathCommand();
+                PathModel source = editor.TryCaptureCurrentPathModel();
+                SetPrivateField(editor, "movePreviewModel", InvokeAddRoutePoint(source, CreateNodeAt(200, PathNodeType.None, -1)).PathModel);
+
+                editor.Stop();
+                editor.MouseDragged(null, KeyModifiers.None);
+                editor.MouseReleasedLeft(null, KeyModifiers.None);
+                PathEditResult result = editor.CommitPlacement();
+
+                Assert.AreEqual((false, source), (result.Success, editor.TryCaptureCurrentPathModel()));
+            }
+        }
+
+        [TestMethod]
+        public void WhenStoppedThenDirectAnchorPlacementLeavesModelUnchanged()
+        {
+            using (PathEditor editor = CreateEditor(CreateEditablePath()))
+            {
+                PathModel source = editor.TryCaptureCurrentPathModel();
+                editor.Stop();
+
+                PathEditorCommandResult result = editor.SetStartAnchorCommand(CreateNodeAt(50, PathNodeType.None, -1), false);
+
+                Assert.AreEqual((false, source), (result.Success, editor.TryCaptureCurrentPathModel()));
+            }
+        }
+
+        [TestMethod]
+        public async Task WhenPreviewAdmissionIsRejectedThenWorkerIsNotLaunched()
+        {
+            InvalidOperationException rejection = new InvalidOperationException("Session stopped.");
+            UserCommandController<global::FreeTrainSimulator.Toolbox.UserCommand> controller = new UserCommandController<global::FreeTrainSimulator.Toolbox.UserCommand>();
+            using (PathEditor editor = new PathEditor(new TestPathEditorContext(CreateInitializedTrackWorld()), controller,
+                _ => Task.CompletedTask, commit => Task.FromResult(commit()), _ => Task.FromException(rejection)))
+            {
+                editor.InitializeNewPath();
+                PathModel source = editor.TryCaptureCurrentPathModel();
+                typeof(PathEditor).GetMethod("StartInteractivePreview", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(editor,
+                    new object[] { CreateNodeAt(50, PathNodeType.None, -1), PathEditResult.Succeeded("Preview", source, ImmutableArray<int>.Empty) });
+                Task preview = (Task)typeof(PathEditor).GetField("interactivePreviewTask", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(editor);
+
+                _ = await Assert.ThrowsExactlyAsync<InvalidOperationException>(() => preview).ConfigureAwait(false);
+
+                Assert.IsNull(typeof(PathEditor).GetField("interactivePreviewCancellation", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(editor));
             }
         }
 
@@ -837,8 +935,8 @@ namespace Tests.FreeTrainSimulator.Toolbox.PathEditing
             {
                 PathNodes = ImmutableArray.Create(CreateNode(PathNodeType.Start, 1), CreateNode(PathNodeType.Via, 2), CreateNode(PathNodeType.End, -1)),
             };
-            ResolvedPathSpan outgoing = new(0, 1, PathRouteSpanStatus.Resolved, ImmutableArray.Create(9, 3, 7, 4, 5));
-            ResolvedPathSpan returning = new(1, 2, PathRouteSpanStatus.Resolved, ImmutableArray.Create(5, 4, 7, 3, 9));
+            ResolvedPathSpan outgoing = new ResolvedPathSpan(0, 1, PathRouteSpanStatus.Resolved, ImmutableArray.Create(9, 3, 7, 4, 5));
+            ResolvedPathSpan returning = new ResolvedPathSpan(1, 2, PathRouteSpanStatus.Resolved, ImmutableArray.Create(5, 4, 7, 3, 9));
             ImmutableArray<ResolvedPathSpan> spans = ImmutableArray.Create(outgoing, returning);
 
             bool routeBack = PathEditor.HasImplicitRouteBack(pathModel, spans, spans);
@@ -853,8 +951,8 @@ namespace Tests.FreeTrainSimulator.Toolbox.PathEditing
             {
                 PathNodes = ImmutableArray.Create(CreateNode(PathNodeType.Start, 1), CreateNode(PathNodeType.Via | PathNodeType.Reversal, 2), CreateNode(PathNodeType.End, -1)),
             };
-            ResolvedPathSpan committed = new(0, 1, PathRouteSpanStatus.Resolved, ImmutableArray.Create(9, 3, 7, 4, 5));
-            ResolvedPathSpan affected = new(1, 2, PathRouteSpanStatus.Resolved, ImmutableArray.Create(5, 4, 7, 3, 9));
+            ResolvedPathSpan committed = new ResolvedPathSpan(0, 1, PathRouteSpanStatus.Resolved, ImmutableArray.Create(9, 3, 7, 4, 5));
+            ResolvedPathSpan affected = new ResolvedPathSpan(1, 2, PathRouteSpanStatus.Resolved, ImmutableArray.Create(5, 4, 7, 3, 9));
 
             bool routeBack = PathEditor.HasImplicitRouteBack(pathModel, ImmutableArray.Create(committed, affected), ImmutableArray.Create(affected));
 
@@ -1077,8 +1175,8 @@ namespace Tests.FreeTrainSimulator.Toolbox.PathEditing
         [TestMethod]
         public async Task WhenNewPathStartsAfterLoadCommitIsQueuedThenStaleCommitCannotReplaceIt()
         {
-            TaskCompletionSource<Func<bool>> queuedCommitSource = new(TaskCreationOptions.RunContinuationsAsynchronously);
-            TaskCompletionSource<bool> commitCompletion = new(TaskCreationOptions.RunContinuationsAsynchronously);
+            TaskCompletionSource<Func<bool>> queuedCommitSource = new TaskCompletionSource<Func<bool>>(TaskCreationOptions.RunContinuationsAsynchronously);
+            TaskCompletionSource<bool> commitCompletion = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
             UserCommandController<global::FreeTrainSimulator.Toolbox.UserCommand> commandController = new UserCommandController<global::FreeTrainSimulator.Toolbox.UserCommand>();
 
             using (PathEditor editor = new PathEditor(new TestPathEditorContext(TrackWorldTestFixture.CreateSingleVectorNodeTrackWorld()), commandController,
@@ -1103,8 +1201,8 @@ namespace Tests.FreeTrainSimulator.Toolbox.PathEditing
         [TestMethod]
         public async Task WhenEditorIsDisposedAfterLoadCommitIsQueuedThenCommitIsRejected()
         {
-            TaskCompletionSource<Func<bool>> queuedCommitSource = new(TaskCreationOptions.RunContinuationsAsynchronously);
-            TaskCompletionSource<bool> commitCompletion = new(TaskCreationOptions.RunContinuationsAsynchronously);
+            TaskCompletionSource<Func<bool>> queuedCommitSource = new TaskCompletionSource<Func<bool>>(TaskCreationOptions.RunContinuationsAsynchronously);
+            TaskCompletionSource<bool> commitCompletion = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
             UserCommandController<global::FreeTrainSimulator.Toolbox.UserCommand> commandController = new UserCommandController<global::FreeTrainSimulator.Toolbox.UserCommand>();
             PathEditor editor = new PathEditor(new TestPathEditorContext(TrackWorldTestFixture.CreateSingleVectorNodeTrackWorld()), commandController,
                 action => action(), commit =>
@@ -2092,8 +2190,8 @@ namespace Tests.FreeTrainSimulator.Toolbox.PathEditing
             PathModel source = CreateEditablePath();
             using (PathEditor editor = CreateEditor(source))
             {
-                PathPersistenceValidationResult saved = new(true, source with { Name = "Saved Path" }, null, default, default, null, null);
-                TaskCompletionSource<PathPersistenceValidationResult> persistence = new(TaskCreationOptions.RunContinuationsAsynchronously);
+                PathPersistenceValidationResult saved = new PathPersistenceValidationResult(true, source with { Name = "Saved Path" }, null, default, default, null, null);
+                TaskCompletionSource<PathPersistenceValidationResult> persistence = new TaskCompletionSource<PathPersistenceValidationResult>(TaskCreationOptions.RunContinuationsAsynchronously);
                 PathSaveOperation operation = CreatePendingSaveOperation(editor, source, persistence.Task);
 
                 PathEditorCommandResult edit = editor.SetStartAnchorCommand(CreateNodeAt(25, PathNodeType.None, -1), false);
@@ -2171,7 +2269,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.PathEditing
                 bool dirty = editor.HasUnsavedChanges;
                 bool canUndo = editor.CanUndo;
                 bool canRedo = editor.CanRedo;
-                TrainPathSaveRequest request = new(new PathModelHeader { Id = "existing-copy", Name = "Copy" }, source.Id, false);
+                TrainPathSaveRequest request = new TrainPathSaveRequest(new PathModelHeader { Id = "existing-copy", Name = "Copy" }, source.Id, false);
 
                 bool canSubmit = request.CanSubmit(true);
 
@@ -2189,7 +2287,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.PathEditing
             PathModel source = CreateEditablePath();
             using (PathEditor editor = CreateEditor(source))
             {
-                TaskCompletionSource<PathPersistenceValidationResult> firstPersistence = new(TaskCreationOptions.RunContinuationsAsynchronously);
+                TaskCompletionSource<PathPersistenceValidationResult> firstPersistence = new TaskCompletionSource<PathPersistenceValidationResult>(TaskCreationOptions.RunContinuationsAsynchronously);
                 PathSaveOperation first = CreatePendingSaveOperation(editor, source, firstPersistence.Task);
                 PathSaveOperation duplicate = editor.BeginSave(source);
 
@@ -2211,12 +2309,12 @@ namespace Tests.FreeTrainSimulator.Toolbox.PathEditing
         public async Task WhenCleanLoadedPathIsSavingThenContinuationIsUnavailableUntilSaveEnds()
         {
             PathModel source = CreateEditablePath();
-            using (PathEditor editor = new(new TestPathEditorContext(TrackWorldTestFixture.CreateSingleVectorNodeTrackWorld())))
+            using (PathEditor editor = new PathEditor(new TestPathEditorContext(TrackWorldTestFixture.CreateSingleVectorNodeTrackWorld())))
             {
                 Assert.IsTrue(await editor.InitializePathAsync(source, CancellationToken.None).ConfigureAwait(false));
                 Assert.IsTrue(editor.CanContinuePath);
 
-                TaskCompletionSource<PathPersistenceValidationResult> persistence = new(TaskCreationOptions.RunContinuationsAsynchronously);
+                TaskCompletionSource<PathPersistenceValidationResult> persistence = new TaskCompletionSource<PathPersistenceValidationResult>(TaskCreationOptions.RunContinuationsAsynchronously);
                 PathSaveOperation save = CreatePendingSaveOperation(editor, source, persistence.Task);
 
                 Assert.IsTrue(editor.IsSaveInProgress);

@@ -33,9 +33,9 @@ namespace Tests.FreeTrainSimulator.Toolbox.ViewModels
         {
             TrainPathToolWindow bridge = CreateBridge(_ => { });
             SetBridgeSnapshot(bridge, CreateIssueScopeSnapshot(selectedIndex));
-            using (ToolWindowRefreshScheduler scheduler = new(Dispatcher.CurrentDispatcher))
+            using (ToolWindowRefreshScheduler scheduler = new ToolWindowRefreshScheduler(Dispatcher.CurrentDispatcher))
             {
-                using (TrainPathToolWindowViewModel viewModel = new(bridge, scheduler))
+                using (TrainPathToolWindowViewModel viewModel = new TrainPathToolWindowViewModel(bridge, scheduler))
                 {
                     viewModel.Start();
 
@@ -49,9 +49,9 @@ namespace Tests.FreeTrainSimulator.Toolbox.ViewModels
         {
             TrainPathToolWindow bridge = CreateBridge(_ => { });
             SetBridgeSnapshot(bridge, CreateIssueScopeSnapshot(0));
-            using (ToolWindowRefreshScheduler scheduler = new(Dispatcher.CurrentDispatcher))
+            using (ToolWindowRefreshScheduler scheduler = new ToolWindowRefreshScheduler(Dispatcher.CurrentDispatcher))
             {
-                using (TrainPathToolWindowViewModel viewModel = new(bridge, scheduler))
+                using (TrainPathToolWindowViewModel viewModel = new TrainPathToolWindowViewModel(bridge, scheduler))
                 {
                     viewModel.Start();
                     TrainPathDiagnosticItemViewModel[] source = viewModel.Diagnostics.ToArray();
@@ -70,9 +70,9 @@ namespace Tests.FreeTrainSimulator.Toolbox.ViewModels
         {
             TrainPathToolWindow bridge = CreateBridge(_ => { });
             SetBridgeSnapshot(bridge, CreateIssueScopeSnapshot(1));
-            using (ToolWindowRefreshScheduler scheduler = new(Dispatcher.CurrentDispatcher))
+            using (ToolWindowRefreshScheduler scheduler = new ToolWindowRefreshScheduler(Dispatcher.CurrentDispatcher))
             {
-                using (TrainPathToolWindowViewModel viewModel = new(bridge, scheduler))
+                using (TrainPathToolWindowViewModel viewModel = new TrainPathToolWindowViewModel(bridge, scheduler))
                 {
                     viewModel.Start();
 
@@ -90,9 +90,9 @@ namespace Tests.FreeTrainSimulator.Toolbox.ViewModels
             TrainPathToolWindow bridge = CreateBridge(_ => commands++);
             TrainPathSnapshot snapshot = CreateIssueScopeSnapshot(0);
             SetBridgeSnapshot(bridge, snapshot);
-            using (ToolWindowRefreshScheduler scheduler = new(Dispatcher.CurrentDispatcher))
+            using (ToolWindowRefreshScheduler scheduler = new ToolWindowRefreshScheduler(Dispatcher.CurrentDispatcher))
             {
-                using (TrainPathToolWindowViewModel viewModel = new(bridge, scheduler))
+                using (TrainPathToolWindowViewModel viewModel = new TrainPathToolWindowViewModel(bridge, scheduler))
                 {
                     viewModel.Start();
 
@@ -114,9 +114,9 @@ namespace Tests.FreeTrainSimulator.Toolbox.ViewModels
             {
                 RouteCandidates = [new TrainPathRouteCandidateRow(0, 2, 0, "route")],
             });
-            using (ToolWindowRefreshScheduler scheduler = new(Dispatcher.CurrentDispatcher))
+            using (ToolWindowRefreshScheduler scheduler = new ToolWindowRefreshScheduler(Dispatcher.CurrentDispatcher))
             {
-                using (TrainPathToolWindowViewModel viewModel = new(bridge, scheduler))
+                using (TrainPathToolWindowViewModel viewModel = new TrainPathToolWindowViewModel(bridge, scheduler))
                 {
                     viewModel.Start();
 
@@ -157,9 +157,9 @@ namespace Tests.FreeTrainSimulator.Toolbox.ViewModels
         public void WhenConstructedWithSavedTabThenTabIsRestoredBeforePolling(int savedTabIndex, int expectedTabIndex)
         {
             TrainPathToolWindow bridge = CreateBridge(action => action());
-            using (ToolWindowRefreshScheduler scheduler = new(Dispatcher.CurrentDispatcher))
+            using (ToolWindowRefreshScheduler scheduler = new ToolWindowRefreshScheduler(Dispatcher.CurrentDispatcher))
             {
-                using (TrainPathToolWindowViewModel viewModel = new(bridge, scheduler, savedTabIndex))
+                using (TrainPathToolWindowViewModel viewModel = new TrainPathToolWindowViewModel(bridge, scheduler, savedTabIndex))
                 {
                     Assert.AreEqual(expectedTabIndex, viewModel.SelectedTabIndex);
                 }
@@ -170,9 +170,9 @@ namespace Tests.FreeTrainSimulator.Toolbox.ViewModels
         public void WhenRestoredEditorTabPollsEmptySnapshotThenEditorTabIsRetained()
         {
             TrainPathToolWindow bridge = CreateBridge(action => action());
-            using (ToolWindowRefreshScheduler scheduler = new(Dispatcher.CurrentDispatcher))
+            using (ToolWindowRefreshScheduler scheduler = new ToolWindowRefreshScheduler(Dispatcher.CurrentDispatcher))
             {
-                using (TrainPathToolWindowViewModel viewModel = new(bridge, scheduler, TrainPathToolWindowViewModel.EditorTabIndex))
+                using (TrainPathToolWindowViewModel viewModel = new TrainPathToolWindowViewModel(bridge, scheduler, TrainPathToolWindowViewModel.EditorTabIndex))
                 {
                     viewModel.Start();
 
@@ -186,12 +186,12 @@ namespace Tests.FreeTrainSimulator.Toolbox.ViewModels
         [DataRow(1)]
         public async Task WhenLastTabIsCapturedAndProfileReloadedThenNewViewModelRestoresLastTab(int lastTabIndex)
         {
-            ProfileModel profile = new("last-tab-" + Guid.NewGuid().ToString("N"));
+            ProfileModel profile = new ProfileModel("last-tab-" + Guid.NewGuid().ToString("N"));
             ProfileToolboxSettingsModel settings = await profile.LoadSettingsModel<ProfileToolboxSettingsModel>(CancellationToken.None).ConfigureAwait(false);
             TrainPathToolWindow bridge = CreateBridge(action => action());
-            using (ToolWindowRefreshScheduler scheduler = new(Dispatcher.CurrentDispatcher))
+            using (ToolWindowRefreshScheduler scheduler = new ToolWindowRefreshScheduler(Dispatcher.CurrentDispatcher))
             {
-                using (TrainPathToolWindowViewModel viewModel = new(bridge, scheduler, 1 - lastTabIndex))
+                using (TrainPathToolWindowViewModel viewModel = new TrainPathToolWindowViewModel(bridge, scheduler, 1 - lastTabIndex))
                 {
                     viewModel.SelectedTabIndex = lastTabIndex;
                     settings.PathEditorSelectedTabIndex = viewModel.SelectedTabIndex;
@@ -200,9 +200,9 @@ namespace Tests.FreeTrainSimulator.Toolbox.ViewModels
             }
 
             ProfileToolboxSettingsModel restored = await profile.LoadSettingsModel<ProfileToolboxSettingsModel>(CancellationToken.None).ConfigureAwait(false);
-            using (ToolWindowRefreshScheduler scheduler = new(Dispatcher.CurrentDispatcher))
+            using (ToolWindowRefreshScheduler scheduler = new ToolWindowRefreshScheduler(Dispatcher.CurrentDispatcher))
             {
-                using (TrainPathToolWindowViewModel restartedViewModel = new(bridge, scheduler, restored.PathEditorSelectedTabIndex))
+                using (TrainPathToolWindowViewModel restartedViewModel = new TrainPathToolWindowViewModel(bridge, scheduler, restored.PathEditorSelectedTabIndex))
                 {
                     Assert.AreEqual(lastTabIndex, restartedViewModel.SelectedTabIndex);
                 }
@@ -214,9 +214,9 @@ namespace Tests.FreeTrainSimulator.Toolbox.ViewModels
         {
             TrainPathToolWindow bridge = CreateBridge(action => action());
             SetBridgeSnapshot(bridge, TrainPathSnapshot.Empty with { PlacementMode = PathEditorPlacementMode.StartAnchor });
-            using (ToolWindowRefreshScheduler scheduler = new(Dispatcher.CurrentDispatcher))
+            using (ToolWindowRefreshScheduler scheduler = new ToolWindowRefreshScheduler(Dispatcher.CurrentDispatcher))
             {
-                using (TrainPathToolWindowViewModel viewModel = new(bridge, scheduler, TrainPathToolWindowViewModel.PathsTabIndex))
+                using (TrainPathToolWindowViewModel viewModel = new TrainPathToolWindowViewModel(bridge, scheduler, TrainPathToolWindowViewModel.PathsTabIndex))
                 {
 
                     viewModel.Start();
@@ -233,7 +233,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.ViewModels
             SetBridgeSnapshot(bridge, TrainPathSnapshot.Empty with { CanContinuePath = true });
             using (ToolWindowRefreshScheduler refreshScheduler = new ToolWindowRefreshScheduler(Dispatcher.CurrentDispatcher))
             {
-                using (TrainPathToolWindowViewModel viewModel = new(bridge, refreshScheduler))
+                using (TrainPathToolWindowViewModel viewModel = new TrainPathToolWindowViewModel(bridge, refreshScheduler))
                 {
                     viewModel.Start();
 
@@ -413,7 +413,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.ViewModels
         [TestMethod]
         public void WhenSaveAsTargetExistsWithoutConfirmationThenRequestCannotSubmit()
         {
-            TrainPathSaveRequest request = new(new PathModelHeader { Id = "copy", Name = "Copy" }, "original", false);
+            TrainPathSaveRequest request = new TrainPathSaveRequest(new PathModelHeader { Id = "copy", Name = "Copy" }, "original", false);
 
             Assert.IsTrue(request.IsSaveAs);
             Assert.IsFalse(request.CanSubmit(true));
@@ -422,7 +422,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.ViewModels
         [TestMethod]
         public void WhenSaveAsTargetExistsWithConfirmationThenRequestCanSubmit()
         {
-            TrainPathSaveRequest request = new(new PathModelHeader { Id = "copy", Name = "Copy" }, "original", true);
+            TrainPathSaveRequest request = new TrainPathSaveRequest(new PathModelHeader { Id = "copy", Name = "Copy" }, "original", true);
 
             Assert.IsTrue(request.CanSubmit(true));
         }
@@ -445,7 +445,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.ViewModels
         [TestMethod]
         public void WhenValidateAllPathsCompletesThenCompletionIsReported()
         {
-            TestToolingContext context = new(() => Task.FromResult(ImmutableArray<PathModelHeader>.Empty));
+            TestToolingContext context = new TestToolingContext(() => Task.FromResult(ImmutableArray<PathModelHeader>.Empty));
             TrainPathToolWindow bridge = CreateBridge(action => action(), context);
             using (ToolWindowRefreshScheduler refreshScheduler = new ToolWindowRefreshScheduler(Dispatcher.CurrentDispatcher))
             {
@@ -797,9 +797,9 @@ namespace Tests.FreeTrainSimulator.Toolbox.ViewModels
         public void WhenNearestSectionDiagnosticsArePartialThenDetailsDoNotInventASection(int? section, double? distance, string expected)
         {
             TrainPathToolWindow bridge = CreateBridge(_ => { });
-            using (ToolWindowRefreshScheduler scheduler = new(Dispatcher.CurrentDispatcher))
+            using (ToolWindowRefreshScheduler scheduler = new ToolWindowRefreshScheduler(Dispatcher.CurrentDispatcher))
             {
-                using (TrainPathToolWindowViewModel viewModel = new(bridge, scheduler))
+                using (TrainPathToolWindowViewModel viewModel = new TrainPathToolWindowViewModel(bridge, scheduler))
                 {
                     viewModel.UserSelectNode(new TrainPathNodeItemViewModel(new TrainPathNodeRow(0, PathNodeType.Via,
                         true, 1, -1, -1, null, null, 1, section, distance)));
@@ -813,9 +813,9 @@ namespace Tests.FreeTrainSimulator.Toolbox.ViewModels
         public void WhenNodeIsDeselectedThenDetailPropertiesRemainWithBlankValues()
         {
             TrainPathToolWindow bridge = CreateBridge(_ => { });
-            using (ToolWindowRefreshScheduler scheduler = new(Dispatcher.CurrentDispatcher))
+            using (ToolWindowRefreshScheduler scheduler = new ToolWindowRefreshScheduler(Dispatcher.CurrentDispatcher))
             {
-                using (TrainPathToolWindowViewModel viewModel = new(bridge, scheduler))
+                using (TrainPathToolWindowViewModel viewModel = new TrainPathToolWindowViewModel(bridge, scheduler))
                 {
                     string[] names = ["Index", "Type", "Track Node", "Wait", "Next Main", "Next Siding", "Validation",
                         "Nearest Track Node", "Nearest Track Section"];
@@ -982,9 +982,9 @@ namespace Tests.FreeTrainSimulator.Toolbox.ViewModels
                 PlacementMode = (PathEditorPlacementMode)placement,
                 PassingBranchPhase = (PassingBranchAuthoringPhase)passing,
             });
-            using (ToolWindowRefreshScheduler scheduler = new(Dispatcher.CurrentDispatcher))
+            using (ToolWindowRefreshScheduler scheduler = new ToolWindowRefreshScheduler(Dispatcher.CurrentDispatcher))
             {
-                using (TrainPathToolWindowViewModel viewModel = new(bridge, scheduler))
+                using (TrainPathToolWindowViewModel viewModel = new TrainPathToolWindowViewModel(bridge, scheduler))
                 {
                     viewModel.Start();
 
@@ -1011,9 +1011,9 @@ namespace Tests.FreeTrainSimulator.Toolbox.ViewModels
                 RouteCandidates = [new TrainPathRouteCandidateRow(0, 1, 0, "other"),
                     new TrainPathRouteCandidateRow(2, 3, 0, "first"), new TrainPathRouteCandidateRow(2, 3, 1, "second")],
             });
-            using (ToolWindowRefreshScheduler scheduler = new(Dispatcher.CurrentDispatcher))
+            using (ToolWindowRefreshScheduler scheduler = new ToolWindowRefreshScheduler(Dispatcher.CurrentDispatcher))
             {
-                using (TrainPathToolWindowViewModel viewModel = new(bridge, scheduler))
+                using (TrainPathToolWindowViewModel viewModel = new TrainPathToolWindowViewModel(bridge, scheduler))
                 {
                     viewModel.Start();
 
@@ -1037,9 +1037,9 @@ namespace Tests.FreeTrainSimulator.Toolbox.ViewModels
                 PreviewedRouteCandidateIndex = 0,
             };
             SetBridgeSnapshot(bridge, snapshot);
-            using (ToolWindowRefreshScheduler scheduler = new(Dispatcher.CurrentDispatcher))
+            using (ToolWindowRefreshScheduler scheduler = new ToolWindowRefreshScheduler(Dispatcher.CurrentDispatcher))
             {
-                using (TrainPathToolWindowViewModel viewModel = new(bridge, scheduler))
+                using (TrainPathToolWindowViewModel viewModel = new TrainPathToolWindowViewModel(bridge, scheduler))
                 {
                     viewModel.Start();
                     SetBridgeSnapshot(bridge, snapshot with { PreviewedRouteCandidateFromNodeIndex = 2, PreviewedRouteCandidateIndex = 1 });
@@ -1061,9 +1061,9 @@ namespace Tests.FreeTrainSimulator.Toolbox.ViewModels
             int invocations = 0;
             TrainPathToolWindow bridge = CreateBridge(_ => invocations++);
             SetBridgeSnapshot(bridge, TrainPathSnapshot.Empty with { RouteCandidates = [new TrainPathRouteCandidateRow(0, 1, 0, "candidate")] });
-            using (ToolWindowRefreshScheduler scheduler = new(Dispatcher.CurrentDispatcher))
+            using (ToolWindowRefreshScheduler scheduler = new ToolWindowRefreshScheduler(Dispatcher.CurrentDispatcher))
             {
-                using (TrainPathToolWindowViewModel viewModel = new(bridge, scheduler))
+                using (TrainPathToolWindowViewModel viewModel = new TrainPathToolWindowViewModel(bridge, scheduler))
                 {
                     viewModel.Start();
 
@@ -1100,9 +1100,9 @@ namespace Tests.FreeTrainSimulator.Toolbox.ViewModels
                 HasPendingPassingBranchCandidate = passingCandidate,
                 PassingBranchPhase = (PassingBranchAuthoringPhase)passing,
             });
-            using (ToolWindowRefreshScheduler scheduler = new(Dispatcher.CurrentDispatcher))
+            using (ToolWindowRefreshScheduler scheduler = new ToolWindowRefreshScheduler(Dispatcher.CurrentDispatcher))
             {
-                using (TrainPathToolWindowViewModel viewModel = new(bridge, scheduler))
+                using (TrainPathToolWindowViewModel viewModel = new TrainPathToolWindowViewModel(bridge, scheduler))
                 {
                     viewModel.Start();
 
@@ -1125,9 +1125,9 @@ namespace Tests.FreeTrainSimulator.Toolbox.ViewModels
                 HasPendingAmbiguousSpanCommit = transaction,
                 CanCancelPathInteraction = transaction,
             });
-            using (ToolWindowRefreshScheduler scheduler = new(Dispatcher.CurrentDispatcher))
+            using (ToolWindowRefreshScheduler scheduler = new ToolWindowRefreshScheduler(Dispatcher.CurrentDispatcher))
             {
-                using (TrainPathToolWindowViewModel viewModel = new(bridge, scheduler))
+                using (TrainPathToolWindowViewModel viewModel = new TrainPathToolWindowViewModel(bridge, scheduler))
                 {
                     viewModel.Start();
 
@@ -1151,9 +1151,9 @@ namespace Tests.FreeTrainSimulator.Toolbox.ViewModels
             bool building, bool mainCandidate, bool passingCandidate, object passing)
         {
             TrainPathToolWindow bridge = CreateBridge(action => action());
-            using (ToolWindowRefreshScheduler scheduler = new(Dispatcher.CurrentDispatcher))
+            using (ToolWindowRefreshScheduler scheduler = new ToolWindowRefreshScheduler(Dispatcher.CurrentDispatcher))
             {
-                using (TrainPathToolWindowViewModel viewModel = new(bridge, scheduler))
+                using (TrainPathToolWindowViewModel viewModel = new TrainPathToolWindowViewModel(bridge, scheduler))
                 {
                     viewModel.Start();
                     TrainPathSnapshot snapshot = TrainPathSnapshot.Empty with
@@ -1181,9 +1181,9 @@ namespace Tests.FreeTrainSimulator.Toolbox.ViewModels
         public void WhenOrdinaryPathIsSelectedThenPathsNavigationIsRetained()
         {
             TrainPathToolWindow bridge = CreateBridge(action => action());
-            using (ToolWindowRefreshScheduler scheduler = new(Dispatcher.CurrentDispatcher))
+            using (ToolWindowRefreshScheduler scheduler = new ToolWindowRefreshScheduler(Dispatcher.CurrentDispatcher))
             {
-                using (TrainPathToolWindowViewModel viewModel = new(bridge, scheduler))
+                using (TrainPathToolWindowViewModel viewModel = new TrainPathToolWindowViewModel(bridge, scheduler))
                 {
                     viewModel.Start();
 
@@ -1212,9 +1212,9 @@ namespace Tests.FreeTrainSimulator.Toolbox.ViewModels
                 PreviewedRouteCandidateIndex = 0,
             };
             SetBridgeSnapshot(bridge, snapshot);
-            using (ToolWindowRefreshScheduler scheduler = new(Dispatcher.CurrentDispatcher))
+            using (ToolWindowRefreshScheduler scheduler = new ToolWindowRefreshScheduler(Dispatcher.CurrentDispatcher))
             {
-                using (TrainPathToolWindowViewModel viewModel = new(bridge, scheduler))
+                using (TrainPathToolWindowViewModel viewModel = new TrainPathToolWindowViewModel(bridge, scheduler))
                 {
                     viewModel.Start();
                     Assert.HasCount(2, viewModel.CandidateSpans);
@@ -1249,9 +1249,9 @@ namespace Tests.FreeTrainSimulator.Toolbox.ViewModels
                     "Choose route.", -1, 0, 1, "Choose a candidate.", false)],
                 RouteCandidates = [new TrainPathRouteCandidateRow(0, 1, 0, "candidate")],
             });
-            using (ToolWindowRefreshScheduler scheduler = new(Dispatcher.CurrentDispatcher))
+            using (ToolWindowRefreshScheduler scheduler = new ToolWindowRefreshScheduler(Dispatcher.CurrentDispatcher))
             {
-                using (TrainPathToolWindowViewModel viewModel = new(bridge, scheduler))
+                using (TrainPathToolWindowViewModel viewModel = new TrainPathToolWindowViewModel(bridge, scheduler))
                 {
                     viewModel.Start();
                     TrainPathDiagnosticItemViewModel issue = viewModel.Diagnostics[0];
@@ -1280,9 +1280,9 @@ namespace Tests.FreeTrainSimulator.Toolbox.ViewModels
                     new TrainPathListRow("other", "Other", PathValidationState.NotValidated)],
                 SelectedPathId = "active",
             });
-            using (ToolWindowRefreshScheduler scheduler = new(Dispatcher.CurrentDispatcher))
+            using (ToolWindowRefreshScheduler scheduler = new ToolWindowRefreshScheduler(Dispatcher.CurrentDispatcher))
             {
-                using (TrainPathToolWindowViewModel viewModel = new(bridge, scheduler))
+                using (TrainPathToolWindowViewModel viewModel = new TrainPathToolWindowViewModel(bridge, scheduler))
                 {
                     viewModel.Start();
                     TrainPathListItemViewModel active = viewModel.Paths[0];
@@ -1305,7 +1305,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.ViewModels
 
         private static void AssertValidationFailure(Exception exception)
         {
-            TestToolingContext context = new(() => Task.FromException<ImmutableArray<PathModelHeader>>(exception));
+            TestToolingContext context = new TestToolingContext(() => Task.FromException<ImmutableArray<PathModelHeader>>(exception));
             TrainPathToolWindow bridge = CreateBridge(action => action(), context);
             using (ToolWindowRefreshScheduler refreshScheduler = new ToolWindowRefreshScheduler(Dispatcher.CurrentDispatcher))
             {

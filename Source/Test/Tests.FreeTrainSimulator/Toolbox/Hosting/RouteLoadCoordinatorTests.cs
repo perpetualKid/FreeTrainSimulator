@@ -1,7 +1,9 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
+using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
@@ -20,6 +22,8 @@ using FreeTrainSimulator.Toolbox.Hosting;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.Xna.Framework;
+
+using GameWindow = FreeTrainSimulator.Toolbox.GameWindow;
 
 namespace Tests.FreeTrainSimulator.Toolbox.Hosting
 {
@@ -725,6 +729,62 @@ namespace Tests.FreeTrainSimulator.Toolbox.Hosting
             }
         }
 
+        /// <summary>The session drain includes serialized candidates and their required game-owner discards.</summary>
+        [TestMethod]
+        [Timeout(10000, CooperativeCancellation = true)]
+        public async Task WhenSessionStopsWithReplacementWaitingThenItDrainsOldMapBeforeCompleting()
+        {
+            NativeRoute routeA = await CreateRouteAsync().ConfigureAwait(false);
+            NativeRoute routeB = await CreateRouteAsync().ConfigureAwait(false);
+            ToolboxSessionTests.SessionScope scope = await ToolboxSessionTests.SessionScope.StartAsync().ConfigureAwait(false);
+            await using System.Runtime.CompilerServices.ConfiguredAsyncDisposable scopeLifetime = scope.ConfigureAwait(false);
+            StaControlHost host = scope.Host;
+            GameWindow game = scope.Game;
+            GameWindow.ToolboxSession session = scope.Session;
+            RouteLoadCoordinator coordinator = (RouteLoadCoordinator)typeof(GameWindow.ToolboxSession)
+                .GetField("routeLoads", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(session);
+            TaskCompletionSource mapEntered = Completion();
+            TaskCompletionSource resumeMap = Completion();
+            TaskCompletionSource replacementAccepted = Completion();
+            int discardThread = 0;
+            Task<bool> loadA = game.InvokeOnGameThreadAsync(() => session.RunAsync(async () =>
+            {
+                using RouteLoadCoordinator.Request request = coordinator.BeginRequest(coordinator.BeginSelection());
+                return await coordinator.LoadAsync(request, routeA.Route, true, async (_, _) =>
+                {
+                    mapEntered.SetResult();
+                    await resumeMap.Task.WaitAsync(TestContext.CancellationToken).ConfigureAwait(false);
+                }, () => Assert.Fail("Superseded map committed."), () => discardThread = Environment.CurrentManagedThreadId).ConfigureAwait(false);
+            }));
+            try
+            {
+                await mapEntered.Task.WaitAsync(TestContext.CancellationToken).ConfigureAwait(false);
+                Task<bool> loadB = game.InvokeOnGameThreadAsync(() => session.RunAsync(async () =>
+                {
+                    using RouteLoadCoordinator.Request request = coordinator.BeginRequest(coordinator.BeginSelection());
+                    replacementAccepted.SetResult();
+                    return await coordinator.LoadAsync(request, routeB.Route, false,
+                        (_, _) => throw new AssertFailedException("Waiting replacement initialized during stop."),
+                        () => Assert.Fail("Waiting replacement committed."), () => Assert.Fail("Unpublished replacement discarded.")).ConfigureAwait(false);
+                }));
+                await replacementAccepted.Task.WaitAsync(TestContext.CancellationToken).ConfigureAwait(false);
+                Task drain = game.InvokeOnGameThreadAsync(session.StopAndDrainAsync);
+                bool acceptedB = await loadB.WaitAsync(TestContext.CancellationToken).ConfigureAwait(false);
+                bool waitsForMap = !drain.IsCompleted;
+                resumeMap.SetResult();
+                bool acceptedA = await loadA.WaitAsync(TestContext.CancellationToken).ConfigureAwait(false);
+                await drain.WaitAsync(TestContext.CancellationToken).ConfigureAwait(false);
+
+                Assert.AreEqual((false, false, true, host.OwnerThreadId), (acceptedA, acceptedB, waitsForMap, discardThread));
+            }
+            finally
+            {
+                resumeMap.TrySetResult();
+                await loadA.WaitAsync(TestContext.CancellationToken).ConfigureAwait(false);
+                await host.OnOwnerAsync(session.Dispose).ConfigureAwait(false);
+            }
+        }
+
         /// <summary>Restores services and removes only cache entries owned by this test.</summary>
         public void Dispose()
         {
@@ -893,7 +953,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.Hosting
             }
         }
 
-        private sealed class NativeModelCache<TModel> : ContentHandlerBase<TModel> where TModel : ModelBase
+        private abstract class NativeModelCache<TModel> : ContentHandlerBase<TModel> where TModel : ModelBase
         {
             internal static void Set(string key, Task<TModel> task) => modelTaskCache[key] = task;
 

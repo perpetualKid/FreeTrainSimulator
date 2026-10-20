@@ -20,9 +20,9 @@ namespace Tests.FreeTrainSimulator.Toolbox.Views
         public void WhenAutoHideSizeIsInitializedThenOnlyMissingDimensionsUseViewDefaults(
             double width, double height, double expectedWidth, double expectedHeight)
         {
-            FrameworkElement view = new();
+            FrameworkElement view = new FrameworkElement();
             ToolWindow.SetDefaultFloatingSize(view, new Size(520, 560));
-            LayoutAnchorable anchorable = new()
+            LayoutAnchorable anchorable = new LayoutAnchorable()
             {
                 Content = view,
                 AutoHideWidth = width,
@@ -37,9 +37,9 @@ namespace Tests.FreeTrainSimulator.Toolbox.Views
         [TestMethod]
         public void WhenRestoredAutoHideSizeIsMissingThenSavedFloatingSizeIsPreserved()
         {
-            FrameworkElement view = new();
+            FrameworkElement view = new FrameworkElement();
             ToolWindow.SetDefaultFloatingSize(view, new Size(520, 560));
-            LayoutAnchorable anchorable = new()
+            LayoutAnchorable anchorable = new LayoutAnchorable()
             {
                 Content = view,
                 FloatingWidth = 730,
@@ -54,7 +54,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.Views
         [TestMethod]
         public void WhenViewHasNoDefaultSizeThenAutoHideDimensionsRemainUnset()
         {
-            LayoutAnchorable anchorable = new() { Content = new FrameworkElement() };
+            LayoutAnchorable anchorable = new LayoutAnchorable() { Content = new FrameworkElement() };
 
             ToolWindow.ApplyDefaultAutoHideSize(anchorable);
 
@@ -64,7 +64,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.Views
         [TestMethod]
         public void WhenContentIsNotAViewThenAutoHideDimensionsRemainUnset()
         {
-            LayoutAnchorable anchorable = new() { Content = "Content" };
+            LayoutAnchorable anchorable = new LayoutAnchorable() { Content = "Content" };
 
             ToolWindow.ApplyDefaultAutoHideSize(anchorable);
 

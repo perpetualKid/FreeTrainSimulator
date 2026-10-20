@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
@@ -268,7 +268,7 @@ namespace Tests.FreeTrainSimulator.Runtime
             };
         }
 
-        private sealed class TestModelHandler<TModel> : ContentHandlerBase<TModel> where TModel : ModelBase
+        private abstract class TestModelHandler<TModel> : ContentHandlerBase<TModel> where TModel : ModelBase
         {
             public static Task SaveAsync(TModel model, RouteModel route) => Create(model, route, CancellationToken.None);
 

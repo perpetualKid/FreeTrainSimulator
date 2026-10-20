@@ -246,7 +246,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.PathEditing
         [TestMethod]
         public void WhenInvalidNodeCannotBeRepairedThenRepairNodeIsNotOffered()
         {
-            TestPathPoint node = new(PathNodeType.Invalid) { ValidationResult = PathNodeInvalidReasons.NotOnTrack };
+            TestPathPoint node = new TestPathPoint(PathNodeType.Invalid) { ValidationResult = PathNodeInvalidReasons.NotOnTrack };
 
             ImmutableArray<MapContextMenuItem> items = BuildForNode(node, 1, true,
                 new MapContextMenuState { CanRepairNode = false });

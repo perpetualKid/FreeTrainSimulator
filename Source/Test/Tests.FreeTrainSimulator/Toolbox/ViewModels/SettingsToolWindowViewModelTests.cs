@@ -1,5 +1,7 @@
+using System;
 using System.Diagnostics;
 using System.Linq;
+using System.Threading.Tasks;
 
 using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Graphics;
@@ -13,6 +15,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace Tests.FreeTrainSimulator.Toolbox.ViewModels
 {
     [TestClass]
+    [OSCondition(OperatingSystems.Windows)]
     public class SettingsToolWindowViewModelTests
     {
         // Test double for the live-map side effects. It mirrors the model writes the production GameWindow
@@ -228,63 +231,63 @@ namespace Tests.FreeTrainSimulator.Toolbox.ViewModels
         }
 
         [TestMethod]
-        public void WhenResetToDefaultsThenColorRevertsToDefault()
+        public async Task WhenResetToDefaultsThenColorRevertsToDefault()
         {
             string defaultColor = new ProfileToolboxSettingsModel().ColorSettings[ColorSetting.RailTrack];
             ProfileToolboxSettingsModel toolboxSettings = new ProfileToolboxSettingsModel();
             toolboxSettings.ColorSettings[ColorSetting.RailTrack] = nameof(Microsoft.Xna.Framework.Color.Red);
             using (SettingsToolWindowViewModel settingsToolWindowViewModel = new SettingsToolWindowViewModel(CreateBridge(toolboxSettings, new ProfileUserSettingsModel())))
             {
-                settingsToolWindowViewModel.ResetToDefaults();
+                await settingsToolWindowViewModel.ResetToDefaultsAsync().ConfigureAwait(false);
 
                 Assert.AreEqual(defaultColor, settingsToolWindowViewModel.ColorItems.Single(i => i.Setting == ColorSetting.RailTrack).SelectedColorName);
             }
         }
 
         [TestMethod]
-        public void WhenResetToDefaultsThenVisibilityRevertsToDefault()
+        public async Task WhenResetToDefaultsThenVisibilityRevertsToDefault()
         {
             ProfileToolboxSettingsModel toolboxSettings = new ProfileToolboxSettingsModel();
             toolboxSettings.ViewSettings[MapContentType.Tracks] = false;
             using (SettingsToolWindowViewModel settingsToolWindowViewModel = new SettingsToolWindowViewModel(CreateBridge(toolboxSettings, new ProfileUserSettingsModel())))
             {
-                settingsToolWindowViewModel.ResetToDefaults();
+                await settingsToolWindowViewModel.ResetToDefaultsAsync().ConfigureAwait(false);
 
                 Assert.IsTrue(settingsToolWindowViewModel.TrackVisibilityItems.Single(i => i.Setting == MapContentType.Tracks).IsVisible);
             }
         }
 
         [TestMethod]
-        public void WhenResetToDefaultsThenFontOutlineRevertsToDefault()
+        public async Task WhenResetToDefaultsThenFontOutlineRevertsToDefault()
         {
             ProfileToolboxSettingsModel toolboxSettings = new ProfileToolboxSettingsModel() { FontOutline = false };
             using (SettingsToolWindowViewModel settingsToolWindowViewModel = new SettingsToolWindowViewModel(CreateBridge(toolboxSettings, new ProfileUserSettingsModel())))
             {
-                settingsToolWindowViewModel.ResetToDefaults();
+                await settingsToolWindowViewModel.ResetToDefaultsAsync().ConfigureAwait(false);
 
                 Assert.IsTrue(settingsToolWindowViewModel.FontOutline);
             }
         }
 
         [TestMethod]
-        public void WhenResetToDefaultsThenRealTrackWidthRevertsToDefault()
+        public async Task WhenResetToDefaultsThenRealTrackWidthRevertsToDefault()
         {
             ProfileToolboxSettingsModel toolboxSettings = new ProfileToolboxSettingsModel() { LimitTrackWidth = false };
             using (SettingsToolWindowViewModel settingsToolWindowViewModel = new SettingsToolWindowViewModel(CreateBridge(toolboxSettings, new ProfileUserSettingsModel())))
             {
-                settingsToolWindowViewModel.ResetToDefaults();
+                await settingsToolWindowViewModel.ResetToDefaultsAsync().ConfigureAwait(false);
 
                 Assert.IsFalse(settingsToolWindowViewModel.RealTrackWidth);
             }
         }
 
         [TestMethod]
-        public void WhenResetToDefaultsThenLoggingIsUnchanged()
+        public async Task WhenResetToDefaultsThenLoggingIsUnchanged()
         {
             ProfileUserSettingsModel userSettings = new ProfileUserSettingsModel() { LogLevel = TraceEventType.Verbose };
             using (SettingsToolWindowViewModel settingsToolWindowViewModel = new SettingsToolWindowViewModel(CreateBridge(new ProfileToolboxSettingsModel(), userSettings)))
             {
-                settingsToolWindowViewModel.ResetToDefaults();
+                await settingsToolWindowViewModel.ResetToDefaultsAsync().ConfigureAwait(false);
 
                 Assert.AreEqual(TraceEventType.Verbose, userSettings.LogLevel);
                 Assert.IsTrue(settingsToolWindowViewModel.EnableLogging);
@@ -292,16 +295,57 @@ namespace Tests.FreeTrainSimulator.Toolbox.ViewModels
         }
 
         [TestMethod]
-        public void WhenResetToDefaultsThenReapplyCallbackIsInvoked()
+        public async Task WhenResetToDefaultsThenReapplyCallbackIsInvoked()
         {
             ProfileToolboxSettingsModel toolboxSettings = new ProfileToolboxSettingsModel();
             FakeSettingsApplier applier = new FakeSettingsApplier(toolboxSettings, new ProfileUserSettingsModel());
             SettingsToolWindow bridge = new SettingsToolWindow(toolboxSettings, new ProfileUserSettingsModel(), applier);
             using (SettingsToolWindowViewModel settingsToolWindowViewModel = new SettingsToolWindowViewModel(bridge))
             {
-                settingsToolWindowViewModel.ResetToDefaults();
+                await settingsToolWindowViewModel.ResetToDefaultsAsync().ConfigureAwait(false);
 
                 Assert.AreEqual(1, applier.ReapplyCount);
+            }
+        }
+
+        [TestMethod]
+        public async Task WhenResetIsQueuedThenCompletionIncludesRefreshingBoundSettings()
+        {
+            ProfileToolboxSettingsModel settings = new ProfileToolboxSettingsModel() { FontOutline = false };
+            ProfileUserSettingsModel userSettings = new ProfileUserSettingsModel();
+            TaskCompletionSource completion = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+            Action applyReset = null;
+            SettingsToolWindow bridge = new SettingsToolWindow(settings, userSettings, new FakeSettingsApplier(settings, userSettings), action =>
+            {
+                applyReset = action;
+                return completion.Task;
+            });
+            using (SettingsToolWindowViewModel viewModel = new SettingsToolWindowViewModel(bridge))
+            {
+                Task reset = viewModel.ResetToDefaultsAsync();
+                bool waitedForOwner = !reset.IsCompleted;
+                applyReset();
+                completion.SetResult();
+                await reset.ConfigureAwait(false);
+
+                Assert.AreEqual((true, true), (waitedForOwner, viewModel.FontOutline));
+            }
+        }
+
+        [TestMethod]
+        public async Task WhenResetDispatchFailsThenCallerReceivesFailure()
+        {
+            ProfileToolboxSettingsModel settings = new ProfileToolboxSettingsModel();
+            ProfileUserSettingsModel userSettings = new ProfileUserSettingsModel();
+            InvalidOperationException expected = new InvalidOperationException("Reset was rejected.");
+            SettingsToolWindow bridge = new SettingsToolWindow(settings, userSettings, new FakeSettingsApplier(settings, userSettings),
+                _ => Task.FromException(expected));
+            using (SettingsToolWindowViewModel viewModel = new SettingsToolWindowViewModel(bridge))
+            {
+                InvalidOperationException actual = await Assert.ThrowsExactlyAsync<InvalidOperationException>(
+                    () => viewModel.ResetToDefaultsAsync()).ConfigureAwait(false);
+
+                Assert.AreSame(expected, actual);
             }
         }
 

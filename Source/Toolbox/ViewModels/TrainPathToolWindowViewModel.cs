@@ -86,10 +86,10 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
         }
 
         /// <summary>Candidate rows scoped to the current decision or explicitly inspected issue.</summary>
-        public ObservableCollection<TrainPathRouteCandidateItemViewModel> VisibleRouteCandidates { get; } = new();
+        public ObservableCollection<TrainPathRouteCandidateItemViewModel> VisibleRouteCandidates { get; } = new ObservableCollection<TrainPathRouteCandidateItemViewModel>();
 
         /// <summary>One representative candidate per span, allowing every pending span to be selected.</summary>
-        public ObservableCollection<TrainPathRouteCandidateItemViewModel> CandidateSpans { get; } = new();
+        public ObservableCollection<TrainPathRouteCandidateItemViewModel> CandidateSpans { get; } = new ObservableCollection<TrainPathRouteCandidateItemViewModel>();
 
         /// <summary>The representative of the span currently displayed in the candidate panel.</summary>
         public TrainPathRouteCandidateItemViewModel SelectedCandidateSpan => CandidateSpans.FirstOrDefault(item =>
@@ -268,7 +268,7 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
         public ObservableCollection<TrainPathDiagnosticItemViewModel> Diagnostics { get; } = new ObservableCollection<TrainPathDiagnosticItemViewModel>();
 
         /// <summary>All issues when no node is selected; otherwise direct and incident-span issues for that node.</summary>
-        public ObservableCollection<TrainPathDiagnosticItemViewModel> VisibleDiagnostics { get; } = new();
+        public ObservableCollection<TrainPathDiagnosticItemViewModel> VisibleDiagnostics { get; } = new ObservableCollection<TrainPathDiagnosticItemViewModel>();
 
         public RelayCommand UndoCommand { get; }
 

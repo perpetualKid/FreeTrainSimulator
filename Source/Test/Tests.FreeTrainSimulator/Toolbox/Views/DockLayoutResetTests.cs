@@ -18,25 +18,25 @@ namespace Tests.FreeTrainSimulator.Toolbox.Views
         [TestMethod]
         public void WhenOpenAutoHideFlyoutIsRetiredBeforeLayoutReplacementThenContentIsReusedWithoutStaleFlyout()
         {
-            FrameworkElement toolView = new();
-            FrameworkElement mapView = new();
-            LayoutAnchorable tool = new() { ContentId = "Settings", Title = "Settings", Content = toolView };
-            LayoutDocument map = new() { ContentId = "Map", Title = "Map", Content = mapView };
-            LayoutAnchorablePane toolPane = new();
+            FrameworkElement toolView = new FrameworkElement();
+            FrameworkElement mapView = new FrameworkElement();
+            LayoutAnchorable tool = new LayoutAnchorable() { ContentId = "Settings", Title = "Settings", Content = toolView };
+            LayoutDocument map = new LayoutDocument() { ContentId = "Map", Title = "Map", Content = mapView };
+            LayoutAnchorablePane toolPane = new LayoutAnchorablePane();
             toolPane.Children.Add(tool);
-            LayoutDocumentPane mapPane = new();
+            LayoutDocumentPane mapPane = new LayoutDocumentPane();
             mapPane.Children.Add(map);
-            LayoutPanel panel = new();
+            LayoutPanel panel = new LayoutPanel();
             panel.Children.Add(toolPane);
             panel.Children.Add(mapPane);
-            DockingManager manager = new() { Layout = new LayoutRoot { RootPanel = panel } };
-            Window window = new() { Content = manager, Width = 800, Height = 600, ShowInTaskbar = false };
+            DockingManager manager = new DockingManager() { Layout = new LayoutRoot { RootPanel = panel } };
+            Window window = new Window() { Content = manager, Width = 800, Height = 600, ShowInTaskbar = false };
 
             try
             {
                 window.Show();
                 window.UpdateLayout();
-                using MemoryStream defaultLayout = new();
+                using MemoryStream defaultLayout = new MemoryStream();
                 new JsonLayoutSerializer(manager).Serialize(defaultLayout);
                 tool.ToggleAutoHide();
                 window.UpdateLayout();

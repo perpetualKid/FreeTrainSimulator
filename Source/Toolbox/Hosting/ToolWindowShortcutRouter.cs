@@ -14,7 +14,7 @@ namespace FreeTrainSimulator.Toolbox.Hosting
     /// </summary>
     internal sealed class ToolWindowShortcutPressTracker
     {
-        private readonly HashSet<Key> pressedKeys = new();
+        private readonly HashSet<Key> pressedKeys = new HashSet<Key>();
 
         /// <summary>
         /// Records every preview key down and routes eligible shortcuts without retoggling held keys.

@@ -38,6 +38,7 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
         private readonly Action<PathModelHeader> loadPathAction;
         private readonly Action unloadPathAction;
         private readonly Action activateMapInputAction;
+        private readonly Func<Action<ImmutableArray<PathModelHeader>>, Task<bool>> validateAllPaths;
         private volatile TrainPathSnapshot snapshot = TrainPathSnapshot.Empty;
         private volatile bool active;
 
@@ -57,6 +58,14 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
         internal TrainPathToolWindow(Func<PathEditor> pathEditorAccessor, Func<ITrainPathToolingContext> toolingContextAccessor,
             Action<Action> gameThreadInvoker, Action createPathAction, Action savePathAction, Action<PathModelHeader> loadPathAction,
             Action unloadPathAction, Action activateMapInputAction)
+            : this(pathEditorAccessor, toolingContextAccessor, gameThreadInvoker, createPathAction, savePathAction, loadPathAction,
+                  unloadPathAction, activateMapInputAction, null)
+        {
+        }
+
+        internal TrainPathToolWindow(Func<PathEditor> pathEditorAccessor, Func<ITrainPathToolingContext> toolingContextAccessor,
+            Action<Action> gameThreadInvoker, Action createPathAction, Action savePathAction, Action<PathModelHeader> loadPathAction,
+            Action unloadPathAction, Action activateMapInputAction, Func<Action<ImmutableArray<PathModelHeader>>, Task<bool>> validateAllPaths)
         {
             this.pathEditorAccessor = pathEditorAccessor ?? throw new ArgumentNullException(nameof(pathEditorAccessor));
             this.toolingContextAccessor = toolingContextAccessor ?? throw new ArgumentNullException(nameof(toolingContextAccessor));
@@ -66,6 +75,7 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
             this.loadPathAction = loadPathAction ?? throw new ArgumentNullException(nameof(loadPathAction));
             this.unloadPathAction = unloadPathAction ?? throw new ArgumentNullException(nameof(unloadPathAction));
             this.activateMapInputAction = activateMapInputAction ?? throw new ArgumentNullException(nameof(activateMapInputAction));
+            this.validateAllPaths = validateAllPaths ?? ValidateAllPathsCore;
         }
 
         public ToolboxWindowType WindowType => ToolboxWindowType.TrainPathWindow;
@@ -555,7 +565,7 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
                 return ImmutableArray<MapContextMenuItem>.Empty;
 
             PathNode node = model.PathNodes[nodeIndex];
-            MapContextMenuActionBuilder.MapContextMenuState state = new()
+            MapContextMenuActionBuilder.MapContextMenuState state = new MapContextMenuActionBuilder.MapContextMenuState()
             {
                 CanBeginPassingBranch = pathEditor.CanBeginPassingBranch(nodeIndex),
                 CanCompletePassingBranch = pathEditor.CanCompletePassingBranch(nodeIndex),
@@ -723,18 +733,23 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
         /// updated validity flags, then refreshes the cached path list so the review markers update. Awaitable so
         /// the caller can surface failures; the cache update is marshalled back onto the game thread.
         /// </summary>
-        internal async Task<bool> ValidateAllPaths()
+        internal Task<bool> ValidateAllPaths() => validateAllPaths(UpdatePaths);
+
+        private async Task<bool> ValidateAllPathsCore(Action<ImmutableArray<PathModelHeader>> refresh)
         {
             ITrainPathToolingContext toolingContext = toolingContextAccessor();
             if (toolingContext == null)
                 return false;
 
             ImmutableArray<PathModelHeader> paths = await toolingContext.ValidateAllPaths().ConfigureAwait(false);
+            TaskCompletionSource completion = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
             gameThreadInvoker(() =>
             {
                 if (ReferenceEquals(toolingContextAccessor(), toolingContext))
-                    UpdatePaths(paths);
+                    refresh(paths);
+                completion.SetResult();
             });
+            await completion.Task.ConfigureAwait(false);
             return true;
         }
 

@@ -3,7 +3,6 @@ using System.Threading.Tasks;
 
 using FreeTrainSimulator.Models.Content;
 using FreeTrainSimulator.Models.Shim;
-using FreeTrainSimulator.Runtime;
 using FreeTrainSimulator.Runtime.Track;
 
 namespace FreeTrainSimulator.Toolbox.PathEditing
@@ -15,12 +14,13 @@ namespace FreeTrainSimulator.Toolbox.PathEditing
 
         public bool UseMetricUnits => useMetricUnits;
 
-        public TrackWorld TrackWorld => RuntimeDataResolver.Instance?.TrackWorld;
+        public TrackWorld TrackWorld { get; }
 
-        public TrainPathToolingContext(RouteModelHeader route, bool useMetricUnits)
+        public TrainPathToolingContext(RouteModelHeader route, bool useMetricUnits, TrackWorld trackWorld)
         {
             this.route = route;
             this.useMetricUnits = useMetricUnits;
+            TrackWorld = trackWorld;
         }
 
         public Task<ImmutableArray<PathModelHeader>> GetPaths()

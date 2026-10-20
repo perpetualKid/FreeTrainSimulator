@@ -25,7 +25,8 @@ namespace FreeTrainSimulator.Toolbox.PathEditing
         private readonly UserCommandController<UserCommand> userCommandController;
         private readonly Action<UserCommandArgs, Microsoft.Xna.Framework.GameTime, KeyModifiers> pointerReleaseHandler;
         private readonly Action<UserCommandArgs, Microsoft.Xna.Framework.GameTime, KeyModifiers> pointerDragHandler;
-        private readonly Action<Action> interactivePreviewDispatcher;
+        private readonly Func<Action, Task> interactivePreviewDispatcher;
+        private readonly Func<Func<Task>, Task> interactivePreviewRunner;
         private readonly Func<Func<bool>, Task<bool>> pathLoadCommitDispatcher;
         private readonly Stack<PathModel> undoHistory = new Stack<PathModel>();
         private readonly Stack<PathModel> redoHistory = new Stack<PathModel>();
@@ -37,6 +38,7 @@ namespace FreeTrainSimulator.Toolbox.PathEditing
         private PathModel currentPathModel;
 
         private bool editorDragged;
+        private bool stopped;
         private long lastRoutePointClickTick;
         private int movingNodeIndex = -1;
         private PathModel moveSourceModel;
@@ -73,9 +75,9 @@ namespace FreeTrainSimulator.Toolbox.PathEditing
 
         public string PathId => path?.Id;
 
-        public bool CanUndo => undoHistory.Count > 0 && !HasPendingRouteCandidateInteraction;
+        public bool CanUndo => !stopped && undoHistory.Count > 0 && !HasPendingRouteCandidateInteraction;
 
-        public bool CanRedo => redoHistory.Count > 0 && !HasPendingRouteCandidateInteraction;
+        public bool CanRedo => !stopped && redoHistory.Count > 0 && !HasPendingRouteCandidateInteraction;
 
         public PathEditorPlacementMode PlacementMode => placementMode;
 
@@ -169,14 +171,32 @@ namespace FreeTrainSimulator.Toolbox.PathEditing
         internal PathEditor(IPathEditorContext editorContext) : base(editorContext)
         {
             pathLoadCommitDispatcher = commit => Task.FromResult(commit());
+            interactivePreviewRunner = action => action();
         }
 
-        internal PathEditor(IPathEditorContext editorContext, UserCommandController<UserCommand> userCommandController, Action<Action> interactivePreviewDispatcher, Func<Func<bool>, Task<bool>> pathLoadCommitDispatcher) : 
+        internal PathEditor(IPathEditorContext editorContext, UserCommandController<UserCommand> userCommandController, Action<Action> interactivePreviewDispatcher, Func<Func<bool>, Task<bool>> pathLoadCommitDispatcher) :
+            this(editorContext, userCommandController, action =>
+            {
+                interactivePreviewDispatcher(action);
+                return Task.CompletedTask;
+            }, pathLoadCommitDispatcher)
+        {
+            ArgumentNullException.ThrowIfNull(interactivePreviewDispatcher);
+        }
+
+        internal PathEditor(IPathEditorContext editorContext, UserCommandController<UserCommand> userCommandController, Func<Action, Task> interactivePreviewDispatcher, Func<Func<bool>, Task<bool>> pathLoadCommitDispatcher) :
+            this(editorContext, userCommandController, interactivePreviewDispatcher, pathLoadCommitDispatcher, action => action())
+        {
+        }
+
+        internal PathEditor(IPathEditorContext editorContext, UserCommandController<UserCommand> userCommandController, Func<Action, Task> interactivePreviewDispatcher,
+            Func<Func<bool>, Task<bool>> pathLoadCommitDispatcher, Func<Func<Task>, Task> interactivePreviewRunner) :
             base(editorContext)
         {
             this.userCommandController = userCommandController;
             this.interactivePreviewDispatcher = interactivePreviewDispatcher ?? throw new ArgumentNullException(nameof(interactivePreviewDispatcher));
             this.pathLoadCommitDispatcher = pathLoadCommitDispatcher ?? throw new ArgumentNullException(nameof(pathLoadCommitDispatcher));
+            this.interactivePreviewRunner = interactivePreviewRunner ?? throw new ArgumentNullException(nameof(interactivePreviewRunner));
             // Retain the exact controller delegates so disposal removes them rather than newly compiled adapters.
             pointerReleaseHandler = (args, _, modifiers) => MouseReleasedLeft(args, modifiers);
             pointerDragHandler = (args, _, modifiers) => MouseDragged(args, modifiers);
@@ -187,24 +207,37 @@ namespace FreeTrainSimulator.Toolbox.PathEditing
 
         protected override void Dispose(bool disposing)
         {
+            Stop();
+            base.Dispose(disposing);
+        }
+
+        internal void Stop()
+        {
+            if (stopped)
+                return;
+
+            stopped = true;
+            PointerInputEnabled = false;
             _ = Interlocked.Increment(ref pathLoadGeneration);
-            CancelInteractivePreview();
+            ClearTransientPathInteractionState();
             userCommandController?.RemoveEvent(CommonUserCommand.PointerPressed, MousePressedLeft);
             userCommandController?.RemoveEvent(CommonUserCommand.PointerReleased, pointerReleaseHandler);
             userCommandController?.RemoveEvent(CommonUserCommand.PointerDragged, pointerDragHandler);
-
-            base.Dispose(disposing);
         }
 
         public async Task<bool> InitializePathAsync(PathModelHeader path, CancellationToken cancellationToken)
         {
+            if (stopped)
+                return false;
+
             int loadGeneration = BeginPathLoad();
             try
             {
                 PathModel pathModel = path as PathModel;
                 if (path != null && pathModel == null)
                 {
-                    pathModel = await path.GetExtended(cancellationToken).ConfigureAwait(false);
+                    // The handler caches this read for other consumers; only this editor's wait is cancelable.
+                    pathModel = await path.GetExtended(CancellationToken.None).AsTask().WaitAsync(cancellationToken).ConfigureAwait(false);
                 }
 
                 return OwnsPathLoad(loadGeneration) && await pathLoadCommitDispatcher(() => CommitPathLoad(path, pathModel, loadGeneration)).ConfigureAwait(false);
@@ -304,6 +337,9 @@ namespace FreeTrainSimulator.Toolbox.PathEditing
 
         public void InitializeNewPath()
         {
+            if (stopped)
+                return;
+
             _ = BeginPathLoad();
             PathModel newPath = new PathModel()
             {
@@ -330,7 +366,7 @@ namespace FreeTrainSimulator.Toolbox.PathEditing
             return loadGeneration;
         }
 
-        private bool OwnsPathLoad(int loadGeneration) => loadGeneration == Volatile.Read(ref pathLoadGeneration);
+        private bool OwnsPathLoad(int loadGeneration) => !stopped && loadGeneration == Volatile.Read(ref pathLoadGeneration);
 
         public bool Undo()
         {
@@ -379,9 +415,9 @@ namespace FreeTrainSimulator.Toolbox.PathEditing
         /// <summary><see langword="true"/> when the path has an end node to remove.</summary>
         public bool CanRemoveEnd => HasNodeType(snapshot => HasFlag(snapshot, PathNodeType.End));
 
-        public bool CanPlaceStartAnchor => !IsPlacementActive && !HasPendingRouteCandidateInteraction && TryGetEditablePathModel() != null;
+        public bool CanPlaceStartAnchor => !stopped && !IsPlacementActive && !HasPendingRouteCandidateInteraction && TryGetEditablePathModel() != null;
 
-        public bool CanPlaceEndAnchor => !IsPlacementActive && !HasPendingRouteCandidateInteraction && TryGetEditablePathModel() is PathModel currentModel && HasFlag(currentModel, PathNodeType.Start);
+        public bool CanPlaceEndAnchor => !stopped && !IsPlacementActive && !HasPendingRouteCandidateInteraction && TryGetEditablePathModel() is PathModel currentModel && HasFlag(currentModel, PathNodeType.Start);
 
         /// <summary>
         /// <see langword="true"/> when the current path can be snapped to track: it is in edit mode and has a
@@ -536,8 +572,8 @@ namespace FreeTrainSimulator.Toolbox.PathEditing
         private PathEditorCommandResult ApplyEndpointAnchor(Func<PathModel, PathEditResult> edit)
         {
             PathModel currentModel = TryGetEditablePathModel();
-            if (currentModel == null)
-                return PathEditorCommandResult.Failed("No editable path is currently loaded.", null);
+            if (stopped || currentModel == null)
+                return PathEditorCommandResult.Failed("No editable path is currently loaded.", currentModel);
             if (HasPendingRouteCandidateInteraction)
                 return PathEditorCommandResult.Failed("Accept or cancel the pending route candidate before editing the path.", currentModel);
 
@@ -708,7 +744,7 @@ namespace FreeTrainSimulator.Toolbox.PathEditing
             if (pathModel == null || allSpans.IsDefaultOrEmpty || affectedSpans.IsDefaultOrEmpty)
                 return false;
 
-            HashSet<(int From, int To)> precedingEdges = new();
+            HashSet<(int From, int To)> precedingEdges = new HashSet<(int From, int To)>();
             foreach (ResolvedPathSpan span in allSpans)
             {
                 if (affectedSpans.Contains(span) && !(span.FromNodeIndex >= 0 && span.FromNodeIndex < pathModel.PathNodes.Length &&
@@ -898,7 +934,7 @@ namespace FreeTrainSimulator.Toolbox.PathEditing
         private bool BeginAnchorPlacement(PathEditorPlacementMode mode)
         {
             PathModel currentModel = TryGetEditablePathModel();
-            if (currentModel == null || IsPlacementActive || HasPendingRouteCandidateInteraction)
+            if (stopped || currentModel == null || IsPlacementActive || HasPendingRouteCandidateInteraction)
                 return false;
 
             placementSourceEditMode = EditMode;
@@ -984,7 +1020,7 @@ namespace FreeTrainSimulator.Toolbox.PathEditing
         /// <summary>
         /// Whether the current path can be appended to interactively.
         /// </summary>
-        public bool CanContinuePath => TrainPath != null && !EditMode && !repairMode && !IsSaveInProgress && !IsMovingNode && !CanCancelPathInteraction
+        public bool CanContinuePath => !stopped && TrainPath != null && !EditMode && !repairMode && !IsSaveInProgress && !IsMovingNode && !CanCancelPathInteraction
             && TryGetEditablePathModel() is PathModel currentModel && HasFlag(currentModel, PathNodeType.End);
 
         /// <summary>
@@ -997,7 +1033,7 @@ namespace FreeTrainSimulator.Toolbox.PathEditing
             if (currentModel == null)
                 return PathEditorCommandResult.Failed("No editable path is currently loaded.", null);
 
-            if (IsSaveInProgress || repairMode)
+            if (stopped || IsSaveInProgress || repairMode)
                 return PathEditorCommandResult.Failed("Cannot continue the current path.", currentModel);
 
             if (!HasFlag(currentModel, PathNodeType.End))
@@ -1019,7 +1055,7 @@ namespace FreeTrainSimulator.Toolbox.PathEditing
         {
             PathModel currentModel = TryGetEditablePathModel();
             ImmutableArray<PathNode> nodes = currentModel?.PathNodes ?? ImmutableArray<PathNode>.Empty;
-            return !IsPlacementActive && !HasPendingRouteCandidateInteraction && nodeIndex >= 0 && nodeIndex < nodes.Length;
+            return !stopped && !IsPlacementActive && !HasPendingRouteCandidateInteraction && nodeIndex >= 0 && nodeIndex < nodes.Length;
         }
 
         /// <summary>
@@ -1201,6 +1237,8 @@ namespace FreeTrainSimulator.Toolbox.PathEditing
             ArgumentNullException.ThrowIfNull(anchor);
 
             PathModel currentModel = TryGetEditablePathModel();
+            if (stopped)
+                return PathEditResult.Failed("No path placement is active.", currentModel);
             if (HasPendingRouteCandidateInteraction)
                 return PendingRouteCandidateEditFailure(currentModel);
 
@@ -1779,7 +1817,7 @@ namespace FreeTrainSimulator.Toolbox.PathEditing
 
         public bool BeginMoveNode(int nodeIndex)
         {
-            if (HasPendingRouteCandidateInteraction)
+            if (stopped || HasPendingRouteCandidateInteraction)
                 return false;
 
             PathModel currentModel = TryGetEditablePathModel();
@@ -1832,7 +1870,7 @@ namespace FreeTrainSimulator.Toolbox.PathEditing
 
         protected override void OnActivePathPointUpdated()
         {
-            if (IsPlacementActive)
+            if (!stopped && IsPlacementActive)
                 UpdateMovePreview();
         }
 
@@ -1921,8 +1959,16 @@ namespace FreeTrainSimulator.Toolbox.PathEditing
 
         private void StartInteractivePreview(PathNode replacementAnchor, PathEditResult edit)
         {
+            if (stopped)
+                return;
+
+            interactivePreviewTask = interactivePreviewRunner(() => LaunchInteractivePreview(replacementAnchor, edit));
+        }
+
+        private Task LaunchInteractivePreview(PathNode replacementAnchor, PathEditResult edit)
+        {
             CancelInteractivePreview();
-            CancellationTokenSource cancellation = new();
+            CancellationTokenSource cancellation = new CancellationTokenSource();
             interactivePreviewCancellation = cancellation;
             resolvingPreviewAnchor = replacementAnchor;
             int generation = ++interactivePreviewGeneration;
@@ -1930,30 +1976,30 @@ namespace FreeTrainSimulator.Toolbox.PathEditing
             PathEditorPlacementMode sourceMode = placementMode;
             bool allowAutomaticReversal = AllowsAutomaticReversal(sourceMode);
 
-            interactivePreviewTask = Task.Run(() => EvaluateSpanCommit(edit.PathModel, edit.ChangedNodeIndexes,
+            return Task.Run(() => EvaluateSpanCommit(edit.PathModel, edit.ChangedNodeIndexes,
                 "Route point preview.", sourceModel, allowAutomaticReversal, cancellation.Token), cancellation.Token)
-                .ContinueWith(completed =>
+                .ContinueWith(async completed =>
                 {
                     _ = Interlocked.CompareExchange(ref interactivePreviewCancellation, null, cancellation);
                     if (completed.IsFaulted)
                         _ = completed.Exception;
                     try
                     {
-                        interactivePreviewDispatcher(() => CompleteInteractivePreview(
-                            generation, sourceModel, sourceMode, replacementAnchor, edit, completed));
+                        await interactivePreviewDispatcher(() => CompleteInteractivePreview(
+                            generation, sourceModel, sourceMode, replacementAnchor, edit, completed)).ConfigureAwait(false);
                     }
                     finally
                     {
                         cancellation.Dispose();
                     }
                 },
-                    CancellationToken.None, TaskContinuationOptions.ExecuteSynchronously, TaskScheduler.Default);
+                    CancellationToken.None, TaskContinuationOptions.ExecuteSynchronously, TaskScheduler.Default).Unwrap();
         }
 
         private void CompleteInteractivePreview(int generation, PathModel sourceModel, PathEditorPlacementMode sourceMode,
             PathNode replacementAnchor, PathEditResult edit, Task<PathSpanCommitResult> resolutionTask)
         {
-            if (generation != interactivePreviewGeneration || !ReferenceEquals(sourceModel, moveSourceModel)
+            if (stopped || generation != interactivePreviewGeneration || !ReferenceEquals(sourceModel, moveSourceModel)
                 || sourceMode != placementMode || !EquivalentMoveAnchor(resolvingPreviewAnchor, replacementAnchor))
                 return;
 
@@ -2091,6 +2137,8 @@ namespace FreeTrainSimulator.Toolbox.PathEditing
         private PathEditResult ApplyUndoableEdit(Func<PathModel, PathEditResult> edit)
         {
             PathModel currentModel = TryGetEditablePathModel() ?? moveSourceModel;
+            if (stopped)
+                return PathEditResult.Failed("The path is not in edit mode.", currentModel);
             if (HasPendingRouteCandidateInteraction)
                 return PendingRouteCandidateEditFailure(currentModel);
             if (!EditMode)
@@ -2116,7 +2164,7 @@ namespace FreeTrainSimulator.Toolbox.PathEditing
 
         private bool HasNodeType(Func<PathModel, bool> predicate)
         {
-            if (!EditMode || HasPendingRouteCandidateInteraction)
+            if (stopped || !EditMode || HasPendingRouteCandidateInteraction)
                 return false;
 
             PathModel currentModel = TryGetEditablePathModel();
@@ -2305,16 +2353,22 @@ namespace FreeTrainSimulator.Toolbox.PathEditing
 
         private void MousePressedLeft(UserCommandArgs userCommandArgs, Microsoft.Xna.Framework.GameTime gameTime, KeyModifiers keyModifiers)
         {
+            if (stopped)
+                return;
             editorDragged = false;
         }
 
         public void MouseDragged(UserCommandArgs userCommandArgs, KeyModifiers keyModifiers)
         {
+            if (stopped)
+                return;
             editorDragged = true;
         }
 
         public void MouseReleasedLeft(UserCommandArgs userCommandArgs, KeyModifiers keyModifiers)
         {
+            if (stopped)
+                return;
             if (IsPlacementActive)
             {
                 // Commit only on a genuine click; a drag is a map pan and must not drop the anchor at the
@@ -2360,6 +2414,8 @@ namespace FreeTrainSimulator.Toolbox.PathEditing
         private PathEditResult CommitPlacement(bool continueRouteBuilding)
         {
             PathModel currentModel = TryGetEditablePathModel() ?? moveSourceModel;
+            if (stopped)
+                return PathEditResult.Failed("No path placement is active.", currentModel);
             if (currentModel == null)
                 return PathEditResult.Failed("No editable path is currently loaded.", null);
             if (!IsPlacementActive)

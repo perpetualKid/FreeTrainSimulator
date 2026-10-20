@@ -125,20 +125,10 @@ namespace FreeTrainSimulator.Toolbox.Hosting
             SelectedPathChanged?.Invoke(this, EventArgs.Empty);
         }
 
-        FolderModel IToolboxMenu.SelectContentFolder(string folderName)
+        internal void ProjectSelectedFolder(FolderModel folder)
         {
-            foreach (FolderModel folder in ContentFolders)
-            {
-                if (folder.Name.Equals(folderName, StringComparison.OrdinalIgnoreCase))
-                {
-                    // Startup owns discovery and loading under its captured selection intent. Do not
-                    // launch a second asynchronous selection/confirmation from this synchronous lookup.
-                    SelectedFolder = folder;
-                    SelectedFolderChanged?.Invoke(this, EventArgs.Empty);
-                    return folder;
-                }
-            }
-            return null;
+            SelectedFolder = folder;
+            SelectedFolderChanged?.Invoke(this, EventArgs.Empty);
         }
 
         #endregion
@@ -154,40 +144,7 @@ namespace FreeTrainSimulator.Toolbox.Hosting
             // (PopulateRoutes/PreSelectRoute). Raising it synchronously here re-enters the WPF ComboBox while
             // it is still committing the user's pick, which makes the Selector revert the selection (the
             // folder dropdown appears to ignore the choice).
-            InvokeOnGameThreadAsync($"Select content folder '{folder.Name}'", async () =>
-            {
-                long selection = game.BeginRouteSelection();
-                bool confirmed = await game.ConfirmDiscardUnsavedPathsAsync().ConfigureAwait(false);
-                bool accepted = await game.InvokeOnGameThreadAsync(() =>
-                {
-                    if (!game.IsLatestRouteSelection(selection))
-                        return Task.FromResult(false);
-                    if (!confirmed)
-                    {
-                        SelectedFolderChanged?.Invoke(this, EventArgs.Empty);
-                        return Task.FromResult(false);
-                    }
-
-                    SelectedFolder = folder;
-                    SelectedFolderChanged?.Invoke(this, EventArgs.Empty);
-                    ((IToolboxMenu)this).PopulateRoutes(ImmutableArray<RouteModelHeader>.Empty);
-                    game.UnloadRoute(selection);
-                    return Task.FromResult(true);
-                }).ConfigureAwait(false);
-                if (!accepted)
-                    return;
-
-                ImmutableArray<RouteModelHeader> routes = await game.FindRoutesAsync(folder, selection).ConfigureAwait(false);
-                await game.InvokeOnGameThreadAsync(async () =>
-                {
-                    if (!game.IsLatestRouteSelection(selection))
-                        return;
-
-                    ((IToolboxMenu)this).PopulateRoutes(routes);
-                    if (routes.Length == 1)
-                        _ = await game.LoadRouteAsync(routes[0], selection).ConfigureAwait(false);
-                }).ConfigureAwait(false);
-            });
+            InvokeOnGameThreadAsync($"Select content folder '{folder.Name}'", () => game.Session.SelectFolderAsync(folder));
         }
 
         /// <summary>Loads the given route, or unloads it when it is already selected.</summary>
@@ -195,43 +152,14 @@ namespace FreeTrainSimulator.Toolbox.Hosting
         {
             ArgumentNullException.ThrowIfNull(route);
 
-            InvokeOnGameThreadAsync($"Toggle route '{route.Name}'", async () =>
-            {
-                long selection = game.BeginRouteSelection();
-                bool confirmed = await game.ConfirmDiscardUnsavedPathsAsync().ConfigureAwait(false);
-                await game.InvokeOnGameThreadAsync(async () =>
-                {
-                    if (!game.IsLatestRouteSelection(selection))
-                        return;
-                    if (!confirmed)
-                    {
-                        SelectedRouteChanged?.Invoke(this, EventArgs.Empty);
-                        return;
-                    }
-
-                    if (string.Equals(SelectedRouteName, route.Name, StringComparison.Ordinal))
-                        game.UnloadRoute(selection);
-                    else
-                        _ = await game.LoadRouteAsync(route, selection).ConfigureAwait(false);
-                }).ConfigureAwait(false);
-            });
+            InvokeOnGameThreadAsync($"Toggle route '{route.Name}'", () => game.Session.ToggleRouteAsync(route));
         }
 
         /// <summary>Loads the given path, or unloads it when it is already selected.</summary>
         public void TogglePath(PathModelHeader path)
         {
             ArgumentNullException.ThrowIfNull(path);
-            _ = game.InvokeOnGameThreadAsync(async () =>
-            {
-                if (SelectedPath != null && string.Equals(SelectedPath.Id, path.Id, StringComparison.OrdinalIgnoreCase))
-                {
-                    await game.UnloadPathAsync().ConfigureAwait(false);
-                }
-                else
-                {
-                    _ = await game.LoadPathAsync(path).ConfigureAwait(false);
-                }
-            });
+            InvokeOnGameThreadAsync($"Toggle path '{path.Id}'", () => game.Session.TogglePathAsync(path));
         }
 
         /// <summary>Starts editing a new path for the loaded route.</summary>
@@ -244,26 +172,26 @@ namespace FreeTrainSimulator.Toolbox.Hosting
         public void TakeScreenshot() => game.InvokeOnGameThread(game.PrintScreen);
 
         /// <summary>Shows the about window.</summary>
-        public void ShowAbout() => game.InvokeOnGameThread(game.ShowAboutWindow);
+        public void ShowAbout() => game.InvokeSessionCommand(game.ShowAboutWindow);
 
         /// <summary>Requests application exit.</summary>
         public void Quit() => game.InvokeOnGameThread(game.PrepareExitApplication);
 
         /// <summary>Updates a color preference.</summary>
         public void UpdateColorPreference(ColorSetting setting, string colorName)
-            => game.InvokeOnGameThread(() => game.UpdateColorPreference(setting, colorName));
+            => game.InvokeSessionCommand(() => game.UpdateColorPreference(setting, colorName));
 
         /// <summary>Updates an item visibility preference.</summary>
         public void UpdateItemVisibilityPreference(MapContentType setting, bool visible)
-            => game.InvokeOnGameThread(() => game.UpdateItemVisibilityPreference(setting, visible));
+            => game.InvokeSessionCommand(() => game.UpdateItemVisibilityPreference(setting, visible));
 
         /// <summary>Updates the language preference.</summary>
         public void UpdateLanguagePreference(string language)
-            => game.InvokeOnGameThread(() => game.UpdateLanguagePreference(language));
+            => game.InvokeSessionCommand(() => game.UpdateLanguagePreference(language));
 
         private void InvokeOnGameThreadAsync(string operationName, Func<Task> action)
         {
-            _ = game.InvokeOnGameThreadAsync(async () =>
+            GameWindow.ObserveGameThreadOperation(game.InvokeOnGameThreadAsync(async () =>
             {
                 try
                 {
@@ -284,7 +212,7 @@ namespace FreeTrainSimulator.Toolbox.Hosting
                     Trace.TraceError($"Hosted menu operation failed: {operationName}. {ex}");
                     throw;
                 }
-            });
+            }));
         }
 
         #endregion

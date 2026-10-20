@@ -43,6 +43,7 @@ namespace FreeTrainSimulator.Toolbox
         private string defaultDockLayoutJson;
         private bool isShuttingDown;
         private bool shutdownCompleted;
+        private Task shutdownTask;
         private bool disposed;
         private int deactivationSequence;
         private ToolWindowDescriptor[] toolWindowDescriptors;
@@ -82,6 +83,9 @@ namespace FreeTrainSimulator.Toolbox
 
         private void MapHost_UnsavedPathConfirmationRequested(object sender, UnsavedPathConfirmationEventArgs e)
         {
+            if (e.Completion.Task.IsCompleted)
+                return;
+
             MessageBoxResult result = MessageBox.Show(this,
                 CatalogManager.Catalog.GetString("There are unsaved path changes. Changing the route will discard them. Continue?"),
                 CatalogManager.Catalog.GetString("Unsaved Path Changes"), MessageBoxButton.YesNo,
@@ -132,7 +136,7 @@ namespace FreeTrainSimulator.Toolbox
             viewModel.ToggleHelpToolCommand = new RelayCommand(_ => ToggleToolWindow(HelpToolWindowContentId), _ => viewModel.HelpTool != null);
             viewModel.ToggleSettingsToolCommand = new RelayCommand(_ => ToggleToolWindow(SettingsToolWindowContentId), _ => viewModel.SettingsTool != null);
             viewModel.ToggleTrainPathToolCommand = new RelayCommand(_ => ToggleToolWindow(TrainPathToolWindowContentId), _ => viewModel.TrainPathTool != null);
-            viewModel.ResetSettingsCommand = new RelayCommand(_ => ResetToDefaults(), _ => viewModel.SettingsTool != null);
+            viewModel.ResetSettingsCommand = new RelayCommand(_ => ResetToDefaultsAsync(), _ => viewModel.SettingsTool != null);
         }
 
         private void InitializeToolWindowDescriptors()
@@ -735,7 +739,7 @@ namespace FreeTrainSimulator.Toolbox
         // appearance preferences (colors, item visibility, font outline, real track width, restore-last-view)
         // and the dock layout to their defaults, applying live and persisting immediately. Logging is left
         // unchanged.
-        private async void ResetToDefaults()
+        private async void ResetToDefaultsAsync()
         {
             try
             {
@@ -753,7 +757,7 @@ namespace FreeTrainSimulator.Toolbox
                 if (result != MessageBoxResult.Yes)
                     return;
 
-                viewModel.SettingsTool.ResetToDefaults();
+                await viewModel.SettingsTool.ResetToDefaultsAsync().ConfigureAwait(true);
 
                 viewModel.TrainPathTool?.SelectedTabIndex = TrainPathToolWindowViewModel.PathsTabIndex;
 
@@ -808,12 +812,14 @@ namespace FreeTrainSimulator.Toolbox
             return mapDocument is null || mapDocument.IsFloating;
         }
 
-        private async Task ShutdownAsync()
-        {
-            if (isShuttingDown)
-                return;
+        private Task ShutdownAsync() => shutdownTask ??= ShutdownCoreAsync();
 
-            isShuttingDown = true;
+        private async Task ShutdownCoreAsync()
+        {
+            // Save while admission and both owners are alive. Keep bridges subscribed through drain so
+            // pending interactions can settle before releasing any shell/native resources.
+            await SaveDockLayoutAsync().ConfigureAwait(true);
+            await MapHost.StopAsync().ConfigureAwait(true);
 
             UnsubscribeToolWindowShortcuts();
 
@@ -832,10 +838,11 @@ namespace FreeTrainSimulator.Toolbox
             MapHost.ScreenshotRequested -= MapHost_ScreenshotRequested;
             MapHost.AboutRequested -= MapHost_AboutRequested;
             MapHost.ExitRequested -= MapHost_ExitRequested;
+            MapHost.LanguageChanged -= MapHost_LanguageChanged;
+            MapHost.MapContextMenuRequested -= MapHost_MapContextMenuRequested;
             UnhookToolWindowAnchorables();
             DockingManager.ActiveContentChanged -= DockingManager_ActiveContentChanged;
 
-            await SaveDockLayoutAsync().ConfigureAwait(true);
             DisposeToolWindowViewModels();
             MapHost.Dispose();
         }
@@ -879,12 +886,28 @@ namespace FreeTrainSimulator.Toolbox
             if (isShuttingDown)
                 return;
 
-            // Confirm before exiting. This runs for every close path - the top-right X button, the File >
-            // Exit menu (via MapHost_ExitRequested), and Alt+F4 - so the user always gets a chance to cancel.
-            if (!await ConfirmExitAsync().ConfigureAwait(true))
-                return;
+            // Set the guard before the first await/modal prompt: nested closes share this attempt.
+            isShuttingDown = true;
+            try
+            {
+                if (!await ConfirmExitAsync().ConfigureAwait(true))
+                    return;
 
-            await CompleteShutdownAndCloseAsync().ConfigureAwait(true);
+                await ShutdownAsync().ConfigureAwait(true);
+                shutdownCompleted = true;
+                Close();
+            }
+            catch (Exception ex) when (ex is not OutOfMemoryException and not AccessViolationException)
+            {
+                Trace.TraceError($"Failed to shut down Toolbox window cleanly: {ex}");
+                MessageBox.Show(this,
+                    CatalogManager.Catalog.GetString("Toolbox could not shut down safely. The window will remain open. See the log for details."),
+                    CatalogManager.Catalog.GetString("Shutdown Failed"), MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+            finally
+            {
+                isShuttingDown = false;
+            }
         }
 
         private async Task<bool> ConfirmExitAsync()
@@ -914,21 +937,6 @@ namespace FreeTrainSimulator.Toolbox
             return dialog.ShowDialog() == true;
         }
 
-        private async Task CompleteShutdownAndCloseAsync()
-        {
-            try
-            {
-                await ShutdownAsync().ConfigureAwait(true);
-            }
-            catch (InvalidOperationException ex)
-            {
-                Trace.TraceError($"Failed to shut down Toolbox window cleanly: {ex}");
-            }
-
-            shutdownCompleted = true;
-            Close();
-        }
-
         protected override void OnClosed(EventArgs e)
         {
             base.OnClosed(e);
@@ -950,6 +958,9 @@ namespace FreeTrainSimulator.Toolbox
 
             if (disposing)
             {
+                if (!shutdownCompleted)
+                    throw new InvalidOperationException("Close the Toolbox window through its awaited shutdown before disposing it.");
+
                 UnsubscribeToolWindowShortcuts();
                 MapHost.LanguageChanged -= MapHost_LanguageChanged;
                 refreshScheduler?.Dispose();

@@ -24,9 +24,9 @@ namespace Tests.FreeTrainSimulator.Toolbox.Hosting
         public void WhenHostedClientGeometryChangesThenFeatureKeepsItsWholeWindowRelativePixelPosition(int width, int height, int originX, int originY)
         {
             HostedViewportGeometry previous = CreateGeometry();
-            HostedViewportGeometry current = new(new Size(width, height), new Point(originX, originY), previous.WindowCenter);
+            HostedViewportGeometry current = new HostedViewportGeometry(new Size(width, height), new Point(originX, originY), previous.WindowCenter);
             MapViewportState viewport = CreateViewport(previous, new PointD(100.25, -200.75), 1.3);
-            PointD feature = new(120.375, -240.125);
+            PointD feature = new PointD(120.375, -240.125);
             PointD original = WholeWindowRelativePosition(viewport, previous, feature);
 
             ApplyGeometry(viewport, previous, current);
@@ -40,11 +40,11 @@ namespace Tests.FreeTrainSimulator.Toolbox.Hosting
         public void WhenTheWholeWindowMovesThenFeatureKeepsItsWholeWindowRelativePixelPosition(int deltaX, int deltaY)
         {
             HostedViewportGeometry previous = CreateGeometry();
-            HostedViewportGeometry current = new(previous.ClientSize,
+            HostedViewportGeometry current = new HostedViewportGeometry(previous.ClientSize,
                 new Point(previous.ClientOrigin.X + deltaX, previous.ClientOrigin.Y + deltaY),
                 new PointD(previous.WindowCenter.X + deltaX, previous.WindowCenter.Y + deltaY));
             MapViewportState viewport = CreateViewport(previous, new PointD(100.25, -200.75), 1.3);
-            PointD feature = new(120.375, -240.125);
+            PointD feature = new PointD(120.375, -240.125);
             PointD original = WholeWindowRelativePosition(viewport, previous, feature);
 
             ApplyGeometry(viewport, previous, current);
@@ -55,10 +55,10 @@ namespace Tests.FreeTrainSimulator.Toolbox.Hosting
         [TestMethod]
         public void WhenDockingChangesOnANegativeScreenThenFeatureKeepsItsWholeWindowRelativePixelPosition()
         {
-            HostedViewportGeometry previous = new(new Size(801, 601), new Point(-1820, -720), new PointD(-1339.5, -449.5));
-            HostedViewportGeometry current = new(new Size(563, 359), new Point(-1697, -681), new PointD(-1312.5, -420.5));
+            HostedViewportGeometry previous = new HostedViewportGeometry(new Size(801, 601), new Point(-1820, -720), new PointD(-1339.5, -449.5));
+            HostedViewportGeometry current = new HostedViewportGeometry(new Size(563, 359), new Point(-1697, -681), new PointD(-1312.5, -420.5));
             MapViewportState viewport = CreateViewport(previous, new PointD(-100.125, 200.375), 1.7);
-            PointD feature = new(-79.875, 160.625);
+            PointD feature = new PointD(-79.875, 160.625);
             PointD original = WholeWindowRelativePosition(viewport, previous, feature);
 
             ApplyGeometry(viewport, previous, current);
@@ -70,7 +70,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.Hosting
         public void WhenHostedGeometryChangesThenScaleRemainsUnchanged()
         {
             HostedViewportGeometry previous = CreateGeometry();
-            HostedViewportGeometry current = new(new Size(1041, 361), new Point(237, 109), new PointD(617.5, 429.5));
+            HostedViewportGeometry current = new HostedViewportGeometry(new Size(1041, 361), new Point(237, 109), new PointD(617.5, 429.5));
             MapViewportState viewport = CreateViewport(previous, new PointD(100.25, -200.75), 1.3);
             double original = viewport.Scale;
 
@@ -83,9 +83,9 @@ namespace Tests.FreeTrainSimulator.Toolbox.Hosting
         public void WhenDuplicateHostedSnapshotsArriveThenFeatureDoesNotMoveAgain()
         {
             HostedViewportGeometry previous = CreateGeometry();
-            HostedViewportGeometry current = new(new Size(1041, 361), new Point(237, 109), new PointD(617.5, 429.5));
+            HostedViewportGeometry current = new HostedViewportGeometry(new Size(1041, 361), new Point(237, 109), new PointD(617.5, 429.5));
             MapViewportState viewport = CreateViewport(previous, new PointD(100.25, -200.75), 1.3);
-            PointD feature = new(120.375, -240.125);
+            PointD feature = new PointD(120.375, -240.125);
             PointD original = WholeWindowRelativePosition(viewport, previous, feature);
 
             ApplyGeometry(viewport, previous, current);
@@ -99,10 +99,10 @@ namespace Tests.FreeTrainSimulator.Toolbox.Hosting
         public void WhenHostedGeometryMakesASequenceRoundTripThenFeatureReturnsToItsOriginalPixelPosition()
         {
             HostedViewportGeometry originalGeometry = CreateGeometry();
-            HostedViewportGeometry expanded = new(new Size(1041, 841), new Point(-121, 109), originalGeometry.WindowCenter);
-            HostedViewportGeometry moved = new(new Size(563, 359), new Point(-1697, -681), new PointD(-1312.5, -420.5));
+            HostedViewportGeometry expanded = new HostedViewportGeometry(new Size(1041, 841), new Point(-121, 109), originalGeometry.WindowCenter);
+            HostedViewportGeometry moved = new HostedViewportGeometry(new Size(563, 359), new Point(-1697, -681), new PointD(-1312.5, -420.5));
             MapViewportState viewport = CreateViewport(originalGeometry, new PointD(100.25, -200.75), 1.3);
-            PointD feature = new(120.375, -240.125);
+            PointD feature = new PointD(120.375, -240.125);
             PointD original = WholeWindowRelativePosition(viewport, originalGeometry, feature);
 
             ApplyGeometry(viewport, originalGeometry, expanded);
@@ -118,9 +118,9 @@ namespace Tests.FreeTrainSimulator.Toolbox.Hosting
         public void WhenAnOutOfRouteHostedViewChangesThenFeatureIsNotClampedBackIntoTheRoute(double centerX, double centerY)
         {
             HostedViewportGeometry previous = CreateGeometry();
-            HostedViewportGeometry current = new(new Size(1041, 361), new Point(237, 109), previous.WindowCenter);
+            HostedViewportGeometry current = new HostedViewportGeometry(new Size(1041, 361), new Point(237, 109), previous.WindowCenter);
             MapViewportState viewport = CreateViewport(previous, new PointD(centerX, centerY), 1.3);
-            PointD feature = new(centerX + 20.125, centerY - 40.375);
+            PointD feature = new PointD(centerX + 20.125, centerY - 40.375);
             PointD original = WholeWindowRelativePosition(viewport, previous, feature);
 
             ApplyGeometry(viewport, previous, current);
@@ -135,13 +135,13 @@ namespace Tests.FreeTrainSimulator.Toolbox.Hosting
         public void WhenHostedGeometryPreservesAZeroCenterCoordinateThenControllerKeepsFeaturePositionAndZoom(int deltaX, int deltaY, int centerX, int centerY)
         {
             HostedViewportGeometry previous = CreateGeometry();
-            HostedViewportGeometry current = new(previous.ClientSize,
+            HostedViewportGeometry current = new HostedViewportGeometry(previous.ClientSize,
                 new Point(previous.ClientOrigin.X + deltaX, previous.ClientOrigin.Y + deltaY), previous.WindowCenter);
-            MapViewController controller = new(new MapViewportBounds(-1000, 1000, 1000, -1000));
+            MapViewController controller = new MapViewController(new MapViewportBounds(-1000, 1000, 1000, -1000));
             controller.ResetSize(new Microsoft.Xna.Framework.Point(previous.ClientSize.Width, previous.ClientSize.Height), 0,
                 Microsoft.Xna.Framework.Point.Zero);
             controller.PresetPosition(new PointD(100, 200), 1);
-            PointD feature = new(120, 160);
+            PointD feature = new PointD(120, 160);
             PointD original = WholeWindowRelativePosition(controller, previous, feature);
             double originalScale = controller.Scale;
             _ = controller.UpdateFrameState();
@@ -167,7 +167,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.Hosting
 
         private static MapViewportState CreateViewport(HostedViewportGeometry geometry, PointD center, double scale)
         {
-            MapViewportState viewport = new(new MapViewportBounds(-1000, 1000, 1000, -1000));
+            MapViewportState viewport = new MapViewportState(new MapViewportBounds(-1000, 1000, 1000, -1000));
             viewport.ResetSize(new MapViewportSize(geometry.ClientSize.Width, geometry.ClientSize.Height), 0);
             viewport.PresetPosition(center, scale);
             return viewport;

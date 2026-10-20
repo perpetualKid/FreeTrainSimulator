@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Collections.ObjectModel;
+using System.Threading.Tasks;
 using System.Windows.Input;
 
 using FreeTrainSimulator.Common;
@@ -222,11 +223,11 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
         /// restore-last-view) to their defaults through the bridge and re-syncs every bound field so the UI
         /// reflects the new state. The logging preference is intentionally left unchanged.
         /// </summary>
-        public void ResetToDefaults()
+        public async Task ResetToDefaultsAsync()
         {
             ObjectDisposedException.ThrowIf(disposed, nameof(SettingsToolWindowViewModel));
 
-            toolWindow.ResetToDefaults();
+            await toolWindow.ResetToDefaultsAsync().ConfigureAwait(true);
             RefreshAppearanceFromBridge();
         }
 

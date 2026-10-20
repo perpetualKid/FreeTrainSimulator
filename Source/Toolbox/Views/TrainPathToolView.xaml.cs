@@ -177,7 +177,7 @@ namespace FreeTrainSimulator.Toolbox.Views
                     continue;
                 }
 
-                MenuItem item = new() { Header = MainWindow.GetMapContextMenuCaption(action) };
+                MenuItem item = new MenuItem() { Header = MainWindow.GetMapContextMenuCaption(action) };
                 MapContextMenuItem capturedAction = action;
                 item.Click += (_, _) => viewModel.ExecuteNodeAction(capturedAction);
                 menu.Items.Add(item);

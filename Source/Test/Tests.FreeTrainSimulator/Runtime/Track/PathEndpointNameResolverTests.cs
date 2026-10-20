@@ -13,6 +13,7 @@ using Microsoft.Xna.Framework;
 namespace Tests.FreeTrainSimulator.Runtime.Track
 {
     [TestClass]
+    [OSCondition(OperatingSystems.Windows)]
     public class PathEndpointNameResolverTests
     {
         [TestMethod]
@@ -25,8 +26,7 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
             PlatformTrackItem expected = direction == TrackDirection.Ahead ? ahead : reverse;
             expected = expected with { SectionDistance = expectedPosition };
 
-            string station = PathEndpointNameResolver.NearestStation(
-                new[] { (1, (double)startPosition, direction, 0d) }, new[] { expected }, 1000);
+            string station = PathEndpointNameResolver.NearestStation(new[] { (1, (double)startPosition, direction, 0d) }, new[] { expected }, 1000);
 
             Assert.AreEqual(expectedStation, station);
         }
@@ -34,9 +34,7 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
         [TestMethod]
         public void WhenPlatformIsBeyondMaximumDistanceThenNoStationIsSelected()
         {
-            string station = PathEndpointNameResolver.NearestStation(
-                new[] { (1, 0d, TrackDirection.Ahead, 900d) },
-                new[] { Platform(1, 200, "Too Far") }, 1000);
+            string station = PathEndpointNameResolver.NearestStation(new[] { (1, 0d, TrackDirection.Ahead, 900d) }, new[] { Platform(1, 200, "Too Far") }, 1000);
 
             Assert.IsNull(station);
         }
@@ -44,7 +42,7 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
         [TestMethod]
         public void WhenRouteHasNoPlatformThenEndpointFallbackIsReturned()
         {
-            PathModel path = new()
+            PathModel path = new PathModel
             {
                 PathNodes = ImmutableArray.Create(
                     new PathNode(WorldLocation.None) { NodeType = PathNodeType.Start, NextMainNode = 1 },

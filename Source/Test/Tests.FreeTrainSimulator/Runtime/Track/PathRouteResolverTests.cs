@@ -1662,8 +1662,8 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
 
         private static TrackWorld CreateInitializedLoopTrackWorld()
         {
-            WorldLocation junctionLocation = new(new Tile(0, 0), Vector3.Zero);
-            VectorNode loop = new(junctionLocation, new Tile(0, 0), junctionLocation)
+            WorldLocation junctionLocation = new WorldLocation(new Tile(0, 0), Vector3.Zero);
+            VectorNode loop = new VectorNode(junctionLocation, new Tile(0, 0), junctionLocation)
             {
                 NodeIndex = 1,
                 VectorSections = ImmutableArray.Create(
@@ -1672,13 +1672,13 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
                     CreateSection(100, 100, 0, 100, -MathHelper.PiOver2),
                     CreateSection(0, 100, 0, 0, MathHelper.Pi)),
             };
-            VectorNode exit = new(junctionLocation, new Tile(0, 0), new WorldLocation(new Tile(0, 0), new Vector3(-100, 0, 0)))
+            VectorNode exit = new VectorNode(junctionLocation, new Tile(0, 0), new WorldLocation(new Tile(0, 0), new Vector3(-100, 0, 0)))
             {
                 NodeIndex = 2,
                 VectorSections = ImmutableArray.Create(CreateSection(0, 0, -100, 0, -MathHelper.PiOver2)),
             };
             JunctionNode junction = CreateJunctionNode(3);
-            TrackDatabase trackDatabase = new()
+            TrackDatabase trackDatabase = new TrackDatabase
             {
                 TrackNodes = ImmutableArray.Create<TrackNodeBase>(null, loop, exit, junction),
                 TrackNodeConnectors = ImmutableArray.Create(
@@ -1688,8 +1688,8 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
                     CreateDirectionalConnectors(3, (1, TrackDirection.Reverse), (1, TrackDirection.Ahead), (2, TrackDirection.Reverse))),
             };
             InitializeTrackDatabase(trackDatabase);
-            TrackModel trackModel = new() { TrackDatabase = trackDatabase };
-            TrackSectionModel trackSectionModel = new()
+            TrackModel trackModel = new TrackModel { TrackDatabase = trackDatabase };
+            TrackSectionModel trackSectionModel = new TrackSectionModel
             {
                 TrackSections = ImmutableDictionary<int, TrackSection>.Empty.Add(1, new TrackSection
                 {

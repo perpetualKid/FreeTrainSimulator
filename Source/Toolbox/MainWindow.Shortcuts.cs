@@ -17,7 +17,7 @@ namespace FreeTrainSimulator.Toolbox
     {
         private readonly InputManager shortcutInputManager = InputManager.Current;
         private readonly Application shortcutApplication = Application.Current;
-        private readonly ToolWindowShortcutPressTracker shortcutPressTracker = new();
+        private readonly ToolWindowShortcutPressTracker shortcutPressTracker = new ToolWindowShortcutPressTracker();
 
         private void InputManager_PreProcessInput(object sender, PreProcessInputEventArgs e)
         {

@@ -343,7 +343,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.ToolWindows
         {
             using (PathEditor editor = CreatePathEditor(CreateSupportedPassingBranchPath()))
             {
-                TrainPathToolWindow trainPathToolWindow = new(() => editor, () => null, action => action(),
+                TrainPathToolWindow trainPathToolWindow = new TrainPathToolWindow(() => editor, () => null, action => action(),
                     () => { }, () => { }, _ => { }, () => { }, () => { })
                 {
                     Active = true,
@@ -366,7 +366,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.ToolWindows
             PathModel source = CreateSupportedPassingBranchPath();
             using (PathEditor editor = CreatePathEditor(source))
             {
-                TrainPathToolWindow trainPathToolWindow = new(() => editor, () => null, action => action(), () => { }, () => { }, _ => { }, () => { }, () => { });
+                TrainPathToolWindow trainPathToolWindow = new TrainPathToolWindow(() => editor, () => null, action => action(), () => { }, () => { }, _ => { }, () => { }, () => { });
 
                 trainPathToolWindow.ExecuteNodeAction(MapContextMenuAction.RemoveRestOfPath, 2);
 
@@ -396,9 +396,9 @@ namespace Tests.FreeTrainSimulator.Toolbox.ToolWindows
             PathModel source = CreatePathModel(PathNodeType.Start, PathNodeType.Via, PathNodeType.Via, PathNodeType.End);
             using (PathEditor editor = CreatePathEditor(source))
             {
-                TrainPathToolWindow trainPathToolWindow = new(() => editor, () => null, action => action(),
+                TrainPathToolWindow trainPathToolWindow = new TrainPathToolWindow(() => editor, () => null, action => action(),
                     () => { }, () => { }, _ => { }, () => { }, () => { });
-                MapContextMenuItem captured = new(MapContextMenuAction.SetReversalPoint, 1);
+                MapContextMenuItem captured = new MapContextMenuItem(MapContextMenuAction.SetReversalPoint, 1);
                 editor.SelectAuthoredNode(2);
 
                 trainPathToolWindow.ExecuteNodeAction(captured.Action, captured.NodeIndex);
@@ -414,7 +414,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.ToolWindows
             TrackWorld trackWorld = TrackWorldTestFixture.CreateSidingTrackWorld();
             using (PathEditor editor = CreatePathEditor(CreateSidingEndpointPath(trackWorld), trackWorld))
             {
-                TrainPathToolWindow trainPathToolWindow = new(() => editor, () => null, action => action(),
+                TrainPathToolWindow trainPathToolWindow = new TrainPathToolWindow(() => editor, () => null, action => action(),
                     () => { }, () => { }, _ => { }, () => { }, () => { })
                 { Active = true };
                 Assert.IsTrue(editor.BeginPassingBranchCommand(0).Success);
@@ -466,10 +466,10 @@ namespace Tests.FreeTrainSimulator.Toolbox.ToolWindows
         public async Task WhenCleanPathIsReopenedThenSnapshotAllowsContinueWhileSaveRemainsDisabled()
         {
             PathModel source = CreatePathModel(PathNodeType.Start, PathNodeType.End);
-            using (PathEditor editor = new(new TestPathEditorContext(CreateInitializedTrackWorld())))
+            using (PathEditor editor = new PathEditor(new TestPathEditorContext(CreateInitializedTrackWorld())))
             {
                 Assert.IsTrue(await editor.InitializePathAsync(source, CancellationToken.None).ConfigureAwait(false));
-                TrainPathToolWindow trainPathToolWindow = new(() => editor, () => null, action => action(),
+                TrainPathToolWindow trainPathToolWindow = new TrainPathToolWindow(() => editor, () => null, action => action(),
                     () => { }, () => { }, _ => { }, () => { }, () => { })
                 { Active = true };
 
@@ -772,7 +772,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.ToolWindows
         public void WhenStartNewPathPlacementSucceedsThenActualGuidanceIsPublished()
         {
             PathEditor editor = null;
-            TrainPathToolWindow trainPathToolWindow = new(() => editor, () => null, action => action(), () =>
+            TrainPathToolWindow trainPathToolWindow = new TrainPathToolWindow(() => editor, () => null, action => action(), () =>
             {
                 editor = new PathEditor(new TestPathEditorContext(CreateInitializedTrackWorld()));
                 editor.InitializeNewPath();
@@ -811,11 +811,11 @@ namespace Tests.FreeTrainSimulator.Toolbox.ToolWindows
         [TestMethod]
         public void WhenNewPathIsActiveThenCancelNewPathUnloadsIt()
         {
-            using (PathEditor editor = new(new TestPathEditorContext(CreateInitializedTrackWorld())))
+            using (PathEditor editor = new PathEditor(new TestPathEditorContext(CreateInitializedTrackWorld())))
             {
                 editor.InitializeNewPath();
                 int unloadActions = 0;
-                TrainPathToolWindow trainPathToolWindow = new(() => editor, () => null, action => action(), () => { }, () => { }, _ => { }, () => unloadActions++, () => { })
+                TrainPathToolWindow trainPathToolWindow = new TrainPathToolWindow(() => editor, () => null, action => action(), () => { }, () => { }, _ => { }, () => unloadActions++, () => { })
                 {
                     Active = true,
                 };
@@ -831,10 +831,10 @@ namespace Tests.FreeTrainSimulator.Toolbox.ToolWindows
         [TestMethod]
         public void WhenSavedPathIsActiveThenCancelNewPathDoesNotUnloadIt()
         {
-            using (PathEditor editor = new(new TestPathEditorContext(CreateInitializedTrackWorld())))
+            using (PathEditor editor = new PathEditor(new TestPathEditorContext(CreateInitializedTrackWorld())))
             {
                 int unloadActions = 0;
-                TrainPathToolWindow trainPathToolWindow = new(() => editor, () => null, action => action(), () => { }, () => { }, _ => { }, () => unloadActions++, () => { })
+                TrainPathToolWindow trainPathToolWindow = new TrainPathToolWindow(() => editor, () => null, action => action(), () => { }, () => { }, _ => { }, () => unloadActions++, () => { })
                 {
                     Active = true,
                 };
@@ -868,7 +868,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.ToolWindows
             {
                 _ = editor.SetMetadataCommand("Unsaved Name", source.Start, source.End, source.PlayerPath);
                 PathModelHeader loadedPath = null;
-                TrainPathToolWindow trainPathToolWindow = new(() => editor, () => null, action => action(), () => { }, () => { }, path => loadedPath = path, () => { }, () => { });
+                TrainPathToolWindow trainPathToolWindow = new TrainPathToolWindow(() => editor, () => null, action => action(), () => { }, () => { }, path => loadedPath = path, () => { }, () => { });
                 trainPathToolWindow.UpdatePaths(ImmutableArray.Create(new PathModelHeader { Id = "saved", Name = "Saved Path" }));
 
                 trainPathToolWindow.SelectPath("saved");
@@ -899,10 +899,10 @@ namespace Tests.FreeTrainSimulator.Toolbox.ToolWindows
         [TestMethod]
         public void WhenEditorCommandSucceedsThenSnapshotPublishesActualResult()
         {
-            using (PathEditor editor = new(new TestPathEditorContext(CreateInitializedTrackWorld())))
+            using (PathEditor editor = new PathEditor(new TestPathEditorContext(CreateInitializedTrackWorld())))
             {
                 editor.InitializeNewPath();
-                TrainPathToolWindow trainPathToolWindow = new(() => editor, () => null, action => action(), () => { }, () => { }, _ => { }, () => { }, () => { })
+                TrainPathToolWindow trainPathToolWindow = new TrainPathToolWindow(() => editor, () => null, action => action(), () => { }, () => { }, _ => { }, () => { }, () => { })
                 {
                     Active = true,
                 };
@@ -917,10 +917,10 @@ namespace Tests.FreeTrainSimulator.Toolbox.ToolWindows
         [TestMethod]
         public void WhenEditorCommandFailsThenSnapshotPublishesActualWarning()
         {
-            using (PathEditor editor = new(new TestPathEditorContext(CreateInitializedTrackWorld())))
+            using (PathEditor editor = new PathEditor(new TestPathEditorContext(CreateInitializedTrackWorld())))
             {
                 editor.InitializeNewPath();
-                TrainPathToolWindow trainPathToolWindow = new(() => editor, () => null, action => action(), () => { }, () => { }, _ => { }, () => { }, () => { })
+                TrainPathToolWindow trainPathToolWindow = new TrainPathToolWindow(() => editor, () => null, action => action(), () => { }, () => { }, _ => { }, () => { }, () => { })
                 {
                     Active = true,
                 };
@@ -1105,7 +1105,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.ToolWindows
         [TestMethod]
         public async Task WhenValidateAllContextChangesBeforeCompletionThenOldPathsAreNotPublished()
         {
-            TaskCompletionSource<ImmutableArray<PathModelHeader>> validationCompletion = new(TaskCreationOptions.RunContinuationsAsynchronously);
+            TaskCompletionSource<ImmutableArray<PathModelHeader>> validationCompletion = new TaskCompletionSource<ImmutableArray<PathModelHeader>>(TaskCreationOptions.RunContinuationsAsynchronously);
             ITrainPathToolingContext currentContext = new TestToolingContext(() => validationCompletion.Task);
             TrainPathToolWindow trainPathToolWindow = new TrainPathToolWindow(() => null, () => currentContext, action => action(), () => { }, () => { }, _ => { }, () => { }, () => { })
             {
@@ -1119,6 +1119,45 @@ namespace Tests.FreeTrainSimulator.Toolbox.ToolWindows
             trainPathToolWindow.RefreshSnapshot();
 
             Assert.IsTrue(trainPathToolWindow.CaptureTrainPathSnapshot().Paths.IsEmpty);
+        }
+
+        [TestMethod]
+        public async Task WhenValidationUsesSessionCallbackThenCompletionIncludesRefresh()
+        {
+            TaskCompletionSource releaseValidation = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+            TaskCompletionSource releaseCompletion = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+            TaskCompletionSource refreshed = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+            TrainPathToolWindow bridge = new TrainPathToolWindow(() => null, () => throw new InvalidOperationException("Session captures context on its owner."),
+                action => action(), () => { }, () => { }, _ => { }, () => { }, () => { }, async refresh =>
+                {
+                    await releaseValidation.Task.ConfigureAwait(false);
+                    refresh(ImmutableArray.Create(new PathModelHeader { Id = "validated", Name = "Validated", ValidationState = PathValidationState.Valid }));
+                    refreshed.SetResult();
+                    await releaseCompletion.Task.ConfigureAwait(false);
+                    return true;
+                }) { Active = true };
+
+            Task<bool> validation = bridge.ValidateAllPaths();
+            bool waitsForValidation = !validation.IsCompleted;
+            releaseValidation.SetResult();
+            await refreshed.Task.ConfigureAwait(false);
+            bool waitsForCompletion = !validation.IsCompleted;
+            releaseCompletion.SetResult();
+            bool result = await validation.ConfigureAwait(false);
+            bridge.RefreshSnapshot();
+
+            Assert.AreEqual((true, true, true, "validated"),
+                (waitsForValidation, waitsForCompletion, result, bridge.CaptureTrainPathSnapshot().Paths.Single().Id));
+        }
+
+        [TestMethod]
+        public async Task WhenValidationAdmissionRejectsThenToolWindowDoesNotReadContextOrRefresh()
+        {
+            TrainPathToolWindow bridge = new TrainPathToolWindow(() => null, () => throw new InvalidOperationException("No context access after stop."),
+                _ => Assert.Fail("Rejected validation must not dispatch refresh."), () => { }, () => { }, _ => { }, () => { }, () => { },
+                _ => Task.FromException<bool>(new ObjectDisposedException("session")));
+
+            await Assert.ThrowsExactlyAsync<ObjectDisposedException>(bridge.ValidateAllPaths).ConfigureAwait(false);
         }
 
         [TestMethod]

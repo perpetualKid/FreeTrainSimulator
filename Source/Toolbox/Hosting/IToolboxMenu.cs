@@ -31,7 +31,5 @@ namespace FreeTrainSimulator.Toolbox.Hosting
         /// <summary>Marks the given path as the selected one, or clears the selection when null.</summary>
         void PreSelectPath(PathModelHeader path);
 
-        /// <summary>Selects the content folder with the given name and starts loading its routes.</summary>
-        FolderModel SelectContentFolder(string folderName);
     }
 }

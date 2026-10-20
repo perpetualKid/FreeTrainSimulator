@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Globalization;
@@ -38,6 +38,8 @@ namespace FreeTrainSimulator.Toolbox
     {
         private readonly GraphicsDeviceManager graphicsDeviceManager;
         private readonly Form windowForm;
+        // Message-only: neither the render form nor WinForms' per-loop parking window owns this transport.
+        private readonly Control ownerControl;
         private readonly CommonDebugInfo debugInfo;
         private readonly GraphicsDebugInfo graphicsDebugInfo = new GraphicsDebugInfo();
 
@@ -62,7 +64,7 @@ namespace FreeTrainSimulator.Toolbox
         internal ContentArea ContentArea
         {
             get => contentArea;
-            set => windowForm.Invoke((System.Windows.Forms.MethodInvoker)delegate
+            set => ownerControl.Invoke((System.Windows.Forms.MethodInvoker)delegate
             {
                 hostedPointerGesture.Reset();
                 pointerDraggedSinceLeftPress = false;
@@ -77,7 +79,8 @@ namespace FreeTrainSimulator.Toolbox
                 if (value != null)
                 {
                     ContentArea contentArea = value;
-                    contentArea.ResetSize(Window.ClientBounds.Size, 60);
+                    if (!windowForm.IsDisposed && !windowForm.Disposing)
+                        contentArea.ResetSize(Window.ClientBounds.Size, 60);
                     Components.Add(value);
                     contentArea.IsEnabled = true;
                     string newTitle = windowTitle + Catalog.GetString($" Route: {value.Content.RouteName}");
@@ -91,6 +94,8 @@ namespace FreeTrainSimulator.Toolbox
         internal event EventHandler<ContentAreaChangedEventArgs> OnContentAreaChanged;
 
         private ProfileModel currentProfile;
+        private readonly SemaphoreSlim loadRouteSemaphore = new SemaphoreSlim(1);
+        private CancellationTokenSource ctsProfileLoading;
 
         internal ProfileToolboxSettingsModel ToolboxSettings { get; private set; }
         internal ProfileUserSettingsModel ToolboxUserSettings { get; private set; }
@@ -109,6 +114,8 @@ namespace FreeTrainSimulator.Toolbox
         private UserCommandController<UserCommand> userCommandController;
 
         // Abstraction over the main menu: a hosted bridge that forwards menu data/commands to the WPF menu.
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Performance", "CA1859:Use concrete types when possible for improved performance",
+            Justification = "The game drives the IToolboxMenu contract, whose population and selection methods HostedToolboxMenu implements explicitly.")]
         private IToolboxMenu menu;
 
         // Non-null only in hosted mode; exposed to the WPF host so the native menu can bind to it.
@@ -142,6 +149,9 @@ namespace FreeTrainSimulator.Toolbox
         private RouteNavigationToolWindow hostedRouteNavigationToolWindow;
 
         private HostedToolboxServices hostedServices;
+        private Task sessionExitTask;
+
+        internal event EventHandler HostedReady;
 
         /// <summary>
         /// Raised on the game thread for a tool-window shortcut while the native map owns keyboard focus.
@@ -171,7 +181,8 @@ namespace FreeTrainSimulator.Toolbox
             InitializeLoggingFromSettings();
 
             windowForm = (Form)Control.FromHandle(Window.Handle);
-            routeLoads = new RouteLoadCoordinator(InvokeOnGameThreadAsync);
+            ownerControl = new GameThreadControl(); // Create the independent dispatch HWND on the game STA.
+            session = new ToolboxSession(this);
             currentScreen = ToolboxSettings.WindowScreen < Screen.AllScreens.Length
                 ? Screen.AllScreens[ToolboxSettings.WindowScreen]
                 : Screen.PrimaryScreen;
@@ -221,9 +232,10 @@ namespace FreeTrainSimulator.Toolbox
             hostedLocationToolWindow = new LocationToolWindow(ToolboxSettings);
             hostedLogToolWindow = new LogToolWindow(() => LogFileName);
             hostedHelpToolWindow = new HelpToolWindow();
-            hostedSettingsToolWindow = new SettingsToolWindow(ToolboxSettings, ToolboxUserSettings, this);
-            hostedTrainPathToolWindow = new TrainPathToolWindow(() => HostedPathEditor, () => HostedTrainPathToolingContext, InvokeOnGameThread, EditPath, SavePath,
-                path => _ = LoadPathAsync(path), () => _ = UnloadPathAsync(), ActivatePathEditingInput);
+            hostedSettingsToolWindow = new SettingsToolWindow(ToolboxSettings, ToolboxUserSettings, this, InvokeSessionCommandAsync);
+            hostedTrainPathToolWindow = new TrainPathToolWindow(() => HostedPathEditor, () => HostedTrainPathToolingContext, InvokeSessionCommand, EditPath, SavePath,
+                path => ObserveGameThreadOperation(LoadPathAsync(path)), () => ObserveGameThreadOperation(UnloadPathAsync()), ActivatePathEditingInput,
+                refresh => InvokeOnGameThreadAsync(() => session.ValidateAllPathsAsync(refresh)));
             hostedStatusBarToolWindow = new StatusBarToolWindow();
             hostedRouteNavigationToolWindow = new RouteNavigationToolWindow(InvokeOnGameThread);
             hostedServices = new HostedToolboxServices
@@ -244,8 +256,24 @@ namespace FreeTrainSimulator.Toolbox
 
         private void GameWindow_Exiting(object sender, ExitingEventArgs e)
         {
-            routeLoads.Invalidate();
-            _ = Interlocked.Increment(ref routeContentVersion);
+            // MonoGame cancels the native FormClosing and raises this before ending the loop.
+            // Keep ticking/pumping until candidate discards and owner resource release really finish.
+            e.Cancel = !session.IsDisposed;
+            if (e.Cancel)
+                ObserveGameThreadOperation(StopForExitAsync());
+        }
+
+        internal Task StopForExitAsync()
+            => InvokeOnGameThreadAsync(() => sessionExitTask ??= StopAndReleaseSessionAsync());
+
+        private async Task StopAndReleaseSessionAsync()
+        {
+            await session.StopAndDrainAsync().ConfigureAwait(false);
+            await InvokeOnGameThreadAsync(() =>
+            {
+                session.Dispose();
+                return Task.CompletedTask;
+            }).ConfigureAwait(false);
         }
 
         #region window size/position handling
@@ -291,6 +319,8 @@ namespace FreeTrainSimulator.Toolbox
 
         private void SetWindowTitle(string title)
         {
+            if (windowForm.IsDisposed || windowForm.Disposing)
+                return;
             windowForm.Text = title;
             hostedTitleUpdateCallback?.Invoke(title);
         }
@@ -363,7 +393,7 @@ namespace FreeTrainSimulator.Toolbox
 
             InvokeOnGameThread(() =>
             {
-                if (appliedHostedGeometry == geometry)
+                if (windowForm.IsDisposed || windowForm.Disposing || appliedHostedGeometry == geometry)
                     return;
 
                 ContentArea map = contentArea;
@@ -400,12 +430,12 @@ namespace FreeTrainSimulator.Toolbox
 
         private void ApplyClientSize(System.Drawing.Size clientSize)
         {
-            if (clientSize.Width <= 0 || clientSize.Height <= 0)
+            if (windowForm.IsDisposed || windowForm.Disposing || clientSize.Width <= 0 || clientSize.Height <= 0)
                 return;
 
-            if (windowForm.InvokeRequired)
+            if (ownerControl.InvokeRequired)
             {
-                windowForm.BeginInvoke((System.Windows.Forms.MethodInvoker)delegate
+                ownerControl.BeginInvoke((System.Windows.Forms.MethodInvoker)delegate
                 {
                     ApplyClientSize(clientSize);
                 });
@@ -444,92 +474,75 @@ namespace FreeTrainSimulator.Toolbox
             onClientSizeChanged?.Invoke();
         }
 
-        // Marshals a command coming from the WPF UI thread onto the game (windowForm) thread, where all
+        // Marshals a command coming from the WPF UI thread onto the game owner thread, where all
         // MonoGame/WinForms state lives. Used by HostedToolboxMenu to forward native-menu actions safely.
         internal void InvokeOnGameThread(Action action)
         {
             ArgumentNullException.ThrowIfNull(action);
-
-            if (windowForm.IsDisposed || windowForm.Disposing)
-                return;
-
-            if (windowForm.InvokeRequired)
-                _ = windowForm.BeginInvoke(action);
-            else
+            ObserveGameThreadOperation(InvokeOnGameThreadAsync(() =>
+            {
                 action();
+                return Task.CompletedTask;
+            }));
         }
 
         internal Task InvokeOnGameThreadAsync(Func<Task> action)
         {
             ArgumentNullException.ThrowIfNull(action);
-
-            if (windowForm.IsDisposed || windowForm.Disposing)
-                return Task.CompletedTask;
-
-            if (!windowForm.InvokeRequired)
-                return CaptureInvocationAsync(action);
-
-            TaskCompletionSource completion = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
-            void CompleteWhenDisposed(object sender, EventArgs e) => completion.TrySetResult();
-            windowForm.Disposed += CompleteWhenDisposed;
-            _ = completion.Task.ContinueWith(_ => windowForm.Disposed -= CompleteWhenDisposed, CancellationToken.None, TaskContinuationOptions.ExecuteSynchronously, TaskScheduler.Default);
-            try
+            return InvokeOnGameThreadAsync(async () =>
             {
-                _ = windowForm.BeginInvoke((System.Windows.Forms.MethodInvoker)delegate
-                {
-                    Task task = CaptureInvocationAsync(action);
-                    _ = task.ContinueWith(CompleteInvokedTask, completion, CancellationToken.None, TaskContinuationOptions.ExecuteSynchronously, TaskScheduler.Default);
-                });
-            }
-            catch (InvalidOperationException exception)
-            {
-                completion.TrySetException(exception);
-            }
-
-            return completion.Task;
+                await action().ConfigureAwait(false);
+                return true;
+            });
         }
 
-        internal Task<T> InvokeOnGameThreadAsync<T>(Func<Task<T>> action)
+        internal async Task<T> InvokeOnGameThreadAsync<T>(Func<Task<T>> action)
         {
             ArgumentNullException.ThrowIfNull(action);
+            ObjectDisposedException.ThrowIf(ownerControl.IsDisposed || ownerControl.Disposing, ownerControl);
+            if (!ownerControl.IsHandleCreated)
+                throw new InvalidOperationException();
+            if (!ownerControl.InvokeRequired)
+                return await action().ConfigureAwait(false);
 
-            if (windowForm.IsDisposed || windowForm.Disposing)
-                return Task.FromResult(default(T));
-
-            if (!windowForm.InvokeRequired)
-                return CaptureInvocationAsync(action);
-
-            TaskCompletionSource<T> completion = new(TaskCreationOptions.RunContinuationsAsynchronously);
-            void CompleteWhenDisposed(object sender, EventArgs e) => completion.TrySetResult(default);
-            windowForm.Disposed += CompleteWhenDisposed;
-            _ = completion.Task.ContinueWith(_ => windowForm.Disposed -= CompleteWhenDisposed, CancellationToken.None, TaskContinuationOptions.ExecuteSynchronously, TaskScheduler.Default);
+            // Disposal can reject an unstarted invocation, but cannot complete the task
+            // returned by an action which already owns execution.
+            TaskCompletionSource<Task<T>> invocation =  new TaskCompletionSource<Task<T>>(TaskCreationOptions.RunContinuationsAsynchronously);
+            int claimed = 0;
+            void CompleteWhenDisposed(object sender, EventArgs e)
+            {
+                if (Interlocked.CompareExchange(ref claimed, 1, 0) == 0)
+                    invocation.TrySetException(new ObjectDisposedException(nameof(ownerControl)));
+            }
+            ownerControl.Disposed += CompleteWhenDisposed;
+            Task<T> operation;
             try
             {
-                _ = windowForm.BeginInvoke((System.Windows.Forms.MethodInvoker)delegate
+                if (ownerControl.IsDisposed || ownerControl.Disposing)
+                    CompleteWhenDisposed(ownerControl, EventArgs.Empty);
+                else
                 {
-                    Task<T> task = CaptureInvocationAsync(action);
-                    _ = task.ContinueWith(completedTask =>
+                    try
                     {
-                        if (completedTask.IsCanceled)
-                            completion.TrySetCanceled();
-                        else if (completedTask.IsFaulted)
-                            completion.TrySetException(completedTask.Exception.InnerExceptions);
-                        else
-                            completion.TrySetResult(completedTask.Result);
-                    }, CancellationToken.None, TaskContinuationOptions.ExecuteSynchronously, TaskScheduler.Default);
-                });
+                        _ = ownerControl.BeginInvoke((System.Windows.Forms.MethodInvoker)delegate
+                        {
+                            if (Interlocked.CompareExchange(ref claimed, 1, 0) == 0)
+                                invocation.SetResult(CaptureInvocationAsync(action));
+                        });
+                    }
+                    catch (InvalidOperationException exception)
+                    {
+                        if (Interlocked.CompareExchange(ref claimed, 1, 0) == 0)
+                            invocation.TrySetException(exception);
+                    }
+                }
+                operation = await invocation.Task.ConfigureAwait(false);
             }
-            catch (InvalidOperationException exception)
+            finally
             {
-                completion.TrySetException(exception);
+                ownerControl.Disposed -= CompleteWhenDisposed;
             }
-
-            return completion.Task;
-        }
-
-        private static async Task CaptureInvocationAsync(Func<Task> action)
-        {
-            await action().ConfigureAwait(false);
+            return await operation.ConfigureAwait(false);
         }
 
         private static async Task<T> CaptureInvocationAsync<T>(Func<Task<T>> action)
@@ -537,30 +550,18 @@ namespace FreeTrainSimulator.Toolbox
             return await action().ConfigureAwait(false);
         }
 
-        private static void CompleteInvokedTask(Task task, object state)
+        internal static void ObserveGameThreadOperation(Task task)
         {
-            TaskCompletionSource completion = (TaskCompletionSource)state;
-            if (task.IsCanceled)
+            _ = task.ContinueWith(failed =>
             {
-                Trace.TraceInformation("Hosted game-thread operation was canceled.");
-                completion.TrySetCanceled();
-            }
-            else if (task.Exception != null)
-            {
-                foreach (Exception exception in task.Exception.InnerExceptions)
+                foreach (Exception exception in failed.Exception.InnerExceptions)
                     Trace.TraceError($"Hosted game-thread operation failed: {exception}");
-
-                completion.TrySetException(task.Exception.InnerExceptions);
-            }
-            else
-            {
-                completion.TrySetResult();
-            }
+            }, CancellationToken.None, TaskContinuationOptions.OnlyOnFaulted | TaskContinuationOptions.ExecuteSynchronously, TaskScheduler.Default);
         }
 
         internal Task SaveHostedSettingsAsync(string dockLayoutJson, WindowPlacementSettings windowPlacement, int pathEditorSelectedTabIndex)
         {
-            return InvokeOnGameThreadAsync(() => SaveHostedSettingsOnGameThreadAsync(dockLayoutJson, windowPlacement, pathEditorSelectedTabIndex));
+            return InvokeOnGameThreadAsync(() => session.RunAsync(() => SaveHostedSettingsOnGameThreadAsync(dockLayoutJson, windowPlacement, pathEditorSelectedTabIndex)));
         }
 
         private async Task SaveHostedSettingsOnGameThreadAsync(string dockLayoutJson, WindowPlacementSettings windowPlacement, int pathEditorSelectedTabIndex)
@@ -738,23 +739,17 @@ namespace FreeTrainSimulator.Toolbox
         // The settings tool window calls these on the WPF UI thread; each marshals onto the game thread where
         // the MonoGame map state lives, then delegates to the corresponding worker. Explicit implementation
         // keeps this surface scoped to the settings bridge rather than the broader GameWindow API.
-        void ISettingsApplier.ApplyEnableLogging(bool value)
-            => InvokeOnGameThread(() => UpdateLoggingPreference(value));
+        void ISettingsApplier.ApplyEnableLogging(bool value) => InvokeSessionCommand(() => UpdateLoggingPreference(value));
 
-        void ISettingsApplier.ApplyFontOutline(bool value)
-            => InvokeOnGameThread(() => UpdateFontOutlinePreference(value));
+        void ISettingsApplier.ApplyFontOutline(bool value) => InvokeSessionCommand(() => UpdateFontOutlinePreference(value));
 
-        void ISettingsApplier.ApplyRealTrackWidth(bool value)
-            => InvokeOnGameThread(() => UpdateTrackWidthPreference(!value));
+        void ISettingsApplier.ApplyRealTrackWidth(bool value) => InvokeSessionCommand(() => UpdateTrackWidthPreference(!value));
 
-        void ISettingsApplier.ApplyColorPreference(ColorSetting setting, string colorName)
-            => InvokeOnGameThread(() => UpdateColorPreference(setting, colorName));
+        void ISettingsApplier.ApplyColorPreference(ColorSetting setting, string colorName) => InvokeSessionCommand(() => UpdateColorPreference(setting, colorName));
 
-        void ISettingsApplier.ReapplyAppearance()
-            => InvokeOnGameThread(ReapplyAppearancePreferences);
+        void ISettingsApplier.ReapplyAppearance() => InvokeSessionCommand(ReapplyAppearancePreferences);
 
-        void ISettingsApplier.ApplyLanguage(string language)
-            => InvokeOnGameThread(() => UpdateLanguagePreference(language));
+        void ISettingsApplier.ApplyLanguage(string language) => InvokeSessionCommand(() => UpdateLanguagePreference(language));
         #endregion
 
         internal void UpdateLanguagePreference(string language)
@@ -811,9 +806,9 @@ namespace FreeTrainSimulator.Toolbox
             ToolboxSettings.ContentPosition = contentArea is IMapHostControl hostControl ? hostControl.CenterPoint : PointD.None;
             ToolboxSettings.ContentScale = contentArea is IMapHostControl hostControl2 ? hostControl2.Scale : 1;
 
-            ToolboxSettings.Folder = selectedFolder?.Id;
-            ToolboxSettings.RouteId = selectedRoute?.Id;
-            ToolboxSettings.PathId = pathEditor?.PathId;
+            ToolboxSettings.Folder = session.SelectedFolder?.Id;
+            ToolboxSettings.RouteId = session.SelectedRoute?.Id;
+            ToolboxSettings.PathId = session.ExistingPathEditor?.PathId;
 
             //            ProfileSettingModelHandler<ProfileUserSettingsModel>.SetValueByName(ToolboxUserSettings, "MultiSamplingCount", 8);
 
@@ -884,11 +879,8 @@ namespace FreeTrainSimulator.Toolbox
         }
         #endregion
 
-        protected override async void Initialize()
+        protected override void Initialize()
         {
-            long startupSelection = BeginRouteSelection();
-            Task<bool> loadFolders = LoadFolders();
-
             spriteBatch = new SpriteBatch(GraphicsDevice);
 
             userCommandController = new UserCommandController<UserCommand>();
@@ -919,14 +911,10 @@ namespace FreeTrainSimulator.Toolbox
             userCommandController.AddEvent(UserCommand.PrintScreen, KeyEventType.KeyPressed, PrintScreen);
             userCommandController.AddEvent(UserCommand.ChangeScreenMode, KeyEventType.KeyPressed, ChangeScreenMode);
             userCommandController.AddEvent(UserCommand.QuitWindow, KeyEventType.KeyPressed, CloseWindow);
-            userCommandController.AddEvent(UserCommand.DisplayHelpWindow, KeyEventType.KeyPressed,
-                () => RequestToolWindowShortcut(UserCommand.DisplayHelpWindow));
-            userCommandController.AddEvent(UserCommand.DisplaySettingsWindow, KeyEventType.KeyPressed,
-                () => RequestToolWindowShortcut(UserCommand.DisplaySettingsWindow));
-            userCommandController.AddEvent(UserCommand.DisplayLogWindow, KeyEventType.KeyPressed,
-                () => RequestToolWindowShortcut(UserCommand.DisplayLogWindow));
-            userCommandController.AddEvent(UserCommand.DisplayTrainPathWindow, KeyEventType.KeyPressed,
-                () => RequestToolWindowShortcut(UserCommand.DisplayTrainPathWindow));
+            userCommandController.AddEvent(UserCommand.DisplayHelpWindow, KeyEventType.KeyPressed, () => RequestToolWindowShortcut(UserCommand.DisplayHelpWindow));
+            userCommandController.AddEvent(UserCommand.DisplaySettingsWindow, KeyEventType.KeyPressed, () => RequestToolWindowShortcut(UserCommand.DisplaySettingsWindow));
+            userCommandController.AddEvent(UserCommand.DisplayLogWindow, KeyEventType.KeyPressed, () => RequestToolWindowShortcut(UserCommand.DisplayLogWindow));
+            userCommandController.AddEvent(UserCommand.DisplayTrainPathWindow, KeyEventType.KeyPressed, () => RequestToolWindowShortcut(UserCommand.DisplayTrainPathWindow));
             userCommandController.AddEvent(UserCommand.MoveLeft, KeyEventType.KeyDown, MoveByKeyLeft);
             userCommandController.AddEvent(UserCommand.MoveRight, KeyEventType.KeyDown, MoveByKeyRight);
             userCommandController.AddEvent(UserCommand.MoveUp, KeyEventType.KeyDown, MoveByKeyUp);
@@ -939,10 +927,7 @@ namespace FreeTrainSimulator.Toolbox
                 if (userCommandArgs is not ModifiableKeyCommandArgs)
                     windowManager[ToolboxWindowType.DebugScreen].ToggleVisibility();
             });
-            userCommandController.AddEvent(CommonUserCommand.PointerDragged, (userCommandArgs) =>
-            {
-                MouseDragging(userCommandArgs);
-            });
+            userCommandController.AddEvent(CommonUserCommand.PointerDragged, MouseDragging);
             userCommandController.AddEvent(CommonUserCommand.VerticalScrollChanged, MouseWheel);
             userCommandController.AddEvent(CommonUserCommand.AlternatePointerPressed, RequestMapContextMenu);
             userCommandController.AddEvent(CommonUserCommand.PointerPressed, BeginPointerInteraction);
@@ -983,33 +968,8 @@ namespace FreeTrainSimulator.Toolbox
             Components.Add(windowManager);
             base.Initialize();
 
-            if (!(await loadFolders.ConfigureAwait(true)))
-            {
-                // content may need updates
-                MessageBox.Show($"In an effort to optimize content, {RuntimeInfo.ProductName} will need to analyze existing content files and folders." + Environment.NewLine + Environment.NewLine +
-                    $"Please close {RuntimeInfo.ApplicationName}, and use the Menu-application to review current content folder settings for further analysis.", "Please read!");
-                return;
-            }
-            if (ToolboxSettings.RestoreLastView && IsLatestRouteSelection(startupSelection))
-            {
-                try
-                {
-                    await PreSelectRouteAsync(ToolboxSettings.Folder, ToolboxSettings.RouteId, ToolboxSettings.PathId, startupSelection).ConfigureAwait(true);
-                }
-                catch (Exception ex) when (ex is not OperationCanceledException)
-                {
-                    Trace.TraceError($"Error restoring last view: {ex}");
-                    await InvokeOnGameThreadAsync(() =>
-                    {
-                        if (IsLatestRouteSelection(startupSelection))
-                        {
-                            windowManager[ToolboxWindowType.StatusWindow].Close();
-                            ToolboxSettings.RestoreLastView = false;
-                        }
-                        return Task.CompletedTask;
-                    }).ConfigureAwait(false);
-                }
-            }
+            ObserveGameThreadOperation(session.StartAsync());
+            HostedReady?.Invoke(this, EventArgs.Empty);
         }
 
         private void WindowManager_OnModalWindow(object sender, ModalWindowEventArgs e)
@@ -1032,6 +992,13 @@ namespace FreeTrainSimulator.Toolbox
 
         protected override void Update(GameTime gameTime)
         {
+            // Request on a later tick: MonoGame resets its exit flag after a canceled Exiting event.
+            if (session.IsDisposed)
+            {
+                Exit();
+                return;
+            }
+
             MouseButtons buttons = Control.MouseButtons;
             UpdatePointerActivation(buttons);
 

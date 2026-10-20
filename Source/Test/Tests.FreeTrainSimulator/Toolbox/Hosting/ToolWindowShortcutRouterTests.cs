@@ -52,10 +52,10 @@ namespace Tests.FreeTrainSimulator.Toolbox.Hosting
         {
             int executions = 0;
             UserCommand executed = default;
-            RelayCommand help = new(_ => { executions++; executed = UserCommand.DisplayHelpWindow; });
-            RelayCommand settings = new(_ => { executions++; executed = UserCommand.DisplaySettingsWindow; });
-            RelayCommand log = new(_ => { executions++; executed = UserCommand.DisplayLogWindow; });
-            RelayCommand trainPath = new(_ => { executions++; executed = UserCommand.DisplayTrainPathWindow; });
+            RelayCommand help = new RelayCommand(_ => { executions++; executed = UserCommand.DisplayHelpWindow; });
+            RelayCommand settings = new RelayCommand(_ => { executions++; executed = UserCommand.DisplaySettingsWindow; });
+            RelayCommand log = new RelayCommand(_ => { executions++; executed = UserCommand.DisplayLogWindow; });
+            RelayCommand trainPath = new RelayCommand(_ => { executions++; executed = UserCommand.DisplayTrainPathWindow; });
 
             _ = ToolWindowShortcutRouter.TryHandle(command, false, help, settings, log, trainPath);
 
@@ -65,7 +65,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.Hosting
         [TestMethod]
         public void WhenPaneCommandIsUnavailableThenShortcutIsNotConsumed()
         {
-            RelayCommand unavailable = new(_ => Assert.Fail("Unavailable pane command executed."), _ => false);
+            RelayCommand unavailable = new RelayCommand(_ => Assert.Fail("Unavailable pane command executed."), _ => false);
 
             bool handled = ToolWindowShortcutRouter.TryHandle(UserCommand.DisplaySettingsWindow, false, null, unavailable, null, null);
 
@@ -83,7 +83,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.Hosting
         [TestMethod]
         public void WhenCommandIsNotAShellShortcutThenNoPaneCommandExecutes()
         {
-            RelayCommand toggle = new(_ => Assert.Fail("Unrelated command executed a pane toggle."));
+            RelayCommand toggle = new RelayCommand(_ => Assert.Fail("Unrelated command executed a pane toggle."));
 
             bool handled = ToolWindowShortcutRouter.TryHandle(UserCommand.PathEditorUndo, false, toggle, toggle, toggle, toggle);
 
@@ -93,7 +93,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.Hosting
         [TestMethod]
         public void WhenMatchedShortcutRepeatsThenItIsConsumedWithoutAnotherToggle()
         {
-            RelayCommand toggle = new(_ => Assert.Fail("Repeated shortcut executed a pane toggle."));
+            RelayCommand toggle = new RelayCommand(_ => Assert.Fail("Repeated shortcut executed a pane toggle."));
 
             bool handled = ToolWindowShortcutRouter.TryHandle(UserCommand.DisplaySettingsWindow, true, null, toggle, null, null);
 
@@ -107,9 +107,9 @@ namespace Tests.FreeTrainSimulator.Toolbox.Hosting
         [DataRow(WpfKey.F8, Keys.F8)]
         public void WhenWpfShortcutReceivesTwoDownsThenBothAreConsumedWithOneToggle(WpfKey key, Keys virtualKey)
         {
-            ToolWindowShortcutPressTracker tracker = new();
+            ToolWindowShortcutPressTracker tracker = new ToolWindowShortcutPressTracker();
             int executions = 0;
-            RelayCommand toggle = new(_ => executions++);
+            RelayCommand toggle = new RelayCommand(_ => executions++);
 
             bool firstHandled = tracker.TryHandleKeyDown(key, new KeyboardState(virtualKey), true, toggle, toggle, toggle, toggle);
             bool secondHandled = tracker.TryHandleKeyDown(key, new KeyboardState(virtualKey), true, toggle, toggle, toggle, toggle);
@@ -124,9 +124,9 @@ namespace Tests.FreeTrainSimulator.Toolbox.Hosting
         [DataRow(WpfKey.F8, Keys.F8)]
         public void WhenShiftIsPressedBetweenWpfShortcutDownsThenHeldShortcutDoesNotRetoggle(WpfKey key, Keys virtualKey)
         {
-            ToolWindowShortcutPressTracker tracker = new();
+            ToolWindowShortcutPressTracker tracker = new ToolWindowShortcutPressTracker();
             int executions = 0;
-            RelayCommand toggle = new(_ => executions++);
+            RelayCommand toggle = new RelayCommand(_ => executions++);
 
             _ = tracker.TryHandleKeyDown(key, new KeyboardState(virtualKey), true, toggle, toggle, toggle, toggle);
             _ = tracker.TryHandleKeyDown(WpfKey.LeftShift, new KeyboardState(Keys.LeftShift), true, toggle, toggle, toggle, toggle);
@@ -138,9 +138,9 @@ namespace Tests.FreeTrainSimulator.Toolbox.Hosting
         [TestMethod]
         public void WhenShiftIsReleasedBetweenWpfShortcutDownsThenHeldShortcutDoesNotRetoggle()
         {
-            ToolWindowShortcutPressTracker tracker = new();
+            ToolWindowShortcutPressTracker tracker = new ToolWindowShortcutPressTracker();
             int executions = 0;
-            RelayCommand toggle = new(_ => executions++);
+            RelayCommand toggle = new RelayCommand(_ => executions++);
 
             _ = tracker.TryHandleKeyDown(WpfKey.F10, new KeyboardState(Keys.F10, Keys.LeftShift), true, null, toggle, null, null);
             tracker.ReleaseKey(WpfKey.LeftShift);
@@ -156,9 +156,9 @@ namespace Tests.FreeTrainSimulator.Toolbox.Hosting
         [DataRow(WpfKey.F8, Keys.F8)]
         public void WhenWpfShortcutIsReleasedAndRepressedThenItTogglesAgain(WpfKey key, Keys virtualKey)
         {
-            ToolWindowShortcutPressTracker tracker = new();
+            ToolWindowShortcutPressTracker tracker = new ToolWindowShortcutPressTracker();
             int executions = 0;
-            RelayCommand toggle = new(_ => executions++);
+            RelayCommand toggle = new RelayCommand(_ => executions++);
 
             _ = tracker.TryHandleKeyDown(key, new KeyboardState(virtualKey), true, toggle, toggle, toggle, toggle);
             tracker.ReleaseKey(key);
@@ -170,8 +170,8 @@ namespace Tests.FreeTrainSimulator.Toolbox.Hosting
         [TestMethod]
         public void WhenUnsupportedModifierIsRemovedWhileWpfShortcutIsHeldThenItDoesNotBecomeANewPress()
         {
-            ToolWindowShortcutPressTracker tracker = new();
-            RelayCommand toggle = new(_ => Assert.Fail("Held key became a new shortcut after Control was released."));
+            ToolWindowShortcutPressTracker tracker = new ToolWindowShortcutPressTracker();
+            RelayCommand toggle = new RelayCommand(_ => Assert.Fail("Held key became a new shortcut after Control was released."));
 
             bool firstHandled = tracker.TryHandleKeyDown(WpfKey.F10, new KeyboardState(Keys.F10, Keys.LeftControl), true, null, toggle, null, null);
             tracker.ReleaseKey(WpfKey.LeftCtrl);
@@ -183,8 +183,8 @@ namespace Tests.FreeTrainSimulator.Toolbox.Hosting
         [TestMethod]
         public void WhenWpfShortcutDownIsIneligibleThenItIsStillTrackedUntilRelease()
         {
-            ToolWindowShortcutPressTracker tracker = new();
-            RelayCommand toggle = new(_ => Assert.Fail("Held key toggled after routing became eligible."));
+            ToolWindowShortcutPressTracker tracker = new ToolWindowShortcutPressTracker();
+            RelayCommand toggle = new RelayCommand(_ => Assert.Fail("Held key toggled after routing became eligible."));
 
             bool firstHandled = tracker.TryHandleKeyDown(WpfKey.F10, new KeyboardState(Keys.F10), false, null, toggle, null, null);
             bool secondHandled = tracker.TryHandleKeyDown(WpfKey.F10, new KeyboardState(Keys.F10), true, null, toggle, null, null);
@@ -195,11 +195,11 @@ namespace Tests.FreeTrainSimulator.Toolbox.Hosting
         [TestMethod]
         public void WhenAnotherWpfShortcutIsPressedThenEachPhysicalKeyTogglesOnce()
         {
-            ToolWindowShortcutPressTracker tracker = new();
+            ToolWindowShortcutPressTracker tracker = new ToolWindowShortcutPressTracker();
             int helpExecutions = 0;
             int settingsExecutions = 0;
-            RelayCommand help = new(_ => helpExecutions++);
-            RelayCommand settings = new(_ => settingsExecutions++);
+            RelayCommand help = new RelayCommand(_ => helpExecutions++);
+            RelayCommand settings = new RelayCommand(_ => settingsExecutions++);
 
             _ = tracker.TryHandleKeyDown(WpfKey.F10, new KeyboardState(Keys.F10), true, help, settings, null, null);
             _ = tracker.TryHandleKeyDown(WpfKey.F1, new KeyboardState(Keys.F1), true, help, settings, null, null);
@@ -211,9 +211,9 @@ namespace Tests.FreeTrainSimulator.Toolbox.Hosting
         [TestMethod]
         public void WhenWpfPressTrackingIsResetThenMissingReleaseDoesNotLeaveShortcutStuck()
         {
-            ToolWindowShortcutPressTracker tracker = new();
+            ToolWindowShortcutPressTracker tracker = new ToolWindowShortcutPressTracker();
             int executions = 0;
-            RelayCommand toggle = new(_ => executions++);
+            RelayCommand toggle = new RelayCommand(_ => executions++);
 
             _ = tracker.TryHandleKeyDown(WpfKey.F10, new KeyboardState(Keys.F10), true, null, toggle, null, null);
             tracker.Reset();

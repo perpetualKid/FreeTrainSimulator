@@ -59,6 +59,9 @@ namespace Tests.FreeTrainSimulator.Toolbox.ViewModels
         private static ToolboxMenuViewModel CreateViewModel(out FolderModel targetFolder, out RouteModel route, out IToolboxMenu toolboxMenu)
         {
             GameWindow gameWindow = (GameWindow)RuntimeHelpers.GetUninitializedObject(typeof(GameWindow));
+#pragma warning disable CA1816 // Intentional
+            System.GC.SuppressFinalize(gameWindow);
+#pragma warning restore CA1816
             HostedToolboxMenu menu = new HostedToolboxMenu(gameWindow);
             toolboxMenu = menu;
             FolderModel currentFolder = new FolderModel("Current Folder", "C:\\Current", null);

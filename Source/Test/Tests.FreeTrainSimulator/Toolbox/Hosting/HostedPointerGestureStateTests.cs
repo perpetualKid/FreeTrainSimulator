@@ -25,7 +25,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.Hosting
         [DataRow(MouseButtons.Right)]
         public void WhenAForeignDragEntersTheMapThenItIsCapturedThroughItsReleaseFrame(MouseButtons button)
         {
-            HostedPointerGestureState state = new();
+            HostedPointerGestureState state = new HostedPointerGestureState();
 
             bool foreignPress = Poll(state, button);
             bool dragEnteringMap = Poll(state, button);
@@ -41,7 +41,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.Hosting
         [DataRow(MouseButtons.Right)]
         public void WhenAForeignPressIsFirstPolledInsideTheMapThenItsDragAndReleaseAreCaptured(MouseButtons button)
         {
-            HostedPointerGestureState state = new();
+            HostedPointerGestureState state = new HostedPointerGestureState();
 
             bool dragEnteringMap = Poll(state, button);
             bool heldInsideMap = Poll(state, button);
@@ -55,7 +55,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.Hosting
         [DataRow(MouseButtons.Right)]
         public void WhenANativeGestureIsPolledThenItsPressHoldAndReleaseAreAccepted(MouseButtons button)
         {
-            HostedPointerGestureState state = new();
+            HostedPointerGestureState state = new HostedPointerGestureState();
             state.RecordNativePress(button);
 
             bool press = Poll(state, button);
@@ -72,7 +72,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.Hosting
         [DataRow(MouseButtons.Right)]
         public void WhenANativeReleasePrecedesTheFirstPollThenItsReleaseFrameIsAccepted(MouseButtons button)
         {
-            HostedPointerGestureState state = new();
+            HostedPointerGestureState state = new HostedPointerGestureState();
             state.RecordNativePress(button);
             state.RecordNativeRelease(button);
 
@@ -87,7 +87,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.Hosting
         [DataRow(MouseButtons.Right)]
         public void WhenNativeReleaseCompletesThenANewForeignPressDoesNotInheritOwnership(MouseButtons button)
         {
-            HostedPointerGestureState state = new();
+            HostedPointerGestureState state = new HostedPointerGestureState();
             state.RecordNativePress(button);
             _ = Poll(state, button);
             state.RecordNativeRelease(button);
@@ -104,7 +104,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.Hosting
         [DataRow(MouseButtons.Right)]
         public void WhenPollingMissesANativeReleaseThenANewForeignHeldButtonIsCaptured(MouseButtons button)
         {
-            HostedPointerGestureState state = new();
+            HostedPointerGestureState state = new HostedPointerGestureState();
             state.RecordNativePress(button);
             _ = Poll(state, button);
             state.RecordNativeRelease(button);
@@ -122,7 +122,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.Hosting
         [DataRow(MouseButtons.Right)]
         public void WhenANewNativePressFollowsAnUnpolledReleaseThenNewOwnershipIsAccepted(MouseButtons button)
         {
-            HostedPointerGestureState state = new();
+            HostedPointerGestureState state = new HostedPointerGestureState();
             state.RecordNativePress(button);
             _ = Poll(state, button);
             state.RecordNativeRelease(button);
@@ -140,7 +140,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.Hosting
         [DataRow(MouseButtons.Right, MouseButtons.Left)]
         public void WhenAForeignButtonJoinsANativeDragThenBothGesturesStayCancelledThroughRelease(MouseButtons nativeButton, MouseButtons foreignButton)
         {
-            HostedPointerGestureState state = new();
+            HostedPointerGestureState state = new HostedPointerGestureState();
             state.RecordNativePress(nativeButton);
             bool nativePress = Poll(state, nativeButton);
 
@@ -151,7 +151,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.Hosting
             bool release = Poll(state, MouseButtons.None);
             bool idle = Poll(state, MouseButtons.None);
 
-            Assert.AreSequenceEqual(expectedfalsetruetruetruefalse, new[] { nativePress, mixedDrag, remainingNativeDrag, release, idle });
+            Assert.AreSequenceEqual(expectedfalsetruetruetruefalse, new bool[] { nativePress, mixedDrag, remainingNativeDrag, release, idle });
         }
 
         [TestMethod]
@@ -159,7 +159,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.Hosting
         [DataRow(MouseButtons.Right, MouseButtons.Left)]
         public void WhenANativeButtonJoinsAForeignDragThenNeitherButtonBecomesAnAcceptedGesture(MouseButtons nativeButton, MouseButtons foreignButton)
         {
-            HostedPointerGestureState state = new();
+            HostedPointerGestureState state = new HostedPointerGestureState();
             _ = Poll(state, foreignButton);
             state.RecordNativePress(nativeButton);
 
@@ -175,7 +175,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.Hosting
         [DataRow(MouseButtons.Right)]
         public void WhenOwnershipIsResetWhileHeldThenTheDragAndReleaseStayCaptured(MouseButtons button)
         {
-            HostedPointerGestureState state = new();
+            HostedPointerGestureState state = new HostedPointerGestureState();
             state.RecordNativePress(button);
             _ = Poll(state, button);
             state.Reset();
@@ -193,7 +193,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.Hosting
         [DataRow(MouseButtons.Right)]
         public void WhenOwnershipIsResetBeforeTheReleasePollThenThePendingReleaseIsCaptured(MouseButtons button)
         {
-            HostedPointerGestureState state = new();
+            HostedPointerGestureState state = new HostedPointerGestureState();
             state.RecordNativePress(button);
             _ = Poll(state, button);
             state.RecordNativeRelease(button);
@@ -210,7 +210,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.Hosting
         [DataRow(MouseButtons.Right)]
         public void WhenAResetGestureEndsThenAFreshNativeGestureIsAccepted(MouseButtons button)
         {
-            HostedPointerGestureState state = new();
+            HostedPointerGestureState state = new HostedPointerGestureState();
             state.RecordNativePress(button);
             _ = Poll(state, button);
             state.Reset();
@@ -230,7 +230,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.Hosting
         [DataRow(MouseButtons.Right, MouseButtons.Left)]
         public void WhenAMixedGestureEndsThenAFreshNativePressRecovers(MouseButtons nativeButton, MouseButtons foreignButton)
         {
-            HostedPointerGestureState state = new();
+            HostedPointerGestureState state = new HostedPointerGestureState();
             state.RecordNativePress(nativeButton);
             _ = Poll(state, nativeButton | foreignButton);
             _ = Poll(state, MouseButtons.None);
@@ -248,7 +248,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.Hosting
         [DataRow(MouseButtons.Right)]
         public void WhenPolledReleaseHasNoNativeMessageThenOwnershipStillRetires(MouseButtons button)
         {
-            HostedPointerGestureState state = new();
+            HostedPointerGestureState state = new HostedPointerGestureState();
             state.RecordNativePress(button);
             _ = Poll(state, button);
 
@@ -261,7 +261,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.Hosting
         [TestMethod]
         public void WhenBothButtonsHaveNativeOwnershipThenTheirStaggeredReleasesAreAccepted()
         {
-            HostedPointerGestureState state = new();
+            HostedPointerGestureState state = new HostedPointerGestureState();
             state.RecordNativePress(MouseButtons.Left);
             state.RecordNativePress(MouseButtons.Right);
 
@@ -280,7 +280,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.Hosting
         [DataRow(MouseButtons.XButton2)]
         public void WhenOnlyANonGestureButtonIsHeldThenPollingIsNotCaptured(MouseButtons button)
         {
-            HostedPointerGestureState state = new();
+            HostedPointerGestureState state = new HostedPointerGestureState();
 
             bool captured = Poll(state, button);
 
@@ -290,7 +290,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.Hosting
         [TestMethod]
         public void WhenIdleOwnershipIsResetThenIdlePollingRemainsAccepted()
         {
-            HostedPointerGestureState state = new();
+            HostedPointerGestureState state = new HostedPointerGestureState();
             state.Reset();
             state.Reset();
 
