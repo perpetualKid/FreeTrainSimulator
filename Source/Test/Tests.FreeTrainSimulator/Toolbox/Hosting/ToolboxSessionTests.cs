@@ -380,7 +380,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.Hosting
         public async Task WhenAdmittedJobFailsDuringStopThenDrainReportsItsFailure()
         {
             SessionScope scope = await SessionScope.StartAsync().ConfigureAwait(false);
-            await using (scope.ConfigureAwait(false))
+            try
             {
                 TaskCompletionSource started = Completion();
                 TaskCompletionSource result = Completion();
@@ -399,6 +399,11 @@ namespace Tests.FreeTrainSimulator.Toolbox.Hosting
                     () => drain.WaitAsync(TestContext.CancellationToken)).ConfigureAwait(false);
 
                 Assert.AreSame(expected, actual);
+            }
+            finally
+            {
+                // Disposal releases on the owner but must not hide the cached persistence diagnostic.
+                await Assert.ThrowsExactlyAsync<InvalidOperationException>(() => scope.DisposeAsync().AsTask()).ConfigureAwait(false);
             }
         }
 

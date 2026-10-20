@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 
 using FreeTrainSimulator.Toolbox;
 using FreeTrainSimulator.Toolbox.Hosting;
+using FreeTrainSimulator.Toolbox.ViewModels;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -27,8 +28,8 @@ namespace Tests.FreeTrainSimulator.Toolbox.Hosting
             Task first = host.StopAsync();
             Task second = host.StopAsync();
             ready.SetException(new InvalidOperationException("Startup failed."));
-            await Assert.ThrowsExactlyAsync<InvalidOperationException>(() => first.WaitAsync(TestContext.CancellationToken)).ConfigureAwait(false);
             terminated.SetResult();
+            await Assert.ThrowsExactlyAsync<InvalidOperationException>(() => first.WaitAsync(TestContext.CancellationToken)).ConfigureAwait(false);
 
             Assert.AreSame(first, second);
         }
@@ -162,10 +163,10 @@ namespace Tests.FreeTrainSimulator.Toolbox.Hosting
 
         [TestMethod]
         [Timeout(10000, CooperativeCancellation = true)]
-        public async Task WhenSessionDrainFailsThenHostKeepsTheLiveOwnerAndReportsFailure()
+        public async Task WhenSessionDrainFailsThenResourcesAreReleasedAndNativeExitCanComplete()
         {
             SessionScope scope = await SessionScope.StartAsync().ConfigureAwait(false);
-            await using (scope.ConfigureAwait(false))
+            try
             {
                 TaskCompletionSource<GameWindow> ready = new TaskCompletionSource<GameWindow>(TaskCreationOptions.RunContinuationsAsynchronously);
                 TaskCompletionSource terminated = Completion();
@@ -185,10 +186,24 @@ namespace Tests.FreeTrainSimulator.Toolbox.Hosting
                 GameWindow.ObserveGameThreadOperation(job);
                 GameWindow.ObserveGameThreadOperation(preparation);
 
+                await Assert.ThrowsExactlyAsync<InvalidOperationException>(
+                    () => preparation.WaitAsync(TestContext.CancellationToken)).ConfigureAwait(false);
+                Assert.IsTrue(scope.Session.IsDisposed, "Finished failed jobs no longer borrow session resources.");
+                Assert.IsFalse(stop.IsCompleted, "Stop must still await actual owner teardown.");
+                ExitingEventArgs subsequentExit = new ExitingEventArgs();
+                await scope.Host.OnOwnerAsync(() => RaiseNativeExit(scope.Game, subsequentExit)).ConfigureAwait(false);
+                Assert.IsFalse(subsequentExit.Cancel);
+                terminated.SetResult();
                 InvalidOperationException actual = await Assert.ThrowsExactlyAsync<InvalidOperationException>(
                     () => stop.WaitAsync(TestContext.CancellationToken)).ConfigureAwait(false);
 
-                Assert.AreEqual((expected, false, false), (actual, terminated.Task.IsCompleted, scope.Session.IsDisposed));
+                Assert.AreSame(expected, actual);
+                Assert.AreSame(stop, host.StopAsync());
+            }
+            finally
+            {
+                // The deliberately failed drain remains diagnostic even after successful release.
+                await Assert.ThrowsExactlyAsync<InvalidOperationException>(() => scope.DisposeAsync().AsTask()).ConfigureAwait(false);
             }
         }
 
@@ -248,6 +263,18 @@ namespace Tests.FreeTrainSimulator.Toolbox.Hosting
         }
 
         [TestMethod]
+        public void WhenOwnerFinishesWithoutResourceReleaseEvidenceThenHostDisposalIsRejected()
+        {
+            TaskCompletionSource terminated = Completion();
+            ToolboxGameHostControl host = CreateShutdownHost(
+                new TaskCompletionSource<GameWindow>(TaskCreationOptions.RunContinuationsAsynchronously), terminated);
+            terminated.SetResult();
+
+            Assert.IsFalse(host.IsStoppedSafely);
+            Assert.ThrowsExactly<InvalidOperationException>(host.Dispose);
+        }
+
+        [TestMethod]
         public void WhenShellIsClosedDuringConfirmationThenTheNestedCloseIsCanceled()
         {
             MainWindow shell = (MainWindow)RuntimeHelpers.GetUninitializedObject(typeof(MainWindow));
@@ -286,6 +313,138 @@ namespace Tests.FreeTrainSimulator.Toolbox.Hosting
             GameWindow.ObserveGameThreadOperation(ready.Task);
             GameWindow.ObserveGameThreadOperation(terminated.Task);
             return host;
+        }
+
+        [TestMethod]
+        [DataRow(false)]
+        [DataRow(true)]
+        [Timeout(10000, CooperativeCancellation = true)]
+        public async Task WhenRunFailsAfterConfirmedOwnerReleaseThenShellReleasesOnceAndReportsFailure(bool lateOwnerRelease)
+        {
+            StaControlHost shellOwner = await StaControlHost.StartAsync().ConfigureAwait(false);
+            await using (shellOwner.ConfigureAwait(false))
+            {
+                await shellOwner.OnOwnerAsync(() =>
+                {
+                    TaskCompletionSource<GameWindow> ready = new TaskCompletionSource<GameWindow>(TaskCreationOptions.RunContinuationsAsynchronously);
+                    TaskCompletionSource terminated = Completion();
+                    ToolboxGameHostControl host = CreateShutdownHost(ready, terminated);
+                    InvalidOperationException expected = new InvalidOperationException("Run failed after startup.");
+                    ready.SetException(expected);
+                    SetField(host, "ownerResourcesReleased", !lateOwnerRelease);
+                    terminated.SetException(expected);
+                    Assert.AreEqual(!lateOwnerRelease, host.IsStoppedSafely);
+
+                    System.Windows.Forms.Panel panel = (System.Windows.Forms.Panel)Activator.CreateInstance(
+                        typeof(ToolboxGameHostControl).GetNestedType("HostPanel", BindingFlags.NonPublic),
+                        new object[] { (Action)(() => { }) });
+                    SetField(host, "hostPanel", panel);
+                    int panelReleases = 0;
+                    panel.Disposed += (_, _) => ++panelReleases;
+
+                    MainWindow shell = CreateShutdownShell(host);
+                    MethodInfo shutdown = typeof(MainWindow).GetMethod("ShutdownAsync", BindingFlags.Instance | BindingFlags.NonPublic);
+                    Task first = (Task)shutdown.Invoke(shell, null);
+                    InvalidOperationException actual = Assert.ThrowsExactly<InvalidOperationException>(() => first.GetAwaiter().GetResult());
+                    Assert.AreSame(expected, actual);
+                    Assert.AreEqual(!lateOwnerRelease, (bool)typeof(MainWindow).GetField("shutdownCompleted", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(shell));
+                    if (lateOwnerRelease)
+                    {
+                        Assert.AreEqual(0, panelReleases);
+                        Assert.ThrowsExactly<InvalidOperationException>(host.Dispose);
+                        // A later attempt may release only once new safe-termination evidence exists.
+                        SetField(host, "ownerResourcesReleased", true);
+                    }
+                    Task second = (Task)shutdown.Invoke(shell, null);
+                    Assert.AreSame(first, second);
+                    Assert.ThrowsExactly<InvalidOperationException>(() => second.GetAwaiter().GetResult());
+                    Assert.IsTrue((bool)typeof(MainWindow).GetField("shutdownCompleted", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(shell));
+                    host.Dispose();
+                    shell.Dispose();
+                    shell.Dispose();
+                    Assert.AreEqual(1, panelReleases);
+                }).ConfigureAwait(false);
+            }
+        }
+
+        private static MainWindow CreateShutdownShell(ToolboxGameHostControl host)
+        {
+            // Exercise the real WPF cleanup without constructing the XAML host's graphics startup.
+            MainWindow shell = (MainWindow)RuntimeHelpers.GetUninitializedObject(typeof(MainWindow));
+#pragma warning disable CA1816 // Intentional: uninitialized test object must not be finalized.
+            GC.SuppressFinalize(shell);
+#pragma warning restore CA1816
+            SetField(shell, "MapHost", host);
+            SetField(shell, "DockingManager", new AvalonDock.DockingManager());
+            SetField(shell, "viewModel", new MainWindowViewModel());
+            SetField(shell, "shortcutInputManager", System.Windows.Input.InputManager.Current);
+            SetField(shell, "shortcutPressTracker", new ToolWindowShortcutPressTracker());
+            Type descriptor = typeof(MainWindow).GetNestedType("ToolWindowDescriptor", BindingFlags.NonPublic);
+            SetField(shell, "toolWindowDescriptors", Array.CreateInstance(descriptor, 0));
+            return shell;
+        }
+
+        [TestMethod]
+        [DataRow(false)]
+        [DataRow(true)]
+        [Timeout(10000, CooperativeCancellation = true)]
+        public async Task WhenResourceCleanupFailsThenDiagnosticsArePreservedAndShellTeardownIsBlocked(bool failJob)
+        {
+            SessionScope scope = await SessionScope.StartAsync().ConfigureAwait(false);
+            TaskCompletionSource release = Completion();
+            InvalidOperationException jobFailure = new InvalidOperationException("Save failed.");
+            InvalidOperationException cleanupFailure = new InvalidOperationException("Owner cleanup failed.");
+            try
+            {
+                TaskCompletionSource<GameWindow> ready = new TaskCompletionSource<GameWindow>(TaskCreationOptions.RunContinuationsAsynchronously);
+                TaskCompletionSource terminated = Completion();
+                ToolboxGameHostControl host = CreateShutdownHost(ready, terminated);
+                ready.SetResult(scope.Game);
+                Task preparation = null;
+                await scope.Host.OnOwnerAsync(() =>
+                {
+                    SetField(scope.Session, "pathEditor", CreateEditor());
+                    scope.Game.OnPathEditorChanged += (_, _) => throw cleanupFailure;
+                    GameWindow.ObserveGameThreadOperation(scope.Session.RunAsync(() => release.Task));
+                    preparation = scope.Game.StopForExitAsync();
+                }).ConfigureAwait(false);
+                Task stop = host.StopAsync();
+                if (failJob)
+                    release.SetException(jobFailure);
+                else
+                    release.SetResult();
+                GameWindow.ObserveGameThreadOperation(preparation);
+                Exception diagnostic = await Assert.ThrowsAsync<Exception>(() => stop.WaitAsync(TestContext.CancellationToken)).ConfigureAwait(false);
+                if (failJob)
+                    CollectionAssert.AreEquivalent(new Exception[] { jobFailure, cleanupFailure }, ((AggregateException)diagnostic).Flatten().InnerExceptions);
+                else
+                    Assert.AreSame(cleanupFailure, diagnostic);
+                Assert.IsFalse(scope.Session.IsDisposed);
+                ExitingEventArgs subsequentExit = new ExitingEventArgs();
+                await scope.Host.OnOwnerAsync(() => RaiseNativeExit(scope.Game, subsequentExit)).ConfigureAwait(false);
+                Assert.IsTrue(subsequentExit.Cancel);
+                terminated.SetException(cleanupFailure);
+                Assert.IsFalse(host.IsStoppedSafely);
+                Assert.ThrowsExactly<InvalidOperationException>(host.Dispose);
+
+                // Even a finished owner with failed/unconfirmed disposal cannot release the shell.
+                await scope.Host.OnOwnerAsync(() =>
+                {
+                    MainWindow shell = CreateShutdownShell(host);
+                    Task shutdown = (Task)typeof(MainWindow).GetMethod("ShutdownAsync", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(shell, null);
+                    Assert.Throws<Exception>(() => shutdown.GetAwaiter().GetResult());
+                    Assert.IsFalse((bool)typeof(MainWindow).GetField("shutdownCompleted", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(shell));
+                    Assert.ThrowsExactly<InvalidOperationException>(shell.Dispose);
+                }).ConfigureAwait(false);
+            }
+            finally
+            {
+                release.TrySetResult();
+                if (failJob)
+                    await Assert.ThrowsExactlyAsync<InvalidOperationException>(() => scope.DisposeAsync().AsTask()).ConfigureAwait(false);
+                else
+                    await scope.DisposeAsync().ConfigureAwait(false);
+            }
         }
 
         private static void RaiseNativeExit(GameWindow game, ExitingEventArgs args)

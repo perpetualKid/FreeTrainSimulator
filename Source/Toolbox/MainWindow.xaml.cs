@@ -812,14 +812,34 @@ namespace FreeTrainSimulator.Toolbox
             return mapDocument is null || mapDocument.IsFloating;
         }
 
-        private Task ShutdownAsync() => shutdownTask ??= ShutdownCoreAsync();
+        private Task ShutdownAsync()
+        {
+            // A previously failed stop can acquire safe owner-termination evidence later.
+            // Keep its diagnostic task, but do not strand a now safely released owner.
+            if (shutdownTask?.IsCompleted == true)
+                ReleaseShellResources();
+            return shutdownTask ??= ShutdownCoreAsync();
+        }
 
         private async Task ShutdownCoreAsync()
         {
             // Save while admission and both owners are alive. Keep bridges subscribed through drain so
             // pending interactions can settle before releasing any shell/native resources.
             await SaveDockLayoutAsync().ConfigureAwait(true);
-            await MapHost.StopAsync().ConfigureAwait(true);
+            try
+            {
+                await MapHost.StopAsync().ConfigureAwait(true);
+            }
+            finally
+            {
+                ReleaseShellResources();
+            }
+        }
+
+        private void ReleaseShellResources()
+        {
+            if (shutdownCompleted || !MapHost.IsStoppedSafely)
+                return;
 
             UnsubscribeToolWindowShortcuts();
 
@@ -845,6 +865,7 @@ namespace FreeTrainSimulator.Toolbox
 
             DisposeToolWindowViewModels();
             MapHost.Dispose();
+            shutdownCompleted = true;
         }
 
         private static void UnhookToolWindowAnchorable(LayoutAnchorable anchorable, PropertyChangedEventHandler handler)
@@ -894,20 +915,22 @@ namespace FreeTrainSimulator.Toolbox
                     return;
 
                 await ShutdownAsync().ConfigureAwait(true);
-                shutdownCompleted = true;
-                Close();
             }
             catch (Exception ex) when (ex is not OutOfMemoryException and not AccessViolationException)
             {
                 Trace.TraceError($"Failed to shut down Toolbox window cleanly: {ex}");
                 MessageBox.Show(this,
-                    CatalogManager.Catalog.GetString("Toolbox could not shut down safely. The window will remain open. See the log for details."),
+                    shutdownCompleted
+                        ? CatalogManager.Catalog.GetString("Toolbox encountered an error while shutting down. Resources were released safely and the window will close. Changes may not have been saved. See the log for details.")
+                        : CatalogManager.Catalog.GetString("Toolbox could not shut down safely. The window will remain open. See the log for details."),
                     CatalogManager.Catalog.GetString("Shutdown Failed"), MessageBoxButton.OK, MessageBoxImage.Error);
             }
             finally
             {
                 isShuttingDown = false;
             }
+            if (shutdownCompleted)
+                Close();
         }
 
         private async Task<bool> ConfirmExitAsync()

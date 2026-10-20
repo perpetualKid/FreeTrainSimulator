@@ -37,6 +37,9 @@ namespace Tests.FreeTrainSimulator.Toolbox.Hosting
             TaskCompletionSource cleanupEntered = Completion();
             TaskCompletionSource releaseCleanup = Completion();
             TaskCompletionSource completed = Completion();
+            TaskCompletionSource terminated = Completion();
+            ToolboxGameHostControl host = CreateShutdownHost(pumping, terminated);
+            Task stop = host.StopAsync();
             InvalidOperationException runFailure = new InvalidOperationException("Render loop failed.");
             InvalidOperationException jobFailure = new InvalidOperationException("Drained job failed.");
             int ownerThread = 0;
@@ -87,7 +90,10 @@ namespace Tests.FreeTrainSimulator.Toolbox.Hosting
                     {
                         try
                         {
-                            await releaseJob.Task.ConfigureAwait(false);
+                            // Capture the original WinForms context before its render loop unwinds.
+                            Assert.IsInstanceOfType<System.Windows.Forms.WindowsFormsSynchronizationContext>(SynchronizationContext.Current);
+                            await releaseJob.Task.ConfigureAwait(true);
+                            Assert.AreEqual(ownerThread, Environment.CurrentManagedThreadId);
                         }
                         finally
                         {
@@ -120,6 +126,9 @@ namespace Tests.FreeTrainSimulator.Toolbox.Hosting
                     Assert.AreEqual(0, components.Count);
                     Assert.IsFalse(transport.IsDisposed, "Transport must outlive session resource disposal.");
                 }
+                // The production completion signal is published only after all owner disposal has returned.
+                SetField(host, "ownerResourcesReleased", true);
+                terminated.SetException(reportedDrainFailure == null ? runFailure : new AggregateException(runFailure, reportedDrainFailure));
             });
 
             Thread owner = new Thread(() =>
@@ -127,6 +136,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.Hosting
                 ownerWork.RunSynchronously(TaskScheduler.Default);
                 if (ownerWork.Exception is AggregateException failure)
                 {
+                    terminated.TrySetException(failure.InnerException);
                     pumping.TrySetException(failure.InnerException);
                     completed.TrySetException(failure.InnerException);
                 }
@@ -147,6 +157,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.Hosting
                 Assert.IsTrue(game.Session.IsStopping);
                 Assert.IsFalse(game.Session.IsDisposed);
                 Assert.IsFalse(completed.Task.IsCompleted);
+                Assert.IsFalse(host.IsStoppedSafely);
                 Assert.ThrowsExactly<InvalidOperationException>(game.Session.Dispose);
                 if (failJob)
                     releaseJob.SetException(jobFailure);
@@ -163,6 +174,13 @@ namespace Tests.FreeTrainSimulator.Toolbox.Hosting
                 Assert.IsTrue(editorReleasedBeforeMap);
                 Assert.IsTrue(transportAliveDuringRelease);
                 Assert.AreSame(failJob ? jobFailure : null, reportedDrainFailure);
+                Exception diagnostic = await Assert.ThrowsAsync<Exception>(() => stop.WaitAsync(TestContext.CancellationToken)).ConfigureAwait(false);
+                if (failJob)
+                    CollectionAssert.AreEquivalent(new Exception[] { runFailure, jobFailure }, ((AggregateException)diagnostic).Flatten().InnerExceptions.ToArray());
+                else
+                    Assert.AreSame(runFailure, diagnostic);
+                Assert.IsTrue(host.IsStoppedSafely);
+                Assert.AreSame(stop, host.StopAsync());
             }
             finally
             {

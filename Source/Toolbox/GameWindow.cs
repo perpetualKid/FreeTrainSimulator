@@ -268,12 +268,27 @@ namespace FreeTrainSimulator.Toolbox
 
         private async Task StopAndReleaseSessionAsync()
         {
-            await session.StopAndDrainAsync().ConfigureAwait(false);
-            await InvokeOnGameThreadAsync(() =>
+            Task drain = session.StopAndDrainAsync();
+            try
             {
-                session.Dispose();
-                return Task.CompletedTask;
-            }).ConfigureAwait(false);
+                await drain.ConfigureAwait(false);
+            }
+            finally
+            {
+                // A faulted drain has finished borrowing resources too. Release before reporting it.
+                try
+                {
+                    await InvokeOnGameThreadAsync(() =>
+                    {
+                        session.Dispose();
+                        return Task.CompletedTask;
+                    }).ConfigureAwait(false);
+                }
+                catch (Exception cleanupFailure) when (drain.IsFaulted)
+                {
+                    throw new AggregateException(drain.Exception.InnerExceptions.Append(cleanupFailure));
+                }
+            }
         }
 
         #region window size/position handling

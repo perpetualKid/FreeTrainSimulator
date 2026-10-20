@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Drawing;
+using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -22,6 +23,7 @@ namespace FreeTrainSimulator.Toolbox.Hosting
         private readonly Lock syncLock = new Lock();
         private readonly TaskCompletionSource<GameWindow> ready = new TaskCompletionSource<GameWindow>(TaskCreationOptions.RunContinuationsAsynchronously);
         private readonly TaskCompletionSource gameThreadCompletion = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        private bool ownerResourcesReleased;
 
         private Thread gameThread;
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Usage", "CA2213:Disposable fields should be disposed",
@@ -44,6 +46,9 @@ namespace FreeTrainSimulator.Toolbox.Hosting
 
         /// <summary>The hosted game's loaded profile settings, available with its tool-window bridges.</summary>
         internal ProfileToolboxSettingsModel ToolboxSettings => gameWindow?.ToolboxSettings;
+
+        /// <summary>True only after the owner has released its resources and finished, regardless of diagnostics.</summary>
+        internal bool IsStoppedSafely => gameThreadCompletion.Task.IsCompleted && ownerResourcesReleased;
 
         /// <summary>
         /// Raised on the WPF UI thread once <see cref="HostedToolboxServices.Menu"/> becomes available.
@@ -193,6 +198,8 @@ namespace FreeTrainSimulator.Toolbox.Hosting
                 }
                 catch (SystemException exception)
                 {
+                    // The owner never started, so no game or child resources were created.
+                    ownerResourcesReleased = true;
                     ready.TrySetException(exception);
                     gameThreadCompletion.TrySetException(exception);
                     throw;
@@ -217,7 +224,6 @@ namespace FreeTrainSimulator.Toolbox.Hosting
                     catch (Exception ex) when (ex is not ThreadAbortException)
                     {
                         failure = ex;
-                        throw;
                     }
                     finally
                     {
@@ -226,20 +232,18 @@ namespace FreeTrainSimulator.Toolbox.Hosting
                         {
                             DrainSessionOnOwner(game);
                         }
-                        catch (Exception ex) when (failure != null && ex is not ThreadAbortException)
+                        catch (Exception ex) when (ex is not ThreadAbortException)
                         {
-                            // Preserve the Run failure for owner completion; report cleanup failures as well.
-                            System.Diagnostics.Trace.TraceError($"[ToolboxGameHost] Session cleanup after Run failure failed: {ex}");
+                            failure = failure == null ? ex : new AggregateException(failure, ex);
                         }
                     }
                 }
+                // Run/drain diagnostics do not negate successful owner-thread resource disposal.
+                ownerResourcesReleased = true;
             }
             catch (Exception ex) when (ex is not ThreadAbortException)
             {
-                failure ??= ex;
-                System.Diagnostics.Trace.TraceError($"[ToolboxGameHost] Hosted game thread terminated unexpectedly: {ex}");
-                if (!ReferenceEquals(failure, ex))
-                    System.Diagnostics.Trace.TraceError($"[ToolboxGameHost] Original Run failure: {failure}");
+                failure = failure == null ? ex : new AggregateException(failure, ex);
             }
             finally
             {
@@ -249,7 +253,10 @@ namespace FreeTrainSimulator.Toolbox.Hosting
                 if (failure == null)
                     gameThreadCompletion.TrySetResult();
                 else
+                {
+                    System.Diagnostics.Trace.TraceError($"[ToolboxGameHost] Hosted game thread failed: {failure}");
                     gameThreadCompletion.TrySetException(failure);
+                }
             }
         }
 
@@ -272,7 +279,14 @@ namespace FreeTrainSimulator.Toolbox.Hosting
             finally
             {
                 // Faulted jobs have also finished borrowing resources. Release them before reporting failure.
-                game.Session.Dispose();
+                try
+                {
+                    game.Session.Dispose();
+                }
+                catch (Exception cleanupFailure) when (drain.IsFaulted)
+                {
+                    throw new AggregateException(drain.Exception.InnerExceptions.Append(cleanupFailure));
+                }
             }
         }
 
@@ -300,7 +314,7 @@ namespace FreeTrainSimulator.Toolbox.Hosting
         private async Task StopCoreAsync()
         {
             await Task.WhenAny(ready.Task, gameThreadCompletion.Task).ConfigureAwait(false);
-            if (gameThreadCompletion.Task.IsCompleted)
+            if (gameThreadCompletion.Task.IsCompleted || !ready.Task.IsCompletedSuccessfully)
             {
                 await gameThreadCompletion.Task.ConfigureAwait(false);
                 await ready.Task.ConfigureAwait(false);
@@ -311,9 +325,12 @@ namespace FreeTrainSimulator.Toolbox.Hosting
             Task stop = game.StopForExitAsync();
             GameWindow.ObserveGameThreadOperation(stop);
             await Task.WhenAny(stop, gameThreadCompletion.Task).ConfigureAwait(false);
-            if (!gameThreadCompletion.Task.IsCompleted)
+            // An unsuccessful resource release can leave the loop alive: report it without claiming safety.
+            // A finished job failure with a released session must still await actual owner teardown.
+            if (!gameThreadCompletion.Task.IsCompleted && !game.Session.IsDisposed)
                 await stop.ConfigureAwait(false);
             await gameThreadCompletion.Task.ConfigureAwait(false);
+            await stop.ConfigureAwait(false);
         }
 
         // Initialization publishes once. Failed/stopping startups never leave dispatcher retry callbacks.
@@ -663,10 +680,10 @@ namespace FreeTrainSimulator.Toolbox.Hosting
                 return;
 
             // WPF must await StopAsync first. Never block its dispatcher or destroy a live child's parent.
-            if (!gameThreadCompletion.Task.IsCompletedSuccessfully)
+            if (!IsStoppedSafely)
             {
                 if (disposing)
-                    throw new InvalidOperationException("Await successful hosted game shutdown before disposing the host.");
+                    throw new InvalidOperationException("Await confirmed hosted game resource release and termination before disposing the host.");
                 return;
             }
 
