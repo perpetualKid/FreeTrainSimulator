@@ -1,12 +1,10 @@
-using FreeTrainSimulator.Toolbox.Hosting;
 using FreeTrainSimulator.Toolbox.PopupWindows;
 
 namespace FreeTrainSimulator.Toolbox.ToolWindows
 {
     /// <summary>
     /// Abstraction over a hosted, read-only toolbox tool window that the WPF shell binds to. Mirrors
-    /// <see cref="IToolboxMenu"/>: a hosted bridge owns the game-side data and the WPF view model reads it
-    /// on the dispatcher.
+    /// the hosted menu transport: the game owns data and the WPF view model presents it on the dispatcher.
     /// <para>
     /// Unlike the menu (which pushes discrete changes through events), tool windows expose a pull model:
     /// the WPF side captures an immutable <see cref="ToolWindowSnapshot"/> on a timer cadence, because the

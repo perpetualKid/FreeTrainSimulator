@@ -272,22 +272,17 @@ namespace FreeTrainSimulator.Toolbox.Hosting
                     CancellationToken.None, TaskContinuationOptions.None, TaskScheduler.Default);
                 Application.Run(context);
             }
+            // Completed jobs have finished borrowing resources, including faulted jobs.
             try
             {
-                drain.GetAwaiter().GetResult();
+                game.Session.Dispose();
             }
-            finally
+            catch (Exception cleanupFailure) when (drain.IsFaulted)
             {
-                // Faulted jobs have also finished borrowing resources. Release them before reporting failure.
-                try
-                {
-                    game.Session.Dispose();
-                }
-                catch (Exception cleanupFailure) when (drain.IsFaulted)
-                {
-                    throw new AggregateException(drain.Exception.InnerExceptions.Append(cleanupFailure));
-                }
+                throw new AggregateException(drain.Exception.InnerExceptions.Append(cleanupFailure));
             }
+
+            drain.GetAwaiter().GetResult();
         }
 
         private void Game_HostedReady(object sender, EventArgs e)

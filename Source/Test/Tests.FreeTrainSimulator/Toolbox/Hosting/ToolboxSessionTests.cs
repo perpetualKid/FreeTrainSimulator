@@ -30,9 +30,141 @@ using Tests.FreeTrainSimulator.Common;
 namespace Tests.FreeTrainSimulator.Toolbox.Hosting
 {
     [TestClass]
+    [OSCondition(OperatingSystems.Windows)]
     public sealed partial class ToolboxSessionTests
     {
         public TestContext TestContext { get; set; }
+
+        [TestMethod]
+        [Timeout(10000, CooperativeCancellation = true)]
+        public async Task WhenSessionOwnsSaveNotificationThenUnsubscribedConsumersAreNotRetained()
+        {
+            SessionScope scope = await SessionScope.StartAsync().ConfigureAwait(false);
+            await using (scope.ConfigureAwait(false))
+            {
+                int saves = 0;
+                EventHandler handler = (sender, _) =>
+                {
+                    Assert.AreSame(scope.Session, sender);
+                    Assert.AreEqual(scope.Host.OwnerThreadId, Environment.CurrentManagedThreadId);
+                    ++saves;
+                };
+                await scope.Host.OnOwnerAsync(() => scope.Session.SaveTrainPathRequested += handler).ConfigureAwait(false);
+                await scope.Game.InvokeOnGameThreadAsync(scope.Session.RequestSavePathAsync).ConfigureAwait(false);
+                await scope.Host.OnOwnerAsync(() => scope.Session.SaveTrainPathRequested -= handler).ConfigureAwait(false);
+                await scope.Game.InvokeOnGameThreadAsync(scope.Session.RequestSavePathAsync).ConfigureAwait(false);
+                await scope.Game.InvokeOnGameThreadAsync(scope.Session.StopAndDrainAsync).ConfigureAwait(false);
+                _ = await Assert.ThrowsExactlyAsync<InvalidOperationException>(() => scope.Game.InvokeOnGameThreadAsync(
+                    scope.Session.RequestSavePathAsync)).ConfigureAwait(false);
+
+                Assert.AreEqual(1, saves);
+            }
+        }
+
+        [TestMethod]
+        [DataRow(false)]
+        [DataRow(true)]
+        [Timeout(10000, CooperativeCancellation = true)]
+        public async Task WhenConfirmationHasNoConsumerThenSessionDeclinesWithoutDiscardingEditor(bool connectPlatformNotifications)
+        {
+            SessionScope scope = await SessionScope.StartAsync(connectPlatformNotifications).ConfigureAwait(false);
+            await using (scope.ConfigureAwait(false))
+            {
+                await scope.Host.OnOwnerAsync(() =>
+                {
+                    PathEditor editor = CreateEditor();
+                    SetField(editor, "unsavedChanges", true);
+                    SetField(scope.Session, "pathEditor", editor);
+                }).ConfigureAwait(false);
+
+                bool confirmed = await scope.Game.InvokeOnGameThreadAsync(scope.Session.ConfirmDiscardUnsavedPathsAsync)
+                    .WaitAsync(TestContext.CancellationToken).ConfigureAwait(false);
+
+                Assert.IsFalse(confirmed);
+                Assert.IsTrue(scope.Session.ExistingPathEditor.HasUnsavedChanges);
+            }
+        }
+
+        [TestMethod]
+        [Timeout(10000, CooperativeCancellation = true)]
+        public async Task WhenPlatformForwardsNotificationsThenLateSubscribersSeeGameSenderOnOwner()
+        {
+            SessionScope scope = await SessionScope.StartAsync(true).ConfigureAwait(false);
+            await using (scope.ConfigureAwait(false))
+            {
+                int saves = 0;
+                int releases = 0;
+                EventHandler save = (sender, _) =>
+                {
+                    Assert.AreSame(scope.Game, sender);
+                    Assert.AreEqual(scope.Host.OwnerThreadId, Environment.CurrentManagedThreadId);
+                    ++saves;
+                };
+                EventHandler<UnsavedPathConfirmationEventArgs> confirm = (sender, args) =>
+                {
+                    Assert.AreSame(scope.Game, sender);
+                    Assert.AreEqual(scope.Host.OwnerThreadId, Environment.CurrentManagedThreadId);
+                    args.Completion.SetResult(true);
+                };
+                EventHandler<PathEditorAvailabilityChangedEventArgs> stale = (_, _) => Assert.Fail("Removed consumers must not receive release notifications.");
+                await scope.Host.OnOwnerAsync(() =>
+                {
+                    PathEditor editor = CreateEditor();
+                    SetField(editor, "unsavedChanges", true);
+                    SetField(scope.Session, "pathEditor", editor);
+                    scope.Game.SaveTrainPathRequested += save;
+                    scope.Game.UnsavedPathConfirmationRequested += confirm;
+                    scope.Game.OnPathEditorChanged += stale;
+                }).ConfigureAwait(false);
+                await scope.Game.InvokeOnGameThreadAsync(scope.Session.RequestSavePathAsync).ConfigureAwait(false);
+                Assert.IsTrue(await scope.Game.InvokeOnGameThreadAsync(scope.Session.ConfirmDiscardUnsavedPathsAsync).ConfigureAwait(false));
+                await scope.Host.OnOwnerAsync(() =>
+                {
+                    scope.Game.SaveTrainPathRequested -= save;
+                    scope.Game.UnsavedPathConfirmationRequested -= confirm;
+                }).ConfigureAwait(false);
+                await scope.Game.InvokeOnGameThreadAsync(scope.Session.RequestSavePathAsync).ConfigureAwait(false);
+                Assert.IsFalse(await scope.Game.InvokeOnGameThreadAsync(scope.Session.ConfirmDiscardUnsavedPathsAsync).ConfigureAwait(false));
+                await scope.Game.InvokeOnGameThreadAsync(scope.Session.StopAndDrainAsync).ConfigureAwait(false);
+                await scope.Host.OnOwnerAsync(() =>
+                {
+                    // Changing consumers after stop must also affect the required owner-side release.
+                    scope.Game.OnPathEditorChanged -= stale;
+                    scope.Game.OnPathEditorChanged += (sender, args) =>
+                    {
+                        Assert.AreSame(scope.Game, sender);
+                        Assert.AreEqual(scope.Host.OwnerThreadId, Environment.CurrentManagedThreadId);
+                        Assert.IsNull(args.PathEditor);
+                        Assert.IsNull(scope.Session.ExistingPathEditor);
+                        ++releases;
+                    };
+                    scope.Session.Dispose();
+                }).ConfigureAwait(false);
+
+                Assert.AreEqual((1, 1), (saves, releases));
+            }
+        }
+
+        [TestMethod]
+        [Timeout(10000, CooperativeCancellation = true)]
+        public async Task WhenUserSettingsAreReplacedThenSessionToolingUsesCurrentModel()
+        {
+            SessionScope scope = await SessionScope.StartAsync().ConfigureAwait(false);
+            await using (scope.ConfigureAwait(false))
+            {
+                await scope.Host.OnOwnerAsync(() =>
+                {
+                    SetValidationRoute(scope.Session, CreateValidationRoute());
+                    ProfileUserSettingsModel original = scope.Game.ToolboxUserSettings;
+                    original.MeasurementUnit = MeasurementUnit.Metric;
+                    Assert.IsTrue(scope.Session.TrainPathToolingContext.UseMetricUnits);
+                    SetField(scope.Game, "<ToolboxUserSettings>k__BackingField", new ProfileUserSettingsModel { MeasurementUnit = MeasurementUnit.US });
+
+                    Assert.IsFalse(scope.Session.TrainPathToolingContext.UseMetricUnits);
+                    Assert.AreEqual(MeasurementUnit.Metric, original.MeasurementUnit);
+                }).ConfigureAwait(false);
+            }
+        }
 
         [TestMethod]
         [Timeout(10000, CooperativeCancellation = true)]
@@ -44,8 +176,8 @@ namespace Tests.FreeTrainSimulator.Toolbox.Hosting
                 await scope.Game.InvokeOnGameThreadAsync(scope.Session.StopAndDrainAsync).ConfigureAwait(false);
                 FolderModel folder = new FolderModel("New", "C:\\Unused", null);
 
-                await Assert.ThrowsExactlyAsync<InvalidOperationException>(() => scope.Game.InvokeOnGameThreadAsync(
-                    () => scope.Session.SelectFolderAsync(folder))).ConfigureAwait(false);
+                _ = await Assert.ThrowsExactlyAsync<InvalidOperationException>(() => scope.Game.InvokeOnGameThreadAsync(
+                    () => scope.Session.SelectFolderAsync(scope.Game.HostedMenu.Current.Command(new ToolboxMenuKey(folder.Id, null, null))))).ConfigureAwait(false);
             }
         }
 
@@ -58,7 +190,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.Hosting
             {
                 await scope.Game.InvokeOnGameThreadAsync(scope.Session.StopAndDrainAsync).ConfigureAwait(false);
 
-                await Assert.ThrowsExactlyAsync<InvalidOperationException>(() => scope.Game.InvokeOnGameThreadAsync(
+                _ = await Assert.ThrowsExactlyAsync<InvalidOperationException>(() => scope.Game.InvokeOnGameThreadAsync(
                     () => scope.Game.SaveScreenshotAsync("unused.png"))).ConfigureAwait(false);
             }
         }
@@ -73,7 +205,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.Hosting
                 await scope.Game.InvokeOnGameThreadAsync(scope.Session.StopAndDrainAsync).ConfigureAwait(false);
                 TrainPathSaveRequest request = new TrainPathSaveRequest(new PathModelHeader { Id = "path" }, "path", false);
 
-                await Assert.ThrowsExactlyAsync<InvalidOperationException>(() => scope.Game.InvokeOnGameThreadAsync(
+                _ = await Assert.ThrowsExactlyAsync<InvalidOperationException>(() => scope.Game.InvokeOnGameThreadAsync(
                     () => scope.Session.SubmitTrainPathSaveAsync(request))).ConfigureAwait(false);
             }
         }
@@ -87,7 +219,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.Hosting
             {
                 await scope.Game.InvokeOnGameThreadAsync(scope.Session.StopAndDrainAsync).ConfigureAwait(false);
 
-                await Assert.ThrowsExactlyAsync<InvalidOperationException>(() => scope.Game.InvokeOnGameThreadAsync(
+                _ = await Assert.ThrowsExactlyAsync<InvalidOperationException>(() => scope.Game.InvokeOnGameThreadAsync(
                     () => scope.Session.ValidateAllPathsAsync(_ => Assert.Fail("Rejected validation must not refresh.")))).ConfigureAwait(false);
             }
         }
@@ -128,7 +260,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.Hosting
                 finally
                 {
                     read.TrySetResult(source);
-                    await validation.ConfigureAwait(false);
+                    _ = await validation.ConfigureAwait(false);
                     PathCache.Remove(header.Hierarchy());
                 }
             }
@@ -188,7 +320,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.Hosting
                 finally
                 {
                     read.TrySetResult(source);
-                    await validation.ConfigureAwait(false);
+                    _ = await validation.ConfigureAwait(false);
                     PathCache.Remove(header.Hierarchy());
                 }
             }
@@ -241,7 +373,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.Hosting
 
                 bridge.SetRestoreLastView(true);
                 bridge.SetItemVisibility(MapContentType.Tracks, true);
-                await Assert.ThrowsExactlyAsync<InvalidOperationException>(() => bridge.ResetToDefaultsAsync()).ConfigureAwait(false);
+                _ = await Assert.ThrowsExactlyAsync<InvalidOperationException>(() => bridge.ResetToDefaultsAsync()).ConfigureAwait(false);
                 bridge.SetEnableLogging(true);
                 bridge.SetFontOutline(true);
                 bridge.SetRealTrackWidth(false);
@@ -403,7 +535,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.Hosting
             finally
             {
                 // Disposal releases on the owner but must not hide the cached persistence diagnostic.
-                await Assert.ThrowsExactlyAsync<InvalidOperationException>(() => scope.DisposeAsync().AsTask()).ConfigureAwait(false);
+                _ = await Assert.ThrowsExactlyAsync<InvalidOperationException>(() => scope.DisposeAsync().AsTask()).ConfigureAwait(false);
             }
         }
 
@@ -420,7 +552,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.Hosting
                     PathEditor editor = CreateEditor();
                     SetField(editor, "unsavedChanges", true);
                     SetField(scope.Session, "pathEditor", editor);
-                    scope.Game.UnsavedPathConfirmationRequested += (_, args) => requested.SetResult(args);
+                    scope.Session.UnsavedPathConfirmationRequested += (_, args) => requested.SetResult(args);
                 }).ConfigureAwait(false);
                 Task<bool> confirmation = scope.Game.InvokeOnGameThreadAsync(scope.Session.ConfirmDiscardUnsavedPathsAsync);
                 UnsavedPathConfirmationEventArgs prompt = await requested.Task.WaitAsync(TestContext.CancellationToken).ConfigureAwait(false);
@@ -440,6 +572,8 @@ namespace Tests.FreeTrainSimulator.Toolbox.Hosting
             await using (scope.ConfigureAwait(false))
             {
                 FolderModel original = new FolderModel("Original", "C:\\Original", null);
+                FolderModel firstFolder = new FolderModel("First", "C:\\First", null);
+                FolderModel secondFolder = new FolderModel("Second", "C:\\Second", null);
                 TaskCompletionSource<UnsavedPathConfirmationEventArgs> firstPrompt = new TaskCompletionSource<UnsavedPathConfirmationEventArgs>(TaskCreationOptions.RunContinuationsAsynchronously);
                 TaskCompletionSource<UnsavedPathConfirmationEventArgs> secondPrompt = new TaskCompletionSource<UnsavedPathConfirmationEventArgs>(TaskCreationOptions.RunContinuationsAsynchronously);
                 await scope.Host.OnOwnerAsync(() =>
@@ -448,12 +582,13 @@ namespace Tests.FreeTrainSimulator.Toolbox.Hosting
                     SetField(editor, "unsavedChanges", true);
                     SetField(scope.Session, "pathEditor", editor);
                     SetField(scope.Session, "selectedFolder", original);
-                    scope.Game.UnsavedPathConfirmationRequested += (_, args) => firstPrompt.TrySetResult(args);
+                    SetField(scope.Session, "contentModel", new ContentModel([original, firstFolder, secondFolder]));
+                    scope.Session.UnsavedPathConfirmationRequested += (_, args) => firstPrompt.TrySetResult(args);
                 }).ConfigureAwait(false);
-                Task first = scope.Game.InvokeOnGameThreadAsync(() => scope.Session.SelectFolderAsync(new FolderModel("First", "C:\\First", null)));
+                Task first = scope.Game.InvokeOnGameThreadAsync(() => scope.Session.SelectFolderAsync(scope.Game.HostedMenu.Current.Command(new ToolboxMenuKey(firstFolder.Id, null, null))));
                 UnsavedPathConfirmationEventArgs firstConfirmation = await firstPrompt.Task.WaitAsync(TestContext.CancellationToken).ConfigureAwait(false);
-                await scope.Host.OnOwnerAsync(() => scope.Game.UnsavedPathConfirmationRequested += (_, args) => secondPrompt.TrySetResult(args)).ConfigureAwait(false);
-                Task second = scope.Game.InvokeOnGameThreadAsync(() => scope.Session.SelectFolderAsync(new FolderModel("Second", "C:\\Second", null)));
+                await scope.Host.OnOwnerAsync(() => scope.Session.UnsavedPathConfirmationRequested += (_, args) => secondPrompt.TrySetResult(args)).ConfigureAwait(false);
+                Task second = scope.Game.InvokeOnGameThreadAsync(() => scope.Session.SelectFolderAsync(scope.Game.HostedMenu.Current.Command(new ToolboxMenuKey(secondFolder.Id, null, null))));
                 UnsavedPathConfirmationEventArgs secondConfirmation = await secondPrompt.Task.WaitAsync(TestContext.CancellationToken).ConfigureAwait(false);
 
                 firstConfirmation.Completion.SetResult(true);
@@ -482,7 +617,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.Hosting
                 {
                     Task<bool> waiter = scope.Game.InvokeOnGameThreadAsync(() => scope.Session.LoadPathAsync(header));
                     await scope.Game.InvokeOnGameThreadAsync(scope.Session.StopAndDrainAsync).WaitAsync(TestContext.CancellationToken).ConfigureAwait(false);
-                    await Assert.ThrowsAsync<OperationCanceledException>(() => waiter.WaitAsync(TestContext.CancellationToken)).ConfigureAwait(false);
+                    _ = await Assert.ThrowsAsync<OperationCanceledException>(() => waiter.WaitAsync(TestContext.CancellationToken)).ConfigureAwait(false);
                     PathModel loaded = new PathModel() { Id = header.Id, PathNodes = ImmutableArray<PathNode>.Empty };
                     loaded.Initialize(route);
                     sharedRead.SetResult(loaded);
@@ -509,21 +644,24 @@ namespace Tests.FreeTrainSimulator.Toolbox.Hosting
             await using (scope.ConfigureAwait(false))
             {
                 RouteModelHeader route = new RouteModel(WorldLocation.None) { Id = "save-dialog-route" };
-                FieldInfo captureField = typeof(GameWindow.ToolboxSession).GetField(fieldName, BindingFlags.Instance | BindingFlags.NonPublic);
+                FieldInfo captureField = typeof(ToolboxSession).GetField(fieldName, BindingFlags.Instance | BindingFlags.NonPublic);
                 bool captured = false;
                 bool released = false;
                 await scope.Host.OnOwnerAsync(() =>
-            {
-                PathEditor editor = CreateEditor();
-                editor.InitializeNewPath();
-                SetField(scope.Session, "pathEditor", editor);
-                SetField(scope.Session, "selectedRoute", route);
-                scope.Game.UnsavedPathConfirmationRequested += (_, args) => args.Completion.SetResult(true);
-                _ = scope.Session.CaptureTrainPathSaveState();
-                captured = captureField.GetValue(scope.Session) != null;
-            }).ConfigureAwait(false);
+                {
+                    PathEditor editor = CreateEditor();
+                    editor.InitializeNewPath();
+                    SetField(scope.Session, "pathEditor", editor);
+                    SetField(scope.Session, "selectedRoute", route);
+                    FolderModel folder = new FolderModel("Save dialog", "C:\\Unused", null);
+                    SetField(scope.Session, "selectedFolder", folder);
+                    SetField(scope.Session, "menuRoutes", ImmutableArray.Create(route));
+                    scope.Session.UnsavedPathConfirmationRequested += (_, args) => args.Completion.SetResult(true);
+                    _ = scope.Session.CaptureTrainPathSaveState();
+                    captured = captureField.GetValue(scope.Session) != null;
+                }).ConfigureAwait(false);
 
-                await scope.Game.InvokeOnGameThreadAsync(() => scope.Session.ToggleRouteAsync(route))
+                await scope.Game.InvokeOnGameThreadAsync(() => scope.Session.ToggleRouteAsync(scope.Game.HostedMenu.Current.Command(new ToolboxMenuKey("Save dialog", route.Id, null))))
                     .WaitAsync(TestContext.CancellationToken).ConfigureAwait(false);
                 await scope.Host.OnOwnerAsync(() => released = captureField.GetValue(scope.Session) == null).ConfigureAwait(false);
 
@@ -541,7 +679,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.Hosting
             return route;
         }
 
-        private static void SetValidationRoute(GameWindow.ToolboxSession session, RouteModelHeader route)
+        private static void SetValidationRoute(ToolboxSession session, RouteModelHeader route)
         {
             ToolboxContent content = (ToolboxContent)RuntimeHelpers.GetUninitializedObject(typeof(ToolboxContent));
             typeof(ContentBase).GetField("trackWorld", BindingFlags.Instance | BindingFlags.NonPublic).SetValue(content,
@@ -567,7 +705,6 @@ namespace Tests.FreeTrainSimulator.Toolbox.Hosting
             SetField(game, "<ToolboxUserSettings>k__BackingField", new ProfileUserSettingsModel());
             HostedToolboxMenu menu = new HostedToolboxMenu(game);
             SetField(game, "hostedMenu", menu);
-            SetField(game, "menu", menu);
             return game;
         }
 
@@ -592,13 +729,15 @@ namespace Tests.FreeTrainSimulator.Toolbox.Hosting
         {
             internal StaControlHost Host { get; }
             internal GameWindow Game { get; }
-            internal GameWindow.ToolboxSession Session { get; }
+            internal ToolboxSession Session { get; }
 
-            private SessionScope(StaControlHost host)
+            private SessionScope(StaControlHost host, bool connectPlatformNotifications)
             {
                 Host = host;
                 Game = CreateSessionGame(host.Target, host.DispatchControl);
-                Session = new GameWindow.ToolboxSession(Game);
+                Session = connectPlatformNotifications
+                    ? (ToolboxSession)typeof(GameWindow).GetMethod("CreateSession", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(Game, null)
+                    : new ToolboxSession(Game);
                 try
                 {
                     SetField(Game, "session", Session);
@@ -610,14 +749,16 @@ namespace Tests.FreeTrainSimulator.Toolbox.Hosting
                 }
             }
 
-            internal static async Task<SessionScope> StartAsync()
+            internal static Task<SessionScope> StartAsync() => StartAsync(false);
+
+            internal static async Task<SessionScope> StartAsync(bool connectPlatformNotifications)
             {
                 StaControlHost host = null;
                 try
                 {
                     host = await StaControlHost.StartAsync().ConfigureAwait(false);
                     SessionScope scope = null;
-                    await host.OnOwnerAsync(() => scope = new SessionScope(host)).ConfigureAwait(false);
+                    await host.OnOwnerAsync(() => scope = new SessionScope(host, connectPlatformNotifications)).ConfigureAwait(false);
                     host = null; // The returned scope now owns the host.
                     return scope;
                 }

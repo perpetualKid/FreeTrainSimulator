@@ -18,6 +18,7 @@ using FreeTrainSimulator.Models.Signalling;
 using FreeTrainSimulator.Models.Track;
 using FreeTrainSimulator.Runtime;
 using FreeTrainSimulator.Runtime.Track;
+using FreeTrainSimulator.Toolbox;
 using FreeTrainSimulator.Toolbox.Hosting;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -740,8 +741,8 @@ namespace Tests.FreeTrainSimulator.Toolbox.Hosting
             await using System.Runtime.CompilerServices.ConfiguredAsyncDisposable scopeLifetime = scope.ConfigureAwait(false);
             StaControlHost host = scope.Host;
             GameWindow game = scope.Game;
-            GameWindow.ToolboxSession session = scope.Session;
-            RouteLoadCoordinator coordinator = (RouteLoadCoordinator)typeof(GameWindow.ToolboxSession)
+            ToolboxSession session = scope.Session;
+            RouteLoadCoordinator coordinator = (RouteLoadCoordinator)typeof(ToolboxSession)
                 .GetField("routeLoads", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(session);
             TaskCompletionSource mapEntered = Completion();
             TaskCompletionSource resumeMap = Completion();

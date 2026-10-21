@@ -63,7 +63,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.Hosting
                     Assert.IsNull(transport.Parent);
                     transport.Disposed += (_, _) => transportReleasedOn = Environment.CurrentManagedThreadId;
                     GameWindow game = CreateSessionGame(renderForm, transport);
-                    using GameWindow.ToolboxSession session = new GameWindow.ToolboxSession(game);
+                    using ToolboxSession session = new ToolboxSession(game);
                     SetField(game, "session", session);
                     SetField(game, "hostedPointerGesture", new HostedPointerGestureState());
 
@@ -83,7 +83,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.Hosting
                     components.Add(map);
                     SetField(game, "contentArea", map);
                     SetField(game.Session, "pathEditor", CreateEditor());
-                    game.OnPathEditorChanged += (_, _) => editorReleasedOn = Environment.CurrentManagedThreadId;
+                    session.OnPathEditorChanged += (_, _) => editorReleasedOn = Environment.CurrentManagedThreadId;
                     SetField(game, "hostedTitleUpdateCallback", (Action<string>)(_ => Assert.Fail("Dead render window must not receive title updates.")));
 
                     Task job = game.Session.RunAsync(async () =>

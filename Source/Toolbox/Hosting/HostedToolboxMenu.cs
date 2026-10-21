@@ -1,32 +1,22 @@
 using System;
-using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
+using System.Threading;
 using System.Threading.Tasks;
 
 using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Graphics;
-using FreeTrainSimulator.Models.Content;
 
 namespace FreeTrainSimulator.Toolbox.Hosting
 {
     /// <summary>
-    /// Hosted-mode bridge between <see cref="GameWindow"/> and a native WPF main menu.
-    /// <para>
-    /// As an <see cref="IToolboxMenu"/> it receives menu data from the game thread (folders, routes,
-    /// paths and selection state) and surfaces it through properties and change events that the WPF
-    /// shell binds to. Commands triggered by the WPF menu are forwarded back onto the game thread via
-    /// <see cref="GameWindow.InvokeOnGameThread(Action)"/> so all MonoGame/WinForms state stays
-    /// single-threaded.
-    /// </para>
-    /// <para>
-    /// Change events are raised on the game thread; WPF subscribers must marshal to the UI thread.
-    /// </para>
+    /// Transports captured session publications and scoped commands between the two owners.
+    /// Notifications carry their payload; subscribers never reread changing individual properties.
     /// </summary>
-    internal sealed class HostedToolboxMenu : IToolboxMenu
+    internal sealed class HostedToolboxMenu
     {
         private readonly GameWindow game;
-        private bool enabled = true;
+        private ToolboxMenuSnapshot current;
 
         internal HostedToolboxMenu(GameWindow game)
         {
@@ -34,139 +24,37 @@ namespace FreeTrainSimulator.Toolbox.Hosting
             this.game = game;
         }
 
-        #region Bound state (data in from the game thread)
+        /// <summary>Subscribe before reading this value; revision checks make the handoff lossless.</summary>
+        public ToolboxMenuSnapshot Current => Volatile.Read(ref current);
 
-        /// <summary>Available content folders for the current profile.</summary>
-        public ImmutableArray<FolderModel> ContentFolders { get; private set; } = ImmutableArray<FolderModel>.Empty;
+        /// <summary>Raised on the game owner with the captured immutable payload.</summary>
+        public event EventHandler<ToolboxMenuSnapshot> SnapshotChanged;
 
-        /// <summary>Routes available for the currently selected folder.</summary>
-        public ImmutableArray<RouteModelHeader> Routes { get; private set; } = ImmutableArray<RouteModelHeader>.Empty;
-
-        /// <summary>Paths available for the currently loaded route.</summary>
-        public ImmutableArray<PathModelHeader> Paths { get; private set; } = ImmutableArray<PathModelHeader>.Empty;
-
-        /// <summary>The currently selected content folder, or null when none is selected.</summary>
-        public FolderModel SelectedFolder { get; private set; }
-
-        /// <summary>Name of the currently selected route, or null when none is selected.</summary>
-        public string SelectedRouteName { get; private set; }
-
-        /// <summary>The currently selected path, or null when none is selected.</summary>
-        public PathModelHeader SelectedPath { get; private set; }
-
-        /// <summary>Raised whenever <see cref="ContentFolders"/> changes.</summary>
-        public event EventHandler ContentFoldersChanged;
-
-        /// <summary>Raised whenever <see cref="Routes"/> changes.</summary>
-        public event EventHandler RoutesChanged;
-
-        /// <summary>Raised whenever <see cref="Paths"/> changes.</summary>
-        public event EventHandler PathsChanged;
-
-        /// <summary>Raised whenever <see cref="SelectedFolder"/> changes.</summary>
-        public event EventHandler SelectedFolderChanged;
-
-        /// <summary>Raised whenever <see cref="SelectedRouteName"/> changes.</summary>
-        public event EventHandler SelectedRouteChanged;
-
-        /// <summary>Raised whenever <see cref="SelectedPath"/> changes.</summary>
-        public event EventHandler SelectedPathChanged;
-
-        /// <summary>Raised whenever <see cref="Enabled"/> changes.</summary>
-        public event EventHandler EnabledChanged;
-
-        public bool Enabled
+        internal void Publish(ToolboxMenuSnapshot snapshot)
         {
-            get => enabled;
-            set
-            {
-                if (enabled == value)
-                    return;
-                enabled = value;
-                EnabledChanged?.Invoke(this, EventArgs.Empty);
-            }
+            ToolboxMenuSnapshot previous = Current;
+            if (previous != null && (previous.SessionId != snapshot.SessionId || previous.Revision >= snapshot.Revision))
+                return;
+            Volatile.Write(ref current, snapshot);
+            SnapshotChanged?.Invoke(this, snapshot);
         }
-
-        void IToolboxMenu.PopulateContentFolders(ImmutableArray<FolderModel> folders)
-        {
-            ContentFolders = folders.IsDefault ? ImmutableArray<FolderModel>.Empty : folders;
-            ContentFoldersChanged?.Invoke(this, EventArgs.Empty);
-        }
-
-        void IToolboxMenu.PopulateRoutes(ImmutableArray<RouteModelHeader> routes)
-        {
-            Routes = routes.IsDefault ? ImmutableArray<RouteModelHeader>.Empty : routes;
-            RoutesChanged?.Invoke(this, EventArgs.Empty);
-        }
-
-        void IToolboxMenu.PopulatePaths(ImmutableArray<PathModelHeader> paths)
-        {
-            Paths = paths.IsDefault ? ImmutableArray<PathModelHeader>.Empty : paths;
-            PathsChanged?.Invoke(this, EventArgs.Empty);
-        }
-
-        void IToolboxMenu.ClearPathMenu()
-        {
-            Paths = ImmutableArray<PathModelHeader>.Empty;
-            SelectedPath = null;
-            PathsChanged?.Invoke(this, EventArgs.Empty);
-            SelectedPathChanged?.Invoke(this, EventArgs.Empty);
-        }
-
-        void IToolboxMenu.PreSelectRoute(string routeName)
-        {
-            SelectedRouteName = routeName;
-            SelectedRouteChanged?.Invoke(this, EventArgs.Empty);
-        }
-
-        void IToolboxMenu.PreSelectPath(PathModelHeader path)
-        {
-            SelectedPath = path;
-            SelectedPathChanged?.Invoke(this, EventArgs.Empty);
-        }
-
-        internal void ProjectSelectedFolder(FolderModel folder)
-        {
-            SelectedFolder = folder;
-            SelectedFolderChanged?.Invoke(this, EventArgs.Empty);
-        }
-
-        #endregion
 
         #region Commands (in from the WPF UI thread, marshaled to the game thread)
 
         /// <summary>Selects a content folder and loads its routes.</summary>
-        public void SelectFolder(FolderModel folder)
-        {
-            ArgumentNullException.ThrowIfNull(folder);
-
-            // Raise the change notification asynchronously on the game thread, symmetric with the route path
-            // (PopulateRoutes/PreSelectRoute). Raising it synchronously here re-enters the WPF ComboBox while
-            // it is still committing the user's pick, which makes the Selector revert the selection (the
-            // folder dropdown appears to ignore the choice).
-            InvokeOnGameThreadAsync($"Select content folder '{folder.Name}'", () => game.Session.SelectFolderAsync(folder));
-        }
+        public void SelectFolder(ToolboxMenuCommand command) => InvokeOnGameThreadAsync("Select content folder", () => game.Session.SelectFolderAsync(command));
 
         /// <summary>Loads the given route, or unloads it when it is already selected.</summary>
-        public void ToggleRoute(RouteModelHeader route)
-        {
-            ArgumentNullException.ThrowIfNull(route);
-
-            InvokeOnGameThreadAsync($"Toggle route '{route.Name}'", () => game.Session.ToggleRouteAsync(route));
-        }
+        public void ToggleRoute(ToolboxMenuCommand command) => InvokeOnGameThreadAsync("Toggle route", () => game.Session.ToggleRouteAsync(command));
 
         /// <summary>Loads the given path, or unloads it when it is already selected.</summary>
-        public void TogglePath(PathModelHeader path)
-        {
-            ArgumentNullException.ThrowIfNull(path);
-            InvokeOnGameThreadAsync($"Toggle path '{path.Id}'", () => game.Session.TogglePathAsync(path));
-        }
+        public void TogglePath(ToolboxMenuCommand command) => InvokeOnGameThreadAsync("Toggle path", () => game.Session.TogglePathAsync(command));
 
         /// <summary>Starts editing a new path for the loaded route.</summary>
-        public void EditPath() => game.InvokeOnGameThread(game.EditPath);
+        public void EditPath(ToolboxMenuCommand command) => InvokeOnGameThreadAsync("Edit path", () => game.Session.EditMenuPathAsync(command));
 
         /// <summary>Saves the currently edited path.</summary>
-        public void SavePath() => game.InvokeOnGameThread(game.SavePath);
+        public void SavePath(ToolboxMenuCommand command) => InvokeOnGameThreadAsync("Save path", () => game.Session.SaveMenuPathAsync(command));
 
         /// <summary>Takes a screenshot of the current map view.</summary>
         public void TakeScreenshot() => game.InvokeOnGameThread(game.PrintScreen);
@@ -178,16 +66,13 @@ namespace FreeTrainSimulator.Toolbox.Hosting
         public void Quit() => game.InvokeOnGameThread(game.PrepareExitApplication);
 
         /// <summary>Updates a color preference.</summary>
-        public void UpdateColorPreference(ColorSetting setting, string colorName)
-            => game.InvokeSessionCommand(() => game.UpdateColorPreference(setting, colorName));
+        public void UpdateColorPreference(ColorSetting setting, string colorName) => game.InvokeSessionCommand(() => game.UpdateColorPreference(setting, colorName));
 
         /// <summary>Updates an item visibility preference.</summary>
-        public void UpdateItemVisibilityPreference(MapContentType setting, bool visible)
-            => game.InvokeSessionCommand(() => game.UpdateItemVisibilityPreference(setting, visible));
+        public void UpdateItemVisibilityPreference(MapContentType setting, bool visible) => game.InvokeSessionCommand(() => game.UpdateItemVisibilityPreference(setting, visible));
 
         /// <summary>Updates the language preference.</summary>
-        public void UpdateLanguagePreference(string language)
-            => game.InvokeSessionCommand(() => game.UpdateLanguagePreference(language));
+        public void UpdateLanguagePreference(string language) => game.InvokeSessionCommand(() => game.UpdateLanguagePreference(language));
 
         private void InvokeOnGameThreadAsync(string operationName, Func<Task> action)
         {

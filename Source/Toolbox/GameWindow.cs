@@ -113,11 +113,6 @@ namespace FreeTrainSimulator.Toolbox
         private readonly string windowTitle;
         private UserCommandController<UserCommand> userCommandController;
 
-        // Abstraction over the main menu: a hosted bridge that forwards menu data/commands to the WPF menu.
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Performance", "CA1859:Use concrete types when possible for improved performance",
-            Justification = "The game drives the IToolboxMenu contract, whose population and selection methods HostedToolboxMenu implements explicitly.")]
-        private IToolboxMenu menu;
-
         // Non-null only in hosted mode; exposed to the WPF host so the native menu can bind to it.
         private HostedToolboxMenu hostedMenu;
 
@@ -182,15 +177,14 @@ namespace FreeTrainSimulator.Toolbox
 
             windowForm = (Form)Control.FromHandle(Window.Handle);
             ownerControl = new GameThreadControl(); // Create the independent dispatch HWND on the game STA.
-            session = new ToolboxSession(this);
+            hostedMenu = new HostedToolboxMenu(this);
+            session = CreateSession();
             currentScreen = ToolboxSettings.WindowScreen < Screen.AllScreens.Length
                 ? Screen.AllScreens[ToolboxSettings.WindowScreen]
                 : Screen.PrimaryScreen;
             FontManager.ScalingFactor = (float)WindowManager.DisplayScalingFactor(currentScreen);
 
             ApplySettings();
-            hostedMenu = new HostedToolboxMenu(this);
-            menu = hostedMenu;
             graphicsDeviceManager = new GraphicsDeviceManager(this);
             graphicsDeviceManager.PreparingDeviceSettings += GraphicsPreparingDeviceSettings;
             graphicsDeviceManager.PreferMultiSampling = ToolboxUserSettings.MultiSamplingCount > 0;
@@ -269,26 +263,23 @@ namespace FreeTrainSimulator.Toolbox
         private async Task StopAndReleaseSessionAsync()
         {
             Task drain = session.StopAndDrainAsync();
+            await drain.ConfigureAwait(ConfigureAwaitOptions.SuppressThrowing);
+
+            // A completed drain has finished borrowing resources, even if it failed.
             try
             {
-                await drain.ConfigureAwait(false);
+                await InvokeOnGameThreadAsync(() =>
+                {
+                    session.Dispose();
+                    return Task.CompletedTask;
+                }).ConfigureAwait(false);
             }
-            finally
+            catch (Exception cleanupFailure) when (drain.IsFaulted)
             {
-                // A faulted drain has finished borrowing resources too. Release before reporting it.
-                try
-                {
-                    await InvokeOnGameThreadAsync(() =>
-                    {
-                        session.Dispose();
-                        return Task.CompletedTask;
-                    }).ConfigureAwait(false);
-                }
-                catch (Exception cleanupFailure) when (drain.IsFaulted)
-                {
-                    throw new AggregateException(drain.Exception.InnerExceptions.Append(cleanupFailure));
-                }
+                throw new AggregateException(drain.Exception.InnerExceptions.Append(cleanupFailure));
             }
+
+            await drain.ConfigureAwait(false);
         }
 
         #region window size/position handling
@@ -989,10 +980,9 @@ namespace FreeTrainSimulator.Toolbox
 
         private void WindowManager_OnModalWindow(object sender, ModalWindowEventArgs e)
         {
-            menu.Enabled = !e.ModalWindowOpen;
+            session.SetMenuEnabled(!e.ModalWindowOpen);
 
-            if (null != ContentArea)
-                ContentArea.Enabled = !e.ModalWindowOpen;
+            ContentArea?.Enabled = !e.ModalWindowOpen;
         }
 
         protected override void LoadContent()

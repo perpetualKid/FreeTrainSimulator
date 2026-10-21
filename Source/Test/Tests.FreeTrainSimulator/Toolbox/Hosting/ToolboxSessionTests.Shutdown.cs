@@ -118,7 +118,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.Hosting
                 await scope.Host.OnOwnerAsync(() =>
                 {
                     SetField(scope.Session, "pathEditor", CreateEditor());
-                    scope.Game.OnPathEditorChanged += (_, _) => editorReleasedOn = Environment.CurrentManagedThreadId;
+                    scope.Session.OnPathEditorChanged += (_, _) => editorReleasedOn = Environment.CurrentManagedThreadId;
                 }).ConfigureAwait(false);
                 Task job = scope.Game.InvokeOnGameThreadAsync(() => scope.Session.RunAsync(async () =>
                 {
@@ -404,7 +404,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.Hosting
                 await scope.Host.OnOwnerAsync(() =>
                 {
                     SetField(scope.Session, "pathEditor", CreateEditor());
-                    scope.Game.OnPathEditorChanged += (_, _) => throw cleanupFailure;
+                    scope.Session.OnPathEditorChanged += (_, _) => throw cleanupFailure;
                     GameWindow.ObserveGameThreadOperation(scope.Session.RunAsync(() => release.Task));
                     preparation = scope.Game.StopForExitAsync();
                 }).ConfigureAwait(false);
