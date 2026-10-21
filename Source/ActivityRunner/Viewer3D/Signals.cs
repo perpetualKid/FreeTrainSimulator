@@ -437,7 +437,7 @@ namespace Orts.ActivityRunner.Viewer3D
 
         public SignalTypeData(Viewer viewer, SignalType signalType)
         {
-            viewer = viewer ?? throw new ArgumentNullException(nameof(viewer));
+            this.viewer = viewer ?? throw new ArgumentNullException(nameof(viewer));
             if (!viewer.Simulator.SignalEnvironment.SignalConfig.LightTextures.TryGetValue(signalType.LightTexture, out SignalLightTexture lightTexture))
             {
                 Trace.TraceWarning("Skipped invalid light texture {1} for signal type {0}", signalType.Name, signalType.LightTexture);
