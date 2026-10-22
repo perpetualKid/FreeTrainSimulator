@@ -1,11 +1,14 @@
 ﻿using System;
 using System.Collections.Concurrent;
-using System.Diagnostics;
+using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
 using System.Drawing.Text;
+using System.Runtime.ExceptionServices;
 using System.Runtime.InteropServices;
+
+using FreeTrainSimulator.Common;
 
 using Microsoft.Xna.Framework.Graphics;
 
@@ -72,26 +75,39 @@ namespace FreeTrainSimulator.Graphics.Xna
     }
     public class TextTextureRenderer : IDisposable
     {
+        /// <summary>Renderer-owned sentinel borrowed by empty text results; consumers must not dispose it.</summary>
         internal Texture2D EmptyTexture { get; }
         private readonly Bitmap measureBitmap;
         private readonly Microsoft.Xna.Framework.Game game;
         private readonly ConcurrentQueue<(System.Drawing.Graphics, StringFormat)> measureGraphicsHolder = new ConcurrentQueue<(System.Drawing.Graphics, StringFormat)>();
         private readonly ConcurrentQueue<Brush> whiteBrushHolder = new ConcurrentQueue<Brush>();
+        private Microsoft.Xna.Framework.Game sharedGame;
         private bool disposedValue;
+        private ExceptionDispatchInfo releaseFailure;
 
         private TextTextureRenderer(Microsoft.Xna.Framework.Game game)
         {
             this.game = game;
             EmptyTexture = new Texture2D(game.GraphicsDevice, 1, 1, false, SurfaceFormat.Color);
-            measureBitmap = new Bitmap(1, 1);
+            try
+            {
+                measureBitmap = new Bitmap(1, 1);
+            }
+            catch
+            {
+                EmptyTexture.Dispose();
+                throw;
+            }
         }
 
+        /// <summary>Creates a private renderer whose caller owns disposal.</summary>
         public static TextTextureRenderer Create(Microsoft.Xna.Framework.Game game)
         {
             ArgumentNullException.ThrowIfNull(game);
             return new TextTextureRenderer(game);
         }
 
+        /// <summary>Gets the game-shared renderer, borrowed by consumers and released by the host at shutdown.</summary>
         public static TextTextureRenderer Instance(Microsoft.Xna.Framework.Game game)
         {
             ArgumentNullException.ThrowIfNull(game);
@@ -100,9 +116,28 @@ namespace FreeTrainSimulator.Graphics.Xna
             if ((instance = game.Services.GetService<TextTextureRenderer>()) == null)
             {
                 instance = new TextTextureRenderer(game);
-                game.Services.AddService(instance);
+                try
+                {
+                    game.Services.AddService(instance);
+                }
+                catch
+                {
+                    instance.Dispose();
+                    throw;
+                }
+            }
+            if (instance.sharedGame == null)
+            {
+                instance.sharedGame = game;
+                // Game.Disposed runs after the game components (including text caches) are released.
+                game.Disposed += instance.Game_Disposed;
             }
             return instance;
+        }
+
+        private void Game_Disposed(object sender, EventArgs e)
+        {
+            Dispose();
         }
 
         public Size Measure(string text, Font font, OutlineRenderOptions outlineOptions = null)
@@ -114,26 +149,41 @@ namespace FreeTrainSimulator.Graphics.Xna
                 measureContainer.formatHolder = new StringFormat(StringFormat.GenericDefault) { FormatFlags = StringFormatFlags.MeasureTrailingSpaces };
             }
 
-            Size size = Size.Empty;
-
-            if (!string.IsNullOrEmpty(text) && font != null)
+            try
             {
-                measureContainer.formatHolder.SetMeasurableCharacterRanges(new CharacterRange[] { new CharacterRange(0, text.Length) });
-                Region[] ranges = measureContainer.measureGraphics.MeasureCharacterRanges(text, font, new RectangleF(0, 0, text.Length * font.Height, text.Length * font.Height), measureContainer.formatHolder);
-                SizeF actual = ranges[0].GetBounds(measureContainer.measureGraphics).Size;
-                int padding = (int)Math.Ceiling(font.Size * 0.2);
-                int paddingWidth = padding;
-                if (outlineOptions != null)
+                Size size = Size.Empty;
+
+                if (!string.IsNullOrEmpty(text) && font != null)
                 {
-                    if (actual.Height < font.Height * 1.2)
-                        paddingWidth += (int)(text.Length * outlineOptions.OutlineWidth / 2);
-                    else
-                        paddingWidth += (int)(actual.Width / font.Height * outlineOptions.OutlineWidth);
+                    measureContainer.formatHolder.SetMeasurableCharacterRanges(new CharacterRange[] { new CharacterRange(0, text.Length) });
+                    Region[] ranges = measureContainer.measureGraphics.MeasureCharacterRanges(text, font, new RectangleF(0, 0, text.Length * font.Height, text.Length * font.Height), measureContainer.formatHolder);
+                    SizeF actual;
+                    try
+                    {
+                        actual = ranges[0].GetBounds(measureContainer.measureGraphics).Size;
+                    }
+                    finally
+                    {
+                        foreach (Region range in ranges)
+                            range.Dispose();
+                    }
+                    int padding = (int)Math.Ceiling(font.Size * 0.2);
+                    int paddingWidth = padding;
+                    if (outlineOptions != null)
+                    {
+                        if (actual.Height < font.Height * 1.2)
+                            paddingWidth += (int)(text.Length * outlineOptions.OutlineWidth / 2);
+                        else
+                            paddingWidth += (int)(actual.Width / font.Height * outlineOptions.OutlineWidth);
+                    }
+                    size = new Size((int)Math.Ceiling(actual.Width + paddingWidth + 1), (int)Math.Ceiling(actual.Height + (padding / 2)));
                 }
-                size = new Size((int)Math.Ceiling(actual.Width + paddingWidth + 1), (int)Math.Ceiling(actual.Height + (padding / 2)));
+                return size;
             }
-            measureGraphicsHolder.Enqueue(measureContainer);
-            return size;
+            finally
+            {
+                measureGraphicsHolder.Enqueue(measureContainer);
+            }
         }
 
         public Texture2D Resize(string text, Font font, OutlineRenderOptions outlineOptions = null)
@@ -204,22 +254,60 @@ namespace FreeTrainSimulator.Graphics.Xna
 
         protected virtual void Dispose(bool disposing)
         {
-            if (!disposedValue)
+            if (disposedValue)
+            {
+                releaseFailure?.Throw();
+                return;
+            }
+            disposedValue = true;
+            try
             {
                 if (disposing)
                 {
+                    List<Exception> errors = new List<Exception>();
+                    void Release(Action release)
+                    {
+                        try
+                        {
+                            release();
+                        }
+                        catch (Exception error) when (CleanupExceptionPolicy.CanContinue(error))
+                        {
+                            errors.Add(error);
+                        }
+                    }
+
+                    if (sharedGame != null)
+                    {
+                        Release(() => sharedGame.Disposed -= Game_Disposed);
+                        Release(() =>
+                        {
+                            if (ReferenceEquals(sharedGame.Services.GetService<TextTextureRenderer>(), this))
+                                sharedGame.Services.RemoveService(typeof(TextTextureRenderer));
+                        });
+                        sharedGame = null;
+                    }
                     while (measureGraphicsHolder.TryDequeue(out (System.Drawing.Graphics measureGraphics, StringFormat formatHolder) measureContainer))
                     {
-                        measureContainer.measureGraphics?.Dispose();
-                        measureContainer.formatHolder?.Dispose();
+                        Release(() => measureContainer.measureGraphics?.Dispose());
+                        Release(() => measureContainer.formatHolder?.Dispose());
                     }
                     while (whiteBrushHolder.TryDequeue(out Brush brush))
-                        brush?.Dispose();
+                        Release(() => brush?.Dispose());
 
-                    EmptyTexture?.Dispose();
-                    measureBitmap?.Dispose();
+                    Release(() => EmptyTexture?.Dispose());
+                    Release(() => measureBitmap?.Dispose());
+                    if (errors.Count > 0)
+                    {
+                        releaseFailure = ExceptionDispatchInfo.Capture(errors.Count == 1 ? errors[0] : new AggregateException(errors));
+                        releaseFailure.Throw();
+                    }
                 }
-                disposedValue = true;
+            }
+            catch (Exception error)
+            {
+                releaseFailure = ExceptionDispatchInfo.Capture(error);
+                throw;
             }
         }
 

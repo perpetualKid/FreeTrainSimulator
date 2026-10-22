@@ -45,6 +45,97 @@ namespace Tests.FreeTrainSimulator.Toolbox.Hosting
         private static readonly string[] expectedStringsDiscard = new string[] { "A map", "A discard", "B map", "B commit" };
         private static readonly string[] expectedStringsCanceledWaiter = new string[] { "A map", "A drained", "A discard", "C map", "C commit" };
 
+        [TestMethod]
+        [DataRow("ready")]
+        [DataRow("initialize throws")]
+        [DataRow("commit throws")]
+        [DataRow("commit supersedes")]
+        [DataRow("commit stops")]
+        [Timeout(10000, CooperativeCancellation = true)]
+        public async Task OnlySuccessfulStillCurrentReadyCommitCanReplacePublishedRoute(string outcome)
+        {
+            ArgumentNullException.ThrowIfNull(outcome);
+            NativeRoute routeA = await CreateRouteAsync().ConfigureAwait(false);
+            NativeRoute routeB = await CreateRouteAsync().ConfigureAwait(false);
+            RuntimeDataResolver publishedA = await RuntimeDataResolver.PrepareAsync(routeA.Route, false, null, TestContext.CancellationToken).ConfigureAwait(false);
+            publishedA.Publish();
+            TrackSegmentSection originalSection = publishedA.TrackWorld.SegmentSections[2];
+            QueuedDispatcher dispatcher = new QueuedDispatcher(TestContext.CancellationToken);
+            RouteLoadCoordinator coordinator = CreateCoordinator(dispatcher);
+            RequestScope request = new RequestScope(coordinator, dispatcher, TestContext.CancellationToken);
+            await using (request.ConfigureAwait(false))
+            {
+                RuntimeDataResolver candidate = null;
+                bool ready = false;
+                int commits = 0;
+                int discards = 0;
+                Task<bool> load = request.LoadAsync(routeB.Route, true, (resolver, _) =>
+                {
+                    candidate = resolver;
+                    AssertUnchanged();
+                    Assert.AreNotSame(originalSection, resolver.TrackWorld.SegmentSections[2]);
+                    Assert.AreEqual(routeB.Sections.TrackSections[1].Length, resolver.TrackWorld.SegmentSections[2].Length);
+                    if (outcome == "initialize throws")
+                        throw new InvalidOperationException(outcome);
+                    ready = true;
+                    return Task.CompletedTask;
+                }, () =>
+                {
+                    Assert.IsTrue(ready, "Commit requires completed candidate initialization.");
+                    AssertUnchanged();
+                    commits++;
+                    switch (outcome)
+                    {
+                        case "commit throws": throw new InvalidOperationException(outcome);
+                        case "commit supersedes":
+                            using (coordinator.BeginRequest(coordinator.BeginSelection())) { }
+                            break;
+                        case "commit stops": coordinator.Stop(); break;
+                    }
+                }, () =>
+                {
+                    Assert.IsTrue(dispatcher.IsDispatching);
+                    AssertUnchanged();
+                    discards++;
+                });
+
+                if (outcome == "initialize throws")
+                    _ = await Assert.ThrowsExactlyAsync<InvalidOperationException>(dispatcher.RunNextAsync).ConfigureAwait(false);
+                else
+                {
+                    await dispatcher.RunNextAsync().ConfigureAwait(false);
+                    AssertUnchanged();
+                    if (outcome == "commit throws")
+                        _ = await Assert.ThrowsExactlyAsync<InvalidOperationException>(dispatcher.RunNextAsync).ConfigureAwait(false);
+                    else
+                        await dispatcher.RunNextAsync().ConfigureAwait(false);
+                }
+                if (outcome == "ready")
+                {
+                    Assert.IsTrue(await load.WaitAsync(TestContext.CancellationToken).ConfigureAwait(false));
+                    AssertPublished(routeB, candidate, true);
+                }
+                else
+                {
+                    await dispatcher.RunNextAsync().ConfigureAwait(false);
+                    if (outcome.EndsWith("throws", StringComparison.Ordinal))
+                        _ = await Assert.ThrowsExactlyAsync<InvalidOperationException>(() => load).ConfigureAwait(false);
+                    else
+                        Assert.IsFalse(await load.WaitAsync(TestContext.CancellationToken).ConfigureAwait(false));
+                    AssertUnchanged();
+                }
+                Assert.AreEqual(outcome == "initialize throws" ? 0 : 1, commits);
+                Assert.AreEqual(outcome == "ready" ? 0 : 1, discards);
+            }
+
+            void AssertUnchanged()
+            {
+                Assert.AreSame(publishedA, RuntimeDataResolver.Instance);
+                Assert.AreSame(publishedA.TrackWorld, TrackWorld.Instance);
+                Assert.AreSame(originalSection, publishedA.TrackWorld.SegmentSections[2]);
+            }
+        }
+
         /// <summary>Late shared native reads must not replace an already accepted newer route.</summary>
         [TestMethod]
         [Timeout(10000, CooperativeCancellation = true)]
@@ -71,14 +162,14 @@ namespace Tests.FreeTrainSimulator.Toolbox.Hosting
                     Task<bool> loadB = requestB.LoadAsync(routeB.Route, true, (resolver, _) =>
                     {
                         Assert.IsTrue(dispatcher.IsDispatching);
-                        AssertPublished(routeB, resolver, true);
+                        AssertPreparedAndUnpublished(routeB, resolver, true);
                         maps++;
                         published = resolver;
                         return Task.CompletedTask;
                     }, () =>
                     {
                         Assert.IsTrue(dispatcher.IsDispatching);
-                        AssertPublished(routeB, published, true);
+                        AssertPreparedAndUnpublished(routeB, published, true);
                         commits++;
                     }, () => Assert.Fail("Accepted B was discarded."));
 
@@ -204,16 +295,16 @@ namespace Tests.FreeTrainSimulator.Toolbox.Hosting
                 Task<bool> loadA = requestA.LoadAsync(routeA.Route, false, async (resolver, _) =>
                 {
                     Assert.IsTrue(dispatcher.IsDispatching);
-                    AssertPublished(routeA, resolver, false);
+                    AssertPreparedAndUnpublished(routeA, resolver, false);
                     resolverA = resolver;
                     events.Add("A map");
                     await resumeA.Task.WaitAsync(requestA.CancellationToken).ConfigureAwait(false);
-                    AssertPublished(routeA, resolver, false);
+                    AssertPreparedAndUnpublished(routeA, resolver, false);
                     events.Add("A drained");
                 }, () => Assert.Fail("Superseded A committed."), () =>
                 {
                     Assert.IsTrue(dispatcher.IsDispatching);
-                    AssertPublished(routeA, resolverA, false);
+                    AssertPreparedAndUnpublished(routeA, resolverA, false);
                     events.Add("A discard");
                 });
                 Task mapA = await dispatcher.StartNextAsync().ConfigureAwait(false);
@@ -224,26 +315,26 @@ namespace Tests.FreeTrainSimulator.Toolbox.Hosting
                     Task<bool> loadB = requestB.LoadAsync(routeB.Route, true, async (resolver, guardedActionAsync) =>
                     {
                         Assert.IsTrue(dispatcher.IsDispatching);
-                        AssertPublished(routeB, resolver, true);
+                        AssertPreparedAndUnpublished(routeB, resolver, true);
                         resolverB = resolver;
                         events.Add("B map");
                         await guardedActionAsync(() =>
                         {
                             Assert.IsTrue(dispatcher.IsDispatching);
-                            AssertPublished(routeB, resolver, true);
+                            AssertPreparedAndUnpublished(routeB, resolver, true);
                             events.Add("B map update");
                         }).ConfigureAwait(false);
                     }, () =>
                     {
                         Assert.IsTrue(dispatcher.IsDispatching);
-                        AssertPublished(routeB, resolverB, true);
+                        AssertPreparedAndUnpublished(routeB, resolverB, true);
                         events.Add("B commit");
                         status = "Ready B";
                     }, () => Assert.Fail("Accepted B was discarded."));
 
                     // All B native tasks are already complete, so its only wait is the map gate.
                     Assert.AreEqual((false, false, "Loading B"), (dispatcher.HasPending, loadB.IsCompleted, status));
-                    AssertPublished(routeA, resolverA, false);
+                    AssertPreparedAndUnpublished(routeA, resolverA, false);
                     resumeA.SetResult();
                     await mapA.WaitAsync(TestContext.CancellationToken).ConfigureAwait(false);
                     await dispatcher.RunNextAsync().ConfigureAwait(false); // Reject A's final commit even though its map succeeded.
@@ -283,16 +374,16 @@ namespace Tests.FreeTrainSimulator.Toolbox.Hosting
                 Task<bool> loadA = requestA.LoadAsync(routeA.Route, false, async (resolver, _) =>
                 {
                     Assert.IsTrue(dispatcher.IsDispatching);
-                    AssertPublished(routeA, resolver, false);
+                    AssertPreparedAndUnpublished(routeA, resolver, false);
                     resolverA = resolver;
                     events.Add("A map");
                     await resumeA.Task.WaitAsync(requestA.CancellationToken).ConfigureAwait(false);
-                    AssertPublished(routeA, resolver, false);
+                    AssertPreparedAndUnpublished(routeA, resolver, false);
                     events.Add("A drained");
                 }, () => Assert.Fail("Superseded A committed."), () =>
                 {
                     Assert.IsTrue(dispatcher.IsDispatching);
-                    AssertPublished(routeA, resolverA, false);
+                    AssertPreparedAndUnpublished(routeA, resolverA, false);
                     events.Add("A discard");
                 });
                 Task mapA = await dispatcher.StartNextAsync().ConfigureAwait(false);
@@ -315,18 +406,18 @@ namespace Tests.FreeTrainSimulator.Toolbox.Hosting
                         Task<bool> loadC = requestC.LoadAsync(routeC.Route, true, (resolver, _) =>
                         {
                             Assert.IsTrue(dispatcher.IsDispatching);
-                            AssertPublished(routeC, resolver, true);
+                            AssertPreparedAndUnpublished(routeC, resolver, true);
                             resolverC = resolver;
                             events.Add("C map");
                             return Task.CompletedTask;
                         }, () =>
                         {
                             Assert.IsTrue(dispatcher.IsDispatching);
-                            AssertPublished(routeC, resolverC, true);
+                            AssertPreparedAndUnpublished(routeC, resolverC, true);
                             events.Add("C commit");
                         }, () => Assert.Fail("Accepted C was discarded."));
                         Assert.AreEqual((false, false, false), (mapA.IsCompleted, dispatcher.HasPending, loadC.IsCompleted));
-                        AssertPublished(routeA, resolverA, false);
+                        AssertPreparedAndUnpublished(routeA, resolverA, false);
 
                         resumeA.SetResult();
                         await mapA.WaitAsync(TestContext.CancellationToken).ConfigureAwait(false);
@@ -366,7 +457,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.Hosting
                 Task<bool> loadA = requestA.LoadAsync(routeA.Route, false, async (resolver, _) =>
                 {
                     Assert.IsTrue(dispatcher.IsDispatching);
-                    AssertPublished(routeA, resolver, false);
+                    AssertPreparedAndUnpublished(routeA, resolver, false);
                     resolverA = resolver;
                     events.Add("A map");
                     await failMap.Task.WaitAsync(requestA.CancellationToken).ConfigureAwait(false);
@@ -374,7 +465,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.Hosting
                 }, () => Assert.Fail("Failed A committed."), () =>
                 {
                     Assert.IsTrue(dispatcher.IsDispatching);
-                    AssertPublished(routeA, resolverA, false);
+                    AssertPreparedAndUnpublished(routeA, resolverA, false);
                     events.Add("A discard");
                 });
                 Task mapA = await dispatcher.StartNextAsync().ConfigureAwait(false);
@@ -385,7 +476,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.Hosting
                     Task<bool> loadB = requestB.LoadAsync(routeB.Route, true, (resolver, _) =>
                     {
                         Assert.IsTrue(dispatcher.IsDispatching);
-                        AssertPublished(routeB, resolver, true);
+                        AssertPreparedAndUnpublished(routeB, resolver, true);
                         resolverB = resolver;
                         events.Add("B map");
                         return Task.CompletedTask;
@@ -434,7 +525,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.Hosting
                 Task<bool> load = request.LoadAsync(route.Route, true, async (resolver, guardedActionAsync) =>
                 {
                     Assert.IsTrue(dispatcher.IsDispatching);
-                    AssertPublished(route, resolver, true);
+                    AssertPreparedAndUnpublished(route, resolver, true);
                     await guardedActionAsync(() => status = "Stale map update").ConfigureAwait(false);
                 }, () => Assert.Fail("Unloaded map committed."), () =>
                 {
@@ -554,7 +645,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.Hosting
                     Task<bool> retryLoad = retry.LoadAsync(route.Route, true, (resolver, _) =>
                     {
                         Assert.IsTrue(dispatcher.IsDispatching);
-                        AssertPublished(route, resolver, true);
+                        AssertPreparedAndUnpublished(route, resolver, true);
                         published = resolver;
                         maps++;
                         return Task.CompletedTask;
@@ -693,7 +784,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.Hosting
             {
                 Task<bool> loadA = requestA.LoadAsync(routeA.Route, false, async (resolver, _) =>
                 {
-                    AssertPublished(routeA, resolver, false);
+                    AssertPreparedAndUnpublished(routeA, resolver, false);
                     await resumeA.Task.WaitAsync(requestA.CancellationToken).ConfigureAwait(false);
                 }, () => Assert.Fail("A committed during shutdown."), () =>
                 {
@@ -842,8 +933,14 @@ namespace Tests.FreeTrainSimulator.Toolbox.Hosting
                 TrackDatabase = new TrackDatabase
                 {
                     TrackNodes = ImmutableArray.Create<TrackNodeBase>(null,
-                        new EndNode(location, tile, Vector3.Zero) { NodeIndex = 1 }),
-                    TrackNodeConnectors = ImmutableArray.Create(new TrackNodeConnectorIndex(), new TrackNodeConnectorIndex()),
+                        new EndNode(location, tile, Vector3.Zero) { NodeIndex = 1 },
+                        new VectorNode(location, tile, new WorldLocation(tile, new Vector3(0, 0, 100 + routes.Count)))
+                        {
+                            NodeIndex = 2,
+                            VectorSections = ImmutableArray.Create(new VectorSectionNode(location, tile, Vector3.Zero,
+                                new WorldLocation(tile, new Vector3(0, 0, 100 + routes.Count))) { NodeIndex = 1 }),
+                        }),
+                    TrackNodeConnectors = ImmutableArray.Create(new TrackNodeConnectorIndex(), new TrackNodeConnectorIndex(), new TrackNodeConnectorIndex()),
                 },
             }, route, token).ConfigureAwait(false);
             await SignalConfigurationModelHandler.Create(new SignalConfigurationModel
@@ -876,6 +973,14 @@ namespace Tests.FreeTrainSimulator.Toolbox.Hosting
                 ReferenceEquals(expected.Signals, resolver.SignalConfiguration),
                 ReferenceEquals(expected.Track.TrackDatabase, resolver.TrackWorld.TrackDatabase),
                 resolver.MetricUnits), "The map and both globals must refer to exactly the published native route.");
+        }
+
+        private void AssertPreparedAndUnpublished(NativeRoute expected, RuntimeDataResolver resolver, bool metricUnits)
+        {
+            Assert.AreEqual((previousResolver, previousTrackWorld), (RuntimeDataResolver.Instance, TrackWorld.Instance),
+                "Candidate initialization, callbacks, and discard must leave published services unchanged.");
+            Assert.AreEqual((expected.Route, expected.Sections, expected.Signals, expected.Track.TrackDatabase, metricUnits),
+                (resolver.RouteData, resolver.TrackSections, resolver.SignalConfiguration, resolver.TrackWorld.TrackDatabase, resolver.MetricUnits));
         }
 
         /// <summary>Owns a request until all deliberately overlapping test operations have drained.</summary>

@@ -57,9 +57,15 @@ namespace FreeTrainSimulator.Runtime.Track
             Direction = (float)Math.Atan2(origin.X, origin.Y) - MathHelper.PiOver2;
         }
 
-        protected TrackSegmentBase(VectorSectionNode trackVectorSection, int trackNodeIndex, int trackVectorSectionIndex)
+        protected TrackSegmentBase(VectorSectionNode trackVectorSection, int trackNodeIndex, int trackVectorSectionIndex) :
+            this(trackVectorSection, trackNodeIndex, trackVectorSectionIndex, RuntimeDataResolver.Instance.TrackSections)
+        {
+        }
+
+        protected TrackSegmentBase(VectorSectionNode trackVectorSection, int trackNodeIndex, int trackVectorSectionIndex, TrackSectionModel trackSections)
         {
             ArgumentNullException.ThrowIfNull(trackVectorSection);
+            ArgumentNullException.ThrowIfNull(trackSections);
 
             ref readonly WorldLocation location = ref trackVectorSection.Location;
             double cosA = Math.Cos(trackVectorSection.Direction.Y);
@@ -70,7 +76,7 @@ namespace FreeTrainSimulator.Runtime.Track
             TrackNodeIndex = trackNodeIndex;
             TrackVectorSectionIndex = trackVectorSectionIndex;
 
-            if (!RuntimeDataResolver.Instance.TrackSections.TrackSections.TryGetValue(trackVectorSection.NodeIndex, out TrackSection trackSection))
+            if (!trackSections.TrackSections.TryGetValue(trackVectorSection.NodeIndex, out TrackSection trackSection))
             {
                 Trace.TraceError($"TrackVectorSection {trackVectorSection.NodeIndex} not found in TrackSectionModel for section index {trackVectorSectionIndex} in track node {trackNodeIndex}");
                 return;

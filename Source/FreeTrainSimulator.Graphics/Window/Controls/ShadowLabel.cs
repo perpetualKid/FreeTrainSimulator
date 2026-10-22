@@ -9,7 +9,6 @@ namespace FreeTrainSimulator.Graphics.Window.Controls
     {
         private const int cornerRadius = 8;
 
-        private Texture2D roundedShadowTexture;
         private Point topRight;
         private Rectangle rectangleShadow;
         private Point alignmentOffset;
@@ -43,10 +42,7 @@ namespace FreeTrainSimulator.Graphics.Window.Controls
         {
             base.InitializeText(text);
             if (texture == resourceHolder.EmptyTexture)
-            {
-                roundedShadowTexture = null;
                 return;
-            }
             topRight = new Point(texture.Width - cornerRadius, 0);
             rectangleShadow = new Rectangle(cornerRadius, 0, texture.Width - (2 * cornerRadius), texture.Height);
             PrepareShadowTexture();
@@ -68,7 +64,7 @@ namespace FreeTrainSimulator.Graphics.Window.Controls
         private void PrepareShadowTexture()
         {
             int height = texture.Height;
-            if (!Window.Owner.RoundedShadows.TryGetValue(height, out roundedShadowTexture))
+            if (!Window.Owner.RoundedShadows.ContainsKey(height))
             {
                 Color[] data = new Color[height * cornerRadius];
                 // Rounded corner background.
@@ -78,7 +74,7 @@ namespace FreeTrainSimulator.Graphics.Window.Controls
                             || Math.Sqrt(((x - cornerRadius) * (x - cornerRadius)) + ((y - cornerRadius) * (y - cornerRadius))) < cornerRadius
                             || Math.Sqrt(((x - cornerRadius) * (x - cornerRadius)) + ((y - height + cornerRadius) * (y - height + cornerRadius))) < cornerRadius)
                             data[(y * cornerRadius) + x] = Window.Owner.BackgroundColor;
-                roundedShadowTexture = new Texture2D(Window.Owner.GraphicsDevice, cornerRadius, height, false, SurfaceFormat.Color);
+                Texture2D roundedShadowTexture = new Texture2D(Window.Owner.GraphicsDevice, cornerRadius, height, false, SurfaceFormat.Color);
                 roundedShadowTexture.SetData(data);
 
                 _ = Window.Owner.RoundedShadows.TryAdd(height, roundedShadowTexture);
@@ -87,7 +83,7 @@ namespace FreeTrainSimulator.Graphics.Window.Controls
 
         internal override void Draw(SpriteBatch spriteBatch, Point offset)
         {
-            if (null == roundedShadowTexture || texture == resourceHolder.EmptyTexture)
+            if (texture == resourceHolder.EmptyTexture || !Window.Owner.RoundedShadows.TryGetValue(texture.Height, out Texture2D roundedShadowTexture))
                 return;
             spriteBatch.Draw(roundedShadowTexture, (Bounds.Location + offset + alignmentOffset).ToVector2(), TextColor);
             spriteBatch.Draw(roundedShadowTexture, (Bounds.Location + offset + alignmentOffset + topRight).ToVector2(), null, TextColor, 0, Vector2.Zero, 1, SpriteEffects.FlipHorizontally, 0);
@@ -97,10 +93,5 @@ namespace FreeTrainSimulator.Graphics.Window.Controls
             base.Draw(spriteBatch, offset);
         }
 
-        protected override void Dispose(bool disposing)
-        {
-            base.Dispose(disposing);
-            roundedShadowTexture?.Dispose();
-        }
     }
 }

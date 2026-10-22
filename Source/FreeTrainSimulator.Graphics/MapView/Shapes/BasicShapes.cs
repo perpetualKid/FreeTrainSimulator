@@ -1,7 +1,9 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.ExceptionServices;
 
 using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Graphics.Xna;
@@ -11,11 +13,13 @@ using Microsoft.Xna.Framework.Graphics;
 
 namespace FreeTrainSimulator.Graphics.MapView.Shapes
 {
-    internal class BasicShapes
+    internal sealed class BasicShapes : IDisposable
     {
         private readonly EnumArray<Texture2D, BasicTextureType> basicTextures = new EnumArray<Texture2D, BasicTextureType>();
         private readonly EnumArray<Texture2D, BasicTextureType> basicHighlightTextures = new EnumArray<Texture2D, BasicTextureType>();
         private readonly EnumArray<Vector2, BasicTextureType> textureOffsets = new EnumArray<Vector2, BasicTextureType>();
+        private bool disposed;
+        private ExceptionDispatchInfo releaseFailure;
 
         private const double minAngleDegree = 0.1; // we do not care for angles smaller than 0.1 degrees
         private const double maxAngleDegree = 90; // allows for drawing up to 90 degree arcs
@@ -32,25 +36,74 @@ namespace FreeTrainSimulator.Graphics.MapView.Shapes
         {
         }
 
+        /// <summary>Creates textures owned by the caller, which must dispose this instance on the graphics owner.</summary>
         public static BasicShapes Create(GraphicsDevice graphicsDevice)
         {
             ArgumentNullException.ThrowIfNull(graphicsDevice);
 
             BasicShapes instance = new BasicShapes();
-            instance.LoadContent(graphicsDevice);
-            return instance;
+            try
+            {
+                instance.LoadContent(graphicsDevice);
+                return instance;
+            }
+            catch (Exception error) when (CleanupExceptionPolicy.CanContinue(error))
+            {
+                try
+                {
+                    instance.Dispose();
+                }
+                catch (Exception cleanupError) when (CleanupExceptionPolicy.CanContinue(cleanupError))
+                {
+                    throw new AggregateException(error, cleanupError);
+                }
+                throw;
+            }
         }
 
+        /// <summary>Creates a caller-owned instance; this compatibility factory does not cache or share textures.</summary>
         public static BasicShapes Instance(Game game)
         {
             ArgumentNullException.ThrowIfNull(game);
 
-            BasicShapes instance;
-            if ((instance = game.Components.OfType<BasicShapes>().FirstOrDefault()) == null)
+            return Create(game.GraphicsDevice);
+        }
+
+        /// <summary>Releases this instance's textures once, including textures acquired before a load failure.</summary>
+        public void Dispose()
+        {
+            if (disposed)
             {
-                instance = Create(game.GraphicsDevice);
+                releaseFailure?.Throw();
+                return;
             }
-            return instance;
+
+            disposed = true;
+            try
+            {
+                List<Exception> errors = null;
+                foreach (Texture2D texture in basicTextures.Concat(basicHighlightTextures))
+                {
+                    try
+                    {
+                        texture?.Dispose();
+                    }
+                    catch (Exception error) when (CleanupExceptionPolicy.CanContinue(error))
+                    {
+                        (errors ??= new List<Exception>()).Add(error);
+                    }
+                }
+                if (errors != null)
+                {
+                    releaseFailure = ExceptionDispatchInfo.Capture(new AggregateException(errors));
+                    releaseFailure.Throw();
+                }
+            }
+            catch (Exception error)
+            {
+                releaseFailure = ExceptionDispatchInfo.Capture(error);
+                throw;
+            }
         }
 
         /// <summary>
@@ -278,15 +331,17 @@ namespace FreeTrainSimulator.Graphics.MapView.Shapes
                     continue;
                 using (Stream stream = assembly.GetManifestResourceStream(resourceName))
                 {
-                    Texture2D texture = Texture2D.FromStream(graphicsDevice, stream);
-                    basicTextures[textureValue] = PrepareColorScaledTexture(graphicsDevice, texture);
-                    basicHighlightTextures[textureValue] = PrepareColorScaledTexture(graphicsDevice, texture, 0.8);
-                    textureOffsets[textureValue] = new Vector2(texture.Width / 2, texture.Height / 2);
+                    using (Texture2D texture = Texture2D.FromStream(graphicsDevice, stream))
+                    {
+                        basicTextures[textureValue] = PrepareColorScaledTexture(graphicsDevice, texture, 1);
+                        basicHighlightTextures[textureValue] = PrepareColorScaledTexture(graphicsDevice, texture, 0.8);
+                        textureOffsets[textureValue] = new Vector2(texture.Width / 2, texture.Height / 2);
+                    }
                 }
             }
         }
 
-        private static Texture2D PrepareColorScaledTexture(GraphicsDevice graphicsDevice, Texture2D texture, double range = 1)
+        private static Texture2D PrepareColorScaledTexture(GraphicsDevice graphicsDevice, Texture2D texture, double range)
         {
             int pixelCount = texture.Width * texture.Height;
             Color[] pixels = new Color[pixelCount];
@@ -297,8 +352,16 @@ namespace FreeTrainSimulator.Graphics.MapView.Shapes
             }
 
             Texture2D outTexture = new Texture2D(graphicsDevice, texture.Width, texture.Height, false, SurfaceFormat.Color);
-            outTexture.SetData(pixels);
-            return outTexture;
+            try
+            {
+                outTexture.SetData(pixels);
+                return outTexture;
+            }
+            catch
+            {
+                outTexture.Dispose();
+                throw;
+            }
         }
 
         /// <summary>

@@ -113,31 +113,39 @@ namespace FreeTrainSimulator.Graphics.MapView
                     break;
                 case ColorSetting.StationItem:
                     WidgetDrawingOptions<StationNameItem>.SetColors(color);
-                    WidgetDrawingOptions<StationNameItem>.OutlineRenderOptions = fontOutlining ? new OutlineRenderOptions(3.0f, color, color.ContrastColor()) : null;
+                    ReplaceOutlineOptions<StationNameItem>(fontOutlining ? new OutlineRenderOptions(3.0f, color, color.ContrastColor()) : null);
                     break;
                 case ColorSetting.PlatformItem:
                     WidgetDrawingOptions<PlatformNameItem>.SetColors(color);
-                    WidgetDrawingOptions<PlatformNameItem>.OutlineRenderOptions = fontOutlining ? new OutlineRenderOptions(2.0f, color, color.ContrastColor()) : null;
+                    ReplaceOutlineOptions<PlatformNameItem>(fontOutlining ? new OutlineRenderOptions(2.0f, color, color.ContrastColor()) : null);
                     WidgetDrawingOptions<PlatformPath>.SetColors(color);
                     color.A = 160;
                     WidgetDrawingOptions<PlatformSegment>.SetColors(color);
                     break;
                 case ColorSetting.SidingItem:
                     WidgetDrawingOptions<SidingNameItem>.SetColors(color);
-                    WidgetDrawingOptions<SidingNameItem>.OutlineRenderOptions = fontOutlining ? new OutlineRenderOptions(2.0f, color, color.ContrastColor()) : null;
+                    ReplaceOutlineOptions<SidingNameItem>(fontOutlining ? new OutlineRenderOptions(2.0f, color, color.ContrastColor()) : null);
                     WidgetDrawingOptions<SidingPath>.SetColors(color);
                     color.A = 160;
                     WidgetDrawingOptions<SidingSegment>.SetColors(color);
                     break;
                 case ColorSetting.SpeedPostItem:
                     WidgetDrawingOptions<SpeedPostTrackItem>.SetColors(color);
-                    WidgetDrawingOptions<SpeedPostTrackItem>.OutlineRenderOptions = fontOutlining ? new OutlineRenderOptions(2.0f, color.ContrastColor(), color) : null;
+                    ReplaceOutlineOptions<SpeedPostTrackItem>(fontOutlining ? new OutlineRenderOptions(2.0f, color.ContrastColor(), color) : null);
                     break;
                 case ColorSetting.MilePostItem:
                     WidgetDrawingOptions<MilePostTrackItem>.SetColors(color);
-                    WidgetDrawingOptions<MilePostTrackItem>.OutlineRenderOptions = fontOutlining ? new OutlineRenderOptions(2.0f, color, color.ContrastColor()) : null;
+                    ReplaceOutlineOptions<MilePostTrackItem>(fontOutlining ? new OutlineRenderOptions(2.0f, color, color.ContrastColor()) : null);
                     break;
             }
+        }
+
+        private static void ReplaceOutlineOptions<T>(OutlineRenderOptions options)
+        {
+            // Widget slots are shared by map consumers. Replace at that scope, never during map disposal.
+            OutlineRenderOptions previous = WidgetDrawingOptions<T>.OutlineRenderOptions;
+            WidgetDrawingOptions<T>.OutlineRenderOptions = options;
+            previous?.Dispose();
         }
     }
 }

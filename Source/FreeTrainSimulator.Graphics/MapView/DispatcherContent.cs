@@ -44,9 +44,10 @@ namespace FreeTrainSimulator.Graphics.MapView
 
         public override async Task Initialize()
         {
-            await Task.Run(AddTrackSegments).ConfigureAwait(false);
-            await Task.Run(AddTrackItems).ConfigureAwait(false);
+            await Task.Run(AddTrackSegments).ConfigureAwait(true);
+            await Task.Run(AddTrackItems).ConfigureAwait(true);
 
+            InsetHost?.SetTrackSegments(ContentByTile[MapContentType.Tracks].OfType<Widgets.TrackSegment>());
             ShellServices.Initialize();
         }
 
@@ -176,11 +177,10 @@ namespace FreeTrainSimulator.Graphics.MapView
         /// by looking up its <see cref="SectionGeometry"/> in <see cref="TrackWorld"/> and mapping back
         /// to the corresponding 2D segment via <see cref="TrackWorld.SegmentSections"/>.
         /// </summary>
-        private static TrackSegmentBase ResolveTrackSegment(Models.Track.VectorSectionNode section)
+        private TrackSegmentBase ResolveTrackSegment(Models.Track.VectorSectionNode section)
         {
             if (section == null)
                 return null;
-            TrackWorld trackWorld = TrackWorld.Instance;
             if (!trackWorld.SectionGeometry.TryGetValue(section, out SectionGeometry sectionGeometry))
                 return null;
             int nodeIndex = sectionGeometry.Node.NodeIndex;
@@ -223,25 +223,20 @@ namespace FreeTrainSimulator.Graphics.MapView
                         case Models.Track.EndNode endNode:
                             endSegments.Add(new Widgets.EndNode(endNode));
                             break;
-                        case Models.Track.VectorNode trackVectorNode:
-                            foreach ((Models.Track.VectorSectionNode section, int index) in trackVectorNode.VectorSections.IndexedSelect())
+                        case Models.Track.VectorNode trackVectorNode when !trackVectorNode.VectorSections.IsDefaultOrEmpty:
+                            foreach (TrackSegmentBase segment in trackWorld.SegmentSections[trackVectorNode.NodeIndex].SectionSegments)
                             {
-                                trackSegments.Add(new Widgets.TrackSegment(section, trackVectorNode.NodeIndex, index));
+                                trackSegments.Add(new Widgets.TrackSegment(segment));
                             }
                             break;
                         case Models.Track.JunctionNode trackJunctionNode:
                             junctionSegments.Add(new ActiveJunctionSegment(trackJunctionNode,
-                                trackDatabase.TrackNodeConnectors[trackJunctionNode.NodeIndex].OutConnectors[trackJunctionNode.MainRoute].Link));
+                                trackDatabase.TrackNodeConnectors[trackJunctionNode.NodeIndex].OutConnectors[trackJunctionNode.MainRoute].Link,
+                                runtimeServices.RuntimeData));
                             break;
                     }
                 });
             }
-
-            InsetHost?.SetTrackSegments(trackSegments);
-
-            trackWorld = runtimeServices.TrackWorld;
-            trackWorld.SetSegmentSections(trackSegments.GroupBy(t => t.TrackNodeIndex).Select(g => new TrackSegmentSection(g.Key, g)));
-            trackWorld.SetJunctions(junctionSegments);
 
             ContentByTile[MapContentType.Tracks] = new TileIndexedList<TrackSegmentBase>(trackSegments);
             ContentByTile[MapContentType.JunctionNodes] = new TileIndexedList<JunctionNodeBase>(junctionSegments);

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Globalization;
@@ -36,7 +37,8 @@ namespace FreeTrainSimulator.Toolbox
 {
     public partial class GameWindow : Game, IInputCapture, ISettingsApplier
     {
-        private readonly GraphicsDeviceManager graphicsDeviceManager;
+        // MonoGame registers and owns this manager; this readonly reference is borrowed, never independently disposed.
+        private GraphicsDeviceManager GraphicsManager { get; }
         private readonly Form windowForm;
         // Message-only: neither the render form nor WinForms' per-loop parking window owns this transport.
         private readonly Control ownerControl;
@@ -78,13 +80,35 @@ namespace FreeTrainSimulator.Toolbox
                 }
                 if (value != null)
                 {
-                    ContentArea contentArea = value;
-                    if (!windowForm.IsDisposed && !windowForm.Disposing)
-                        contentArea.ResetSize(Window.ClientBounds.Size, 60);
-                    Components.Add(value);
-                    contentArea.IsEnabled = true;
-                    string newTitle = windowTitle + Catalog.GetString($" Route: {value.Content.RouteName}");
-                    SetWindowTitle(newTitle);
+                    try
+                    {
+                        if (!windowForm.IsDisposed && !windowForm.Disposing)
+                            value.ResetSize(Window.ClientBounds.Size, 60);
+                        Components.Add(value);
+                        value.Enabled = true;
+                        string title = windowTitle + Catalog.GetString($" Route: {value.Content.RouteName}");
+                        SetWindowTitle(title);
+                    }
+                    catch (Exception error) when (CleanupExceptionPolicy.CanContinue(error))
+                    {
+                        List<Exception> errors = new List<Exception> { error };
+                        // Enablement can attach overlay helpers before a later title callback fails.
+                        // Roll back each operation even when another rollback operation fails.
+                        foreach (Action cleanup in new Action[] { () => value.Enabled = false, () => Components.Remove(value), value.Dispose })
+                        {
+                            try
+                            {
+                                cleanup();
+                            }
+                            catch (Exception cleanupError) when (CleanupExceptionPolicy.CanContinue(cleanupError))
+                            {
+                                errors.Add(cleanupError);
+                            }
+                        }
+                        if (errors.Count > 1)
+                            throw new AggregateException(errors);
+                        throw;
+                    }
                 }
                 contentArea = value;
                 OnContentAreaChanged?.Invoke(this, new ContentAreaChangedEventArgs(contentArea));
@@ -185,67 +209,85 @@ namespace FreeTrainSimulator.Toolbox
             FontManager.ScalingFactor = (float)WindowManager.DisplayScalingFactor(currentScreen);
 
             ApplySettings();
-            graphicsDeviceManager = new GraphicsDeviceManager(this);
-            graphicsDeviceManager.PreparingDeviceSettings += GraphicsPreparingDeviceSettings;
-            graphicsDeviceManager.PreferMultiSampling = ToolboxUserSettings.MultiSamplingCount > 0;
-            IsMouseVisible = true;
-
-            // Set title to show revision or build info.
-            windowTitle = $"{RuntimeInfo.ProductName} {VersionInfo.Version}";
-#if DEBUG
-            windowTitle += " (debug)";
-#endif
-            SetWindowTitle(windowTitle);
-            Window.AllowUserResizing = true;
-
-            //Window.ClientSizeChanged += Window_ClientSizeChanged; // not using the GameForm event as it does not raise when Window is moved (ie to another screeen) using keyboard shortcut
-
-            //graphicsDeviceManager.SynchronizeWithVerticalRetrace = false;
-            //IsFixedTimeStep = false;
-            //TargetElapsedTime = TimeSpan.FromMilliseconds(5);
-
-            Window.Position = windowPosition;
-
-            SetScreenMode(currentScreenMode);
-
-            windowForm.ClientSizeChanged += WindowForm_ClientSizeChanged;
-            windowForm.MouseDown += WindowForm_MouseDown;
-            windowForm.MouseUp += WindowForm_MouseUp;
-            windowForm.MouseCaptureChanged += WindowForm_MouseCaptureChanged;
-
-            // using reflection to be able to trigger ClientSizeChanged event manually as this is not 
-            // reliably raised otherwise with the resize functionality below in SetScreenMode
-            MethodInfo m = Window.GetType().GetMethod("OnClientSizeChanged", BindingFlags.NonPublic | BindingFlags.Instance);
-            onClientSizeChanged = (Action)Delegate.CreateDelegate(typeof(Action), Window, m);
-
-            Exiting += GameWindow_Exiting;
-            LoadLanguage();
-            SystemInfo.SetGraphicAdapterInformation(graphicsDeviceManager.GraphicsDevice.Adapter.Description);
-            debugInfo = new CommonDebugInfo(this);
-            hostedDebugToolWindow = new DebugToolWindow(debugInfo, graphicsDebugInfo);
-            hostedLocationToolWindow = new LocationToolWindow(ToolboxSettings);
-            hostedLogToolWindow = new LogToolWindow(() => LogFileName);
-            hostedHelpToolWindow = new HelpToolWindow();
-            hostedSettingsToolWindow = new SettingsToolWindow(ToolboxSettings, ToolboxUserSettings, this, InvokeSessionCommandAsync);
-            hostedTrainPathToolWindow = new TrainPathToolWindow(() => HostedPathEditor, () => HostedTrainPathToolingContext, InvokeSessionCommand, EditPath, SavePath,
-                path => ObserveGameThreadOperation(LoadPathAsync(path)), () => ObserveGameThreadOperation(UnloadPathAsync()), ActivatePathEditingInput,
-                refresh => InvokeOnGameThreadAsync(() => session.ValidateAllPathsAsync(refresh)));
-            hostedStatusBarToolWindow = new StatusBarToolWindow();
-            hostedRouteNavigationToolWindow = new RouteNavigationToolWindow(InvokeOnGameThread);
-            hostedServices = new HostedToolboxServices
+            try
             {
-                Menu = hostedMenu,
-                DebugToolWindow = hostedDebugToolWindow,
-                LocationToolWindow = hostedLocationToolWindow,
-                LogToolWindow = hostedLogToolWindow,
-                HelpToolWindow = hostedHelpToolWindow,
-                SettingsToolWindow = hostedSettingsToolWindow,
-                TrainPathToolWindow = hostedTrainPathToolWindow,
-                StatusBarToolWindow = hostedStatusBarToolWindow,
-                RouteNavigationToolWindow = hostedRouteNavigationToolWindow,
-            };
-            OnContentAreaChanged += GameWindow_OnContentAreaChanged;
-            windowForm.KeyPreview = true;// need to preview keys to enable Monogames TextInput handler, otherwise adding the main menu will break text input
+                GraphicsManager = new GraphicsDeviceManager(this);
+                GraphicsDeviceManager graphicsDeviceManager = GraphicsManager;
+                graphicsDeviceManager.PreparingDeviceSettings += GraphicsPreparingDeviceSettings;
+                graphicsDeviceManager.PreferMultiSampling = ToolboxUserSettings.MultiSamplingCount > 0;
+                IsMouseVisible = true;
+
+                // Set title to show revision or build info.
+                windowTitle = $"{RuntimeInfo.ProductName} {VersionInfo.Version}";
+#if DEBUG
+                windowTitle += " (debug)";
+#endif
+                SetWindowTitle(windowTitle);
+                Window.AllowUserResizing = true;
+
+                //Window.ClientSizeChanged += Window_ClientSizeChanged; // not using the GameForm event as it does not raise when Window is moved (ie to another screeen) using keyboard shortcut
+
+                //graphicsDeviceManager.SynchronizeWithVerticalRetrace = false;
+                //IsFixedTimeStep = false;
+                //TargetElapsedTime = TimeSpan.FromMilliseconds(5);
+
+                Window.Position = windowPosition;
+
+                SetScreenMode(currentScreenMode);
+
+                windowForm.ClientSizeChanged += WindowForm_ClientSizeChanged;
+                windowForm.MouseDown += WindowForm_MouseDown;
+                windowForm.MouseUp += WindowForm_MouseUp;
+                windowForm.MouseCaptureChanged += WindowForm_MouseCaptureChanged;
+
+                // using reflection to be able to trigger ClientSizeChanged event manually as this is not 
+                // reliably raised otherwise with the resize functionality below in SetScreenMode
+                MethodInfo m = Window.GetType().GetMethod("OnClientSizeChanged", BindingFlags.NonPublic | BindingFlags.Instance);
+                onClientSizeChanged = (Action)Delegate.CreateDelegate(typeof(Action), Window, m);
+
+                Exiting += GameWindow_Exiting;
+                LoadLanguage();
+                SystemInfo.SetGraphicAdapterInformation(graphicsDeviceManager.GraphicsDevice.Adapter.Description);
+                debugInfo = new CommonDebugInfo(this);
+                hostedDebugToolWindow = new DebugToolWindow(debugInfo, graphicsDebugInfo);
+                hostedLocationToolWindow = new LocationToolWindow(ToolboxSettings);
+                hostedLogToolWindow = new LogToolWindow(() => LogFileName);
+                hostedHelpToolWindow = new HelpToolWindow();
+                hostedSettingsToolWindow = new SettingsToolWindow(ToolboxSettings, ToolboxUserSettings, this, InvokeSessionCommandAsync);
+                hostedTrainPathToolWindow = new TrainPathToolWindow(() => HostedPathEditor, () => HostedTrainPathToolingContext, InvokeSessionCommand, EditPath, SavePath,
+                    path => ObserveGameThreadOperation(LoadPathAsync(path)), () => ObserveGameThreadOperation(UnloadPathAsync()), ActivatePathEditingInput,
+                    refresh => InvokeOnGameThreadAsync(() => session.ValidateAllPathsAsync(refresh)));
+                hostedStatusBarToolWindow = new StatusBarToolWindow();
+                hostedRouteNavigationToolWindow = new RouteNavigationToolWindow(InvokeOnGameThread);
+                hostedServices = new HostedToolboxServices
+                {
+                    Menu = hostedMenu,
+                    DebugToolWindow = hostedDebugToolWindow,
+                    LocationToolWindow = hostedLocationToolWindow,
+                    LogToolWindow = hostedLogToolWindow,
+                    HelpToolWindow = hostedHelpToolWindow,
+                    SettingsToolWindow = hostedSettingsToolWindow,
+                    TrainPathToolWindow = hostedTrainPathToolWindow,
+                    StatusBarToolWindow = hostedStatusBarToolWindow,
+                    RouteNavigationToolWindow = hostedRouteNavigationToolWindow,
+                };
+                OnContentAreaChanged += GameWindow_OnContentAreaChanged;
+                windowForm.KeyPreview = true;// need to preview keys to enable Monogames TextInput handler, otherwise adding the main menu will break text input
+            }
+            catch (Exception error) when (CleanupExceptionPolicy.CanContinue(error))
+            {
+                try
+                {
+                    // Registration transfers the manager to Game even if its constructor fails after attachment.
+                    // Release through that owner so components still precede the manager, with no second dispose.
+                    Dispose();
+                }
+                catch (Exception cleanupError) when (CleanupExceptionPolicy.CanContinue(cleanupError))
+                {
+                    throw new AggregateException(error, cleanupError);
+                }
+                throw;
+            }
         }
 
         private void GameWindow_Exiting(object sender, ExitingEventArgs e)
@@ -448,6 +490,7 @@ namespace FreeTrainSimulator.Toolbox
                 return;
             }
 
+            GraphicsDeviceManager graphicsDeviceManager = GraphicsManager;
             int previousClientWidth = graphicsDeviceManager.PreferredBackBufferWidth;
             int previousClientHeight = graphicsDeviceManager.PreferredBackBufferHeight;
             bool sizeChanged = previousClientWidth != clientSize.Width || previousClientHeight != clientSize.Height;
@@ -866,10 +909,11 @@ namespace FreeTrainSimulator.Toolbox
             syncing = true;
             _ = windowForm.Invoke((System.Windows.Forms.MethodInvoker)delegate
             {
+                GraphicsDeviceManager graphicsDeviceManager = GraphicsManager;
                 if (graphicsDeviceManager.IsFullScreen)
                     graphicsDeviceManager.ToggleFullScreen();
 
-                windowForm.FormBorderStyle = System.Windows.Forms.FormBorderStyle.None;
+                windowForm.FormBorderStyle = FormBorderStyle.None;
                 System.Drawing.Size clientSize = windowForm.ClientSize;
                 if (clientSize.Width > 0 && clientSize.Height > 0)
                 {

@@ -2,6 +2,9 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
+using System.Runtime.ExceptionServices;
+
+using FreeTrainSimulator.Common;
 
 using Microsoft.Xna.Framework;
 
@@ -20,6 +23,8 @@ namespace FreeTrainSimulator.Graphics.Xna
         private protected ConcurrentDictionary<int, T> previousResources = new ConcurrentDictionary<int, T>();
         private ConcurrentDictionary<int, T> sweepResources = new ConcurrentDictionary<int, T>();
         private readonly bool disposableT = typeof(IDisposable).IsAssignableFrom(typeof(T));
+        private bool disposed;
+        private ExceptionDispatchInfo releaseFailure;
 
         protected ResourceGameComponent(Game game) : base(game)
         {
@@ -83,17 +88,59 @@ namespace FreeTrainSimulator.Graphics.Xna
 
         protected override void Dispose(bool disposing)
         {
-            Enabled = false;
-            if (disposing && disposableT)
+            if (!disposing)
             {
-                foreach (T value in currentResources.Values)
-                    (value as IDisposable).Dispose();
-                foreach (T value in previousResources.Values)
-                    (value as IDisposable).Dispose();
-                foreach (T value in sweepResources.Values)
-                    (value as IDisposable).Dispose();
+                base.Dispose(false);
+                return;
             }
-            base.Dispose(disposing);
+            if (disposed)
+            {
+                releaseFailure?.Throw();
+                return;
+            }
+
+            disposed = true;
+            try
+            {
+                List<Exception> errors = new List<Exception>();
+                void Release(Action release)
+                {
+                    try
+                    {
+                        release();
+                    }
+                    catch (Exception error) when (CleanupExceptionPolicy.CanContinue(error))
+                    {
+                        errors.Add(error);
+                    }
+                }
+
+                Release(() => Enabled = false);
+                HashSet<IDisposable> released = new HashSet<IDisposable>(ReferenceEqualityComparer.Instance);
+                foreach (ConcurrentDictionary<int, T> resources in new[] { currentResources, previousResources, sweepResources })
+                {
+                    if (disposableT)
+                    {
+                        foreach (T value in resources.Values)
+                        {
+                            if (value is IDisposable resource && released.Add(resource))
+                                Release(resource.Dispose);
+                        }
+                    }
+                    resources.Clear();
+                }
+                Release(() => base.Dispose(true));
+                if (errors.Count > 0)
+                {
+                    releaseFailure = ExceptionDispatchInfo.Capture(errors.Count == 1 ? errors[0] : new AggregateException(errors));
+                    releaseFailure.Throw();
+                }
+            }
+            catch (Exception error)
+            {
+                releaseFailure = ExceptionDispatchInfo.Capture(error);
+                throw;
+            }
         }
     }
 

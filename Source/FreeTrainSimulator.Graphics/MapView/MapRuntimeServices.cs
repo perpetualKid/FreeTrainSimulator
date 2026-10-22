@@ -17,11 +17,14 @@ namespace FreeTrainSimulator.Graphics.MapView
 
         public bool UseMetricUnits => RuntimeData.MetricUnits;
 
-        public MapRuntimeServices(Game game)
+        public MapRuntimeServices(Game game) : this(RuntimeDataResolver.GameInstance(game))
         {
             ArgumentNullException.ThrowIfNull(game);
+        }
 
-            RuntimeData = RuntimeDataResolver.GameInstance(game) ?? throw new InvalidOperationException("Runtime data is not initialized.");
+        public MapRuntimeServices(RuntimeDataResolver runtimeData)
+        {
+            RuntimeData = runtimeData ?? throw new InvalidOperationException("Runtime data is not initialized.");
             TrackWorld = RuntimeData.TrackWorld;
         }
     }

@@ -29,6 +29,9 @@ namespace FreeTrainSimulator.Graphics.MapView
 
         public string RouteName { get; }
 
+        /// <summary>The route-local runtime captured by this map, including before publication.</summary>
+        public RuntimeDataResolver RuntimeData => runtimeServices.RuntimeData;
+
         public IMapSession Session { get; }
 
         internal ContentArea ContentArea => (ContentArea)((IXnaMapShellSession)Session).ShellHost.Component;
@@ -64,6 +67,7 @@ namespace FreeTrainSimulator.Graphics.MapView
             TextureHelperHost = context.TextureHelperHost;
             if (runtimeServices.RuntimeData == null)
                 throw new InvalidOperationException("RuntimeData not initialized!");
+            trackWorld = runtimeServices.TrackWorld;
             Session = context.SessionComposer.Compose(new MapSessionRequest(this, context.InsetHost, context.TextureHelperHost));
             RouteName = runtimeServices.RouteName;
             UseMetricUnits = runtimeServices.UseMetricUnits;

@@ -2,7 +2,9 @@
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Runtime.ExceptionServices;
 
+using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Info;
 
 using Microsoft.Xna.Framework;
@@ -14,12 +16,63 @@ namespace FreeTrainSimulator.Graphics.Xna
 {
     public class TextureManager : ResourceGameComponent<Texture2D>
     {
+        private bool resourcesDisposed;
+        private ExceptionDispatchInfo releaseFailure;
+
         public Texture2D MissingTexture { get; private set; }
 
         public TextureManager(Game game) : base(game)
         {
             SweepInterval = 60;
             MissingTexture = LoadTexture(Path.Combine(RuntimeInfo.ContentFolder, "blank.png"), game);
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            if (!disposing)
+            {
+                base.Dispose(false);
+                return;
+            }
+            if (resourcesDisposed)
+            {
+                releaseFailure?.Throw();
+                return;
+            }
+            resourcesDisposed = true;
+
+            try
+            {
+                Texture2D missingTexture = MissingTexture;
+                MissingTexture = null;
+                Exception failure = null;
+                try
+                {
+                    base.Dispose(true);
+                }
+                catch (Exception error) when (CleanupExceptionPolicy.CanContinue(error))
+                {
+                    failure = error;
+                }
+                try
+                {
+                    missingTexture?.Dispose();
+                }
+                catch (Exception error) when (CleanupExceptionPolicy.CanContinue(error))
+                {
+                    failure = failure == null ? error : new AggregateException(failure, error);
+                }
+                if (failure != null)
+                {
+                    releaseFailure = ExceptionDispatchInfo.Capture(failure);
+                    releaseFailure.Throw();
+                }
+            }
+            catch (Exception error)
+            {
+                releaseFailure = ExceptionDispatchInfo.Capture(error);
+                throw;
+            }
         }
 
         public Texture2D GetTextureCached(string path)

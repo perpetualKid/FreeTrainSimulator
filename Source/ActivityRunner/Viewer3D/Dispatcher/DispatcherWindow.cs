@@ -233,7 +233,7 @@ namespace Orts.ActivityRunner.Viewer3D.Dispatcher
             IMapHostControl hostControl = contentArea;
             hostControl.ResetSize(Window.ClientBounds.Size, 60);
             Components.Add(contentArea);
-            hostControl.IsEnabled = true;
+            hostControl.Enabled = true;
 
             #region usercommandcontroller
             userCommandController.AddEvent(UserCommand.ChangeScreenMode, KeyEventType.KeyPressed, () => SetScreenMode(currentScreenMode.Next()));

@@ -1,5 +1,6 @@
 using System;
 
+using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Input;
 using FreeTrainSimulator.Graphics.MapView.Shapes;
 using FreeTrainSimulator.Graphics.Xna;
@@ -47,26 +48,44 @@ namespace FreeTrainSimulator.Graphics.MapView
             ArgumentNullException.ThrowIfNull(content);
             ArgumentNullException.ThrowIfNull(mouseInputGameComponent);
 
-            SpriteBatch = new SpriteBatch(game.GraphicsDevice);
-            RenderingLifetime = new XnaMapRenderingLifetime(game);
-            RenderingResources = new XnaMapRenderingResources(RenderingLifetime, SpriteBatch);
-            OwnedTextCache = new MapTextTextureCache(RenderingLifetime.GetTextTextureRenderer());
-            TextCache = OwnedTextCache;
-            TextRenderer = new XnaMapTextRenderer(TextCache, SpriteBatch);
-            RenderBackend = new XnaMapRenderBackend(SpriteBatch, RenderingResources.BasicShapes, TextRenderer);
-            XnaMapHostEnvironment hostEnvironment = new XnaMapHostEnvironment(game, mouseInputGameComponent);
-            HostEnvironment = hostEnvironment;
-            BasicShapes = RenderingResources.BasicShapes;
-            OverlayShapeAdapter = new XnaMapOverlayShapeAdapter(BasicShapes);
-            Controller = new MapViewController(new MapViewportBounds(content.Bounds.Left, content.Bounds.Top, content.Bounds.Right, content.Bounds.Bottom));
-            Controller.SyncViewport(new MapViewportBounds(content.Bounds.Left, content.Bounds.Top, content.Bounds.Right, content.Bounds.Bottom), HostEnvironment.ClientSize);
+            XnaMapRenderingLifetime renderingLifetime = null;
+            XnaMapHostEnvironment hostEnvironment = null;
+            try
+            {
+                SpriteBatch = new SpriteBatch(game.GraphicsDevice);
+                RenderingLifetime = renderingLifetime = new XnaMapRenderingLifetime(game);
+                RenderingResources = new XnaMapRenderingResources(RenderingLifetime, SpriteBatch);
+                OwnedTextCache = new MapTextTextureCache(RenderingLifetime.GetTextTextureRenderer());
+                TextCache = OwnedTextCache;
+                TextRenderer = new XnaMapTextRenderer(TextCache, SpriteBatch);
+                RenderBackend = new XnaMapRenderBackend(SpriteBatch, RenderingResources.BasicShapes, TextRenderer);
+                hostEnvironment = new XnaMapHostEnvironment(game, mouseInputGameComponent);
+                HostEnvironment = hostEnvironment;
+                BasicShapes = RenderingResources.BasicShapes;
+                OverlayShapeAdapter = new XnaMapOverlayShapeAdapter(BasicShapes);
+                Controller = new MapViewController(new MapViewportBounds(content.Bounds.Left, content.Bounds.Top, content.Bounds.Right, content.Bounds.Bottom));
+                Controller.SyncViewport(new MapViewportBounds(content.Bounds.Left, content.Bounds.Top, content.Bounds.Right, content.Bounds.Bottom), HostEnvironment.ClientSize);
 
-            FontManagerInstance fontManager = FontManager.Scaled("Arial", System.Drawing.FontStyle.Regular);
-            System.Drawing.Font constantSizeFont = fontManager[25];
-            ViewStateAdapter = new MapViewStateAdapter(Controller, constantSizeFont);
-            RenderAdapter = new MapRenderAdapter(Controller, RenderBackend);
-            InteractionAdapter = new MapInteractionAdapter(fontManager, Controller, HostEnvironment, (IMapViewFontState)ViewStateAdapter);
-            HostResources = new XnaMapHostResources(SpriteBatch, OwnedTextCache, hostEnvironment);
+                FontManagerInstance fontManager = FontManager.Scaled("Arial", System.Drawing.FontStyle.Regular);
+                System.Drawing.Font constantSizeFont = fontManager[25];
+                ViewStateAdapter = new MapViewStateAdapter(Controller, constantSizeFont);
+                RenderAdapter = new MapRenderAdapter(Controller, RenderBackend);
+                InteractionAdapter = new MapInteractionAdapter(fontManager, Controller, HostEnvironment, (IMapViewFontState)ViewStateAdapter);
+                HostResources = new XnaMapHostResources(SpriteBatch, renderingLifetime, OwnedTextCache, hostEnvironment);
+            }
+            catch (Exception error) when (CleanupExceptionPolicy.CanContinue(error))
+            {
+                // A failed constructor never reaches the session/candidate owner.
+                try
+                {
+                    new XnaMapHostResources(SpriteBatch, renderingLifetime, OwnedTextCache, hostEnvironment).Dispose();
+                }
+                catch (Exception cleanupError) when (CleanupExceptionPolicy.CanContinue(cleanupError))
+                {
+                    throw new AggregateException(error, cleanupError);
+                }
+                throw;
+            }
         }
     }
 }

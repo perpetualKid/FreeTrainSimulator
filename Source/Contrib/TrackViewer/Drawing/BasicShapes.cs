@@ -560,7 +560,7 @@ namespace ORTS.TrackViewer.Drawing
 
         public Texture2D Prepare(string text)
         {
-            return textTextures.PrepareResource(text, DefaultFont);
+            return textTextures[text, DefaultFont];
         }
 
         public void ZoomFontSize(int size)
@@ -573,7 +573,7 @@ namespace ORTS.TrackViewer.Drawing
 
         public Texture2D PrepareZoomed(string text)
         {
-            return textTextures.PrepareResource(text, sizedFont);
+            return textTextures[text, sizedFont];
         }
 
         protected virtual void Dispose(bool disposing)

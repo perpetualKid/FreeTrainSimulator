@@ -54,21 +54,21 @@ namespace FreeTrainSimulator.Runtime.Track
         /// <summary>
         /// Indexed by track node index; returns the <see cref="JunctionNodeBase"/> for junction nodes,
         /// or <see langword="null"/> for non-junction node indices.
-        /// Populated by the Graphics layer via <see cref="SetJunctions"/>.
+        /// Built during runtime preparation, independently of rendering.
         /// </summary>
         public ImmutableArray<JunctionNodeBase> Junctions { get; private set; } = ImmutableArray<JunctionNodeBase>.Empty;
 
         /// <summary>
         /// Indexed by track node index; returns the <see cref="TrackSegmentSection"/> for rail vector nodes,
         /// or <see langword="null"/> for non-vector node indices.
-        /// Populated by the Graphics layer via <see cref="SetSegmentSections"/>.
+        /// Built during runtime preparation, independently of rendering.
         /// </summary>
         public ImmutableArray<TrackSegmentSection> SegmentSections { get; private set; } = ImmutableArray<TrackSegmentSection>.Empty;
 
         /// <summary>
         /// Indexed by track node index; returns the <see cref="TrackSegmentSection"/> for road vector nodes,
         /// or <see langword="null"/> for non-vector node indices.
-        /// Populated by the Graphics layer via <see cref="SetRoadSegmentSections"/>.
+        /// Built during runtime preparation, independently of rendering.
         /// </summary>
         public ImmutableArray<TrackSegmentSection> RoadSegmentSections { get; private set; } = ImmutableArray<TrackSegmentSection>.Empty;
 
@@ -145,7 +145,38 @@ namespace FreeTrainSimulator.Runtime.Track
             }
 
             SectionGeometry = BuildSectionGeometry(trackSectionModel);
+            InitializeTopology(trackSectionModel);
             InitializeTrackItems();
+        }
+
+        private void InitializeTopology(TrackSectionModel trackSections)
+        {
+            SegmentSections = BuildSegments(TrackDatabase);
+            RoadSegmentSections = BuildSegments(RoadDatabase);
+            SetJunctions(TrackDatabase?.JunctionNodes.Select(node => new RuntimeJunction(node,
+                TrackDatabase.TrackNodeConnectors[node.NodeIndex].OutConnectors[node.MainRoute].Link))
+                ?? Enumerable.Empty<JunctionNodeBase>());
+
+            ImmutableArray<TrackSegmentSection> BuildSegments(TrackDatabase database)
+                => BuildIndexedArray(database?.VectorNodes.Where(node => !node.VectorSections.IsDefaultOrEmpty).Select(node => new TrackSegmentSection(node.NodeIndex,
+                    node.VectorSections.Select((section, index) => new RuntimeSegment(section, node.NodeIndex, index, trackSections))))
+                    ?? Enumerable.Empty<TrackSegmentSection>());
+        }
+
+        // CPU topology uses exactly the shared segment/junction calculations, never drawable widgets.
+        private sealed record RuntimeSegment : TrackSegmentBase
+        {
+            public RuntimeSegment(VectorSectionNode section, int nodeIndex, int sectionIndex, TrackSectionModel trackSections) :
+                base(section, nodeIndex, sectionIndex, trackSections)
+            {
+            }
+        }
+
+        private sealed record RuntimeJunction : JunctionNodeBase
+        {
+            public RuntimeJunction(JunctionNode node, int mainRouteNode) : base(node, mainRouteNode)
+            {
+            }
         }
 
         /// <summary>

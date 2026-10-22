@@ -104,7 +104,7 @@ namespace FreeTrainSimulator.Graphics.Window.Controls
                     string emptySpace = identifier;
                     if (emptySpace.StartsWith('.'))
                         emptySpace = null;
-                    Texture2D texture = textureHolder.PrepareResource(emptySpace, currentFont, OutlineRenderOptions);
+                    Texture2D texture = textureHolder[emptySpace, currentFont, OutlineRenderOptions];
                     Texture2D[] textures;
                     if (multiColumn)
                     {
@@ -114,7 +114,7 @@ namespace FreeTrainSimulator.Graphics.Window.Controls
                             int i = 0;
                             while (detailInfo != null)
                             {
-                                textures[i++] = textureHolder.PrepareResource(detailInfo.DetailInfo[identifier], currentFont, OutlineRenderOptions);
+                                textures[i++] = textureHolder[detailInfo.DetailInfo[identifier], currentFont, OutlineRenderOptions];
                                 detailInfo = detailInfo.NextColumn;
                             }
                         }
@@ -126,7 +126,7 @@ namespace FreeTrainSimulator.Graphics.Window.Controls
                             {
                                 {
                                     for (int i = 0; i < multiValues.Length; i++)
-                                        textures[i] = textureHolder.PrepareResource(multiValues[i], currentFont, OutlineRenderOptions);
+                                        textures[i] = textureHolder[multiValues[i], currentFont, OutlineRenderOptions];
                                     if (maxColumn < multiValues.Length)
                                         maxColumn = multiValues.Length;
                                 }
@@ -135,7 +135,7 @@ namespace FreeTrainSimulator.Graphics.Window.Controls
                     }
                     else
                     {
-                        textures = new Texture2D[1] { textureHolder.PrepareResource(InformationProvider.DetailInfo[identifier], currentFont, OutlineRenderOptions) };
+                        textures = new Texture2D[1] { textureHolder[InformationProvider.DetailInfo[identifier], currentFont, OutlineRenderOptions] };
                     }
                     prepareItems.Add((new Vector2(0, lineOffset), texture, new Vector2(columnClippingRectangles[0]?.Width ?? defaultColumnSize, lineOffset), textures, formatOption?.TextColor ?? TextColor));
                     lineOffset += (int)Math.Ceiling(font.Height * LineSpacing);

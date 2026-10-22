@@ -9,7 +9,6 @@ using System.Windows.Forms;
 using FreeTrainSimulator.Common.Input;
 using FreeTrainSimulator.Common.Position;
 using FreeTrainSimulator.Graphics.MapView;
-using FreeTrainSimulator.Graphics.Xna;
 using FreeTrainSimulator.Toolbox;
 using FreeTrainSimulator.Toolbox.Hosting;
 
@@ -17,15 +16,115 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Game = Microsoft.Xna.Framework.Game;
 using GameComponentCollection = Microsoft.Xna.Framework.GameComponentCollection;
-using GameTime = Microsoft.Xna.Framework.GameTime;
 using Point = Microsoft.Xna.Framework.Point;
 using Rectangle = Microsoft.Xna.Framework.Rectangle;
 using Vector2 = Microsoft.Xna.Framework.Vector2;
 
 namespace Tests.FreeTrainSimulator.Toolbox.Hosting
 {
-    public sealed partial class ToolboxSessionTests
+    public sealed partial class ToolboxSessionTests : IDisposable
     {
+        private FailingMapEnvironment emergencyMapEnvironment;
+        private InvalidOperationException expectedMapEnvironmentFailure;
+
+        [TestMethod]
+        [Timeout(10000, CooperativeCancellation = true)]
+        public async Task WhenMapResourceReleaseFailsThenFallbackGameDisposalRetryCannotConfirmSafeHostStop()
+        {
+            SessionScope scope = await SessionScope.StartAsync().ConfigureAwait(false);
+            InvalidOperationException expected = expectedMapEnvironmentFailure = new InvalidOperationException("Map environment release failed.");
+            FailingMapEnvironment pendingEnvironment = null;
+            FailingMapEnvironment environment = null;
+            InvalidOperationException drainFailure = null;
+            InvalidOperationException retryFailure = null;
+            try
+            {
+                emergencyMapEnvironment = new FailingMapEnvironment(expected);
+                pendingEnvironment = emergencyMapEnvironment;
+                environment = pendingEnvironment;
+                TaskCompletionSource<GameWindow> ready = new TaskCompletionSource<GameWindow>(TaskCreationOptions.RunContinuationsAsynchronously);
+                TaskCompletionSource terminated = Completion();
+                ToolboxGameHostControl host = CreateShutdownHost(ready, terminated);
+                ready.SetResult(scope.Game);
+                await scope.Host.OnOwnerAsync(() =>
+                {
+                    using (Game probeGame = new Game())
+                    {
+                        CleanupProbeMap map = new CleanupProbeMap(probeGame, new ResourceSessionFactory(ref pendingEnvironment));
+                        GameComponentCollection components = new GameComponentCollection { map };
+                        typeof(Game).GetFields(BindingFlags.Instance | BindingFlags.NonPublic)
+                            .Single(field => field.FieldType == typeof(GameComponentCollection)).SetValue(scope.Game, components);
+                        SetField(scope.Game, "hostedPointerGesture", new HostedPointerGestureState());
+                        SetField(scope.Game, "contentArea", map);
+                        SetField(scope.Session, "pathEditor", CreateEditor());
+                        bool editorReleased = false;
+                        scope.Session.OnPathEditorChanged += (_, _) => editorReleased = true;
+                        map.OnRelease = () =>
+                        {
+                            Assert.IsTrue(editorReleased);
+                            Assert.IsNull(scope.Session.ExistingPathEditor);
+                            Assert.IsFalse(scope.Host.DispatchControl.IsDisposed);
+                        };
+                        // Match GameThreadStart's fallback topology: the dead render form, failed drain,
+                        // enclosing using's actual GameWindow.Dispose retry, then success-only publication.
+                        scope.Host.Target.Dispose();
+                        try
+                        {
+                            using (GameWindow game = scope.Game)
+                            {
+                                drainFailure = Assert.ThrowsExactly<InvalidOperationException>(() => ToolboxGameHostControl.DrainSessionOnOwner(game));
+                            }
+                            SetField(host, "ownerResourcesReleased", true);
+                            Assert.Fail("A failed map release cannot make the enclosing game disposal succeed.");
+                        }
+                        catch (InvalidOperationException error)
+                        {
+                            retryFailure = error;
+                            terminated.SetException(new AggregateException(drainFailure, error));
+                        }
+
+                        Assert.AreSame(drainFailure, retryFailure);
+                        Assert.AreSame(expected, retryFailure);
+                        Assert.AreEqual(1, environment.ReleaseCount);
+                        Assert.IsFalse(scope.Session.IsDisposed);
+                        Assert.AreSame(map, scope.Game.ContentArea);
+                        Assert.DoesNotContain(map, components);
+                        Assert.IsFalse(scope.Host.DispatchControl.IsDisposed);
+                        Assert.IsFalse(host.IsStoppedSafely);
+                        _ = Assert.ThrowsExactly<InvalidOperationException>(host.Dispose);
+                    }
+                }).WaitAsync(TestContext.CancellationToken).ConfigureAwait(false);
+
+                AggregateException stopFailure = await Assert.ThrowsExactlyAsync<AggregateException>(
+                    () => host.StopAsync().WaitAsync(TestContext.CancellationToken)).ConfigureAwait(false);
+                Assert.Contains(expected, stopFailure.Flatten().InnerExceptions);
+                Assert.IsFalse(host.IsStoppedSafely);
+                _ = Assert.ThrowsExactly<InvalidOperationException>(host.Dispose);
+            }
+            finally
+            {
+                try
+                {
+                    InvalidOperationException finalFailure = await Assert.ThrowsExactlyAsync<InvalidOperationException>(() => scope.DisposeAsync().AsTask()).ConfigureAwait(false);
+                    Assert.AreSame(expected, finalFailure);
+                    Assert.AreSame(drainFailure, finalFailure);
+                    Assert.AreEqual(1, environment.ReleaseCount);
+                }
+                finally
+                {
+                    try
+                    {
+                        pendingEnvironment?.Dispose();
+                    }
+                    catch (InvalidOperationException failure) when (ReferenceEquals(failure, expected))
+                    {
+                        // An untransferred fixture must not replace an earlier setup/assertion failure.
+                        Assert.AreEqual(1, pendingEnvironment.ReleaseCount);
+                    }
+                }
+            }
+        }
+
         [TestMethod]
         [DataRow(false)]
         [DataRow(true)]
@@ -53,84 +152,91 @@ namespace Tests.FreeTrainSimulator.Toolbox.Hosting
 
             Task ownerWork = new Task(() =>
             {
-                Application.SetUnhandledExceptionMode(UnhandledExceptionMode.ThrowException, true);
+            Application.SetUnhandledExceptionMode(UnhandledExceptionMode.ThrowException, true);
                 using (GameThreadControl transport = new GameThreadControl())
-                using (Form renderForm = new Form())
                 {
-                    ownerThread = Environment.CurrentManagedThreadId;
-                    _ = transport.Handle;
-                    _ = renderForm.Handle;
-                    Assert.IsNull(transport.Parent);
-                    transport.Disposed += (_, _) => transportReleasedOn = Environment.CurrentManagedThreadId;
-                    GameWindow game = CreateSessionGame(renderForm, transport);
-                    using ToolboxSession session = new ToolboxSession(game);
-                    SetField(game, "session", session);
-                    SetField(game, "hostedPointerGesture", new HostedPointerGestureState());
-
-                    GameComponentCollection components = new GameComponentCollection();
-                    typeof(Game).GetFields(BindingFlags.Instance | BindingFlags.NonPublic)
-                        .Single(field => field.FieldType == typeof(GameComponentCollection)).SetValue(game, components);
-
-                    // Construct the component normally without allocating rendering resources.
-                    using Game probeGame = new Game();
-                    using CleanupProbeMap map = new CleanupProbeMap(probeGame);
-                    map.OnRelease = () =>
+                    using (Form renderForm = new Form())
                     {
-                        mapReleasedOn = Environment.CurrentManagedThreadId;
-                        editorReleasedBeforeMap = game.Session.ExistingPathEditor == null && editorReleasedOn == ownerThread;
-                        transportAliveDuringRelease = !transport.IsDisposed && transport.IsHandleCreated;
-                    };
-                    components.Add(map);
-                    SetField(game, "contentArea", map);
-                    SetField(game.Session, "pathEditor", CreateEditor());
-                    session.OnPathEditorChanged += (_, _) => editorReleasedOn = Environment.CurrentManagedThreadId;
-                    SetField(game, "hostedTitleUpdateCallback", (Action<string>)(_ => Assert.Fail("Dead render window must not receive title updates.")));
+                        ownerThread = Environment.CurrentManagedThreadId;
+                        _ = transport.Handle;
+                        _ = renderForm.Handle;
+                        Assert.IsNull(transport.Parent);
+                        transport.Disposed += (_, _) => transportReleasedOn = Environment.CurrentManagedThreadId;
+                        GameWindow game = CreateSessionGame(renderForm, transport);
+                        using (ToolboxSession session = new ToolboxSession(game))
+                        {
+                            SetField(game, "session", session);
+                            SetField(game, "hostedPointerGesture", new HostedPointerGestureState());
 
-                    Task job = game.Session.RunAsync(async () =>
-                    {
-                        try
-                        {
-                            // Capture the original WinForms context before its render loop unwinds.
-                            Assert.IsInstanceOfType<System.Windows.Forms.WindowsFormsSynchronizationContext>(SynchronizationContext.Current);
-                            await releaseJob.Task.ConfigureAwait(true);
-                            Assert.AreEqual(ownerThread, Environment.CurrentManagedThreadId);
-                        }
-                        finally
-                        {
-                            await game.InvokeOnGameThreadAsync(async () =>
+                            GameComponentCollection components = new GameComponentCollection();
+                            typeof(Game).GetFields(BindingFlags.Instance | BindingFlags.NonPublic)
+                                .Single(field => field.FieldType == typeof(GameComponentCollection)).SetValue(game, components);
+
+                            // Construct the component normally without allocating rendering resources.
+                            using (Game probeGame = new Game())
                             {
-                                cleanupThread = Environment.CurrentManagedThreadId;
-                                cleanupEntered.SetResult();
-                                await releaseCleanup.Task.ConfigureAwait(true);
-                                Assert.AreEqual(ownerThread, Environment.CurrentManagedThreadId);
-                            }).ConfigureAwait(false);
-                        }
-                    });
-                    GameWindow.ObserveGameThreadOperation(job);
-                    renderForm.Shown += (_, _) => transport.BeginInvoke((Action)(() => throw runFailure));
-                    InvalidOperationException actualRunFailure = Assert.ThrowsExactly<InvalidOperationException>(() => Application.Run(renderForm));
-                    Assert.AreSame(runFailure, actualRunFailure);
-                    Assert.IsTrue(renderForm.IsDisposed, "Application.Run(Form) must destroy its render form on unwind.");
-                    Assert.IsTrue(transport.IsHandleCreated && !transport.IsDisposed);
-                    transport.BeginInvoke((Action)(() => pumping.SetResult(game)));
-                    try
-                    {
-                        ToolboxGameHostControl.DrainSessionOnOwner(game);
-                    }
-                    catch (InvalidOperationException ex) when (ReferenceEquals(ex, jobFailure))
-                    {
-                        reportedDrainFailure = ex;
-                    }
-                    Assert.IsTrue(game.Session.IsDisposed);
-                    Assert.IsNull(game.ContentArea);
-                    Assert.AreEqual(0, components.Count);
-                    Assert.IsFalse(transport.IsDisposed, "Transport must outlive session resource disposal.");
-                }
-                // The production completion signal is published only after all owner disposal has returned.
-                SetField(host, "ownerResourcesReleased", true);
-                terminated.SetException(reportedDrainFailure == null ? runFailure : new AggregateException(runFailure, reportedDrainFailure));
-            });
+                                using (CleanupProbeMap map = new CleanupProbeMap(probeGame))
+                                {
+                                    map.OnRelease = () =>
+                                    {
+                                        mapReleasedOn = Environment.CurrentManagedThreadId;
+                                        editorReleasedBeforeMap = game.Session.ExistingPathEditor == null && editorReleasedOn == ownerThread;
+                                        transportAliveDuringRelease = !transport.IsDisposed && transport.IsHandleCreated;
+                                    };
+                                    components.Add(map);
+                                    SetField(game, "contentArea", map);
+                                    SetField(game.Session, "pathEditor", CreateEditor());
+                                    session.OnPathEditorChanged += (_, _) => editorReleasedOn = Environment.CurrentManagedThreadId;
+                                    SetField(game, "hostedTitleUpdateCallback", (Action<string>)(_ => Assert.Fail("Dead render window must not receive title updates.")));
 
+                                    Task job = game.Session.RunAsync(async () =>
+                                    {
+                                        try
+                                        {
+                                            // Capture the original WinForms context before its render loop unwinds.
+                                            _ = Assert.IsInstanceOfType<WindowsFormsSynchronizationContext>(SynchronizationContext.Current);
+                                            await releaseJob.Task.ConfigureAwait(true);
+                                            Assert.AreEqual(ownerThread, Environment.CurrentManagedThreadId);
+                                        }
+                                        finally
+                                        {
+                                            await game.InvokeOnGameThreadAsync(async () =>
+                                            {
+                                                cleanupThread = Environment.CurrentManagedThreadId;
+                                                cleanupEntered.SetResult();
+                                                await releaseCleanup.Task.ConfigureAwait(true);
+                                                Assert.AreEqual(ownerThread, Environment.CurrentManagedThreadId);
+                                            }).ConfigureAwait(false);
+                                        }
+                                    });
+                                    GameWindow.ObserveGameThreadOperation(job);
+                                    renderForm.Shown += (_, _) => transport.BeginInvoke((Action)(() => throw runFailure));
+                                    InvalidOperationException actualRunFailure = Assert.ThrowsExactly<InvalidOperationException>(() => Application.Run(renderForm));
+                                    Assert.AreSame(runFailure, actualRunFailure);
+                                    Assert.IsTrue(renderForm.IsDisposed, "Application.Run(Form) must destroy its render form on unwind.");
+                                    Assert.IsTrue(transport.IsHandleCreated && !transport.IsDisposed);
+                                    transport.BeginInvoke((Action)(() => pumping.SetResult(game)));
+                                    try
+                                    {
+                                        ToolboxGameHostControl.DrainSessionOnOwner(game);
+                                    }
+                                    catch (InvalidOperationException ex) when (ReferenceEquals(ex, jobFailure))
+                                    {
+                                        reportedDrainFailure = ex;
+                                    }
+                                    Assert.IsTrue(game.Session.IsDisposed);
+                                    Assert.IsNull(game.ContentArea);
+                                    Assert.IsEmpty(components);
+                                    Assert.IsFalse(transport.IsDisposed, "Transport must outlive session resource disposal.");
+                                }
+                            }
+                            // The production completion signal is published only after all owner disposal has returned.
+                            SetField(host, "ownerResourcesReleased", true);
+                            terminated.SetException(reportedDrainFailure == null ? runFailure : new AggregateException(runFailure, reportedDrainFailure));
+                        }
+                    }
+                }
+            });
             Thread owner = new Thread(() =>
             {
                 ownerWork.RunSynchronously(TaskScheduler.Default);
@@ -158,7 +264,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.Hosting
                 Assert.IsFalse(game.Session.IsDisposed);
                 Assert.IsFalse(completed.Task.IsCompleted);
                 Assert.IsFalse(host.IsStoppedSafely);
-                Assert.ThrowsExactly<InvalidOperationException>(game.Session.Dispose);
+                _ = Assert.ThrowsExactly<InvalidOperationException>(game.Session.Dispose);
                 if (failJob)
                     releaseJob.SetException(jobFailure);
                 else
@@ -176,7 +282,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.Hosting
                 Assert.AreSame(failJob ? jobFailure : null, reportedDrainFailure);
                 Exception diagnostic = await Assert.ThrowsAsync<Exception>(() => stop.WaitAsync(TestContext.CancellationToken)).ConfigureAwait(false);
                 if (failJob)
-                    CollectionAssert.AreEquivalent(new Exception[] { runFailure, jobFailure }, ((AggregateException)diagnostic).Flatten().InnerExceptions.ToArray());
+                    Assert.AreSequenceEqual(new Exception[] { runFailure, jobFailure }, ((AggregateException)diagnostic).Flatten().InnerExceptions.ToArray(), Microsoft.VisualStudio.TestTools.UnitTesting.SequenceOrder.InAnyOrder);
                 else
                     Assert.AreSame(runFailure, diagnostic);
                 Assert.IsTrue(host.IsStoppedSafely);
@@ -190,6 +296,24 @@ namespace Tests.FreeTrainSimulator.Toolbox.Hosting
             }
         }
 
+        /// <summary>Releases the failing fixture only if setup or owner cleanup never attempted its release.</summary>
+        public void Dispose()
+        {
+            if (emergencyMapEnvironment == null || emergencyMapEnvironment.ReleaseCount != 0)
+                return;
+
+            try
+            {
+                emergencyMapEnvironment.Dispose();
+            }
+            catch (InvalidOperationException failure) when (ReferenceEquals(failure, expectedMapEnvironmentFailure))
+            {
+                Assert.AreSame(expectedMapEnvironmentFailure, failure);
+                Assert.AreEqual("Map environment release failed.", failure.Message);
+                Assert.AreEqual(1, emergencyMapEnvironment.ReleaseCount);
+            }
+        }
+
         private sealed class CleanupProbeMap : ContentArea
         {
             private bool released;
@@ -197,8 +321,13 @@ namespace Tests.FreeTrainSimulator.Toolbox.Hosting
             internal Action OnRelease { get; set; }
 
             internal CleanupProbeMap(Game game) :
+                this(game, new ProbeSessionFactory())
+            {
+            }
+
+            internal CleanupProbeMap(Game game, IMapHostSessionFactory factory) :
                 base(game, (ToolboxContent)RuntimeHelpers.GetUninitializedObject(typeof(ToolboxContent)),
-                    null, new ProbeSessionFactory())
+                    null, factory)
             {
             }
 
@@ -221,6 +350,43 @@ namespace Tests.FreeTrainSimulator.Toolbox.Hosting
                     base.Dispose(disposing);
                 }
             }
+        }
+
+        private sealed class FailingMapEnvironment : IDisposable
+        {
+            private readonly Exception failure;
+
+            /// <summary>Number of real XnaMapHostResources environment-release attempts.</summary>
+            public int ReleaseCount { get; private set; }
+
+            public FailingMapEnvironment(Exception failure)
+            {
+                this.failure = failure;
+            }
+
+            public void Dispose()
+            {
+                ReleaseCount++;
+                throw failure;
+            }
+        }
+
+        private sealed class ResourceSessionFactory : IMapHostSessionFactory, IMapHostAdapterBundle
+        {
+            public IMapViewStateAdapter ViewStateAdapter => null;
+            public IMapRenderAdapter RenderAdapter => null;
+            public IMapInteractionAdapter InteractionAdapter { get; } = new ProbeInteraction();
+            public IMapOverlayShapeAdapter OverlayShapeAdapter => null;
+            public IMapHostResources HostResources { get; }
+
+            public ResourceSessionFactory(ref FailingMapEnvironment environment)
+            {
+                HostResources = new XnaMapHostResources(null, null, null, environment);
+                environment = null;
+            }
+
+            public IMapHostSession Create(Game game, ContentBase content, MouseInputGameComponent mouseInputGameComponent)
+                => new XnaMapHostSession(this);
         }
 
         private sealed class ProbeSessionFactory : IMapHostSessionFactory

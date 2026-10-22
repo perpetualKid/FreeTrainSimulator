@@ -11,8 +11,6 @@ namespace FreeTrainSimulator.Graphics.Window.Controls
         private long nextCaretTick;
         private bool caretBlink;
 
-        private Texture2D caretTexture;
-
         private readonly string caretSymbol;
 
         public event EventHandler<EventArgs> TextChanged;
@@ -28,7 +26,7 @@ namespace FreeTrainSimulator.Graphics.Window.Controls
         public TextInput(FormBase window, int x, int y, int width, int height, char caretSymbol = '_') : base(window, x, y, width, height, null)
         {
             this.caretSymbol = caretSymbol.ToString();
-            caretTexture = resourceHolder.PrepareResource(this.caretSymbol, font);
+            resourceHolder.PrepareResource(this.caretSymbol, font);
         }
 
         internal override bool HandleTextInput(TextInputEventArgs e)
@@ -56,7 +54,7 @@ namespace FreeTrainSimulator.Graphics.Window.Controls
                         OnEscapeKey?.Invoke(this, EventArgs.Empty);
                         break;
                     default:
-                        if (texture.Width + caretTexture.Width < Bounds.Width)
+                        if (texture.Width + resourceHolder.Measure(caretSymbol, font).Width < Bounds.Width)
                         {
                             Text += e.Character;
                             TextChanged?.Invoke(this, EventArgs.Empty);
@@ -112,19 +110,13 @@ namespace FreeTrainSimulator.Graphics.Window.Controls
             spriteBatch.Draw(Window.Owner.BackgroundTexture, target, Color.White);
             base.Draw(spriteBatch, offset);
             if (caretBlink)
-                spriteBatch.Draw(caretTexture, (Bounds.Location + offset + new Point(texture?.Width ?? 0, 0)).ToVector2(), TextColor);
+                spriteBatch.Draw(resourceHolder[caretSymbol, font], (Bounds.Location + offset + new Point(texture?.Width ?? 0, 0)).ToVector2(), TextColor);
         }
 
         private protected override void RefreshResources(object sender, EventArgs e)
         {
             base.RefreshResources(sender, e);
-            caretTexture = resourceHolder.PrepareResource(caretSymbol, font);
-        }
-
-        protected override void Dispose(bool disposing)
-        {
-            caretTexture?.Dispose();
-            base.Dispose(disposing);
+            resourceHolder.PrepareResource(caretSymbol, font);
         }
     }
 }

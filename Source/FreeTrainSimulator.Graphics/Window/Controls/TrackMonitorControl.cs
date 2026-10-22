@@ -305,7 +305,7 @@ namespace FreeTrainSimulator.Graphics.Window.Controls
                 while (distance < maxDistance)
                 {
                     int itemOffset = (int)(distance * distanceFactor);
-                    Texture2D distanceTexture = textRenderer.PrepareResource(FormatStrings.FormatDistanceDisplay(distance, metric), Window.Owner.TextFontSmall);
+                    Texture2D distanceTexture = textRenderer[FormatStrings.FormatDistanceDisplay(distance, metric), Window.Owner.TextFontSmall];
                     if (controlMode != TrainPositionMode.BackwardMultiPlayer)
                         prepareDistanceMarkers.Add((distanceTexture, new Point(distanceMarkerOffset, trainPositionOffset - itemOffset - distanceTexture.Height)));
                     if (controlMode is TrainPositionMode.BothWaysManual or TrainPositionMode.BackwardMultiPlayer or TrainPositionMode.NeutralMultiPlayer)
@@ -465,7 +465,7 @@ namespace FreeTrainSimulator.Graphics.Window.Controls
                 if (aspect != TrackMonitorSignalAspect.Stop && speedLimit > 0)
                 {
                     int distanceOffset = (int)(distance * distanceFactor);
-                    Texture2D limitTexture = textRenderer.PrepareResource(FormatStrings.FormatSpeedLimitNoUoM(speedLimit, metric), Window.Owner.TextFontSmall);
+                    Texture2D limitTexture = textRenderer[FormatStrings.FormatSpeedLimitNoUoM(speedLimit, metric), Window.Owner.TextFontSmall];
                     DrawTexture(spriteBatch, offset, speedpostOffset, distanceOffset, limitTexture, container.Direction, Color.White);
                 }
                 if (distance < maxDistance)
@@ -493,7 +493,7 @@ namespace FreeTrainSimulator.Graphics.Window.Controls
                 if (distance < maxDistance)
                 {
                     int distanceOffset = (int)(distance * distanceFactor);
-                    Texture2D distanceTexture = textRenderer.PrepareResource($"{milepost}", Window.Owner.TextFontSmall);
+                    Texture2D distanceTexture = textRenderer[$"{milepost}", Window.Owner.TextFontSmall];
                     DrawTexture(spriteBatch, offset, milepostOffset, distanceOffset, distanceTexture, container.Direction);
                 }
             }
@@ -508,7 +508,7 @@ namespace FreeTrainSimulator.Graphics.Window.Controls
                     if (distance < nearestItem)
                         nearestItem = (int)distance;
                     int distanceOffset = (int)(distance * distanceFactor);
-                    Texture2D limitTexture = textRenderer.PrepareResource(FormatStrings.FormatSpeedLimitNoUoM(limit, metric), Window.Owner.TextFontSmall);
+                    Texture2D limitTexture = textRenderer[FormatStrings.FormatSpeedLimitNoUoM(limit, metric), Window.Owner.TextFontSmall];
                     DrawTexture(spriteBatch, offset, speedpostOffset, distanceOffset, limitTexture, container.Direction, color);
                 }
             }
@@ -577,7 +577,7 @@ namespace FreeTrainSimulator.Graphics.Window.Controls
 
         private void DrawNearestItemDistanceMarker(SpriteBatch spriteBatch, in Point offset, int distance, Direction direction)
         {
-            Texture2D distanceTexture = textRenderer.PrepareResource(FormatStrings.FormatDistanceDisplay(distance, metric), Window.Owner.TextFontSmall);
+            Texture2D distanceTexture = textRenderer[FormatStrings.FormatDistanceDisplay(distance, metric), Window.Owner.TextFontSmall];
             int distanceOffset = (int)(Math.Clamp(distance, 0, maxDistance * 1.1) * distanceFactor);
             DrawTexture(spriteBatch, offset, distanceMarkerOffset, distanceOffset, distanceTexture, direction);
         }

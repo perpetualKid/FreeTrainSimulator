@@ -1,6 +1,9 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Runtime.CompilerServices;
+using System.Runtime.ExceptionServices;
 
+using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Input;
 using FreeTrainSimulator.Common.Position;
 using FreeTrainSimulator.Graphics.MapView.Shapes;
@@ -19,6 +22,8 @@ namespace FreeTrainSimulator.Graphics.MapView
         private readonly IMapInteractionAdapter interactionAdapter;
         private readonly IMapHostSession hostSession;
         private readonly IMapBaseOverlayContext overlayBridge;
+        private bool disposed;
+        private ExceptionDispatchInfo releaseFailure;
 
         public ContentBase Content { get; }
 
@@ -41,13 +46,36 @@ namespace FreeTrainSimulator.Graphics.MapView
             Content = content ?? throw new ArgumentNullException(nameof(content));
 
             hostSession = hostSessionFactory.Create(game, content, mouseInputGameComponent);
-            viewStateAdapter = hostSession.ViewStateAdapter;
-            renderAdapter = hostSession.RenderAdapter;
-            interactionAdapter = hostSession.InteractionAdapter;
-            overlayBridge = new MapOverlayBridge(content, viewStateAdapter, hostSession.OverlayShapeAdapter);
-            interactionAdapter.RegisterMouseMove(MouseMove);
-            interactionAdapter.AttachClientSizeChanged(Window_ClientSizeChanged);
-            Enabled = false;
+            try
+            {
+                viewStateAdapter = hostSession.ViewStateAdapter;
+                renderAdapter = hostSession.RenderAdapter;
+                interactionAdapter = hostSession.InteractionAdapter;
+                overlayBridge = new MapOverlayBridge(content, viewStateAdapter, hostSession.OverlayShapeAdapter);
+                interactionAdapter.RegisterMouseMove(MouseMove);
+                interactionAdapter.AttachClientSizeChanged(Window_ClientSizeChanged);
+                base.Enabled = false;
+            }
+            catch (Exception error) when (CleanupExceptionPolicy.CanContinue(error))
+            {
+                try
+                {
+                    // Do not dispatch a virtual Dispose into a partially constructed derived component.
+                    try
+                    {
+                        ReleaseHostSession();
+                    }
+                    finally
+                    {
+                        base.Dispose(true);
+                    }
+                }
+                catch (Exception cleanupError) when (CleanupExceptionPolicy.CanContinue(cleanupError))
+                {
+                    throw new AggregateException(error, cleanupError);
+                }
+                throw;
+            }
         }
 
         private void Window_ClientSizeChanged(object sender, EventArgs e)
@@ -87,12 +115,12 @@ namespace FreeTrainSimulator.Graphics.MapView
 
         public void MouseMove(Point position, Vector2 delta, GameTime gameTime)
         {
-            interactionAdapter.MouseMove(Enabled, position, Content);
+            interactionAdapter.MouseMove(base.Enabled, position, Content);
         }
 
         protected override void OnEnabledChanged(object sender, EventArgs args)
         {
-            interactionAdapter.HandleEnabledChanged(Enabled, this, Content.TextureHelperHost, overlayBridge);
+            interactionAdapter.HandleEnabledChanged(base.Enabled, this, Content.TextureHelperHost, overlayBridge);
             base.OnEnabledChanged(sender, args);
         }
 
@@ -335,18 +363,56 @@ namespace FreeTrainSimulator.Graphics.MapView
 
         protected override void Dispose(bool disposing)
         {
-            if (disposing)
+            try
             {
-                hostSession?.Dispose();
-                interactionAdapter.UnregisterMouseMove(MouseMove);
+                if (disposing)
+                    ReleaseHostSession();
             }
-            base.Dispose(disposing);
+            finally
+            {
+                base.Dispose(disposing);
+            }
         }
 
-        public bool IsEnabled
+        private void ReleaseHostSession()
         {
-            get => Enabled;
-            set => Enabled = value;
+            if (disposed)
+            {
+                releaseFailure?.Throw();
+                return;
+            }
+
+            disposed = true;
+            try
+            {
+                List<Exception> errors = new List<Exception>();
+                try
+                {
+                    interactionAdapter?.UnregisterMouseMove(MouseMove);
+                }
+                catch (Exception error) when (CleanupExceptionPolicy.CanContinue(error))
+                {
+                    errors.Add(error);
+                }
+                try
+                {
+                    hostSession?.Dispose();
+                }
+                catch (Exception error) when (CleanupExceptionPolicy.CanContinue(error))
+                {
+                    errors.Add(error);
+                }
+                if (errors.Count > 0)
+                {
+                    releaseFailure = ExceptionDispatchInfo.Capture(errors.Count == 1 ? errors[0] : new AggregateException(errors));
+                    releaseFailure.Throw();
+                }
+            }
+            catch (Exception error)
+            {
+                releaseFailure = ExceptionDispatchInfo.Capture(error);
+                throw;
+            }
         }
     }
 }

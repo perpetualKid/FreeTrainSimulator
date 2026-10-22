@@ -1,6 +1,9 @@
 using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Runtime.ExceptionServices;
 
+using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Graphics.Xna;
 
 using Microsoft.Xna.Framework.Graphics;
@@ -12,6 +15,7 @@ namespace FreeTrainSimulator.Graphics.MapView
         private readonly TextTextureRenderer textTextureRenderer;
         private readonly ConcurrentDictionary<int, Texture2D> textures = new ConcurrentDictionary<int, Texture2D>();
         private bool disposed;
+        private ExceptionDispatchInfo releaseFailure;
 
         public MapTextTextureCache(TextTextureRenderer textTextureRenderer)
         {
@@ -34,13 +38,43 @@ namespace FreeTrainSimulator.Graphics.MapView
         public void Dispose()
         {
             if (disposed)
+            {
+                releaseFailure?.Throw();
                 return;
+            }
 
-            foreach (Texture2D texture in textures.Values)
-                texture?.Dispose();
-
-            textures.Clear();
             disposed = true;
+            try
+            {
+                List<Exception> errors = null;
+                foreach (Texture2D texture in textures.Values)
+                {
+                    // Empty results borrow the renderer's sentinel; only generated textures belong to this cache.
+                    if (ReferenceEquals(texture, textTextureRenderer.EmptyTexture))
+                        continue;
+
+                    try
+                    {
+                        texture?.Dispose();
+                    }
+                    catch (Exception error) when (CleanupExceptionPolicy.CanContinue(error))
+                    {
+                        (errors ??= new List<Exception>()).Add(error);
+                    }
+                }
+
+                textures.Clear();
+                if (errors != null)
+                {
+                    releaseFailure = ExceptionDispatchInfo.Capture(new AggregateException(errors));
+                    releaseFailure.Throw();
+                }
+            }
+            catch (Exception error)
+            {
+                releaseFailure = ExceptionDispatchInfo.Capture(error);
+                throw;
+            }
         }
     }
 }

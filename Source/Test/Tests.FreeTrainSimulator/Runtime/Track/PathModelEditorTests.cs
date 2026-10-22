@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -15,6 +16,7 @@ using Microsoft.Xna.Framework;
 namespace Tests.FreeTrainSimulator.Runtime.Track
 {
     [TestClass]
+    [OSCondition(OperatingSystems.Windows)]
     public class PathModelEditorTests
     {
         [TestMethod]
@@ -107,13 +109,13 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
         [TestMethod]
         public void WhenSetStartAnchorReceivesNullModelThenItThrows()
         {
-            Assert.ThrowsExactly<System.ArgumentNullException>(() => PathModelEditor.SetStartAnchor(null, Anchor(10, 42), false));
+            _ = Assert.ThrowsExactly<System.ArgumentNullException>(() => PathModelEditor.SetStartAnchor(null, Anchor(10, 42), false));
         }
 
         [TestMethod]
         public void WhenSetStartAnchorReceivesNullAnchorThenItThrows()
         {
-            Assert.ThrowsExactly<System.ArgumentNullException>(() => PathModelEditor.SetStartAnchor(new PathModel(), null, false));
+            _ = Assert.ThrowsExactly<System.ArgumentNullException>(() => PathModelEditor.SetStartAnchor(new PathModel(), null, false));
         }
 
         private static readonly int[] expectedArray01 = new[] { 0, 1 };
@@ -1431,14 +1433,59 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
 
         private static TrackWorld CreateTrackWorldWithJunctions(params JunctionNode[] junctionNodes)
         {
-            TrackNodeBase[] nodes = new TrackNodeBase[junctionNodes.Max(junction => junction.NodeIndex) + 1];
+            int lastNode = junctionNodes.Max(junction => junction.NodeIndex);
+            TrackNodeBase[] nodes = new TrackNodeBase[lastNode + 1 + junctionNodes.Length * 6];
+            TrackNodeConnectorIndex[] connectors = Enumerable.Range(0, nodes.Length).Select(index => new TrackNodeConnectorIndex
+            {
+                NodeIndex = index,
+                TrackNodeConnectors = ImmutableArray<TrackNodeConnector>.Empty,
+            }).ToArray();
             foreach (JunctionNode junctionNode in junctionNodes)
+            {
                 nodes[junctionNode.NodeIndex] = junctionNode;
+                Tile tile = new Tile(junctionNode.Location.TileX, junctionNode.Location.TileZ);
+                ImmutableArray<TrackNodeConnector>.Builder pins = ImmutableArray.CreateBuilder<TrackNodeConnector>(3);
+                for (int branch = 0; branch < 3; branch++)
+                {
+                    int vectorIndex = ++lastNode;
+                    int endIndex = ++lastNode;
+                    float heading = (branch - 1) * MathHelper.PiOver4;
+                    Vector3 direction = new Vector3(0, heading, 0);
+                    WorldLocation end = new WorldLocation(tile, junctionNode.Location.Location +
+                        new Vector3((float)Math.Sin(heading) * 100, 0, (float)Math.Cos(heading) * 100));
+                    nodes[vectorIndex] = new VectorNode(junctionNode.Location, tile, end)
+                    {
+                        NodeIndex = vectorIndex,
+                        VectorSections = ImmutableArray.Create(new VectorSectionNode(junctionNode.Location, tile, direction, end) { NodeIndex = 1 }),
+                    };
+                    nodes[endIndex] = new EndNode(end, tile, direction) { NodeIndex = endIndex };
+                    pins.Add(new TrackNodeConnector { Link = vectorIndex });
+                    connectors[vectorIndex] = new TrackNodeConnectorIndex
+                    {
+                        NodeIndex = vectorIndex,
+                        InboundCount = 1,
+                        TrackNodeConnectors = ImmutableArray.Create(new TrackNodeConnector { Link = junctionNode.NodeIndex },
+                            new TrackNodeConnector { Link = endIndex }),
+                    };
+                    connectors[endIndex] = new TrackNodeConnectorIndex
+                    {
+                        NodeIndex = endIndex,
+                        InboundCount = 1,
+                        TrackNodeConnectors = ImmutableArray.Create(new TrackNodeConnector { Link = vectorIndex, Direction = TrackDirection.Reverse }),
+                    };
+                }
+                connectors[junctionNode.NodeIndex] = new TrackNodeConnectorIndex
+                {
+                    NodeIndex = junctionNode.NodeIndex,
+                    InboundCount = 1,
+                    TrackNodeConnectors = pins.MoveToImmutable(),
+                };
+            }
 
             TrackDatabase trackDatabase = new TrackDatabase()
             {
                 TrackNodes = ImmutableArray.Create(nodes),
-                TrackNodeConnectors = ImmutableArray.CreateRange(Enumerable.Range(0, nodes.Length).Select(index => new TrackNodeConnectorIndex { NodeIndex = index })),
+                TrackNodeConnectors = ImmutableArray.Create(connectors),
             };
             typeof(TrackDatabase).GetMethod("OnSerializing", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(trackDatabase, null);
             typeof(TrackDatabase).GetMethod("OnSerialized", BindingFlags.NonPublic | BindingFlags.Instance).Invoke(trackDatabase, null);
@@ -1447,7 +1494,11 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
             {
                 TrackDatabase = trackDatabase,
             };
-            return TrackWorld.Initialize(null, trackModel, new TrackSectionModel());
+            return TrackWorld.Initialize(null, trackModel, new TrackSectionModel
+            {
+                TrackSections = ImmutableDictionary<int, TrackSection>.Empty.Add(1,
+                    new TrackSection { SectionIndex = 1, Gauge = 1.435f, Length = 100 }),
+            });
         }
     }
 }

@@ -56,18 +56,19 @@ namespace FreeTrainSimulator.Runtime.Track
         }
 
         // find the direction angle of the trailing (out) track 
-        protected static float GetOutboundSectionDirection(VectorNode vectorNode, bool reverse, int index)
+        protected static float GetOutboundSectionDirection(VectorNode vectorNode, bool reverse, int index, TrackSectionModel trackSections)
         {
             if (null == vectorNode)
                 return 0;
 
+            ArgumentNullException.ThrowIfNull(trackSections);
             if (vectorNode.VectorSections.Length < 1 + index)
                 return float.NaN;
             // find the direction angle of the trailing (out) track 
             if (reverse)
             {
                 // if the attached track is reverse, we'll need to find the angle at the other end, which is same for straight tracks, but changes for curved tracks
-                return !RuntimeDataResolver.Instance.TrackSections.TrackSections.TryGetValue(vectorNode.VectorSections[0].NodeIndex, out TrackSection trackSection)
+                return !trackSections.TrackSections.TryGetValue(vectorNode.VectorSections[0].NodeIndex, out TrackSection trackSection)
                     ? throw new System.IO.InvalidDataException($"TrackVectorSection {vectorNode.VectorSections[0].NodeIndex} not found in TSection.dat")
                     : trackSection.Curved
                     ? vectorNode.VectorSections[index].Direction.Y + MathHelper.ToRadians(trackSection.Angle)
@@ -85,9 +86,9 @@ namespace FreeTrainSimulator.Runtime.Track
             return location.DistanceSquared(Location) <= WorldLocation.ProximityTolerance;
         }
 
-        internal IEnumerable<TrackSegmentBase> ConnectedSegments()
+        internal IEnumerable<TrackSegmentBase> ConnectedSegments(TrackWorld trackWorld)
         {
-            TrackWorld trackWorld = TrackWorld.Instance;
+            ArgumentNullException.ThrowIfNull(trackWorld);
             ImmutableArray<TrackNodeConnector> connectors = trackWorld.TrackDatabase.TrackNodeConnectors[TrackNodeIndex].TrackNodeConnectors;
 
             foreach (TrackNodeConnector connector in connectors)

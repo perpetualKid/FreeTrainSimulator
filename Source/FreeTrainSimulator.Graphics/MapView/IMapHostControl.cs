@@ -7,7 +7,7 @@ namespace FreeTrainSimulator.Graphics.MapView
 {
     public interface IMapHostControl
     {
-        bool IsEnabled { get; set; }
+        bool Enabled { get; set; }
 
         PointD CenterPoint { get; }
 

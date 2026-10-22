@@ -136,7 +136,7 @@ namespace FreeTrainSimulator.Graphics.Window.Controls
             int lineNumber = lineHeight > 0 ? verticalScrollPosition / lineHeight : 0;
             for (int i = lineNumber; i < lineNumber + visibleLines && i < lines.Length; i++)
             {
-                Texture2D lineTexture = textureHolder.PrepareResource(lines[i], font);
+                Texture2D lineTexture = textureHolder[lines[i], font];
                 spriteBatch.Draw(lineTexture,
                     new Vector2(
                         Bounds.Location.X + offset.X + GetAlignmentOffset(lineTexture.Width) - horizontalScrollPosition,
@@ -173,8 +173,7 @@ namespace FreeTrainSimulator.Graphics.Window.Controls
             if (wordWrap)
             {
                 lines = WrapLines(text, font, clientArea.Width).ToArray();
-                Texture2D texture = textureHolder.PrepareResource(lines[0], font);
-                lineHeight = texture.Height;
+                lineHeight = textureHolder.Measure(lines[0], font).Height;
                 lineWidth = clientArea.Width;
                 horizontalScrollSize = -1;
                 clientArea.Height = Bounds.Height;
@@ -190,17 +189,17 @@ namespace FreeTrainSimulator.Graphics.Window.Controls
                         longestLineIndex = i;
                     }
                 }
-                Texture2D texture = textureHolder.PrepareResource(lines[longestLineIndex], font);
-                lineHeight = texture.Height;
-                lineWidth = texture.Width;
-                if (texture.Width < clientArea.Width)
+                System.Drawing.Size size = textureHolder.Measure(lines[longestLineIndex], font);
+                lineHeight = size.Height;
+                lineWidth = size.Width;
+                if (size.Width < clientArea.Width)
                 {
                     horizontalScrollSize = -1;
                     clientArea.Height = Bounds.Height;
                 }
                 else
                 {
-                    horizontalScrollSize = texture.Width - clientArea.Width;
+                    horizontalScrollSize = size.Width - clientArea.Width;
                 }
             }
             if (lines.Length * lineHeight < clientArea.Height)

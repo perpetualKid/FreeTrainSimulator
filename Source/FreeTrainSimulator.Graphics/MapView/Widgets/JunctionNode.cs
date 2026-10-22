@@ -75,12 +75,12 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
 
         public IJunction Junction { get; }
 
-        public ActiveJunctionSegment(Models.Track.JunctionNode junctionNode, int mainRouteNode) :
+        public ActiveJunctionSegment(Models.Track.JunctionNode junctionNode, int mainRouteNode, RuntimeDataResolver runtimeData) :
             base(junctionNode, mainRouteNode)
         {
 
-            Junction = RuntimeDataResolver.Instance.RuntimeReferenceResolver?.SwitchByNodeIndex(junctionNode.NodeIndex);
-            ImmutableArray<TrackNodeConnector> connectors = RuntimeDataResolver.Instance.TrackWorld.TrackDatabase.TrackNodeConnectors[TrackNodeIndex].TrackNodeConnectors;
+            Junction = runtimeData.RuntimeReferenceResolver?.SwitchByNodeIndex(junctionNode.NodeIndex);
+            ImmutableArray<TrackNodeConnector> connectors = runtimeData.TrackWorld.TrackDatabase.TrackNodeConnectors[TrackNodeIndex].TrackNodeConnectors;
             trackSectionAngles = new float[connectors.Length - 1];
 
             int trial = 0;
@@ -89,8 +89,8 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
                 for (int i = 1; i < connectors.Length; i++)
                 {
                     TrackNodeConnector connector = connectors[i];
-                    VectorNode vectorNode = RuntimeDataResolver.Instance.TrackWorld.TrackDatabase.TrackNodes[connector.Link] as VectorNode;
-                    float direction = GetOutboundSectionDirection(vectorNode, connectors[i].Direction == TrackDirection.Reverse, trial);
+                    VectorNode vectorNode = runtimeData.TrackWorld.TrackDatabase.TrackNodes[connector.Link] as VectorNode;
+                    float direction = GetOutboundSectionDirection(vectorNode, connectors[i].Direction == TrackDirection.Reverse, trial, runtimeData.TrackSections);
                     if (float.IsNaN(direction))
                         break;
                     trackSectionAngles[i - 1] = MathHelper.WrapAngle(direction);
@@ -102,7 +102,7 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
             }
 
             //if main route is not in OutPin[0] but OutPin[1], swap the both
-            if ((int)Junction.State != RuntimeDataResolver.Instance.TrackWorld.SwitchStates[junctionNode.NodeIndex])
+            if ((int)Junction.State != runtimeData.TrackWorld.SwitchStates[junctionNode.NodeIndex])
                 (trackSectionAngles[0], trackSectionAngles[1]) = (trackSectionAngles[1], trackSectionAngles[0]);
 
         }

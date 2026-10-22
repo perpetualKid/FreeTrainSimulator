@@ -30,9 +30,7 @@ namespace FreeTrainSimulator.Toolbox.Hosting
         /// <summary>Records intent without canceling a load until unsaved-change confirmation succeeds.</summary>
         public long BeginSelection()
         {
-            if (stopped)
-                throw new InvalidOperationException("Route loading has stopped.");
-            return ++selection;
+            return stopped ? throw new InvalidOperationException("Route loading has stopped.") : ++selection;
         }
 
         public bool IsLatestSelection(long intent) => !stopped && intent == selection;
@@ -85,8 +83,9 @@ namespace FreeTrainSimulator.Toolbox.Hosting
         }
 
         /// <summary>
-        /// Prepares native data without publication, then publishes and initializes a local host candidate.
-        /// Rejected candidates are drained and discarded on the game thread before another publication.
+        /// Prepares runtime topology and initializes a local host candidate without publication.
+        /// Only a fully initialized, successfully committed, still-current candidate is published.
+        /// Rejected candidates are drained and discarded on the game thread before another map tail.
         /// Initialization includes any validation required before commit, within the serialized map phase.
         /// The caller disposes the request after the load and all awaited startup followups complete.
         /// </summary>
@@ -103,8 +102,8 @@ namespace FreeTrainSimulator.Toolbox.Hosting
             try
             {
                 RuntimeDataResolver prepared = await RuntimeDataResolver.PrepareAsync(route, metricUnits, null, token).ConfigureAwait(false);
-                // Map widgets still read runtime globals; serialize the full map phase until
-                // those readers can use a route-local runtime instead.
+                // Retain serialization: owner-side rendering still touches shared host/cache state.
+                // Route-local runtimes alone do not prove overlapping map tails are safe.
                 mapCompleted = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
                 Task previous;
                 lock (mapPhaseLock)
@@ -121,14 +120,22 @@ namespace FreeTrainSimulator.Toolbox.Hosting
                     if (!IsCurrent(request))
                         return;
 
-                    prepared.Publish();
                     await initializeMapAsync(prepared, async action =>
                     {
                         if (!await CommitAsync(request, action).ConfigureAwait(false))
                             throw new OperationCanceledException(token);
                     }).ConfigureAwait(false);
                 }).ConfigureAwait(false);
-                committed = await CommitAsync(request, commit).ConfigureAwait(false);
+                _ = await CommitAsync(request, () =>
+                {
+                    commit();
+                    // Owner callbacks can re-enter selection/stop. Never publish the superseded route.
+                    if (IsCurrent(request))
+                    {
+                        prepared.Publish();
+                        committed = true;
+                    }
+                }).ConfigureAwait(false);
                 return committed;
             }
             catch (OperationCanceledException) when (token.IsCancellationRequested || stopped)

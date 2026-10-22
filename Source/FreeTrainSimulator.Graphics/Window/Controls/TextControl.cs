@@ -43,12 +43,20 @@ namespace FreeTrainSimulator.Graphics.Window.Controls
 
         protected virtual void InitializeText(string text)
         {
-            texture = string.IsNullOrEmpty(text) ? resourceHolder.EmptyTexture : resourceHolder.PrepareResource(text, font, outlineRenderOptions);
+            texture = string.IsNullOrEmpty(text) ? resourceHolder.EmptyTexture : resourceHolder[text, font, outlineRenderOptions];
         }
 
         protected override void Dispose(bool disposing)
         {
-            resourceHolder.Refresh -= RefreshResources;
+            if (disposing)
+            {
+                resourceHolder.Refresh -= RefreshResources;
+                if (Window != null)
+                {
+                    Window.OnWindowOpened -= Window_OnWindowOpened;
+                    Window.OnWindowClosed -= Window_OnWindowClosed;
+                }
+            }
             base.Dispose(disposing);
         }
     }

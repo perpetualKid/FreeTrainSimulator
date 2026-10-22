@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.ExceptionServices;
 using System.Threading;
 using System.Windows.Forms;
 
@@ -62,6 +63,10 @@ namespace FreeTrainSimulator.Graphics.Window
         private WindowBase activeWindow;
 #pragma warning restore CA2213 // Disposable fields should be disposed
         private readonly SpriteBatch spriteBatch;
+        private readonly GameWindow gameWindow;
+        private Action removeUserCommandEvents;
+        private bool resourcesDisposed;
+        private ExceptionDispatchInfo resourceReleaseFailure;
         private long nextWindowUpdate;
 
         private float opacityDefault = 0.6f;
@@ -120,51 +125,67 @@ namespace FreeTrainSimulator.Graphics.Window
         private protected WindowManager(Game game) :
             base(game)
         {
+            gameWindow = game.Window;
             try
             {
-                DpiScaling = DisplayScalingFactor(Screen.FromControl((Form)Control.FromHandle(game.Window.Handle)));
-            }
-            catch (InvalidOperationException) //potential cross thread operation if we are in a different thread
-            {
-                if (Application.OpenForms.Count > 0 && Application.OpenForms[0].InvokeRequired) // no way to know which window we are, so just trying the first one
-                    Application.OpenForms[0].Invoke(() =>
+                try
                 {
-                    DpiScaling = DisplayScalingFactor(Screen.FromControl((Form)Control.FromHandle(game.Window.Handle)));
-                });
+                    DpiScaling = DisplayScalingFactor(Screen.FromControl((Form)Control.FromHandle(gameWindow.Handle)));
+                }
+                catch (InvalidOperationException) //potential cross thread operation if we are in a different thread
+                {
+                    if (Application.OpenForms.Count > 0 && Application.OpenForms[0].InvokeRequired) // no way to know which window we are, so just trying the first one
+                        Application.OpenForms[0].Invoke(() =>
+                    {
+                        DpiScaling = DisplayScalingFactor(Screen.FromControl((Form)Control.FromHandle(gameWindow.Handle)));
+                    });
+                }
+                viewport = Game.GraphicsDevice.Viewport;
+                size = viewport.Bounds.Size;
+                windowSortComparer = new WindowSortComparer(this);
+
+                spriteBatch = new SpriteBatch(GraphicsDevice);
+                WhiteTexture = new Texture2D(game.GraphicsDevice, 1, 1, false, SurfaceFormat.Color);
+                WhiteTexture.SetData(new[] { Color.White });
+
+                BasicShapes = BasicShapes.Instance(game);
+                BackgroundTexture = new Texture2D(game.GraphicsDevice, 1, 1, false, SurfaceFormat.Color);
+                BackgroundTexture.SetData(new[] { BackgroundColor });
+
+                gameWindow.ClientSizeChanged += Window_ClientSizeChanged;
+                gameWindow.TextInput += Window_TextInput;
+                DrawOrder = 100;
+
+                windowTexture = TextureManager.GetTextureStatic(Path.Combine(RuntimeInfo.ContentFolder, "NoTitleBarWindow.png"), game);
+                ScrollbarTexture = TextureManager.GetTextureStatic(Path.Combine(RuntimeInfo.ContentFolder, "WindowScrollbar.png"), game);
+
+                WindowShader = MaterialManager.Instance(game).EffectShaders[ShaderEffect.PopupWindow] as PopupWindowShader;
+                WindowShader.GlassColor = Color.Black;
+                WindowShader.Opacity = opacityDefault;
+                WindowShader.WindowTexture = windowTexture;
+
+                GraphShader = MaterialManager.Instance(game).EffectShaders[ShaderEffect.Diagram] as GraphShader;
+
+                FontManager.ScalingFactor = DpiScaling;
+                TextFontDefault = FontManager.Scaled(FontName, System.Drawing.FontStyle.Regular)[FontSize];
+                TextFontDefaultBold = FontManager.Scaled(FontName, System.Drawing.FontStyle.Bold)[FontSize];
+                TextFontMonoDefault = FontManager.Scaled(MonoFontName, System.Drawing.FontStyle.Regular)[FontSize];
+                TextFontMonoDefaultBold = FontManager.Scaled(MonoFontName, System.Drawing.FontStyle.Bold)[FontSize];
+                TextFontSmall = FontManager.Scaled(FontName, System.Drawing.FontStyle.Regular)[SmallFontSize];
+                UpdateSize();
             }
-            viewport = Game.GraphicsDevice.Viewport;
-            size = viewport.Bounds.Size;
-            windowSortComparer = new WindowSortComparer(this);
-
-            spriteBatch = new SpriteBatch(GraphicsDevice);
-            WhiteTexture = new Texture2D(game.GraphicsDevice, 1, 1, false, SurfaceFormat.Color);
-            WhiteTexture.SetData(new[] { Color.White });
-
-            BasicShapes = BasicShapes.Instance(game);
-            BackgroundTexture = new Texture2D(game.GraphicsDevice, 1, 1, false, SurfaceFormat.Color);
-            BackgroundTexture.SetData(new[] { BackgroundColor });
-
-            game.Window.ClientSizeChanged += Window_ClientSizeChanged;
-            game.Window.TextInput += Window_TextInput;
-            DrawOrder = 100;
-
-            windowTexture = TextureManager.GetTextureStatic(Path.Combine(RuntimeInfo.ContentFolder, "NoTitleBarWindow.png"), game);
-            ScrollbarTexture = TextureManager.GetTextureStatic(Path.Combine(RuntimeInfo.ContentFolder, "WindowScrollbar.png"), game);
-
-            WindowShader = MaterialManager.Instance(game).EffectShaders[ShaderEffect.PopupWindow] as PopupWindowShader;
-            WindowShader.GlassColor = Color.Black;
-            WindowShader.Opacity = opacityDefault;
-            WindowShader.WindowTexture = windowTexture;
-
-            GraphShader = MaterialManager.Instance(game).EffectShaders[ShaderEffect.Diagram] as GraphShader;
-
-            FontManager.ScalingFactor = DpiScaling;
-            TextFontDefault = FontManager.Scaled(FontName, System.Drawing.FontStyle.Regular)[FontSize];
-            TextFontDefaultBold = FontManager.Scaled(FontName, System.Drawing.FontStyle.Bold)[FontSize];
-            TextFontMonoDefault = FontManager.Scaled(MonoFontName, System.Drawing.FontStyle.Regular)[FontSize];
-            TextFontMonoDefaultBold = FontManager.Scaled(MonoFontName, System.Drawing.FontStyle.Bold)[FontSize];
-            TextFontSmall = FontManager.Scaled(FontName, System.Drawing.FontStyle.Regular)[SmallFontSize];
-            UpdateSize();
+            catch (Exception error)
+            {
+                try
+                {
+                    DisposeResources();
+                }
+                catch (Exception cleanupError)
+                {
+                    throw new AggregateException(error, cleanupError);
+                }
+                throw;
+            }
         }
 
         public static WindowManager<TWindowType> Initialize<T, TWindowType>(Game game, UserCommandController<T> userCommandController)
@@ -186,12 +207,28 @@ namespace FreeTrainSimulator.Graphics.Window
         {
             ArgumentNullException.ThrowIfNull(userCommandController);
 
-            userCommandController.AddEvent(CommonUserCommand.PointerMoved, MouseMovedEvent);
-            userCommandController.AddEvent(CommonUserCommand.PointerPressed, MousePressedEvent);
-            userCommandController.AddEvent(CommonUserCommand.PointerDown, MouseDownEvent);
-            userCommandController.AddEvent(CommonUserCommand.PointerReleased, MouseReleasedEvent);
-            userCommandController.AddEvent(CommonUserCommand.PointerDragged, MouseDraggingEvent);
-            userCommandController.AddEvent(CommonUserCommand.VerticalScrollChanged, WindowScrollEvent);
+            // Retain the exact registered delegates: the controller's shorter-signature overloads wrap them.
+            Action<UserCommandArgs, GameTime, KeyModifiers> moved = (args, _, modifiers) => MouseMovedEvent(args, modifiers);
+            Action<UserCommandArgs, GameTime, KeyModifiers> pressed = (args, _, modifiers) => MousePressedEvent(args, modifiers);
+            Action<UserCommandArgs, GameTime, KeyModifiers> down = (args, _, modifiers) => MouseDownEvent(args, modifiers);
+            Action<UserCommandArgs, GameTime, KeyModifiers> released = (args, _, modifiers) => MouseReleasedEvent(args, modifiers);
+            Action<UserCommandArgs, GameTime, KeyModifiers> dragged = (args, _, modifiers) => MouseDraggingEvent(args, modifiers);
+            Action<UserCommandArgs, GameTime, KeyModifiers> scroll = (args, _, modifiers) => WindowScrollEvent(args, modifiers);
+            removeUserCommandEvents = () =>
+            {
+                userCommandController.RemoveEvent(CommonUserCommand.PointerMoved, moved);
+                userCommandController.RemoveEvent(CommonUserCommand.PointerPressed, pressed);
+                userCommandController.RemoveEvent(CommonUserCommand.PointerDown, down);
+                userCommandController.RemoveEvent(CommonUserCommand.PointerReleased, released);
+                userCommandController.RemoveEvent(CommonUserCommand.PointerDragged, dragged);
+                userCommandController.RemoveEvent(CommonUserCommand.VerticalScrollChanged, scroll);
+            };
+            userCommandController.AddEvent(CommonUserCommand.PointerMoved, moved);
+            userCommandController.AddEvent(CommonUserCommand.PointerPressed, pressed);
+            userCommandController.AddEvent(CommonUserCommand.PointerDown, down);
+            userCommandController.AddEvent(CommonUserCommand.PointerReleased, released);
+            userCommandController.AddEvent(CommonUserCommand.PointerDragged, dragged);
+            userCommandController.AddEvent(CommonUserCommand.VerticalScrollChanged, scroll);
         }
 
         private void Window_ClientSizeChanged(object sender, EventArgs e)
@@ -472,16 +509,86 @@ namespace FreeTrainSimulator.Graphics.Window
             }
         }
 
+        private void DisposeResources()
+        {
+            if (resourcesDisposed)
+            {
+                resourceReleaseFailure?.Throw();
+                return;
+            }
+            resourcesDisposed = true;
+
+            try
+            {
+                List<Exception> errors = new List<Exception>();
+                void Release(Action release)
+                {
+                    try
+                    {
+                        release();
+                    }
+                    catch (Exception error) when (CleanupExceptionPolicy.CanContinue(error))
+                    {
+                        errors.Add(error);
+                    }
+                }
+
+                if (gameWindow != null)
+                {
+                    Release(() => gameWindow.ClientSizeChanged -= Window_ClientSizeChanged);
+                    Release(() => gameWindow.TextInput -= Window_TextInput);
+                }
+                Release(() => removeUserCommandEvents?.Invoke());
+                removeUserCommandEvents = null;
+                HashSet<IDisposable> resources = new HashSet<IDisposable>(ReferenceEqualityComparer.Instance);
+                if (windowTexture != null && resources.Add(windowTexture))
+                    Release(() => windowTexture.Dispose());
+                foreach (IDisposable resource in new IDisposable[] { WhiteTexture, BackgroundTexture, ScrollbarTexture }
+                    .Concat(RoundedShadows.Values).Concat(new IDisposable[] { BasicShapes }))
+                {
+                    if (resource != null && resources.Add(resource))
+                        Release(resource.Dispose);
+                }
+                if (spriteBatch != null && resources.Add(spriteBatch))
+                    Release(() => spriteBatch.Dispose());
+                RoundedShadows.Clear();
+                if (errors.Count > 0)
+                {
+                    resourceReleaseFailure = ExceptionDispatchInfo.Capture(errors.Count == 1 ? errors[0] : new AggregateException(errors));
+                    resourceReleaseFailure.Throw();
+                }
+            }
+            catch (Exception error)
+            {
+                resourceReleaseFailure = ExceptionDispatchInfo.Capture(error);
+                throw;
+            }
+        }
+
         protected override void Dispose(bool disposing)
         {
-            windowTexture?.Dispose();
-            WhiteTexture?.Dispose();
-            BackgroundTexture?.Dispose();
-            ScrollbarTexture.Dispose();
-            foreach (Texture2D texture in RoundedShadows.Values)
-                texture?.Dispose();
-            spriteBatch?.Dispose();
-            base.Dispose(disposing);
+            Exception failure = null;
+            if (disposing)
+            {
+                try
+                {
+                    DisposeResources();
+                }
+                catch (Exception error) when (CleanupExceptionPolicy.CanContinue(error))
+                {
+                    failure = error;
+                }
+            }
+            try
+            {
+                base.Dispose(disposing);
+            }
+            catch (Exception error) when (failure != null && CleanupExceptionPolicy.CanContinue(error))
+            {
+                throw new AggregateException(failure, error);
+            }
+            if (failure != null)
+                ExceptionDispatchInfo.Capture(failure).Throw();
         }
     }
 
@@ -489,6 +596,8 @@ namespace FreeTrainSimulator.Graphics.Window
     {
         private readonly EnumArray<FormBase, TWindowType> windows = new EnumArray<FormBase, TWindowType>();
         private readonly EnumArray<Lazy<FormBase>, TWindowType> lazyWindows = new EnumArray<Lazy<FormBase>, TWindowType>();
+        private bool windowsDisposed;
+        private ExceptionDispatchInfo windowReleaseFailure;
 
         internal WindowManager(Game game) :
             base(game)
@@ -531,12 +640,56 @@ namespace FreeTrainSimulator.Graphics.Window
 
         protected override void Dispose(bool disposing)
         {
-            foreach (TWindowType windowType in EnumExtension.GetValues<TWindowType>())
+            if (!disposing)
             {
-                if (WindowInitialized(windowType))
-                    windows[windowType]?.Dispose();
+                base.Dispose(false);
+                return;
             }
-            base.Dispose(disposing);
+            if (windowsDisposed)
+            {
+                windowReleaseFailure?.Throw();
+                return;
+            }
+
+            windowsDisposed = true;
+            try
+            {
+                List<Exception> errors = new List<Exception>();
+                HashSet<FormBase> disposedWindows = new HashSet<FormBase>(ReferenceEqualityComparer.Instance);
+                // A lazy value may exist even when Initialize failed before assignment to windows.
+                foreach (FormBase window in windows.Concat(lazyWindows.Where(lazy => lazy?.IsValueCreated == true).Select(lazy => lazy.Value)))
+                {
+                    if (window != null && disposedWindows.Add(window))
+                    {
+                        try
+                        {
+                            window.Dispose();
+                        }
+                        catch (Exception error) when (CleanupExceptionPolicy.CanContinue(error))
+                        {
+                            errors.Add(error);
+                        }
+                    }
+                }
+                try
+                {
+                    base.Dispose(true);
+                }
+                catch (Exception error) when (CleanupExceptionPolicy.CanContinue(error))
+                {
+                    errors.Add(error);
+                }
+                if (errors.Count > 0)
+                {
+                    windowReleaseFailure = ExceptionDispatchInfo.Capture(errors.Count == 1 ? errors[0] : new AggregateException(errors));
+                    windowReleaseFailure.Throw();
+                }
+            }
+            catch (Exception error)
+            {
+                windowReleaseFailure = ExceptionDispatchInfo.Capture(error);
+                throw;
+            }
         }
     }
 }

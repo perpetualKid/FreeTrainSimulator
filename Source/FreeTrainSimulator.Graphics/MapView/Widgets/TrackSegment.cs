@@ -44,6 +44,10 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
         {
         }
 
+        public TrackSegment(TrackSegmentBase source) : base(source)
+        {
+        }
+
         public virtual void Draw(IMapRenderer renderer, ColorVariation colorVariation = ColorVariation.None, double scaleFactor = 1)
         {
             Color drawColor = WidgetDrawingOptions<TrackSegment>.Colors[colorVariation];
@@ -75,6 +79,10 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
 
         public RoadSegment(VectorSectionNode trackVectorSection, int trackNodeIndex, int trackVectorSectionIndex) :
             base(trackVectorSection, trackNodeIndex, trackVectorSectionIndex)
+        {
+        }
+
+        public RoadSegment(TrackSegmentBase source) : base(source)
         {
         }
 

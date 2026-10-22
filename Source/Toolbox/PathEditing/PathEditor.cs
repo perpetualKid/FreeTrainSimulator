@@ -36,6 +36,9 @@ namespace FreeTrainSimulator.Toolbox.PathEditing
         private const long DoubleClickIntervalMilliseconds = 500;
         private PathModelHeader path;
         private PathModel currentPathModel;
+        private readonly RouteModel routeData;
+
+        internal TrackWorld RuntimeTrackWorld => TrackWorld;
 
         private bool editorDragged;
         private bool stopped;
@@ -170,6 +173,7 @@ namespace FreeTrainSimulator.Toolbox.PathEditing
 
         internal PathEditor(IPathEditorContext editorContext) : base(editorContext)
         {
+            routeData = (editorContext as ToolboxContent)?.RuntimeData.RouteData;
             pathLoadCommitDispatcher = commit => Task.FromResult(commit());
             interactivePreviewRunner = action => action();
         }
@@ -193,6 +197,7 @@ namespace FreeTrainSimulator.Toolbox.PathEditing
             Func<Func<bool>, Task<bool>> pathLoadCommitDispatcher, Func<Func<Task>, Task> interactivePreviewRunner) :
             base(editorContext)
         {
+            routeData = (editorContext as ToolboxContent)?.RuntimeData.RouteData;
             this.userCommandController = userCommandController;
             this.interactivePreviewDispatcher = interactivePreviewDispatcher ?? throw new ArgumentNullException(nameof(interactivePreviewDispatcher));
             this.pathLoadCommitDispatcher = pathLoadCommitDispatcher ?? throw new ArgumentNullException(nameof(pathLoadCommitDispatcher));
@@ -989,8 +994,7 @@ namespace FreeTrainSimulator.Toolbox.PathEditing
         /// the resolver cannot resolve or whose passing shapes the generator cannot represent; the reason is
         /// returned in the result.
         /// </summary>
-        public PathEditResult SnapToTrack()
-            => ApplyUndoableEdit(model => SnapPathToTrack(model, RuntimeDataResolver.Instance.TrackWorld));
+        public PathEditResult SnapToTrack() => ApplyUndoableEdit(model => SnapPathToTrack(model, TrackWorld));
 
         public PathEditorCommandResult ReResolvePathCommand()
         {
@@ -2224,13 +2228,9 @@ namespace FreeTrainSimulator.Toolbox.PathEditing
             return operation;
         }
 
-        private static async Task<PathPersistenceValidationResult> PersistSaveAsync(PathModel pathModel)
+        private async Task<PathPersistenceValidationResult> PersistSaveAsync(PathModel pathModel)
         {
-            // The toolbox registers RuntimeDataResolver process-wide only (RuntimeDataResolver.Initialize
-            // passes game: null), so Instance is the single authoritative resolver here; a game-scoped
-            // GameInstance(game) lookup would resolve to the same object.
-            return await SaveValidatedPath(pathModel, RuntimeDataResolver.Instance.RouteData,
-                RuntimeDataResolver.Instance.TrackWorld, CancellationToken.None).ConfigureAwait(false);
+            return await SaveValidatedPath(pathModel, routeData, TrackWorld, CancellationToken.None).ConfigureAwait(false);
         }
 
         /// <summary>

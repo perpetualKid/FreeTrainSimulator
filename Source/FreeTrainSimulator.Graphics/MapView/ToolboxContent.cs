@@ -28,6 +28,8 @@ namespace FreeTrainSimulator.Graphics.MapView
         private (double distance, INameValueInformationProvider statusItem) nearestItemForStatus;
 
         private ToolboxContentMode contentMode;
+        private ImmutableArray<TrackSegmentSection> renderedRailSections;
+        private ImmutableArray<TrackSegmentSection> renderedRoadSections;
 
         public PathEditorBase PathEditor { get; set; }
 
@@ -129,7 +131,8 @@ namespace FreeTrainSimulator.Graphics.MapView
 
             Viewport?.UpdateScaleToFit(section.TopLeftBound, section.BottomRightBound);
             Viewport?.SetTrackingPosition(section.MidPoint);
-            HighlightItem(searchRoads ? MapContentType.Roads : MapContentType.Tracks, section.SectionSegments[0]);
+            TrackSegmentSection rendered = (searchRoads ? renderedRoadSections : renderedRailSections)[index];
+            HighlightItem(searchRoads ? MapContentType.Roads : MapContentType.Tracks, rendered.SectionSegments[0]);
             Pin(BuildTrackNodeDetails(index, searchRoads, section));
         }
 
@@ -345,14 +348,14 @@ namespace FreeTrainSimulator.Graphics.MapView
             {
                 if (null != nearestItems[MapContentType.Tracks])
                 {
-                    foreach (TrackSegmentBase segment in trackWorld.SegmentSections[(nearestItems[MapContentType.Tracks] as TrackSegmentBase).TrackNodeIndex].SectionSegments)
+                    foreach (TrackSegmentBase segment in renderedRailSections[(nearestItems[MapContentType.Tracks] as TrackSegmentBase).TrackNodeIndex].SectionSegments)
                     {
                         (segment as IDrawable<VectorPrimitive>).Draw(Renderer, ColorVariation.ComplementHighlight);
                     }
                 }
                 if (null != nearestItems[MapContentType.Roads])
                 {
-                    foreach (TrackSegmentBase segment in trackWorld.RoadSegmentSections[(nearestItems[MapContentType.Roads] as TrackSegmentBase).TrackNodeIndex].SectionSegments)
+                    foreach (TrackSegmentBase segment in renderedRoadSections[(nearestItems[MapContentType.Roads] as TrackSegmentBase).TrackNodeIndex].SectionSegments)
                     {
                         (segment as IDrawable<VectorPrimitive>).Draw(Renderer, ColorVariation.ComplementHighlight);
                     }
@@ -392,10 +395,10 @@ namespace FreeTrainSimulator.Graphics.MapView
                         case Models.Track.EndNode endNode:
                             endSegments.Add(new Widgets.EndNode(endNode));
                             break;
-                        case VectorNode trackVectorNode:
-                            foreach ((VectorSectionNode section, int index) in trackVectorNode.VectorSections.IndexedSelect())
+                        case VectorNode trackVectorNode when !trackVectorNode.VectorSections.IsDefaultOrEmpty:
+                            foreach (TrackSegmentBase segment in trackWorld.SegmentSections[trackVectorNode.NodeIndex].SectionSegments)
                             {
-                                trackSegments.Add(new TrackSegment(section, trackVectorNode.NodeIndex, index));
+                                trackSegments.Add(new TrackSegment(segment));
                             }
                             break;
                         case Models.Track.JunctionNode trackJunctionNode:
@@ -419,10 +422,10 @@ namespace FreeTrainSimulator.Graphics.MapView
                         case Models.Track.EndNode trackEndNode:
                             roadEndSegments.Add(new Widgets.RoadEndSegment(trackEndNode));
                             break;
-                        case VectorNode trackVectorNode:
-                            foreach ((VectorSectionNode section, int index) in trackVectorNode.VectorSections.IndexedSelect())
+                        case VectorNode trackVectorNode when !trackVectorNode.VectorSections.IsDefaultOrEmpty:
+                            foreach (TrackSegmentBase segment in trackWorld.RoadSegmentSections[trackVectorNode.NodeIndex].SectionSegments)
                             {
-                                roadSegments.Add(new RoadSegment(section, trackVectorNode.NodeIndex, index));
+                                roadSegments.Add(new RoadSegment(segment));
                             }
                             break;
                     }
@@ -432,10 +435,12 @@ namespace FreeTrainSimulator.Graphics.MapView
             ContentByTile[MapContentType.Roads] = new TileIndexedList<TrackSegmentBase>(roadSegments);
             ContentByTile[MapContentType.RoadEndNodes] = new TileIndexedList<EndNodeBase>(roadEndSegments);
 
-            trackWorld = runtimeServices.TrackWorld;
-            trackWorld.SetSegmentSections(trackSegments.GroupBy(t => t.TrackNodeIndex).Select(group => new TrackSegmentSection(group.Key, group)));
-            trackWorld.SetRoadSegmentSections(roadSegments.GroupBy(t => t.TrackNodeIndex).Select(group => new TrackSegmentSection(group.Key, group)));
-            trackWorld.SetJunctions(junctionSegments);
+            ILookup<int, TrackSegment> railByNode = trackSegments.ToLookup(segment => segment.TrackNodeIndex);
+            ILookup<int, RoadSegment> roadByNode = roadSegments.ToLookup(segment => segment.TrackNodeIndex);
+            renderedRailSections = trackWorld.SegmentSections.Select(section => section == null ? null :
+                new TrackSegmentSection(section.TrackNodeIndex, railByNode[section.TrackNodeIndex])).ToImmutableArray();
+            renderedRoadSections = trackWorld.RoadSegmentSections.Select(section => section == null ? null :
+                new TrackSegmentSection(section.TrackNodeIndex, roadByNode[section.TrackNodeIndex])).ToImmutableArray();
 
             ContentByTile[MapContentType.Grid] = new TileIndexedList<GridTile>(
                 ContentByTile[MapContentType.Tracks].Select(d => d.Tile).Distinct()

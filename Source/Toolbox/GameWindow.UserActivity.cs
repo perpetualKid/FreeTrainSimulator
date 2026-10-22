@@ -101,7 +101,7 @@ namespace FreeTrainSimulator.Toolbox
             PathNode contextAnchor = TryCreateContextAnchor(location, tolerance);
             JunctionNode contextJunction = contextAnchor == null
                 ? null
-                : RuntimeDataResolver.Instance.TrackWorld?.JunctionAt(contextAnchor.Location);
+                : editor.RuntimeTrackWorld?.JunctionAt(contextAnchor.Location);
 
             MapContextMenuActionBuilder.MapContextMenuState state = new MapContextMenuActionBuilder.MapContextMenuState
             {
@@ -201,8 +201,7 @@ namespace FreeTrainSimulator.Toolbox
 
             _ = editor.CancelMoveNodeCommand();
 
-            if (userCommandArgs != null)
-                userCommandArgs.Handled = true;
+            userCommandArgs?.Handled = true;
         }
 
         private void CancelPathEditorInteraction(UserCommandArgs userCommandArgs)
@@ -299,8 +298,8 @@ namespace FreeTrainSimulator.Toolbox
                         toolWindow.BeginViaPointPlacement(nodeIndex);
                     else
                     {
-                        bool isJunction = RuntimeDataResolver.Instance.TrackWorld?.JunctionAt(placementAnchor.Location) != null;
-                        toolWindow.AddViaPointHere(nodeIndex, placementAnchor, isJunction);
+                        bool junction = HostedPathEditor?.RuntimeTrackWorld?.JunctionAt(placementAnchor.Location) != null;
+                        toolWindow.AddViaPointHere(nodeIndex, placementAnchor, junction);
                     }
                     break;
                 case MapContextMenuAction.SelectRouteCandidate:
@@ -328,8 +327,8 @@ namespace FreeTrainSimulator.Toolbox
                 case MapContextMenuAction.StartNewPathHere:
                     if (placementAnchor != null)
                     {
-                        bool isJunction = RuntimeDataResolver.Instance.TrackWorld?.JunctionAt(placementAnchor.Location) != null;
-                        toolWindow.StartNewPathAt(placementAnchor, isJunction);
+                        bool junction = HostedPathEditor?.RuntimeTrackWorld?.JunctionAt(placementAnchor.Location) != null;
+                        toolWindow.StartNewPathAt(placementAnchor, junction);
                     }
                     break;
                 case MapContextMenuAction.SetStartHere:
@@ -353,40 +352,40 @@ namespace FreeTrainSimulator.Toolbox
             }
         }
 
-        private static void ApplyRoutePoint(TrainPathToolWindow toolWindow, PathNode anchor, bool finishPath)
+        private void ApplyRoutePoint(TrainPathToolWindow toolWindow, PathNode anchor, bool finishPath)
         {
             if (anchor == null)
                 return;
 
-            bool isJunction = RuntimeDataResolver.Instance.TrackWorld?.JunctionAt(anchor.Location) != null;
-            toolWindow.AddRoutePointHere(anchor, isJunction, finishPath);
+            bool junction = HostedPathEditor?.RuntimeTrackWorld?.JunctionAt(anchor.Location) != null;
+            toolWindow.AddRoutePointHere(anchor, junction, finishPath);
         }
 
-        private static void ApplyContextAnchor(TrainPathToolWindow toolWindow, PathNode anchor, bool isStart)
+        private void ApplyContextAnchor(TrainPathToolWindow toolWindow, PathNode anchor, bool isStart)
         {
             if (anchor == null)
                 return;
 
-            bool isJunction = RuntimeDataResolver.Instance.TrackWorld?.JunctionAt(anchor.Location) != null;
+            bool junction = HostedPathEditor?.RuntimeTrackWorld?.JunctionAt(anchor.Location) != null;
             if (isStart)
-                toolWindow.SetStartAnchor(anchor, isJunction);
+                toolWindow.SetStartAnchor(anchor, junction);
             else
-                toolWindow.SetEndAnchor(anchor, isJunction);
+                toolWindow.SetEndAnchor(anchor, junction);
         }
 
-        private static PathNode TryCreateContextAnchor(in PointD location, double toleranceMeters)
+        private PathNode TryCreateContextAnchor(in PointD location, double toleranceMeters)
         {
-            TrackWorld trackWorld = RuntimeDataResolver.Instance.TrackWorld;
+            TrackWorld trackWorld = HostedPathEditor?.RuntimeTrackWorld;
             if (trackWorld == null)
                 return null;
 
             WorldLocation worldLocation = PointD.ToWorldLocation(location);
-            JunctionNode junction = trackWorld.JunctionAt(worldLocation);
-            if (junction != null)
+            JunctionNode junctionNode = trackWorld.JunctionAt(worldLocation);
+            if (junctionNode != null)
             {
-                return new PathNode(junction.Location)
+                return new PathNode(junctionNode.Location)
                 {
-                    NodeIndex = junction.NodeIndex,
+                    NodeIndex = junctionNode.NodeIndex,
                 };
             }
 
@@ -541,10 +540,9 @@ namespace FreeTrainSimulator.Toolbox
 
         internal Task SaveScreenshotAsync(string fileName)
         {
-            if (string.IsNullOrWhiteSpace(fileName))
-                throw new ArgumentException("Screenshot file name must not be empty.", nameof(fileName));
-
-            return session.RunAsync(() =>
+            return string.IsNullOrWhiteSpace(fileName)
+                ? throw new ArgumentException("Screenshot file name must not be empty.", nameof(fileName))
+                : session.RunAsync(() =>
             {
                 SaveScreenshot(fileName);
                 return Task.CompletedTask;
@@ -553,6 +551,7 @@ namespace FreeTrainSimulator.Toolbox
 
         private void SaveScreenshot(string fileName)
         {
+            GraphicsDeviceManager graphicsDeviceManager = GraphicsManager;
             byte[] backBuffer = new byte[graphicsDeviceManager.PreferredBackBufferWidth * graphicsDeviceManager.PreferredBackBufferHeight * 4];
             GraphicsDevice graphicsDevice = graphicsDeviceManager.GraphicsDevice;
             using (RenderTarget2D screenshot = new RenderTarget2D(graphicsDevice, graphicsDeviceManager.PreferredBackBufferWidth, graphicsDeviceManager.PreferredBackBufferHeight, false, graphicsDevice.PresentationParameters.BackBufferFormat, DepthFormat.None))
@@ -571,7 +570,5 @@ namespace FreeTrainSimulator.Toolbox
         internal Task<bool> TrainPathIdExistsAsync(string pathId) => session.TrainPathIdExistsAsync(pathId);
 
         internal Task SubmitTrainPathSaveAsync(TrainPathSaveRequest saveRequest) => session.SubmitTrainPathSaveAsync(saveRequest);
-
-
     }
 }

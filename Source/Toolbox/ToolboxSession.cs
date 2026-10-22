@@ -366,7 +366,7 @@ namespace FreeTrainSimulator.Toolbox
                     useMetricUnits = routeModel.MetricUnits;
                 return await routeLoads.LoadAsync(request, routeModel, useMetricUnits, async (prepared, completeAsync) =>
                 {
-                    candidate = game.CreateRouteContent();
+                    candidate = game.CreateRouteContent(prepared);
                     await candidate.InitializeAsync(completeAsync).ConfigureAwait(false);
                     token.ThrowIfCancellationRequested();
                     await PathEditor.ValidateRoutePaths(routeModel, prepared.TrackWorld, false, CancellationToken.None).ConfigureAwait(false);
@@ -396,7 +396,7 @@ namespace FreeTrainSimulator.Toolbox
             }
             catch (Exception ex)
             {
-                await routeLoads.CommitAsync(request, () =>
+                _ = await routeLoads.CommitAsync(request, () =>
                 {
                     // This request may still be current while newer intent awaits confirmation.
                     // Never overwrite that intent, or restore the folder preceding acceptance.

@@ -1,14 +1,19 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.ExceptionServices;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
+using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Info;
 using FreeTrainSimulator.Common.Input;
 using FreeTrainSimulator.Graphics.DrawableComponents;
 using FreeTrainSimulator.Graphics.MapView;
+using FreeTrainSimulator.Graphics.Window;
 using FreeTrainSimulator.Graphics.Xna;
 using FreeTrainSimulator.Models.Content;
+using FreeTrainSimulator.Runtime;
 using FreeTrainSimulator.Toolbox.PathEditing;
 using FreeTrainSimulator.Toolbox.PopupWindows;
 
@@ -17,6 +22,8 @@ namespace FreeTrainSimulator.Toolbox
     public partial class GameWindow
     {
         private readonly ToolboxSession session;
+        private bool ownedResourcesReleaseAttempted;
+        private ExceptionDispatchInfo ownedResourcesReleaseFailure;
 
         internal ToolboxSession Session => session;
 
@@ -56,11 +63,10 @@ namespace FreeTrainSimulator.Toolbox
         }
 
         /// <summary>Creates device-side map hosts on the owner; native preparation remains session-owned.</summary>
-        internal ToolboxContent CreateRouteContent()
-            => new XnaMapContentFactory().CreateToolboxContent(this,
-                Components.OfType<MouseInputGameComponent>().FirstOrDefault(),
+        internal ToolboxContent CreateRouteContent(RuntimeDataResolver runtimeData) => 
+            XnaMapContentFactory.CreateToolboxContent(this, Components.OfType<MouseInputGameComponent>().FirstOrDefault(),
                 new XnaMapInsetHost(Components.OfType<InsetComponent>().FirstOrDefault()),
-                new XnaMapTextureHelperHost(Components.OfType<TextureContentComponent>()));
+                new XnaMapTextureHelperHost(Components.OfType<TextureContentComponent>()), runtimeData);
 
         /// <summary>Attaches a committed map, or releases the current map after its editor has been released.</summary>
         internal void AttachRouteContent(ToolboxContent content)
@@ -146,29 +152,141 @@ namespace FreeTrainSimulator.Toolbox
 
         protected override void Dispose(bool disposing)
         {
-            if (disposing)
-                session?.Dispose();
-            hostedPointerGesture.Reset();
-            if (windowForm != null)
+            // Session cleanup re-enters the platform; snapshot ownership before any calls.
+            Control dispatchControl = ownerControl;
+            WindowManager<ToolboxWindowType> ownedWindowManager = windowManager;
+            if (!disposing)
             {
-                windowForm.MouseDown -= WindowForm_MouseDown;
-                windowForm.MouseUp -= WindowForm_MouseUp;
-                windowForm.MouseCaptureChanged -= WindowForm_MouseCaptureChanged;
+                base.Dispose(false);
+                return;
             }
-            loadRouteSemaphore?.Dispose();
-            ctsProfileLoading?.Dispose();
-            windowManager?.Dispose();
-            spriteBatch?.Dispose();
-            graphicsDeviceManager?.Dispose();
-            windowForm?.Dispose();
+            if (ownedResourcesReleaseAttempted)
+            {
+                ownedResourcesReleaseFailure?.Throw();
+                return;
+            }
+
+            // A failed session release must leave its dispatch owner alive and fail every retry.
+            session?.Dispose();
+            ownedResourcesReleaseAttempted = true;
             try
             {
-                base.Dispose(disposing);
+                List<Exception> errors = new List<Exception>();
+                try
+                {
+                    hostedPointerGesture.Reset();
+                }
+                catch (Exception error) when (CleanupExceptionPolicy.CanContinue(error))
+                {
+                    errors.Add(error);
+                }
+                if (windowForm != null)
+                {
+                    try
+                    {
+                        windowForm.MouseDown -= WindowForm_MouseDown;
+                    }
+                    catch (Exception error) when (CleanupExceptionPolicy.CanContinue(error))
+                    {
+                        errors.Add(error);
+                    }
+                    try
+                    {
+                        windowForm.MouseUp -= WindowForm_MouseUp;
+                    }
+                    catch (Exception error) when (CleanupExceptionPolicy.CanContinue(error))
+                    {
+                        errors.Add(error);
+                    }
+                    try
+                    {
+                        windowForm.MouseCaptureChanged -= WindowForm_MouseCaptureChanged;
+                    }
+                    catch (Exception error) when (CleanupExceptionPolicy.CanContinue(error))
+                    {
+                        errors.Add(error);
+                    }
+                }
+                try
+                {
+                    loadRouteSemaphore?.Dispose();
+                }
+                catch (Exception error) when (CleanupExceptionPolicy.CanContinue(error))
+                {
+                    errors.Add(error);
+                }
+                try
+                {
+                    ctsProfileLoading?.Dispose();
+                }
+                catch (Exception error) when (CleanupExceptionPolicy.CanContinue(error))
+                {
+                    errors.Add(error);
+                }
+                if (ownedWindowManager != null)
+                {
+                    // Remove direct ownership from MonoGame before disposal; retain any failure here.
+                    try
+                    {
+                        Components.Remove(ownedWindowManager);
+                    }
+                    catch (Exception error) when (CleanupExceptionPolicy.CanContinue(error))
+                    {
+                        errors.Add(error);
+                    }
+                    try
+                    {
+                        ownedWindowManager.Dispose();
+                    }
+                    catch (Exception error) when (CleanupExceptionPolicy.CanContinue(error))
+                    {
+                        errors.Add(error);
+                    }
+                    windowManager = null;
+                }
+                try
+                {
+                    spriteBatch?.Dispose();
+                }
+                catch (Exception error) when (CleanupExceptionPolicy.CanContinue(error))
+                {
+                    errors.Add(error);
+                }
+                try
+                {
+                    windowForm?.Dispose();
+                }
+                catch (Exception error) when (CleanupExceptionPolicy.CanContinue(error))
+                {
+                    errors.Add(error);
+                }
+                // Devices stay base-owned, after components. The independent transport is always last.
+                try
+                {
+                    base.Dispose(true);
+                }
+                catch (Exception error) when (CleanupExceptionPolicy.CanContinue(error))
+                {
+                    errors.Add(error);
+                }
+                try
+                {
+                    dispatchControl?.Dispose();
+                }
+                catch (Exception error) when (CleanupExceptionPolicy.CanContinue(error))
+                {
+                    errors.Add(error);
+                }
+                if (errors.Count > 0)
+                {
+                    ownedResourcesReleaseFailure = ExceptionDispatchInfo.Capture(errors.Count == 1 ? errors[0] : new AggregateException(errors));
+                    ownedResourcesReleaseFailure.Throw();
+                }
             }
-            finally
+            catch (Exception error)
             {
-                if (disposing)
-                    ownerControl?.Dispose();
+                ownedResourcesReleaseFailure = ExceptionDispatchInfo.Capture(error);
+                throw;
             }
         }
     }

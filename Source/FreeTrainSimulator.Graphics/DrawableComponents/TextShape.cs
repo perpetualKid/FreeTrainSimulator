@@ -37,7 +37,12 @@ namespace FreeTrainSimulator.Graphics.DrawableComponents
         public Texture2D GetTextTexture(string message, System.Drawing.Font font, OutlineRenderOptions outlineRenderOptions = null)
         {
             int identifier = HashCode.Combine(font, message, outlineRenderOptions);
-            return Get(identifier, () => textRenderer.RenderText(message, font, outlineRenderOptions));
+            // Only generated textures belong to this cache. The empty sentinel remains renderer-owned.
+            return Get(identifier, () =>
+            {
+                Texture2D texture = textRenderer.RenderText(message, font, outlineRenderOptions);
+                return ReferenceEquals(texture, textRenderer.EmptyTexture) ? null : texture;
+            }) ?? textRenderer.EmptyTexture;
         }
 
         public void DrawString(Vector2 point, Color color, string message, System.Drawing.Font font, Vector2 scale, float angle,
