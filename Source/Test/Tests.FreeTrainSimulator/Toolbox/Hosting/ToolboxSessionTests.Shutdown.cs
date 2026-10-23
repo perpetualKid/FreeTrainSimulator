@@ -186,7 +186,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.Hosting
                 GameWindow.ObserveGameThreadOperation(job);
                 GameWindow.ObserveGameThreadOperation(preparation);
 
-                await Assert.ThrowsExactlyAsync<InvalidOperationException>(
+                _ = await Assert.ThrowsExactlyAsync<InvalidOperationException>(
                     () => preparation.WaitAsync(TestContext.CancellationToken)).ConfigureAwait(false);
                 Assert.IsTrue(scope.Session.IsDisposed, "Finished failed jobs no longer borrow session resources.");
                 Assert.IsFalse(stop.IsCompleted, "Stop must still await actual owner teardown.");
@@ -204,6 +204,196 @@ namespace Tests.FreeTrainSimulator.Toolbox.Hosting
             {
                 // The deliberately failed drain remains diagnostic even after successful release.
                 await Assert.ThrowsExactlyAsync<InvalidOperationException>(() => scope.DisposeAsync().AsTask()).ConfigureAwait(false);
+            }
+        }
+
+        [TestMethod]
+        [Timeout(10000, CooperativeCancellation = true)]
+        public async Task WhenCancellationCallbackIsBlockedThenCachedDrainPreventsSessionDisposal()
+        {
+            SessionScope scope = await SessionScope.StartAsync().ConfigureAwait(false);
+            await using (scope.ConfigureAwait(false))
+            {
+                TaskCompletionSource started = Completion();
+                CancellationTokenSource lifetime = (CancellationTokenSource)typeof(ToolboxSession)
+                    .GetField("lifetime", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(scope.Session);
+                int callbackAttempts = 0;
+                using (ManualResetEventSlim release = new ManualResetEventSlim())
+                {
+                    using (CancellationTokenRegistration registration = lifetime.Token.Register(() =>
+                    {
+                        Interlocked.Increment(ref callbackAttempts);
+                        started.SetResult();
+                        release.Wait(TestContext.CancellationToken);
+                    }))
+                    {
+                        try
+                        {
+                            Task drain = null;
+                            Task repeated = null;
+                            Task preparation = null;
+                            await scope.Host.OnOwnerAsync(() =>
+                            {
+                                drain = scope.Session.StopAndDrainAsync();
+                                repeated = scope.Session.StopAndDrainAsync();
+                                preparation = scope.Game.StopForExitAsync();
+                            }).WaitAsync(TestContext.CancellationToken).ConfigureAwait(false);
+                            await started.Task.WaitAsync(TestContext.CancellationToken).ConfigureAwait(false);
+
+                            Assert.AreSame(drain, repeated);
+                            Assert.AreEqual((false, false, false), (drain.IsCompleted, preparation.IsCompleted, scope.Session.IsDisposed));
+                            _ = await Assert.ThrowsExactlyAsync<InvalidOperationException>(
+                                () => scope.Host.OnOwnerAsync(scope.Session.Dispose).WaitAsync(TestContext.CancellationToken)).ConfigureAwait(false);
+
+                            release.Set();
+                            await preparation.WaitAsync(TestContext.CancellationToken).ConfigureAwait(false);
+                            await drain.WaitAsync(TestContext.CancellationToken).ConfigureAwait(false);
+                            await scope.Host.OnOwnerAsync(() => repeated = scope.Session.StopAndDrainAsync())
+                                .WaitAsync(TestContext.CancellationToken).ConfigureAwait(false);
+
+                            Assert.AreSame(drain, repeated);
+                            Assert.AreEqual((true, 1), (scope.Session.IsDisposed, callbackAttempts));
+                        }
+                        finally
+                        {
+                            release.Set();
+                        }
+                    }
+                }
+            }
+        }
+
+        [TestMethod]
+        [Timeout(10000, CooperativeCancellation = true)]
+        public async Task WhenCancellationCallbackReentersStopOnOwnerThenItReceivesCachedDrain()
+        {
+            SessionScope scope = await SessionScope.StartAsync().ConfigureAwait(false);
+            await using (scope.ConfigureAwait(false))
+            {
+                TaskCompletionSource started = Completion();
+                TaskCompletionSource reentered = Completion();
+                CancellationTokenSource lifetime = (CancellationTokenSource)typeof(ToolboxSession)
+                    .GetField("lifetime", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(scope.Session);
+                Task callbackDrain = null;
+                int callbackOwnerThread = 0;
+                int callbackAttempts = 0;
+                using (ManualResetEventSlim release = new ManualResetEventSlim())
+                {
+                    using (CancellationTokenRegistration registration = lifetime.Token.Register(() =>
+                    {
+                        Interlocked.Increment(ref callbackAttempts);
+                        started.SetResult();
+                        scope.Host.DispatchControl.Invoke((Action)(() =>
+                        {
+                            callbackOwnerThread = Environment.CurrentManagedThreadId;
+                            callbackDrain = scope.Session.StopAndDrainAsync();
+                        }));
+                        reentered.SetResult();
+                        release.Wait(TestContext.CancellationToken);
+                    }))
+                    {
+                        try
+                        {
+                            Task drain = null;
+                            await scope.Host.OnOwnerAsync(() => drain = scope.Session.StopAndDrainAsync())
+                                .WaitAsync(TestContext.CancellationToken).ConfigureAwait(false);
+                            await started.Task.WaitAsync(TestContext.CancellationToken).ConfigureAwait(false);
+                            await reentered.Task.WaitAsync(TestContext.CancellationToken).ConfigureAwait(false);
+
+                            Assert.AreSame(drain, callbackDrain);
+                            Assert.AreEqual((scope.Host.OwnerThreadId, false), (callbackOwnerThread, drain.IsCompleted));
+
+                            release.Set();
+                            await drain.WaitAsync(TestContext.CancellationToken).ConfigureAwait(false);
+                            Task repeated = null;
+                            await scope.Host.OnOwnerAsync(() => repeated = scope.Session.StopAndDrainAsync())
+                                .WaitAsync(TestContext.CancellationToken).ConfigureAwait(false);
+
+                            Assert.AreSame(drain, repeated);
+                            Assert.AreEqual(1, callbackAttempts);
+                        }
+                        finally
+                        {
+                            release.Set();
+                        }
+                    }
+                }
+            }
+        }
+
+        [TestMethod]
+        [Timeout(10000, CooperativeCancellation = true)]
+        public async Task WhenCancellationCallbackFailsThenRepeatedDrainsRetainFailureAndOwnerCleanupRunsOnce()
+        {
+            SessionScope scope = await SessionScope.StartAsync().ConfigureAwait(false);
+            TaskCompletionSource started = Completion();
+            InvalidOperationException expected = new InvalidOperationException("Cancellation callback failed.");
+            CancellationTokenSource lifetime = (CancellationTokenSource)typeof(ToolboxSession)
+                .GetField("lifetime", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(scope.Session);
+            int callbackAttempts = 0;
+            int editorReleases = 0;
+            int editorReleasedOn = 0;
+            using (ManualResetEventSlim release = new ManualResetEventSlim())
+            {
+                using (CancellationTokenRegistration registration = lifetime.Token.Register(() =>
+            {
+                Interlocked.Increment(ref callbackAttempts);
+                started.SetResult();
+                release.Wait(TestContext.CancellationToken);
+                throw expected;
+            }))
+                {
+                    try
+                    {
+                        Task drain = null;
+                        Task preparation = null;
+                        await scope.Host.OnOwnerAsync(() =>
+                        {
+                            SetField(scope.Session, "pathEditor", CreateEditor());
+                            scope.Session.OnPathEditorChanged += (_, _) =>
+                            {
+                                ++editorReleases;
+                                editorReleasedOn = Environment.CurrentManagedThreadId;
+                            };
+                            drain = scope.Session.StopAndDrainAsync();
+                            preparation = scope.Game.StopForExitAsync();
+                        }).WaitAsync(TestContext.CancellationToken).ConfigureAwait(false);
+                        await started.Task.WaitAsync(TestContext.CancellationToken).ConfigureAwait(false);
+
+                        Assert.AreEqual((false, false, false, 0),
+                            (drain.IsCompleted, preparation.IsCompleted, scope.Session.IsDisposed, editorReleases));
+
+                        release.Set();
+                        AggregateException failure = await Assert.ThrowsExactlyAsync<AggregateException>(
+                            () => drain.WaitAsync(TestContext.CancellationToken)).ConfigureAwait(false);
+                        Assert.AreEqual(1, failure.Flatten().InnerExceptions.Count);
+                        Assert.AreSame(expected, failure.Flatten().InnerException);
+                        AggregateException preparationFailure = await Assert.ThrowsExactlyAsync<AggregateException>(
+                            () => preparation.WaitAsync(TestContext.CancellationToken)).ConfigureAwait(false);
+                        Assert.AreSame(failure, preparationFailure);
+                        Assert.IsTrue(scope.Session.IsDisposed);
+
+                        Task repeated = null;
+                        await scope.Host.OnOwnerAsync(() => repeated = scope.Session.StopAndDrainAsync())
+                            .WaitAsync(TestContext.CancellationToken).ConfigureAwait(false);
+                        Assert.AreSame(drain, repeated);
+                        AggregateException repeatedFailure = await Assert.ThrowsExactlyAsync<AggregateException>(
+                            () => repeated.WaitAsync(TestContext.CancellationToken)).ConfigureAwait(false);
+                        Assert.AreSame(failure, repeatedFailure);
+                        AggregateException repeatedPreparationFailure = await Assert.ThrowsExactlyAsync<AggregateException>(
+                            () => scope.Game.StopForExitAsync().WaitAsync(TestContext.CancellationToken)).ConfigureAwait(false);
+                        Assert.AreSame(failure, repeatedPreparationFailure);
+                    }
+                    finally
+                    {
+                        release.Set();
+                        AggregateException disposalFailure = await Assert.ThrowsExactlyAsync<AggregateException>(
+                            () => scope.DisposeAsync().AsTask()).ConfigureAwait(false);
+                        Assert.AreSame(expected, disposalFailure.Flatten().InnerException);
+                    }
+
+                    Assert.AreEqual((1, 1, scope.Host.OwnerThreadId), (callbackAttempts, editorReleases, editorReleasedOn));
+                }
             }
         }
 
@@ -255,8 +445,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.Hosting
         public void WhenNativeOwnerFaultsThenHostDisposalIsRejected()
         {
             TaskCompletionSource terminated = Completion();
-            ToolboxGameHostControl host = CreateShutdownHost(
-                new TaskCompletionSource<GameWindow>(TaskCreationOptions.RunContinuationsAsynchronously), terminated);
+            ToolboxGameHostControl host = CreateShutdownHost(new TaskCompletionSource<GameWindow>(TaskCreationOptions.RunContinuationsAsynchronously), terminated);
             terminated.SetException(new InvalidOperationException("Owner failed."));
 
             _ = Assert.ThrowsExactly<InvalidOperationException>(host.Dispose);
@@ -266,12 +455,11 @@ namespace Tests.FreeTrainSimulator.Toolbox.Hosting
         public void WhenOwnerFinishesWithoutResourceReleaseEvidenceThenHostDisposalIsRejected()
         {
             TaskCompletionSource terminated = Completion();
-            ToolboxGameHostControl host = CreateShutdownHost(
-                new TaskCompletionSource<GameWindow>(TaskCreationOptions.RunContinuationsAsynchronously), terminated);
+            ToolboxGameHostControl host = CreateShutdownHost(new TaskCompletionSource<GameWindow>(TaskCreationOptions.RunContinuationsAsynchronously), terminated);
             terminated.SetResult();
 
             Assert.IsFalse(host.IsStoppedSafely);
-            Assert.ThrowsExactly<InvalidOperationException>(host.Dispose);
+            _ = Assert.ThrowsExactly<InvalidOperationException>(host.Dispose);
         }
 
         [TestMethod]

@@ -22,6 +22,7 @@ namespace FreeTrainSimulator.Common
                     if (!CanContinue(inner))
                         return false;
                 }
+                return true;
             }
 
             return error.InnerException == null || CanContinue(error.InnerException);

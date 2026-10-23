@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Runtime.CompilerServices;
@@ -16,6 +17,7 @@ using FreeTrainSimulator.Toolbox.PopupWindows;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
 
 using GameWindow = FreeTrainSimulator.Toolbox.GameWindow;
 
@@ -28,6 +30,8 @@ namespace Tests.FreeTrainSimulator.Toolbox.Hosting
     {
         private static readonly string[] componentManagerReleases = { "component", "manager" };
         private static readonly string[] managerComponentTransportReleases = { "manager", "component", "transport" };
+        private static readonly string[] failedComponentReleases = { "first", "later", "manager", "transport" };
+        private static readonly string[] failedRendererReleases = { "component", "sentinel", "manager", "transport" };
 
         public TestContext TestContext { get; set; }
 
@@ -137,6 +141,107 @@ namespace Tests.FreeTrainSimulator.Toolbox.Hosting
                             Assert.IsTrue(manager.IsReleased);
                             Assert.AreEqual(1, manager.ReleaseCount);
                             Assert.AreSequenceEqual(componentManagerReleases, releases);
+                        }
+                    }
+                }).WaitAsync(TestContext.CancellationToken).ConfigureAwait(false);
+            }
+        }
+
+        [TestMethod]
+        [Timeout(10000, CooperativeCancellation = true)]
+        public async Task FailedComponentDoesNotSkipLaterComponentManagerOrTransportAndSurvivesRetry()
+        {
+            StaControlHost host = await StaControlHost.StartAsync().ConfigureAwait(false);
+            await using (host.ConfigureAwait(false))
+            {
+                await host.OnOwnerAsync(() =>
+                {
+                    List<string> releases = new List<string>();
+                    InvalidOperationException expected = new InvalidOperationException("First component release failed.");
+                    using (Game managerHost = new Game())
+                    {
+                        ProbeGraphicsDeviceManager manager = new ProbeGraphicsDeviceManager(managerHost, releases);
+                        GameWindow game = CreateAdapter(host, () =>
+                        {
+                            Assert.IsFalse(manager.IsReleased);
+                            releases.Add("first");
+                            throw expected;
+                        });
+                        game.Components.Add(new CleanupProbe(() =>
+                        {
+                            Assert.IsFalse(manager.IsReleased);
+                            releases.Add("later");
+                        }));
+                        GameComponentCollection components = game.Components;
+                        SetField(game, typeof(Game), "_services", managerHost.Services);
+                        SetField(game, typeof(Game), "_graphicsDeviceManager", manager);
+                        SetField(game, typeof(GameWindow), "<GraphicsManager>k__BackingField", manager);
+                        SetField(managerHost, typeof(Game), "_graphicsDeviceManager", null);
+                        host.DispatchControl.Disposed += (_, _) => releases.Add("transport");
+
+                        Assert.AreSame(expected, Assert.ThrowsExactly<InvalidOperationException>(game.Dispose));
+                        Assert.AreSame(expected, Assert.ThrowsExactly<InvalidOperationException>(game.Dispose));
+
+                        Assert.AreSequenceEqual(failedComponentReleases, releases);
+                        Assert.AreEqual(1, manager.ReleaseCount);
+                        Assert.IsEmpty(components);
+                    }
+                }).WaitAsync(TestContext.CancellationToken).ConfigureAwait(false);
+            }
+        }
+
+        [TestMethod]
+        [Timeout(10000, CooperativeCancellation = true)]
+        public async Task SharedRendererFailureSurvivesGameRetryAndStillReleasesManagerBeforeTransport()
+        {
+            StaControlHost host = await StaControlHost.StartAsync().ConfigureAwait(false);
+            await using (host.ConfigureAwait(false))
+            {
+                await host.OnOwnerAsync(() =>
+                {
+                    List<string> releases = new List<string>();
+                    InvalidOperationException expected = new InvalidOperationException("Shared renderer release failed.");
+                    using (Game managerHost = new Game())
+                    {
+                        ProbeGraphicsDeviceManager manager = new ProbeGraphicsDeviceManager(managerHost, releases);
+                        using Texture2D sentinel = (Texture2D)RuntimeHelpers.GetUninitializedObject(typeof(Texture2D));
+                        int sentinelReleases = 0;
+                        void FailSentinel(object sender, EventArgs args)
+                        {
+                            sentinelReleases++;
+                            releases.Add("sentinel");
+                            throw expected;
+                        }
+                        sentinel.Disposing += FailSentinel;
+                        try
+                        {
+                            GameWindow game = CreateAdapter(host, () =>
+                            {
+                                Assert.AreEqual(0, sentinelReleases);
+                                releases.Add("component");
+                            });
+                            SetField(game, typeof(Game), "_services", managerHost.Services);
+                            SetField(game, typeof(Game), "_graphicsDeviceManager", manager);
+                            SetField(game, typeof(GameWindow), "<GraphicsManager>k__BackingField", manager);
+                            SetField(managerHost, typeof(Game), "_graphicsDeviceManager", null);
+                            TextTextureRenderer renderer = (TextTextureRenderer)RuntimeHelpers.GetUninitializedObject(typeof(TextTextureRenderer));
+                            SetField(renderer, typeof(TextTextureRenderer), "<EmptyTexture>k__BackingField", sentinel);
+                            SetField(renderer, typeof(TextTextureRenderer), "measureGraphicsHolder",
+                                new ConcurrentQueue<(System.Drawing.Graphics, System.Drawing.StringFormat)>());
+                            SetField(renderer, typeof(TextTextureRenderer), "whiteBrushHolder", new ConcurrentQueue<System.Drawing.Brush>());
+                            game.Services.AddService(renderer);
+                            Assert.AreSame(renderer, TextTextureRenderer.Instance(game));
+                            host.DispatchControl.Disposed += (_, _) => releases.Add("transport");
+
+                            Assert.AreSame(expected, Assert.ThrowsExactly<InvalidOperationException>(game.Dispose));
+                            Assert.AreSame(expected, Assert.ThrowsExactly<InvalidOperationException>(game.Dispose));
+
+                            Assert.AreSequenceEqual(failedRendererReleases, releases);
+                            Assert.AreEqual((1, 1), (sentinelReleases, manager.ReleaseCount));
+                        }
+                        finally
+                        {
+                            sentinel.Disposing -= FailSentinel;
                         }
                     }
                 }).WaitAsync(TestContext.CancellationToken).ConfigureAwait(false);

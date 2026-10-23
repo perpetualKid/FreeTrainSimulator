@@ -17,6 +17,8 @@ using FreeTrainSimulator.Runtime;
 using FreeTrainSimulator.Toolbox.PathEditing;
 using FreeTrainSimulator.Toolbox.PopupWindows;
 
+using Microsoft.Xna.Framework;
+
 namespace FreeTrainSimulator.Toolbox
 {
     public partial class GameWindow
@@ -172,6 +174,18 @@ namespace FreeTrainSimulator.Toolbox
             try
             {
                 List<Exception> errors = new List<Exception>();
+                void Release(Action release)
+                {
+                    try
+                    {
+                        release();
+                    }
+                    catch (Exception error) when (CleanupExceptionPolicy.CanContinue(error))
+                    {
+                        errors.Add(error);
+                    }
+                }
+
                 try
                 {
                     hostedPointerGesture.Reset();
@@ -244,6 +258,20 @@ namespace FreeTrainSimulator.Toolbox
                     }
                     windowManager = null;
                 }
+                // MonoGame aborts its component loop on the first failure. Drain each owner here,
+                // removing it first so base cleanup cannot repeat an attempted release.
+                HashSet<IDisposable> released = new HashSet<IDisposable>(ReferenceEqualityComparer.Instance);
+                if (ownedWindowManager != null)
+                    released.Add(ownedWindowManager);
+
+                foreach (IGameComponent component in Components.ToArray())
+                {
+                    Release(() => Components.Remove(component));
+                    if (component is IDisposable resource && released.Add(resource))
+                        Release(resource.Dispose);
+                }
+                Release(Components.Clear);
+                Release(() => TextTextureRenderer.ReleaseSharedResources(this));
                 try
                 {
                     spriteBatch?.Dispose();

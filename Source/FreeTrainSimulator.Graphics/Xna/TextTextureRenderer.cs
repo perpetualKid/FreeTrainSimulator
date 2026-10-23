@@ -112,6 +112,8 @@ namespace FreeTrainSimulator.Graphics.Xna
         {
             ArgumentNullException.ThrowIfNull(game);
 
+            SharedRendererLifetime lifetime = game.Services.GetService<SharedRendererLifetime>();
+            lifetime?.VerifyOpen();
             TextTextureRenderer instance;
             if ((instance = game.Services.GetService<TextTextureRenderer>()) == null)
             {
@@ -128,16 +130,83 @@ namespace FreeTrainSimulator.Graphics.Xna
             }
             if (instance.sharedGame == null)
             {
+                lifetime ??= new SharedRendererLifetime(game);
+                lifetime.Register(instance);
                 instance.sharedGame = game;
-                // Game.Disposed runs after the game components (including text caches) are released.
-                game.Disposed += instance.Game_Disposed;
             }
             return instance;
         }
 
-        private void Game_Disposed(object sender, EventArgs e)
+        /// <summary>Releases game-owned shared renderers after their borrowing components; failures survive retries.</summary>
+        public static void ReleaseSharedResources(Microsoft.Xna.Framework.Game game)
         {
-            Dispose();
+            ArgumentNullException.ThrowIfNull(game);
+            game.Services?.GetService<SharedRendererLifetime>()?.Release();
+        }
+
+        private sealed class SharedRendererLifetime
+        {
+            private readonly Microsoft.Xna.Framework.Game game;
+            private readonly List<TextTextureRenderer> renderers = new List<TextTextureRenderer>();
+            private bool releaseAttempted;
+            private ExceptionDispatchInfo releaseFailure;
+
+            public SharedRendererLifetime(Microsoft.Xna.Framework.Game game)
+            {
+                this.game = game;
+                game.Services.AddService(this);
+                game.Disposed += Game_Disposed;
+            }
+
+            public void Register(TextTextureRenderer renderer)
+            {
+                VerifyOpen();
+                renderers.Add(renderer);
+            }
+
+            public void VerifyOpen() => ObjectDisposedException.ThrowIf(releaseAttempted, this);
+
+            private void Game_Disposed(object sender, EventArgs e) => Release();
+
+            public void Release()
+            {
+                if (releaseAttempted)
+                {
+                    releaseFailure?.Throw();
+                    return;
+                }
+                releaseAttempted = true;
+                try
+                {
+                    List<Exception> errors = new List<Exception>();
+                    foreach (TextTextureRenderer renderer in renderers)
+                    {
+                        try
+                        {
+                            renderer.Dispose();
+                        }
+                        catch (Exception failure) when (CleanupExceptionPolicy.CanContinue(failure))
+                        {
+                            errors.Add(failure);
+                        }
+                    }
+                    if (errors.Count > 0)
+                    {
+                        releaseFailure = ExceptionDispatchInfo.Capture(errors.Count == 1 ? errors[0] : new AggregateException(errors));
+                        releaseFailure.Throw();
+                    }
+
+                    // Keep the fallback attached on failure so plain Game.Dispose retries cannot report success.
+                    game.Services.RemoveService(typeof(SharedRendererLifetime));
+                    game.Disposed -= Game_Disposed;
+                    renderers.Clear();
+                }
+                catch (Exception failure)
+                {
+                    releaseFailure = ExceptionDispatchInfo.Capture(failure);
+                    throw;
+                }
+            }
         }
 
         public Size Measure(string text, Font font, OutlineRenderOptions outlineOptions = null)
@@ -279,7 +348,6 @@ namespace FreeTrainSimulator.Graphics.Xna
 
                     if (sharedGame != null)
                     {
-                        Release(() => sharedGame.Disposed -= Game_Disposed);
                         Release(() =>
                         {
                             if (ReferenceEquals(sharedGame.Services.GetService<TextTextureRenderer>(), this))

@@ -113,23 +113,40 @@ namespace FreeTrainSimulator.Toolbox
         /// <summary>Closes admission on the owner, cancels waiters/interactions and awaits actual jobs and discards.</summary>
         internal Task StopAndDrainAsync()
         {
+            TaskCompletionSource cancellationCompletion;
             lock (jobs)
             {
                 if (stopTask != null)
                     return stopTask;
                 IsStopping = true;
+                cancellationCompletion = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+                jobs.Add(cancellationCompletion.Task);
                 stopTask = Task.WhenAll(jobs.ToArray());
             }
-            routeLoads.Stop();
-            ++routeContentVersion;
-            pendingFolder = null;
-            pendingRoute = null;
-            loadingRoute = null;
-            PublishMenu();
-            lifetime.CancelAsync().ConfigureAwait(false);
-            foreach (UnsavedPathConfirmationEventArgs confirmation in confirmations.ToArray())
-                confirmation.Completion.TrySetResult(false);
-            pathEditor?.Stop();
+            Task cancellation = null;
+            try
+            {
+                routeLoads.Stop();
+                ++routeContentVersion;
+                pendingFolder = null;
+                pendingRoute = null;
+                loadingRoute = null;
+                PublishMenu();
+                cancellation = lifetime.CancelAsync();
+                foreach (UnsavedPathConfirmationEventArgs confirmation in confirmations.ToArray())
+                    confirmation.Completion.TrySetResult(false);
+                pathEditor?.Stop();
+            }
+            catch (Exception failure)
+            {
+                cancellation = Task.WhenAll(cancellation ?? lifetime.CancelAsync(), Task.FromException(failure));
+                throw;
+            }
+            finally
+            {
+                // Publish the drain before cancellation can re-enter stop, but finish it only after callbacks and owner setup.
+                CompleteJob(cancellation ?? lifetime.CancelAsync(), cancellationCompletion);
+            }
             return stopTask;
         }
 

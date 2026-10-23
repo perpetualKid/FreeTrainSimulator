@@ -29,6 +29,7 @@ namespace Tests.FreeTrainSimulator.Graphics.Window
         private static readonly string[] managerFailureReleases = { "eager", "later", "unsubscribe", "texture", "white", "shadow", "spriteBatch" };
         private static readonly string[] lazyFailureReleases = { "eager", "lazy", "white" };
         private static readonly string[] sharedRendererReleases = { "shape text", "control text", "sentinel" };
+        private static readonly string[] replacedRendererReleases = { "original", "replacement", "healthy" };
         private static readonly string[] textureManagerReleases = { "cached", "missing" };
         private static readonly string[] cacheFailureReleases = { "first", "previous", "sweep" };
         private static readonly string[] cacheGenerations = { "currentResources", "previousResources", "sweepResources" };
@@ -408,6 +409,144 @@ namespace Tests.FreeTrainSimulator.Graphics.Window
         }
 
         [TestMethod]
+        public void GameShutdownRetainsSharedRendererFailureAcrossPublicDisposals()
+        {
+            using (ProbeTexture sentinel = new ProbeTexture("sentinel", new List<string>()))
+            {
+                InvalidOperationException expected = new InvalidOperationException("Shared sentinel cleanup failed.");
+                Game game = CreateGameWithoutPlatform();
+                TextTextureRenderer renderer = CreateRenderer(sentinel.Texture);
+                try
+                {
+                    sentinel.ReleaseFailure = expected;
+                    game.Services.AddService(renderer);
+                    Assert.AreSame(renderer, TextTextureRenderer.Instance(game));
+
+                    Assert.AreSame(expected, Assert.ThrowsExactly<InvalidOperationException>(game.Dispose));
+                    Assert.IsTrue(Field<bool>(game, "_isDisposed"));
+                    Assert.AreEqual(1, sentinel.ReleaseCount);
+                    Assert.AreSame(expected, Assert.ThrowsExactly<InvalidOperationException>(game.Dispose));
+
+                    Assert.AreEqual(1, sentinel.ReleaseCount);
+                    Assert.IsNull(game.Services.GetService<TextTextureRenderer>());
+                }
+                finally
+                {
+                    sentinel.ReleaseFailure = null;
+                    if (!Field<bool>(renderer, "disposedValue"))
+                        renderer.Dispose();
+                }
+            }
+        }
+
+        [TestMethod]
+        public void ExplicitSharedRendererReleaseExhaustsReplacementsAndRetainsOrderedFailures()
+        {
+            List<string> releases = new List<string>();
+            using (ProbeTexture originalSentinel = new ProbeTexture("original", releases))
+            {
+                using (ProbeTexture replacementSentinel = new ProbeTexture("replacement", releases))
+                {
+                    using (ProbeTexture healthySentinel = new ProbeTexture("healthy", releases))
+                    {
+                        InvalidOperationException originalFailure = new InvalidOperationException("Original sentinel cleanup failed.");
+                        InvalidOperationException replacementFailure = new InvalidOperationException("Replacement sentinel cleanup failed.");
+                        Game game = CreateGameWithoutPlatform();
+                        TextTextureRenderer original = CreateRenderer(originalSentinel.Texture);
+                        TextTextureRenderer replacement = null;
+                        TextTextureRenderer healthy = null;
+                        try
+                        {
+                            replacement = CreateRenderer(replacementSentinel.Texture);
+                            healthy = CreateRenderer(healthySentinel.Texture);
+                            originalSentinel.ReleaseFailure = originalFailure;
+                            replacementSentinel.ReleaseFailure = replacementFailure;
+                            game.Services.AddService(original);
+                            Assert.AreSame(original, TextTextureRenderer.Instance(game));
+                            game.Services.RemoveService(typeof(TextTextureRenderer));
+                            game.Services.AddService(replacement);
+                            Assert.AreSame(replacement, TextTextureRenderer.Instance(game));
+                            game.Services.RemoveService(typeof(TextTextureRenderer));
+                            game.Services.AddService(healthy);
+                            Assert.AreSame(healthy, TextTextureRenderer.Instance(game));
+
+                            AggregateException failure = Assert.ThrowsExactly<AggregateException>(() => TextTextureRenderer.ReleaseSharedResources(game));
+
+                            Assert.AreSequenceEqual(new Exception[] { originalFailure, replacementFailure }, failure.InnerExceptions);
+                            Assert.AreSequenceEqual(replacedRendererReleases, releases);
+                            Assert.AreEqual((1, 1, 1), (originalSentinel.ReleaseCount, replacementSentinel.ReleaseCount, healthySentinel.ReleaseCount));
+                            Assert.IsNull(game.Services.GetService<TextTextureRenderer>());
+                            Assert.AreSame(failure, Assert.ThrowsExactly<AggregateException>(() => TextTextureRenderer.ReleaseSharedResources(game)));
+                            Assert.AreSame(failure, Assert.ThrowsExactly<AggregateException>(game.Dispose));
+                            Assert.IsTrue(Field<bool>(game, "_isDisposed"));
+                            Assert.AreSame(failure, Assert.ThrowsExactly<AggregateException>(game.Dispose));
+                            Assert.AreEqual((1, 1, 1), (originalSentinel.ReleaseCount, replacementSentinel.ReleaseCount, healthySentinel.ReleaseCount));
+                            Assert.AreSequenceEqual(replacedRendererReleases, releases);
+                        }
+                        finally
+                        {
+                            originalSentinel.ReleaseFailure = null;
+                            replacementSentinel.ReleaseFailure = null;
+                            if (!Field<bool>(original, "disposedValue"))
+                                original.Dispose();
+                            if (replacement != null && !Field<bool>(replacement, "disposedValue"))
+                                replacement.Dispose();
+                            if (healthy != null && !Field<bool>(healthy, "disposedValue"))
+                                healthy.Dispose();
+                        }
+                    }
+                }
+            }
+        }
+
+        [TestMethod]
+        [DataRow(false)]
+        [DataRow(true)]
+        public void ExplicitSharedRendererReleaseKeepsSentinelBorrowedUntilAfterCacheDisposal(bool textShape)
+        {
+            using (ProbeTexture sentinel = new ProbeTexture("sentinel", new List<string>()))
+            {
+                using (ProbeTexture cached = new ProbeTexture("cached", new List<string>()))
+                {
+                    using (Game game = CreateGameWithoutPlatform())
+                    using (TextTextureRenderer renderer = CreateRenderer(sentinel.Texture))
+                    {
+                        game.Services.AddService(renderer);
+                        Assert.AreSame(renderer, TextTextureRenderer.Instance(game));
+                        using (ResourceGameComponent<Texture2D> cache = textShape ? CreateTextShape(renderer) : CreateHolder(renderer))
+                        {
+                            game.Components.Add(cache);
+                            Resources(cache, "currentResources").TryAdd(1, cached.Texture);
+                            Texture2D empty = textShape
+                                ? ((TextShape)cache).GetTextTexture(string.Empty, null, null)
+                                : ((TextTextureResourceHolder)cache)[string.Empty, null, null];
+                            Assert.AreSame(sentinel.Texture, empty);
+
+                            cache.Dispose();
+                            cache.Dispose();
+
+                            Assert.AreEqual((1, 0), (cached.ReleaseCount, sentinel.ReleaseCount));
+                            Assert.AreSame(sentinel.Texture, renderer.RenderText(string.Empty, null, null));
+                            TextTextureRenderer.ReleaseSharedResources(game);
+                            Assert.AreEqual(1, sentinel.ReleaseCount);
+                            Assert.IsNull(game.Services.GetService<TextTextureRenderer>());
+                            TextTextureRenderer.ReleaseSharedResources(game);
+                            game.Dispose();
+                            game.Dispose();
+                            Assert.AreEqual((1, 1), (cached.ReleaseCount, sentinel.ReleaseCount));
+                        }
+                    }
+                }
+            }
+        }
+
+        [TestMethod]
+        public void ExplicitSharedRendererReleaseRejectsNullGame()
+        {
+            Assert.AreEqual("game", Assert.ThrowsExactly<ArgumentNullException>(() => TextTextureRenderer.ReleaseSharedResources(null)).ParamName);
+        }
+
+        [TestMethod]
         public void DisposingSharedRendererDoesNotRemoveAReplacementService()
         {
             List<string> releases = new List<string>();
@@ -441,45 +580,51 @@ namespace Tests.FreeTrainSimulator.Graphics.Window
         {
             using (Game game = new Game())
             {
-                using TextTextureResourceHolder holder = CreateHolder(null);
-                game.Components.Add(holder);
-                using WindowManager<WindowKind> manager = CreateManager();
-                SetField(manager, "<Game>k__BackingField", game);
-                using RecordingWindow window = RecordingWindow.Create("window", new List<string>());
-                SetField(window, "<Owner>k__BackingField", manager);
-                SetField(window, "<Visible>k__BackingField", initiallyVisible);
-                int otherRefreshes = 0;
-                int otherOpens = 0;
-                int otherCloses = 0;
-                EventHandler<EventArgs> otherRefresh = (_, _) => otherRefreshes++;
-                EventHandler otherOpen = (_, _) => otherOpens++;
-                EventHandler otherClose = (_, _) => otherCloses++;
-                holder.Refresh += otherRefresh;
-                window.OnWindowOpened += otherOpen;
-                window.OnWindowClosed += otherClose;
-                using SubscriptionProbeTextControl control = new SubscriptionProbeTextControl(window);
-                Assert.IsTrue(Field<Delegate>(window, "OnWindowOpened").GetInvocationList().Any(handler => ReferenceEquals(handler.Target, control)));
-                Assert.IsTrue(Field<Delegate>(window, "OnWindowClosed").GetInvocationList().Any(handler => ReferenceEquals(handler.Target, control)));
-                holder.Update(new GameTime(TimeSpan.FromSeconds(31), TimeSpan.Zero));
-                int initialRefreshes = initiallyVisible ? 1 : 0;
-                Assert.AreEqual(initialRefreshes, control.InitializeCount);
+                using (TextTextureResourceHolder holder = CreateHolder(null))
+                {
+                    game.Components.Add(holder);
+                    using (WindowManager<WindowKind> manager = CreateManager())
+                    {
+                        SetField(manager, "<Game>k__BackingField", game);
+                        using (RecordingWindow window = RecordingWindow.Create("window", new List<string>()))
+                        {
+                            SetField(window, "<Owner>k__BackingField", manager);
+                            SetField(window, "<Visible>k__BackingField", initiallyVisible);
+                            int otherRefreshes = 0;
+                            int otherOpens = 0;
+                            int otherCloses = 0;
+                            EventHandler<EventArgs> otherRefresh = (_, _) => otherRefreshes++;
+                            EventHandler otherOpen = (_, _) => otherOpens++;
+                            EventHandler otherClose = (_, _) => otherCloses++;
+                            holder.Refresh += otherRefresh;
+                            window.OnWindowOpened += otherOpen;
+                            window.OnWindowClosed += otherClose;
+                            using SubscriptionProbeTextControl control = new SubscriptionProbeTextControl(window);
+                            Assert.Contains(handler => ReferenceEquals(handler.Target, control), Field<Delegate>(window, "OnWindowOpened").GetInvocationList());
+                            Assert.Contains(handler => ReferenceEquals(handler.Target, control), Field<Delegate>(window, "OnWindowClosed").GetInvocationList());
+                            holder.Update(new GameTime(TimeSpan.FromSeconds(31), TimeSpan.Zero));
+                            int initialRefreshes = initiallyVisible ? 1 : 0;
+                            Assert.AreEqual(initialRefreshes, control.InitializeCount);
 
-                control.Dispose();
-                control.Dispose();
+                            control.Dispose();
+                            control.Dispose();
 
-                Assert.AreEqual(otherRefresh, Field<Delegate>(holder, "Refresh"));
-                Assert.AreEqual(otherOpen, Field<Delegate>(window, "OnWindowOpened"));
-                Assert.AreEqual(otherClose, Field<Delegate>(window, "OnWindowClosed"));
-                // Raise the real publishers' delegates without creating a GPU-backed WindowManager.
-                Field<EventHandler>(window, "OnWindowOpened").Invoke(window, EventArgs.Empty);
-                holder.Update(new GameTime(TimeSpan.FromSeconds(62), TimeSpan.Zero));
-                Field<EventHandler>(window, "OnWindowClosed").Invoke(window, EventArgs.Empty);
-                Field<EventHandler>(window, "OnWindowOpened").Invoke(window, EventArgs.Empty);
-                holder.Update(new GameTime(TimeSpan.FromSeconds(93), TimeSpan.Zero));
+                            Assert.AreEqual(otherRefresh, Field<Delegate>(holder, "Refresh"));
+                            Assert.AreEqual(otherOpen, Field<Delegate>(window, "OnWindowOpened"));
+                            Assert.AreEqual(otherClose, Field<Delegate>(window, "OnWindowClosed"));
+                            // Raise the real publishers' delegates without creating a GPU-backed WindowManager.
+                            Field<EventHandler>(window, "OnWindowOpened").Invoke(window, EventArgs.Empty);
+                            holder.Update(new GameTime(TimeSpan.FromSeconds(62), TimeSpan.Zero));
+                            Field<EventHandler>(window, "OnWindowClosed").Invoke(window, EventArgs.Empty);
+                            Field<EventHandler>(window, "OnWindowOpened").Invoke(window, EventArgs.Empty);
+                            holder.Update(new GameTime(TimeSpan.FromSeconds(93), TimeSpan.Zero));
 
-                Assert.AreEqual(initialRefreshes, control.InitializeCount);
-                Assert.AreEqual((3, 2, 1), (otherRefreshes, otherOpens, otherCloses));
-                Assert.AreEqual(otherRefresh, Field<Delegate>(holder, "Refresh"));
+                            Assert.AreEqual(initialRefreshes, control.InitializeCount);
+                            Assert.AreEqual((3, 2, 1), (otherRefreshes, otherOpens, otherCloses));
+                            Assert.AreEqual(otherRefresh, Field<Delegate>(holder, "Refresh"));
+                        }
+                    }
+                }
             }
         }
 
@@ -490,36 +635,42 @@ namespace Tests.FreeTrainSimulator.Graphics.Window
         public void TextureManagerReleasesMissingTextureOnceAfterCachedTexturesWithoutCachingTheFallback(string generation)
         {
             List<string> releases = new List<string>();
-            using ProbeTexture missing = new ProbeTexture("missing", releases);
-            using ProbeTexture cached = new ProbeTexture("cached", releases);
-            using TextureManager manager = CreateTextureManager(missing.Texture);
-            Assert.AreSame(missing.Texture, manager.GetTextureCached(null));
-            Assert.AreSame(missing.Texture, manager.GetTextureCached(string.Empty));
-            // An unsupported suffix takes the real missing-texture path without file or GPU acquisition.
-            Assert.AreSame(missing.Texture, manager.GetTextureCached("missing.ownership-test"));
-            foreach (string name in cacheGenerations)
-                Assert.AreEqual(0, Resources(manager, name).Count);
-            Resources(manager, generation).TryAdd(1, cached.Texture);
-            EventHandler<EventArgs> verifyCleanup = (_, _) =>
+            using (ProbeTexture missing = new ProbeTexture("missing", releases))
             {
-                Assert.AreEqual(1, cached.ReleaseCount);
-                foreach (string name in cacheGenerations)
-                    Assert.AreEqual(0, Resources(manager, name).Count);
-            };
-            missing.Texture.Disposing += verifyCleanup;
-            try
-            {
-                manager.Dispose();
-                manager.Dispose();
+                using (ProbeTexture cached = new ProbeTexture("cached", releases))
+                {
+                    using (TextureManager manager = CreateTextureManager(missing.Texture))
+                    {
+                        Assert.AreSame(missing.Texture, manager.GetTextureCached(null));
+                        Assert.AreSame(missing.Texture, manager.GetTextureCached(string.Empty));
+                        // An unsupported suffix takes the real missing-texture path without file or GPU acquisition.
+                        Assert.AreSame(missing.Texture, manager.GetTextureCached("missing.ownership-test"));
+                        foreach (string name in cacheGenerations)
+                            Assert.IsEmpty(Resources(manager, name));
+                        Resources(manager, generation).TryAdd(1, cached.Texture);
+                        EventHandler<EventArgs> verifyCleanup = (_, _) =>
+                        {
+                            Assert.AreEqual(1, cached.ReleaseCount);
+                            foreach (string name in cacheGenerations)
+                                Assert.IsEmpty(Resources(manager, name));
+                        };
+                        missing.Texture.Disposing += verifyCleanup;
+                        try
+                        {
+                            manager.Dispose();
+                            manager.Dispose();
 
-                CollectionAssert.AreEqual(textureManagerReleases, releases);
-                Assert.AreEqual(1, cached.ReleaseCount);
-                Assert.AreEqual(1, missing.ReleaseCount);
-                Assert.IsNull(manager.MissingTexture);
-            }
-            finally
-            {
-                missing.Texture.Disposing -= verifyCleanup;
+                            Assert.AreSequenceEqual(textureManagerReleases, releases);
+                            Assert.AreEqual(1, cached.ReleaseCount);
+                            Assert.AreEqual(1, missing.ReleaseCount);
+                            Assert.IsNull(manager.MissingTexture);
+                        }
+                        finally
+                        {
+                            missing.Texture.Disposing -= verifyCleanup;
+                        }
+                    }
+                }
             }
         }
 
@@ -527,29 +678,33 @@ namespace Tests.FreeTrainSimulator.Graphics.Window
         public void TextureManagerReleasesMissingTextureEvenWhenCachedTextureCleanupFails()
         {
             List<string> releases = new List<string>();
-            using ProbeTexture missing = new ProbeTexture("missing", releases);
-            using ProbeTexture cached = new ProbeTexture("cached", releases);
-            InvalidOperationException expected = new InvalidOperationException("Cached texture cleanup failed.");
-            TextureManager manager = CreateTextureManager(missing.Texture);
-            try
+            using (ProbeTexture missing = new ProbeTexture("missing", releases))
             {
-                cached.ReleaseFailure = expected;
-                Resources(manager, "currentResources").TryAdd(1, cached.Texture);
+                using (ProbeTexture cached = new ProbeTexture("cached", releases))
+                {
+                    InvalidOperationException expected = new InvalidOperationException("Cached texture cleanup failed.");
+                    TextureManager manager = CreateTextureManager(missing.Texture);
+                    try
+                    {
+                        cached.ReleaseFailure = expected;
+                        Resources(manager, "currentResources").TryAdd(1, cached.Texture);
 
-                InvalidOperationException actual = Assert.ThrowsExactly<InvalidOperationException>(manager.Dispose);
-                Assert.AreSame(expected, Assert.ThrowsExactly<InvalidOperationException>(manager.Dispose));
+                        InvalidOperationException actual = Assert.ThrowsExactly<InvalidOperationException>(manager.Dispose);
+                        Assert.AreSame(expected, Assert.ThrowsExactly<InvalidOperationException>(manager.Dispose));
 
-                Assert.AreSame(expected, actual);
-                CollectionAssert.AreEqual(textureManagerReleases, releases);
-                Assert.AreEqual(1, cached.ReleaseCount);
-                Assert.AreEqual(1, missing.ReleaseCount);
-                Assert.IsNull(manager.MissingTexture);
-            }
-            finally
-            {
-                cached.ReleaseFailure = null;
-                if (!Field<bool>(manager, "resourcesDisposed"))
-                    manager.Dispose();
+                        Assert.AreSame(expected, actual);
+                        Assert.AreSequenceEqual(textureManagerReleases, releases);
+                        Assert.AreEqual(1, cached.ReleaseCount);
+                        Assert.AreEqual(1, missing.ReleaseCount);
+                        Assert.IsNull(manager.MissingTexture);
+                    }
+                    finally
+                    {
+                        cached.ReleaseFailure = null;
+                        if (!Field<bool>(manager, "resourcesDisposed"))
+                            manager.Dispose();
+                    }
+                }
             }
         }
 
@@ -559,31 +714,37 @@ namespace Tests.FreeTrainSimulator.Graphics.Window
         public void SharedCacheReleaseFailureDoesNotSkipOtherGenerationsAndSurvivesRetry(bool textShape)
         {
             List<string> releases = new List<string>();
-            using ProbeTexture first = new ProbeTexture("first", releases);
-            using ProbeTexture previous = new ProbeTexture("previous", releases);
-            using ProbeTexture sweep = new ProbeTexture("sweep", releases);
-            InvalidOperationException expected = new InvalidOperationException("cache release");
-            ResourceGameComponent<Texture2D> cache = textShape ? CreateTextShape(null) : CreateHolder(null);
-            try
+            using (ProbeTexture first = new ProbeTexture("first", releases))
             {
-                first.ReleaseFailure = expected;
-                Resources(cache, "currentResources").TryAdd(1, first.Texture);
-                Resources(cache, "previousResources").TryAdd(2, previous.Texture);
-                Resources(cache, "sweepResources").TryAdd(3, sweep.Texture);
+                using (ProbeTexture previous = new ProbeTexture("previous", releases))
+                {
+                    using (ProbeTexture sweep = new ProbeTexture("sweep", releases))
+                    {
+                        InvalidOperationException expected = new InvalidOperationException("cache release");
+                        ResourceGameComponent<Texture2D> cache = textShape ? CreateTextShape(null) : CreateHolder(null);
+                        try
+                        {
+                            first.ReleaseFailure = expected;
+                            Resources(cache, "currentResources").TryAdd(1, first.Texture);
+                            Resources(cache, "previousResources").TryAdd(2, previous.Texture);
+                            Resources(cache, "sweepResources").TryAdd(3, sweep.Texture);
 
-                Assert.AreSame(expected, Assert.ThrowsExactly<InvalidOperationException>(cache.Dispose));
-                Assert.AreSame(expected, Assert.ThrowsExactly<InvalidOperationException>(cache.Dispose));
+                            Assert.AreSame(expected, Assert.ThrowsExactly<InvalidOperationException>(cache.Dispose));
+                            Assert.AreSame(expected, Assert.ThrowsExactly<InvalidOperationException>(cache.Dispose));
 
-                CollectionAssert.AreEqual(cacheFailureReleases, releases);
-                Assert.AreEqual((1, 1, 1), (first.ReleaseCount, previous.ReleaseCount, sweep.ReleaseCount));
-                foreach (string generation in cacheGenerations)
-                    Assert.AreEqual(0, Resources(cache, generation).Count);
-            }
-            finally
-            {
-                first.ReleaseFailure = null;
-                if (!Field<bool>(cache, "disposed"))
-                    cache.Dispose();
+                            Assert.AreSequenceEqual(cacheFailureReleases, releases);
+                            Assert.AreEqual((1, 1, 1), (first.ReleaseCount, previous.ReleaseCount, sweep.ReleaseCount));
+                            foreach (string generation in cacheGenerations)
+                                Assert.IsEmpty(Resources(cache, generation));
+                        }
+                        finally
+                        {
+                            first.ReleaseFailure = null;
+                            if (!Field<bool>(cache, "disposed"))
+                                cache.Dispose();
+                        }
+                    }
+                }
             }
         }
 
@@ -592,25 +753,29 @@ namespace Tests.FreeTrainSimulator.Graphics.Window
         [DataRow(true)]
         public void NoncontinuableCacheReleaseFailureSurvivesRetryWithoutReleasingLaterGenerations(bool textShape)
         {
-            using ProbeTexture first = new ProbeTexture("first", new List<string>());
-            using ProbeTexture later = new ProbeTexture("later", new List<string>());
-            FatalException expected = new FatalException("Noncontinuable texture cleanup.");
-            first.ReleaseFailure = expected;
-            ResourceGameComponent<Texture2D> cache = textShape ? CreateTextShape(null) : CreateHolder(null);
-            try
+            using (ProbeTexture first = new ProbeTexture("first", new List<string>()))
             {
-                Resources(cache, "currentResources").TryAdd(1, first.Texture);
-                Resources(cache, "previousResources").TryAdd(2, later.Texture);
+                using (ProbeTexture later = new ProbeTexture("later", new List<string>()))
+                {
+                    FatalException expected = new FatalException("Noncontinuable texture cleanup.");
+                    first.ReleaseFailure = expected;
+                    ResourceGameComponent<Texture2D> cache = textShape ? CreateTextShape(null) : CreateHolder(null);
+                    try
+                    {
+                        Resources(cache, "currentResources").TryAdd(1, first.Texture);
+                        Resources(cache, "previousResources").TryAdd(2, later.Texture);
 
-                Assert.AreSame(expected, Assert.ThrowsExactly<FatalException>(cache.Dispose));
-                Assert.AreSame(expected, Assert.ThrowsExactly<FatalException>(cache.Dispose));
+                        Assert.AreSame(expected, Assert.ThrowsExactly<FatalException>(cache.Dispose));
+                        Assert.AreSame(expected, Assert.ThrowsExactly<FatalException>(cache.Dispose));
 
-                Assert.AreEqual((1, 0), (first.ReleaseCount, later.ReleaseCount));
-            }
-            finally
-            {
-                if (!Field<bool>(cache, "disposed"))
-                    cache.Dispose();
+                        Assert.AreEqual((1, 0), (first.ReleaseCount, later.ReleaseCount));
+                    }
+                    finally
+                    {
+                        if (!Field<bool>(cache, "disposed"))
+                            cache.Dispose();
+                    }
+                }
             }
         }
 
@@ -618,29 +783,33 @@ namespace Tests.FreeTrainSimulator.Graphics.Window
         public void TextureManagerRetainsCacheAndFallbackReleaseFailuresWithoutRetryingEither()
         {
             List<string> releases = new List<string>();
-            using ProbeTexture cached = new ProbeTexture("cached", releases);
-            using ProbeTexture missing = new ProbeTexture("missing", releases);
-            InvalidOperationException cachedFailure = new InvalidOperationException("cached");
-            InvalidOperationException missingFailure = new InvalidOperationException("missing");
-            TextureManager manager = CreateTextureManager(missing.Texture);
-            try
+            using (ProbeTexture cached = new ProbeTexture("cached", releases))
             {
-                cached.ReleaseFailure = cachedFailure;
-                missing.ReleaseFailure = missingFailure;
-                Resources(manager, "currentResources").TryAdd(1, cached.Texture);
+                using (ProbeTexture missing = new ProbeTexture("missing", releases))
+                {
+                    InvalidOperationException cachedFailure = new InvalidOperationException("cached");
+                    InvalidOperationException missingFailure = new InvalidOperationException("missing");
+                    TextureManager manager = CreateTextureManager(missing.Texture);
+                    try
+                    {
+                        cached.ReleaseFailure = cachedFailure;
+                        missing.ReleaseFailure = missingFailure;
+                        Resources(manager, "currentResources").TryAdd(1, cached.Texture);
 
-                AggregateException failure = Assert.ThrowsExactly<AggregateException>(manager.Dispose);
-                Assert.AreSame(failure, Assert.ThrowsExactly<AggregateException>(manager.Dispose));
-                CollectionAssert.AreEqual(new Exception[] { cachedFailure, missingFailure }, failure.InnerExceptions);
-                CollectionAssert.AreEqual(textureManagerReleases, releases);
-                Assert.AreEqual((1, 1), (cached.ReleaseCount, missing.ReleaseCount));
-            }
-            finally
-            {
-                cached.ReleaseFailure = null;
-                missing.ReleaseFailure = null;
-                if (!Field<bool>(manager, "resourcesDisposed"))
-                    manager.Dispose();
+                        AggregateException failure = Assert.ThrowsExactly<AggregateException>(manager.Dispose);
+                        Assert.AreSame(failure, Assert.ThrowsExactly<AggregateException>(manager.Dispose));
+                        Assert.AreSequenceEqual(new Exception[] { cachedFailure, missingFailure }, failure.InnerExceptions);
+                        Assert.AreSequenceEqual(textureManagerReleases, releases);
+                        Assert.AreEqual((1, 1), (cached.ReleaseCount, missing.ReleaseCount));
+                    }
+                    finally
+                    {
+                        cached.ReleaseFailure = null;
+                        missing.ReleaseFailure = null;
+                        if (!Field<bool>(manager, "resourcesDisposed"))
+                            manager.Dispose();
+                    }
+                }
             }
         }
 
@@ -649,33 +818,43 @@ namespace Tests.FreeTrainSimulator.Graphics.Window
         [DataRow("previousResources")]
         public void HolderPreparationAndBorrowedIndexerKeepTextureOwnedByCache(string generation)
         {
-            using ProbeTexture sentinel = new ProbeTexture("sentinel", new List<string>());
-            using ProbeTexture texture = new ProbeTexture("text", new List<string>());
-            using TextTextureRenderer renderer = CreateRenderer(sentinel.Texture);
-            using TextTextureResourceHolder holder = CreateHolder(renderer);
-            using Font font = new Font("Arial", 12);
-            const string text = "cached text";
-            int key = HashCode.Combine(text, font, (OutlineRenderOptions)null);
-            Resources(holder, generation).TryAdd(key, texture.Texture);
+            using (ProbeTexture sentinel = new ProbeTexture("sentinel", new List<string>()))
+            {
+                using (ProbeTexture texture = new ProbeTexture("text", new List<string>()))
+                {
+                    using (TextTextureRenderer renderer = CreateRenderer(sentinel.Texture))
+                    {
+                        using (TextTextureResourceHolder holder = CreateHolder(renderer))
+                        {
+                            using (Font font = new Font("Arial", 12))
+                            {
+                                const string text = "cached text";
+                                int key = HashCode.Combine(text, font, (OutlineRenderOptions)null);
+                                Resources(holder, generation).TryAdd(key, texture.Texture);
 
-            holder.PrepareResource(text, font);
+                                holder.PrepareResource(text, font);
 
-            Assert.AreSame(texture.Texture, Resources(holder, "currentResources")[key]);
-            Assert.AreEqual(0, Resources(holder, "previousResources").Count);
-            Assert.AreSame(texture.Texture, holder[text, font]);
-            holder.Update(new GameTime(TimeSpan.FromSeconds(31), TimeSpan.Zero));
-            Assert.AreSame(texture.Texture, Resources(holder, "previousResources")[key]);
-            Assert.AreSame(texture.Texture, holder[text, font]);
-            holder.PrepareResource(text, font);
-            Assert.AreSame(texture.Texture, Resources(holder, "currentResources")[key]);
-            Assert.AreEqual(0, Resources(holder, "previousResources").Count);
-            Assert.AreEqual(0, texture.ReleaseCount);
+                                Assert.AreSame(texture.Texture, Resources(holder, "currentResources")[key]);
+                                Assert.IsEmpty(Resources(holder, "previousResources"));
+                                Assert.AreSame(texture.Texture, holder[text, font]);
+                                holder.Update(new GameTime(TimeSpan.FromSeconds(31), TimeSpan.Zero));
+                                Assert.AreSame(texture.Texture, Resources(holder, "previousResources")[key]);
+                                Assert.AreSame(texture.Texture, holder[text, font]);
+                                holder.PrepareResource(text, font);
+                                Assert.AreSame(texture.Texture, Resources(holder, "currentResources")[key]);
+                                Assert.IsEmpty(Resources(holder, "previousResources"));
+                                Assert.AreEqual(0, texture.ReleaseCount);
 
-            holder.Dispose();
-            holder.Dispose();
+                                holder.Dispose();
+                                holder.Dispose();
 
-            Assert.AreEqual(1, texture.ReleaseCount);
-            Assert.AreEqual(0, sentinel.ReleaseCount);
+                                Assert.AreEqual(1, texture.ReleaseCount);
+                                Assert.AreEqual(0, sentinel.ReleaseCount);
+                            }
+                        }
+                    }
+                }
+            }
         }
 
         [TestMethod]
@@ -683,78 +862,110 @@ namespace Tests.FreeTrainSimulator.Graphics.Window
         [DataRow("previousResources")]
         public void OutlinedHolderPreparationAndBorrowedIndexerKeepTextureOwnedByCache(string generation)
         {
-            using ProbeTexture sentinel = new ProbeTexture("sentinel", new List<string>());
-            using ProbeTexture texture = new ProbeTexture("outlined text", new List<string>());
-            using TextTextureRenderer renderer = CreateRenderer(sentinel.Texture);
-            using TextTextureResourceHolder holder = CreateHolder(renderer);
-            using Font font = new Font("Arial", 12);
-            using OutlineRenderOptions outline = new OutlineRenderOptions(2, System.Drawing.Color.Black, System.Drawing.Color.White);
-            const string text = "cached text";
-            int key = HashCode.Combine(text, font, outline);
-            Resources(holder, generation).TryAdd(key, texture.Texture);
+            using (ProbeTexture sentinel = new ProbeTexture("sentinel", new List<string>()))
+            {
+                using (ProbeTexture texture = new ProbeTexture("outlined text", new List<string>()))
+                {
+                    using (TextTextureRenderer renderer = CreateRenderer(sentinel.Texture))
+                    {
+                        using (TextTextureResourceHolder holder = CreateHolder(renderer))
+                        {
+                            using (Font font = new Font("Arial", 12))
+                            {
+                                using (OutlineRenderOptions outline = new OutlineRenderOptions(2, System.Drawing.Color.Black, System.Drawing.Color.White))
+                                {
+                                    const string text = "cached text";
+                                    int key = HashCode.Combine(text, font, outline);
+                                    Resources(holder, generation).TryAdd(key, texture.Texture);
 
-            holder.PrepareResource(text, font, outline);
+                                    holder.PrepareResource(text, font, outline);
 
-            Assert.AreSame(texture.Texture, Resources(holder, "currentResources")[key]);
-            Assert.AreEqual(0, Resources(holder, "previousResources").Count);
-            Assert.AreSame(texture.Texture, holder[text, font, outline]);
-            holder.Update(new GameTime(TimeSpan.FromSeconds(31), TimeSpan.Zero));
-            Assert.AreSame(texture.Texture, Resources(holder, "previousResources")[key]);
-            Assert.AreSame(texture.Texture, holder[text, font, outline]);
-            holder.PrepareResource(text, font, outline);
-            Assert.AreSame(texture.Texture, Resources(holder, "currentResources")[key]);
-            Assert.AreEqual(0, Resources(holder, "previousResources").Count);
-            Assert.AreEqual(0, texture.ReleaseCount);
+                                    Assert.AreSame(texture.Texture, Resources(holder, "currentResources")[key]);
+                                    Assert.IsEmpty(Resources(holder, "previousResources"));
+                                    Assert.AreSame(texture.Texture, holder[text, font, outline]);
+                                    holder.Update(new GameTime(TimeSpan.FromSeconds(31), TimeSpan.Zero));
+                                    Assert.AreSame(texture.Texture, Resources(holder, "previousResources")[key]);
+                                    Assert.AreSame(texture.Texture, holder[text, font, outline]);
+                                    holder.PrepareResource(text, font, outline);
+                                    Assert.AreSame(texture.Texture, Resources(holder, "currentResources")[key]);
+                                    Assert.IsEmpty(Resources(holder, "previousResources"));
+                                    Assert.AreEqual(0, texture.ReleaseCount);
 
-            holder.Dispose();
-            holder.Dispose();
+                                    holder.Dispose();
+                                    holder.Dispose();
 
-            Assert.AreEqual(1, texture.ReleaseCount);
-            Assert.AreEqual(0, sentinel.ReleaseCount);
+                                    Assert.AreEqual(1, texture.ReleaseCount);
+                                    Assert.AreEqual(0, sentinel.ReleaseCount);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         }
 
         [TestMethod]
         public void HolderPreparationAndBorrowedIndexersKeepEmptySentinelOutOfTextureCache()
         {
-            using ProbeTexture sentinel = new ProbeTexture("sentinel", new List<string>());
-            using TextTextureRenderer renderer = CreateRenderer(sentinel.Texture);
-            using TextTextureResourceHolder holder = CreateHolder(renderer);
-            using Font font = new Font("Arial", 12);
-            using OutlineRenderOptions outline = new OutlineRenderOptions(2, System.Drawing.Color.Black, System.Drawing.Color.White);
+            using (ProbeTexture sentinel = new ProbeTexture("sentinel", new List<string>()))
+            {
+                using (TextTextureRenderer renderer = CreateRenderer(sentinel.Texture))
+                {
+                    using (TextTextureResourceHolder holder = CreateHolder(renderer))
+                    {
+                        using (Font font = new Font("Arial", 12))
+                        {
+                            using (OutlineRenderOptions outline = new OutlineRenderOptions(2, System.Drawing.Color.Black, System.Drawing.Color.White))
+                            {
 
-            holder.PrepareResource(string.Empty, font);
-            holder.PrepareResource(string.Empty, font, outline);
+                                holder.PrepareResource(string.Empty, font);
+                                holder.PrepareResource(string.Empty, font, outline);
 
-            Assert.AreSame(sentinel.Texture, holder[string.Empty, font]);
-            Assert.AreSame(sentinel.Texture, holder[string.Empty, font, outline]);
-            foreach (string generation in cacheGenerations)
-                Assert.AreEqual(0, Resources(holder, generation).Count);
-            holder.Dispose();
-            holder.Dispose();
-            Assert.AreEqual(0, sentinel.ReleaseCount);
-            renderer.Dispose();
-            Assert.AreEqual(1, sentinel.ReleaseCount);
+                                Assert.AreSame(sentinel.Texture, holder[string.Empty, font]);
+                                Assert.AreSame(sentinel.Texture, holder[string.Empty, font, outline]);
+                                foreach (string generation in cacheGenerations)
+                                    Assert.IsEmpty(Resources(holder, generation));
+                                holder.Dispose();
+                                holder.Dispose();
+                                Assert.AreEqual(0, sentinel.ReleaseCount);
+                                renderer.Dispose();
+                                Assert.AreEqual(1, sentinel.ReleaseCount);
+                            }
+                        }
+                    }
+                }
+            }
         }
 
         [TestMethod]
         public void HolderMeasurementMatchesRendererDimensionsWithoutPopulatingTextureCache()
         {
-            using ProbeTexture sentinel = new ProbeTexture("sentinel", new List<string>());
-            using TextTextureRenderer renderer = CreateRenderer(sentinel.Texture);
-            using TextTextureResourceHolder holder = CreateHolder(renderer);
-            using Font font = new Font("Arial", 12);
-            using OutlineRenderOptions outline = new OutlineRenderOptions(2, System.Drawing.Color.Black, System.Drawing.Color.White);
-            const string text = "measured text";
+            using (ProbeTexture sentinel = new ProbeTexture("sentinel", new List<string>()))
+            {
+                using (TextTextureRenderer renderer = CreateRenderer(sentinel.Texture))
+                {
+                    using (TextTextureResourceHolder holder = CreateHolder(renderer))
+                    {
+                        using (Font font = new Font("Arial", 12))
+                        {
+                            using (OutlineRenderOptions outline = new OutlineRenderOptions(2, System.Drawing.Color.Black, System.Drawing.Color.White))
+                            {
+                                const string text = "measured text";
             System.Drawing.Size expected = renderer.Measure(text, font, null);
             System.Drawing.Size expectedOutlined = renderer.Measure(text, font, outline);
 
-            Assert.AreEqual(expected, holder.Measure(text, font));
-            Assert.AreEqual(expectedOutlined, holder.Measure(text, font, outline));
-            Assert.IsGreaterThan(0, expected.Width);
-            Assert.IsGreaterThan(0, expected.Height);
-            foreach (string generation in cacheGenerations)
-                Assert.AreEqual(0, Resources(holder, generation).Count);
-            Assert.AreEqual(0, sentinel.ReleaseCount);
+                                Assert.AreEqual(expected, holder.Measure(text, font));
+                                Assert.AreEqual(expectedOutlined, holder.Measure(text, font, outline));
+                                Assert.IsGreaterThan(0, expected.Width);
+                                Assert.IsGreaterThan(0, expected.Height);
+                                foreach (string generation in cacheGenerations)
+                                    Assert.IsEmpty(Resources(holder, generation));
+                                Assert.AreEqual(0, sentinel.ReleaseCount);
+                            }
+                        }
+                    }
+                }
+            }
         }
 
         [TestMethod]
@@ -762,36 +973,52 @@ namespace Tests.FreeTrainSimulator.Graphics.Window
         [DataRow("")]
         public void HolderMeasurementForEmptyTextReturnsSentinelDimensionsWithoutPopulatingTextureCache(string text)
         {
-            using ProbeTexture sentinel = new ProbeTexture("sentinel", new List<string>());
-            SetField(sentinel.Texture, "width", 1);
-            SetField(sentinel.Texture, "height", 1);
-            using TextTextureRenderer renderer = CreateRenderer(sentinel.Texture);
-            using TextTextureResourceHolder holder = CreateHolder(renderer);
-            using Font font = new Font("Arial", 12);
-            using OutlineRenderOptions outline = new OutlineRenderOptions(2, System.Drawing.Color.Black, System.Drawing.Color.White);
-
-            Assert.AreEqual(new System.Drawing.Size(1, 1), holder.Measure(text, font));
-            Assert.AreEqual(new System.Drawing.Size(1, 1), holder.Measure(text, font, outline));
-            foreach (string generation in cacheGenerations)
-                Assert.AreEqual(0, Resources(holder, generation).Count);
-            Assert.AreEqual(0, sentinel.ReleaseCount);
+            using (ProbeTexture sentinel = new ProbeTexture("sentinel", new List<string>()))
+            {
+                SetField(sentinel.Texture, "width", 1);
+                SetField(sentinel.Texture, "height", 1);
+                using (TextTextureRenderer renderer = CreateRenderer(sentinel.Texture))
+                {
+                    using (TextTextureResourceHolder holder = CreateHolder(renderer))
+                    {
+                        using (Font font = new Font("Arial", 12))
+                        {
+                            using (OutlineRenderOptions outline = new OutlineRenderOptions(2, System.Drawing.Color.Black, System.Drawing.Color.White))
+                            {
+                                Assert.AreEqual(new Size(1, 1), holder.Measure(text, font));
+                                Assert.AreEqual(new Size(1, 1), holder.Measure(text, font, outline));
+                                foreach (string generation in cacheGenerations)
+                                    Assert.IsEmpty(Resources(holder, generation));
+                                Assert.AreEqual(0, sentinel.ReleaseCount);
+                            }
+                        }
+                    }
+                }
+            }
         }
 
         [TestMethod]
         public void HolderMeasurementWithoutFontReturnsSentinelDimensionsWithoutPopulatingTextureCache()
         {
-            using ProbeTexture sentinel = new ProbeTexture("sentinel", new List<string>());
-            SetField(sentinel.Texture, "width", 1);
-            SetField(sentinel.Texture, "height", 1);
-            using TextTextureRenderer renderer = CreateRenderer(sentinel.Texture);
-            using TextTextureResourceHolder holder = CreateHolder(renderer);
-            using OutlineRenderOptions outline = new OutlineRenderOptions(2, System.Drawing.Color.Black, System.Drawing.Color.White);
-
-            Assert.AreEqual(new System.Drawing.Size(1, 1), holder.Measure("text", null));
-            Assert.AreEqual(new System.Drawing.Size(1, 1), holder.Measure("text", null, outline));
-            foreach (string generation in cacheGenerations)
-                Assert.AreEqual(0, Resources(holder, generation).Count);
-            Assert.AreEqual(0, sentinel.ReleaseCount);
+            using (ProbeTexture sentinel = new ProbeTexture("sentinel", new List<string>()))
+            {
+                SetField(sentinel.Texture, "width", 1);
+                SetField(sentinel.Texture, "height", 1);
+                using (TextTextureRenderer renderer = CreateRenderer(sentinel.Texture))
+                {
+                    using (TextTextureResourceHolder holder = CreateHolder(renderer))
+                    {
+                        using (OutlineRenderOptions outline = new OutlineRenderOptions(2, System.Drawing.Color.Black, System.Drawing.Color.White))
+                        {
+                            Assert.AreEqual(new System.Drawing.Size(1, 1), holder.Measure("text", null));
+                            Assert.AreEqual(new System.Drawing.Size(1, 1), holder.Measure("text", null, outline));
+                            foreach (string generation in cacheGenerations)
+                                Assert.AreEqual(0, Resources(holder, generation).Count);
+                            Assert.AreEqual(0, sentinel.ReleaseCount);
+                        }
+                    }
+                }
+            }
         }
 
         /// <summary>Releases renderer acquisition that was not transferred to a renderer owner.</summary>
@@ -810,6 +1037,14 @@ namespace Tests.FreeTrainSimulator.Graphics.Window
             SetField(manager, "lazyWindows", new EnumArray<Lazy<FormBase>, WindowKind>());
             SetField(manager, "<RoundedShadows>k__BackingField", new Dictionary<int, Texture2D>());
             return manager;
+        }
+
+        private static Game CreateGameWithoutPlatform()
+        {
+            Game game = (Game)RuntimeHelpers.GetUninitializedObject(typeof(Game));
+            SetField(game, "_components", new GameComponentCollection());
+            SetField(game, "_services", new GameServiceContainer());
+            return game;
         }
 
         private TextTextureRenderer CreateRenderer(Texture2D sentinel)

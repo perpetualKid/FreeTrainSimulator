@@ -51,6 +51,20 @@ namespace Tests.FreeTrainSimulator.Common
         }
 
         [TestMethod]
+        [DataRow(typeof(InvalidOperationException), true)]
+        [DataRow(typeof(FatalException), false)]
+        [Timeout(10000, CooperativeCancellation = true)]
+        public void DeepAggregateChainsPreserveCleanupClassification(Type exceptionType, bool expected)
+        {
+            Exception failure = (Exception)Activator.CreateInstance(exceptionType, "Nested release failure.");
+            // Revisiting the first child would require billions of calls for this small chain.
+            for (int depth = 0; depth < 32; depth++)
+                failure = new AggregateException(failure);
+
+            Assert.AreEqual(expected, CleanupExceptionPolicy.CanContinue(failure));
+        }
+
+        [TestMethod]
         public void MissingFailureDoesNotMatchCleanupFilter()
         {
             Assert.IsFalse(CleanupExceptionPolicy.CanContinue(null));
