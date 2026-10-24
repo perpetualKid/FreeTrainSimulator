@@ -80,9 +80,9 @@ namespace FreeTrainSimulator.Graphics.MapView
                 {
                     new XnaMapHostResources(SpriteBatch, renderingLifetime, OwnedTextCache, hostEnvironment).Dispose();
                 }
-                catch (Exception cleanupError) when (CleanupExceptionPolicy.CanContinue(cleanupError))
+                catch (Exception cleanupError)
                 {
-                    throw new AggregateException(error, cleanupError);
+                    throw new MapContentRollbackException(error, cleanupError);
                 }
                 throw;
             }

@@ -70,9 +70,9 @@ namespace FreeTrainSimulator.Graphics.MapView
                         base.Dispose(true);
                     }
                 }
-                catch (Exception cleanupError) when (CleanupExceptionPolicy.CanContinue(cleanupError))
+                catch (Exception cleanupError)
                 {
-                    throw new AggregateException(error, cleanupError);
+                    throw new MapContentRollbackException(error, cleanupError);
                 }
                 throw;
             }

@@ -34,9 +34,9 @@ namespace FreeTrainSimulator.Graphics.MapView
                 {
                     Dispose();
                 }
-                catch (Exception cleanupError) when (CleanupExceptionPolicy.CanContinue(cleanupError))
+                catch (Exception cleanupError)
                 {
-                    throw new AggregateException(error, cleanupError);
+                    throw new MapContentRollbackException(error, cleanupError);
                 }
                 throw;
             }

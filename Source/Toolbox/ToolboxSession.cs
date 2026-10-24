@@ -77,8 +77,24 @@ namespace FreeTrainSimulator.Toolbox
             return operation;
         }
 
-        private static async Task<T> CaptureInvocationAsync<T>(Func<Task<T>> action)
-            => await action().ConfigureAwait(false);
+        private async Task<T> CaptureInvocationAsync<T>(Func<Task<T>> action)
+        {
+            try
+            {
+                return await action().ConfigureAwait(false);
+            }
+            catch (MapContentRollbackException error)
+            {
+                // No candidate exists for discard to retain. Publish failed-release evidence on
+                // the game owner before this admitted operation can complete and leave the job set.
+                await game.InvokeOnGameThreadAsync(() =>
+                {
+                    game.RetainMapRollbackFailure(error);
+                    return Task.CompletedTask;
+                }).ConfigureAwait(false);
+                throw;
+            }
+        }
 
         internal Task RunAsync(Func<Task> action)
         {
@@ -404,7 +420,7 @@ namespace FreeTrainSimulator.Toolbox
                     if (candidate != null && ReferenceEquals(toolboxContent, candidate))
                         ClearRoute();
                     else
-                        GameWindow.DiscardRouteContent(candidate);
+                        game.DiscardRouteContent(candidate);
                 }).ConfigureAwait(false);
             }
             catch (OperationCanceledException) when (token.IsCancellationRequested)

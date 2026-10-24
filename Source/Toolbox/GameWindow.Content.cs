@@ -26,6 +26,7 @@ namespace FreeTrainSimulator.Toolbox
         private readonly ToolboxSession session;
         private bool ownedResourcesReleaseAttempted;
         private ExceptionDispatchInfo ownedResourcesReleaseFailure;
+        private ExceptionDispatchInfo detachedContentReleaseFailure;
 
         internal ToolboxSession Session => session;
 
@@ -78,8 +79,38 @@ namespace FreeTrainSimulator.Toolbox
         }
 
         /// <summary>Releases an uncommitted device candidate without changing the committed map.</summary>
-        internal static void DiscardRouteContent(ToolboxContent content)
-            => ((content?.ShellHost as IXnaMapShellHost)?.Component as ContentArea)?.Dispose();
+        internal void DiscardRouteContent(ToolboxContent content)
+            => ReleaseDetachedContent((content?.ShellHost as IXnaMapShellHost)?.Component as ContentArea);
+
+        private void ReleaseDetachedContent(ContentArea candidate)
+        {
+            try
+            {
+                candidate?.Dispose();
+            }
+            catch (Exception error)
+            {
+                // The admitted operation may finish before stop snapshots jobs. Keep release proof
+                // at the device owner, without retaining/retrying an already-attempted candidate.
+                RetainDetachedContentReleaseFailure(error);
+                throw;
+            }
+        }
+
+        /// <summary>Retains failed partial-acquisition release even when construction returned no candidate.</summary>
+        internal void RetainMapRollbackFailure(MapContentRollbackException error)
+        {
+            ArgumentNullException.ThrowIfNull(error);
+            VerifySessionOwner();
+            RetainDetachedContentReleaseFailure(error);
+        }
+
+        private void RetainDetachedContentReleaseFailure(Exception error)
+        {
+            if (!ReferenceEquals(detachedContentReleaseFailure?.SourceException, error))
+                detachedContentReleaseFailure = ExceptionDispatchInfo.Capture(detachedContentReleaseFailure == null
+                    ? error : new AggregateException(detachedContentReleaseFailure.SourceException, error));
+        }
 
         /// <summary>Creates the editor's platform input wiring while retaining session admission and commit gates.</summary>
         internal PathEditor CreatePathEditor(ToolboxContent content)
@@ -174,6 +205,8 @@ namespace FreeTrainSimulator.Toolbox
             try
             {
                 List<Exception> errors = new List<Exception>();
+                if (detachedContentReleaseFailure != null)
+                    errors.Add(detachedContentReleaseFailure.SourceException);
                 void Release(Action release)
                 {
                     try

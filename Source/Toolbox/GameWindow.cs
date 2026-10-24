@@ -94,7 +94,7 @@ namespace FreeTrainSimulator.Toolbox
                         List<Exception> errors = new List<Exception> { error };
                         // Enablement can attach overlay helpers before a later title callback fails.
                         // Roll back each operation even when another rollback operation fails.
-                        foreach (Action cleanup in new Action[] { () => value.Enabled = false, () => Components.Remove(value), value.Dispose })
+                        foreach (Action cleanup in new Action[] { () => value.Enabled = false, () => Components.Remove(value), () => ReleaseDetachedContent(value) })
                         {
                             try
                             {

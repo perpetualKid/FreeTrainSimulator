@@ -74,9 +74,11 @@ namespace Tests.FreeTrainSimulator.Graphics.MapView
                         pendingEnvironment = emergencyEnvironment;
                         ProbeEnvironment environment = pendingEnvironment;
                         ProbeSessionFactory factory = CreateFactory(ref pendingEnvironment, font);
-                        AggregateException error = Assert.ThrowsExactly<AggregateException>(() =>
+                        MapContentRollbackException error = Assert.ThrowsExactly<MapContentRollbackException>(() =>
                         {
-                            using ContentArea unexpected = new ContentArea(game, EmptyContent(false), null, factory);
+                            using (ContentArea unexpected = new ContentArea(game, EmptyContent(false), null, factory))
+                            { 
+                            }
                         });
 
                         Assert.AreEqual("resize", error.InnerExceptions[0].Message);

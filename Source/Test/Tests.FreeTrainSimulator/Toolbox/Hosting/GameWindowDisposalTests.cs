@@ -32,6 +32,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.Hosting
         private static readonly string[] managerComponentTransportReleases = { "manager", "component", "transport" };
         private static readonly string[] failedComponentReleases = { "first", "later", "manager", "transport" };
         private static readonly string[] failedRendererReleases = { "component", "sentinel", "manager", "transport" };
+        private static readonly string[] detachedFailureReleases = { "later", "transport" };
 
         public TestContext TestContext { get; set; }
 
@@ -299,8 +300,8 @@ namespace Tests.FreeTrainSimulator.Toolbox.Hosting
                 await host.OnOwnerAsync(() =>
                 {
                     using (System.Drawing.Font font = new System.Drawing.Font("Arial", 12))
-                    using (GameWindow game = CreateAttachmentAdapter(host))
                     {
+                        GameWindow game = CreateAttachmentAdapter(host);
                         InvalidOperationException attachmentError = new InvalidOperationException(failureStage);
                         InvalidOperationException cleanupError = new InvalidOperationException("Candidate cleanup failed.");
                         AttachmentSession session = new AttachmentSession(font, cleanupError);
@@ -315,7 +316,8 @@ namespace Tests.FreeTrainSimulator.Toolbox.Hosting
                             Assert.DoesNotContain(candidate, game.Components);
                             Assert.AreEqual((0, 0), (session.MouseHandlerCount, session.ResizeHandlerCount));
                             Assert.AreSame(cleanupError, Assert.ThrowsExactly<InvalidOperationException>(candidate.Dispose));
-                            game.Dispose();
+                            Assert.AreSame(cleanupError, Assert.ThrowsExactly<InvalidOperationException>(game.Dispose));
+                            Assert.AreSame(cleanupError, Assert.ThrowsExactly<InvalidOperationException>(game.Dispose));
                             Assert.AreEqual(1, session.ReleaseCount);
                         }
                     }
@@ -444,8 +446,8 @@ namespace Tests.FreeTrainSimulator.Toolbox.Hosting
                 await host.OnOwnerAsync(() =>
                 {
                     using (System.Drawing.Font font = new System.Drawing.Font("Arial", 12))
-                    using (GameWindow game = CreateAttachmentAdapter(host))
                     {
+                        GameWindow game = CreateAttachmentAdapter(host);
                         InvalidOperationException attachmentFailure = new InvalidOperationException("activation");
                         InvalidOperationException disableFailure = new InvalidOperationException("disable");
                         InvalidOperationException removalFailure = new InvalidOperationException("removal");
@@ -472,7 +474,56 @@ namespace Tests.FreeTrainSimulator.Toolbox.Hosting
                         Assert.IsNull(game.ContentArea);
                         Assert.AreEqual((1, 0, 0), (session.ReleaseCount, session.MouseHandlerCount, session.ResizeHandlerCount));
                         Assert.AreSame(releaseFailure, Assert.ThrowsExactly<InvalidOperationException>(candidate.Dispose));
+                        Assert.AreSame(releaseFailure, Assert.ThrowsExactly<InvalidOperationException>(game.Dispose));
+                        Assert.AreSame(releaseFailure, Assert.ThrowsExactly<InvalidOperationException>(game.Dispose));
                         Assert.AreEqual(1, session.ReleaseCount);
+                    }
+                }).WaitAsync(TestContext.CancellationToken).ConfigureAwait(false);
+            }
+        }
+
+        [TestMethod]
+        [Timeout(10000, CooperativeCancellation = true)]
+        public async Task DetachedCandidateFailuresSurviveLaterOwnerCleanupFailure()
+        {
+            StaControlHost host = await StaControlHost.StartAsync().ConfigureAwait(false);
+            await using (host.ConfigureAwait(false))
+            {
+                await host.OnOwnerAsync(() =>
+                {
+                    using (System.Drawing.Font font = new System.Drawing.Font("Arial", 12))
+                    {
+                        InvalidOperationException firstFailure = new InvalidOperationException("First detached release.");
+                        InvalidOperationException secondFailure = new InvalidOperationException("Second detached release.");
+                        InvalidOperationException laterFailure = new InvalidOperationException("Later owner release.");
+                        List<string> releases = new List<string>();
+                        GameWindow game = CreateAdapter(host, () =>
+                        {
+                            Assert.AreEqual(host.OwnerThreadId, Environment.CurrentManagedThreadId);
+                            Assert.IsFalse(host.DispatchControl.IsDisposed);
+                            releases.Add("later");
+                            throw laterFailure;
+                        });
+                        AttachmentSession firstSession = new AttachmentSession(font, firstFailure);
+                        AttachmentSession secondSession = new AttachmentSession(font, secondFailure);
+                        ContentArea first = CreateCandidate(game, firstSession);
+                        ContentArea second = CreateCandidate(game, secondSession);
+                        SetField(first.Content, typeof(ContentBase), "<Session>k__BackingField", new XnaMapSession(first));
+                        SetField(second.Content, typeof(ContentBase), "<Session>k__BackingField", new XnaMapSession(second));
+                        host.DispatchControl.Disposed += (_, _) => releases.Add("transport");
+
+                        Assert.AreSame(firstFailure, Assert.ThrowsExactly<InvalidOperationException>(() =>
+                            game.DiscardRouteContent((ToolboxContent)first.Content)));
+                        Assert.AreSame(secondFailure, Assert.ThrowsExactly<InvalidOperationException>(() =>
+                            game.DiscardRouteContent((ToolboxContent)second.Content)));
+                        AggregateException failure = Assert.ThrowsExactly<AggregateException>(game.Dispose);
+                        Assert.HasCount(3, failure.Flatten().InnerExceptions);
+                        Assert.Contains(firstFailure, failure.Flatten().InnerExceptions);
+                        Assert.Contains(secondFailure, failure.Flatten().InnerExceptions);
+                        Assert.Contains(laterFailure, failure.Flatten().InnerExceptions);
+                        Assert.AreSame(failure, Assert.ThrowsExactly<AggregateException>(game.Dispose));
+                        Assert.AreEqual((1, 1), (firstSession.ReleaseCount, secondSession.ReleaseCount));
+                        Assert.AreSequenceEqual(detachedFailureReleases, releases);
                     }
                 }).WaitAsync(TestContext.CancellationToken).ConfigureAwait(false);
             }

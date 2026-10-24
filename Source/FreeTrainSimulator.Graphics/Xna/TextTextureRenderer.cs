@@ -9,6 +9,7 @@ using System.Runtime.ExceptionServices;
 using System.Runtime.InteropServices;
 
 using FreeTrainSimulator.Common;
+using FreeTrainSimulator.Graphics.MapView;
 
 using Microsoft.Xna.Framework.Graphics;
 
@@ -93,9 +94,16 @@ namespace FreeTrainSimulator.Graphics.Xna
             {
                 measureBitmap = new Bitmap(1, 1);
             }
-            catch
+            catch (Exception error)
             {
-                EmptyTexture.Dispose();
+                try
+                {
+                    EmptyTexture.Dispose();
+                }
+                catch (Exception cleanupError)
+                {
+                    throw new MapContentRollbackException(error, cleanupError);
+                }
                 throw;
             }
         }
