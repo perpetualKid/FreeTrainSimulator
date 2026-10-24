@@ -3,18 +3,15 @@ using System.Collections.Generic;
 using System.Runtime.ExceptionServices;
 
 using FreeTrainSimulator.Common;
-using FreeTrainSimulator.Graphics.DrawableComponents;
 using FreeTrainSimulator.Graphics.MapView.Shapes;
 using FreeTrainSimulator.Graphics.Xna;
 
 using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
 
 namespace FreeTrainSimulator.Graphics.MapView
 {
     internal sealed class XnaMapRenderingLifetime : IMapRenderingLifetime, IDisposable
     {
-        private readonly Game game;
         private readonly TextTextureRenderer textTextureRenderer;
         private readonly BasicShapes basicShapes;
         private bool disposed;
@@ -22,7 +19,7 @@ namespace FreeTrainSimulator.Graphics.MapView
 
         public XnaMapRenderingLifetime(Game game)
         {
-            this.game = game ?? throw new ArgumentNullException(nameof(game));
+            ArgumentNullException.ThrowIfNull(game);
             textTextureRenderer = TextTextureRenderer.Create(game);
             try
             {
@@ -42,7 +39,7 @@ namespace FreeTrainSimulator.Graphics.MapView
             }
         }
 
-        /// <summary>Releases only the private renderer and textures, never the borrowed TextShape or host services.</summary>
+        /// <summary>Releases only the private renderer and textures, never shared components or host services.</summary>
         public void Dispose()
         {
             if (disposed)
@@ -87,11 +84,6 @@ namespace FreeTrainSimulator.Graphics.MapView
         public BasicShapes GetBasicShapes()
         {
             return basicShapes;
-        }
-
-        public TextShape GetTextShape(SpriteBatch spriteBatch)
-        {
-            return TextShape.Instance(game, spriteBatch);
         }
 
         public TextTextureRenderer GetTextTextureRenderer()

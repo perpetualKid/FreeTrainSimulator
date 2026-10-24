@@ -171,7 +171,7 @@ namespace Tests.FreeTrainSimulator.Graphics.MapView
                     using (TextTextureRenderer renderer = acquired >= 2 ? CreateCpuRenderer(sentinel.Texture) : null)
                     using (BasicShapes shapes = acquired >= 2 ? CreateShapes() : null)
                     {
-                        using (XnaMapRenderingLifetime lifetime = acquired >= 2 ? CreateLifetime(null, renderer, shapes) : null)
+                        using (XnaMapRenderingLifetime lifetime = acquired >= 2 ? CreateLifetime(renderer, shapes) : null)
                         {
                             using (MapTextTextureCache cache = acquired >= 3 ? new MapTextTextureCache(lifetime.GetTextTextureRenderer()) : null)
                             {
@@ -223,7 +223,7 @@ namespace Tests.FreeTrainSimulator.Graphics.MapView
                                 Textures(shapes, "basicTextures")[BasicTextureType.BlankPixel] = shape.Texture;
                                 using (TextTextureRenderer renderer = CreateCpuRenderer(sentinel.Texture))
                                 {
-                                    using (XnaMapRenderingLifetime lifetime = CreateLifetime(null, renderer, shapes))
+                                    using (XnaMapRenderingLifetime lifetime = CreateLifetime(renderer, shapes))
                                     {
                                         using (MapTextTextureCache cache = new MapTextTextureCache(lifetime.GetTextTextureRenderer()))
                                         {
@@ -288,7 +288,7 @@ namespace Tests.FreeTrainSimulator.Graphics.MapView
                         {
                             using (Bitmap bitmap = Field<Bitmap>(renderer, "measureBitmap"))
                             {
-                                XnaMapRenderingLifetime lifetime = CreateLifetime(null, renderer, shapes);
+                                XnaMapRenderingLifetime lifetime = CreateLifetime(renderer, shapes);
                                 try
                                 {
                                     AggregateException failure = Assert.ThrowsExactly<AggregateException>(lifetime.Dispose);
@@ -326,6 +326,58 @@ namespace Tests.FreeTrainSimulator.Graphics.MapView
         }
 
         [TestMethod]
+        public void MapResourceConstructionDoesNotAcquireSharedTextComponents()
+        {
+            List<string> releases = new List<string>();
+            using (ProbeTexture sharedSentinel = new ProbeTexture("shared sentinel", releases, false))
+            {
+                using (ProbeTexture privateSentinel = new ProbeTexture("private sentinel", releases, false))
+                {
+                    using (ProbeTexture shape = new ProbeTexture("shape", releases, false))
+                    {
+                        using (ProbeSpriteBatch spriteBatch = new ProbeSpriteBatch(releases))
+                        {
+                            using (Game game = new Game())
+                            {
+                                using (TextTextureRenderer sharedRenderer = CreateCpuRenderer(sharedSentinel.Texture))
+                                {
+                                    game.Services.AddService(sharedRenderer);
+                                    int componentCount = game.Components.Count;
+                                    using (TextTextureRenderer privateRenderer = CreateCpuRenderer(privateSentinel.Texture))
+                                    {
+                                        using (BasicShapes privateShapes = CreateShapes())
+                                        {
+                                            Textures(privateShapes, "basicTextures")[BasicTextureType.BlankPixel] = shape.Texture;
+                                            using (XnaMapRenderingLifetime lifetime = CreateLifetime(privateRenderer, privateShapes))
+                                            {
+                                                XnaMapRenderingResources resources = new XnaMapRenderingResources(lifetime, spriteBatch.SpriteBatch);
+                                                Assert.AreSame(spriteBatch.SpriteBatch, resources.SpriteBatch);
+                                                Assert.AreSame(privateShapes, resources.BasicShapes);
+                                                Assert.HasCount(componentCount, game.Components);
+                                                Assert.IsNull(Field<Game>(sharedRenderer, "sharedGame"));
+
+                                                using (XnaMapHostResources owner = new XnaMapHostResources(spriteBatch.SpriteBatch, lifetime, null, null))
+                                                {
+                                                    owner.Dispose();
+                                                    owner.Dispose();
+                                                    Assert.AreEqual((1, 1, 1), (shape.ReleaseCount, privateSentinel.ReleaseCount, spriteBatch.ReleaseCount));
+                                                    Assert.AreEqual(0, sharedSentinel.ReleaseCount);
+                                                    Assert.AreSame(sharedSentinel.Texture, sharedRenderer.RenderText(string.Empty, null, null));
+                                                    Assert.AreSame(sharedRenderer, game.Services.GetService<TextTextureRenderer>());
+                                                    Assert.HasCount(componentCount, game.Components);
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        [TestMethod]
         public void PrivateMapLifetimeDoesNotReleaseBorrowedTextShapeRendererOrFont()
         {
             List<string> releases = new List<string>();
@@ -349,9 +401,10 @@ namespace Tests.FreeTrainSimulator.Graphics.MapView
                                     {
                                         using (BasicShapes privateShapes = CreateShapes())
                                         {
-                                            using (XnaMapRenderingLifetime lifetime = CreateLifetime(game, privateRenderer, privateShapes))
+                                            using (XnaMapRenderingLifetime lifetime = CreateLifetime(privateRenderer, privateShapes))
                                             {
-                                                Assert.AreSame(borrowedTextShape, lifetime.GetTextShape(null));
+                                                XnaMapRenderingResources resources = new XnaMapRenderingResources(lifetime, null);
+                                                Assert.AreSame(privateShapes, resources.BasicShapes);
 
                                                 lifetime.Dispose();
                                                 lifetime.Dispose();
@@ -473,10 +526,9 @@ namespace Tests.FreeTrainSimulator.Graphics.MapView
             }
         }
 
-        private static XnaMapRenderingLifetime CreateLifetime(Game game, TextTextureRenderer renderer, BasicShapes shapes)
+        private static XnaMapRenderingLifetime CreateLifetime(TextTextureRenderer renderer, BasicShapes shapes)
         {
             XnaMapRenderingLifetime lifetime = (XnaMapRenderingLifetime)RuntimeHelpers.GetUninitializedObject(typeof(XnaMapRenderingLifetime));
-            SetField(lifetime, "game", game);
             SetField(lifetime, "textTextureRenderer", renderer);
             SetField(lifetime, "basicShapes", shapes);
             return lifetime;

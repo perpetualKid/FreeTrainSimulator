@@ -1,4 +1,3 @@
-using FreeTrainSimulator.Graphics.DrawableComponents;
 using FreeTrainSimulator.Graphics.MapView.Shapes;
 
 using Microsoft.Xna.Framework.Graphics;
@@ -10,7 +9,5 @@ namespace FreeTrainSimulator.Graphics.MapView
         SpriteBatch SpriteBatch { get; }
 
         BasicShapes BasicShapes { get; }
-
-        TextShape TextShape { get; }
     }
 }

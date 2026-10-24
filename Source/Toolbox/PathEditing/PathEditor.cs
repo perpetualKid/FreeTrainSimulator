@@ -324,22 +324,6 @@ namespace FreeTrainSimulator.Toolbox.PathEditing
             return resolutionCache.Resolve(pathModel, TrackWorld);
         }
 
-        private static async Task<bool> CanInitializePathAsync(PathModelHeader path, CancellationToken cancellationToken)
-        {
-            PathModel pathModel = path is PathModel model
-                ? model
-                : await path.GetExtended(cancellationToken).ConfigureAwait(false);
-
-            if (CanInitializePath(pathModel, out PathRouteResolution resolution))
-                return true;
-
-            string diagnostics = string.Join("; ", resolution.Diagnostics
-                .Where(diagnostic => diagnostic.Severity == PathRouteDiagnosticSeverity.Fatal)
-                .Select(diagnostic => $"{diagnostic.Code}: {diagnostic.Message}"));
-            Trace.TraceWarning($"Path editor cannot open path '{path.Id}' because the path content has fatal route diagnostics. {diagnostics}");
-            return false;
-        }
-
         public void InitializeNewPath()
         {
             if (stopped)

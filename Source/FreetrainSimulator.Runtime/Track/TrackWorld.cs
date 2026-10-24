@@ -221,7 +221,7 @@ namespace FreeTrainSimulator.Runtime.Track
         }
 
         /// <summary>
-        /// Registers rail track <see cref="TrackSegmentSection"/> instances built by the Graphics layer.
+        /// Replaces the rail track <see cref="TrackSegmentSection"/> instances initialized during runtime preparation.
         /// The array is indexed by track node index (sparse — non-vector indices will be <see langword="null"/>).
         /// </summary>
         public void SetSegmentSections(IEnumerable<TrackSegmentSection> sections)
@@ -231,7 +231,7 @@ namespace FreeTrainSimulator.Runtime.Track
         }
 
         /// <summary>
-        /// Registers road track <see cref="TrackSegmentSection"/> instances built by the Graphics layer.
+        /// Replaces the road track <see cref="TrackSegmentSection"/> instances initialized during runtime preparation.
         /// The array is indexed by track node index (sparse — non-vector indices will be <see langword="null"/>).
         /// </summary>
         public void SetRoadSegmentSections(IEnumerable<TrackSegmentSection> sections)
@@ -241,7 +241,7 @@ namespace FreeTrainSimulator.Runtime.Track
         }
 
         /// <summary>
-        /// Registers junction widget instances built by the Graphics layer.
+        /// Sets junction topology independently of the Graphics layer, including during runtime preparation.
         /// The array is indexed by track node index (sparse — non-junction indices will be <see langword="null"/>).
         /// </summary>
         public void SetJunctions(IEnumerable<JunctionNodeBase> junctions)
