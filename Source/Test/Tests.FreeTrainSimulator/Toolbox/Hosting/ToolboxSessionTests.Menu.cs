@@ -831,7 +831,11 @@ namespace Tests.FreeTrainSimulator.Toolbox.Hosting
 
         private abstract class MenuPathCache : ContentHandlerBase<PathModelHeader>
         {
-            internal static void SetPaths(RouteModelHeader route, Task<ImmutableArray<PathModelHeader>> paths) => modelSetTaskCache[route.Hierarchy()] = paths;
+            internal static void SetPaths(RouteModelHeader route, Task<ImmutableArray<PathModelHeader>> paths)
+            {
+                collectionUpdateRequired.TryRemove(route.Hierarchy(), out _);
+                modelSetTaskCache[route.Hierarchy()] = paths;
+            }
             internal static void RemovePaths(RouteModelHeader route) => modelSetTaskCache.TryRemove(route.Hierarchy(), out _);
         }
     }

@@ -276,28 +276,28 @@ namespace FreeTrainSimulator.Toolbox
 
         private async void MapHost_SaveTrainPathRequested(object sender, EventArgs e)
         {
-            TrainPathSaveState saveState = await MapHost.GetTrainPathSaveStateAsync().ConfigureAwait(true);
-            if (saveState == null)
-                return;
-
-            PathModelHeader pathDetails = TrainPathSaveRequest.PreparePathDetails(saveState.PathDetails, saveState.SourcePathId);
-
-            bool overwriteConfirmed = false;
-            TrainPathSaveRequest saveRequest = new TrainPathSaveRequest(pathDetails, saveState.SourcePathId, overwriteConfirmed);
-            if (saveRequest.IsSaveAs && await MapHost.TrainPathIdExistsAsync(pathDetails.Id).ConfigureAwait(true))
-            {
-                MessageBoxResult overwriteResult = MessageBox.Show(this,
-                    CatalogManager.Catalog.GetString($"A path with ID '{pathDetails.Id}' already exists. Replace that path? The active path will remain unchanged unless the save succeeds."),
-                    CatalogManager.Catalog.GetString("Confirm Save As Overwrite"), MessageBoxButton.YesNo, MessageBoxImage.Warning);
-                if (overwriteResult != MessageBoxResult.Yes)
-                    return;
-
-                overwriteConfirmed = true;
-                saveRequest = new TrainPathSaveRequest(pathDetails, saveState.SourcePathId, overwriteConfirmed);
-            }
-
             try
             {
+                TrainPathSaveState saveState = await MapHost.GetTrainPathSaveStateAsync().ConfigureAwait(true);
+                if (saveState == null)
+                    return;
+
+                PathModelHeader pathDetails = TrainPathSaveRequest.PreparePathDetails(saveState.PathDetails, saveState.SourcePathId);
+
+                bool overwriteConfirmed = false;
+                TrainPathSaveRequest saveRequest = new TrainPathSaveRequest(pathDetails, saveState.SourcePathId, overwriteConfirmed);
+                if (saveRequest.IsSaveAs && await MapHost.TrainPathIdExistsAsync(pathDetails.Id).ConfigureAwait(true))
+                {
+                    MessageBoxResult overwriteResult = MessageBox.Show(this,
+                        CatalogManager.Catalog.GetString($"A path with ID '{pathDetails.Id}' already exists. Replace that path? The active path will remain unchanged unless the save succeeds."),
+                        CatalogManager.Catalog.GetString("Confirm Save As Overwrite"), MessageBoxButton.YesNo, MessageBoxImage.Warning);
+                    if (overwriteResult != MessageBoxResult.Yes)
+                        return;
+
+                    overwriteConfirmed = true;
+                    saveRequest = new TrainPathSaveRequest(pathDetails, saveState.SourcePathId, overwriteConfirmed);
+                }
+
                 await MapHost.SubmitSavePathAsync(saveRequest).ConfigureAwait(true);
             }
             catch (OperationCanceledException ex)
