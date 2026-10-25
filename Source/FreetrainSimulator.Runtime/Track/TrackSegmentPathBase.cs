@@ -28,7 +28,7 @@ namespace FreeTrainSimulator.Runtime.Track
         public ref readonly PointD MidPoint => ref midPoint;
 
         /// <summary>
-        /// Straigth length or Segment length of the arc on a curved track section
+        /// Sum of the stored section lengths in meters, including alternative paths and repeated traversals.
         /// </summary>
         public float Length { get; private protected set; }
 
@@ -36,7 +36,7 @@ namespace FreeTrainSimulator.Runtime.Track
             : base(start, end)
         {
             midPoint = Location + (Vector - Location) / 2.0;
-            Length = (float)Vector.Distance(Location);
+            // Endpoints define bounds only; AddSections owns the accumulated path length.
         }
 
 #pragma warning disable CA2214 // Do not call overridable methods in constructors

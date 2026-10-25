@@ -3063,6 +3063,46 @@ namespace Tests.FreeTrainSimulator.Toolbox.PathEditing
             return CreatePlacementTrackWorld(new Tile(0, 0), out segment);
         }
 
+        [TestMethod]
+        public async Task WhenEndpointsAndTailAreEditedThenPhysicalLengthTracksCommitUndoAndRedo()
+        {
+            TrackWorld world = CreatePlacementTrackWorld(new Tile(1, 0), out TrackSegmentBase segment);
+            WorldLocation At(float x) => new WorldLocation(new Tile(1, 0), new Vector3(x, 0, 0));
+            PathModel source = new PathModel
+            {
+                Id = "physical-length-editing",
+                PathNodes = ImmutableArray.Create(
+                    new PathNode(At(10)) { NodeType = PathNodeType.Start, NodeIndex = 1, NextMainNode = 1, NextSidingNode = -1 },
+                    new PathNode(At(50)) { NodeType = PathNodeType.Via, NodeIndex = 1, NextMainNode = 2, NextSidingNode = -1 },
+                    new PathNode(At(90)) { NodeType = PathNodeType.End, NodeIndex = 1, NextMainNode = -1, NextSidingNode = -1 }),
+            };
+            using (PathEditor editor = new PathEditor(new TestPathEditorContext(world)))
+            {
+                Assert.IsTrue(await editor.InitializePathAsync(source, CancellationToken.None).ConfigureAwait(false));
+                Assert.AreEqual(80f, editor.TrainPath.Length, 0.001f);
+                Assert.IsTrue(editor.BeginMoveNode(0));
+                editor.UpdatePointerLocation(PointD.FromWorldLocation(At(25)), segment);
+                Assert.AreEqual(80f, editor.TrainPath.Length, 0.001f, "Preview must not change committed distance.");
+                Assert.IsTrue(editor.CommitMoveNode().Success);
+                Assert.AreEqual(65f, editor.TrainPath.Length, 0.001f);
+                Assert.IsTrue(editor.Undo());
+                Assert.AreEqual(80f, editor.TrainPath.Length, 0.001f);
+                Assert.IsTrue(editor.Redo());
+                Assert.AreEqual(65f, editor.TrainPath.Length, 0.001f);
+
+                Assert.IsTrue(editor.BeginMoveNode(2));
+                editor.UpdatePointerLocation(PointD.FromWorldLocation(At(75)), segment);
+                Assert.IsTrue(editor.CancelPlacement());
+                Assert.AreEqual(65f, editor.TrainPath.Length, 0.001f);
+                Assert.IsTrue(editor.RemoveRestOfPath(1).Success);
+                Assert.AreEqual(25f, editor.TrainPath.Length, 0.001f);
+                Assert.IsTrue(editor.Undo());
+                Assert.AreEqual(65f, editor.TrainPath.Length, 0.001f);
+                Assert.IsTrue(editor.Redo());
+                Assert.AreEqual(25f, editor.TrainPath.Length, 0.001f);
+            }
+        }
+
         private static TrackWorld CreatePlacementTrackWorld(Tile tile, out TrackSegmentBase segment)
         {
             WorldLocation start = new WorldLocation(tile, Vector3.Zero);
@@ -3079,7 +3119,9 @@ namespace Tests.FreeTrainSimulator.Toolbox.PathEditing
             TrackDatabase trackDatabase = new TrackDatabase
             {
                 TrackNodes = ImmutableArray.Create<TrackNodeBase>(null, vectorNode),
-                TrackNodeConnectors = ImmutableArray.Create(new TrackNodeConnectorIndex(), new TrackNodeConnectorIndex()),
+                TrackNodeConnectors = ImmutableArray.Create(
+                    new TrackNodeConnectorIndex { TrackNodeConnectors = ImmutableArray<TrackNodeConnector>.Empty },
+                    new TrackNodeConnectorIndex { TrackNodeConnectors = ImmutableArray<TrackNodeConnector>.Empty }),
             };
             TrackWorldTestFixture.InitializeTrackDatabase(trackDatabase);
             TrackSectionModel trackSections = new TrackSectionModel

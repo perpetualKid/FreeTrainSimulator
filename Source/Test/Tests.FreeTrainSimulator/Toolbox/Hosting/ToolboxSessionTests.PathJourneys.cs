@@ -165,6 +165,21 @@ namespace Tests.FreeTrainSimulator.Toolbox.Hosting
                             // This geometry has exactly one alternate traversal; there is no candidate to accept.
                             Assert.IsFalse(bridge.CaptureTrainPathSnapshot().HasPendingPassingBranchCandidate);
                             Assert.AreEqual(PassingBranchAuthoringPhase.Idle, bridge.CaptureTrainPathSnapshot().PassingBranchPhase);
+                            await scope.Host.OnOwnerAsync(() =>
+                            {
+                                PathEditor editor = scope.Session.ExistingPathEditor;
+                                // Length is the sum of rendered main (200 m) and passing (300 m) spans,
+                                // not a single train's choice of traversal through the branch.
+                                Assert.AreEqual(500f, editor.TrainPath.Length, 0.01f);
+                                Assert.IsTrue(editor.Undo());
+                                Assert.AreEqual(200f, editor.TrainPath.Length, 0.01f);
+                                Assert.IsTrue(editor.Redo());
+                                Assert.AreEqual(500f, editor.TrainPath.Length, 0.01f);
+                                Assert.IsTrue(editor.RemovePassingBranchCommand(split).Success);
+                                Assert.AreEqual(200f, editor.TrainPath.Length, 0.01f);
+                                Assert.IsTrue(editor.Undo());
+                                Assert.AreEqual(500f, editor.TrainPath.Length, 0.01f);
+                            }).ConfigureAwait(false);
                         }
 
                         await scope.Host.OnOwnerAsync(() =>
@@ -319,6 +334,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.Hosting
             Assert.IsFalse(scope.Session.HasUnsavedPathChanges);
             Assert.IsFalse(scope.Session.ExistingPathEditor.IsSaveInProgress);
             Assert.IsInstanceOfType<EditorTrainPath>(scope.Session.ExistingPathEditor.TrainPath);
+            Assert.AreEqual(passing ? 500f : 200f, scope.Session.ExistingPathEditor.TrainPath.Length, 0.01f);
             Assert.HasCount(model.PathNodes.Length, snapshot.Nodes);
         }
 
