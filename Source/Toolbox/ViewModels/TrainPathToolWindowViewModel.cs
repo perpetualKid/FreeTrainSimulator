@@ -7,6 +7,8 @@ using System.Linq;
 using FreeTrainSimulator.Toolbox.PathEditing;
 using FreeTrainSimulator.Toolbox.ToolWindows;
 
+using GetText;
+
 namespace FreeTrainSimulator.Toolbox.ViewModels
 {
     /// <summary>
@@ -47,6 +49,10 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
         private bool canCommitPlacement;
         private PathEditorPlacementMode placementMode;
         private int? selectedNodeWaitTime;
+        private int? pendingWaitNodeIndex;
+        private string pendingWaitPathId;
+        private int? pendingWaitTime;
+        private int pendingWaitResultVersion;
         private bool suppressSelectionCommand;
         private bool suppressWaitTimeCommand;
         private int blockedSaveFeedbackVersion;
@@ -55,6 +61,10 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
         private bool canMoveSelectedNode;
         private bool canRepairSelectedNode;
         private bool canRemoveSelectedViaPoint;
+        private bool canSetSelectedWaitPoint;
+        private bool canClearSelectedWaitPoint;
+        private bool canSetSelectedReversalPoint;
+        private bool canClearSelectedReversalPoint;
         private int selectedNodeCapabilityIndex = -1;
         private int? pendingSelectedNodeIndex;
         private bool canBeginPassingBranch;
@@ -158,7 +168,8 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
             CommitPlacementCommand = new RelayCommand(_ => toolWindow.CommitPlacement(), _ => CanCommitPlacement);
             CancelPathInteractionCommand = new RelayCommand(_ => CancelPathInteraction(), _ => CanCancelPathInteraction || IsCandidatePanelVisible);
             RepairSelectedNodeCommand = new RelayCommand(_ => RepairSelectedNode(), _ => CanRepairSelectedNode);
-            ToggleReversalPointCommand = new RelayCommand(_ => ToggleReversalPoint(), _ => CanAnnotateSelectedNode);
+            ClearWaitPointCommand = new RelayCommand(_ => ClearWaitPoint(), _ => CanClearSelectedWaitPoint);
+            ToggleReversalPointCommand = new RelayCommand(_ => ToggleReversalPoint(), _ => CanToggleSelectedReversalPoint);
             AddViaPointCommand = new RelayCommand(_ => AddViaPoint(), _ => CanAddViaPoint);
             RemoveViaPointCommand = new RelayCommand(_ => RemoveViaPoint(), _ => CanRemoveViaPoint);
             BeginPassingBranchCommand = new RelayCommand(_ => BeginPassingBranch(), _ => CanBeginPassingBranch);
@@ -199,15 +210,25 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
                 if (!SetProperty(ref selectedNodeWaitTime, value))
                     return;
 
-                if (suppressWaitTimeCommand || !CanEditSelectedNodeWaitTime)
+                if (suppressWaitTimeCommand)
                     return;
 
-                int nodeIndex = SelectedNode.Index;
-
-                if (value is int waitTime && waitTime > 0)
-                    toolWindow.SetWaitPoint(nodeIndex, waitTime);
-                else if (SelectedNode.HasWaitPoint)
-                    toolWindow.ClearWaitPoint(nodeIndex);
+                if (value is int waitTime && waitTime > 0 && CanSetSelectedWaitPoint)
+                {
+                    TrackSubmittedWaitCommand(value);
+                    toolWindow.SetWaitPoint(SelectedNode.Index, waitTime);
+                }
+                else if ((!value.HasValue || value.Value == 0) && CanClearSelectedWaitPoint)
+                {
+                    TrackSubmittedWaitCommand(value);
+                    toolWindow.ClearWaitPoint(SelectedNode.Index);
+                }
+                else
+                {
+                    pendingWaitNodeIndex = null;
+                    SyncWaitTimeFromSelectedNode();
+                    SetStatusMessage(CatalogManager.Catalog.GetString("Wait time cannot be changed on this node. Use Clear Wait Point to remove existing wait data when available."), true);
+                }
             }
         }
 
@@ -264,7 +285,7 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
         /// <summary>Equal-cost route candidates of the current path's ambiguous spans.</summary>
         public ObservableCollection<TrainPathRouteCandidateItemViewModel> RouteCandidates { get; } = new ObservableCollection<TrainPathRouteCandidateItemViewModel>();
 
-        /// <summary>Resolver diagnostics of the current path.</summary>
+        /// <summary>Resolver, Simulator-event, and blocked-save diagnostics of the current path.</summary>
         public ObservableCollection<TrainPathDiagnosticItemViewModel> Diagnostics { get; } = new ObservableCollection<TrainPathDiagnosticItemViewModel>();
 
         /// <summary>All issues when no node is selected; otherwise direct and incident-span issues for that node.</summary>
@@ -291,6 +312,9 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
         public RelayCommand CancelPathInteractionCommand { get; }
 
         public RelayCommand RepairSelectedNodeCommand { get; }
+
+        /// <summary>Clears wait flags and payload through the selected node's authoritative command.</summary>
+        public RelayCommand ClearWaitPointCommand { get; }
 
         public RelayCommand ToggleReversalPointCommand { get; }
 
@@ -433,6 +457,7 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
                     MoveSelectedNodeCommand.RaiseCanExecuteChanged();
                     RepairSelectedNodeCommand.RaiseCanExecuteChanged();
                     ToggleReversalPointCommand.RaiseCanExecuteChanged();
+                    NotifySelectedNodeEventCapabilities();
                     AddViaPointCommand.RaiseCanExecuteChanged();
                     RemoveViaPointCommand.RaiseCanExecuteChanged();
                     AcceptRouteCandidateCommand.RaiseCanExecuteChanged();
@@ -578,13 +603,28 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
 
         public bool CanRepairSelectedNode => canRepairSelectedNode && IsSelectedCapabilityNode() && !CanCancelPathInteraction;
 
-        public bool CanAnnotateSelectedNode => !IsRepairMode && SelectedNode != null && !CanCancelPathInteraction;
+        /// <summary>Whether the editor permits a positive wait on the current selected node.</summary>
+        public bool CanSetSelectedWaitPoint => canSetSelectedWaitPoint && CanEditSelectedNodeEvents;
 
-        /// <summary>Whether the selected non-endpoint, non-junction node supports wait editing.</summary>
-        public bool CanEditSelectedNodeWaitTime => CanAnnotateSelectedNode
+        /// <summary>Whether the editor permits clearing wait flags or payload, including in repair mode.</summary>
+        public bool CanClearSelectedWaitPoint => canClearSelectedWaitPoint && CanEditSelectedNodeEvents;
+
+        /// <summary>Whether the editor permits setting a reversal on the current selected node.</summary>
+        public bool CanSetSelectedReversalPoint => canSetSelectedReversalPoint && CanEditSelectedNodeEvents;
+
+        /// <summary>Whether the editor permits clearing a reversal, including in repair mode.</summary>
+        public bool CanClearSelectedReversalPoint => canClearSelectedReversalPoint && CanEditSelectedNodeEvents;
+
+        /// <summary>Whether the applicable set or clear reversal command is available.</summary>
+        public bool CanToggleSelectedReversalPoint => SelectedNode?.HasReversalPoint == true
+            ? CanClearSelectedReversalPoint : CanSetSelectedReversalPoint;
+
+        private bool CanEditSelectedNodeEvents => IsSelectedCapabilityNode() && !CanCancelPathInteraction
             && !HasPendingAmbiguousSpanCommit && !HasPendingPassingBranchCandidate
-            && PassingBranchPhase == PassingBranchAuthoringPhase.Idle
-            && (SelectedNode.NodeType & (Common.PathNodeType.Start | Common.PathNodeType.End | Common.PathNodeType.Junction)) == Common.PathNodeType.None;
+            && PassingBranchPhase == PassingBranchAuthoringPhase.Idle;
+
+        /// <summary>Whether positive wait editing is available; clearing has a separate command.</summary>
+        public bool CanEditSelectedNodeWaitTime => CanSetSelectedWaitPoint;
 
         public bool CanAddViaPoint => !IsRepairMode && SelectedNode != null && !CanCancelPathInteraction;
 
@@ -723,7 +763,7 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
             {
                 if (SetProperty(ref selectedNode, value))
                 {
-                    OnPropertyChanged(nameof(CanEditSelectedNodeWaitTime));
+                    NotifySelectedNodeEventCapabilities();
                     UpdateVisibleDiagnostics();
                 }
             }
@@ -740,8 +780,9 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
             // briefly restore the old node and cause the selection to flicker back and forth.
             pendingSelectedNodeIndex = value?.Index ?? -1;
 
-            SelectedNode = value;
+            pendingWaitNodeIndex = null;
             selectedNodeCapabilityIndex = -1;
+            SelectedNode = value;
             toolWindow.HighlightNode(value?.Index ?? -1);
             SyncWaitTimeFromSelectedNode();
             UpdateSelectedNodeDetailRows();
@@ -798,7 +839,7 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
             HasPendingPassingBranchCandidate = snapshot.HasPendingPassingBranchCandidate;
             PassingBranchPhase = snapshot.PassingBranchPhase;
             UpdateVisibleRouteCandidates();
-            OnPropertyChanged(nameof(CanEditSelectedNodeWaitTime));
+            NotifySelectedNodeEventCapabilities();
             BeginPassingBranchCommand.RaiseCanExecuteChanged();
             CompletePassingBranchCommand.RaiseCanExecuteChanged();
             CancelPassingBranchCommand.RaiseCanExecuteChanged();
@@ -830,6 +871,10 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
             canMoveSelectedNode = snapshot.CanMoveSelectedNode;
             canRepairSelectedNode = snapshot.CanRepairSelectedNode;
             canRemoveSelectedViaPoint = snapshot.CanRemoveSelectedViaPoint;
+            canSetSelectedWaitPoint = snapshot.CanSetSelectedWaitPoint;
+            canClearSelectedWaitPoint = snapshot.CanClearSelectedWaitPoint;
+            canSetSelectedReversalPoint = snapshot.CanSetSelectedReversalPoint;
+            canClearSelectedReversalPoint = snapshot.CanClearSelectedReversalPoint;
             MoveSelectedNodeCommand.RaiseCanExecuteChanged();
             RepairSelectedNodeCommand.RaiseCanExecuteChanged();
             RemoveViaPointCommand.RaiseCanExecuteChanged();
@@ -838,12 +883,42 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
             RemovePassingBranchCommand.RaiseCanExecuteChanged();
         }
 
+        private void NotifySelectedNodeEventCapabilities()
+        {
+            OnPropertyChanged(nameof(CanSetSelectedWaitPoint));
+            OnPropertyChanged(nameof(CanClearSelectedWaitPoint));
+            OnPropertyChanged(nameof(CanSetSelectedReversalPoint));
+            OnPropertyChanged(nameof(CanClearSelectedReversalPoint));
+            OnPropertyChanged(nameof(CanToggleSelectedReversalPoint));
+            OnPropertyChanged(nameof(CanEditSelectedNodeWaitTime));
+            ClearWaitPointCommand.RaiseCanExecuteChanged();
+            ToggleReversalPointCommand.RaiseCanExecuteChanged();
+        }
+
+        private void TrackSubmittedWaitCommand(int? value)
+        {
+            pendingWaitNodeIndex = SelectedNode.Index;
+            pendingWaitPathId = snapshotSelectedPathId;
+            pendingWaitTime = value;
+            pendingWaitResultVersion = toolWindow.CaptureTrainPathSnapshot().CommandResultVersion;
+        }
+
         private void ApplyCommandResultFeedback(TrainPathSnapshot snapshot)
         {
             if (snapshot.CommandResultVersion == commandResultVersion)
                 return;
 
             commandResultVersion = snapshot.CommandResultVersion;
+            if (pendingWaitNodeIndex.HasValue && snapshot.CommandResultVersion != pendingWaitResultVersion)
+            {
+                // A rejected command need not change the row's WaitTime, so SyncNodes alone cannot acknowledge
+                // the submission. Do not replace a later selection or an edit that has not been submitted.
+                if (SelectedNode?.Index == pendingWaitNodeIndex.Value
+                    && string.Equals(snapshot.SelectedPathId, pendingWaitPathId, StringComparison.Ordinal)
+                    && SelectedNodeWaitTime == pendingWaitTime)
+                    SyncWaitTimeFromSelectedNode();
+                pendingWaitNodeIndex = null;
+            }
             if (!string.IsNullOrWhiteSpace(snapshot.CommandResultMessage))
                 SetStatusMessage(snapshot.CommandResultMessage, snapshot.CommandResultIsWarning);
         }
@@ -1117,9 +1192,17 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
             toolWindow.RepairSelectedNode(SelectedNode.Index);
         }
 
+        private void ClearWaitPoint()
+        {
+            if (!CanClearSelectedWaitPoint)
+                return;
+
+            toolWindow.ClearWaitPoint(SelectedNode.Index);
+        }
+
         private void ToggleReversalPoint()
         {
-            if (SelectedNode == null)
+            if (!CanToggleSelectedReversalPoint)
                 return;
 
             int nodeIndex = SelectedNode.Index;
@@ -1347,6 +1430,7 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
             suppressSelectionCommand = true;
             try
             {
+                pendingWaitNodeIndex = null;
                 SelectedNode = Nodes.FirstOrDefault(n => n.Index == index);
                 SyncWaitTimeFromSelectedNode();
                 UpdateSelectedNodeDetailRows();

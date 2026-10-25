@@ -5,8 +5,11 @@ using System.Threading.Tasks;
 
 using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Models.Content;
+using FreeTrainSimulator.Models.Handler;
 using FreeTrainSimulator.Models.Imported.State;
 using FreeTrainSimulator.Models.Track;
+using FreeTrainSimulator.Runtime.Track;
+using FreeTrainSimulator.Toolbox.PathEditing;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.Xna.Framework;
@@ -160,6 +163,85 @@ namespace Tests.FreeTrainSimulator.Simulator
 
             AssertMainRoute(snapshot, expectedArray134628);
             await AssertLocationPassingRoutesAsync(simulator, snapshot).ConfigureAwait(false);
+        }
+
+        /// <summary>Guarded Toolbox persistence retains a main wait and the passing route through native reload and real startup in either passing mode.</summary>
+        [TestMethod]
+        [DataRow(false, 1)]
+        [DataRow(true, 0)]
+        public async Task StartExploreWhenGuardedPassingPathIsReloadedThenPreservesMainWaitAndPassingRouteAsync(bool locationPassingPaths, int expectedAlternatives)
+        {
+            SyntheticPathFixture fixture = new SyntheticPathFixture(TestContext);
+            Simulation simulator = await fixture.CreateSimulator(locationPassingPaths, TestContext.CancellationToken).ConfigureAwait(false);
+            PathModel source = SyntheticPathFixture.CreatePassingSource(false);
+            source = source with
+            {
+                PathNodes = source.PathNodes.SetItem(1, source.PathNodes[1] with { NextMainNode = source.PathNodes.Length })
+                    .Add(SyntheticPathFixture.Node(PathNodeType.Wait, 4, 30, 0, 2, -1) with
+                    { WaitInfo = new PathNodeWaitInfo { WaitTime = 37 } }),
+            };
+
+            PathPersistenceValidationResult saved = await PathEditor.SaveValidatedPath(source, fixture.Route, TrackWorld.Instance,
+                TestContext.CancellationToken).ConfigureAwait(false);
+            Assert.IsTrue(saved.PersistenceAllowed, saved.FailureMessage);
+            PathModel reloaded = await PathModelHandler.GetExtended(saved.PathModel.Id, fixture.Route, TestContext.CancellationToken).ConfigureAwait(false);
+            Assert.AreEqual(PathValidationState.Valid, reloaded.ValidationState);
+            PathNode wait = reloaded.PathNodes.Single(node => node.NodeType.Includes(PathNodeType.Wait));
+            Assert.AreEqual((4, SyntheticPathFixture.Location(30, 0), 37), (wait.NodeIndex, wait.Location, wait.WaitInfo.WaitTime));
+
+            TrainSaveState snapshot = await StartExploreAndSnapshotAsync(fixture, simulator, reloaded).ConfigureAwait(false);
+
+            AssertMainRoute(snapshot, expectedArray134628);
+            Assert.HasCount(1, snapshot.RoutePathSaveState.Waitpoints);
+            Assert.AreSequenceEqual(new[] { 0, 4, 37, 0, -1, 30 }, snapshot.RoutePathSaveState.Waitpoints.Single());
+            Assert.HasCount(expectedAlternatives, snapshot.RoutePathSaveState.AlternativePaths);
+            SignalEnvironmentSaveState signals = await simulator.SignalEnvironment.Snapshot().ConfigureAwait(false);
+            Assert.AreEqual(locationPassingPaths, signals.LocationPassingPathsEnabled);
+            TrackCircuitPartialPathRouteSaveState passing = snapshot.RoutePathSaveState.AlternativePaths
+                .Concat(signals.DeadlockDetails.Values.SelectMany(deadlock => deadlock.AvailablePaths).Select(available => available.PathInfo))
+                .Single(route => route.RouteElements.Select(element => element.TrackCircuitSectionIndex).SequenceEqual(expectedArray356));
+            Assert.AreEqual("3:Reverse, 5:Reverse, 6:Ahead", RouteSignature(passing));
+        }
+
+        /// <summary>Guarded Toolbox persistence retains a reversal and its following main wait through native reload and real startup in either passing mode.</summary>
+        [TestMethod]
+        [DataRow(false)]
+        [DataRow(true)]
+        public async Task StartExploreWhenGuardedReversalPathIsReloadedThenPreservesDirectionsAndWaitAsync(bool locationPassingPaths)
+        {
+            SyntheticPathFixture fixture = new SyntheticPathFixture(TestContext);
+            Simulation simulator = await fixture.CreateSimulator(locationPassingPaths, TestContext.CancellationToken).ConfigureAwait(false);
+            PathModel source = new PathModel
+            {
+                Id = "GuardedReversalWait",
+                PathNodes = ImmutableArray.Create(SyntheticPathFixture.Node(PathNodeType.Start, 1, -60, 0, 1, -1),
+                    SyntheticPathFixture.Node(PathNodeType.Via, 1, -20, 0, 2, -1),
+                    SyntheticPathFixture.Node(PathNodeType.Junction, 3, 0, 0, 3, -1),
+                    SyntheticPathFixture.Node(PathNodeType.Reversal, 4, 70, 0, 4, -1),
+                    SyntheticPathFixture.Node(PathNodeType.Wait, 4, 30, 0, 5, -1) with { WaitInfo = new PathNodeWaitInfo { WaitTime = 23 } },
+                    SyntheticPathFixture.Node(PathNodeType.Junction, 3, 0, 0, 6, -1),
+                    SyntheticPathFixture.Node(PathNodeType.End, 1, -50, 0, -1, -1)),
+            };
+
+            PathPersistenceValidationResult saved = await PathEditor.SaveValidatedPath(source, fixture.Route, TrackWorld.Instance,
+                TestContext.CancellationToken).ConfigureAwait(false);
+            Assert.IsTrue(saved.PersistenceAllowed, saved.FailureMessage);
+            PathModel reloaded = await PathModelHandler.GetExtended(saved.PathModel.Id, fixture.Route, TestContext.CancellationToken).ConfigureAwait(false);
+            Assert.AreEqual(PathValidationState.Valid, reloaded.ValidationState);
+            PathNode reversal = reloaded.PathNodes.Single(node => node.NodeType.Includes(PathNodeType.Reversal));
+            Assert.AreEqual((4, SyntheticPathFixture.Location(70, 0)), (reversal.NodeIndex, reversal.Location));
+            PathNode wait = reloaded.PathNodes.Single(node => node.NodeType.Includes(PathNodeType.Wait));
+            Assert.AreEqual((4, SyntheticPathFixture.Location(30, 0), 23), (wait.NodeIndex, wait.Location, wait.WaitInfo.WaitTime));
+
+            TrainSaveState snapshot = await StartExploreAndSnapshotAsync(fixture, simulator, reloaded).ConfigureAwait(false);
+
+            Assert.AreSequenceEqual(expectedStrings, snapshot.RoutePathSaveState.RoutePaths.Select(RouteSignature).ToArray());
+            TrackCircuitReversalInfoSaveState reversalInfo = snapshot.RoutePathSaveState.ReversalInfoSaveStates[0];
+            Assert.IsTrue(reversalInfo.Valid);
+            Assert.AreEqual((4, 70f), (reversalInfo.ReversalSectionIndex, reversalInfo.ReverseReversalOffset));
+            Assert.HasCount(1, snapshot.RoutePathSaveState.Waitpoints);
+            Assert.AreSequenceEqual(new[] { 1, 4, 23, 0, -1, 70 }, snapshot.RoutePathSaveState.Waitpoints.Single());
+            Assert.IsEmpty(snapshot.RoutePathSaveState.AlternativePaths);
         }
 
         /// <summary>A physical split at node zero must not lose its siding-start event in the consumer.</summary>

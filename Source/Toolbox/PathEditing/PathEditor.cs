@@ -33,6 +33,10 @@ namespace FreeTrainSimulator.Toolbox.PathEditing
         // One resolution per path model instance, shared by the persisted validation state and by consumers such
         // as the train path tool window, so an edit resolves the path exactly once.
         private readonly PathRouteResolutionCache resolutionCache = new PathRouteResolutionCache();
+        private PathModel simulatorEventDiagnosticsModel;
+        private ImmutableArray<PathRouteDiagnostic> simulatorEventDiagnostics = ImmutableArray<PathRouteDiagnostic>.Empty;
+        private PathModel simulatorEventCapabilityModel;
+        private readonly Dictionary<(int NodeIndex, bool Reversal), bool> simulatorEventCapabilities = new Dictionary<(int, bool), bool>();
         private const long DoubleClickIntervalMilliseconds = 500;
         private PathModelHeader path;
         private PathModel currentPathModel;
@@ -660,14 +664,17 @@ namespace FreeTrainSimulator.Toolbox.PathEditing
 
             // Materialize the generated intermediaries so the committed model is the single persistence source.
             PathPersistenceValidationResult materialization = PathPersistenceValidationPolicy.MaterializeResolvedPath(tentativeModel, resolution, TrackWorld);
-            return materialization.PersistenceAllowed
+            if (!materialization.PersistenceAllowed)
+                return PathSpanCommitResult.Unresolved(materialization.FailureMessage, sourceModel);
+
+            PathRouteDiagnostic eventDiagnostic = FindNewSimulatorEventDiagnostic(sourceModel, tentativeModel, materialization, changedNodeIndexes);
+            return eventDiagnostic == null
                 ? PathSpanCommitResult.Resolved(message, materialization.PathModel, materialization.ChangedNodeIndexes)
-                : PathSpanCommitResult.Unresolved(materialization.FailureMessage, sourceModel);
+                : PathSpanCommitResult.Unresolved(PathPersistenceValidationPolicy.DiagnosticMessage(eventDiagnostic), sourceModel);
         }
 
-        // Marks the route point preceding the end anchor as a reversal and re-evaluates. Returns null when the
-        // reversal is not applicable (no preceding point, or it is a junction/terminus) or still does not resolve,
-        // so the caller reports its original failure.
+        // Marks the route point preceding the end anchor as a reversal and re-evaluates. Preserve the actual
+        // refusal (including event repair guidance); inapplicable or ambiguous retries keep the original failure.
         private PathSpanCommitResult TryReverseAndResolve(PathModel tentativeModel, ImmutableArray<int> changedNodeIndexes, string message, PathModel sourceModel, bool allowAutomaticReversal, CancellationToken cancellationToken)
         {
             if (!allowAutomaticReversal)
@@ -687,7 +694,7 @@ namespace FreeTrainSimulator.Toolbox.PathEditing
             PathSpanCommitResult result = EvaluateSpanCommit(reversal.PathModel, reversalChangedNodes,
                 $"{message} Reversal added at node {reversalNodeIndex}.", sourceModel, false, cancellationToken);
 
-            return result.Success ? result : null;
+            return result.Status == PathSpanCommitStatus.Ambiguous ? null : result;
         }
 
         private static bool CanCommitStandaloneStartAnchor(PathModel pathModel, ImmutableArray<int> changedNodeIndexes)
@@ -796,7 +803,7 @@ namespace FreeTrainSimulator.Toolbox.PathEditing
             if (pendingAmbiguousSpanCommit == null)
                 return;
 
-            PathModel previewModel = BuildPendingCandidateModel(false, out string failure);
+            PathModel previewModel = BuildPendingCandidateModel(false, out string failure)?.PathModel;
             if (previewModel == null)
             {
                 SetPreviewPath(pendingAmbiguousSpanCommit.TentativeModel);
@@ -808,14 +815,13 @@ namespace FreeTrainSimulator.Toolbox.PathEditing
             }
         }
 
-        private PathModel BuildPendingCandidateModel(bool requireExplicitSelections, out string failure)
+        private PathPersistenceValidationResult BuildPendingCandidateModel(bool requireExplicitSelections, out string failure)
         {
             failure = null;
             Dictionary<int, ResolvedRouteCandidate> selectedCandidates = new Dictionary<int, ResolvedRouteCandidate>();
             foreach (ResolvedPathSpan span in pendingAmbiguousSpanCommit.AmbiguousSpans.OrderByDescending(span => span.FromNodeIndex))
             {
-                int candidateIndex;
-                if (!pendingAmbiguousSpanCommit.CandidateSelections.TryGetValue(span.FromNodeIndex, out candidateIndex))
+                if (!pendingAmbiguousSpanCommit.CandidateSelections.TryGetValue(span.FromNodeIndex, out int candidateIndex))
                 {
                     if (requireExplicitSelections)
                     {
@@ -843,7 +849,7 @@ namespace FreeTrainSimulator.Toolbox.PathEditing
                 return null;
             }
 
-            return materialization.PathModel;
+            return materialization;
         }
 
         public PathEditResult PreviewPendingRouteCandidate(int fromNodeIndex, int candidateIndex)
@@ -866,7 +872,7 @@ namespace FreeTrainSimulator.Toolbox.PathEditing
                 return PathEditResult.Failed($"No route candidate {candidateIndex} exists for the span starting at node {fromNodeIndex}.", pendingAmbiguousSpanCommit.SourceModel);
 
             pendingAmbiguousSpanCommit.CandidateSelections[fromNodeIndex] = candidateIndex;
-            PathModel previewModel = BuildPendingCandidateModel(false, out string failure);
+            PathModel previewModel = BuildPendingCandidateModel(false, out string failure)?.PathModel;
             if (previewModel == null)
             {
                 pendingAmbiguousSpanCommit.CandidateSelections.Remove(fromNodeIndex);
@@ -886,11 +892,16 @@ namespace FreeTrainSimulator.Toolbox.PathEditing
             if (!preview.Success)
                 return preview;
 
-            PathModel materialized = BuildPendingCandidateModel(true, out string failure);
-            if (materialized == null)
+            PathPersistenceValidationResult materialization = BuildPendingCandidateModel(true, out string failure);
+            if (materialization == null)
                 return PathEditResult.Failed(failure, pendingAmbiguousSpanCommit.SourceModel);
 
             PathModel sourceModel = pendingAmbiguousSpanCommit.SourceModel;
+            PathRouteDiagnostic eventDiagnostic = FindNewSimulatorEventDiagnostic(sourceModel, pendingAmbiguousSpanCommit.TentativeModel, materialization, pendingAmbiguousSpanCommit.ChangedNodeIndexes);
+            if (eventDiagnostic != null)
+                return PathEditResult.Failed(PathPersistenceValidationPolicy.DiagnosticMessage(eventDiagnostic), sourceModel);
+
+            PathModel materialized = materialization.PathModel;
             ImmutableArray<int> changedNodeIndexes = pendingAmbiguousSpanCommit.ChangedNodeIndexes;
             bool resumeRouteBuilding = pendingAmbiguousSpanCommit.ResumeRouteBuilding;
             pendingAmbiguousSpanCommit = null;
@@ -1102,10 +1113,12 @@ namespace FreeTrainSimulator.Toolbox.PathEditing
             return currentModel != null && PathModelEditor.ClearWaitPoint(currentModel, nodeIndex).Success;
         }
 
+        /// <summary>Whether a positive wait can be set without introducing a known Simulator event incompatibility.</summary>
+        public bool CanSetWaitPoint(int nodeIndex) => CanSetEvent(nodeIndex, false);
+
         public bool CanSetReversalPoint(int nodeIndex)
         {
-            PathModel currentModel = TryGetEditablePathModel();
-            return currentModel != null && PathModelEditor.SetReversalPoint(currentModel, nodeIndex).Success;
+            return CanSetEvent(nodeIndex, true);
         }
 
         public bool CanClearReversalPoint(int nodeIndex)
@@ -1126,11 +1139,11 @@ namespace FreeTrainSimulator.Toolbox.PathEditing
             if (!edit.Success || !edit.PathModel.PathNodes.Any(node => node.NextSidingNode >= 0))
                 return edit;
 
-            PathPersistenceValidationResult validation = PathPersistenceValidationPolicy.ValidateForPersistence(edit.PathModel, TrackWorld);
+            PathPersistenceValidationResult validation = PathPersistenceValidationPolicy.ResolveAndMaterialize(edit.PathModel, TrackWorld);
             if (!validation.PersistenceAllowed)
                 return PathEditResult.Failed(validation.FailureMessage, sourceModel);
 
-            PathPersistenceValidationResult verification = PathPersistenceValidationPolicy.ValidateForPersistence(validation.PathModel, TrackWorld);
+            PathPersistenceValidationResult verification = PathPersistenceValidationPolicy.ResolveAndMaterialize(validation.PathModel, TrackWorld);
             if (!verification.PersistenceAllowed)
                 return PathEditResult.Failed(verification.FailureMessage, sourceModel);
 
@@ -1181,7 +1194,7 @@ namespace FreeTrainSimulator.Toolbox.PathEditing
         /// </summary>
         public PathEditResult SetWaitPoint(int nodeIndex, int waitTimeSeconds)
         {
-            return ApplySelectedNodeEdit(nodeIndex, model => PathModelEditor.SetWaitPoint(model, nodeIndex, waitTimeSeconds));
+            return ApplySelectedNodeEdit(nodeIndex, model => EvaluateEventEdit(model, PathModelEditor.SetWaitPoint(model, nodeIndex, waitTimeSeconds)));
         }
 
         /// <summary>Clears the wait point on the node at <paramref name="nodeIndex"/> and records an undo snapshot.</summary>
@@ -1193,13 +1206,189 @@ namespace FreeTrainSimulator.Toolbox.PathEditing
         /// <summary>Marks the node at <paramref name="nodeIndex"/> as a reversal point and records an undo snapshot.</summary>
         public PathEditResult SetReversalPoint(int nodeIndex)
         {
-            return ApplySelectedNodeEdit(nodeIndex, model => PathModelEditor.SetReversalPoint(model, nodeIndex));
+            return ApplySelectedNodeEdit(nodeIndex, model => EvaluateEventEdit(model, PathModelEditor.SetReversalPoint(model, nodeIndex)));
         }
 
         /// <summary>Clears the reversal point on the node at <paramref name="nodeIndex"/> and records an undo snapshot.</summary>
         public PathEditResult ClearReversalPoint(int nodeIndex)
         {
             return ApplySelectedNodeEdit(nodeIndex, model => PathModelEditor.ClearReversalPoint(model, nodeIndex));
+        }
+
+        /// <summary>
+        /// Returns cached authored-target event diagnostics. Unmaterializable drafts expose only bounded node
+        /// checks; continuous-vector reversal state is checked only when the generated junctions are known.
+        /// </summary>
+        public ImmutableArray<PathRouteDiagnostic> GetSimulatorEventDiagnostics()
+        {
+            PathModel model = TryGetEditablePathModel();
+            if (model == null)
+                return ImmutableArray<PathRouteDiagnostic>.Empty;
+            if (ReferenceEquals(simulatorEventDiagnosticsModel, model))
+                return simulatorEventDiagnostics;
+
+            PathPersistenceValidationResult materialization = PathPersistenceValidationPolicy.ResolveAndMaterialize(model, ResolveCurrent(model), TrackWorld);
+            simulatorEventDiagnostics = materialization.PersistenceAllowed
+                ? PathPersistenceValidationPolicy.GetSimulatorEventDiagnostics(model, materialization)
+                : GetAuthoredSimulatorEventDiagnostics(model);
+            simulatorEventDiagnosticsModel = model;
+            return simulatorEventDiagnostics;
+        }
+
+        private static ImmutableArray<PathRouteDiagnostic> GetAuthoredSimulatorEventDiagnostics(PathModel model)
+        {
+            ImmutableArray<PathRouteDiagnostic>.Builder diagnostics = ImmutableArray.CreateBuilder<PathRouteDiagnostic>();
+            ImmutableArray<PathNode> nodes = model.PathNodes.IsDefault ? ImmutableArray<PathNode>.Empty : model.PathNodes;
+            bool hasPassingBranch = nodes.Any(node => node?.NextSidingNode >= 0) && nodes.All(node => node != null);
+            bool foundStart = false;
+            for (int i = 0; i < nodes.Length; i++)
+            {
+                PathNode node = nodes[i];
+                if (node == null)
+                    continue;
+
+                bool isFirst = !foundStart && node.NodeType.Includes(PathNodeType.Start);
+                foundStart |= isFirst;
+                bool isPassingInterior = hasPassingBranch
+                    && PathModelEditor.TryGetPassingBranchNodeRole(model, i, out PassingBranchNodeRole role, out _)
+                    && role == PassingBranchNodeRole.BranchInterior;
+                PathRouteDiagnostic diagnostic = PathSimulatorEventCompatibility.ValidateNode(node, i, isFirst, isPassingInterior);
+                if (diagnostic != null)
+                    diagnostics.Add(diagnostic);
+            }
+
+            return diagnostics.ToImmutable();
+        }
+
+        private bool CanSetEvent(int nodeIndex, bool reversal)
+        {
+            PathModel model = TryGetEditablePathModel();
+            if (model == null || stopped || HasPendingRouteCandidateInteraction)
+                return false;
+            if (!ReferenceEquals(simulatorEventCapabilityModel, model))
+            {
+                simulatorEventCapabilities.Clear();
+                simulatorEventCapabilityModel = model;
+            }
+
+            if (!simulatorEventCapabilities.TryGetValue((nodeIndex, reversal), out bool allowed))
+            {
+                PathEditResult edit = reversal ? PathModelEditor.SetReversalPoint(model, nodeIndex)
+                    : PathModelEditor.SetWaitPoint(model, nodeIndex, 1);
+                allowed = EvaluateEventEdit(model, edit).Success;
+                simulatorEventCapabilities.Add((nodeIndex, reversal), allowed);
+            }
+
+            return allowed;
+        }
+
+        private PathEditResult EvaluateEventEdit(PathModel sourceModel, PathEditResult edit)
+        {
+            if (!edit.Success)
+                return edit;
+
+            PathPersistenceValidationResult materialization = PathPersistenceValidationPolicy.ResolveAndMaterialize(edit.PathModel, TrackWorld);
+            // Local model checks still allow correcting an unresolved imported draft. A missing route must not
+            // become a whole-model veto on annotation repair; normal Save remains strict.
+            if (!materialization.PersistenceAllowed)
+                return edit;
+
+            PathRouteDiagnostic diagnostic = FindNewSimulatorEventDiagnostic(sourceModel, edit.PathModel, materialization, edit.ChangedNodeIndexes);
+            return diagnostic == null ? edit
+                : PathEditResult.Failed(PathPersistenceValidationPolicy.DiagnosticMessage(diagnostic), sourceModel);
+        }
+
+        private PathRouteDiagnostic FindNewSimulatorEventDiagnostic(PathModel sourceModel, PathModel tentativeModel,
+            PathPersistenceValidationResult materialization, ImmutableArray<int> changedNodeIndexes)
+        {
+            ImmutableArray<PathRouteDiagnostic> prospectiveDiagnostics = PathPersistenceValidationPolicy.GetSimulatorEventDiagnostics(tentativeModel, materialization);
+            if (!prospectiveDiagnostics.Any(IsSimulatorEventDiagnostic))
+                return null;
+
+            PathPersistenceValidationResult baseline = PathPersistenceValidationPolicy.ResolveAndMaterialize(sourceModel, TrackWorld);
+            List<PathRouteDiagnostic> existing = (baseline.PersistenceAllowed
+                ? PathPersistenceValidationPolicy.GetSimulatorEventDiagnostics(sourceModel, baseline)
+                : PathPersistenceValidationPolicy.GetSimulatorEventDiagnostics(sourceModel).AddRange(GetAuthoredSimulatorEventDiagnostics(sourceModel)))
+                .Where(diagnostic => IsSimulatorEventDiagnostic(diagnostic) && diagnostic.NodeIndex >= 0)
+                .DistinctBy(diagnostic => (diagnostic.Code, diagnostic.NodeIndex)).ToList();
+            foreach (PathRouteDiagnostic diagnostic in prospectiveDiagnostics.Where(IsSimulatorEventDiagnostic))
+            {
+                int sourceIndex = SourceEventNodeIndex(sourceModel, tentativeModel, diagnostic.NodeIndex, changedNodeIndexes);
+                int existingIndex = existing.FindIndex(previous => previous.Code == diagnostic.Code
+                    && sourceIndex >= 0 && previous.NodeIndex == sourceIndex);
+                if (existingIndex < 0)
+                    return diagnostic;
+
+                existing.RemoveAt(existingIndex);
+            }
+
+            return null;
+        }
+
+        private static int SourceEventNodeIndex(PathModel sourceModel, PathModel tentativeModel, int nodeIndex, ImmutableArray<int> changedNodeIndexes)
+        {
+            // ponytail: repeated occurrence matching is O(n²); expose generator provenance if large-path profiling warrants it.
+            ImmutableArray<PathNode> source = sourceModel.PathNodes;
+            ImmutableArray<PathNode> tentative = tentativeModel.PathNodes;
+            if (nodeIndex < 0 || nodeIndex >= tentative.Length || tentative[nodeIndex] == null)
+                return -1;
+
+            int sourceIndex = -1;
+            for (int i = 0; i < source.Length; i++)
+            {
+                if (!ReferenceEquals(source[i], tentative[nodeIndex]))
+                    continue;
+                if (sourceIndex >= 0)
+                    return -1;
+                sourceIndex = i;
+            }
+            if (sourceIndex >= 0)
+                return tentative.Count(node => ReferenceEquals(node, tentative[nodeIndex])) == 1 ? sourceIndex : -1;
+
+            // Moves and annotations replace the target but preserve occurrence indexes and all path links.
+            if (source.Length == tentative.Length && !changedNodeIndexes.IsDefaultOrEmpty
+                && changedNodeIndexes.Contains(nodeIndex)
+                && Enumerable.Range(0, source.Length).All(index => source[index] != null && tentative[index] != null
+                    && (ReferenceEquals(source[index], tentative[index]) || changedNodeIndexes.Contains(index))
+                    && source[index].NextMainNode == tentative[index].NextMainNode
+                    && source[index].NextSidingNode == tentative[index].NextSidingNode))
+                return nodeIndex;
+
+            // A single via insertion/removal clones the remaining nodes to reindex links. Only recognize the
+            // known offset when every retained authored payload is unchanged; never match a newly inserted node.
+            int difference = tentative.Length - source.Length;
+            if (changedNodeIndexes.IsDefaultOrEmpty || changedNodeIndexes.Length != 1 || Math.Abs(difference) != 1)
+                return -1;
+            int changedIndex = changedNodeIndexes[0];
+            if (changedIndex < 0 || changedIndex >= (difference > 0 ? tentative.Length : source.Length)
+                || difference > 0 && nodeIndex == changedIndex)
+                return -1;
+
+            for (int index = 0; index < tentative.Length; index++)
+            {
+                if (difference > 0 && index == changedIndex)
+                    continue;
+                int originalIndex = index < changedIndex ? index : index - difference;
+                PathNode original = source[originalIndex];
+                PathNode retained = tentative[index];
+                if (original == null || retained == null || original with
+                {
+                    NextMainNode = retained.NextMainNode,
+                    NextSidingNode = retained.NextSidingNode,
+                } != retained)
+                    return -1;
+            }
+
+            return nodeIndex < changedIndex ? nodeIndex : nodeIndex - difference;
+        }
+
+        private static bool IsSimulatorEventDiagnostic(PathRouteDiagnostic diagnostic)
+        {
+            return diagnostic.Code is PathRouteDiagnosticCode.UnsupportedFirstMainEvent
+                or PathRouteDiagnosticCode.UnsupportedJunctionEvent
+                or PathRouteDiagnosticCode.UnsupportedCombinedWaitReversal
+                or PathRouteDiagnosticCode.UnsupportedPassingInteriorEvent
+                or PathRouteDiagnosticCode.MultipleReversalsInContinuousVector;
         }
 
         /// <summary>
@@ -1300,11 +1489,11 @@ namespace FreeTrainSimulator.Toolbox.PathEditing
             if (!edit.Success || !sourceModel.PathNodes.Any(node => node.NextSidingNode >= 0))
                 return edit;
 
-            PathPersistenceValidationResult validation = PathPersistenceValidationPolicy.ValidateForPersistence(edit.PathModel, TrackWorld);
+            PathPersistenceValidationResult validation = PathPersistenceValidationPolicy.ResolveAndMaterialize(edit.PathModel, TrackWorld);
             if (!validation.PersistenceAllowed)
                 return PathEditResult.Failed(validation.FailureMessage, sourceModel);
 
-            PathPersistenceValidationResult verification = PathPersistenceValidationPolicy.ValidateForPersistence(validation.PathModel, TrackWorld);
+            PathPersistenceValidationResult verification = PathPersistenceValidationPolicy.ResolveAndMaterialize(validation.PathModel, TrackWorld);
             return verification.PersistenceAllowed
                 ? PathEditResult.Succeeded(edit.Message, verification.PathModel, verification.ChangedNodeIndexes)
                 : PathEditResult.Failed(verification.FailureMessage, sourceModel);
@@ -1926,7 +2115,7 @@ namespace FreeTrainSimulator.Toolbox.PathEditing
                     return;
 
                 movePreviewAnchor = replacementAnchor;
-                movePreviewAuthoringModel = null;
+                movePreviewAuthoringModel = result.PathModel;
                 movePreviewSpanCommit = null;
                 movePreviewModel = branchMaterialization.PathModel;
                 SetPreviewPath(movePreviewModel);
@@ -2188,7 +2377,7 @@ namespace FreeTrainSimulator.Toolbox.PathEditing
         // deterministic tie-breaking for warning-only ambiguous spans. Shared by SnapToTrack and snap-on-save.
         internal static PathGenerationResult GenerateTrackSnappedPath(PathModel model, TrackWorld trackWorld)
         {
-            PathPersistenceValidationResult materialization = PathPersistenceValidationPolicy.ValidateForPersistence(model, trackWorld);
+            PathPersistenceValidationResult materialization = PathPersistenceValidationPolicy.ResolveAndMaterialize(model, trackWorld);
             return materialization.PersistenceAllowed
                 ? PathGenerationResult.Succeeded("Path generated.", materialization.PathModel, materialization.Diagnostics, materialization.ChangedNodeIndexes)
                 : PathGenerationResult.Failed(materialization.FailureMessage, model, materialization.Diagnostics);
@@ -2427,6 +2616,7 @@ namespace FreeTrainSimulator.Toolbox.PathEditing
                 if (!result.Success)
                     return result;
 
+                committedAuthoringModel = result.PathModel;
                 if (placementMode == PathEditorPlacementMode.MoveNode && currentModel.PathNodes.Any(node => node.NextSidingNode >= 0))
                 {
                     result = MoveSelectedAuthoredNode(currentModel, movingNodeIndex, replacementAnchor, isJunction);
@@ -2484,6 +2674,17 @@ namespace FreeTrainSimulator.Toolbox.PathEditing
             }
             if (spanCommit.Status == PathSpanCommitStatus.Resolved)
                 committedModel = spanCommit.PathModel;
+
+            if (isPassingBranchMove)
+            {
+                PathPersistenceValidationResult materialization = PathPersistenceValidationPolicy.ResolveAndMaterialize(committedAuthoringModel, TrackWorld);
+                if (!materialization.PersistenceAllowed)
+                    return PathEditResult.Failed(materialization.FailureMessage, currentModel);
+                PathRouteDiagnostic eventDiagnostic = FindNewSimulatorEventDiagnostic(undoSnapshot, committedAuthoringModel,
+                    materialization, ImmutableArray.Create(movedNodeIndex));
+                if (eventDiagnostic != null)
+                    return PathEditResult.Failed(PathPersistenceValidationPolicy.DiagnosticMessage(eventDiagnostic), currentModel);
+            }
 
             bool movedStartOrEnd = committedMode == PathEditorPlacementMode.MoveNode
                 && movedNodeIndex >= 0 && movedNodeIndex < undoSnapshot.PathNodes.Length

@@ -46,7 +46,7 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
         /// <summary>Index within the previewed span, or -1 when no candidate was explicitly previewed. Automatic composite previews do not select a candidate.</summary>
         public int PreviewedRouteCandidateIndex { get; init; } = -1;
 
-        /// <summary>Resolver diagnostics of the currently edited path.</summary>
+        /// <summary>Resolver, Simulator-event, and blocked-save diagnostics of the currently edited path.</summary>
         public ImmutableArray<TrainPathDiagnosticRow> Diagnostics { get; init; }
 
         /// <summary>Whether the current path is loaded without runtime route or renderer state for safe repair.</summary>
@@ -99,6 +99,18 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
 
         /// <summary>Whether the selected authored node can be removed as a via point.</summary>
         public bool CanRemoveSelectedViaPoint { get; init; }
+
+        /// <summary>Whether a positive wait can be set on the selected authored node.</summary>
+        public bool CanSetSelectedWaitPoint { get; init; }
+
+        /// <summary>Whether wait flags or payload can be cleared from the selected authored node.</summary>
+        public bool CanClearSelectedWaitPoint { get; init; }
+
+        /// <summary>Whether a reversal can be set on the selected authored node.</summary>
+        public bool CanSetSelectedReversalPoint { get; init; }
+
+        /// <summary>Whether a reversal can be cleared from the selected authored node.</summary>
+        public bool CanClearSelectedReversalPoint { get; init; }
 
         /// <summary>Whether the active unsaved New Path model can be canceled.</summary>
         public bool CanCancelNewPath { get; init; }
@@ -160,6 +172,10 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
             CanMoveSelectedNode = false,
             CanRepairSelectedNode = false,
             CanRemoveSelectedViaPoint = false,
+            CanSetSelectedWaitPoint = false,
+            CanClearSelectedWaitPoint = false,
+            CanSetSelectedReversalPoint = false,
+            CanClearSelectedReversalPoint = false,
             CanBeginPassingBranch = false,
             CanContinuePath = false,
             CanCompletePassingBranch = false,

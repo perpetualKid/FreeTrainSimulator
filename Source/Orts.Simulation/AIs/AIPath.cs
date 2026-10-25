@@ -70,16 +70,17 @@ namespace Orts.Simulation.AIs
                         throw new InvalidDataException($"Invalid path node {Nodes.Count}.");
                     
                     AIPathNode node = new AIPathNode(pathNode, timetableMode) { Index = Nodes.Count };
-                    
-                    if (node.Index == 0 && node.Type is TrainPathNodeType.Stop or TrainPathNodeType.Reverse)
-                        throw new InvalidDataException("Unsupported wait/reverse event at first main node; the circuit consumer skips this event.");
+
+                    PathRouteDiagnostic eventDiagnostic = PathSimulatorEventCompatibility.ValidateNode(pathNode, node.Index,
+                        node.Index == 0, false, node.JunctionIndex >= 0);
+                    if (eventDiagnostic?.Code == PathRouteDiagnosticCode.UnsupportedFirstMainEvent)
+                        throw new InvalidDataException(eventDiagnostic.Message);
                     
                     if (pathNode.NodeType.Includes(PathNodeType.Junction) && node.JunctionIndex < 0)
                         throw new InvalidDataException($"Cannot resolve junction at node {node.Index}.");
                     
-                    // The runtime cannot process an event at a junction, or two events at one node.
-                    if ((node.JunctionIndex >= 0 && node.Type != TrainPathNodeType.Other) || pathNode.NodeType.Includes(PathNodeType.Wait | PathNodeType.Reversal))
-                        throw new InvalidDataException($"Unsupported junction or combined wait/reverse event at node {node.Index}.");
+                    if (eventDiagnostic != null)
+                        throw new InvalidDataException(eventDiagnostic.Message);
                     Nodes.Add(node);
                 }
                 FirstNode = Nodes[0];
@@ -96,7 +97,7 @@ namespace Orts.Simulation.AIs
                     Nodes[i].NextSidingNode = source.NextSidingNode < 0 ? null : Nodes[source.NextSidingNode];
                 }
 
-                List<AIPathNode> main = ReadMainPath();
+                List<AIPathNode> main = ReadMainPath(pathModel);
                 List<List<AIPathNode>> sidings = ReadSidings(main);
                 ResolveTracks(main, false, -1);
                 foreach (List<AIPathNode> siding in sidings)
@@ -126,7 +127,7 @@ namespace Orts.Simulation.AIs
                 TrackDataBaseType.Rail) ?? throw new InvalidDataException($"Cannot place path {PathName} on resolved vector {initial.VectorIndex}.");
         }
 
-        private List<AIPathNode> ReadMainPath()
+        private List<AIPathNode> ReadMainPath(PathModel pathModel)
         {
             List<AIPathNode> main = new List<AIPathNode>();
             HashSet<AIPathNode> visited = new HashSet<AIPathNode>();
@@ -136,14 +137,10 @@ namespace Orts.Simulation.AIs
                 if (!visited.Add(node))
                     throw new InvalidDataException($"Main path cycle at node {node.Index}.");
 
-                if (node.JunctionIndex >= 0)
-                    reversed = false;
-                else if (node.Type == TrainPathNodeType.Reverse)
-                {
-                    if (reversed)
-                        throw new InvalidDataException($"Multiple reversals in one continuous vector occurrence at node {node.Index}; the circuit consumer cannot preserve every leg.");
-                    reversed = true;
-                }
+                PathRouteDiagnostic reversalDiagnostic = PathSimulatorEventCompatibility.ValidateTraversalNode(
+                    pathModel.PathNodes[node.Index], node.Index, node.JunctionIndex >= 0, ref reversed);
+                if (reversalDiagnostic != null)
+                    throw new InvalidDataException(reversalDiagnostic.Message);
                 main.Add(node);
             }
 
@@ -172,9 +169,21 @@ namespace Orts.Simulation.AIs
                 {
                     if (!visited.Add(node) || node.NextMainNode != null)
                         throw new InvalidDataException($"Cyclic, shared or nested siding at node {node.Index}.");
-                
-                    if (node.Type != TrainPathNodeType.Other || node.WaitTimeS != 0)
+
+                    if (node.Type is not (TrainPathNodeType.Other or TrainPathNodeType.Stop or TrainPathNodeType.Reverse))
                         throw new InvalidDataException($"Unsupported siding event at node {node.Index}; branch waits/reversals cannot be preserved.");
+
+                    // Projection reindexes transient nodes, so source-model indices cannot supply this event context.
+                    PathNodeType nodeType = node.Type switch
+                    {
+                        TrainPathNodeType.Stop => PathNodeType.Wait,
+                        TrainPathNodeType.Reverse => PathNodeType.Reversal,
+                        _ => PathNodeType.None,
+                    };
+                    PathRouteDiagnostic eventDiagnostic = PathSimulatorEventCompatibility.ValidateNode(nodeType,
+                        node.WaitTimeS, node.Index, false, true, node.JunctionIndex >= 0);
+                    if (eventDiagnostic != null)
+                        throw new InvalidDataException(eventDiagnostic.Message);
                     siding.Add(node);
                     node = node.NextSidingNode;
                 }

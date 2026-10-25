@@ -527,7 +527,10 @@ namespace FreeTrainSimulator.Runtime.Track
                 pathModel with { PathNodes = builder.ToImmutable() }, changed.ToImmutable());
         }
 
-        /// <summary>Moves an interior anchor of a supported single-level passing branch.</summary>
+        /// <summary>
+        /// Moves an interior anchor of a supported single-level passing branch. Event markers and nonzero wait
+        /// payloads are refused because the Simulator does not support them on passing interiors.
+        /// </summary>
         public static PathEditResult MovePassingBranchAnchor(PathModel pathModel, int nodeIndex, PathNode anchor, bool isJunction)
         {
             ArgumentNullException.ThrowIfNull(pathModel);
@@ -781,6 +784,8 @@ namespace FreeTrainSimulator.Runtime.Track
         /// <summary>
         /// Marks the node at <paramref name="nodeIndex"/> as a wait point and stores the given wait time in
         /// seconds. Fails for an out-of-range index, a non-positive wait time, a junction node, or a start/end node.
+        /// Also refuses combined wait/reversal events, passing-branch interiors, and unclassifiable passing topology.
+        /// Other nodes are not checked for Simulator event compatibility.
         /// </summary>
         public static PathEditResult SetWaitPoint(PathModel pathModel, int nodeIndex, int waitTimeSeconds)
         {
@@ -799,12 +804,15 @@ namespace FreeTrainSimulator.Runtime.Track
                 WaitInfo = new PathNodeWaitInfo { WaitTime = waitTimeSeconds },
             };
 
-            return PathEditResult.Succeeded($"Set wait point of {waitTimeSeconds}s on node {nodeIndex}.", pathModel with { PathNodes = nodes.SetItem(nodeIndex, node) }, ImmutableArray.Create(nodeIndex));
+            return !TryValidateNodeEvents(pathModel, nodeIndex, node, out failure)
+                ? PathEditResult.Failed(failure, pathModel)
+                : PathEditResult.Succeeded($"Set wait point of {waitTimeSeconds}s on node {nodeIndex}.", pathModel with { PathNodes = nodes.SetItem(nodeIndex, node) }, ImmutableArray.Create(nodeIndex));
         }
 
         /// <summary>
         /// Clears the wait point marker and wait information from the node at <paramref name="nodeIndex"/>. Fails
-        /// for an out-of-range index or when the node is not a wait point.
+        /// for an out-of-range index or when neither the marker nor a wait information object exists. Explicit
+        /// removal also clears zero-valued wait information and does not require annotation eligibility.
         /// </summary>
         public static PathEditResult ClearWaitPoint(PathModel pathModel, int nodeIndex)
         {
@@ -813,7 +821,8 @@ namespace FreeTrainSimulator.Runtime.Track
             ImmutableArray<PathNode> nodes = Nodes(pathModel);
             if (nodeIndex < 0 || nodeIndex >= nodes.Length)
                 return PathEditResult.Failed($"Node index {nodeIndex} is out of range.", pathModel);
-            if ((nodes[nodeIndex].NodeType & PathNodeType.Wait) != PathNodeType.Wait)
+
+            if (!nodes[nodeIndex].NodeType.Includes(PathNodeType.Wait) && nodes[nodeIndex].WaitInfo == null)
                 return PathEditResult.Failed($"Node {nodeIndex} is not a wait point.", pathModel);
 
             PathNode node = nodes[nodeIndex] with
@@ -827,7 +836,8 @@ namespace FreeTrainSimulator.Runtime.Track
 
         /// <summary>
         /// Marks the node at <paramref name="nodeIndex"/> as a reversal point. Fails for an out-of-range index, a
-        /// junction node, or a start/end node.
+        /// junction node, or a start/end node. Also refuses combined wait/reversal events, passing-branch interiors,
+        /// and unclassifiable passing topology. Other nodes are not checked for Simulator event compatibility.
         /// </summary>
         public static PathEditResult SetReversalPoint(PathModel pathModel, int nodeIndex)
         {
@@ -839,12 +849,15 @@ namespace FreeTrainSimulator.Runtime.Track
 
             PathNode node = nodes[nodeIndex] with { NodeType = nodes[nodeIndex].NodeType | PathNodeType.Reversal };
 
-            return PathEditResult.Succeeded($"Set reversal point on node {nodeIndex}.", pathModel with { PathNodes = nodes.SetItem(nodeIndex, node) }, ImmutableArray.Create(nodeIndex));
+            return !TryValidateNodeEvents(pathModel, nodeIndex, node, out failure)
+                ? PathEditResult.Failed(failure, pathModel)
+                : PathEditResult.Succeeded($"Set reversal point on node {nodeIndex}.", pathModel with { PathNodes = nodes.SetItem(nodeIndex, node) }, ImmutableArray.Create(nodeIndex));
         }
 
         /// <summary>
         /// Clears the reversal point marker from the node at <paramref name="nodeIndex"/>. Fails for an
-        /// out-of-range index or when the node is not a reversal point.
+        /// out-of-range index or when the node is not a reversal point. Does not require annotation eligibility
+        /// or Simulator event compatibility, so imported annotations remain removable.
         /// </summary>
         public static PathEditResult ClearReversalPoint(PathModel pathModel, int nodeIndex)
         {
@@ -853,6 +866,7 @@ namespace FreeTrainSimulator.Runtime.Track
             ImmutableArray<PathNode> nodes = Nodes(pathModel);
             if (nodeIndex < 0 || nodeIndex >= nodes.Length)
                 return PathEditResult.Failed($"Node index {nodeIndex} is out of range.", pathModel);
+
             if ((nodes[nodeIndex].NodeType & PathNodeType.Reversal) != PathNodeType.Reversal)
                 return PathEditResult.Failed($"Node {nodeIndex} is not a reversal point.", pathModel);
 
@@ -887,6 +901,28 @@ namespace FreeTrainSimulator.Runtime.Track
             return true;
         }
 
+        private static bool TryValidateNodeEvents(PathModel pathModel, int nodeIndex, PathNode node, out string failure)
+        {
+            failure = null;
+            if ((node.NodeType & (PathNodeType.Wait | PathNodeType.Reversal)) == PathNodeType.None
+                && (node.WaitInfo?.WaitTime ?? 0) == 0)
+                return true;
+
+            bool isPassingInterior = false;
+            if (Nodes(pathModel).Any(pathNode => pathNode.NextSidingNode != -1))
+            {
+                if (!TryGetPassingBranchNodeRole(pathModel, nodeIndex, out PassingBranchNodeRole role, out failure))
+                    return false;
+
+                isPassingInterior = role == PassingBranchNodeRole.BranchInterior;
+            }
+
+            // Setters guard endpoints separately; moving an imported first-node event must remain a local repair.
+            PathRouteDiagnostic diagnostic = PathSimulatorEventCompatibility.ValidateNode(node, nodeIndex, false, isPassingInterior);
+            failure = diagnostic?.Message;
+            return diagnostic == null;
+        }
+
         // Drops a marker flag, falling back to a plain via node when nothing else remains.
         private static PathNodeType WithoutMarker(PathNodeType nodeType, PathNodeType marker)
         {
@@ -897,7 +933,9 @@ namespace FreeTrainSimulator.Runtime.Track
         /// <summary>
         /// Moves the node at <paramref name="nodeIndex"/> to a new track anchor, preserving its path links and
         /// wait metadata. Start/end/wait/reversal intent is preserved, while junction/via classification
-        /// is recalculated from <paramref name="isJunction"/>.
+        /// is recalculated from <paramref name="isJunction"/>. Refuses combined events, events on the destination
+        /// junction, and passing-interior events or nonzero wait payloads. Event-bearing moves require classifiable
+        /// passing topology, but other nodes and traversal-wide event restrictions do not gate local repairs.
         /// </summary>
         public static PathEditResult MoveNode(PathModel pathModel, int nodeIndex, PathNode replacementAnchor, bool isJunction)
         {
@@ -922,7 +960,9 @@ namespace FreeTrainSimulator.Runtime.Track
                 WaitInfo = original.WaitInfo,
             };
 
-            return PathEditResult.Succeeded($"Moved node {nodeIndex}.",
+            return !TryValidateNodeEvents(pathModel, nodeIndex, movedNode, out string failure)
+                ? PathEditResult.Failed(failure, pathModel)
+                : PathEditResult.Succeeded($"Moved node {nodeIndex}.",
                 pathModel with { PathNodes = nodes.SetItem(nodeIndex, movedNode) },
                 ImmutableArray.Create(nodeIndex));
         }
@@ -930,7 +970,8 @@ namespace FreeTrainSimulator.Runtime.Track
         /// <summary>
         /// Safely repairs the node at <paramref name="nodeIndex"/> when the repair is unambiguous. The first
         /// supported repair converts a node incorrectly marked as a junction into a track point when its stored
-        /// location lies on exactly one vector section and no actual junction exists there.
+        /// location lies on exactly one vector section and no actual junction exists there. Event compatibility
+        /// is checked at the prospective destination without requiring compatibility of the complete imported path.
         /// </summary>
         public static PathEditResult RepairNode(PathModel pathModel, int nodeIndex, TrackWorld trackWorld)
         {
@@ -951,6 +992,7 @@ namespace FreeTrainSimulator.Runtime.Track
             JunctionNode[] nearbyJunctions = FindNearbyJunctions(trackWorld, node.Location);
             if (nearbyJunctions.Length == 1)
                 return MoveNodeToJunction(pathModel, nodeIndex, nearbyJunctions[0]);
+            
             if (nearbyJunctions.Length > 1)
                 return PathEditResult.Failed($"Node {nodeIndex} has multiple nearby junction repairs; choose the intended junction manually.", pathModel);
 

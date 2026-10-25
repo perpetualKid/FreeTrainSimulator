@@ -433,18 +433,17 @@
                 <ScrollViewer Grid.Row="3" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
                     <StackPanel>
                         <Grid Margin="0,3">
-                            <Grid.ColumnDefinitions><ColumnDefinition Width="Auto" /><ColumnDefinition Width="*" /></Grid.ColumnDefinitions>
-                            <TextBlock Text="Wait (seconds)" VerticalAlignment="Center" Margin="0,0,6,0" />
+                            <Grid.ColumnDefinitions><ColumnDefinition Width="Auto" /><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
+                            <TextBlock Text="{gt:Gettext 'Wait (seconds)'}" VerticalAlignment="Center" Margin="0,0,6,0" />
                             <TextBox x:Name="WaitTimeEditor" Grid.Column="1" MaxLength="10"
                                      IsEnabled="{Binding CanEditSelectedNodeWaitTime}"
                                      Text="{Binding SelectedNodeWaitTime, Mode=TwoWay, UpdateSourceTrigger=Explicit}"
                                      LostKeyboardFocus="WaitTimeEditor_LostKeyboardFocus" GotKeyboardFocus="WaitTimeEditor_GotKeyboardFocus"
                                      PreviewTextInput="WaitTimeTextBox_PreviewTextInput" DataObject.Pasting="WaitTimeTextBox_Pasting"
-                                     AutomationProperties.Name="Wait time in seconds">
-                                <TextBox.Style><Style TargetType="TextBox"><Style.Triggers>
-                                    <DataTrigger Binding="{Binding IsRepairMode}" Value="True"><Setter Property="IsEnabled" Value="False" /></DataTrigger>
-                                </Style.Triggers></Style></TextBox.Style>
-                            </TextBox>
+                                     AutomationProperties.Name="{gt:Gettext 'Wait time in seconds'}" />
+                            <Button Grid.Column="2" Content="{gt:Gettext 'Clear Wait Point'}" Command="{Binding ClearWaitPointCommand}"
+                                    Margin="6,0,0,0" AutomationProperties.Name="{gt:Gettext 'Clear Wait Point'}"
+                                    ToolTip="{gt:Gettext 'Remove wait flags and wait data from the selected node.'}" />
                         </Grid>
                         <TextBlock Text="{Binding SelectedNode.Validation}" TextWrapping="Wrap" />
                         <Expander Header="{gt:Gettext 'Details'}" IsExpanded="True">

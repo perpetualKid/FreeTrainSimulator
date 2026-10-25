@@ -35,7 +35,7 @@ namespace FreeTrainSimulator.Toolbox.PathEditing
         /// <summary>The route resolution used for the validation decision.</summary>
         public PathRouteResolution Resolution { get; }
 
-        /// <summary>Resolver diagnostics considered by the validation decision.</summary>
+        /// <summary>Resolver and Simulator event diagnostics considered by the validation decision.</summary>
         public ImmutableArray<PathRouteDiagnostic> Diagnostics { get; }
 
         /// <summary>Authored or generated node indexes included by successful materialization.</summary>

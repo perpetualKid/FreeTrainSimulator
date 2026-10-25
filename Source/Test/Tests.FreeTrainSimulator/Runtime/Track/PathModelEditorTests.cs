@@ -803,6 +803,22 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
         }
 
         [TestMethod]
+        [DataRow(PathNodeType.Wait)]
+        [DataRow(PathNodeType.Reversal)]
+        public void WhenImportedJunctionEventIsRepairedOnTrackThenOtherEventProblemsDoNotVetoRepair(PathNodeType eventType)
+        {
+            TrackWorld trackWorld = CreateInitializedTrackWorldWithSingleVectorNode();
+            PathModel path = CreatePath(
+                Node(PathNodeType.Start | PathNodeType.Reversal, 1),
+                Node(PathNodeType.Junction | eventType, 2),
+                Node(PathNodeType.End, -1));
+
+            PathEditResult result = PathModelEditor.RepairNode(path, 1, trackWorld);
+
+            Assert.AreEqual(PathNodeType.Via | eventType, result.PathModel.PathNodes[1].NodeType);
+        }
+
+        [TestMethod]
         public void WhenRepairNodeHasSingleNearbyJunctionThenNodeSnapsToJunction()
         {
             TrackWorld trackWorld = CreateTrackWorldWithJunctions(
@@ -818,6 +834,23 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
             Assert.AreEqual(2, result.PathModel.PathNodes[1].NodeIndex);
             Assert.AreEqual(new WorldLocation(new Tile(0, 0), new Vector3(3, 0, 0)), result.PathModel.PathNodes[1].Location);
             Assert.IsTrue(result.PathModel.PathNodes[1].NodeType.Includes(PathNodeType.Junction));
+        }
+
+        [TestMethod]
+        [DataRow(PathNodeType.Wait)]
+        [DataRow(PathNodeType.Reversal)]
+        public void WhenEventRepairWouldSnapToJunctionThenOriginalModelIsRetained(PathNodeType eventType)
+        {
+            TrackWorld trackWorld = CreateTrackWorldWithJunctions(
+                new JunctionNode(new WorldLocation(new Tile(0, 0), new Vector3(3, 0, 0)), new Tile(0, 0), Vector3.Zero) { NodeIndex = 2 });
+            PathModel path = CreatePath(
+                Node(PathNodeType.Start, 1),
+                Node(PathNodeType.Via | eventType, 2),
+                Node(PathNodeType.End, -1));
+
+            PathEditResult result = PathModelEditor.RepairNode(path, 1, trackWorld);
+
+            Assert.AreSame(path, result.PathModel);
         }
 
         [TestMethod]
@@ -872,20 +905,21 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
             PathNodeWaitInfo waitInfo = new PathNodeWaitInfo { WaitTime = 25 };
             PathModel path = CreatePath(
                 Node(PathNodeType.Start, 1),
-                Node(PathNodeType.Wait | PathNodeType.Reversal, 2, -1) with { WaitInfo = waitInfo },
+                Node(PathNodeType.Wait, 2, -1) with { WaitInfo = waitInfo },
                 Node(PathNodeType.End, -1));
             PathNode replacement = new PathNode(new WorldLocation(new Tile(0, 0), new Vector3(10, 0, 20)))
             {
                 NodeIndex = 42,
             };
 
-            PathEditResult result = PathModelEditor.MoveNode(path, 1, replacement, true);
+            PathEditResult result = PathModelEditor.MoveNode(path, 1, replacement, false);
 
+            Assert.IsTrue(result.Success);
             Assert.AreEqual(2, result.PathModel.PathNodes[1].NextMainNode);
             Assert.AreEqual(waitInfo, result.PathModel.PathNodes[1].WaitInfo);
             Assert.IsTrue(result.PathModel.PathNodes[1].NodeType.Includes(PathNodeType.Wait));
-            Assert.IsTrue(result.PathModel.PathNodes[1].NodeType.Includes(PathNodeType.Reversal));
-            Assert.IsTrue(result.PathModel.PathNodes[1].NodeType.Includes(PathNodeType.Junction));
+            Assert.IsFalse(result.PathModel.PathNodes[1].NodeType.Includes(PathNodeType.Reversal));
+            Assert.IsFalse(result.PathModel.PathNodes[1].NodeType.Includes(PathNodeType.Junction));
         }
 
         [TestMethod]
@@ -898,6 +932,121 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
 
             Assert.IsFalse(result.Success);
             Assert.AreSame(path, result.PathModel);
+        }
+
+        [TestMethod]
+        [DataRow(PathNodeType.Wait)]
+        [DataRow(PathNodeType.Reversal)]
+        [DataRow(PathNodeType.Wait | PathNodeType.Reversal)]
+        public void WhenEventNodeIsMovedToJunctionThenOriginalModelIsRetained(PathNodeType eventType)
+        {
+            PathModel path = CreatePath(
+                Node(PathNodeType.Start, 1),
+                Node(PathNodeType.Via | eventType, 2),
+                Node(PathNodeType.End, -1));
+
+            PathEditResult result = PathModelEditor.MoveNode(path, 1, Anchor(20, 42), true);
+
+            Assert.AreSame(path, result.PathModel);
+        }
+
+        [TestMethod]
+        public void WhenCombinedEventNodeIsMovedOnTrackThenCombinedEventIsRefused()
+        {
+            PathModel path = CreatePath(
+                Node(PathNodeType.Start, 1),
+                Node(PathNodeType.Via | PathNodeType.Wait | PathNodeType.Reversal, 2),
+                Node(PathNodeType.End, -1));
+            string expectedMessage = PathSimulatorEventCompatibility.ValidateNode(path.PathNodes[1], 1, false, false).Message;
+
+            PathEditResult result = PathModelEditor.MoveNode(path, 1, Anchor(20, 42), false);
+
+            Assert.AreEqual(expectedMessage, result.Message);
+        }
+
+        [TestMethod]
+        [DataRow(PathNodeType.Wait, 0)]
+        [DataRow(PathNodeType.Reversal, 0)]
+        [DataRow(PathNodeType.Via, 30)]
+        [DataRow(PathNodeType.Via, -1)]
+        public void WhenPassingInteriorEventIsMovedThenOriginalModelIsRetained(PathNodeType nodeType, int waitTime)
+        {
+            PathModel path = CreateSupportedPassingBranchPath();
+            path = path with
+            {
+                PathNodes = path.PathNodes.SetItem(5, path.PathNodes[5] with
+                {
+                    NodeType = PathNodeType.Via | nodeType,
+                    WaitInfo = new PathNodeWaitInfo { WaitTime = waitTime },
+                }),
+            };
+
+            PathEditResult result = PathModelEditor.MovePassingBranchAnchor(path, 5, Anchor(20, 42), false);
+
+            Assert.AreSame(path, result.PathModel);
+        }
+
+        [TestMethod]
+        [DataRow(PathNodeType.Wait)]
+        [DataRow(PathNodeType.Reversal)]
+        public void WhenImportedFirstJunctionEventIsMovedToTrackThenEventIsPreserved(PathNodeType eventType)
+        {
+            PathModel path = CreatePath(
+                Node(PathNodeType.Start | PathNodeType.Junction | eventType, 1),
+                Node(PathNodeType.End, -1));
+
+            PathEditResult result = PathModelEditor.MoveNode(path, 0, Anchor(20, 42), false);
+
+            Assert.AreEqual(PathNodeType.Start | PathNodeType.Via | eventType, result.PathModel.PathNodes[0].NodeType);
+        }
+
+        [TestMethod]
+        [DataRow(false)]
+        [DataRow(true)]
+        public void WhenPlainPassingAnchorIsMovedThenUnrelatedEventIncompatibilityDoesNotVetoMove(bool isJunction)
+        {
+            PathModel path = CreateSupportedPassingBranchPath();
+            path = path with
+            {
+                PathNodes = path.PathNodes
+                    .SetItem(0, path.PathNodes[0] with { NodeType = PathNodeType.Start | PathNodeType.Wait | PathNodeType.Reversal })
+                    .SetItem(6, path.PathNodes[6] with { WaitInfo = new PathNodeWaitInfo { WaitTime = 30 } }),
+            };
+
+            PathEditResult result = PathModelEditor.MovePassingBranchAnchor(path, 5, Anchor(20, 42), isJunction);
+
+            Assert.AreEqual(42, result.PathModel.PathNodes[5].NodeIndex);
+        }
+
+        [TestMethod]
+        public void WhenUnmarkedZeroWaitPassingAnchorIsMovedThenPayloadIsPreserved()
+        {
+            PathModel path = CreateSupportedPassingBranchPath();
+            PathNodeWaitInfo waitInfo = new PathNodeWaitInfo { WaitTime = 0 };
+            path = path with { PathNodes = path.PathNodes.SetItem(5, path.PathNodes[5] with { WaitInfo = waitInfo }) };
+            PathNode replacement = Anchor(20, 42);
+
+            PathEditResult result = PathModelEditor.MovePassingBranchAnchor(path, 5, replacement, false);
+
+            Assert.AreEqual(new PathNode(replacement.Location)
+            {
+                NodeType = PathNodeType.Via,
+                NodeIndex = 42,
+                NextMainNode = -1,
+                NextSidingNode = 6,
+                WaitInfo = waitInfo,
+            }, result.PathModel.PathNodes[5]);
+        }
+
+        [TestMethod]
+        public void WhenPlainImportedNodeIsMovedThenUnclassifiableTopologyDoesNotVetoMove()
+        {
+            PathModel path = CreateSupportedPassingBranchPath();
+            path = path with { PathNodes = path.PathNodes.SetItem(2, path.PathNodes[2] with { NextSidingNode = -2 }) };
+
+            PathEditResult result = PathModelEditor.MoveNode(path, 5, Anchor(20, 42), false);
+
+            Assert.AreEqual(42, result.PathModel.PathNodes[5].NodeIndex);
         }
 
         [TestMethod]
@@ -950,6 +1099,25 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
         }
 
         [TestMethod]
+        public void WhenWaitPointIsSetOnReversalThenCombinedEventIsRefused()
+        {
+            PathModel path = CreatePath(
+                Node(PathNodeType.Start, 1),
+                Node(PathNodeType.Via | PathNodeType.Reversal, 2),
+                Node(PathNodeType.End, -1));
+            PathNode prospective = path.PathNodes[1] with
+            {
+                NodeType = path.PathNodes[1].NodeType | PathNodeType.Wait,
+                WaitInfo = new PathNodeWaitInfo { WaitTime = 30 },
+            };
+            string expectedMessage = PathSimulatorEventCompatibility.ValidateNode(prospective, 1, false, false).Message;
+
+            PathEditResult result = PathModelEditor.SetWaitPoint(path, 1, 30);
+
+            Assert.AreEqual(expectedMessage, result.Message);
+        }
+
+        [TestMethod]
         public void WhenWaitPointIsSetOnStartNodeThenEditFails()
         {
             PathModel path = CreatePath(
@@ -959,6 +1127,18 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
             PathEditResult result = PathModelEditor.SetWaitPoint(path, 0, 60);
 
             Assert.IsFalse(result.Success);
+        }
+
+        [TestMethod]
+        [DataRow(5)]
+        [DataRow(6)]
+        public void WhenWaitPointIsSetOnPassingInteriorThenOriginalModelIsRetained(int nodeIndex)
+        {
+            PathModel path = CreateSupportedPassingBranchPath();
+
+            PathEditResult result = PathModelEditor.SetWaitPoint(path, nodeIndex, 30);
+
+            Assert.AreSame(path, result.PathModel);
         }
 
         [TestMethod]
@@ -990,6 +1170,16 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
         }
 
         [TestMethod]
+        public void WhenWaitMarkerWithoutPayloadIsClearedThenNodeBecomesVia()
+        {
+            PathModel path = CreatePath(Node(PathNodeType.Wait, -1));
+
+            PathEditResult result = PathModelEditor.ClearWaitPoint(path, 0);
+
+            Assert.AreEqual(Node(PathNodeType.Via, -1), result.PathModel.PathNodes[0]);
+        }
+
+        [TestMethod]
         public void WhenWaitPointIsClearedOnNodeWithoutWaitThenEditFails()
         {
             PathModel path = CreatePath(
@@ -999,6 +1189,36 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
             PathEditResult result = PathModelEditor.ClearWaitPoint(path, 1);
 
             Assert.IsFalse(result.Success);
+        }
+
+        [TestMethod]
+        [DataRow(0)]
+        [DataRow(30)]
+        [DataRow(-1)]
+        public void WhenUnmarkedPassingInteriorWaitPayloadIsClearedThenPayloadIsRemoved(int waitTime)
+        {
+            PathModel path = CreateSupportedPassingBranchPath();
+            PathNode original = path.PathNodes[5] with { WaitInfo = new PathNodeWaitInfo { WaitTime = waitTime } };
+            path = path with { PathNodes = path.PathNodes.SetItem(5, original) };
+
+            PathEditResult result = PathModelEditor.ClearWaitPoint(path, 5);
+
+            Assert.AreEqual(original with { WaitInfo = null }, result.PathModel.PathNodes[5]);
+        }
+
+        [TestMethod]
+        [DataRow(PathNodeType.Wait, PathNodeType.Via)]
+        [DataRow(PathNodeType.Start | PathNodeType.Wait | PathNodeType.Reversal, PathNodeType.Start | PathNodeType.Reversal)]
+        [DataRow(PathNodeType.End | PathNodeType.Wait, PathNodeType.End)]
+        [DataRow(PathNodeType.Junction | PathNodeType.Wait, PathNodeType.Junction)]
+        public void WhenImportedWaitIsClearedThenOtherIntentIsPreserved(PathNodeType originalType, PathNodeType expectedType)
+        {
+            PathNode original = Node(originalType, -1, 50) with { WaitInfo = new PathNodeWaitInfo { WaitTime = 30 } };
+            PathModel path = CreatePath(original);
+
+            PathEditResult result = PathModelEditor.ClearWaitPoint(path, 0);
+
+            Assert.AreEqual(original with { NodeType = expectedType, WaitInfo = null }, result.PathModel.PathNodes[0]);
         }
 
         [TestMethod]
@@ -1028,6 +1248,19 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
         }
 
         [TestMethod]
+        public void WhenReversalPointIsSetOnWaitThenOriginalModelIsRetained()
+        {
+            PathModel path = CreatePath(
+                Node(PathNodeType.Start, 1),
+                Node(PathNodeType.Via | PathNodeType.Wait, 2) with { WaitInfo = new PathNodeWaitInfo { WaitTime = 30 } },
+                Node(PathNodeType.End, -1));
+
+            PathEditResult result = PathModelEditor.SetReversalPoint(path, 1);
+
+            Assert.AreSame(path, result.PathModel);
+        }
+
+        [TestMethod]
         public void WhenReversalPointIsClearedThenMarkerIsRemoved()
         {
             PathModel path = CreatePath(
@@ -1039,6 +1272,20 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
 
             Assert.IsTrue(result.Success);
             Assert.AreEqual(PathNodeType.Via, result.PathModel.PathNodes[1].NodeType);
+        }
+
+        [TestMethod]
+        [DataRow(5)]
+        [DataRow(6)]
+        public void WhenReversalPointIsSetOnPassingInteriorThenEventIsRefused(int nodeIndex)
+        {
+            PathModel path = CreateSupportedPassingBranchPath();
+            PathNode prospective = path.PathNodes[nodeIndex] with { NodeType = PathNodeType.Via | PathNodeType.Reversal };
+            string expectedMessage = PathSimulatorEventCompatibility.ValidateNode(prospective, nodeIndex, false, true).Message;
+
+            PathEditResult result = PathModelEditor.SetReversalPoint(path, nodeIndex);
+
+            Assert.AreEqual(expectedMessage, result.Message);
         }
 
         [TestMethod]
@@ -1054,6 +1301,24 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
         }
 
         [TestMethod]
+        [DataRow(0)]
+        [DataRow(5)]
+        public void WhenImportedReversalIsClearedThenRemainingWaitDoesNotVetoRemoval(int nodeIndex)
+        {
+            PathModel path = CreateSupportedPassingBranchPath();
+            PathNode original = path.PathNodes[nodeIndex] with
+            {
+                NodeType = path.PathNodes[nodeIndex].NodeType | PathNodeType.Wait | PathNodeType.Reversal,
+                WaitInfo = new PathNodeWaitInfo { WaitTime = 30 },
+            };
+            path = path with { PathNodes = path.PathNodes.SetItem(nodeIndex, original) };
+
+            PathEditResult result = PathModelEditor.ClearReversalPoint(path, nodeIndex);
+
+            Assert.AreEqual(original with { NodeType = original.NodeType & ~PathNodeType.Reversal }, result.PathModel.PathNodes[nodeIndex]);
+        }
+
+        [TestMethod]
         public void WhenWaitPointIsSetWithOutOfRangeIndexThenEditFails()
         {
             PathModel path = CreatePath(Node(PathNodeType.Start, -1));
@@ -1061,6 +1326,85 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
             PathEditResult result = PathModelEditor.SetWaitPoint(path, 5, 60);
 
             Assert.IsFalse(result.Success);
+            Assert.AreSame(path, result.PathModel);
+        }
+
+        [TestMethod]
+        [DataRow(1)]
+        [DataRow(2)]
+        [DataRow(3)]
+        public void WhenWaitPointIsSetOnPassingMainRouteThenAnnotationIsAllowed(int nodeIndex)
+        {
+            PathModel path = CreateSupportedPassingBranchPath();
+
+            PathEditResult result = PathModelEditor.SetWaitPoint(path, nodeIndex, 30);
+
+            Assert.AreEqual(path.PathNodes[nodeIndex] with
+            {
+                NodeType = PathNodeType.Via | PathNodeType.Wait,
+                WaitInfo = new PathNodeWaitInfo { WaitTime = 30 },
+            }, result.PathModel.PathNodes[nodeIndex]);
+        }
+
+        [TestMethod]
+        [DataRow(1)]
+        [DataRow(2)]
+        [DataRow(3)]
+        public void WhenReversalPointIsSetOnPassingMainRouteThenAnnotationIsAllowed(int nodeIndex)
+        {
+            PathModel path = CreateSupportedPassingBranchPath();
+
+            PathEditResult result = PathModelEditor.SetReversalPoint(path, nodeIndex);
+
+            Assert.AreEqual(path.PathNodes[nodeIndex] with
+            {
+                NodeType = PathNodeType.Via | PathNodeType.Reversal,
+            }, result.PathModel.PathNodes[nodeIndex]);
+        }
+
+        [TestMethod]
+        [DataRow(6, -1)]
+        [DataRow(6, 1)]
+        [DataRow(6, 7)]
+        [DataRow(2, 3)]
+        [DataRow(2, -2)]
+        public void WhenWaitAnnotationHasUnclassifiablePassingTopologyThenOriginalModelIsRetained(int changedIndex, int sidingTarget)
+        {
+            PathModel path = CreateSupportedPassingBranchPath();
+            path = path with { PathNodes = path.PathNodes.SetItem(changedIndex, path.PathNodes[changedIndex] with { NextSidingNode = sidingTarget }) };
+
+            PathEditResult result = PathModelEditor.SetWaitPoint(path, 2, 30);
+
+            Assert.AreSame(path, result.PathModel);
+        }
+
+        [TestMethod]
+        [DataRow(6, -1)]
+        [DataRow(6, 1)]
+        [DataRow(6, 7)]
+        [DataRow(2, 3)]
+        [DataRow(2, -2)]
+        public void WhenReversalAnnotationHasUnclassifiablePassingTopologyThenExistingFailureIsReturned(int changedIndex, int sidingTarget)
+        {
+            PathModel path = CreateSupportedPassingBranchPath();
+            path = path with { PathNodes = path.PathNodes.SetItem(changedIndex, path.PathNodes[changedIndex] with { NextSidingNode = sidingTarget }) };
+            _ = PathModelEditor.TryGetPassingBranchNodeRole(path, 2, out _, out string expectedMessage);
+
+            PathEditResult result = PathModelEditor.SetReversalPoint(path, 2);
+
+            Assert.AreEqual(expectedMessage, result.Message);
+        }
+
+        [TestMethod]
+        public void WhenWaitAnnotationHasOnlyInvalidSidingLinkThenOriginalModelIsRetained()
+        {
+            PathModel path = CreatePath(
+                Node(PathNodeType.Start, 1),
+                Node(PathNodeType.Via, 2, -2),
+                Node(PathNodeType.End, -1));
+
+            PathEditResult result = PathModelEditor.SetWaitPoint(path, 1, 30);
+
             Assert.AreSame(path, result.PathModel);
         }
 

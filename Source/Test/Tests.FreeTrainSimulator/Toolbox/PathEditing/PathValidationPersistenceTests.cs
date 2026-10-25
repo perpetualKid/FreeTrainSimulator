@@ -81,6 +81,191 @@ namespace Tests.FreeTrainSimulator.Toolbox.PathEditing
         }
 
         [TestMethod]
+        [DataRow(PathNodeType.Wait)]
+        [DataRow(PathNodeType.Reversal)]
+        public async Task WhenFirstMainEventIsSavedThenOriginalDraftIsReturnedWithoutWriting(PathNodeType eventType)
+        {
+            RouteModel route = CreateRoute();
+            PathModel source = CreateLinearPath("first-event");
+            source = source with { PathNodes = source.PathNodes.SetItem(0, source.PathNodes[0] with { NodeType = PathNodeType.Start | eventType }) };
+
+            PathPersistenceValidationResult result = await PathEditor.SaveValidatedPath(source, route,
+                TrackWorldTestFixture.CreateSingleVectorNodeTrackWorld(), TestContext.CancellationToken).ConfigureAwait(false);
+
+            Assert.AreEqual((false, source, PathRouteDiagnosticCode.UnsupportedFirstMainEvent, 0),
+                (result.PersistenceAllowed, result.PathModel, result.HighestActionableDiagnostic.Code, result.HighestActionableDiagnostic.NodeIndex));
+            Assert.AreSame(source, result.PathModel);
+            Assert.IsFalse((await route.GetPaths(TestContext.CancellationToken).ConfigureAwait(false)).Any(path => path.Id == source.Id));
+        }
+
+        [TestMethod]
+        public async Task WhenCombinedEventSaveIsBlockedThenExistingStoreContentIsPreserved()
+        {
+            RouteModel route = CreateRoute();
+            PathModel persisted = CreateLinearPath("combined-event");
+            _ = await route.Save(persisted, TestContext.CancellationToken).ConfigureAwait(false);
+            PathModel source = persisted with
+            {
+                PathNodes = ImmutableArray.Create(CreatePathNode(0, PathNodeType.Start, 1),
+                    CreatePathNode(50, PathNodeType.Via | PathNodeType.Wait | PathNodeType.Reversal, 2) with
+                    { WaitInfo = new PathNodeWaitInfo { WaitTime = 15 } }, CreatePathNode(100, PathNodeType.End, -1)),
+            };
+
+            PathPersistenceValidationResult result = await PathEditor.SaveValidatedPath(source, route,
+                TrackWorldTestFixture.CreateSingleVectorNodeTrackWorld(), TestContext.CancellationToken).ConfigureAwait(false);
+
+            PathModelHeader header = (await route.GetPaths(TestContext.CancellationToken).ConfigureAwait(false)).Single(path => path.Id == source.Id);
+            PathModel reloaded = await header.GetExtended(TestContext.CancellationToken).ConfigureAwait(false);
+            Assert.AreSequenceEqual(persisted.PathNodes, reloaded.PathNodes);
+            Assert.AreEqual(PathRouteDiagnosticCode.UnsupportedCombinedWaitReversal, result.HighestActionableDiagnostic.Code);
+            StringAssert.Contains(result.FailureMessage, result.HighestActionableDiagnostic.SuggestedAction);
+        }
+
+        [TestMethod]
+        public async Task WhenWaitSeparatesReversalsWithoutJunctionThenSaveIsBlocked()
+        {
+            PathModel source = new PathModel
+            {
+                Id = "repeated-reversal",
+                PathNodes = ImmutableArray.Create(CreatePathNode(0, PathNodeType.Start, 1),
+                    CreatePathNode(20, PathNodeType.Via | PathNodeType.Reversal, 2),
+                    CreatePathNode(40, PathNodeType.Via | PathNodeType.Wait, 3) with { WaitInfo = new PathNodeWaitInfo { WaitTime = 10 } },
+                    CreatePathNode(60, PathNodeType.Via | PathNodeType.Reversal, 4), CreatePathNode(100, PathNodeType.End, -1)),
+            };
+
+            PathPersistenceValidationResult result = await PathEditor.SaveValidatedPath(source, CreateRoute(),
+                TrackWorldTestFixture.CreateSingleVectorNodeTrackWorld(), TestContext.CancellationToken).ConfigureAwait(false);
+
+            Assert.AreEqual((false, PathRouteDiagnosticCode.MultipleReversalsInContinuousVector, 3),
+                (result.PersistenceAllowed, result.HighestActionableDiagnostic.Code, result.HighestActionableDiagnostic.NodeIndex));
+        }
+
+        [TestMethod]
+        [DataRow(PathNodeType.Wait)]
+        [DataRow(PathNodeType.Reversal)]
+        public async Task WhenSingleOrdinaryMainEventIsSavedThenItIsPreserved(PathNodeType eventType)
+        {
+            PathModel source = new PathModel
+            {
+                Id = "ordinary-event",
+                PathNodes = ImmutableArray.Create(CreatePathNode(0, PathNodeType.Start, 1),
+                    CreatePathNode(50, PathNodeType.Via | eventType, 2), CreatePathNode(100, PathNodeType.End, -1)),
+            };
+
+            PathPersistenceValidationResult result = await PathEditor.SaveValidatedPath(source, CreateRoute(),
+                TrackWorldTestFixture.CreateSingleVectorNodeTrackWorld(), TestContext.CancellationToken).ConfigureAwait(false);
+
+            Assert.IsTrue(result.PersistenceAllowed && result.PathModel.PathNodes[1].NodeType.Includes(eventType));
+        }
+
+        [TestMethod]
+        [DataRow(PathNodeType.Wait)]
+        [DataRow(PathNodeType.None)]
+        public async Task WhenPassingInteriorHasWaitMarkerOrPayloadThenGeneratedTargetMapsBackToSource(PathNodeType eventType)
+        {
+            TrackWorld world = TrackWorldTestFixture.CreateSidingTrackWorld();
+            PathModel source = CreateRepresentativePassingPath("passing-event", world);
+            source = source with
+            {
+                PathNodes = source.PathNodes.SetItem(3, source.PathNodes[3] with
+                { NodeType = PathNodeType.Via | eventType, WaitInfo = new PathNodeWaitInfo { WaitTime = 30 } }),
+            };
+
+            PathPersistenceValidationResult result = await PathEditor.SaveValidatedPath(source, CreateRoute(), world,
+                TestContext.CancellationToken).ConfigureAwait(false);
+
+            Assert.AreEqual((false, PathRouteDiagnosticCode.UnsupportedPassingInteriorEvent, 3),
+                (result.PersistenceAllowed, result.HighestActionableDiagnostic.Code, result.HighestActionableDiagnostic.NodeIndex));
+            Assert.AreSame(source, result.PathModel);
+        }
+
+        [TestMethod]
+        public void WhenMaterializationAddsJunctionMarkerToWaitThenStrictSaveRejectsTheExactGeneratedModel()
+        {
+            TrackWorld world = CreateJunctionContinuityWorld(ConnectorType.OutPin);
+            PathModel source = new PathModel
+            {
+                PathNodes = ImmutableArray.Create(
+                    CreateAnchoredPathNode(world, 1, PathNodeType.Start | PathNodeType.Junction, 1, -1),
+                    CreateAnchoredPathNode(world, 3, PathNodeType.Via | PathNodeType.Wait, 2, -1),
+                    CreateAnchoredPathNode(world, 2, PathNodeType.End | PathNodeType.Junction, -1, -1)),
+            };
+
+            PathPersistenceValidationResult neutral = PathPersistenceValidationPolicy.ResolveAndMaterialize(source, world);
+            PathPersistenceValidationResult strict = PathPersistenceValidationPolicy.ValidateForPersistence(source, world);
+
+            Assert.IsTrue(neutral.PersistenceAllowed && neutral.PathModel.PathNodes[1].NodeType.Includes(PathNodeType.Junction));
+            Assert.AreEqual((false, PathRouteDiagnosticCode.UnsupportedJunctionEvent, 1),
+                (strict.PersistenceAllowed, strict.HighestActionableDiagnostic.Code, strict.HighestActionableDiagnostic.NodeIndex));
+        }
+
+        [TestMethod]
+        public void WhenAmbiguousPathHasUnsupportedEventThenSaveRetainsAmbiguityFeedback()
+        {
+            PathModel source = new PathModel
+            {
+                PathNodes = ImmutableArray.Create(CreatePathNode(100, PathNodeType.Start | PathNodeType.Wait, 1),
+                    CreatePathNode(200, PathNodeType.End, -1) with { NodeIndex = 2 }),
+            };
+
+            PathPersistenceValidationResult result = PathPersistenceValidationPolicy.ValidateForPersistence(source, CreateAmbiguousRouteTrackWorld());
+
+            Assert.IsTrue(!result.PersistenceAllowed && result.Diagnostics.Any(diagnostic => diagnostic.Code == PathRouteDiagnosticCode.AmbiguousRoute)
+                && result.Diagnostics.Any(diagnostic => diagnostic.Code == PathRouteDiagnosticCode.UnsupportedFirstMainEvent));
+        }
+
+        [TestMethod]
+        public void WhenNoncanonicalSourceIsMaterializedThenEventTargetUsesAuthoredIndex()
+        {
+            PathModel source = new PathModel
+            {
+                PathNodes = ImmutableArray.Create(CreatePathNode(100, PathNodeType.End, -1),
+                    CreatePathNode(0, PathNodeType.Start, 2), CreatePathNode(50, PathNodeType.Via | PathNodeType.Wait | PathNodeType.Reversal, 0)),
+            };
+
+            PathPersistenceValidationResult result = PathPersistenceValidationPolicy.ValidateForPersistence(source,
+                TrackWorldTestFixture.CreateSingleVectorNodeTrackWorld());
+
+            Assert.AreEqual(2, result.HighestActionableDiagnostic.NodeIndex);
+            Assert.AreEqual(PathSimulatorEventCompatibility.ValidateNode(source.PathNodes[2], 2, false, false).Message,
+                result.HighestActionableDiagnostic.Message);
+        }
+
+        [TestMethod]
+        public void WhenRepeatedEventLocationsAreIndistinguishableThenSaveDiagnosticHasNoAuthoredTarget()
+        {
+            PathModel source = new PathModel
+            {
+                PathNodes = ImmutableArray.Create(CreatePathNode(0, PathNodeType.Start, 1),
+                    CreatePathNode(50, PathNodeType.Via | PathNodeType.Wait | PathNodeType.Reversal, 2),
+                    CreatePathNode(50, PathNodeType.Via | PathNodeType.Wait | PathNodeType.Reversal, 3), CreatePathNode(100, PathNodeType.End, -1)),
+            };
+
+            PathPersistenceValidationResult result = PathPersistenceValidationPolicy.ValidateForPersistence(source,
+                TrackWorldTestFixture.CreateSingleVectorNodeTrackWorld());
+
+            ImmutableArray<PathRouteDiagnostic> eventDiagnostics = result.Diagnostics
+                .Where(diagnostic => diagnostic.Code == PathRouteDiagnosticCode.UnsupportedCombinedWaitReversal).ToImmutableArray();
+            Assert.HasCount(2, eventDiagnostics);
+            Assert.IsTrue(!result.PersistenceAllowed && eventDiagnostics
+                .All(diagnostic => diagnostic.NodeIndex == -1 && diagnostic.FromNodeIndex == -1 && diagnostic.ToNodeIndex == -1));
+        }
+
+        [TestMethod]
+        public async Task WhenRawStoreSavesUnsupportedEventThenContentIsNotRestricted()
+        {
+            RouteModel route = CreateRoute();
+            PathModel source = CreateLinearPath("raw-event");
+            source = source with { PathNodes = source.PathNodes.SetItem(0, source.PathNodes[0] with { NodeType = PathNodeType.Start | PathNodeType.Wait }) };
+
+            _ = await route.Save(source, TestContext.CancellationToken).ConfigureAwait(false);
+
+            PathModelHeader header = (await route.GetPaths(TestContext.CancellationToken).ConfigureAwait(false)).Single(path => path.Id == source.Id);
+            PathModel reloaded = await header.GetExtended(TestContext.CancellationToken).ConfigureAwait(false);
+            Assert.AreSequenceEqual(source.PathNodes, reloaded.PathNodes);
+        }
+
+        [TestMethod]
         public async Task WhenWarningOnlyPathIsSavedThenContentIsPersisted()
         {
             RouteModel route = CreateRoute();

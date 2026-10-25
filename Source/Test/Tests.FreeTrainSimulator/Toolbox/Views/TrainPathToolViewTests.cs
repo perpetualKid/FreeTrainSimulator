@@ -25,6 +25,50 @@ namespace Tests.FreeTrainSimulator.Toolbox.Views
     {
         [TestMethod]
         [Timeout(15000)]
+        [DataRow(false)]
+        [DataRow(true)]
+        public void WhenOnlyWaitClearIsAvailableThenInspectorDisablesPositiveEditingAndOffersClear(bool repairMode)
+        {
+            Window window = null;
+            try
+            {
+                int invocations = 0;
+                TrainPathToolWindow bridge = new TrainPathToolWindow(() => null, () => null, _ => invocations++,
+                    () => { }, () => { }, _ => { }, () => { }, () => { });
+                typeof(TrainPathToolWindow).GetField("snapshot", BindingFlags.Instance | BindingFlags.NonPublic).SetValue(bridge,
+                    TrainPathSnapshot.Empty with
+                    {
+                        Nodes = [new TrainPathNodeRow(0, global::FreeTrainSimulator.Common.PathNodeType.Via, false, 1, -1, -1, 30, null)],
+                        SelectedNodeIndex = 0,
+                        CanClearSelectedWaitPoint = true,
+                        IsRepairMode = repairMode,
+                    });
+                using (ToolWindowRefreshScheduler scheduler = new ToolWindowRefreshScheduler(Dispatcher.CurrentDispatcher))
+                {
+                    using (TrainPathToolWindowViewModel viewModel = new TrainPathToolWindowViewModel(bridge, scheduler, TrainPathToolWindowViewModel.EditorTabIndex))
+                    {
+                        viewModel.Start();
+                        TrainPathToolView view = new TrainPathToolView { DataContext = viewModel };
+                        window = new Window { Content = view, Width = 320, Height = 700, ShowInTaskbar = false };
+                        window.Show();
+                        SettleLayout(window);
+                        TextBox editor = (TextBox)view.FindName("WaitTimeEditor");
+                        Button clear = Descendants(view).OfType<Button>().Single(button => ReferenceEquals(button.Command, viewModel.ClearWaitPointCommand));
+
+                        InvokeButton(clear, window);
+
+                        Assert.AreEqual((false, true, 1), (editor.IsEnabled, clear.IsEnabled, invocations));
+                    }
+                }
+            }
+            finally
+            {
+                window?.Close();
+            }
+        }
+
+        [TestMethod]
+        [Timeout(15000)]
         [DataRow(false, Visibility.Collapsed)]
         [DataRow(true, Visibility.Visible)]
         public void WhenRepairModeBindingIsUnavailableThenTheBannerDoesNotFlash(bool repairMode, Visibility expected)
@@ -214,11 +258,11 @@ namespace Tests.FreeTrainSimulator.Toolbox.Views
 
                 Assert.AreEqual(searchable.ActualHeight, reserved.ActualHeight);
                 Assert.IsFalse(Descendants(reserved).OfType<TextBox>().Single().IsVisible);
-                Assert.IsFalse(Descendants(reserved).OfType<Button>().Any(button => button.IsVisible));
+                Assert.DoesNotContain(button => button.IsVisible, Descendants(reserved).OfType<Button>());
                 double expandedHeight = reserved.ActualHeight;
                 reserved.IsFilterRowVisible = false;
                 SettleLayout(window);
-                Assert.IsTrue(reserved.ActualHeight < expandedHeight);
+                Assert.IsLessThan(expandedHeight, reserved.ActualHeight);
             }
             finally
             {

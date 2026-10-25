@@ -92,6 +92,21 @@ namespace FreeTrainSimulator.Runtime.Track
 
         /// <summary>A passing branch does not differ physically from the corresponding main route.</summary>
         PassingBranchMatchesMainRoute,
+
+        /// <summary>The current Simulator cannot consume a wait or reversal at the first main node.</summary>
+        UnsupportedFirstMainEvent,
+
+        /// <summary>The current Simulator cannot consume a wait or reversal at a junction.</summary>
+        UnsupportedJunctionEvent,
+
+        /// <summary>The current Simulator cannot consume combined wait and reversal markers.</summary>
+        UnsupportedCombinedWaitReversal,
+
+        /// <summary>The current Simulator cannot preserve event markers or nonzero wait payloads in a passing interior.</summary>
+        UnsupportedPassingInteriorEvent,
+
+        /// <summary>The current Simulator cannot preserve multiple main reversals before the next junction.</summary>
+        MultipleReversalsInContinuousVector,
     }
 
     /// <summary>

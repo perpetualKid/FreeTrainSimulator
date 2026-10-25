@@ -505,3 +505,38 @@ msgstr ""
 msgid "Zoom Out"
 msgstr ""
 
+#: ..\..\..\Toolbox\ToolWindows\TrainPathToolWindow.cs
+msgid "Unsupported wait/reverse event at first main node; the circuit consumer skips this event."
+msgstr ""
+
+#: ..\..\..\Toolbox\ToolWindows\TrainPathToolWindow.cs
+msgid "Place the wait or reversal after the first main node."
+msgstr ""
+
+#: ..\..\..\Toolbox\ToolWindows\TrainPathToolWindow.cs
+#, csharp-format
+msgid "Unsupported junction or combined wait/reverse event at node {0}."
+msgstr ""
+
+#: ..\..\..\Toolbox\ToolWindows\TrainPathToolWindow.cs
+msgid "Place a single wait or reversal on an ordinary main-path node."
+msgstr ""
+
+#: ..\..\..\Toolbox\ToolWindows\TrainPathToolWindow.cs
+#, csharp-format
+msgid "Unsupported siding event at node {0}; branch waits/reversals cannot be preserved."
+msgstr ""
+
+#: ..\..\..\Toolbox\ToolWindows\TrainPathToolWindow.cs
+msgid "Place the event on the main path outside the passing interior."
+msgstr ""
+
+#: ..\..\..\Toolbox\ToolWindows\TrainPathToolWindow.cs
+#, csharp-format
+msgid "Multiple reversals in one continuous vector occurrence at node {0}; the circuit consumer cannot preserve every leg."
+msgstr ""
+
+#: ..\..\..\Toolbox\ToolWindows\TrainPathToolWindow.cs
+msgid "Separate successive reversals with a junction before using the path in Simulator."
+msgstr ""
+

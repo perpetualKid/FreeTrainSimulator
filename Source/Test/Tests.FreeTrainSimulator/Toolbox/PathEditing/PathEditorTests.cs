@@ -84,6 +84,354 @@ namespace Tests.FreeTrainSimulator.Toolbox.PathEditing
         }
 
         [TestMethod]
+        public void WhenSecondReversalWouldBeSetThenMaterializedTraversalRejectsItWithoutChangingHistory()
+        {
+            using (PathEditor editor = CreateEditor(CreateMainEventPath(PathNodeType.Reversal, PathNodeType.None)))
+            {
+                PathModel source = editor.TryCaptureCurrentPathModel();
+                bool dirty = editor.HasUnsavedChanges;
+
+                PathEditResult result = editor.SetReversalPoint(2);
+
+                Assert.AreEqual((false, false, source, false, dirty),
+                    (result.Success, editor.CanSetReversalPoint(2), editor.TryCaptureCurrentPathModel(), editor.CanUndo, editor.HasUnsavedChanges));
+            }
+        }
+
+        [TestMethod]
+        public void WhenReversalIsInsertedBeforeExistingReversalThenTheLaterViolationStillBlocksCommit()
+        {
+            using (PathEditor editor = CreateEditor(CreateMainEventPath(PathNodeType.None, PathNodeType.Reversal)))
+            {
+                PathModel source = editor.TryCaptureCurrentPathModel();
+
+                PathEditResult result = editor.SetReversalPoint(1);
+
+                Assert.AreEqual((false, source), (result.Success, editor.TryCaptureCurrentPathModel()));
+            }
+        }
+
+        [TestMethod]
+        public void WhenWaitSeparatesTwoReversalsThenWaitDoesNotResetTheMaterializedEventGuard()
+        {
+            using (PathEditor editor = CreateEditor(CreateMainEventPath(PathNodeType.Reversal, PathNodeType.Wait)))
+            {
+                PathEditResult result = editor.SetReversalPoint(3);
+
+                Assert.IsFalse(result.Success);
+            }
+        }
+
+        [TestMethod]
+        public void WhenImportedPathAlreadyHasRepeatedReversalsThenAnUnrelatedWaitRemainsEditable()
+        {
+            using (PathEditor editor = CreateEditor(CreateMainEventPath(PathNodeType.Reversal, PathNodeType.Reversal)))
+            {
+                PathEditResult result = editor.SetWaitPoint(3, 25);
+
+                Assert.IsTrue(result.Success && editor.TryCaptureCurrentPathModel().PathNodes[3].WaitInfo.WaitTime == 25);
+            }
+        }
+
+        [TestMethod]
+        public void WhenFirstEventIsAlreadyUnsupportedThenSettingAnOrdinaryReversalIsNotBlanketBlocked()
+        {
+            PathModel source = CreateMainEventPath(PathNodeType.None, PathNodeType.None);
+            source = source with { PathNodes = source.PathNodes.SetItem(0, source.PathNodes[0] with { NodeType = PathNodeType.Start | PathNodeType.Wait }) };
+            using (PathEditor editor = CreateEditor(source))
+            {
+                PathEditResult result = editor.SetReversalPoint(1);
+
+                Assert.IsTrue(result.Success);
+            }
+        }
+
+        [TestMethod]
+        public void WhenWaitCapabilityIsPolledThenItTracksTheCurrentModelAfterReversalEdit()
+        {
+            using (PathEditor editor = CreateEditor(CreateMainEventPath(PathNodeType.None, PathNodeType.None)))
+            {
+                Assert.IsTrue(editor.CanSetWaitPoint(1));
+                Assert.IsTrue(editor.SetReversalPoint(1).Success);
+
+                Assert.IsFalse(editor.CanSetWaitPoint(1));
+            }
+        }
+
+        [TestMethod]
+        [DataRow(PathNodeType.Wait, 17)]
+        [DataRow(PathNodeType.Reversal, 0)]
+        public async Task WhenUnsupportedFirstEventIsMovedAlongOrdinaryTrackThenPreviewAndCommitRetainItAndUndoRestoresIt(PathNodeType eventType, int waitTime)
+        {
+            TrackWorld world = CreatePlacementTrackWorld(out TrackSegmentBase segment);
+            PathModel source = CreateEditablePath();
+            source = source with
+            {
+                PathNodes = source.PathNodes.SetItem(0, source.PathNodes[0] with
+                {
+                    NodeType = PathNodeType.Start | eventType,
+                    WaitInfo = new PathNodeWaitInfo { WaitTime = waitTime },
+                }),
+            };
+            using (PathEditor editor = new PathEditor(new TestPathEditorContext(world)))
+            {
+                Assert.IsTrue(await editor.InitializePathAsync(source, CancellationToken.None).ConfigureAwait(false));
+                Assert.IsFalse(editor.IsRepairMode);
+                Assert.IsTrue(editor.BeginMoveNode(0));
+
+                editor.UpdatePointerLocation(new PointD(25, 0), segment);
+
+                Assert.AreEqual((true, source, false, false),
+                    (editor.CanCommitMoveNode, editor.TryCaptureCurrentPathModel(), editor.CanUndo, editor.HasUnsavedChanges));
+
+                PathEditResult result = editor.CommitMoveNode();
+                PathModel moved = editor.TryCaptureCurrentPathModel();
+                Assert.AreEqual((true, PointD.ToWorldLocation(segment.SnapToSegment(new PointD(25, 0))), true, source.PathNodes[0].WaitInfo, true, true),
+                    (result.Success, moved.PathNodes[0].Location, moved.PathNodes[0].NodeType.Includes(eventType), moved.PathNodes[0].WaitInfo,
+                        editor.CanUndo, editor.HasUnsavedChanges));
+                PathPersistenceValidationResult validation = editor.ValidateCurrentPathForPersistence();
+                Assert.AreEqual((false, PathRouteDiagnosticCode.UnsupportedFirstMainEvent, 0),
+                    (validation.PersistenceAllowed, validation.HighestActionableDiagnostic.Code, validation.HighestActionableDiagnostic.NodeIndex));
+
+                Assert.IsTrue(editor.Undo());
+                Assert.AreSequenceEqual(source.PathNodes, editor.TryCaptureCurrentPathModel().PathNodes);
+                Assert.AreEqual((false, true), (editor.CanUndo, editor.CanRedo));
+            }
+        }
+
+        [TestMethod]
+        public async Task WhenFirstJunctionWaitIsMovedToOrdinaryTrackThenPartialRepairCommitsButStrictSaveRemainsBlocked()
+        {
+            Tile tile = new Tile(1, 0);
+            TrackWorld world = CreateEventJunctionTrackWorld(out TrackSegmentBase segment);
+            PathNode target = CreateNodeAt(tile, 25, PathNodeType.None, -1);
+            PathModel source = new PathModel
+            {
+                Id = "first-junction-wait",
+                PathNodes = ImmutableArray.Create(
+                    CreateAnchoredNode(world, 2, PathNodeType.Start | PathNodeType.Junction | PathNodeType.Wait, 1, -1) with
+                    { WaitInfo = new PathNodeWaitInfo { WaitTime = 17 } },
+                    CreateNodeAt(tile, 100, PathNodeType.End, -1)),
+            };
+            using (PathEditor editor = new PathEditor(new TestPathEditorContext(world)))
+            {
+                Assert.IsTrue(await editor.InitializePathAsync(source, CancellationToken.None).ConfigureAwait(false));
+                Assert.IsFalse(editor.IsRepairMode);
+                Assert.IsTrue(editor.BeginMoveNode(0));
+
+                editor.UpdatePointerLocation(PointD.FromWorldLocation(target.Location), segment);
+
+                Assert.AreEqual((true, source, false), (editor.CanCommitMoveNode, editor.TryCaptureCurrentPathModel(), editor.CanUndo));
+
+                PathEditResult result = editor.CommitMoveNode();
+                PathNode moved = editor.TryCaptureCurrentPathModel().PathNodes[0];
+                Assert.AreEqual((true, PointD.ToWorldLocation(segment.SnapToSegment(PointD.FromWorldLocation(target.Location))), 1, PathNodeType.Start | PathNodeType.Wait, source.PathNodes[0].WaitInfo),
+                    (result.Success, moved.Location, moved.NodeIndex, moved.NodeType, moved.WaitInfo));
+                PathPersistenceValidationResult validation = editor.ValidateCurrentPathForPersistence();
+                Assert.AreEqual((false, PathRouteDiagnosticCode.UnsupportedFirstMainEvent, 0),
+                    (validation.PersistenceAllowed, validation.HighestActionableDiagnostic.Code, validation.HighestActionableDiagnostic.NodeIndex));
+
+                Assert.IsTrue(editor.Undo());
+                Assert.AreSequenceEqual(source.PathNodes, editor.TryCaptureCurrentPathModel().PathNodes);
+                Assert.AreEqual((false, true), (editor.CanUndo, editor.CanRedo));
+            }
+        }
+
+        [TestMethod]
+        public async Task WhenUnsupportedSecondReversalIsRelocatedThenPreviewAndCommitRetainTheViolationAndUndoRestoresIt()
+        {
+            TrackWorld world = CreatePlacementTrackWorld(out TrackSegmentBase segment);
+            PathModel source = new PathModel
+            {
+                Id = "reversal-occurrences",
+                PathNodes = ImmutableArray.Create(CreateNodeAt(0, PathNodeType.Start, 1),
+                    CreateNodeAt(80, PathNodeType.Via | PathNodeType.Reversal, 2),
+                    CreateNodeAt(20, PathNodeType.Via | PathNodeType.Reversal, 3), CreateNodeAt(100, PathNodeType.End, -1)),
+            };
+            using (PathEditor editor = new PathEditor(new TestPathEditorContext(world)))
+            {
+                Assert.IsTrue(await editor.InitializePathAsync(source, CancellationToken.None).ConfigureAwait(false));
+                Assert.IsFalse(editor.IsRepairMode);
+                Assert.IsTrue(editor.BeginMoveNode(2));
+
+                editor.UpdatePointerLocation(new PointD(25, 0), segment);
+
+                Assert.AreEqual((true, source, false), (editor.CanCommitMoveNode, editor.TryCaptureCurrentPathModel(), editor.CanUndo));
+
+                PathEditResult result = editor.CommitMoveNode();
+                PathModel moved = editor.TryCaptureCurrentPathModel();
+                Assert.AreEqual((true, PointD.ToWorldLocation(segment.SnapToSegment(new PointD(25, 0))), true, true, true),
+                    (result.Success, moved.PathNodes[2].Location, moved.PathNodes[1].NodeType.Includes(PathNodeType.Reversal),
+                        moved.PathNodes[2].NodeType.Includes(PathNodeType.Reversal), editor.CanUndo));
+                PathPersistenceValidationResult validation = editor.ValidateCurrentPathForPersistence();
+                Assert.AreEqual((false, PathRouteDiagnosticCode.MultipleReversalsInContinuousVector, 2),
+                    (validation.PersistenceAllowed, validation.HighestActionableDiagnostic.Code, validation.HighestActionableDiagnostic.NodeIndex));
+
+                Assert.IsTrue(editor.Undo());
+                Assert.AreSequenceEqual(source.PathNodes, editor.TryCaptureCurrentPathModel().PathNodes);
+                Assert.AreEqual((false, true), (editor.CanUndo, editor.CanRedo));
+            }
+        }
+
+        [TestMethod]
+        public async Task WhenExistingWaitJunctionIsInferredDuringMaterializationThenOrdinaryWaitCapabilityMatchesTheActualEdit()
+        {
+            Tile tile = new Tile(1, 0);
+            TrackWorld world = CreateEventJunctionTrackWorld(out _);
+            PathModel source = new PathModel
+            {
+                Id = "inferred-junction-wait",
+                PathNodes = ImmutableArray.Create(
+                    CreateAnchoredNode(world, 3, PathNodeType.Start, 1, -1),
+                    CreateAnchoredNode(world, 2, PathNodeType.Via | PathNodeType.Wait, 2, -1) with
+                    { WaitInfo = new PathNodeWaitInfo { WaitTime = 17 } },
+                    CreateNodeAt(tile, 40, PathNodeType.Via, 3), CreateNodeAt(tile, 100, PathNodeType.End, -1)),
+            };
+            using (PathEditor editor = new PathEditor(new TestPathEditorContext(world)))
+            {
+                Assert.IsTrue(await editor.InitializePathAsync(source, CancellationToken.None).ConfigureAwait(false));
+                PathPersistenceValidationResult materialization = PathPersistenceValidationPolicy.ResolveAndMaterialize(source, world);
+                Assert.AreEqual((true, false, true), (materialization.PersistenceAllowed, source.PathNodes[1].NodeType.Includes(PathNodeType.Junction),
+                    materialization.PathModel.PathNodes[1].NodeType.Includes(PathNodeType.Junction)));
+
+                bool canSet = editor.CanSetWaitPoint(2);
+
+                Assert.AreEqual((true, source, false, false), (canSet, editor.TryCaptureCurrentPathModel(), editor.CanUndo, editor.HasUnsavedChanges));
+
+                PathEditResult result = editor.SetWaitPoint(2, 25);
+
+                Assert.AreEqual((canSet, 25, 17, true, true),
+                    (result.Success, editor.TryCaptureCurrentPathModel().PathNodes[2].WaitInfo.WaitTime,
+                        editor.TryCaptureCurrentPathModel().PathNodes[1].WaitInfo.WaitTime, editor.CanUndo, editor.HasUnsavedChanges));
+                PathPersistenceValidationResult validation = editor.ValidateCurrentPathForPersistence();
+                Assert.AreEqual((false, PathRouteDiagnosticCode.UnsupportedJunctionEvent, 1),
+                    (validation.PersistenceAllowed, validation.HighestActionableDiagnostic.Code, validation.HighestActionableDiagnostic.NodeIndex));
+
+                Assert.IsTrue(editor.Undo());
+                Assert.AreSequenceEqual(source.PathNodes, editor.TryCaptureCurrentPathModel().PathNodes);
+                Assert.AreEqual((false, true), (editor.CanUndo, editor.CanRedo));
+            }
+        }
+
+        [TestMethod]
+        public void WhenEventDiagnosticsArePolledThenTheyAreCachedAndInvalidatedByRepair()
+        {
+            using (PathEditor editor = CreateEditor(CreateMainEventPath(PathNodeType.Wait | PathNodeType.Reversal, PathNodeType.None)))
+            {
+                ImmutableArray<PathRouteDiagnostic> first = editor.GetSimulatorEventDiagnostics();
+                ImmutableArray<PathRouteDiagnostic> second = editor.GetSimulatorEventDiagnostics();
+                Assert.AreEqual(first, second);
+                Assert.AreEqual(PathRouteDiagnosticCode.UnsupportedCombinedWaitReversal, first.Single().Code);
+
+                Assert.IsTrue(editor.ClearWaitPoint(1).Success);
+
+                Assert.IsTrue(editor.GetSimulatorEventDiagnostics().IsEmpty);
+            }
+        }
+
+        [TestMethod]
+        public void WhenFatalDraftHasFirstWaitThenBoundedDiagnosticsAndClearRemainAvailable()
+        {
+            PathModel source = CreateEditablePath();
+            source = source with
+            {
+                PathNodes = source.PathNodes.SetItem(0, source.PathNodes[0] with { NodeType = PathNodeType.Start | PathNodeType.Wait, NextMainNode = 10 }),
+            };
+            using (PathEditor editor = CreateEditor(source))
+            {
+                Assert.IsTrue(editor.IsRepairMode && editor.CanClearWaitPoint(0));
+                Assert.AreEqual((PathRouteDiagnosticCode.UnsupportedFirstMainEvent, 0),
+                    (editor.GetSimulatorEventDiagnostics().Single().Code, editor.GetSimulatorEventDiagnostics().Single().NodeIndex));
+
+                PathEditResult result = editor.ClearWaitPoint(0);
+
+                Assert.IsTrue(result.Success && editor.IsRepairMode);
+            }
+        }
+
+        [TestMethod]
+        public void WhenImportedFirstReversalIsInvalidThenClearDoesNotRequireAnnotationEligibility()
+        {
+            PathModel source = CreateEditablePath();
+            source = source with { PathNodes = source.PathNodes.SetItem(0, source.PathNodes[0] with { NodeType = PathNodeType.Start | PathNodeType.Reversal }) };
+            using (PathEditor editor = CreateEditor(source))
+            {
+                Assert.IsTrue(editor.CanClearReversalPoint(0));
+
+                PathEditResult result = editor.ClearReversalPoint(0);
+
+                Assert.IsTrue(result.Success && !editor.TryCaptureCurrentPathModel().PathNodes[0].NodeType.Includes(PathNodeType.Reversal));
+            }
+        }
+
+        [TestMethod]
+        public void WhenSnapRepairsUnsupportedDraftThenSimulatorCompatibilityDoesNotVetoMaterialization()
+        {
+            PathModel source = CreateEditablePath();
+            source = source with { PathNodes = source.PathNodes.SetItem(0, source.PathNodes[0] with { NodeType = PathNodeType.Start | PathNodeType.Wait }) };
+
+            PathEditResult result = PathEditor.SnapPathToTrack(source, TrackWorldTestFixture.CreateSingleVectorNodeTrackWorld());
+
+            Assert.IsTrue(result.Success && result.PathModel.PathNodes[0].NodeType.Includes(PathNodeType.Wait));
+        }
+
+        [TestMethod]
+        public void WhenPassingPathViaIsRemovedThenAnUnrelatedUnsupportedEventDoesNotBlockRepair()
+        {
+            TrackWorld world = CreateEventSidingTrackWorld();
+            PathModel source = CreateResolvablePassingBranchPath(world);
+            source = source with { PathNodes = source.PathNodes.SetItem(0, source.PathNodes[0] with { NodeType = PathNodeType.Start | PathNodeType.Wait }) };
+            source = PathModelEditor.InsertViaPoint(source, 1, source.PathNodes[1], false).PathModel;
+            using (PathEditor editor = CreateEditor(source, world))
+            {
+                PathEditResult result = editor.RemoveViaPoint(2);
+
+                Assert.IsTrue(result.Success && result.PathModel.PathNodes[0].NodeType.Includes(PathNodeType.Wait), result.Message);
+            }
+        }
+
+        [TestMethod]
+        public void WhenPassingPathIsTruncatedAtRejoinThenAnUnrelatedUnsupportedEventDoesNotBlockRepair()
+        {
+            TrackWorld world = CreateEventSidingTrackWorld();
+            PathModel source = CreateResolvablePassingBranchPath(world);
+            source = source with
+            {
+                PathNodes = source.PathNodes
+                    .SetItem(0, source.PathNodes[0] with { NodeType = PathNodeType.Start | PathNodeType.Wait })
+                    .SetItem(2, source.PathNodes[2] with { NodeType = PathNodeType.Via, NextMainNode = 4 })
+                    .Add(source.PathNodes[2]),
+            };
+            using (PathEditor editor = CreateEditor(source, world))
+            {
+                PathEditResult result = editor.RemoveRestOfPath(2);
+
+                Assert.IsTrue(result.Success && result.PathModel.PathNodes[0].NodeType.Includes(PathNodeType.Wait)
+                    && result.PathModel.PathNodes.Any(node => node.NextSidingNode >= 0), result.Message);
+            }
+        }
+
+        [TestMethod]
+        public void WhenRouteExtensionWouldAutomaticallyAddASecondContinuousReversalThenPlacementIsRejected()
+        {
+            TrackWorld world = CreatePlacementTrackWorld(out _);
+            PathModel source = new PathModel
+            {
+                PathNodes = ImmutableArray.Create(CreateNodeAt(0, PathNodeType.Start, 1),
+                    CreateNodeAt(80, PathNodeType.Via | PathNodeType.Reversal, 2), CreateNodeAt(20, PathNodeType.End, -1)),
+            };
+            using (PathEditor editor = CreateEditor(source, world))
+            {
+                Assert.IsTrue(editor.ContinuePathCommand().Success);
+                PathModel baseline = editor.TryCaptureCurrentPathModel();
+
+                PathEditorCommandResult result = editor.AddRoutePointHereCommand(CreateNodeAt(60, PathNodeType.None, -1), false, false);
+
+                Assert.AreEqual((false, baseline, false), (result.Success, editor.TryCaptureCurrentPathModel(), editor.CanUndo));
+            }
+        }
+
+        [TestMethod]
         public void WhenPassingBranchRejoinIsSelectedThenConflictingEditsAreUnavailable()
         {
             PathModel source = CreateTruncationPassingBranchPath() with
@@ -453,7 +801,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.PathEditing
             {
                 PathNodes = CreateEditablePath().PathNodes.Add(CreateNodeAt(50, PathNodeType.Via, -1)),
             };
-            TrackWorld trackWorld = CreatePlacementTrackWorld(out TestTrackSegment segment);
+            TrackWorld trackWorld = CreatePlacementTrackWorld(out TrackSegmentBase segment);
             using (PathEditor editor = new PathEditor(new TestPathEditorContext(trackWorld)))
             {
                 _ = await editor.InitializePathAsync(source, CancellationToken.None).ConfigureAwait(false);
@@ -477,7 +825,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.PathEditing
                     with
                 { WaitInfo = new PathNodeWaitInfo { WaitTime = 17 } }),
             };
-            TrackWorld trackWorld = CreatePlacementTrackWorld(out TestTrackSegment segment);
+            TrackWorld trackWorld = CreatePlacementTrackWorld(out TrackSegmentBase segment);
             using (PathEditor editor = new PathEditor(new TestPathEditorContext(trackWorld)))
             {
                 _ = await editor.InitializePathAsync(source, CancellationToken.None).ConfigureAwait(false);
@@ -501,7 +849,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.PathEditing
             {
                 PathNodes = CreateEditablePath().PathNodes.Add(CreateNodeAt(50, PathNodeType.Via, -1)),
             };
-            TrackWorld trackWorld = CreatePlacementTrackWorld(out TestTrackSegment segment);
+            TrackWorld trackWorld = CreatePlacementTrackWorld(out TrackSegmentBase segment);
             using (PathEditor editor = new PathEditor(new TestPathEditorContext(trackWorld)))
             {
                 _ = await editor.InitializePathAsync(source, CancellationToken.None).ConfigureAwait(false);
@@ -2710,15 +3058,20 @@ namespace Tests.FreeTrainSimulator.Toolbox.PathEditing
             Assert.AreEqual(-1, nodeIndex);
         }
 
-        private static TrackWorld CreatePlacementTrackWorld(out TestTrackSegment segment)
+        private static TrackWorld CreatePlacementTrackWorld(out TrackSegmentBase segment)
         {
-            WorldLocation start = new WorldLocation(new Tile(0, 0), Vector3.Zero);
-            WorldLocation end = new WorldLocation(new Tile(0, 0), new Vector3(100, 0, 0));
-            VectorSectionNode section = new VectorSectionNode(start, new Tile(0, 0), new Vector3(0, MathHelper.PiOver2, 0), end)
+            return CreatePlacementTrackWorld(new Tile(0, 0), out segment);
+        }
+
+        private static TrackWorld CreatePlacementTrackWorld(Tile tile, out TrackSegmentBase segment)
+        {
+            WorldLocation start = new WorldLocation(tile, Vector3.Zero);
+            WorldLocation end = new WorldLocation(tile, new Vector3(100, 0, 0));
+            VectorSectionNode section = new VectorSectionNode(start, tile, new Vector3(0, MathHelper.PiOver2, 0), end)
             {
                 NodeIndex = 1,
             };
-            VectorNode vectorNode = new VectorNode(start, new Tile(0, 0), end)
+            VectorNode vectorNode = new VectorNode(start, tile, end)
             {
                 NodeIndex = 1,
                 VectorSections = ImmutableArray.Create(section),
@@ -2739,9 +3092,86 @@ namespace Tests.FreeTrainSimulator.Toolbox.PathEditing
                 }),
             };
             TrackWorld trackWorld = TrackWorld.Initialize(null, new TrackModel { TrackDatabase = trackDatabase }, trackSections);
-            segment = new TestTrackSegment(new PointD(0, 0), new PointD(100, 0));
-            trackWorld.SetSegmentSections(new[] { new TrackSegmentSection(1, new[] { segment }) });
+            segment = trackWorld.SegmentSections[1].SectionSegments.Single();
             return trackWorld;
+        }
+
+        private static TrackWorld CreateEventJunctionTrackWorld(out TrackSegmentBase segment)
+        {
+            Tile tile = new Tile(1, 0);
+            TrackWorld placementWorld = CreatePlacementTrackWorld(tile, out segment);
+            WorldLocation junctionLocation = new WorldLocation(tile, Vector3.Zero);
+            WorldLocation approachLocation = new WorldLocation(tile, new Vector3(-100, 0, 0));
+            VectorSectionNode approachSection = new VectorSectionNode(approachLocation, tile,
+                new Vector3(0, MathHelper.PiOver2, 0), junctionLocation) { NodeIndex = 1 };
+            TrackDatabase database = new TrackDatabase
+            {
+                TrackNodes = ImmutableArray.Create<TrackNodeBase>(null, placementWorld.TrackDatabase.TrackNodes[1],
+                    new JunctionNode(junctionLocation, tile, Vector3.Zero) { NodeIndex = 2 },
+                    new VectorNode(approachLocation, tile, junctionLocation)
+                    {
+                        NodeIndex = 3,
+                        VectorSections = ImmutableArray.Create(approachSection),
+                    }),
+                TrackNodeConnectors = ImmutableArray.Create(new TrackNodeConnectorIndex(),
+                    new TrackNodeConnectorIndex
+                    {
+                        NodeIndex = 1,
+                        TrackNodeConnectors = ImmutableArray.Create(new TrackNodeConnector { Link = 2, ConnectorType = ConnectorType.InPin }),
+                    },
+                    new TrackNodeConnectorIndex
+                    {
+                        NodeIndex = 2,
+                        TrackNodeConnectors = ImmutableArray.Create(new TrackNodeConnector { Link = 3, ConnectorType = ConnectorType.InPin },
+                            new TrackNodeConnector { Link = 1, ConnectorType = ConnectorType.OutPin }),
+                    },
+                    new TrackNodeConnectorIndex
+                    {
+                        NodeIndex = 3,
+                        TrackNodeConnectors = ImmutableArray.Create(new TrackNodeConnector { Link = 2, ConnectorType = ConnectorType.OutPin }),
+                    }),
+            };
+            TrackWorldTestFixture.InitializeTrackDatabase(database);
+            TrackSectionModel sections = new TrackSectionModel
+            {
+                TrackSections = ImmutableDictionary<int, TrackSection>.Empty.Add(1,
+                    new TrackSection { SectionIndex = 1, Gauge = 1.435f, Length = 100 }),
+            };
+            TrackWorld world = TrackWorld.Initialize(null, new TrackModel { TrackDatabase = database }, sections);
+            segment = world.SegmentSections[1].SectionSegments.Single();
+            return world;
+        }
+
+        private static TrackWorld CreateEventSidingTrackWorld()
+        {
+            // Unlike topology-only tests, editor repairs revalidate generated junctions through the spatial index,
+            // which excludes Tile.Zero.
+            Tile tile = new Tile(1, 0);
+            VectorNode RenderableVector(int index)
+            {
+                VectorNode node = CreateVectorNode(index, tile);
+                return node with
+                {
+                    VectorSections = ImmutableArray.Create(new VectorSectionNode(node.Location, tile,
+                        new Vector3(0, MathHelper.PiOver2, 0), new WorldLocation(tile, new Vector3(index * 100 + 50, 0, 0)))
+                    { NodeIndex = 1 }),
+                };
+            }
+            TrackDatabase database = new TrackDatabase
+            {
+                TrackNodes = ImmutableArray.Create<TrackNodeBase>(null,
+                    RenderableVector(1), RenderableVector(2), CreateJunctionNode(3, tile),
+                    RenderableVector(4), RenderableVector(5), CreateJunctionNode(6, tile)),
+                TrackNodeConnectors = ImmutableArray.Create(new TrackNodeConnectorIndex(),
+                    CreateConnectors(1, 3), CreateConnectors(2, 6), CreateConnectors(3, 1, 4, 5),
+                    CreateConnectors(4, 3, 6), CreateConnectors(5, 3, 6), CreateConnectors(6, 2, 4, 5)),
+            };
+            TrackWorldTestFixture.InitializeTrackDatabase(database);
+            return TrackWorld.Initialize(null, new TrackModel { TrackDatabase = database }, new TrackSectionModel
+            {
+                TrackSections = ImmutableDictionary<int, TrackSection>.Empty.Add(1,
+                    new TrackSection { SectionIndex = 1, Gauge = 1.435f, Length = 50 }),
+            });
         }
 
         private static PathEditor CreateEditor(PathModel pathModel)
@@ -2858,15 +3288,25 @@ namespace Tests.FreeTrainSimulator.Toolbox.PathEditing
 
         private static VectorNode CreateVectorNode(int nodeIndex)
         {
-            WorldLocation start = new WorldLocation(new Tile(0, 0), new Vector3(nodeIndex * 100, 0, 0));
-            WorldLocation end = new WorldLocation(new Tile(0, 0), new Vector3((nodeIndex * 100) + 50, 0, 0));
-            return new VectorNode(start, new Tile(0, 0), end) { NodeIndex = nodeIndex };
+            return CreateVectorNode(nodeIndex, new Tile(0, 0));
+        }
+
+        private static VectorNode CreateVectorNode(int nodeIndex, Tile tile)
+        {
+            WorldLocation start = new WorldLocation(tile, new Vector3(nodeIndex * 100, 0, 0));
+            WorldLocation end = new WorldLocation(tile, new Vector3((nodeIndex * 100) + 50, 0, 0));
+            return new VectorNode(start, tile, end) { NodeIndex = nodeIndex };
         }
 
         private static JunctionNode CreateJunctionNode(int nodeIndex)
         {
-            return new JunctionNode(new WorldLocation(new Tile(0, 0), new Vector3(nodeIndex * 100, 0, 0)),
-                new Tile(0, 0), Vector3.Zero)
+            return CreateJunctionNode(nodeIndex, new Tile(0, 0));
+        }
+
+        private static JunctionNode CreateJunctionNode(int nodeIndex, Tile tile)
+        {
+            return new JunctionNode(new WorldLocation(tile, new Vector3(nodeIndex * 100, 0, 0)),
+                tile, Vector3.Zero)
             { NodeIndex = nodeIndex };
         }
 
@@ -2951,9 +3391,25 @@ namespace Tests.FreeTrainSimulator.Toolbox.PathEditing
             };
         }
 
+        private static PathModel CreateMainEventPath(PathNodeType firstEvent, PathNodeType secondEvent)
+        {
+            return new PathModel
+            {
+                Id = "main-event-path",
+                PathNodes = ImmutableArray.Create(CreateNodeAt(0, PathNodeType.Start, 1),
+                    CreateNodeAt(20, PathNodeType.Via | firstEvent, 2), CreateNodeAt(40, PathNodeType.Via | secondEvent, 3),
+                    CreateNodeAt(60, PathNodeType.Via, 4), CreateNodeAt(100, PathNodeType.End, -1)),
+            };
+        }
+
         private static PathNode CreateNodeAt(float x, PathNodeType nodeType, int nextMainNode)
         {
-            return new PathNode(new WorldLocation(new Tile(0, 0), new Vector3(x, 0, 0)))
+            return CreateNodeAt(new Tile(0, 0), x, nodeType, nextMainNode);
+        }
+
+        private static PathNode CreateNodeAt(Tile tile, float x, PathNodeType nodeType, int nextMainNode)
+        {
+            return new PathNode(new WorldLocation(tile, new Vector3(x, 0, 0)))
             {
                 NodeType = nodeType,
                 NodeIndex = 1,

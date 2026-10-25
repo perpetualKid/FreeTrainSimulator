@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -11,6 +12,8 @@ using FreeTrainSimulator.Runtime.Track;
 using FreeTrainSimulator.Toolbox.Hosting;
 using FreeTrainSimulator.Toolbox.PathEditing;
 using FreeTrainSimulator.Toolbox.PopupWindows;
+
+using GetText;
 
 using DrawingColor = System.Drawing.Color;
 
@@ -123,6 +126,10 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
                     && !snapshot.CanSnapToTrack
                     && !snapshot.CanCancelMoveNode
                     && !snapshot.CanCommitMoveNode
+                    && !snapshot.CanSetSelectedWaitPoint
+                    && !snapshot.CanClearSelectedWaitPoint
+                    && !snapshot.CanSetSelectedReversalPoint
+                    && !snapshot.CanClearSelectedReversalPoint
                     && !snapshot.CanCancelPathInteraction
                     && !snapshot.HasPendingAmbiguousSpanCommit
                     && snapshot.PreviewedRouteCandidateFromNodeIndex == -1
@@ -171,6 +178,10 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
             bool canMoveSelectedNode = pathEditor.CanMoveNode(selectedNodeIndex);
             bool canRepairSelectedNode = pathEditor.CanRepairNode(selectedNodeIndex);
             bool canRemoveSelectedViaPoint = pathEditor.CanRemoveViaPoint(selectedNodeIndex);
+            bool canSetSelectedWaitPoint = pathEditor.CanSetWaitPoint(selectedNodeIndex);
+            bool canClearSelectedWaitPoint = pathEditor.CanClearWaitPoint(selectedNodeIndex);
+            bool canSetSelectedReversalPoint = pathEditor.CanSetReversalPoint(selectedNodeIndex);
+            bool canClearSelectedReversalPoint = pathEditor.CanClearReversalPoint(selectedNodeIndex);
             bool canCancelNewPath = pathEditor.IsNewPath;
             bool isBuildingRoute = pathEditor.IsBuildingRoute;
             bool canContinuePath = pathEditor.CanContinuePath;
@@ -207,6 +218,10 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
                 && canMoveSelectedNode == snapshot.CanMoveSelectedNode
                 && canRepairSelectedNode == snapshot.CanRepairSelectedNode
                 && canRemoveSelectedViaPoint == snapshot.CanRemoveSelectedViaPoint
+                && canSetSelectedWaitPoint == snapshot.CanSetSelectedWaitPoint
+                && canClearSelectedWaitPoint == snapshot.CanClearSelectedWaitPoint
+                && canSetSelectedReversalPoint == snapshot.CanSetSelectedReversalPoint
+                && canClearSelectedReversalPoint == snapshot.CanClearSelectedReversalPoint
                 && canCancelNewPath == snapshot.CanCancelNewPath
                 && isBuildingRoute == snapshot.IsBuildingRoute
                 && canContinuePath == snapshot.CanContinuePath
@@ -236,7 +251,7 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
             lastNodeCount = nodeCount;
             lastSnapshotVersion = currentSnapshotVersion;
             PathRouteResolution resolution = currentPathModel == null ? null : pathEditor.ResolveCurrent(currentPathModel);
-            ImmutableArray<TrainPathDiagnosticRow> diagnostics = BuildResolverDiagnostics(resolution, pathEditor);
+            ImmutableArray<TrainPathDiagnosticRow> diagnostics = BuildDiagnostics(resolution, pathEditor);
 
             snapshot = new TrainPathSnapshot
             {
@@ -255,7 +270,7 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
                 PreviewedRouteCandidateIndex = previewedRouteCandidateIndex,
                 Diagnostics = diagnostics,
                 IsRepairMode = isRepairMode,
-                BlockedSaveMessage = blockedSaveValidation?.FailureMessage,
+                BlockedSaveMessage = BuildBlockedSaveFeedback(),
                 BlockedSaveDiagnostic = FindDiagnosticRow(diagnostics, blockedSaveValidation?.HighestActionableDiagnostic),
                 BlockedSaveFeedbackVersion = blockedSaveFeedbackVersion,
                 CanUndo = canUndo,
@@ -271,6 +286,10 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
                 CanMoveSelectedNode = canMoveSelectedNode,
                 CanRepairSelectedNode = canRepairSelectedNode,
                 CanRemoveSelectedViaPoint = canRemoveSelectedViaPoint,
+                CanSetSelectedWaitPoint = canSetSelectedWaitPoint,
+                CanClearSelectedWaitPoint = canClearSelectedWaitPoint,
+                CanSetSelectedReversalPoint = canSetSelectedReversalPoint,
+                CanClearSelectedReversalPoint = canClearSelectedReversalPoint,
                 CanCancelNewPath = canCancelNewPath,
                 IsBuildingRoute = isBuildingRoute,
                 CanContinuePath = canContinuePath,
@@ -944,22 +963,71 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
         }
 
         internal static ImmutableArray<TrainPathDiagnosticRow> BuildResolverDiagnostics(PathRouteResolution resolution)
-            => BuildResolverDiagnostics(resolution, null);
+            => BuildDiagnosticRows(resolution?.Diagnostics ?? ImmutableArray<PathRouteDiagnostic>.Empty, null);
 
-        private static ImmutableArray<TrainPathDiagnosticRow> BuildResolverDiagnostics(PathRouteResolution resolution, PathEditor pathEditor)
+        private ImmutableArray<TrainPathDiagnosticRow> BuildDiagnostics(PathRouteResolution resolution, PathEditor pathEditor)
         {
-            if (resolution == null || resolution.Diagnostics.IsDefaultOrEmpty)
-                return ImmutableArray<TrainPathDiagnosticRow>.Empty;
+            IEnumerable<PathRouteDiagnostic> diagnostics = resolution?.Diagnostics ?? ImmutableArray<PathRouteDiagnostic>.Empty;
+            diagnostics = diagnostics.Concat(pathEditor.GetSimulatorEventDiagnostics());
+            if (blockedSaveValidation != null)
+                diagnostics = diagnostics.Concat(blockedSaveValidation.Diagnostics);
 
-            ImmutableArray<TrainPathDiagnosticRow>.Builder builder = ImmutableArray.CreateBuilder<TrainPathDiagnosticRow>(resolution.Diagnostics.Length);
-            foreach (PathRouteDiagnostic diagnostic in resolution.Diagnostics)
+            return BuildDiagnosticRows(diagnostics.DistinctBy(diagnostic =>
+                (diagnostic.Code, diagnostic.NodeIndex, diagnostic.FromNodeIndex, diagnostic.ToNodeIndex)), pathEditor);
+        }
+
+        private static ImmutableArray<TrainPathDiagnosticRow> BuildDiagnosticRows(IEnumerable<PathRouteDiagnostic> diagnostics, PathEditor pathEditor)
+        {
+            ImmutableArray<TrainPathDiagnosticRow>.Builder builder = ImmutableArray.CreateBuilder<TrainPathDiagnosticRow>();
+            foreach (PathRouteDiagnostic diagnostic in diagnostics)
             {
-                builder.Add(new TrainPathDiagnosticRow(diagnostic.Severity, diagnostic.Code, diagnostic.Message,
-                    diagnostic.NodeIndex, diagnostic.FromNodeIndex, diagnostic.ToNodeIndex, diagnostic.SuggestedAction,
+                (string message, string action) = TranslateSimulatorEventDiagnostic(diagnostic);
+                builder.Add(new TrainPathDiagnosticRow(diagnostic.Severity, diagnostic.Code, message,
+                    diagnostic.NodeIndex, diagnostic.FromNodeIndex, diagnostic.ToNodeIndex, action,
                     diagnostic.NodeIndex >= 0 && pathEditor?.CanRepairNode(diagnostic.NodeIndex) == true));
             }
 
             return builder.ToImmutable();
+        }
+
+        private string BuildBlockedSaveFeedback()
+        {
+            PathRouteDiagnostic diagnostic = blockedSaveValidation?.HighestActionableDiagnostic;
+            if (diagnostic == null || !IsSimulatorEventDiagnostic(diagnostic.Code))
+                return blockedSaveValidation?.FailureMessage;
+
+            (string message, string action) = TranslateSimulatorEventDiagnostic(diagnostic);
+            return string.IsNullOrWhiteSpace(action) ? message : $"{message} {action}";
+        }
+
+        private static bool IsSimulatorEventDiagnostic(PathRouteDiagnosticCode code) => code is
+            PathRouteDiagnosticCode.UnsupportedFirstMainEvent or PathRouteDiagnosticCode.UnsupportedJunctionEvent
+            or PathRouteDiagnosticCode.UnsupportedCombinedWaitReversal or PathRouteDiagnosticCode.UnsupportedPassingInteriorEvent
+            or PathRouteDiagnosticCode.MultipleReversalsInContinuousVector;
+
+        private static (string Message, string Action) TranslateSimulatorEventDiagnostic(PathRouteDiagnostic diagnostic)
+        {
+            // An unmapped generated index must not be presented as an authored node index.
+            if (diagnostic.NodeIndex < 0 || !IsSimulatorEventDiagnostic(diagnostic.Code))
+                return (diagnostic.Message, diagnostic.SuggestedAction);
+
+            (string message, string action) = diagnostic.Code switch
+            {
+                PathRouteDiagnosticCode.UnsupportedFirstMainEvent =>
+                    (CatalogManager.Catalog.GetString("Unsupported wait/reverse event at first main node; the circuit consumer skips this event."),
+                     CatalogManager.Catalog.GetString("Place the wait or reversal after the first main node.")),
+                PathRouteDiagnosticCode.UnsupportedJunctionEvent or PathRouteDiagnosticCode.UnsupportedCombinedWaitReversal =>
+                    (CatalogManager.Catalog.GetString("Unsupported junction or combined wait/reverse event at node {0}."),
+                     CatalogManager.Catalog.GetString("Place a single wait or reversal on an ordinary main-path node.")),
+                PathRouteDiagnosticCode.UnsupportedPassingInteriorEvent =>
+                    (CatalogManager.Catalog.GetString("Unsupported siding event at node {0}; branch waits/reversals cannot be preserved."),
+                     CatalogManager.Catalog.GetString("Place the event on the main path outside the passing interior.")),
+                PathRouteDiagnosticCode.MultipleReversalsInContinuousVector =>
+                    (CatalogManager.Catalog.GetString("Multiple reversals in one continuous vector occurrence at node {0}; the circuit consumer cannot preserve every leg."),
+                     CatalogManager.Catalog.GetString("Separate successive reversals with a junction before using the path in Simulator.")),
+                _ => (diagnostic.Message, diagnostic.SuggestedAction),
+            };
+            return (string.Format(CultureInfo.CurrentCulture, message, diagnostic.NodeIndex), action);
         }
 
         /// <summary>

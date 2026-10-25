@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
@@ -8,6 +9,8 @@ using System.Threading.Tasks;
 using System.Windows.Threading;
 
 using FreeTrainSimulator.Common;
+using FreeTrainSimulator.Common.Position;
+using FreeTrainSimulator.Graphics.MapView;
 using FreeTrainSimulator.Models.Content;
 using FreeTrainSimulator.Models.Settings;
 using FreeTrainSimulator.Models.Shim;
@@ -18,6 +21,9 @@ using FreeTrainSimulator.Toolbox.ToolWindows;
 using FreeTrainSimulator.Toolbox.ViewModels;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Microsoft.Xna.Framework;
+
+using Tests.FreeTrainSimulator.Common;
 
 namespace Tests.FreeTrainSimulator.Toolbox.ViewModels
 {
@@ -1076,17 +1082,18 @@ namespace Tests.FreeTrainSimulator.Toolbox.ViewModels
         }
 
         [TestMethod]
-        [DataRow(PathNodeType.Via, false, false, false, false, PassingBranchAuthoringPhase.Idle, true)]
-        [DataRow(PathNodeType.Wait | PathNodeType.Reversal, false, false, false, false, PassingBranchAuthoringPhase.Idle, true)]
-        [DataRow(PathNodeType.Start, false, false, false, false, PassingBranchAuthoringPhase.Idle, false)]
-        [DataRow(PathNodeType.End | PathNodeType.Wait, false, false, false, false, PassingBranchAuthoringPhase.Idle, false)]
-        [DataRow(PathNodeType.Junction, false, false, false, false, PassingBranchAuthoringPhase.Idle, false)]
-        [DataRow(PathNodeType.Wait, true, false, false, false, PassingBranchAuthoringPhase.Idle, false)]
-        [DataRow(PathNodeType.Wait, false, true, false, false, PassingBranchAuthoringPhase.Idle, false)]
-        [DataRow(PathNodeType.Wait, false, false, true, false, PassingBranchAuthoringPhase.Idle, false)]
-        [DataRow(PathNodeType.Wait, false, false, false, true, PassingBranchAuthoringPhase.SelectingCandidate, false)]
-        [DataRow(PathNodeType.Wait, false, false, false, false, PassingBranchAuthoringPhase.SelectingRejoin, false)]
-        public void WhenNodeOrWorkflowRestrictsWaitThenWaitEligibilityReflectsProductionRules(PathNodeType type, bool repair,
+        [DataRow(PathNodeType.Via, false, false, false, false, false, PassingBranchAuthoringPhase.Idle, false)]
+        [DataRow(PathNodeType.Via, true, false, false, false, false, PassingBranchAuthoringPhase.Idle, true)]
+        [DataRow(PathNodeType.Wait | PathNodeType.Reversal, false, false, false, false, false, PassingBranchAuthoringPhase.Idle, false)]
+        [DataRow(PathNodeType.Start, false, false, false, false, false, PassingBranchAuthoringPhase.Idle, false)]
+        [DataRow(PathNodeType.End | PathNodeType.Wait, false, false, false, false, false, PassingBranchAuthoringPhase.Idle, false)]
+        [DataRow(PathNodeType.Junction, false, false, false, false, false, PassingBranchAuthoringPhase.Idle, false)]
+        [DataRow(PathNodeType.Wait, true, true, false, false, false, PassingBranchAuthoringPhase.Idle, true)]
+        [DataRow(PathNodeType.Wait, true, false, true, false, false, PassingBranchAuthoringPhase.Idle, false)]
+        [DataRow(PathNodeType.Wait, true, false, false, true, false, PassingBranchAuthoringPhase.Idle, false)]
+        [DataRow(PathNodeType.Wait, true, false, false, false, true, PassingBranchAuthoringPhase.SelectingCandidate, false)]
+        [DataRow(PathNodeType.Wait, true, false, false, false, false, PassingBranchAuthoringPhase.SelectingRejoin, false)]
+        public void WhenWaitCapabilityIsPublishedThenWaitEligibilityUsesItWithoutInferringNodeFlags(PathNodeType type, bool canSet, bool repair,
             bool interaction, bool mainCandidate, bool passingCandidate, object passing, bool expected)
         {
             TrainPathToolWindow bridge = CreateBridge(action => action());
@@ -1094,6 +1101,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.ViewModels
             {
                 Nodes = [new TrainPathNodeRow(0, type, true, 1, -1, -1, null, null)],
                 SelectedNodeIndex = 0,
+                CanSetSelectedWaitPoint = canSet,
                 IsRepairMode = repair,
                 CanCancelPathInteraction = interaction,
                 HasPendingAmbiguousSpanCommit = mainCandidate,
@@ -1107,6 +1115,274 @@ namespace Tests.FreeTrainSimulator.Toolbox.ViewModels
                     viewModel.Start();
 
                     Assert.AreEqual(expected, viewModel.CanEditSelectedNodeWaitTime);
+                }
+            }
+        }
+
+        [TestMethod]
+        [DataRow(PathNodeType.Via, false)]
+        [DataRow(PathNodeType.Wait, false)]
+        [DataRow(PathNodeType.Start | PathNodeType.Wait, true)]
+        public void WhenWaitSetIsDisabledThenExplicitClearRemainsAvailableForPublishedWaitData(PathNodeType type, bool repair)
+        {
+            TrainPathToolWindow bridge = CreateBridge(_ => { });
+            SetBridgeSnapshot(bridge, TrainPathSnapshot.Empty with
+            {
+                Nodes = [new TrainPathNodeRow(0, type, true, 1, -1, -1, 30, null)],
+                SelectedNodeIndex = 0,
+                CanClearSelectedWaitPoint = true,
+                IsRepairMode = repair,
+            });
+            using (ToolWindowRefreshScheduler scheduler = new ToolWindowRefreshScheduler(Dispatcher.CurrentDispatcher))
+            {
+                using (TrainPathToolWindowViewModel viewModel = new TrainPathToolWindowViewModel(bridge, scheduler))
+                {
+                    viewModel.Start();
+
+                    Assert.AreEqual((false, true), (viewModel.CanEditSelectedNodeWaitTime, viewModel.ClearWaitPointCommand.CanExecute(null)));
+                }
+            }
+        }
+
+        [TestMethod]
+        public void WhenPositiveWaitEditIsNotAuthorizedThenValueIsResetWithWarningAndNoCommand()
+        {
+            int invocations = 0;
+            TrainPathToolWindow bridge = CreateBridge(_ => invocations++);
+            SetBridgeSnapshot(bridge, TrainPathSnapshot.Empty with
+            {
+                Nodes = [new TrainPathNodeRow(0, PathNodeType.Via, true, 1, -1, -1, 30, null)],
+                SelectedNodeIndex = 0,
+                CanClearSelectedWaitPoint = true,
+            });
+            using (ToolWindowRefreshScheduler scheduler = new ToolWindowRefreshScheduler(Dispatcher.CurrentDispatcher))
+            {
+                using (TrainPathToolWindowViewModel viewModel = new TrainPathToolWindowViewModel(bridge, scheduler))
+                {
+                    viewModel.Start();
+
+                    viewModel.SelectedNodeWaitTime = 60;
+
+                    Assert.AreEqual(((int?)30, 0, true, true), (viewModel.SelectedNodeWaitTime, invocations, viewModel.StatusMessageIsWarning,
+                        !string.IsNullOrWhiteSpace(viewModel.StatusMessage)));
+                }
+            }
+        }
+
+        [TestMethod]
+        [OSCondition(OperatingSystems.Windows)]
+        public async Task WhenQueuedWaitEditUsesStaleCapabilityThenRejectedResultRestoresAuthoritativeWaitWithoutAddingHistory()
+        {
+            TrackWorld world = TrackWorldTestFixture.CreateSingleVectorNodeTrackWorld();
+            PathModel source = new PathModel
+            {
+                Id = "stale-wait-edit",
+                Name = "Stale Wait Edit",
+                PathNodes = ImmutableArray.Create(
+                    new PathNode(new WorldLocation(new Tile(0, 0), Vector3.Zero))
+                    {
+                        NodeType = PathNodeType.Start,
+                        NodeIndex = 1,
+                        NextMainNode = 1,
+                        NextSidingNode = -1,
+                    },
+                    new PathNode(new WorldLocation(new Tile(0, 0), new Vector3(50, 0, 0)))
+                    {
+                        NodeType = PathNodeType.Via,
+                        NodeIndex = 1,
+                        NextMainNode = 2,
+                        NextSidingNode = -1,
+                    },
+                    new PathNode(new WorldLocation(new Tile(0, 0), new Vector3(100, 0, 0)))
+                    {
+                        NodeType = PathNodeType.End,
+                        NodeIndex = 1,
+                        NextMainNode = -1,
+                        NextSidingNode = -1,
+                    }),
+            };
+            using (PathEditor editor = new PathEditor(new TestPathEditorContext(world)))
+            {
+                Assert.IsTrue(await editor.InitializePathAsync(source, CancellationToken.None).ConfigureAwait(false));
+                editor.SelectAuthoredNode(1);
+                Queue<Action> gameCommands = new Queue<Action>();
+                TrainPathToolWindow bridge = new TrainPathToolWindow(() => editor, () => null, gameCommands.Enqueue,
+                    () => { }, () => { }, _ => { }, () => { }, () => { })
+                { Active = true };
+                bridge.RefreshSnapshot();
+                using (ToolWindowRefreshScheduler scheduler = new ToolWindowRefreshScheduler(Dispatcher.CurrentDispatcher))
+                {
+                    using (TrainPathToolWindowViewModel viewModel = new TrainPathToolWindowViewModel(bridge, scheduler))
+                    {
+                        viewModel.Start();
+                        TrainPathSnapshot initial = bridge.CaptureTrainPathSnapshot();
+                        Assert.AreEqual((1, true, true, (int?)null, 0), (viewModel.SelectedNode.Index, initial.CanSetSelectedWaitPoint, viewModel.CanSetSelectedWaitPoint, viewModel.SelectedNodeWaitTime, gameCommands.Count));
+
+                        Assert.IsTrue(editor.SetReversalPoint(1).Success);
+                        PathModel authoritative = editor.TryCaptureCurrentPathModel();
+                        (bool CanUndo, bool CanRedo, bool HasUnsavedChanges) history = (editor.CanUndo, editor.CanRedo, editor.HasUnsavedChanges);
+
+                        viewModel.SelectedNodeWaitTime = 60;
+
+                        Assert.AreEqual((1, (int?)60, initial.CommandResultVersion),
+                            (gameCommands.Count, viewModel.SelectedNodeWaitTime, bridge.CaptureTrainPathSnapshot().CommandResultVersion));
+
+                        gameCommands.Dequeue()();
+                        bridge.RefreshSnapshot();
+                        viewModel.Start();
+
+                        TrainPathSnapshot completed = bridge.CaptureTrainPathSnapshot();
+                        Assert.AreSame(authoritative, editor.TryCaptureCurrentPathModel());
+                        Assert.AreEqual(history, (editor.CanUndo, editor.CanRedo, editor.HasUnsavedChanges));
+                        Assert.AreEqual((initial.CommandResultVersion + 1, true, true, completed.CommandResultMessage), (completed.CommandResultVersion, completed.CommandResultIsWarning, viewModel.StatusMessageIsWarning, viewModel.StatusMessage));
+                        Assert.IsFalse(string.IsNullOrWhiteSpace(viewModel.StatusMessage));
+                        Assert.AreEqual(((int?)null, (int?)null, false, 0), (viewModel.SelectedNodeWaitTime, viewModel.SelectedNode.WaitTime, viewModel.CanSetSelectedWaitPoint, gameCommands.Count));
+
+                        Assert.IsTrue(editor.Undo());
+                        Assert.AreSequenceEqual(source.PathNodes, editor.TryCaptureCurrentPathModel().PathNodes);
+                        Assert.AreEqual((false, true), (editor.CanUndo, editor.CanRedo));
+                    }
+                }
+            }
+        }
+
+        [TestMethod]
+        public void WhenPayloadOnlyWaitIsClearedThenTheProductionClearCommandIsMarshaled()
+        {
+            int invocations = 0;
+            TrainPathToolWindow bridge = CreateBridge(_ => invocations++);
+            SetBridgeSnapshot(bridge, TrainPathSnapshot.Empty with
+            {
+                Nodes = [new TrainPathNodeRow(0, PathNodeType.Via, false, 1, -1, -1, 30, null)],
+                SelectedNodeIndex = 0,
+                IsRepairMode = true,
+                CanClearSelectedWaitPoint = true,
+            });
+            using (ToolWindowRefreshScheduler scheduler = new ToolWindowRefreshScheduler(Dispatcher.CurrentDispatcher))
+            {
+                using (TrainPathToolWindowViewModel viewModel = new TrainPathToolWindowViewModel(bridge, scheduler))
+                {
+                    viewModel.Start();
+
+                    viewModel.ClearWaitPointCommand.Execute(null);
+
+                    Assert.AreEqual(1, invocations);
+                }
+            }
+        }
+
+        [TestMethod]
+        [DataRow(60)]
+        [DataRow(0)]
+        [DataRow(null)]
+        public void WhenWaitEditIsAuthorizedThenTheProductionSetOrClearCommandIsMarshaled(int? value)
+        {
+            int invocations = 0;
+            TrainPathToolWindow bridge = CreateBridge(_ => invocations++);
+            SetBridgeSnapshot(bridge, TrainPathSnapshot.Empty with
+            {
+                Nodes = [new TrainPathNodeRow(0, PathNodeType.Via, true, 1, -1, -1, 30, null)],
+                SelectedNodeIndex = 0,
+                CanSetSelectedWaitPoint = true,
+                CanClearSelectedWaitPoint = true,
+            });
+            using (ToolWindowRefreshScheduler scheduler = new ToolWindowRefreshScheduler(Dispatcher.CurrentDispatcher))
+            {
+                using (TrainPathToolWindowViewModel viewModel = new TrainPathToolWindowViewModel(bridge, scheduler))
+                {
+                    viewModel.Start();
+
+                    viewModel.SelectedNodeWaitTime = value;
+
+                    Assert.AreEqual(1, invocations);
+                }
+            }
+        }
+
+        [TestMethod]
+        [DataRow(PathNodeType.Via, true, false, true)]
+        [DataRow(PathNodeType.Via, false, true, false)]
+        [DataRow(PathNodeType.Reversal, true, false, false)]
+        [DataRow(PathNodeType.Reversal, false, true, true)]
+        public void WhenReversalIsToggledThenEligibilityUsesTheApplicableAuthoritativeCapability(PathNodeType type, bool canSet, bool canClear, bool expected)
+        {
+            TrainPathToolWindow bridge = CreateBridge(_ => { });
+            SetBridgeSnapshot(bridge, TrainPathSnapshot.Empty with
+            {
+                Nodes = [new TrainPathNodeRow(0, type, false, 1, -1, -1, null, null)],
+                SelectedNodeIndex = 0,
+                IsRepairMode = true,
+                CanSetSelectedReversalPoint = canSet,
+                CanClearSelectedReversalPoint = canClear,
+            });
+            using (ToolWindowRefreshScheduler scheduler = new ToolWindowRefreshScheduler(Dispatcher.CurrentDispatcher))
+            {
+                using (TrainPathToolWindowViewModel viewModel = new TrainPathToolWindowViewModel(bridge, scheduler))
+                {
+                    viewModel.Start();
+
+                    Assert.AreEqual(expected, viewModel.ToggleReversalPointCommand.CanExecute(null));
+                }
+            }
+        }
+
+        [TestMethod]
+        public void WhenSelectionIsAheadOfSnapshotThenEventCapabilitiesAndCommandsDoNotTargetTheNewNode()
+        {
+            int invocations = 0;
+            TrainPathToolWindow bridge = CreateBridge(_ => invocations++);
+            TrainPathSnapshot snapshot = TrainPathSnapshot.Empty with
+            {
+                Nodes = [new TrainPathNodeRow(0, PathNodeType.Wait, true, 1, 1, -1, 30, null),
+                    new TrainPathNodeRow(1, PathNodeType.Via, true, 1, -1, -1, null, null)],
+                SelectedNodeIndex = 0,
+                CanSetSelectedWaitPoint = true,
+                CanClearSelectedWaitPoint = true,
+                CanSetSelectedReversalPoint = true,
+                CanClearSelectedReversalPoint = true,
+            };
+            SetBridgeSnapshot(bridge, snapshot);
+            using (ToolWindowRefreshScheduler scheduler = new ToolWindowRefreshScheduler(Dispatcher.CurrentDispatcher))
+            {
+                using (TrainPathToolWindowViewModel viewModel = new TrainPathToolWindowViewModel(bridge, scheduler))
+                {
+                    viewModel.Start();
+                    viewModel.UserSelectNode(viewModel.Nodes[1]);
+                    viewModel.Start();
+
+                    viewModel.SelectedNodeWaitTime = 60;
+                    viewModel.ClearWaitPointCommand.Execute(null);
+                    viewModel.ToggleReversalPointCommand.Execute(null);
+
+                    Assert.AreEqual((false, false, false, false, 1), (viewModel.CanSetSelectedWaitPoint, viewModel.CanClearSelectedWaitPoint,
+                        viewModel.CanSetSelectedReversalPoint, viewModel.CanClearSelectedReversalPoint, invocations));
+                }
+            }
+        }
+
+        [TestMethod]
+        public void WhenBlockedSaveHasANonNodeEventDiagnosticThenIssuesFocusDoesNotInventANodeTarget()
+        {
+            TrainPathDiagnosticRow diagnostic = new TrainPathDiagnosticRow(PathRouteDiagnosticSeverity.Error,
+                PathRouteDiagnosticCode.MultipleReversalsInContinuousVector, "Unsupported reversal traversal.", -1, -1, -1,
+                "Inspect reversal points.", false);
+            TrainPathToolWindow bridge = CreateBridge(_ => { });
+            SetBridgeSnapshot(bridge, TrainPathSnapshot.Empty with
+            {
+                Nodes = [new TrainPathNodeRow(0, PathNodeType.Via, true, 1, -1, -1, null, null)],
+                SelectedNodeIndex = 0,
+                Diagnostics = [diagnostic],
+                BlockedSaveMessage = diagnostic.Message,
+                BlockedSaveDiagnostic = diagnostic,
+                BlockedSaveFeedbackVersion = 1,
+            });
+            using (ToolWindowRefreshScheduler scheduler = new ToolWindowRefreshScheduler(Dispatcher.CurrentDispatcher))
+            {
+                using (TrainPathToolWindowViewModel viewModel = new TrainPathToolWindowViewModel(bridge, scheduler))
+                {
+                    viewModel.Start();
+
+                    Assert.AreEqual((true, true, -1), (viewModel.IsIssuesExpanded, viewModel.SelectedNode == null, viewModel.SelectedDiagnostic?.NodeIndex));
                 }
             }
         }
@@ -1318,6 +1594,28 @@ namespace Tests.FreeTrainSimulator.Toolbox.ViewModels
                     Assert.AreEqual($"Path validation failed: {exception.Message}", viewModel.StatusMessage);
                     Assert.IsTrue(viewModel.StatusMessageIsWarning);
                 }
+            }
+        }
+
+        private sealed class TestPathEditorContext : IPathEditorContext, IPathEditorContextServicesAccessor
+        {
+            private readonly IPathEditorServices services;
+
+            public IMapRenderer Renderer => null;
+
+            public IMapViewport Viewport => null;
+
+            public ToolboxContentMode ContentMode { get; set; }
+
+            public PathEditorBase PathEditor { get; set; }
+
+            public void RequestRedraw() { }
+
+            IPathEditorServices IPathEditorContextServicesAccessor.Services => services;
+
+            public TestPathEditorContext(TrackWorld trackWorld)
+            {
+                services = new PathEditorServices(trackWorld);
             }
         }
 

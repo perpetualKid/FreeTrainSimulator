@@ -23,6 +23,7 @@ using Tests.FreeTrainSimulator.Common;
 namespace Tests.FreeTrainSimulator.Toolbox.ToolWindows
 {
     [TestClass]
+    [OSCondition(OperatingSystems.Windows)]
     public class TrainPathToolWindowTests
     {
         [TestMethod]
@@ -34,6 +35,203 @@ namespace Tests.FreeTrainSimulator.Toolbox.ToolWindows
             trainPathToolWindow.RefreshSnapshot();
 
             Assert.AreEqual(TrainPathSnapshot.Empty, trainPathToolWindow.CaptureTrainPathSnapshot());
+        }
+
+        [TestMethod]
+        [DataRow(PathNodeType.Via, true, false, true, false)]
+        [DataRow(PathNodeType.Wait, true, true, false, false)]
+        [DataRow(PathNodeType.Reversal, false, false, true, true)]
+        [DataRow(PathNodeType.Wait | PathNodeType.Reversal, false, true, false, true)]
+        public void WhenNodeIsSelectedThenSnapshotPublishesAllAuthoritativeEventCapabilities(PathNodeType type, bool canSetWait, bool canClearWait, bool canSetReversal, bool canClearReversal)
+        {
+            using (PathEditor editor = CreatePathEditor(CreateEventPath(type, null)))
+            {
+                TrainPathToolWindow bridge = CreateCandidateBridge(() => editor);
+                bridge.HighlightNode(1);
+
+                bridge.RefreshSnapshot();
+                TrainPathSnapshot snapshot = bridge.CaptureTrainPathSnapshot();
+
+                Assert.AreEqual((canSetWait, canClearWait, canSetReversal, canClearReversal),
+                    (snapshot.CanSetSelectedWaitPoint, snapshot.CanClearSelectedWaitPoint, snapshot.CanSetSelectedReversalPoint, snapshot.CanClearSelectedReversalPoint));
+            }
+        }
+
+        [TestMethod]
+        public void WhenEventCapabilitiesChangeWithoutBridgeInvalidationThenSnapshotIsRepublished()
+        {
+            using (PathEditor editor = CreatePathEditor(CreateEventPath(PathNodeType.Via, null)))
+            {
+                _ = editor.SetWaitPoint(2, 10);
+                editor.SelectAuthoredNode(1);
+                TrainPathToolWindow bridge = CreateCandidateBridge(() => editor);
+                bridge.RefreshSnapshot();
+                TrainPathSnapshot before = bridge.CaptureTrainPathSnapshot();
+
+                _ = editor.SetReversalPoint(1);
+                bridge.RefreshSnapshot();
+                TrainPathSnapshot after = bridge.CaptureTrainPathSnapshot();
+
+                Assert.AreEqual((true, false, true), (before.CanSetSelectedWaitPoint, after.CanSetSelectedWaitPoint, after.CanClearSelectedReversalPoint));
+            }
+        }
+
+        [TestMethod]
+        public void WhenImportedPassingWaitIsSelectedThenSnapshotAndNodeMenuAllowClearButNotSet()
+        {
+            PathModel source = CreateSupportedPassingBranchPath();
+            source = source with
+            {
+                PathNodes = source.PathNodes.SetItem(5, source.PathNodes[5] with
+                {
+                    NodeType = PathNodeType.Via | PathNodeType.Wait,
+                    WaitInfo = new PathNodeWaitInfo { WaitTime = 30 },
+                })
+            };
+            using (PathEditor editor = CreatePathEditor(source))
+            {
+                TrainPathToolWindow bridge = CreateCandidateBridge(() => editor);
+                bridge.HighlightNode(5);
+
+                bridge.RefreshSnapshot();
+                TrainPathSnapshot snapshot = bridge.CaptureTrainPathSnapshot();
+                ImmutableArray<MapContextMenuItem> actions = bridge.GetNodeActions(5);
+
+                Assert.AreEqual((false, true, true, false), (snapshot.CanSetSelectedWaitPoint, snapshot.CanClearSelectedWaitPoint,
+                    actions.Any(item => item.Action == MapContextMenuAction.ClearWaitPoint), actions.Any(item => item.Action == MapContextMenuAction.SetReversalPoint)));
+            }
+        }
+
+        [TestMethod]
+        [DataRow(0)]
+        [DataRow(30)]
+        public void WhenPayloadOnlyWaitIsClearedInRepairModeThenSnapshotPublishesTheActualRepair(int waitTime)
+        {
+            PathModel source = CreateEventPath(PathNodeType.Via, null);
+            source = source with
+            {
+                PathNodes = source.PathNodes.SetItem(0, source.PathNodes[0] with
+                {
+                    NextMainNode = 99,
+                    WaitInfo = new PathNodeWaitInfo { WaitTime = waitTime },
+                })
+            };
+            using (PathEditor editor = CreatePathEditor(source))
+            {
+                TrainPathToolWindow bridge = CreateCandidateBridge(() => editor);
+                bridge.HighlightNode(0);
+                bridge.RefreshSnapshot();
+                TrainPathSnapshot before = bridge.CaptureTrainPathSnapshot();
+
+                bridge.ClearWaitPoint(0);
+                bridge.RefreshSnapshot();
+                TrainPathSnapshot after = bridge.CaptureTrainPathSnapshot();
+
+                Assert.AreEqual((true, false, true, false, true), (before.IsRepairMode, before.CanSetSelectedWaitPoint,
+                    before.CanClearSelectedWaitPoint, after.CanClearSelectedWaitPoint, editor.TryCaptureCurrentPathModel().PathNodes[0].WaitInfo == null));
+            }
+        }
+
+        [TestMethod]
+        public void WhenFirstReversalIsClearedInRepairModeThenSnapshotPublishesTheActualRepair()
+        {
+            PathModel source = CreateEventPath(PathNodeType.Via, null);
+            source = source with
+            {
+                PathNodes = source.PathNodes.SetItem(0, source.PathNodes[0] with
+                {
+                    NodeType = PathNodeType.Start | PathNodeType.Reversal,
+                    NextMainNode = 99,
+                })
+            };
+            using (PathEditor editor = CreatePathEditor(source))
+            {
+                TrainPathToolWindow bridge = CreateCandidateBridge(() => editor);
+                bridge.HighlightNode(0);
+                bridge.RefreshSnapshot();
+                TrainPathSnapshot before = bridge.CaptureTrainPathSnapshot();
+
+                bridge.ClearReversalPoint(0);
+                bridge.RefreshSnapshot();
+                TrainPathSnapshot after = bridge.CaptureTrainPathSnapshot();
+
+                Assert.AreEqual((true, false, true, false, false), (before.IsRepairMode, before.CanSetSelectedReversalPoint,
+                    before.CanClearSelectedReversalPoint, after.CanClearSelectedReversalPoint,
+                    editor.TryCaptureCurrentPathModel().PathNodes[0].NodeType.Includes(PathNodeType.Reversal)));
+            }
+        }
+
+        [TestMethod]
+        public void WhenSimulatorEventBlocksSaveThenMergedIssuesContainOneAuthoredTargetAndFocusIt()
+        {
+            using (PathEditor editor = CreatePathEditor(CreateEventPath(PathNodeType.Wait | PathNodeType.Reversal, new PathNodeWaitInfo { WaitTime = 30 })))
+            {
+                TrainPathToolWindow bridge = CreateCandidateBridge(() => editor);
+                bridge.RefreshSnapshot();
+                int beforeCount = bridge.CaptureTrainPathSnapshot().Diagnostics.Count(row => row.Code == PathRouteDiagnosticCode.UnsupportedCombinedWaitReversal);
+
+                bridge.SavePath();
+                bridge.RefreshSnapshot();
+                TrainPathSnapshot snapshot = bridge.CaptureTrainPathSnapshot();
+
+                Assert.AreEqual((1, 1, (int?)1), (beforeCount, snapshot.Diagnostics.Count(row => row.Code == PathRouteDiagnosticCode.UnsupportedCombinedWaitReversal),
+                    snapshot.BlockedSaveDiagnostic?.NodeIndex));
+            }
+        }
+
+        [TestMethod]
+        [DataRow(-1)]
+        [DataRow(1)]
+        public void WhenBlockedSaveAddsAnEventDiagnosticThenSnapshotPreservesItsPublishedTarget(int nodeIndex)
+        {
+            using (PathEditor editor = CreatePathEditor(CreateEventPath(PathNodeType.Via, null)))
+            {
+                PathModel model = editor.TryCaptureCurrentPathModel();
+                PathRouteDiagnostic diagnostic = new PathRouteDiagnostic(PathRouteDiagnosticSeverity.Error,
+                    PathRouteDiagnosticCode.MultipleReversalsInContinuousVector, "Unsupported reversal traversal.", nodeIndex, -1, -1,
+                    "Inspect reversal points.");
+                PathPersistenceValidationResult validation = new PathPersistenceValidationResult(false, model, editor.ResolveCurrent(model),
+                ImmutableArray.Create(diagnostic), default, diagnostic.Message, diagnostic);
+                TrainPathToolWindow bridge = CreateCandidateBridge(() => editor);
+
+                _ = bridge.ReportBlockedSave(validation, model);
+                bridge.RefreshSnapshot();
+                TrainPathSnapshot snapshot = bridge.CaptureTrainPathSnapshot();
+                TrainPathDiagnosticRow row = snapshot.Diagnostics.Single(item => item.Code == diagnostic.Code);
+
+                Assert.AreEqual((nodeIndex, -1, -1, (int?)nodeIndex), (row.NodeIndex, row.FromNodeIndex, row.ToNodeIndex, snapshot.BlockedSaveDiagnostic?.NodeIndex));
+            }
+        }
+
+        [TestMethod]
+        public void WhenRepairDraftHasSimulatorAndResolverIssuesThenSnapshotRetainsBoth()
+        {
+            PathModel source = CreateEventPath(PathNodeType.Wait | PathNodeType.Reversal, new PathNodeWaitInfo { WaitTime = 30 });
+            source = source with { PathNodes = source.PathNodes.SetItem(1, source.PathNodes[1] with { NextMainNode = 99 }) };
+            using (PathEditor editor = CreatePathEditor(source))
+            {
+                TrainPathToolWindow bridge = CreateCandidateBridge(() => editor);
+
+                bridge.RefreshSnapshot();
+                TrainPathSnapshot snapshot = bridge.CaptureTrainPathSnapshot();
+
+                Assert.AreEqual((true, true), (snapshot.Diagnostics.Any(row => row.Code == PathRouteDiagnosticCode.UnsupportedCombinedWaitReversal && row.NodeIndex == 1),
+                    snapshot.Diagnostics.Any(row => row.Code != PathRouteDiagnosticCode.UnsupportedCombinedWaitReversal)));
+            }
+        }
+
+        private static PathModel CreateEventPath(PathNodeType nodeType, PathNodeWaitInfo waitInfo)
+        {
+            return new PathModel
+            {
+                Id = "event-path",
+                Name = "Event Path",
+                PathNodes = ImmutableArray.Create(
+                    CreatePathNode(0, PathNodeType.Start, 1, -1),
+                    CreatePathNode(25, nodeType, 2, -1) with { WaitInfo = waitInfo },
+                    CreatePathNode(50, PathNodeType.Via, 3, -1),
+                    CreatePathNode(100, PathNodeType.End, -1, -1)),
+            };
         }
 
         [TestMethod]
@@ -1135,7 +1333,8 @@ namespace Tests.FreeTrainSimulator.Toolbox.ToolWindows
                     refreshed.SetResult();
                     await releaseCompletion.Task.ConfigureAwait(false);
                     return true;
-                }) { Active = true };
+                })
+            { Active = true };
 
             Task<bool> validation = bridge.ValidateAllPaths();
             bool waitsForValidation = !validation.IsCompleted;
@@ -1170,8 +1369,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.ToolWindows
                     Active = true,
                 };
                 trainPathToolWindow.ReportSaveFailure("The path could not be saved.", editor.TryCaptureCurrentPathModel());
-                trainPathToolWindow.CompleteSavedPath(editor.PathId, editor.PathId,
-                    editor.TryCaptureCurrentPathModel(), "Path saved.");
+                trainPathToolWindow.CompleteSavedPath(editor.PathId, editor.PathId, editor.TryCaptureCurrentPathModel(), "Path saved.");
                 trainPathToolWindow.RefreshSnapshot();
 
                 TrainPathSnapshot snapshot = trainPathToolWindow.CaptureTrainPathSnapshot();
@@ -1241,6 +1439,30 @@ namespace Tests.FreeTrainSimulator.Toolbox.ToolWindows
             ImmutableArray<TrainPathDiagnosticRow> rows = TrainPathToolWindow.BuildResolverDiagnostics(resolution);
 
             Assert.IsTrue(rows.IsEmpty);
+        }
+
+        [TestMethod]
+        public void WhenEventDiagnosticIsPresentedThenDefaultCatalogRetainsItsTextAndAuthoredTarget()
+        {
+            PathRouteDiagnostic diagnostic = PathSimulatorEventCompatibility.ValidateNode(PathNodeType.Wait, 30, 7, false, true, false);
+            PathRouteResolution resolution = new PathRouteResolution(null, ImmutableArray.Create(diagnostic));
+
+            TrainPathDiagnosticRow row = TrainPathToolWindow.BuildResolverDiagnostics(resolution).Single();
+
+            Assert.AreEqual((diagnostic.Message, diagnostic.SuggestedAction, diagnostic.NodeIndex), (row.Message, row.SuggestedAction, row.NodeIndex));
+        }
+
+        [TestMethod]
+        public void WhenEventDiagnosticHasNoAuthoredTargetThenPresentationDoesNotInventAnIndex()
+        {
+            PathRouteDiagnostic diagnostic = PathSimulatorEventCompatibility.ValidateNode(
+                PathNodeType.Wait, 30, 7, false, true, false) with
+            { NodeIndex = -1 };
+            PathRouteResolution resolution = new PathRouteResolution(null, ImmutableArray.Create(diagnostic));
+
+            TrainPathDiagnosticRow row = TrainPathToolWindow.BuildResolverDiagnostics(resolution).Single();
+
+            Assert.AreEqual((diagnostic.Message, diagnostic.SuggestedAction, -1), (row.Message, row.SuggestedAction, row.NodeIndex));
         }
 
         [TestMethod]
