@@ -7,6 +7,7 @@ using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 
+using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Models.Content;
 using FreeTrainSimulator.Models.Handler;
 using FreeTrainSimulator.Models.Shim;
@@ -20,6 +21,52 @@ namespace Tests.FreeTrainSimulator.Toolbox.Hosting
 {
     public sealed partial class ToolboxSessionTests
     {
+        [TestMethod]
+        [DataRow(nameof(FormatException))]
+        [DataRow(nameof(AssertFailedException))]
+        [Timeout(10000, CooperativeCancellation = true)]
+        public async Task WhenSaveObserverReceivesUnexpectedAsyncVoidFailureThenItRetainsTheFailure(string failure)
+        {
+            Exception expected = failure switch
+            {
+                nameof(FormatException) => new FormatException("Unexpected async-void failure."),
+                nameof(AssertFailedException) => new AssertFailedException("Async-void assertion failure."),
+                _ => throw new ArgumentOutOfRangeException(nameof(failure)),
+            };
+            StaControlHost shellOwner = await StaControlHost.StartAsync().ConfigureAwait(false);
+            await using (shellOwner.ConfigureAwait(false))
+            {
+                TaskCompletionSource release = Completion();
+                SavePreflightSynchronizationContext observer = null;
+                await shellOwner.OnOwnerAsync(() =>
+                {
+                    SynchronizationContext previous = SynchronizationContext.Current;
+                    observer = new SavePreflightSynchronizationContext(previous, shellOwner.OwnerThreadId);
+                    EventHandler fail = async (_, _) =>
+                    {
+                        await release.Task.ConfigureAwait(true);
+                        throw expected;
+                    };
+                    try
+                    {
+                        SynchronizationContext.SetSynchronizationContext(observer);
+                        fail(null, EventArgs.Empty);
+                    }
+                    finally
+                    {
+                        SynchronizationContext.SetSynchronizationContext(previous);
+                    }
+                }).ConfigureAwait(false);
+                release.SetResult();
+                await observer.Completion.WaitAsync(TestContext.CancellationToken).ConfigureAwait(false);
+
+                Exception[] observed = observer.PostedExceptions.ToArray();
+                Assert.HasCount(1, observed);
+                Assert.AreSame(expected, observed[0]);
+                Assert.AreEqual((1, 1, 0), (observer.StartedOperations, observer.CompletedOperations, observer.OffOwnerCallbacks));
+            }
+        }
+
         [TestMethod]
         [Timeout(10000, CooperativeCancellation = true)]
         public async Task WhenShellSaveCapturesStoppedSessionThenPreflightCompletesWithoutChangingEditorOrStoredPath()
@@ -242,9 +289,10 @@ namespace Tests.FreeTrainSimulator.Toolbox.Hosting
                         SetSynchronizationContext(this);
                         callback(state);
                     }
-                    catch (Exception exception)
+                    catch (Exception exception) when (CleanupExceptionPolicy.CanContinue(exception))
                     {
-                        // Observe async-void failures without letting the STA's unhandled-exception policy terminate the test host.
+                        // Retain unexpected managed failures (including assertions) for the caller's assertions,
+                        // not recovery. Process-fatal failures must still reach the STA's unhandled-exception policy.
                         PostedExceptions.Enqueue(exception);
                     }
                     finally

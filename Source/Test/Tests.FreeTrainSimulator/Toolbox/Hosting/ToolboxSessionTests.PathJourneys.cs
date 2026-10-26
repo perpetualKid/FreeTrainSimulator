@@ -30,6 +30,9 @@ namespace Tests.FreeTrainSimulator.Toolbox.Hosting
 {
     public sealed partial class ToolboxSessionTests
     {
+        private static readonly int[] journeyMainVectorIndexes = [1, 4, 2];
+        private static readonly int[] journeyPassingVectorIndexes = [5];
+
         [TestMethod]
         [Timeout(30000, CooperativeCancellation = true)]
         public async Task WhenHostedMainPathIsAuthoredThenShellSaveAndSessionReopenPreserveNativePath()
@@ -136,8 +139,8 @@ namespace Tests.FreeTrainSimulator.Toolbox.Hosting
                             shell = CreateShutdownShell(host);
                             Assert.IsNotNull(SynchronizationContext.Current);
                             observer = new SavePreflightSynchronizationContext(SynchronizationContext.Current, shellOwner.OwnerThreadId);
-                            shellSave = (EventHandler)typeof(MainWindow).GetMethod("MapHost_SaveTrainPathRequested", BindingFlags.Instance | BindingFlags.NonPublic)
-                                .CreateDelegate(typeof(EventHandler), shell);
+                            shellSave = typeof(MainWindow).GetMethod("MapHost_SaveTrainPathRequested", BindingFlags.Instance | BindingFlags.NonPublic)
+                                .CreateDelegate<EventHandler>(shell);
                         }).ConfigureAwait(false);
 
                         await CommandAsync(bridge.StartNewPathPlacement).ConfigureAwait(false);
@@ -303,13 +306,13 @@ namespace Tests.FreeTrainSimulator.Toolbox.Hosting
             PathRouteResolution resolution = PathRouteResolver.Resolve(model, world, CancellationToken.None);
             Assert.IsTrue(resolution.IsValid, string.Join(Environment.NewLine, resolution.Diagnostics.Select(diagnostic => diagnostic.Message)));
             Assert.IsTrue(resolution.MainRoute.Spans.All(span => span.Status == PathRouteSpanStatus.Resolved));
-            Assert.AreSequenceEqual(new[] { 1, 4, 2 }, resolution.MainRoute.Spans.SelectMany(span => span.TrackVectorNodeIndexes).Distinct().ToArray());
+            Assert.AreSequenceEqual(journeyMainVectorIndexes, resolution.MainRoute.Spans.SelectMany(span => span.TrackVectorNodeIndexes).Distinct().ToArray());
             Assert.HasCount(passing ? 1 : 0, resolution.PassingRoutes);
             if (passing)
             {
                 ResolvedPathRoute branch = resolution.PassingRoutes.Single();
                 Assert.IsTrue(branch.Spans.All(span => span.Status == PathRouteSpanStatus.Resolved));
-                Assert.AreSequenceEqual(new[] { 5 }, branch.Spans.SelectMany(span => span.TrackVectorNodeIndexes).Distinct().ToArray());
+                Assert.AreSequenceEqual(journeyPassingVectorIndexes, branch.Spans.SelectMany(span => span.TrackVectorNodeIndexes).Distinct().ToArray());
                 Assert.AreEqual(SyntheticPathFixture.Location(0, 0), model.PathNodes[branch.StartNodeIndex].Location);
                 Assert.AreEqual(SyntheticPathFixture.Location(100, 0), model.PathNodes[branch.EndNodeIndex].Location);
                 Assert.IsTrue(model.PathNodes[branch.StartNodeIndex].NextSidingNode >= 0);

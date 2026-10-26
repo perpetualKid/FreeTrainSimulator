@@ -1301,28 +1301,47 @@ namespace FreeTrainSimulator.Toolbox.PathEditing
         private PathRouteDiagnostic FindNewSimulatorEventDiagnostic(PathModel sourceModel, PathModel tentativeModel,
             PathPersistenceValidationResult materialization, ImmutableArray<int> changedNodeIndexes)
         {
-            ImmutableArray<PathRouteDiagnostic> prospectiveDiagnostics = PathPersistenceValidationPolicy.GetSimulatorEventDiagnostics(tentativeModel, materialization);
+            ImmutableArray<PathRouteDiagnostic> prospectiveDiagnostics = PathPersistenceValidationPolicy.GetSimulatorEventDiagnostics(materialization.PathModel);
             if (!prospectiveDiagnostics.Any(IsSimulatorEventDiagnostic))
                 return null;
 
             PathPersistenceValidationResult baseline = PathPersistenceValidationPolicy.ResolveAndMaterialize(sourceModel, TrackWorld);
-            List<PathRouteDiagnostic> existing = (baseline.PersistenceAllowed
-                ? PathPersistenceValidationPolicy.GetSimulatorEventDiagnostics(sourceModel, baseline)
-                : PathPersistenceValidationPolicy.GetSimulatorEventDiagnostics(sourceModel).AddRange(GetAuthoredSimulatorEventDiagnostics(sourceModel)))
-                .Where(diagnostic => IsSimulatorEventDiagnostic(diagnostic) && diagnostic.NodeIndex >= 0)
-                .DistinctBy(diagnostic => (diagnostic.Code, diagnostic.NodeIndex)).ToList();
+            List<(PathRouteDiagnostic Diagnostic, int AuthoredNodeIndex)> existing = baseline.PersistenceAllowed
+                ? PathPersistenceValidationPolicy.GetSimulatorEventDiagnostics(baseline.PathModel).Where(IsSimulatorEventDiagnostic)
+                    .Select(diagnostic => (diagnostic, PathPersistenceValidationPolicy.RemapSimulatorEventDiagnostic(sourceModel, baseline, diagnostic).NodeIndex)).ToList()
+                : PathPersistenceValidationPolicy.GetSimulatorEventDiagnostics(sourceModel).AddRange(GetAuthoredSimulatorEventDiagnostics(sourceModel))
+                    .Where(diagnostic => IsSimulatorEventDiagnostic(diagnostic) && diagnostic.NodeIndex >= 0)
+                    .DistinctBy(diagnostic => (diagnostic.Code, diagnostic.NodeIndex)).Select(diagnostic => (diagnostic, diagnostic.NodeIndex)).ToList();
             foreach (PathRouteDiagnostic diagnostic in prospectiveDiagnostics.Where(IsSimulatorEventDiagnostic))
             {
-                int sourceIndex = SourceEventNodeIndex(sourceModel, tentativeModel, diagnostic.NodeIndex, changedNodeIndexes);
-                int existingIndex = existing.FindIndex(previous => previous.Code == diagnostic.Code
-                    && sourceIndex >= 0 && previous.NodeIndex == sourceIndex);
+                PathRouteDiagnostic mapped = PathPersistenceValidationPolicy.RemapSimulatorEventDiagnostic(tentativeModel, materialization, diagnostic);
+                int sourceIndex = SourceEventNodeIndex(sourceModel, tentativeModel, mapped.NodeIndex, changedNodeIndexes);
+                int existingIndex = existing.FindIndex(previous => previous.Diagnostic.Code == diagnostic.Code
+                    && (sourceIndex >= 0 && previous.AuthoredNodeIndex >= 0
+                        ? previous.AuthoredNodeIndex == sourceIndex
+                        : baseline.PersistenceAllowed && (mapped.NodeIndex < 0 || sourceIndex >= 0)
+                            && SameGeneratedEventOccurrence(baseline.PathModel, previous.Diagnostic.NodeIndex,
+                            materialization.PathModel, diagnostic.NodeIndex)));
                 if (existingIndex < 0)
-                    return diagnostic;
+                    return mapped;
 
                 existing.RemoveAt(existingIndex);
             }
 
             return null;
+        }
+
+        private static bool SameGeneratedEventOccurrence(PathModel baseline, int baselineIndex, PathModel prospective, int prospectiveIndex)
+        {
+            PathNode previous = baseline.PathNodes[baselineIndex];
+            PathNode current = prospective.PathNodes[prospectiveIndex];
+            bool SameEvent(PathNode node) => node != null && node.NodeIndex == previous.NodeIndex
+                && node.Location.Equals(previous.Location) && node.NodeType == previous.NodeType && Equals(node.WaitInfo, previous.WaitInfo);
+
+            // A generated occurrence is comparison identity, not proof of an authored UI target. Keep its
+            // ordinal among identical events and consume each diagnostic once; never collapse duplicates.
+            return SameEvent(current)
+                && baseline.PathNodes.Take(baselineIndex).Count(SameEvent) == prospective.PathNodes.Take(prospectiveIndex).Count(SameEvent);
         }
 
         private static int SourceEventNodeIndex(PathModel sourceModel, PathModel tentativeModel, int nodeIndex, ImmutableArray<int> changedNodeIndexes)

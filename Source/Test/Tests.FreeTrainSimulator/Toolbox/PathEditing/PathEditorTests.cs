@@ -134,6 +134,94 @@ namespace Tests.FreeTrainSimulator.Toolbox.PathEditing
         }
 
         [TestMethod]
+        [DataRow(false)]
+        [DataRow(true)]
+        public void WhenRepeatedCombinedEventsHaveNoAuthoredTargetThenAnUnrelatedWaitRemainsEditable(bool noncanonicalOrder)
+        {
+            PathModel source = CreateRepeatedEventPath(PathNodeType.Wait | PathNodeType.Reversal, 2, 75);
+            if (noncanonicalOrder)
+            {
+                source = source with
+                {
+                    PathNodes = ImmutableArray.Create(source.PathNodes[4], source.PathNodes[2] with { NextMainNode = 3 },
+                        source.PathNodes[0] with { NextMainNode = 4 }, source.PathNodes[3] with { NextMainNode = 0 },
+                        source.PathNodes[1] with { NextMainNode = 1 }),
+                };
+            }
+            using (PathEditor editor = CreateEditor(source))
+            {
+                // RestoreSnapshot refreshes resolver-derived validation state; capture the actual editor baseline.
+                source = editor.TryCaptureCurrentPathModel();
+                AssertUnknownCombinedEventTargets(editor);
+                Assert.AreEqual((false, false), (editor.CanUndo, editor.CanRedo));
+                Assert.IsTrue(editor.CanSetWaitPoint(3), "Unchanged ambiguous event targets must not veto an unrelated wait.");
+                Assert.AreSame(source, editor.TryCaptureCurrentPathModel());
+                Assert.IsFalse(editor.CanUndo, "Capability polling must not record an edit.");
+
+                PathEditResult result = editor.SetWaitPoint(3, 25);
+
+                Assert.IsTrue(result.Success, result.Message);
+                PathModel edited = editor.TryCaptureCurrentPathModel();
+                Assert.AreEqual(25, edited.PathNodes[3].WaitInfo.WaitTime);
+                Assert.IsTrue(edited.PathNodes[3].NodeType.Includes(PathNodeType.Wait));
+                for (int index = 0; index < source.PathNodes.Length; index++)
+                {
+                    if (index != 3)
+                        Assert.AreEqual(source.PathNodes[index], edited.PathNodes[index]);
+                }
+                AssertUnknownCombinedEventTargets(editor);
+                Assert.AreEqual((true, false), (editor.CanUndo, editor.CanRedo));
+
+                Assert.IsTrue(editor.Undo());
+                Assert.AreSequenceEqual(source.PathNodes, editor.TryCaptureCurrentPathModel().PathNodes);
+                Assert.AreEqual((false, true), (editor.CanUndo, editor.CanRedo));
+                Assert.IsTrue(editor.Redo());
+                Assert.AreSequenceEqual(edited.PathNodes, editor.TryCaptureCurrentPathModel().PathNodes);
+                Assert.AreEqual((true, false), (editor.CanUndo, editor.CanRedo));
+                AssertUnknownCombinedEventTargets(editor);
+            }
+        }
+
+        [TestMethod]
+        [DataRow(1)]
+        [DataRow(2)]
+        public void WhenAnotherIndistinguishableReversalWouldBeAddedThenNewUnknownTargetOccurrencesAreRejected(int existingReversals)
+        {
+            PathModel source = CreateRepeatedEventPath(PathNodeType.Reversal, existingReversals, 50);
+            using (PathEditor editor = CreateEditor(source))
+            {
+                source = editor.TryCaptureCurrentPathModel();
+                int target = existingReversals + 1;
+                PathEditResult tentative = PathModelEditor.SetReversalPoint(source, target);
+                Assert.IsTrue(tentative.Success);
+                PathPersistenceValidationResult validation = PathPersistenceValidationPolicy.ValidateForPersistence(tentative.PathModel,
+                    TrackWorldTestFixture.CreateSingleVectorNodeTrackWorld());
+                ImmutableArray<PathRouteDiagnostic> diagnostics = validation.Diagnostics
+                    .Where(diagnostic => diagnostic.Code == PathRouteDiagnosticCode.MultipleReversalsInContinuousVector).ToImmutableArray();
+                Assert.HasCount(existingReversals, diagnostics);
+                Assert.IsTrue(diagnostics.All(diagnostic => diagnostic.NodeIndex == -1));
+                Assert.IsFalse(editor.CanSetReversalPoint(target));
+
+                PathEditResult result = editor.SetReversalPoint(target);
+
+                Assert.IsFalse(result.Success);
+                Assert.AreSame(source, editor.TryCaptureCurrentPathModel());
+                Assert.AreEqual((false, false), (editor.CanUndo, editor.CanRedo));
+            }
+        }
+
+        private static void AssertUnknownCombinedEventTargets(PathEditor editor)
+        {
+            PathPersistenceValidationResult validation = editor.ValidateCurrentPathForPersistence();
+            ImmutableArray<PathRouteDiagnostic> diagnostics = validation.Diagnostics
+                .Where(diagnostic => diagnostic.Code == PathRouteDiagnosticCode.UnsupportedCombinedWaitReversal).ToImmutableArray();
+            Assert.IsFalse(validation.PersistenceAllowed);
+            Assert.HasCount(2, diagnostics);
+            Assert.IsTrue(diagnostics.All(diagnostic => diagnostic.NodeIndex == -1
+                && diagnostic.FromNodeIndex == -1 && diagnostic.ToNodeIndex == -1));
+        }
+
+        [TestMethod]
         public void WhenFirstEventIsAlreadyUnsupportedThenSettingAnOrdinaryReversalIsNotBlanketBlocked()
         {
             PathModel source = CreateMainEventPath(PathNodeType.None, PathNodeType.None);
@@ -3442,6 +3530,18 @@ namespace Tests.FreeTrainSimulator.Toolbox.PathEditing
                     CreateNodeAt(20, PathNodeType.Via | firstEvent, 2), CreateNodeAt(40, PathNodeType.Via | secondEvent, 3),
                     CreateNodeAt(60, PathNodeType.Via, 4), CreateNodeAt(100, PathNodeType.End, -1)),
             };
+        }
+
+        private static PathModel CreateRepeatedEventPath(PathNodeType eventType, int eventCount, float ordinaryLocation)
+        {
+            ImmutableArray<PathNode>.Builder nodes = ImmutableArray.CreateBuilder<PathNode>();
+            nodes.Add(CreateNodeAt(0, PathNodeType.Start, 1));
+            for (int index = 1; index <= eventCount; index++)
+                nodes.Add(CreateNodeAt(50, PathNodeType.Via | eventType, index + 1) with
+                { WaitInfo = eventType.Includes(PathNodeType.Wait) ? new PathNodeWaitInfo { WaitTime = 17 } : null });
+            nodes.Add(CreateNodeAt(ordinaryLocation, PathNodeType.Via, eventCount + 2));
+            nodes.Add(CreateNodeAt(100, PathNodeType.End, -1));
+            return new PathModel { Id = "repeated-event-path", PathNodes = nodes.ToImmutable() };
         }
 
         private static PathNode CreateNodeAt(float x, PathNodeType nodeType, int nextMainNode)
