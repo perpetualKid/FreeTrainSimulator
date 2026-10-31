@@ -10,6 +10,86 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "X-Generator: GetText.NET Extractor\n"
 
+#: ..\..\..\Toolbox\Views\TrainPathToolView.xaml
+msgid "Compare"
+msgstr ""
+
+#: ..\..\..\Toolbox\Views\TrainPathToolView.xaml
+msgid "Compare saved path"
+msgstr ""
+
+#: ..\..\..\Toolbox\Views\TrainPathToolView.xaml
+msgid "Saved"
+msgstr ""
+
+#: ..\..\..\Toolbox\ViewModels\TrainPathListItemViewModel.cs
+msgid "Save this new path before comparing it."
+msgstr ""
+
+#: ..\..\..\Toolbox\ViewModels\TrainPathListItemViewModel.cs
+msgid "Loading saved path comparison..."
+msgstr ""
+
+#: ..\..\..\Toolbox\ViewModels\TrainPathListItemViewModel.cs
+msgid "Saved baseline only (read-only). Up to six comparisons; independent of Show Path and editor changes."
+msgstr ""
+
+#: ..\..\..\Toolbox\ToolboxSession.Comparison.cs
+msgid "Only saved paths in the current route can be compared."
+msgstr ""
+
+#: ..\..\..\Toolbox\ToolboxSession.Comparison.cs
+msgid "At most six saved paths can be compared. Uncheck a comparison before adding another."
+msgstr ""
+
+#: ..\..\..\Toolbox\ToolboxSession.Comparison.cs
+msgid "Saved path comparison displayed."
+msgstr ""
+
+#: ..\..\..\Toolbox\ToolboxSession.Comparison.cs
+msgid "Saved path comparison was canceled. Check the saved path again to retry."
+msgstr ""
+
+#: ..\..\..\Toolbox\ToolboxSession.Comparison.cs
+msgid "Saved path comparison requires an unambiguous, resolved main and passing route. Open the saved path and repair or select its route, then save again."
+msgstr ""
+
+#: ..\..\..\Toolbox\ToolboxSession.Comparison.cs
+msgid "Saved path comparison could not match its selected track geometry. Validate the route and saved path before comparing again."
+msgstr ""
+
+#: ..\..\..\Toolbox\ToolboxSession.Comparison.cs
+msgid "The saved path could not be loaded for comparison. Verify the native saved model and access permissions, then try again."
+msgstr ""
+
+#: ..\..\..\Toolbox\Views\TrainPathToolView.xaml
+msgid "Reverse Path"
+msgstr ""
+
+#: ..\..\..\Toolbox\ToolWindows\TrainPathToolWindow.cs
+msgid "Reverse Path requires a complete, reachable main chain with exactly one Start and End and at least two nodes."
+msgstr ""
+
+#: ..\..\..\Toolbox\ToolWindows\TrainPathToolWindow.cs
+msgid "Reverse Path supports only event-free paths without siding links, invalid nodes, or unknown flags."
+msgstr ""
+
+#: ..\..\..\Toolbox\ToolWindows\TrainPathToolWindow.cs
+msgid "Path reversed."
+msgstr ""
+
+#: ..\..\..\Toolbox\ToolWindows\TrainPathToolWindow.cs
+msgid "Reverse Path is unavailable during repair, placement, route selection, or saving."
+msgstr ""
+
+#: ..\..\..\Toolbox\ToolWindows\TrainPathToolWindow.cs
+msgid "Reverse Path requires an unambiguous route with exactly reversed track edges and matching anchors."
+msgstr ""
+
+#: ..\..\..\Toolbox\ToolWindows\TrainPathToolWindow.cs
+msgid "Reverse Path requires both directions to pass normal save validation."
+msgstr ""
+
 #: ..\..\..\Toolbox\GameWindow.cs:76
 #, csharp-format
 msgid " Route: {0}"
@@ -538,5 +618,13 @@ msgstr ""
 
 #: ..\..\..\Toolbox\ToolWindows\TrainPathToolWindow.cs
 msgid "Separate successive reversals with a junction before using the path in Simulator."
+msgstr ""
+
+#: ..\..\..\Toolbox\ToolWindows\TrainPathToolWindow.cs
+msgid "Basic wait time must be between 1 and 29999 seconds. Values of 30000 or greater may encode legacy AI operations instead of a duration."
+msgstr ""
+
+#: ..\..\..\Toolbox\Views\TrainPathToolView.xaml
+msgid "Basic wait time: 1 to 29999 seconds. Larger values may encode legacy AI operations. Clear the value or enter zero to remove existing wait data."
 msgstr ""
 

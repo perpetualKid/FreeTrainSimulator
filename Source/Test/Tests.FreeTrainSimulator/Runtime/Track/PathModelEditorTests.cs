@@ -20,6 +20,83 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
     public class PathModelEditorTests
     {
         [TestMethod]
+        public void WhenWholePathIsReversedThenLinkedTraversalNotArrayOrderDeterminesPreservedAnchors()
+        {
+            PathModel source = CreatePath(
+                Anchor(50, 11) with { NodeType = PathNodeType.Via | PathNodeType.Junction, NextMainNode = 1, NextSidingNode = -1 },
+                Anchor(90, 12) with { NodeType = PathNodeType.End, NextMainNode = -1, NextSidingNode = -1 },
+                Anchor(10, 10) with { NodeType = PathNodeType.Start | PathNodeType.Junction, NextMainNode = 0, NextSidingNode = -1 });
+            PathNode[] expected = new[]
+            {
+                source.PathNodes[1] with { NodeType = PathNodeType.Start, NextMainNode = 1 },
+                source.PathNodes[0] with { NextMainNode = 2 },
+                source.PathNodes[2] with { NodeType = PathNodeType.End | PathNodeType.Junction, NextMainNode = -1 },
+            };
+
+            PathEditResult result = PathModelEditor.ReversePath(source);
+
+            Assert.AreSequenceEqual(expected, result.PathModel.PathNodes);
+        }
+
+        [TestMethod]
+        public void WhenWholePathIsReversedThenOnlyEndpointLabelsChangeInMetadata()
+        {
+            PathModel source = CreatePath(Node(PathNodeType.Start, 1), Node(PathNodeType.End, -1)) 
+                with { Start = "Origin", End = "Destination", PlayerPath = true, ValidationState = PathValidationState.Valid };
+
+            PathEditResult result = PathModelEditor.ReversePath(source);
+
+            Assert.AreEqual(source with { Start = "Destination", End = "Origin" }, result.PathModel with { PathNodes = source.PathNodes });
+        }
+
+        [TestMethod]
+        [DataRow(PathNodeType.Wait)]
+        [DataRow(PathNodeType.Reversal)]
+        [DataRow(PathNodeType.Invalid)]
+        [DataRow((PathNodeType)0x4000)]
+        public void WhenWholePathHasUnsupportedFlagsThenReverseReturnsOriginal(PathNodeType flag)
+        {
+            PathModel source = CreatePath(Node(PathNodeType.Start | flag, 1), Node(PathNodeType.End, -1));
+
+            PathEditResult result = PathModelEditor.ReversePath(source);
+
+            Assert.AreEqual((false, true, 0), (result.Success, ReferenceEquals(source, result.PathModel), result.ChangedNodeIndexes.Length));
+        }
+
+        [TestMethod]
+        public void WhenWholePathHasZeroWaitPayloadWithoutFlagThenReverseRefusesIt()
+        {
+            PathModel source = CreatePath(Node(PathNodeType.Start, 1), Node(PathNodeType.End, -1) 
+                with { WaitInfo = new PathNodeWaitInfo { WaitTime = 0 } });
+
+            PathEditResult result = PathModelEditor.ReversePath(source);
+
+            Assert.AreEqual((false, true), (result.Success, ReferenceEquals(source, result.PathModel)));
+        }
+
+        [TestMethod]
+        public void WhenWholePathHasSidingLinkThenReversePreservesOriginalGraph()
+        {
+            PathModel source = CreatePath(Node(PathNodeType.Start, 1, 1), Node(PathNodeType.End, -1));
+
+            PathEditResult result = PathModelEditor.ReversePath(source);
+
+            Assert.AreEqual((false, true), (result.Success, ReferenceEquals(source, result.PathModel)));
+        }
+
+        [TestMethod]
+        [DataRow(1, 0)]
+        [DataRow(2, 2)]
+        public void WhenWholePathHasCycleOrUnreachableNodeThenReverseRefusesIt(int startLink, int viaLink)
+        {
+            PathModel source = CreatePath(Node(PathNodeType.Start, startLink), Node(PathNodeType.Via, viaLink), Node(PathNodeType.End, -1));
+
+            PathEditResult result = PathModelEditor.ReversePath(source);
+
+            Assert.AreEqual((false, true), (result.Success, ReferenceEquals(source, result.PathModel)));
+        }
+
+        [TestMethod]
         public void WhenMetadataIsUpdatedThenIdentityAndNodesArePreserved()
         {
             PathModel path = CreatePath(Node(PathNodeType.Start, -1)) with { Id = "path-1", Name = "Old" };
@@ -255,13 +332,13 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
         [TestMethod]
         public void WhenSetEndAnchorReceivesNullModelThenItThrows()
         {
-            Assert.ThrowsExactly<System.ArgumentNullException>(() => PathModelEditor.SetEndAnchor(null, Anchor(30, 126), false));
+            _ = Assert.ThrowsExactly<System.ArgumentNullException>(() => PathModelEditor.SetEndAnchor(null, Anchor(30, 126), false));
         }
 
         [TestMethod]
         public void WhenSetEndAnchorReceivesNullAnchorThenItThrows()
         {
-            Assert.ThrowsExactly<System.ArgumentNullException>(() => PathModelEditor.SetEndAnchor(new PathModel(), null, false));
+            _ = Assert.ThrowsExactly<System.ArgumentNullException>(() => PathModelEditor.SetEndAnchor(new PathModel(), null, false));
         }
 
         [TestMethod]
@@ -1071,31 +1148,71 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
         }
 
         [TestMethod]
-        public void WhenWaitPointIsSetOnViaNodeThenNodeIsMarkedAndWaitTimeStored()
+        [DataRow(1)]
+        [DataRow(90)]
+        [DataRow(29999)]
+        public void WhenWaitPointIsSetOnViaNodeThenNodeIsMarkedAndWaitTimeStored(int waitTime)
         {
             PathModel path = CreatePath(
                 Node(PathNodeType.Start, 1),
                 Node(PathNodeType.Via, 2),
                 Node(PathNodeType.End, -1));
 
-            PathEditResult result = PathModelEditor.SetWaitPoint(path, 1, 90);
+            PathEditResult result = PathModelEditor.SetWaitPoint(path, 1, waitTime);
 
-            Assert.IsTrue(result.Success);
-            Assert.AreEqual(PathNodeType.Via | PathNodeType.Wait, result.PathModel.PathNodes[1].NodeType);
-            Assert.AreEqual(90, result.PathModel.PathNodes[1].WaitInfo.WaitTime);
+            Assert.AreEqual((true, PathNodeType.Via | PathNodeType.Wait, waitTime),
+                (result.Success, result.PathModel.PathNodes[1].NodeType, result.PathModel.PathNodes[1].WaitInfo.WaitTime));
         }
 
         [TestMethod]
-        public void WhenWaitPointIsSetWithNonPositiveWaitTimeThenEditFails()
+        [DataRow(-1)]
+        [DataRow(0)]
+        [DataRow(30000)]
+        [DataRow(39999)]
+        [DataRow(40000)]
+        [DataRow(40001)]
+        [DataRow(50000)]
+        [DataRow(59999)]
+        [DataRow(60000)]
+        [DataRow(60001)]
+        [DataRow(60002)]
+        [DataRow(60011)]
+        [DataRow(60021)]
+        [DataRow(60022)]
+        [DataRow(65535)]
+        [DataRow(int.MaxValue)]
+        public void WhenWaitTimeIsOutsideBasicDurationRangeThenEditFailsWithoutChangingModel(int waitTime)
         {
             PathModel path = CreatePath(
                 Node(PathNodeType.Start, 1),
-                Node(PathNodeType.Via, -1));
+                Node(PathNodeType.Via | PathNodeType.Wait, 2) with { WaitInfo = new PathNodeWaitInfo { WaitTime = 30 } },
+                Node(PathNodeType.End, -1));
 
-            PathEditResult result = PathModelEditor.SetWaitPoint(path, 1, 0);
+            PathEditResult result = PathModelEditor.SetWaitPoint(path, 1, waitTime);
 
-            Assert.IsFalse(result.Success);
-            Assert.AreSame(path, result.PathModel);
+            Assert.AreEqual((false, true, "Basic wait time must be between 1 and 29999 seconds. Values of 30000 or greater may encode legacy AI operations instead of a duration."),
+                (result.Success, ReferenceEquals(path, result.PathModel), result.Message));
+        }
+
+        [TestMethod]
+        [DataRow(30000)]
+        [DataRow(40000)]
+        [DataRow(60001)]
+        [DataRow(60002)]
+        [DataRow(60011)]
+        [DataRow(60021)]
+        [DataRow(int.MaxValue)]
+        public void WhenImportedOperationWaitIsClearedThenMarkerAndRawPayloadAreRemoved(int waitTime)
+        {
+            PathModel path = CreatePath(
+                Node(PathNodeType.Start, 1),
+                Node(PathNodeType.Via | PathNodeType.Wait, 2) with { WaitInfo = new PathNodeWaitInfo { WaitTime = waitTime } },
+                Node(PathNodeType.End, -1));
+
+            PathEditResult result = PathModelEditor.ClearWaitPoint(path, 1);
+
+            Assert.AreEqual((true, PathNodeType.Via, (PathNodeWaitInfo)null, waitTime),
+                (result.Success, result.PathModel.PathNodes[1].NodeType, result.PathModel.PathNodes[1].WaitInfo, path.PathNodes[1].WaitInfo.WaitTime));
         }
 
         [TestMethod]

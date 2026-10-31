@@ -14,6 +14,9 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
         /// <summary>Available paths for the loaded route.</summary>
         public ImmutableArray<TrainPathListRow> Paths { get; init; }
 
+        /// <summary>Independent saved baselines; absent rows are never-persisted paths and cannot be compared.</summary>
+        public ImmutableArray<TrainPathComparisonRow> Comparisons { get; init; } = ImmutableArray<TrainPathComparisonRow>.Empty;
+
         /// <summary>Id of the currently selected path, or null when none is selected.</summary>
         public string SelectedPathId { get; init; }
 
@@ -69,6 +72,9 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
 
         /// <summary>Whether the current path can be snapped to track.</summary>
         public bool CanSnapToTrack { get; init; }
+
+        /// <summary>Whether the complete event-free main path can be reversed on its existing track.</summary>
+        public bool CanReversePath { get; init; }
 
         /// <summary>Whether a node move operation is currently active.</summary>
         public bool CanCancelMoveNode { get; init; }

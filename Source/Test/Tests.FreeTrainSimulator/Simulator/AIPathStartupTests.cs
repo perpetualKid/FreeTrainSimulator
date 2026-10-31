@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 
 using FreeTrainSimulator.Common;
+using FreeTrainSimulator.Graphics.MapView;
 using FreeTrainSimulator.Models.Content;
 using FreeTrainSimulator.Models.Handler;
 using FreeTrainSimulator.Models.Imported.State;
@@ -34,6 +35,130 @@ namespace Tests.FreeTrainSimulator.Simulator
         private static readonly int[] exptectedArray1346 = new int[] { 1, 3, 4, 6 };
         private static readonly int[] expectedArray346 = new int[] { 3, 4, 6 };
         private static readonly int[] expectedArray356 = new int[] { 3, 5, 6 };
+
+        /// <summary>Bounded Toolbox reversal retains its selected track through guarded save, reload, and public startup.</summary>
+        [TestMethod]
+        [DataRow(4)]
+        [DataRow(5)]
+        public async Task WhenWholePathIsReversedSavedAndReloadedThenSimulatorStartsOnExactOppositeSelectedTrackAsync(int selectedVector)
+        {
+            SyntheticPathFixture fixture = new SyntheticPathFixture(TestContext);
+            Simulation simulator = await fixture.CreateSimulator(false, TestContext.CancellationToken).ConfigureAwait(false);
+            PathModel source = await fixture.GenerateSelectedPath(selectedVector, TestContext.CancellationToken).ConfigureAwait(false);
+            using (PathEditor editor = new PathEditor(new ReversePathEditorContext(TrackWorld.Instance)))
+            {
+                _ = await editor.InitializePathAsync(source, TestContext.CancellationToken).ConfigureAwait(false);
+
+                PathEditorCommandResult result = editor.ReversePathCommand();
+                Assert.IsTrue(result.Success, result.Message);
+                PathModel reversed = editor.TryCaptureCurrentPathModel();
+                PathPersistenceValidationResult saved = await PathEditor.SaveValidatedPath(reversed, fixture.Route, TrackWorld.Instance,
+                    TestContext.CancellationToken).ConfigureAwait(false);
+                Assert.IsTrue(saved.PersistenceAllowed, saved.FailureMessage);
+                PathModel reloaded = await PathModelHandler.GetExtended(saved.PathModel.Id, fixture.Route, TestContext.CancellationToken).ConfigureAwait(false);
+
+                TrainSaveState snapshot = await StartExploreAndSnapshotAsync(fixture, simulator, reloaded).ConfigureAwait(false);
+
+                Assert.AreEqual((source.Id, source.Name, source.End, source.Start, 1, 0, 0),
+                    (reloaded.Id, reloaded.Name, reloaded.Start, reloaded.End, snapshot.RoutePathSaveState.RoutePaths.Count,
+                        snapshot.RoutePathSaveState.AlternativePaths.Count, snapshot.RoutePathSaveState.Waitpoints.Count));
+                Assert.AreEqual($"2:Ahead, 6:Reverse, {selectedVector}:Ahead, 3:Ahead, 1:Ahead, 7:Ahead", RouteSignature(snapshot.RoutePathSaveState.RoutePaths.Single()));
+            }
+        }
+
+        /// <summary>Double reversal retains the original selected route through normal save and public startup.</summary>
+        [TestMethod]
+        [DataRow(4)]
+        [DataRow(5)]
+        public async Task WhenWholePathIsReversedTwiceThenSavedStartupRetainsOriginalSelectedTrackAsync(int selectedVector)
+        {
+            SyntheticPathFixture fixture = new SyntheticPathFixture(TestContext);
+            Simulation simulator = await fixture.CreateSimulator(false, TestContext.CancellationToken).ConfigureAwait(false);
+            PathModel source = await fixture.GenerateSelectedPath(selectedVector, TestContext.CancellationToken).ConfigureAwait(false);
+            using (PathEditor editor = new PathEditor(new ReversePathEditorContext(TrackWorld.Instance)))
+            {
+                _ = await editor.InitializePathAsync(source, TestContext.CancellationToken).ConfigureAwait(false);
+                Assert.IsTrue(editor.ReversePathCommand().Success);
+                Assert.IsTrue(editor.ReversePathCommand().Success);
+                PathModel restored = editor.TryCaptureCurrentPathModel();
+                Assert.AreSequenceEqual(source.PathNodes, restored.PathNodes);
+                PathPersistenceValidationResult saved = await PathEditor.SaveValidatedPath(restored, fixture.Route, TrackWorld.Instance,
+                    TestContext.CancellationToken).ConfigureAwait(false);
+                Assert.IsTrue(saved.PersistenceAllowed, saved.FailureMessage);
+                PathModel reloaded = await PathModelHandler.GetExtended(saved.PathModel.Id, fixture.Route, TestContext.CancellationToken).ConfigureAwait(false);
+
+                TrainSaveState snapshot = await StartExploreAndSnapshotAsync(fixture, simulator, reloaded).ConfigureAwait(false);
+
+                Assert.AreEqual($"1:Reverse, 3:Reverse, {selectedVector}:Reverse, 6:Ahead, 2:Reverse, 8:Reverse", RouteSignature(snapshot.RoutePathSaveState.RoutePaths.Single()));
+            }
+        }
+
+        /// <summary>A legal loop can start publicly while the bounded editor refuses its duplicate physical pins.</summary>
+        [TestMethod]
+        public async Task WhenLoopPathUsesDuplicateJunctionPinsThenReverseRefusesWithoutChangingPublicStartupAsync()
+        {
+            SyntheticPathFixture fixture = new SyntheticPathFixture(TestContext);
+            TrackDatabase database = fixture.Track.TrackDatabase;
+            VectorNode original = (VectorNode)database.TrackNodes[4];
+            VectorSectionNode Section(float x, float z, float endX, float endZ, float heading)
+                => new VectorSectionNode(SyntheticPathFixture.Location(x, z), original.WorldTile, new Vector3(0, heading, 0),
+                    SyntheticPathFixture.Location(endX, endZ)) { NodeIndex = 1 };
+            VectorNode loop = new VectorNode(original.Location, original.WorldTile, original.Location)
+            {
+                NodeIndex = 2,
+                VectorSections = ImmutableArray.Create(Section(0, 0, 100, 0, MathHelper.PiOver2),
+                    Section(100, 0, 100, 100, 0), Section(100, 100, 0, 100, -MathHelper.PiOver2),
+                    Section(0, 100, 0, 0, MathHelper.Pi)),
+            };
+            TrackModel track = fixture.Track with
+            {
+                TrackDatabase = database with
+                {
+                    TrackNodes = ImmutableArray.Create<TrackNodeBase>(null, database.TrackNodes[1], loop,
+                        database.TrackNodes[3], database.TrackNodes[7] with { NodeIndex = 4 }),
+                    TrackNodeConnectors = ImmutableArray.Create(new TrackNodeConnectorIndex(),
+                        database.TrackNodeConnectors[1] with
+                        {
+                            TrackNodeConnectors = database.TrackNodeConnectors[1].TrackNodeConnectors
+                                .SetItem(0, database.TrackNodeConnectors[1].TrackNodeConnectors[0] with { Link = 4 }),
+                        },
+                        database.TrackNodeConnectors[4] with
+                        {
+                            NodeIndex = 2,
+                            TrackNodeConnectors = ImmutableArray.Create(
+                                new TrackNodeConnector { Link = 3, Direction = TrackDirection.Reverse, ConnectorType = ConnectorType.InPin },
+                                new TrackNodeConnector { Link = 3, Direction = TrackDirection.Ahead, ConnectorType = ConnectorType.OutPin }),
+                        },
+                        database.TrackNodeConnectors[3] with
+                        {
+                            TrackNodeConnectors = ImmutableArray.Create(
+                                new TrackNodeConnector { Link = 2, Direction = TrackDirection.Reverse, ConnectorType = ConnectorType.InPin },
+                                new TrackNodeConnector { Link = 1, Direction = TrackDirection.Ahead, ConnectorType = ConnectorType.OutPin },
+                                new TrackNodeConnector { Link = 2, Direction = TrackDirection.Ahead, ConnectorType = ConnectorType.OutPin }),
+                        },
+                        database.TrackNodeConnectors[7] with { NodeIndex = 4 }),
+                },
+            };
+            Simulation simulator = await fixture.CreateSimulator(track, false, TestContext.CancellationToken).ConfigureAwait(false);
+            PathModel path = new PathModel
+            {
+                Id = "LoopReverseStartup",
+                PathNodes = ImmutableArray.Create(SyntheticPathFixture.Node(PathNodeType.Start, 1, -50, 0, 1, -1),
+                    SyntheticPathFixture.Node(PathNodeType.Via | PathNodeType.Junction, 3, 0, 0, 2, -1),
+                    SyntheticPathFixture.Node(PathNodeType.End, 2, 100, 50, -1, -1)),
+            };
+            using PathEditor editor = new PathEditor(new ReversePathEditorContext(TrackWorld.Instance));
+            _ = await editor.InitializePathAsync(path, TestContext.CancellationToken).ConfigureAwait(false);
+            PathModel source = editor.TryCaptureCurrentPathModel();
+
+            PathEditorCommandResult result = editor.ReversePathCommand();
+
+            Assert.AreEqual((true, false, false, true, false, false, false),
+                (editor.ResolveCurrent(source).IsValid, editor.CanReversePath, result.Success,
+                    ReferenceEquals(source, editor.TryCaptureCurrentPathModel()), editor.HasUnsavedChanges, editor.CanUndo, editor.CanRedo));
+            TrainSaveState snapshot = await StartExploreAndSnapshotAsync(fixture, simulator, source).ConfigureAwait(false);
+            Assert.AreEqual("1:Reverse, 3:Reverse, 2:Reverse", RouteSignature(snapshot.RoutePathSaveState.RoutePaths.Single()));
+        }
 
         /// <summary>A selected geometry-backed route survives generation, persistence, and real rolling-stock startup.</summary>
         [TestMethod]
@@ -480,5 +605,24 @@ namespace Tests.FreeTrainSimulator.Simulator
 
         private static string RouteSignature(TrackCircuitPartialPathRouteSaveState route)
             => string.Join(", ", route.RouteElements.Select(element => $"{element.TrackCircuitSectionIndex}:{element.Direction}"));
+
+        private sealed class ReversePathEditorContext : IPathEditorContext, IPathEditorContextServicesAccessor
+        {
+            private readonly IPathEditorServices services;
+
+            public IMapRenderer Renderer => null;
+            public IMapViewport Viewport => null;
+            public ToolboxContentMode ContentMode { get; set; }
+            public PathEditorBase PathEditor { get; set; }
+
+            IPathEditorServices IPathEditorContextServicesAccessor.Services => services;
+
+            public ReversePathEditorContext(TrackWorld world)
+            {
+                services = new PathEditorServices(world);
+            }
+
+            public void RequestRedraw() { }
+        }
     }
 }

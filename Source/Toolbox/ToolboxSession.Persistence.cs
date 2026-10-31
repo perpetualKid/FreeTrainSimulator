@@ -146,7 +146,15 @@ namespace FreeTrainSimulator.Toolbox
                 await ReportTrainPathStatusWarningAsync(editor, saveRequest.SourcePathId, operation?.SourceModel ?? submittedSourceModel, message).ConfigureAwait(false);
                 return;
             }
-            await RefreshPathListAfterSaveAsync(route, saveRouteContentVersion).ConfigureAwait(false);
+            finally
+            {
+                // Persistence owns the saved baseline even when the editor that initiated it is no longer current.
+                if (PersistenceSucceeded(operation))
+                {
+                    await RefreshSavedPathComparisonAfterSaveAsync(route, saveRouteContentVersion, operation.PersistenceTask.Result.PathModel.Id).ConfigureAwait(false);
+                    await RefreshPathListAfterSaveAsync(route, saveRouteContentVersion).ConfigureAwait(false);
+                }
+            }
         }
 
         private static bool PersistenceSucceeded(PathSaveOperation operation)
@@ -164,7 +172,16 @@ namespace FreeTrainSimulator.Toolbox
         {
             try
             {
-                long refreshVersion = Interlocked.Increment(ref pathListRefreshVersion);
+                long? refreshVersion = await game.InvokeOnGameThreadAsync(() =>
+                {
+                    if (IsStopping || saveRouteContentVersion != routeContentVersion || !ReferenceEquals(selectedRoute, route))
+                        return Task.FromResult<long?>(null);
+
+                    return Task.FromResult<long?>(Interlocked.Increment(ref pathListRefreshVersion));
+                }).ConfigureAwait(false);
+                if (!refreshVersion.HasValue)
+                    return;
+
                 ImmutableArray<PathModelHeader> paths = await route.GetRoutePaths(CancellationToken.None).WaitAsync(lifetime.Token).ConfigureAwait(false);
                 await game.InvokeOnGameThreadAsync(() =>
                 {
@@ -174,6 +191,7 @@ namespace FreeTrainSimulator.Toolbox
                         menuPath = PathEntry(pathEditor?.TryCaptureCurrentPathModel());
                         PublishMenu();
                         game.HostedServices?.TrainPathToolWindow?.UpdatePaths(paths);
+                        PublishSavedPathComparisons();
                     }
                     return Task.CompletedTask;
                 }).ConfigureAwait(false);

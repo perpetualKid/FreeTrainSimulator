@@ -27,6 +27,214 @@ namespace Tests.FreeTrainSimulator.Toolbox.PathEditing
     public class PathEditorTests
     {
         [TestMethod]
+        public async Task WhenLoadedWholePathIsReversedThenOneUndoStepPreservesModeAndRedoRestoresReversal()
+        {
+            TrackWorld world = CreatePlacementTrackWorld(out _);
+            PathModel source = new PathModel
+            {
+                Id = "reverse-loaded",
+                Start = "Origin",
+                End = "Destination",
+                PathNodes = ImmutableArray.Create(CreateNodeAt(50, PathNodeType.Via, 1),
+                    CreateNodeAt(90, PathNodeType.End, -1), CreateNodeAt(10, PathNodeType.Start, 0)),
+            };
+            using (PathEditor editor = new PathEditor(new TestPathEditorContext(world)))
+            {
+                _ = await editor.InitializePathAsync(source, CancellationToken.None).ConfigureAwait(false);
+                int updates = 0;
+                editor.OnPathUpdated += (_, _) => updates++;
+                bool enabled = editor.CanReversePath;
+
+                PathEditorCommandResult result = editor.ReversePathCommand();
+                PathModel reversed = editor.TryCaptureCurrentPathModel();
+                bool undo = editor.Undo();
+                bool sourceRestored = source.PathNodes.SequenceEqual(editor.TryCaptureCurrentPathModel().PathNodes);
+                bool oneStep = !editor.CanUndo;
+                bool redo = editor.Redo();
+
+                Assert.AreEqual((true, true, true, true, true, true, true, false, true, 3, 3, "Destination"),
+                    (enabled, result.Success, undo, sourceRestored, oneStep, redo,
+                        reversed.PathNodes.SequenceEqual(editor.TryCaptureCurrentPathModel().PathNodes), editor.EditMode,
+                        editor.HasUnsavedChanges, updates, reversed.PathNodes.Length, reversed.Start));
+            }
+        }
+
+        [TestMethod]
+        public async Task WhenWholePathPlacementIsActiveThenReverseRefusesWithoutChangingModelOrHistory()
+        {
+            using (PathEditor editor = new PathEditor(new TestPathEditorContext(CreatePlacementTrackWorld(out _))))
+            {
+                _ = await editor.InitializePathAsync(CreateEditablePath(), CancellationToken.None).ConfigureAwait(false);
+                _ = editor.BeginStartAnchorPlacementCommand();
+                PathModel source = editor.TryCaptureCurrentPathModel();
+                bool dirty = editor.HasUnsavedChanges;
+
+                PathEditorCommandResult result = editor.ReversePathCommand();
+
+                Assert.AreEqual((false, false, true, false, dirty, true),
+                    (editor.CanReversePath, result.Success, ReferenceEquals(source, editor.TryCaptureCurrentPathModel()),
+                        editor.CanUndo, editor.HasUnsavedChanges, editor.IsPlacementActive));
+            }
+        }
+
+        [TestMethod]
+        public async Task WhenWholePathSaveIsActiveThenCachedReverseAvailabilityCannotBypassSaveGuard()
+        {
+            using (PathEditor editor = new PathEditor(new TestPathEditorContext(CreatePlacementTrackWorld(out _))))
+            {
+                _ = await editor.InitializePathAsync(CreateEditablePath(), CancellationToken.None).ConfigureAwait(false);
+                bool enabled = editor.CanReversePath;
+                PathModel source = editor.TryCaptureCurrentPathModel();
+                PathSaveOperation operation = CreatePendingSaveOperation(editor, source, Task.FromResult<PathPersistenceValidationResult>(null));
+
+                PathEditorCommandResult result = editor.ReversePathCommand();
+                bool disabled = !editor.CanReversePath;
+                _ = editor.CancelSave(operation);
+
+                Assert.AreEqual((true, false, true, true, false, false, true),
+                    (enabled, result.Success, disabled, ReferenceEquals(source, editor.TryCaptureCurrentPathModel()),
+                        editor.CanUndo, editor.HasUnsavedChanges, editor.CanReversePath));
+            }
+        }
+
+        [TestMethod]
+        public async Task WhenWholePathPassingRejoinIsPendingThenReverseRefusesTheExclusiveInteraction()
+        {
+            using (PathEditor editor = new PathEditor(new TestPathEditorContext(CreatePlacementTrackWorld(out _))))
+            {
+                _ = await editor.InitializePathAsync(CreateEditablePath(), CancellationToken.None).ConfigureAwait(false);
+                bool pending = editor.BeginPassingBranchCommand(0).Success;
+                PathModel source = editor.TryCaptureCurrentPathModel();
+
+                PathEditorCommandResult result = editor.ReversePathCommand();
+
+                Assert.AreEqual((true, false, false, true, false),
+                    (pending, result.Success, editor.CanReversePath, ReferenceEquals(source, editor.TryCaptureCurrentPathModel()), editor.CanUndo));
+            }
+        }
+
+        [TestMethod]
+        public async Task WhenWholePathIsInRepairModeThenReverseDoesNotRepairOrCreateUndoHistory()
+        {
+            using (PathEditor editor = new PathEditor(new TestPathEditorContext(CreatePlacementTrackWorld(out _))))
+            {
+                _ = await editor.InitializePathAsync(new PathModel { Id = "reverse-repair" }, CancellationToken.None).ConfigureAwait(false);
+                PathModel source = editor.TryCaptureCurrentPathModel();
+
+                PathEditorCommandResult result = editor.ReversePathCommand();
+
+                Assert.AreEqual((true, false, false, true, false),
+                    (editor.IsRepairMode, editor.CanReversePath, result.Success, ReferenceEquals(source, editor.TryCaptureCurrentPathModel()), editor.CanUndo));
+            }
+        }
+
+        [TestMethod]
+        public async Task WhenWholePathHasAmbiguousSpansThenReverseRefusesRatherThanSelectingAnotherTrack()
+        {
+            TrackWorld world = TrackWorldTestFixture.CreateParallelTrackWorld();
+            PathModel path = new PathModel
+            {
+                Id = "reverse-ambiguous",
+                PathNodes = ImmutableArray.Create(CreateAnchoredNode(world, 3, PathNodeType.Start | PathNodeType.Junction, 1, -1),
+                    CreateAnchoredNode(world, 6, PathNodeType.End | PathNodeType.Junction, -1, -1)),
+            };
+            using (PathEditor editor = new PathEditor(new TestPathEditorContext(world)))
+            {
+                _ = await editor.InitializePathAsync(path, CancellationToken.None).ConfigureAwait(false);
+                PathModel source = editor.TryCaptureCurrentPathModel();
+
+                PathEditorCommandResult result = editor.ReversePathCommand();
+
+                Assert.AreEqual((true, false, false, true, false),
+                    (editor.ResolveCurrent(source).MainRoute.Spans.Any(span => span.Status == PathRouteSpanStatus.Ambiguous),
+                        editor.CanReversePath, result.Success, ReferenceEquals(source, editor.TryCaptureCurrentPathModel()), editor.CanUndo));
+            }
+        }
+
+        [TestMethod]
+        public async Task WhenWholePathSpanRepeatsJunctionThenReverseRefusesWithoutChangingModelOrHistory()
+        {
+            TrackWorld world = CreateReverseLoopTrackWorld();
+            PathModel path = new PathModel
+            {
+                Id = "reverse-repeated-junction",
+                PathNodes = ImmutableArray.Create(
+                    new PathNode(new WorldLocation(new Tile(0, 0), new Vector3(-50, 0, 0)))
+                    { NodeType = PathNodeType.Start, NodeIndex = 2, NextMainNode = 1, NextSidingNode = -1 },
+                    new PathNode(new WorldLocation(new Tile(0, 0), new Vector3(0, 0, -50)))
+                    { NodeType = PathNodeType.End, NodeIndex = 4, NextMainNode = -1, NextSidingNode = -1 }),
+            };
+            using (PathEditor editor = new PathEditor(new TestPathEditorContext(world)))
+            {
+                _ = await editor.InitializePathAsync(path, CancellationToken.None).ConfigureAwait(false);
+                PathModel source = editor.TryCaptureCurrentPathModel();
+                PathRouteResolution resolution = editor.ResolveCurrent(source);
+
+                PathEditorCommandResult result = editor.ReversePathCommand();
+
+                Assert.AreEqual((true, "2,3,1,3,4", false, false, true, false, false, false),
+                    (resolution.IsValid, string.Join(",", resolution.MainRoute.Spans[0].Candidates.Single().RouteNodeIndexes),
+                        editor.CanReversePath, result.Success, ReferenceEquals(source, editor.TryCaptureCurrentPathModel()),
+                        editor.HasUnsavedChanges, editor.CanUndo, editor.CanRedo));
+            }
+        }
+
+        [TestMethod]
+        public async Task WhenWholePathUsesDuplicateLoopPinsWithoutRepeatedSpanNodesThenReverseRefuses()
+        {
+            TrackWorld world = CreateReverseLoopTrackWorld();
+            PathModel path = new PathModel
+            {
+                Id = "reverse-duplicate-loop-pins",
+                PathNodes = ImmutableArray.Create(
+                    new PathNode(new WorldLocation(new Tile(0, 0), new Vector3(100, 0, 25)))
+                    { NodeType = PathNodeType.Start, NodeIndex = 1, NextMainNode = 1, NextSidingNode = -1 },
+                    new PathNode(new WorldLocation(new Tile(0, 0), new Vector3(50, 0, 100)))
+                    { NodeType = PathNodeType.Via, NodeIndex = 1, NextMainNode = 2, NextSidingNode = -1 },
+                    new PathNode(new WorldLocation(new Tile(0, 0), new Vector3(-50, 0, 0)))
+                    { NodeType = PathNodeType.End, NodeIndex = 2, NextMainNode = -1, NextSidingNode = -1 }),
+            };
+            using (PathEditor editor = new PathEditor(new TestPathEditorContext(world)))
+            {
+                _ = await editor.InitializePathAsync(path, CancellationToken.None).ConfigureAwait(false);
+                PathModel source = editor.TryCaptureCurrentPathModel();
+                PathRouteResolution resolution = editor.ResolveCurrent(source);
+
+                PathEditorCommandResult result = editor.ReversePathCommand();
+
+                Assert.AreEqual((true, "1,3,2", false, false, true, false, false, false),
+                    (resolution.IsValid, string.Join(",", resolution.MainRoute.Spans[1].Candidates.Single().RouteNodeIndexes),
+                        editor.CanReversePath, result.Success, ReferenceEquals(source, editor.TryCaptureCurrentPathModel()),
+                        editor.HasUnsavedChanges, editor.CanUndo, editor.CanRedo));
+            }
+        }
+
+        [TestMethod]
+        [DataRow(50)]
+        [DataRow(90)]
+        public async Task WhenWholePathHasZeroLengthOrDirectionChangingVectorSpanThenReverseRefuses(int endX)
+        {
+            TrackWorld world = CreatePlacementTrackWorld(out _);
+            PathModel path = new PathModel
+            {
+                Id = "reverse-degenerate-vector",
+                PathNodes = ImmutableArray.Create(CreateNodeAt(endX, PathNodeType.Start, 1),
+                    CreateNodeAt(50, PathNodeType.Via, 2), CreateNodeAt(endX, PathNodeType.End, -1)),
+            };
+            using (PathEditor editor = new PathEditor(new TestPathEditorContext(world)))
+            {
+                _ = await editor.InitializePathAsync(path, CancellationToken.None).ConfigureAwait(false);
+                PathModel source = editor.TryCaptureCurrentPathModel();
+
+                PathEditorCommandResult result = editor.ReversePathCommand();
+
+                Assert.AreEqual((false, false, true, false, false, false),
+                    (editor.CanReversePath, result.Success, ReferenceEquals(source, editor.TryCaptureCurrentPathModel()),
+                        editor.HasUnsavedChanges, editor.CanUndo, editor.CanRedo));
+            }
+        }
+
+        [TestMethod]
         public void WhenPathHasFatalResolverDiagnosticThenCanInitializePathReturnsFalse()
         {
             PathModel pathModel = new PathModel()
@@ -96,6 +304,47 @@ namespace Tests.FreeTrainSimulator.Toolbox.PathEditing
                 Assert.AreEqual((false, false, source, false, dirty),
                     (result.Success, editor.CanSetReversalPoint(2), editor.TryCaptureCurrentPathModel(), editor.CanUndo, editor.HasUnsavedChanges));
             }
+        }
+
+        [TestMethod]
+        [DataRow(30000)]
+        [DataRow(40000)]
+        [DataRow(60001)]
+        [DataRow(60002)]
+        [DataRow(60011)]
+        [DataRow(60021)]
+        [DataRow(int.MaxValue)]
+        public async Task WhenUnsafeBasicWaitCommandIsRejectedThenModelAndUndoRedoHistoryAreUnchanged(int waitTime)
+        {
+            using PathEditor editor = new PathEditor(new TestPathEditorContext(TrackWorldTestFixture.CreateSingleVectorNodeTrackWorld()));
+            _ = await editor.InitializePathAsync(CreateMainEventPath(PathNodeType.None, PathNodeType.None), CancellationToken.None).ConfigureAwait(false);
+            _ = editor.SetWaitPointCommand(1, 30);
+            _ = editor.Undo();
+            PathModel source = editor.TryCaptureCurrentPathModel();
+            (bool CanUndo, bool CanRedo, bool HasUnsavedChanges) history = (editor.CanUndo, editor.CanRedo, editor.HasUnsavedChanges);
+
+            PathEditorCommandResult result = editor.SetWaitPointCommand(1, waitTime);
+
+            Assert.AreEqual((false, true, history, (int?)null),
+                (result.Success, ReferenceEquals(source, editor.TryCaptureCurrentPathModel()),
+                    (editor.CanUndo, editor.CanRedo, editor.HasUnsavedChanges), editor.TryCaptureCurrentPathModel().PathNodes[1].WaitInfo?.WaitTime));
+        }
+
+        [TestMethod]
+        [DataRow(1)]
+        [DataRow(29999)]
+        public async Task WhenBasicWaitBoundaryIsAuthoredThenItIsStoredAndUndoable(int waitTime)
+        {
+            using PathEditor editor = new PathEditor(new TestPathEditorContext(TrackWorldTestFixture.CreateSingleVectorNodeTrackWorld()));
+            PathModel source = CreateMainEventPath(PathNodeType.None, PathNodeType.None);
+            _ = await editor.InitializePathAsync(source, CancellationToken.None).ConfigureAwait(false);
+
+            PathEditorCommandResult result = editor.SetWaitPointCommand(1, waitTime);
+            int? storedWaitTime = editor.TryCaptureCurrentPathModel().PathNodes[1].WaitInfo?.WaitTime;
+            bool undone = editor.Undo();
+
+            Assert.AreEqual((true, (int?)waitTime, true, (int?)null, false, true),
+                (result.Success, storedWaitTime, undone, editor.TryCaptureCurrentPathModel().PathNodes[1].WaitInfo?.WaitTime, editor.CanUndo, editor.CanRedo));
         }
 
         [TestMethod]
@@ -1256,7 +1505,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.PathEditing
                 PathModel source = editor.TryCaptureCurrentPathModel();
                 editor.Stop();
 
-            PathEditorCommandResult result = editor.ContinuePathCommand();
+                PathEditorCommandResult result = editor.ContinuePathCommand();
 
                 Assert.AreEqual((false, true, source, false, false),
                     (result.Success, editor.EditMode, editor.TryCaptureCurrentPathModel(), editor.CanContinuePath, editor.CanMoveNode(0)));
@@ -3151,6 +3400,49 @@ namespace Tests.FreeTrainSimulator.Toolbox.PathEditing
             return CreatePlacementTrackWorld(new Tile(0, 0), out segment);
         }
 
+        private static TrackWorld CreateReverseLoopTrackWorld()
+        {
+            Tile tile = new Tile(0, 0);
+            WorldLocation At(float x, float z) => new WorldLocation(tile, new Vector3(x, 0, z));
+            VectorSectionNode Section(float x, float z, float endX, float endZ, float heading)
+                => new VectorSectionNode(At(x, z), tile, new Vector3(0, heading, 0), At(endX, endZ)) { NodeIndex = 1 };
+            TrackNodeConnectorIndex Pins(int index, params (int Link, ConnectorType Type, TrackDirection Direction)[] pins)
+                => new TrackNodeConnectorIndex
+                {
+                    NodeIndex = index,
+                    TrackNodeConnectors = pins.Select(pin => new TrackNodeConnector
+                    { Link = pin.Link, ConnectorType = pin.Type, Direction = pin.Direction }).ToImmutableArray(),
+                };
+            TrackDatabase database = new TrackDatabase
+            {
+                TrackNodes = ImmutableArray.Create<TrackNodeBase>(null,
+                    new VectorNode(At(0, 0), tile, At(0, 0))
+                    {
+                        NodeIndex = 1,
+                        VectorSections = ImmutableArray.Create(Section(0, 0, 100, 0, MathHelper.PiOver2),
+                            Section(100, 0, 100, 100, 0), Section(100, 100, 0, 100, -MathHelper.PiOver2),
+                            Section(0, 100, 0, 0, MathHelper.Pi)),
+                    },
+                    new VectorNode(At(-100, 0), tile, At(0, 0))
+                    { NodeIndex = 2, VectorSections = ImmutableArray.Create(Section(-100, 0, 0, 0, MathHelper.PiOver2)) },
+                    new JunctionNode(At(0, 0), tile, Vector3.Zero) { NodeIndex = 3 },
+                    new VectorNode(At(0, -100), tile, At(0, 0))
+                    { NodeIndex = 4, VectorSections = ImmutableArray.Create(Section(0, -100, 0, 0, 0)) }),
+                TrackNodeConnectors = ImmutableArray.Create(new TrackNodeConnectorIndex(),
+                    Pins(1, (3, ConnectorType.InPin, TrackDirection.Reverse), (3, ConnectorType.InPin, TrackDirection.Ahead)),
+                    Pins(2, (3, ConnectorType.InPin, TrackDirection.Reverse)),
+                    Pins(3, (2, ConnectorType.InPin, TrackDirection.Reverse), (1, ConnectorType.OutPin, TrackDirection.Reverse),
+                        (1, ConnectorType.OutPin, TrackDirection.Ahead), (4, ConnectorType.InPin, TrackDirection.Reverse)),
+                    Pins(4, (3, ConnectorType.InPin, TrackDirection.Reverse))),
+            };
+            TrackWorldTestFixture.InitializeTrackDatabase(database);
+            TrackSectionModel sections = new TrackSectionModel
+            {
+                TrackSections = ImmutableDictionary<int, TrackSection>.Empty.Add(1, new TrackSection { SectionIndex = 1, Gauge = 1.435f, Length = 100 }),
+            };
+            return TrackWorld.Initialize(null, new TrackModel { TrackDatabase = database }, sections);
+        }
+
         [TestMethod]
         public async Task WhenEndpointsAndTailAreEditedThenPhysicalLengthTracksCommitUndoAndRedo()
         {
@@ -3233,7 +3525,8 @@ namespace Tests.FreeTrainSimulator.Toolbox.PathEditing
             WorldLocation junctionLocation = new WorldLocation(tile, Vector3.Zero);
             WorldLocation approachLocation = new WorldLocation(tile, new Vector3(-100, 0, 0));
             VectorSectionNode approachSection = new VectorSectionNode(approachLocation, tile,
-                new Vector3(0, MathHelper.PiOver2, 0), junctionLocation) { NodeIndex = 1 };
+                new Vector3(0, MathHelper.PiOver2, 0), junctionLocation)
+            { NodeIndex = 1 };
             TrackDatabase database = new TrackDatabase
             {
                 TrackNodes = ImmutableArray.Create<TrackNodeBase>(null, placementWorld.TrackDatabase.TrackNodes[1],

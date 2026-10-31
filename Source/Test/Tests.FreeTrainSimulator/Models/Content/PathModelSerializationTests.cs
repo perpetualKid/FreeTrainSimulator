@@ -16,6 +16,7 @@ namespace Tests.FreeTrainSimulator.Models.Content
     // round-trip directly to guard the path data fidelity that save/load depends on, without
     // touching disk or the graphics editor.
     [TestClass]
+    [OSCondition(OperatingSystems.Windows)]
     public class PathModelSerializationTests
     {
         [TestMethod]
@@ -25,7 +26,7 @@ namespace Tests.FreeTrainSimulator.Models.Content
 
             PathModel restored = RoundTrip(original);
 
-            Assert.AreEqual(original.PathNodes.Length, restored.PathNodes.Length);
+            Assert.HasCount(original.PathNodes.Length, restored.PathNodes);
         }
 
         [TestMethod]
@@ -123,6 +124,29 @@ namespace Tests.FreeTrainSimulator.Models.Content
             PathModel restored = RoundTrip(original);
 
             Assert.IsNull(restored.PathNodes[0].WaitInfo);
+        }
+
+        [TestMethod]
+        [DataRow(29999)]
+        [DataRow(30000)]
+        [DataRow(40000)]
+        [DataRow(60001)]
+        [DataRow(60002)]
+        [DataRow(60011)]
+        [DataRow(60021)]
+        [DataRow(int.MaxValue)]
+        public void WhenRawWaitPayloadRoundTripsThenBasicAuthoringLimitDoesNotAlterIt(int waitTime)
+        {
+            PathModel original = CreatePathModel();
+            original = original with
+            {
+                PathNodes = original.PathNodes.SetItem(1, original.PathNodes[1] with
+                { WaitInfo = new PathNodeWaitInfo { WaitTime = waitTime } }),
+            };
+
+            PathModel restored = RoundTrip(original);
+
+            Assert.AreEqual(waitTime, restored.PathNodes[1].WaitInfo.WaitTime);
         }
 
         [TestMethod]

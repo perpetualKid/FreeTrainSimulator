@@ -139,4 +139,14 @@ namespace FreeTrainSimulator.Runtime.Track
         Unresolved,
     }
 
+    /// <summary>Role of an authored node in the single supported passing-branch topology.</summary>
+    public enum PassingBranchNodeRole
+    {
+        None,
+        MainRoute,
+        BranchStart,
+        BranchInterior,
+        BranchRejoin,
+    }
+
 }

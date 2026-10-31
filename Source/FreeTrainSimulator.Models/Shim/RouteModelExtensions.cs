@@ -43,6 +43,15 @@ namespace FreeTrainSimulator.Models.Shim
             return await PathModelHandler.GetExtended(pathId, routeModel, cancellationToken).ConfigureAwait(false);
         }
 
+        /// <summary>Reads a fresh native saved path by route-owned identity, without borrowing cached or edited models.</summary>
+        public static Task<PathModel> PathModelUncached(this RouteModelHeader routeModel, string pathId, CancellationToken cancellationToken)
+        {
+            ArgumentNullException.ThrowIfNull(routeModel);
+            ArgumentException.ThrowIfNullOrWhiteSpace(pathId);
+
+            return PathModelHandler.FromFile<PathModel, RouteModelHeader>(pathId, routeModel, cancellationToken);
+        }
+
         public static async ValueTask<TimetableModel> TimetableModel(this RouteModelHeader routeModel, string timetableId, CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(routeModel, nameof(routeModel));

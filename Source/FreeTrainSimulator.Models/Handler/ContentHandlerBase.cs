@@ -45,7 +45,7 @@ namespace FreeTrainSimulator.Models.Handler
                     {
                         model = await MemoryPackSerializer.DeserializeAsync<TModel>(saveFile, null, cancellationToken).ConfigureAwait(false);
                     }
-                    model.Initialize(parent);
+                    model?.Initialize(parent);
                 }
                 catch (MemoryPackSerializationException) { }
             }
@@ -65,7 +65,7 @@ namespace FreeTrainSimulator.Models.Handler
                 {
                     model = await MemoryPackSerializer.DeserializeAsync<TExtendedModel>(saveFile, null, cancellationToken).ConfigureAwait(false);
                 }
-                model.Initialize(parent);
+                model?.Initialize(parent);
             }
             return model;
         }

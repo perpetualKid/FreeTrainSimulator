@@ -42,6 +42,8 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
         private readonly Action unloadPathAction;
         private readonly Action activateMapInputAction;
         private readonly Func<Action<ImmutableArray<PathModelHeader>>, Task<bool>> validateAllPaths;
+        private readonly Func<string, bool, Task> setComparisonAsync;
+        private ImmutableArray<TrainPathComparisonRow> cachedComparisons = ImmutableArray<TrainPathComparisonRow>.Empty;
         private volatile TrainPathSnapshot snapshot = TrainPathSnapshot.Empty;
         private volatile bool active;
 
@@ -69,6 +71,15 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
         internal TrainPathToolWindow(Func<PathEditor> pathEditorAccessor, Func<ITrainPathToolingContext> toolingContextAccessor,
             Action<Action> gameThreadInvoker, Action createPathAction, Action savePathAction, Action<PathModelHeader> loadPathAction,
             Action unloadPathAction, Action activateMapInputAction, Func<Action<ImmutableArray<PathModelHeader>>, Task<bool>> validateAllPaths)
+            : this(pathEditorAccessor, toolingContextAccessor, gameThreadInvoker, createPathAction, savePathAction, loadPathAction,
+                  unloadPathAction, activateMapInputAction, validateAllPaths, null)
+        {
+        }
+
+        internal TrainPathToolWindow(Func<PathEditor> pathEditorAccessor, Func<ITrainPathToolingContext> toolingContextAccessor,
+            Action<Action> gameThreadInvoker, Action createPathAction, Action savePathAction, Action<PathModelHeader> loadPathAction,
+            Action unloadPathAction, Action activateMapInputAction, Func<Action<ImmutableArray<PathModelHeader>>, Task<bool>> validateAllPaths,
+            Func<string, bool, Task> setComparisonAsync)
         {
             this.pathEditorAccessor = pathEditorAccessor ?? throw new ArgumentNullException(nameof(pathEditorAccessor));
             this.toolingContextAccessor = toolingContextAccessor ?? throw new ArgumentNullException(nameof(toolingContextAccessor));
@@ -79,6 +90,7 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
             this.unloadPathAction = unloadPathAction ?? throw new ArgumentNullException(nameof(unloadPathAction));
             this.activateMapInputAction = activateMapInputAction ?? throw new ArgumentNullException(nameof(activateMapInputAction));
             this.validateAllPaths = validateAllPaths ?? ValidateAllPathsCore;
+            this.setComparisonAsync = setComparisonAsync;
         }
 
         public ToolboxWindowType WindowType => ToolboxWindowType.TrainPathWindow;
@@ -124,6 +136,7 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
                     && !snapshot.CanUndo
                     && !snapshot.CanRedo
                     && !snapshot.CanSnapToTrack
+                    && !snapshot.CanReversePath
                     && !snapshot.CanCancelMoveNode
                     && !snapshot.CanCommitMoveNode
                     && !snapshot.CanSetSelectedWaitPoint
@@ -147,6 +160,7 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
                 snapshot = TrainPathSnapshot.Empty with
                 {
                     Paths = BuildPaths(null),
+                    Comparisons = cachedComparisons,
                     CommandResultMessage = commandResultMessage,
                     CommandResultIsWarning = commandResultIsWarning,
                     CommandResultVersion = commandResultVersion,
@@ -168,6 +182,7 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
             bool canUndo = pathEditor.CanUndo;
             bool canRedo = pathEditor.CanRedo;
             bool canSnapToTrack = pathEditor.CanSnapToTrack;
+            bool canReversePath = pathEditor.CanReversePath;
             bool canCancelMoveNode = pathEditor.IsMovingNode;
             bool canCommitMoveNode = pathEditor.CanCommitMoveNode;
             PathEditorPlacementMode placementMode = pathEditor.PlacementMode;
@@ -208,6 +223,7 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
                 && canUndo == snapshot.CanUndo
                 && canRedo == snapshot.CanRedo
                 && canSnapToTrack == snapshot.CanSnapToTrack
+                && canReversePath == snapshot.CanReversePath
                 && canCancelMoveNode == snapshot.CanCancelMoveNode
                 && canCommitMoveNode == snapshot.CanCommitMoveNode
                 && placementMode == snapshot.PlacementMode
@@ -256,6 +272,7 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
             snapshot = new TrainPathSnapshot
             {
                 Paths = paths,
+                Comparisons = cachedComparisons,
                 SelectedPathId = selectedPathId,
                 Nodes = isRepairMode ? BuildAuthoredNodes(currentPathModel, resolution) : BuildNodes(authoredPath),
                 SelectedNodeIndex = selectedNodeIndex,
@@ -276,6 +293,7 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
                 CanUndo = canUndo,
                 CanRedo = canRedo,
                 CanSnapToTrack = canSnapToTrack,
+                CanReversePath = canReversePath,
                 CanCancelMoveNode = canCancelMoveNode,
                 CanCommitMoveNode = canCommitMoveNode,
                 PlacementMode = placementMode,
@@ -340,6 +358,35 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
                 loadPathAction(path);
                 MarkDirty();
             });
+        }
+
+        /// <summary>Requests an independent saved overlay. The route/content witness prevents queued cross-route commands.</summary>
+        internal void ComparePath(TrainPathComparisonRow row, bool selected)
+        {
+            ArgumentNullException.ThrowIfNull(row);
+            gameThreadInvoker(() =>
+            {
+                if (setComparisonAsync == null || !cachedComparisons.Any(current => current.RouteContentVersion == row.RouteContentVersion
+                    && string.Equals(current.Id, row.Id, StringComparison.OrdinalIgnoreCase)))
+                    return;
+                GameWindow.ObserveGameThreadOperation(setComparisonAsync(row.Id, selected));
+            });
+        }
+
+        /// <summary>Updates route-owned comparison state without consulting dirty or transient editor paths.</summary>
+        internal void UpdateComparisons(ImmutableArray<TrainPathComparisonRow> rows)
+        {
+            cachedComparisons = setComparisonAsync == null || rows.IsDefault ? ImmutableArray<TrainPathComparisonRow>.Empty : rows;
+            MarkDirty();
+        }
+
+        /// <summary>Publishes actual comparison completion or refusal independently of editor mutations.</summary>
+        internal void ReportComparisonStatus(string message, bool warning)
+        {
+            commandResultMessage = message;
+            commandResultIsWarning = warning;
+            commandResultVersion++;
+            MarkDirty();
         }
 
         internal void StartNewPathAt(PathNode anchor, bool isJunction)
@@ -439,6 +486,9 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
         internal void SetReversalPoint(int nodeIndex) => ExecuteEditorCommand(pathEditor => pathEditor.SetReversalPointCommand(nodeIndex));
 
         internal void ClearReversalPoint(int nodeIndex) => ExecuteEditorCommand(pathEditor => pathEditor.ClearReversalPointCommand(nodeIndex));
+
+        /// <summary>Executes the bounded whole-path reverse command on the game thread and publishes its actual result.</summary>
+        internal void ReversePath() => ExecuteEditorCommand(pathEditor => pathEditor.ReversePathCommand());
 
         internal void BeginViaPointPlacement(int afterNodeIndex)
             => ExecuteEditorCommand(pathEditor => pathEditor.BeginViaPointPlacementCommand(afterNodeIndex), activateMapInputAction);
@@ -716,7 +766,23 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
         {
             ArgumentNullException.ThrowIfNull(result);
 
-            commandResultMessage = result.Message;
+            commandResultMessage = result.Message switch
+            {
+                "Basic wait time must be between 1 and 29999 seconds. Values of 30000 or greater may encode legacy AI operations instead of a duration." =>
+                    CatalogManager.Catalog.GetString("Basic wait time must be between 1 and 29999 seconds. Values of 30000 or greater may encode legacy AI operations instead of a duration."),
+                "Reverse Path requires a complete, reachable main chain with exactly one Start and End and at least two nodes." =>
+                    CatalogManager.Catalog.GetString("Reverse Path requires a complete, reachable main chain with exactly one Start and End and at least two nodes."),
+                "Reverse Path supports only event-free paths without siding links, invalid nodes, or unknown flags." =>
+                    CatalogManager.Catalog.GetString("Reverse Path supports only event-free paths without siding links, invalid nodes, or unknown flags."),
+                "Path reversed." => CatalogManager.Catalog.GetString("Path reversed."),
+                "Reverse Path is unavailable during repair, placement, route selection, or saving." =>
+                    CatalogManager.Catalog.GetString("Reverse Path is unavailable during repair, placement, route selection, or saving."),
+                "Reverse Path requires an unambiguous route with exactly reversed track edges and matching anchors." =>
+                    CatalogManager.Catalog.GetString("Reverse Path requires an unambiguous route with exactly reversed track edges and matching anchors."),
+                "Reverse Path requires both directions to pass normal save validation." =>
+                    CatalogManager.Catalog.GetString("Reverse Path requires both directions to pass normal save validation."),
+                _ => result.Message,
+            };
             commandResultIsWarning = !result.Success;
             commandResultVersion++;
         }
@@ -1038,6 +1104,7 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
         {
             ClearBlockedSaveFeedback();
             cachedPaths = ImmutableArray<PathModelHeader>.Empty;
+            cachedComparisons = ImmutableArray<TrainPathComparisonRow>.Empty;
             transientPaths.Clear();
             lastPathId = null;
             lastNodeCount = -1;

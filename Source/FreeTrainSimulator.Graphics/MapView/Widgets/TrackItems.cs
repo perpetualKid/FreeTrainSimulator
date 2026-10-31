@@ -19,8 +19,7 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
     #region TrackItemBase
     internal abstract record TrackItemWidget : Runtime.Track.TrackItemBase, IDrawable<PointPrimitive>, INameValueInformationProvider
     {
-        private protected static InformationDictionary debugInformation = new InformationDictionary() { ["Item Type"] = "Empty" };
-        private protected static int debugInfoItemId;
+        private InformationDictionary debugInformation;
         private protected static System.Drawing.Font font;
         internal protected readonly int TrackItemId;
 
@@ -28,12 +27,14 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
         {
             get
             {
-                if (TrackItemId != debugInfoItemId)
+                if (debugInformation == null)
                 {
-                    debugInformation.Clear();
-                    debugInformation["Item Index"] = TrackItemId.ToString(CultureInfo.InvariantCulture);
-                    AddInfoDetails(debugInformation);
-                    debugInfoItemId = TrackItemId;
+                    InformationDictionary details = new InformationDictionary
+                    {
+                        ["Item Index"] = TrackItemId.ToString(CultureInfo.InvariantCulture),
+                    };
+                    AddInfoDetails(details);
+                    debugInformation = details;
                 }
                 return debugInformation;
             }
@@ -49,6 +50,13 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
         {
             Size = 3;
             TrackItemId = source.TrackItemIndex;
+        }
+
+        // Record copies must populate their own details rather than sharing the source's lazy cache.
+        protected TrackItemWidget(TrackItemWidget source) : base(source)
+        {
+            TrackItemId = source.TrackItemId;
+            FormattingOptions = source.FormattingOptions;
         }
 
         internal static void SetFont(System.Drawing.Font font)

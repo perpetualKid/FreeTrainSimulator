@@ -259,7 +259,7 @@ namespace Tests.FreeTrainSimulator.Graphics.MapView
                             Assert.AreSame(failure, Assert.ThrowsExactly<AggregateException>(map.Dispose));
                             Assert.AreEqual("unregister", failure.Flatten().InnerExceptions[0].Message);
                             Assert.AreEqual("release", failure.Flatten().InnerExceptions[1].Message);
-                            CollectionAssert.AreEqual(expectedReleases, environment.Releases);
+                            Assert.AreSequenceEqual(expectedReleases, environment.Releases);
                             Assert.AreEqual((1, 0, 0), (environment.ReleaseCount, environment.MouseHandlerCount, environment.ResizeHandlerCount));
                         }
                         finally

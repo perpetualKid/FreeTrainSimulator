@@ -74,6 +74,8 @@ namespace FreeTrainSimulator.Toolbox.Views
         {
             if (e.OriginalSource is not DependencyObject source)
                 return;
+            if (IsComparisonControl(source))
+                return;
 
             if (!IsWithinEditor(WaitTimeEditor, source))
                 CommitWaitEditor();
@@ -105,6 +107,8 @@ namespace FreeTrainSimulator.Toolbox.Views
 
         private void EditorAction_PreviewKeyDown(object sender, KeyEventArgs e)
         {
+            if (IsComparisonControl(e.OriginalSource as DependencyObject))
+                return;
             if (e.Key == Key.Enter && WaitTimeEditor.IsKeyboardFocusWithin)
             {
                 CommitWaitEditor();
@@ -126,6 +130,8 @@ namespace FreeTrainSimulator.Toolbox.Views
 
         private void EditorAction_PreviewClick(object sender, RoutedEventArgs e)
         {
+            if (IsComparisonControl(e.OriginalSource as DependencyObject))
+                return;
             CommitWaitEditor();
             CommitMetadataEditor();
         }
@@ -186,6 +192,13 @@ namespace FreeTrainSimulator.Toolbox.Views
 
         // The path/node/diagnostic/route-candidate lists bind SelectedItem OneWay and forward user picks here;
         // see ToolWindowSelection for why a TwoWay binding is unreliable in these hosted tool windows.
+        private void SavedPathComparisonToggle_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is CheckBox { DataContext: TrainPathListItemViewModel row, IsChecked: bool selected }
+                && DataContext is TrainPathToolWindowViewModel viewModel)
+                viewModel.SetSavedComparison(row, selected);
+        }
+
         private void PathList_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             if (DataContext is TrainPathToolWindowViewModel viewModel && ToolWindowSelection.TryGetAddedItem(e, out TrainPathListItemViewModel item))
@@ -202,6 +215,8 @@ namespace FreeTrainSimulator.Toolbox.Views
                 return;
 
             DependencyObject source = e.OriginalSource as DependencyObject;
+            if (IsComparisonControl(source))
+                return;
             ListViewItem row = ItemsControl.ContainerFromElement(listView, source) as ListViewItem;
 
             if (row?.IsSelected != true)
@@ -212,6 +227,22 @@ namespace FreeTrainSimulator.Toolbox.Views
             CommitMetadataEditor();
             listView.SelectedItem = null;
             viewModel.UserSelectPath(null);
+        }
+
+        private static bool IsComparisonControl(DependencyObject source)
+        {
+            for (DependencyObject current = source; current != null;)
+            {
+                if (current is CheckBox { Name: "SavedPathComparisonToggle" })
+                    return true;
+                current = current switch
+                {
+                    ContentElement content => ContentOperations.GetParent(content) ?? (content as FrameworkContentElement)?.Parent,
+                    System.Windows.Media.Visual or System.Windows.Media.Media3D.Visual3D => System.Windows.Media.VisualTreeHelper.GetParent(current),
+                    _ => LogicalTreeHelper.GetParent(current),
+                };
+            }
+            return false;
         }
 
         private void PathList_PreviewMouseRightButtonDown(object sender, MouseButtonEventArgs e)

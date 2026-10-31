@@ -691,6 +691,74 @@ namespace Tests.FreeTrainSimulator.Toolbox.Hosting
         }
 
         [TestMethod]
+        [DataRow(false, false)]
+        [DataRow(false, true)]
+        [DataRow(true, false)]
+        [Timeout(10000, CooperativeCancellation = true)]
+        public async Task WhenStaleSaveRefreshArrivesAfterCurrentRouteRefreshStartsThenItDoesNotInvalidateOrSuppressCurrentPaths(bool sameRoute, bool sameVersion)
+        {
+            SessionScope scope = await SessionScope.StartAsync().ConfigureAwait(false);
+            await using (scope.ConfigureAwait(false))
+            {
+                FolderModel folder = MenuFolder("Folder");
+                RouteModelHeader routeA = MenuRoute(folder, "route-a", "Old route");
+                RouteModelHeader routeB = sameRoute ? routeA : MenuRoute(folder, "route-b", "Current route");
+                PathModelHeader saved = new PathModelHeader { Id = "current-saved", Name = "Current saved path" };
+                saved.Initialize(routeB);
+                TaskCompletionSource<ImmutableArray<PathModelHeader>> pending = new TaskCompletionSource<ImmutableArray<PathModelHeader>>(TaskCreationOptions.RunContinuationsAsynchronously);
+                MenuPathCache.SetPaths(routeB, pending.Task);
+                FieldInfo refreshVersion = typeof(ToolboxSession).GetField("pathListRefreshVersion", BindingFlags.Instance | BindingFlags.NonPublic);
+                Task current = null;
+                try
+                {
+                    await scope.Host.OnOwnerAsync(() =>
+                    {
+                        SetMenuState(scope, folder, [folder], [routeA, routeB], routeB);
+                        SetField(scope.Session, "routeContentVersion", 1L);
+                        current = InvokeMenuTask(scope.Session, "RefreshPathListAfterSaveAsync", [routeB, 1L]);
+                        Assert.IsFalse(current.IsCompleted);
+                        Assert.AreEqual(1L, refreshVersion.GetValue(scope.Session));
+                    }).ConfigureAwait(false);
+
+                    // Simulate an old save's worker continuation only after B's real cached lookup is pending.
+                    Task stale = InvokeMenuTask(scope.Session, "RefreshPathListAfterSaveAsync", [routeA, sameVersion ? 1L : 0L]);
+                    await scope.Host.OnOwnerAsync(() => Assert.AreEqual(1L, refreshVersion.GetValue(scope.Session))).ConfigureAwait(false);
+                    await stale.WaitAsync(TestContext.CancellationToken).ConfigureAwait(false);
+                    pending.SetResult([saved]);
+                    await current.WaitAsync(TestContext.CancellationToken).ConfigureAwait(false);
+
+                    ToolboxMenuSnapshot state = scope.Game.HostedMenu.Current;
+                    Assert.AreEqual((routeB.Id, saved.Id, saved.Name),
+                        (state.Paths.Single().Key.RouteId, state.Paths.Single().Key.PathId, state.Paths.Single().Name));
+                }
+                finally
+                {
+                    pending.TrySetResult([]);
+                    MenuPathCache.RemovePaths(routeB);
+                }
+            }
+        }
+
+        [TestMethod]
+        [Timeout(10000, CooperativeCancellation = true)]
+        public async Task WhenStoppedSessionReceivesSaveRefreshThenItDoesNotAdvanceRefreshVersion()
+        {
+            SessionScope scope = await SessionScope.StartAsync().ConfigureAwait(false);
+            await using (scope.ConfigureAwait(false))
+            {
+                FolderModel folder = MenuFolder("Folder");
+                RouteModelHeader route = MenuRoute(folder, "route", "Route");
+                await scope.Host.OnOwnerAsync(() => SetMenuState(scope, folder, [folder], [route], route)).ConfigureAwait(false);
+                await scope.Game.InvokeOnGameThreadAsync(scope.Session.StopAndDrainAsync).ConfigureAwait(false);
+
+                await InvokeMenuTask(scope.Session, "RefreshPathListAfterSaveAsync", [route, 0L]).ConfigureAwait(false);
+
+                await scope.Host.OnOwnerAsync(() => Assert.AreEqual(0L,
+                    typeof(ToolboxSession).GetField("pathListRefreshVersion", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(scope.Session))).ConfigureAwait(false);
+            }
+        }
+
+        [TestMethod]
         [Timeout(10000, CooperativeCancellation = true)]
         public async Task WhenSessionStopsDuringNativeRouteReadThenFinalSnapshotClearsLoadingIntentAndSharedReadSurvives()
         {

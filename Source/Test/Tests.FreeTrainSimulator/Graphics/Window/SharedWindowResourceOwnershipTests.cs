@@ -175,8 +175,8 @@ namespace Tests.FreeTrainSimulator.Graphics.Window
                 AggregateException failure = Assert.ThrowsExactly<AggregateException>(manager.Dispose);
                 Assert.AreSame(failure, Assert.ThrowsExactly<AggregateException>(manager.Dispose));
 
-                CollectionAssert.AreEqual(new Exception[] { windowFailure, unsubscribeFailure, textureFailure }, failure.Flatten().InnerExceptions);
-                CollectionAssert.AreEqual(managerFailureReleases, releases);
+                Assert.AreSequenceEqual(new Exception[] { windowFailure, unsubscribeFailure, textureFailure }, failure.Flatten().InnerExceptions);
+                Assert.AreSequenceEqual(managerFailureReleases, releases);
                 Assert.AreEqual((1, 1, 1, 1, 1, 1),
                     (eager.ReleaseCount, later.ReleaseCount, texture.ReleaseCount, white.ReleaseCount, shadow.ReleaseCount, batch.ReleaseCount));
             }
@@ -224,7 +224,7 @@ namespace Tests.FreeTrainSimulator.Graphics.Window
 
                 Assert.AreEqual((1, 1, 1, 0), (eager.ReleaseCount, lazy.ReleaseCount, lazy.InitializeCount, unusedCreations));
                 Assert.AreEqual(1, white.ReleaseCount);
-                CollectionAssert.AreEqual(lazyFailureReleases, releases);
+                Assert.AreSequenceEqual(lazyFailureReleases, releases);
             }
             finally
             {
@@ -329,7 +329,7 @@ namespace Tests.FreeTrainSimulator.Graphics.Window
                         ? ((TextShape)cache).GetTextTexture(string.Empty, null, null)
                         : ((TextTextureResourceHolder)cache)[string.Empty, null, null];
                     Assert.AreSame(sentinel.Texture, result);
-                    Assert.AreEqual(0, Resources(cache, "currentResources").Count);
+                    Assert.IsEmpty(Resources(cache, "currentResources"));
                     cache.Update(new GameTime(TimeSpan.FromSeconds(generation * 31), TimeSpan.Zero));
                 }
 
@@ -348,63 +348,75 @@ namespace Tests.FreeTrainSimulator.Graphics.Window
         public void SharedTextCachesReleaseGeneratedTexturesOnSweepAndRepeatedShutdown(bool textShape)
         {
             List<string> releases = new List<string>();
-            using ProbeTexture swept = new ProbeTexture("swept", releases);
-            using ProbeTexture shutdown = new ProbeTexture("shutdown", releases);
-            using ResourceGameComponent<Texture2D> cache = textShape ? CreateTextShape(null) : CreateHolder(null);
-            Resources(cache, "currentResources").TryAdd(1, swept.Texture);
-            cache.Update(new GameTime(TimeSpan.FromSeconds(31), TimeSpan.Zero));
-            cache.Update(new GameTime(TimeSpan.FromSeconds(62), TimeSpan.Zero));
-            Assert.AreEqual(1, swept.ReleaseCount);
-            Resources(cache, "currentResources").TryAdd(2, shutdown.Texture);
+            using (ProbeTexture swept = new ProbeTexture("swept", releases))
+            {
+                using (ProbeTexture shutdown = new ProbeTexture("shutdown", releases))
+                {
+                    using (ResourceGameComponent<Texture2D> cache = textShape ? CreateTextShape(null) : CreateHolder(null))
+                    {
+                        Resources(cache, "currentResources").TryAdd(1, swept.Texture);
+                        cache.Update(new GameTime(TimeSpan.FromSeconds(31), TimeSpan.Zero));
+                        cache.Update(new GameTime(TimeSpan.FromSeconds(62), TimeSpan.Zero));
+                        Assert.AreEqual(1, swept.ReleaseCount);
+                        Resources(cache, "currentResources").TryAdd(2, shutdown.Texture);
 
-            cache.Dispose();
-            cache.Dispose();
+                        cache.Dispose();
+                        cache.Dispose();
 
-            Assert.AreEqual(1, swept.ReleaseCount);
-            Assert.AreEqual(1, shutdown.ReleaseCount);
-            Assert.AreEqual(0, Resources(cache, "currentResources").Count);
-            Assert.AreEqual(0, Resources(cache, "previousResources").Count);
-            Assert.AreEqual(0, Resources(cache, "sweepResources").Count);
+                        Assert.AreEqual(1, swept.ReleaseCount);
+                        Assert.AreEqual(1, shutdown.ReleaseCount);
+                        Assert.IsEmpty(Resources(cache, "currentResources"));
+                        Assert.IsEmpty(Resources(cache, "previousResources"));
+                        Assert.IsEmpty(Resources(cache, "sweepResources"));
+                    }
+                }
+            }
         }
 
         [TestMethod]
         public void GameShutdownReleasesSharedRendererAfterBorrowingCacheComponents()
         {
             List<string> releases = new List<string>();
-            using ProbeTexture sentinel = new ProbeTexture("sentinel", releases);
-            using ProbeTexture shapeTexture = new ProbeTexture("shape text", releases);
-            using ProbeTexture controlTexture = new ProbeTexture("control text", releases);
-            using (Game game = new Game())
+            using (ProbeTexture sentinel = new ProbeTexture("sentinel", releases))
             {
-                using TextTextureRenderer renderer = CreateRenderer(sentinel.Texture);
-                game.Services.AddService(renderer);
-                TextShape shape = TextShape.Instance(game, null);
-                TextTextureResourceHolder holder = TextTextureResourceHolder.Instance(game);
-                Assert.AreSame(renderer, TextTextureRenderer.Instance(game));
-                Resources(shape, "currentResources").TryAdd(1, shapeTexture.Texture);
-                Resources(holder, "currentResources").TryAdd(2, controlTexture.Texture);
-                renderer.Measure(string.Empty, null, null);
-                SolidBrush brush = null;
-                try
+                using (ProbeTexture shapeTexture = new ProbeTexture("shape text", releases))
                 {
-                    brush = new SolidBrush(System.Drawing.Color.White);
-                    Field<ConcurrentQueue<Brush>>(renderer, "whiteBrushHolder").Enqueue(brush);
-                    brush = null;
-                }
-                finally
-                {
-                    brush?.Dispose();
-                }
+                    using (ProbeTexture controlTexture = new ProbeTexture("control text", releases))
+                    {
+                        using (Game game = new Game())
+                        {
+                            using TextTextureRenderer renderer = CreateRenderer(sentinel.Texture);
+                            game.Services.AddService(renderer);
+                            TextShape shape = TextShape.Instance(game, null);
+                            TextTextureResourceHolder holder = TextTextureResourceHolder.Instance(game);
+                            Assert.AreSame(renderer, TextTextureRenderer.Instance(game));
+                            Resources(shape, "currentResources").TryAdd(1, shapeTexture.Texture);
+                            Resources(holder, "currentResources").TryAdd(2, controlTexture.Texture);
+                            renderer.Measure(string.Empty, null, null);
+                            SolidBrush brush = null;
+                            try
+                            {
+                                brush = new SolidBrush(System.Drawing.Color.White);
+                                Field<ConcurrentQueue<Brush>>(renderer, "whiteBrushHolder").Enqueue(brush);
+                                brush = null;
+                            }
+                            finally
+                            {
+                                brush?.Dispose();
+                            }
 
-                game.Dispose();
-                game.Dispose();
-                renderer.Dispose();
+                            game.Dispose();
+                            game.Dispose();
+                            renderer.Dispose();
 
-                CollectionAssert.AreEqual(sharedRendererReleases, releases);
-                Assert.AreEqual(1, sentinel.ReleaseCount);
-                Assert.IsNull(game.Services.GetService<TextTextureRenderer>());
-                Assert.AreEqual(0, Field<ConcurrentQueue<(System.Drawing.Graphics, StringFormat)>>(renderer, "measureGraphicsHolder").Count);
-                Assert.AreEqual(0, Field<ConcurrentQueue<Brush>>(renderer, "whiteBrushHolder").Count);
+                            Assert.AreSequenceEqual(sharedRendererReleases, releases);
+                            Assert.AreEqual(1, sentinel.ReleaseCount);
+                            Assert.IsNull(game.Services.GetService<TextTextureRenderer>());
+                            Assert.IsEmpty(Field<ConcurrentQueue<(System.Drawing.Graphics, StringFormat)>>(renderer, "measureGraphicsHolder"));
+                            Assert.IsEmpty(Field<ConcurrentQueue<Brush>>(renderer, "whiteBrushHolder"));
+                        }
+                    }
+                }
             }
         }
 

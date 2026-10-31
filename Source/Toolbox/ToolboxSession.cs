@@ -144,6 +144,7 @@ namespace FreeTrainSimulator.Toolbox
             {
                 routeLoads.Stop();
                 ++routeContentVersion;
+                ClearSavedPathComparisons();
                 pendingFolder = null;
                 pendingRoute = null;
                 loadingRoute = null;
@@ -415,6 +416,7 @@ namespace FreeTrainSimulator.Toolbox
                     loadingRoute = null;
                     PublishMenu();
                     game.HostedServices?.TrainPathToolWindow?.UpdatePaths(paths);
+                    PublishSavedPathComparisons();
                 }, () =>
                 {
                     if (candidate != null && ReferenceEquals(toolboxContent, candidate))
@@ -581,6 +583,7 @@ namespace FreeTrainSimulator.Toolbox
         private void ClearRoute()
         {
             ++routeContentVersion;
+            ClearSavedPathComparisons();
             saveDialogEditor = null;
             saveDialogSource = null;
             if (pathEditor != null)

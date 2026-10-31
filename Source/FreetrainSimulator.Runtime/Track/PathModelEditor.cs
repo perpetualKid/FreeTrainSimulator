@@ -10,16 +10,6 @@ using FreeTrainSimulator.Models.Track;
 
 namespace FreeTrainSimulator.Runtime.Track
 {
-    /// <summary>Role of an authored node in the single supported passing-branch topology.</summary>
-    public enum PassingBranchNodeRole
-    {
-        None,
-        MainRoute,
-        BranchStart,
-        BranchInterior,
-        BranchRejoin,
-    }
-
     /// <summary>
     /// UI-neutral, stateless mutation operations on an authored <see cref="PathModel"/>. Each operation is a
     /// pure function: it never mutates its input and returns a <see cref="PathEditResult"/> carrying a new
@@ -32,6 +22,72 @@ namespace FreeTrainSimulator.Runtime.Track
     public static class PathModelEditor
     {
         private const double NearbyJunctionRepairDistanceMeters = 10.0;
+        // Train.TestAbsDelay interprets 30000..39999 as 3HHMM; higher values also include legacy AI operations.
+        private const int MaximumBasicWaitTimeSeconds = 29999;
+        private const string basicWaitTimeOutOfRangeMessage = "Basic wait time must be between 1 and 29999 seconds. Values of 30000 or greater may encode legacy AI operations instead of a duration.";
+
+        private const string reverseChainRequiredMessage = "Reverse Path requires a complete, reachable main chain with exactly one Start and End and at least two nodes.";
+        private const string reverseUnsupportedDataMessage = "Reverse Path supports only event-free paths without siding links, invalid nodes, or unknown flags.";
+        private const string pathReversedMessage = "Path reversed.";
+
+        /// <summary>
+        /// Reverses a complete, event-free main chain without resolving or relocating its anchors. Traversal order
+        /// becomes array order with Start at zero; endpoint roles and labels swap, and all links are rebuilt.
+        /// Siding links, any wait payload (including zero), events, invalid or unknown flags, and incomplete graphs
+        /// are refused without changing the input. Track-route equivalence must be checked by the caller.
+        /// </summary>
+        public static PathEditResult ReversePath(PathModel pathModel)
+        {
+            ArgumentNullException.ThrowIfNull(pathModel);
+
+            ImmutableArray<PathNode> nodes = Nodes(pathModel);
+            if (nodes.Length < 2 || nodes.Any(node => node == null))
+                return PathEditResult.Failed(reverseChainRequiredMessage, pathModel);
+
+            const PathNodeType allowedFlags = PathNodeType.Start | PathNodeType.End | PathNodeType.Via | PathNodeType.Junction;
+            if (nodes.Any(node => node.NextSidingNode != -1 || node.WaitInfo != null || (node.NodeType & ~allowedFlags) != 0))
+                return PathEditResult.Failed(reverseUnsupportedDataMessage, pathModel);
+
+            int startIndex = IndexOfNodeType(nodes, PathNodeType.Start);
+            int endIndex = IndexOfNodeType(nodes, PathNodeType.End);
+            if (startIndex < 0 || endIndex < 0 || startIndex == endIndex
+                || nodes.Count(node => node.NodeType.Includes(PathNodeType.Start)) != 1
+                || nodes.Count(node => node.NodeType.Includes(PathNodeType.End)) != 1)
+                return PathEditResult.Failed(reverseChainRequiredMessage, pathModel);
+
+            List<int> traversal = new List<int>(nodes.Length);
+            HashSet<int> visited = new HashSet<int>();
+            int index = startIndex;
+
+            while (index >= 0 && index < nodes.Length && visited.Add(index))
+            {
+                traversal.Add(index);
+                
+                if (index == endIndex)
+                    break;
+                
+                index = nodes[index].NextMainNode;
+            }
+            if (traversal.Count != nodes.Length || traversal[^1] != endIndex || nodes[endIndex].NextMainNode != -1)
+                return PathEditResult.Failed(reverseChainRequiredMessage, pathModel);
+
+            ImmutableArray<PathNode>.Builder reversed = ImmutableArray.CreateBuilder<PathNode>(nodes.Length);
+            for (int i = 0; i < nodes.Length; i++)
+            {
+                PathNode node = nodes[traversal[nodes.Length - 1 - i]];
+                PathNodeType role = i == 0 ? PathNodeType.Start : i == nodes.Length - 1 ? PathNodeType.End : PathNodeType.None;
+                reversed.Add(node with
+                {
+                    NodeType = (node.NodeType & ~(PathNodeType.Start | PathNodeType.End)) | role,
+                    NextMainNode = i == nodes.Length - 1 ? -1 : i + 1,
+                    NextSidingNode = -1,
+                });
+            }
+
+            return PathEditResult.Succeeded(pathReversedMessage,
+                pathModel with { Start = pathModel.End, End = pathModel.Start, PathNodes = reversed.MoveToImmutable() },
+                Enumerable.Range(0, nodes.Length).ToImmutableArray());
+        }
 
         /// <summary>Updates editable path metadata without changing route nodes or path identity.</summary>
         public static PathEditResult SetMetadata(PathModel pathModel, string name, string start, string end, bool playerPath)
@@ -783,7 +839,8 @@ namespace FreeTrainSimulator.Runtime.Track
 
         /// <summary>
         /// Marks the node at <paramref name="nodeIndex"/> as a wait point and stores the given wait time in
-        /// seconds. Fails for an out-of-range index, a non-positive wait time, a junction node, or a start/end node.
+        /// seconds. Basic durations must be between 1 and 29999; larger values may encode legacy AI operations.
+        /// Fails for an out-of-range index or duration, a junction node, or a start/end node.
         /// Also refuses combined wait/reversal events, passing-branch interiors, and unclassifiable passing topology.
         /// Other nodes are not checked for Simulator event compatibility.
         /// </summary>
@@ -791,8 +848,8 @@ namespace FreeTrainSimulator.Runtime.Track
         {
             ArgumentNullException.ThrowIfNull(pathModel);
 
-            if (waitTimeSeconds <= 0)
-                return PathEditResult.Failed("A wait point requires a positive wait time.", pathModel);
+            if (waitTimeSeconds <= 0 || waitTimeSeconds > MaximumBasicWaitTimeSeconds)
+                return PathEditResult.Failed(basicWaitTimeOutOfRangeMessage, pathModel);
 
             ImmutableArray<PathNode> nodes = Nodes(pathModel);
             if (!CanAnnotateNode(nodes, nodeIndex, "wait point", out string failure))

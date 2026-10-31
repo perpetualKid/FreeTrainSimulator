@@ -604,7 +604,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.Hosting
                 GameWindow.ObserveGameThreadOperation(preparation);
                 Exception diagnostic = await Assert.ThrowsAsync<Exception>(() => stop.WaitAsync(TestContext.CancellationToken)).ConfigureAwait(false);
                 if (failJob)
-                    CollectionAssert.AreEquivalent(new Exception[] { jobFailure, cleanupFailure }, ((AggregateException)diagnostic).Flatten().InnerExceptions);
+                    Assert.AreSequenceEqual(new Exception[] { jobFailure, cleanupFailure }, ((AggregateException)diagnostic).Flatten().InnerExceptions, Microsoft.VisualStudio.TestTools.UnitTesting.SequenceOrder.InAnyOrder);
                 else
                     Assert.AreSame(cleanupFailure, diagnostic);
                 Assert.IsFalse(scope.Session.IsDisposed);
@@ -613,23 +613,23 @@ namespace Tests.FreeTrainSimulator.Toolbox.Hosting
                 Assert.IsTrue(subsequentExit.Cancel);
                 terminated.SetException(cleanupFailure);
                 Assert.IsFalse(host.IsStoppedSafely);
-                Assert.ThrowsExactly<InvalidOperationException>(host.Dispose);
+                _ = Assert.ThrowsExactly<InvalidOperationException>(host.Dispose);
 
                 // Even a finished owner with failed/unconfirmed disposal cannot release the shell.
                 await scope.Host.OnOwnerAsync(() =>
                 {
                     MainWindow shell = CreateShutdownShell(host);
                     Task shutdown = (Task)typeof(MainWindow).GetMethod("ShutdownAsync", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(shell, null);
-                    Assert.Throws<Exception>(() => shutdown.GetAwaiter().GetResult());
+                    _ = Assert.Throws<Exception>(() => shutdown.GetAwaiter().GetResult());
                     Assert.IsFalse((bool)typeof(MainWindow).GetField("shutdownCompleted", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(shell));
-                    Assert.ThrowsExactly<InvalidOperationException>(shell.Dispose);
+                    _ = Assert.ThrowsExactly<InvalidOperationException>(shell.Dispose);
                 }).ConfigureAwait(false);
             }
             finally
             {
                 release.TrySetResult();
                 if (failJob)
-                    await Assert.ThrowsExactlyAsync<InvalidOperationException>(() => scope.DisposeAsync().AsTask()).ConfigureAwait(false);
+                    _ = await Assert.ThrowsExactlyAsync<InvalidOperationException>(() => scope.DisposeAsync().AsTask()).ConfigureAwait(false);
                 else
                     await scope.DisposeAsync().ConfigureAwait(false);
             }

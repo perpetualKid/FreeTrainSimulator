@@ -39,6 +39,10 @@ namespace Tests.Orts.Formats.OpenRails.Parsers
             }
         }
 
+        private static readonly string[] expectedbcd = new string[] { "", "b", "c", "d" };
+        private static readonly string[] expectedArray123 = new[] { "1", "2", "3" };
+        private static readonly string[] expectedArrayABCDE = new[] { "A", "B", "C", "D", "E" };
+
         [TestMethod]
         public void ParseStructureTest()
         {
@@ -49,11 +53,9 @@ namespace Tests.Orts.Formats.OpenRails.Parsers
                 Assert.HasCount(4, tr.Strings[0]);
                 Assert.HasCount(3, tr.Strings[1]);
                 Assert.HasCount(5, tr.Strings[2]);
-#pragma warning disable CA1861 // Avoid constant arrays as arguments
-                CollectionAssert.AreEqual(new[] { "", "b", "c", "d" }, tr.Strings[0]);
-                CollectionAssert.AreEqual(new[] { "1", "2", "3" }, tr.Strings[1]);
-                CollectionAssert.AreEqual(new[] { "A", "B", "C", "D", "E" }, tr.Strings[2]);
-#pragma warning restore CA1861 // Avoid constant arrays as arguments
+                Assert.AreSequenceEqual(expectedbcd, tr.Strings[0]);
+                Assert.AreSequenceEqual(expectedArray123, tr.Strings[1]);
+                Assert.AreSequenceEqual(expectedArrayABCDE, tr.Strings[2]);
             }
         }
     }

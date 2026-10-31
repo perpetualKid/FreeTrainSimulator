@@ -25,6 +25,7 @@ namespace Tests.FreeTrainSimulator.Models
     // When a change is INTENTIONAL: append the new member LAST in the model, then update its expectedlist here. Never
     // insert ahead of existing members or reorder them (see the versioning remarks on ModelBase and ADR 0001).
     [TestClass]
+    [OSCondition(OperatingSystems.Windows)]
     public class ModelSerializationLayoutTests
     {
         // Type -> exact expectedserialized member order (base-first flattened). Keep alphabetical by full name.
@@ -104,8 +105,7 @@ namespace Tests.FreeTrainSimulator.Models
 
             string[] expected = Expected[modelType];
             IReadOnlyList<string> actual = SerializedMemberOrder(modelType);
-            CollectionAssert.AreEqual(expected, actual.ToArray(),
-                $"Serialized member order for {modelType.FullName} changed.{Environment.NewLine}" +
+            Assert.AreSequenceEqual(expected, actual.ToArray(), $"Serialized member order for {modelType.FullName} changed.{Environment.NewLine}" +
                 $"Expected: [{string.Join(", ", expected)}]{Environment.NewLine}" +
                 $"Actual:   [{string.Join(", ", actual)}]{Environment.NewLine}" +
                 "Append new members LAST (never insert ahead of existing/derived members) and update the expected list. See ADR 0001.");

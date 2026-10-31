@@ -256,7 +256,8 @@ namespace FreeTrainSimulator.Toolbox
                 hostedSettingsToolWindow = new SettingsToolWindow(ToolboxSettings, ToolboxUserSettings, this, InvokeSessionCommandAsync);
                 hostedTrainPathToolWindow = new TrainPathToolWindow(() => HostedPathEditor, () => HostedTrainPathToolingContext, InvokeSessionCommand, EditPath, SavePath,
                     path => ObserveGameThreadOperation(LoadPathAsync(path)), () => ObserveGameThreadOperation(UnloadPathAsync()), ActivatePathEditingInput,
-                    refresh => InvokeOnGameThreadAsync(() => session.ValidateAllPathsAsync(refresh)));
+                    refresh => InvokeOnGameThreadAsync(() => session.ValidateAllPathsAsync(refresh)),
+                    (id, selected) => session.SetSavedPathComparisonAsync(id, selected));
                 hostedStatusBarToolWindow = new StatusBarToolWindow();
                 hostedRouteNavigationToolWindow = new RouteNavigationToolWindow(InvokeOnGameThread);
                 hostedServices = new HostedToolboxServices

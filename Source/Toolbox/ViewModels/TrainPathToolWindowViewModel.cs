@@ -34,6 +34,7 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
         private bool canUndo;
         private bool canRedo;
         private bool canSnapToTrack;
+        private bool canReversePath;
         private bool canCreatePath;
         private bool canValidatePaths;
         private bool canSavePath;
@@ -105,6 +106,14 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
         public TrainPathRouteCandidateItemViewModel SelectedCandidateSpan => CandidateSpans.FirstOrDefault(item =>
             item.FromNodeIndex == VisibleRouteCandidates.FirstOrDefault()?.FromNodeIndex && item.ToNodeIndex == VisibleRouteCandidates.FirstOrDefault()?.ToNodeIndex);
 
+        /// <summary>Forwards the user's desired saved comparison state without changing the authoritative row or editor.</summary>
+        public void SetSavedComparison(TrainPathListItemViewModel row, bool selected)
+        {
+            ArgumentNullException.ThrowIfNull(row);
+            if (row.CanCompare)
+                toolWindow.ComparePath(row.Comparison, selected);
+        }
+
         /// <summary>Selects a span and previews its first candidate without accepting the pending edit.</summary>
         public void UserSelectCandidateSpan(TrainPathRouteCandidateItemViewModel span)
         {
@@ -160,6 +169,7 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
             UndoCommand = new RelayCommand(_ => toolWindow.Undo(), _ => CanUndo);
             RedoCommand = new RelayCommand(_ => toolWindow.Redo(), _ => CanRedo);
             SnapToTrackCommand = new RelayCommand(_ => toolWindow.SnapToTrack(), _ => CanSnapToTrack);
+            ReversePathCommand = new RelayCommand(_ => toolWindow.ReversePath(), _ => CanReversePath);
             MoveSelectedNodeCommand = new RelayCommand(_ => MoveSelectedNode(), _ => CanMoveSelectedNode);
             CommitMoveNodeCommand = new RelayCommand(_ => toolWindow.CommitMoveNode(), _ => CanCommitMoveNode);
             CancelMoveNodeCommand = new RelayCommand(_ => toolWindow.CancelMoveNode(), _ => CanCancelMoveNode);
@@ -296,6 +306,9 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
         public RelayCommand RedoCommand { get; }
 
         public RelayCommand SnapToTrackCommand { get; }
+
+        /// <summary>Reverses a supported whole main path through the authoritative editor command.</summary>
+        public RelayCommand ReversePathCommand { get; }
 
         public RelayCommand MoveSelectedNodeCommand { get; }
 
@@ -674,6 +687,17 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
             }
         }
 
+        /// <summary>Whether the latest editor snapshot permits bounded whole-path reversal.</summary>
+        public bool CanReversePath
+        {
+            get => canReversePath;
+            private set
+            {
+                if (SetProperty(ref canReversePath, value))
+                    ReversePathCommand.RaiseCanExecuteChanged();
+            }
+        }
+
         public bool CanValidatePaths
         {
             get => canValidatePaths;
@@ -802,6 +826,8 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
             TrainPathSnapshot snapshot = toolWindow.CaptureTrainPathSnapshot();
 
             SyncPaths(snapshot.Paths);
+            foreach (TrainPathListItemViewModel path in Paths)
+                path.UpdateComparison(snapshot.Comparisons.FirstOrDefault(row => string.Equals(row.Id, path.Id, StringComparison.OrdinalIgnoreCase)));
             SyncNodes(snapshot.Nodes, snapshot.SelectedNodeIndex);
             UpdateSelectedNodeDetailRows();
             DebugToolWindowRowViewModel.Sync(Metadata, snapshot.Metadata);
@@ -814,6 +840,7 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
             CanUndo = snapshot.CanUndo;
             CanRedo = snapshot.CanRedo;
             CanSnapToTrack = snapshot.CanSnapToTrack;
+            CanReversePath = snapshot.CanReversePath;
             IsRepairMode = snapshot.IsRepairMode;
             UpdateSelectedNodeCapabilities(snapshot);
             bool wasMovingNode = CanCancelMoveNode;

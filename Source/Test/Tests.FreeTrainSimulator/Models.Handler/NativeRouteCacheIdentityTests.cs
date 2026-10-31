@@ -19,6 +19,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace Tests.FreeTrainSimulator.Models.Handler
 {
     [TestClass]
+    [OSCondition(OperatingSystems.Windows)]
     public class NativeRouteCacheIdentityTests
     {
         private readonly List<RouteModel> routes = new List<RouteModel>();
@@ -268,7 +269,7 @@ namespace Tests.FreeTrainSimulator.Models.Handler
         private void AssertFilesUnchanged()
         {
             foreach ((string file, byte[] bytes) in savedFiles)
-                CollectionAssert.AreEqual(bytes, File.ReadAllBytes(file), file);
+                Assert.AreSequenceEqual(bytes, File.ReadAllBytes(file), file);
         }
 
         private abstract class NativeModelCache<TModel> : ContentHandlerBase<TModel> where TModel : ModelBase

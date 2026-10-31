@@ -12,6 +12,7 @@ using FreeTrainSimulator.Common.Position;
 using FreeTrainSimulator.Graphics.MapView;
 using FreeTrainSimulator.Models.Content;
 using FreeTrainSimulator.Models.Shim;
+using FreeTrainSimulator.Models.Track;
 using FreeTrainSimulator.Runtime;
 using FreeTrainSimulator.Runtime.Track;
 
@@ -37,6 +38,12 @@ namespace FreeTrainSimulator.Toolbox.PathEditing
         private ImmutableArray<PathRouteDiagnostic> simulatorEventDiagnostics = ImmutableArray<PathRouteDiagnostic>.Empty;
         private PathModel simulatorEventCapabilityModel;
         private readonly Dictionary<(int NodeIndex, bool Reversal), bool> simulatorEventCapabilities = new Dictionary<(int, bool), bool>();
+        private PathModel reverseSourceModel;
+        private TrackWorld reverseTrackWorld;
+        private PathEditResult reversePathResult;
+        private const string reverseUnavailableMessage = "Reverse Path is unavailable during repair, placement, route selection, or saving.";
+        private const string reverseRouteRequiredMessage = "Reverse Path requires an unambiguous route with exactly reversed track edges and matching anchors.";
+        private const string reverseSaveRequiredMessage = "Reverse Path requires both directions to pass normal save validation.";
         private const long DoubleClickIntervalMilliseconds = 500;
         private PathModelHeader path;
         private PathModel currentPathModel;
@@ -418,6 +425,237 @@ namespace FreeTrainSimulator.Toolbox.PathEditing
         /// shapes the generator cannot represent are reported when the snap is attempted.
         /// </summary>
         public bool CanSnapToTrack => !HasPendingRouteCandidateInteraction && HasNodeType(snapshot => snapshot.PathNodes.Length > 0 && HasFlag(snapshot, PathNodeType.Start));
+
+        /// <summary>Whether the current event-free main path can be reversed without changing its chosen track.</summary>
+        public bool CanReversePath => !stopped && !repairMode && !IsSaveInProgress && !CanCancelPathInteraction && GetReversePathResult(TryGetEditablePathModel()).Success;
+
+        /// <summary>
+        /// Reverses the complete main path after checking both route directions and normal save preflight.
+        /// Preserves View/Edit mode, applies one undo step, and never replaces the mutation with a generated route.
+        /// Conservatively refuses repeated physical nodes, non-unique used connectors, and zero-length vector spans.
+        /// </summary>
+        public PathEditorCommandResult ReversePathCommand()
+        {
+            PathModel source = TryGetEditablePathModel();
+            if (stopped || repairMode || IsSaveInProgress || CanCancelPathInteraction)
+                return PathEditorCommandResult.Failed(reverseUnavailableMessage, source);
+
+            PathEditResult result = GetReversePathResult(source);
+            if (!result.Success)
+                return PathEditorCommandResult.FromPathEditResult(result);
+
+            PushUndoSnapshot(source);
+            RestoreSnapshot(result.PathModel);
+            unsavedChanges = true;
+            OnPathUpdated?.Invoke(this, new PathEditorChangedEventArgs(TrainPath));
+            return PathEditorCommandResult.Succeeded(result.Message, currentPathModel);
+        }
+
+        private PathEditResult GetReversePathResult(PathModel source)
+        {
+            if (source == null)
+                return PathEditResult.Failed(reverseRouteRequiredMessage, source);
+            if (ReferenceEquals(source, reverseSourceModel) && ReferenceEquals(TrackWorld, reverseTrackWorld))
+                return reversePathResult;
+
+            reverseSourceModel = source;
+            reverseTrackWorld = TrackWorld;
+            reversePathResult = PathModelEditor.ReversePath(source);
+            if (!reversePathResult.Success)
+                return reversePathResult;
+
+            PathModel reversed = reversePathResult.PathModel;
+            PathRouteResolution forward = ResolveCurrent(source);
+            PathRouteResolution backward = ResolveCurrent(reversed);
+            if (!HasExactReverseRoute(source, forward, backward)
+                || !TryGetReversalTrackWitness(source, forward, out var forwardWitness)
+                || !TryGetReversalTrackWitness(reversed, backward, out var backwardWitness)
+                || !forwardWitness.AsEnumerable().Reverse().Select(token => (token.NodeIndex, token.Direction?.Reverse())).SequenceEqual(backwardWitness))
+                reversePathResult = PathEditResult.Failed(reverseRouteRequiredMessage, source);
+            else
+            {
+                PathPersistenceValidationResult savedForward = PathPersistenceValidationPolicy.ValidateForPersistence(source, forward, TrackWorld);
+                PathPersistenceValidationResult savedBackward = PathPersistenceValidationPolicy.ValidateForPersistence(reversed, backward, TrackWorld);
+                if (!savedForward.PersistenceAllowed || !savedBackward.PersistenceAllowed)
+                    reversePathResult = PathEditResult.Failed(reverseSaveRequiredMessage, source);
+                else if (!TryGetReversalTrackWitness(savedForward.PathModel, ResolveCurrent(savedForward.PathModel), out var savedForwardWitness)
+                    || !TryGetReversalTrackWitness(savedBackward.PathModel, ResolveCurrent(savedBackward.PathModel), out var savedBackwardWitness)
+                    || !forwardWitness.SequenceEqual(savedForwardWitness) || !backwardWitness.SequenceEqual(savedBackwardWitness))
+                    reversePathResult = PathEditResult.Failed(reverseRouteRequiredMessage, source);
+            }
+
+            return reversePathResult;
+        }
+
+        private static bool HasExactReverseRoute(PathModel source, PathRouteResolution forward, PathRouteResolution backward)
+        {
+            int count = source.PathNodes.Length;
+            if (!HasUnambiguousMainRoute(forward, count) || !HasUnambiguousMainRoute(backward, count)
+                || forward.Diagnostics.Any(diagnostic => diagnostic.Code == PathRouteDiagnosticCode.AmbiguousAnchor)
+                || backward.Diagnostics.Any(diagnostic => diagnostic.Code == PathRouteDiagnosticCode.AmbiguousAnchor))
+                return false;
+
+            int[] reversedIndexes = new int[count];
+            int index = forward.MainRoute.StartNodeIndex;
+            for (int position = 0; position < count; position++)
+            {
+                reversedIndexes[index] = count - 1 - position;
+                PathRouteAnchor anchor = forward.AuthoredNodeAnchors[index];
+                PathRouteAnchor opposite = backward.AuthoredNodeAnchors[count - 1 - position];
+                if (anchor.AuthoredNodeIndex != index || opposite.AuthoredNodeIndex != count - 1 - position
+                    || !anchor.HasTrackAnchor || !opposite.HasTrackAnchor
+                    || anchor.TrackNodeIndex != opposite.TrackNodeIndex
+                    || anchor.TrackVectorSectionIndex != opposite.TrackVectorSectionIndex
+                    || anchor.Location != opposite.Location
+                    || (source.PathNodes[index].NodeIndex > 0 && source.PathNodes[index].NodeIndex != anchor.TrackNodeIndex))
+                    return false;
+                index = source.PathNodes[index].NextMainNode;
+            }
+
+            if (backward.MainRoute.StartNodeIndex != 0 || backward.MainRoute.EndNodeIndex != count - 1)
+                return false;
+            for (int i = 0; i < forward.MainRoute.Spans.Length; i++)
+            {
+                ResolvedPathSpan span = forward.MainRoute.Spans[i];
+                ResolvedPathSpan opposite = backward.MainRoute.Spans[count - 2 - i];
+                if (opposite.FromNodeIndex != reversedIndexes[span.ToNodeIndex]
+                    || opposite.ToNodeIndex != reversedIndexes[span.FromNodeIndex]
+                    || !span.TrackVectorNodeIndexes.Reverse().SequenceEqual(opposite.TrackVectorNodeIndexes)
+                    || !span.Candidates[0].RouteNodeIndexes.Reverse().SequenceEqual(opposite.Candidates[0].RouteNodeIndexes))
+                    return false;
+            }
+
+            return true;
+        }
+
+        private bool TryGetReversalTrackWitness(PathModel model, PathRouteResolution resolution,
+            out List<(int NodeIndex, TrackDirection? Direction)> witness)
+        {
+            witness = new List<(int, TrackDirection?)>();
+            if (!HasUnambiguousMainRoute(resolution, model.PathNodes.Length))
+                return false;
+
+            foreach (PathRouteAnchor anchor in resolution.AuthoredNodeAnchors)
+            {
+                if (!anchor.HasTrackAnchor || anchor.AuthoredNodeIndex < 0 || anchor.AuthoredNodeIndex >= model.PathNodes.Length
+                    || (model.PathNodes[anchor.AuthoredNodeIndex].NodeIndex > 0
+                        && model.PathNodes[anchor.AuthoredNodeIndex].NodeIndex != anchor.TrackNodeIndex))
+                    return false;
+            }
+
+            // Normal save may inset another departure witness close to an adjacent track. Its geometric
+            // warning is not a route choice only when the explicit vector and section binding are retained;
+            // the complete directional witness must still match the unambiguous authored route below.
+            foreach (PathRouteDiagnostic diagnostic in resolution.Diagnostics.Where(diagnostic => diagnostic.Code == PathRouteDiagnosticCode.AmbiguousAnchor))
+            {
+                if (diagnostic.NodeIndex < 0 || diagnostic.NodeIndex >= model.PathNodes.Length)
+                    return false;
+                PathRouteAnchor anchor = resolution.AuthoredNodeAnchors[diagnostic.NodeIndex];
+                if (model.PathNodes[diagnostic.NodeIndex].NodeIndex != anchor.TrackNodeIndex
+                    || TrackWorld.TrackDatabase.TrackNodes[anchor.TrackNodeIndex] is not VectorNode vector
+                    || !double.IsFinite(ReversalAnchorPosition(anchor, vector)))
+                    return false;
+            }
+
+            TrackDatabase database = TrackWorld.TrackDatabase;
+            HashSet<int> visited = new HashSet<int>();
+            foreach (ResolvedPathSpan span in resolution.MainRoute.Spans)
+            {
+                ImmutableArray<int> nodes = span.Candidates[0].RouteNodeIndexes;
+                // Node-only witnesses cannot distinguish loop pins. This bounded slice refuses loops and
+                // repeated connector occurrences rather than claiming full physical-pin reversal support.
+                if (nodes.IsEmpty || nodes.Distinct().Count() != nodes.Length)
+                    return false;
+
+                for (int i = 0; i < nodes.Length; i++)
+                {
+                    int nodeIndex = nodes[i];
+                    if (nodeIndex < 0 || nodeIndex >= database.TrackNodes.Length || database.TrackNodes[nodeIndex] == null)
+                        return false;
+                    int incoming = -1;
+                    int outgoing = -1;
+                    if ((i > 0 && (!TryGetUniqueReversalConnector(nodes[i - 1], nodeIndex, out _)
+                            || !TryGetUniqueReversalConnector(nodeIndex, nodes[i - 1], out incoming)))
+                        || (i + 1 < nodes.Length && (!TryGetUniqueReversalConnector(nodeIndex, nodes[i + 1], out outgoing)
+                            || !TryGetUniqueReversalConnector(nodes[i + 1], nodeIndex, out _))))
+                        return false;
+
+                    TrackDirection? direction = null;
+                    if (database.TrackNodes[nodeIndex] is VectorNode vector)
+                    {
+                        if (nodes.Length == 1)
+                        {
+                            double from = ReversalAnchorPosition(resolution.AuthoredNodeAnchors[span.FromNodeIndex], vector);
+                            double to = ReversalAnchorPosition(resolution.AuthoredNodeAnchors[span.ToNodeIndex], vector);
+                            if (!double.IsFinite(from) || !double.IsFinite(to) || Math.Abs(to - from) <= 0.000001)
+                                return false;
+                            direction = to > from ? TrackDirection.Ahead : TrackDirection.Reverse;
+                        }
+                        else
+                        {
+                            if (incoming > 1 || outgoing > 1)
+                                return false;
+                            direction = outgoing >= 0
+                                ? (outgoing == 1 ? TrackDirection.Ahead : TrackDirection.Reverse)
+                                : (incoming == 0 ? TrackDirection.Ahead : TrackDirection.Reverse);
+                            if (incoming >= 0 && outgoing >= 0 && incoming == outgoing)
+                                return false;
+                        }
+                    }
+
+                    // Materialization splits spans at interior witnesses. Merge their shared boundary only;
+                    // retain junctions and reject a later return to any earlier physical node.
+                    if (i == 0 && witness.Count > 0 && witness[^1] == (nodeIndex, direction))
+                        continue;
+                    if (!visited.Add(nodeIndex))
+                        return false;
+                    witness.Add((nodeIndex, direction));
+                }
+            }
+            return witness.Count > 0;
+        }
+
+        private bool TryGetUniqueReversalConnector(int fromNodeIndex, int toNodeIndex, out int connectorIndex)
+        {
+            connectorIndex = -1;
+            ImmutableArray<TrackNodeConnectorIndex> nodes = TrackWorld.TrackDatabase.TrackNodeConnectors;
+            if (fromNodeIndex < 0 || fromNodeIndex >= nodes.Length || nodes[fromNodeIndex] == null)
+                return false;
+            ImmutableArray<TrackNodeConnector> connectors = nodes[fromNodeIndex].TrackNodeConnectors;
+            if (connectors.IsDefaultOrEmpty)
+                return false;
+            for (int i = 0; i < connectors.Length; i++)
+            {
+                if (connectors[i]?.Link != toNodeIndex)
+                    continue;
+                if (connectorIndex >= 0)
+                    return false;
+                connectorIndex = i;
+            }
+            return connectorIndex >= 0;
+        }
+
+        private double ReversalAnchorPosition(PathRouteAnchor anchor, VectorNode vector)
+        {
+            if (anchor.TrackVectorSectionIndex < 0 || anchor.TrackVectorSectionIndex >= vector.VectorSections.Length)
+                return double.NaN;
+            double position = 0;
+            for (int i = 0; i < anchor.TrackVectorSectionIndex; i++)
+                position += TrackWorld.SectionLength(vector.VectorSections[i]);
+            return TrackWorld.SectionGeometry.TryGetValue(vector.VectorSections[anchor.TrackVectorSectionIndex], out SectionGeometry geometry)
+                ? position + geometry.DistanceOnSection(anchor.Location) : double.NaN;
+        }
+
+        private static bool HasUnambiguousMainRoute(PathRouteResolution resolution, int nodeCount)
+        {
+            return resolution != null && resolution.IsValid && resolution.MainRoute != null
+                && resolution.PassingRoutes.IsEmpty && resolution.AuthoredNodeAnchors.Length == nodeCount
+                && !resolution.Diagnostics.Any(diagnostic => diagnostic.Code is PathRouteDiagnosticCode.AmbiguousRoute
+                    or PathRouteDiagnosticCode.AnchorLocationMismatch)
+                && resolution.MainRoute.Spans.Length == nodeCount - 1
+                && resolution.MainRoute.Spans.All(span => span.Status == PathRouteSpanStatus.Resolved
+                    && span.Candidates.Length == 1 && !span.TrackVectorNodeIndexes.IsEmpty);
+        }
 
         /// <summary>Adds a start node to the current path and records an undo snapshot. Returns the operation result.</summary>
         public PathEditResult AddStart() => ApplyUndoableEdit(PathModelEditor.AddStart);

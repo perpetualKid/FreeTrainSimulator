@@ -31,6 +31,46 @@ namespace FreeTrainSimulator.Graphics.MapView
         private ImmutableArray<TrackSegmentSection> renderedRailSections;
         private ImmutableArray<TrackSegmentSection> renderedRoadSections;
 
+        /// <summary>Independent saved overlays owned by this route's map; never participates in editor hit testing.</summary>
+        public ImmutableArray<SavedPathComparison> SavedPathComparisons { get; private set; } = ImmutableArray<SavedPathComparison>.Empty;
+
+        /// <summary>Publishes prepared saved geometry on the game owner and requests a redraw.</summary>
+        public void SetSavedPathComparison(SavedPathComparison comparison)
+        {
+            ArgumentNullException.ThrowIfNull(comparison);
+            int index = FindSavedPathComparison(comparison.Id);
+            SavedPathComparisons = index < 0 ? SavedPathComparisons.Add(comparison) : SavedPathComparisons.SetItem(index, comparison);
+            ShellServices.RequestRedraw();
+        }
+
+        /// <summary>Removes a route-owned saved overlay on the game owner without changing the editor.</summary>
+        public void ClearSavedPathComparison(string pathId)
+        {
+            ArgumentException.ThrowIfNullOrWhiteSpace(pathId);
+            int index = FindSavedPathComparison(pathId);
+            if (index < 0)
+                return;
+            SavedPathComparisons = SavedPathComparisons.RemoveAt(index);
+            ShellServices.RequestRedraw();
+        }
+
+        /// <summary>Discards all saved geometry before this route is released or the session stops.</summary>
+        public void ClearSavedPathComparisons()
+        {
+            if (SavedPathComparisons.IsDefaultOrEmpty)
+                return;
+            SavedPathComparisons = ImmutableArray<SavedPathComparison>.Empty;
+            ShellServices.RequestRedraw();
+        }
+
+        private int FindSavedPathComparison(string pathId)
+        {
+            for (int i = 0; i < SavedPathComparisons.Length; i++)
+                if (string.Equals(SavedPathComparisons[i].Id, pathId, StringComparison.OrdinalIgnoreCase))
+                    return i;
+            return -1;
+        }
+
         public PathEditorBase PathEditor { get; set; }
 
         public INameValueInformationProvider TrackNodeInfo { get; } = new DetailInfoProxy();
@@ -118,22 +158,45 @@ namespace FreeTrainSimulator.Graphics.MapView
         /// </summary>
         public void NavigateToTrackNode(int index, bool searchRoads)
         {
-            if (trackWorld == null || index < 0)
+            TrackNodeBase node = trackWorld?.TrackNodeByIndex(index, searchRoads ? TrackDataBaseType.Road : TrackDataBaseType.Rail);
+            if (node == null)
                 return;
 
-            ImmutableArray<TrackSegmentSection> sections = searchRoads ? trackWorld.RoadSegmentSections : trackWorld.SegmentSections;
-            if (index >= sections.Length)
-                return;
+            TrackSegmentSection section = null;
+            switch (node)
+            {
+                case VectorNode:
+                    ImmutableArray<TrackSegmentSection> sections = searchRoads ? trackWorld.RoadSegmentSections : trackWorld.SegmentSections;
+                    section = index < sections.Length ? sections[index] : null;
+                    if (section == null || section.SectionSegments.Count == 0)
+                        return;
 
-            TrackSegmentSection section = sections[index];
-            if (section == null)
-                return;
+                    Viewport?.UpdateScaleToFit(section.TopLeftBound, section.BottomRightBound);
+                    Viewport?.SetTrackingPosition(section.MidPoint);
+                    ImmutableArray<TrackSegmentSection> renderedSections = searchRoads ? renderedRoadSections : renderedRailSections;
+                    TrackSegmentSection rendered = !renderedSections.IsDefault && index < renderedSections.Length ? renderedSections[index] : null;
+                    if (rendered?.SectionSegments.Count > 0)
+                        HighlightItem(searchRoads ? MapContentType.Roads : MapContentType.Tracks, rendered.SectionSegments[0]);
+                    break;
 
-            Viewport?.UpdateScaleToFit(section.TopLeftBound, section.BottomRightBound);
-            Viewport?.SetTrackingPosition(section.MidPoint);
-            TrackSegmentSection rendered = (searchRoads ? renderedRoadSections : renderedRailSections)[index];
-            HighlightItem(searchRoads ? MapContentType.Roads : MapContentType.Tracks, rendered.SectionSegments[0]);
-            Pin(BuildTrackNodeDetails(index, searchRoads, section));
+                case Models.Track.JunctionNode:
+                    Viewport?.SetTrackingPosition(node.Location);
+                    if (!searchRoads && ContentByTile[MapContentType.JunctionNodes]?.OfType<JunctionNodeBase>()
+                        .FirstOrDefault(junction => junction.TrackNodeIndex == index) is JunctionNodeBase junction)
+                        HighlightItem(MapContentType.JunctionNodes, junction);
+                    break;
+
+                case Models.Track.EndNode:
+                    Viewport?.SetTrackingPosition(node.Location);
+                    MapContentType endType = searchRoads ? MapContentType.RoadEndNodes : MapContentType.EndNodes;
+                    if (ContentByTile[endType]?.OfType<EndNodeBase>().FirstOrDefault(end => end.TrackNodeIndex == index) is EndNodeBase end)
+                        HighlightItem(endType, end);
+                    break;
+
+                default:
+                    return;
+            }
+            Pin(BuildTrackNodeDetails(index, searchRoads, node, section));
         }
 
         // Stores the pinned selection detail and clears the sticky hover providers, so the selection becomes
@@ -324,7 +387,7 @@ namespace FreeTrainSimulator.Graphics.MapView
                 if (viewSettings[viewItemSetting] && ContentByTile[viewItemSetting] != null)
                 {
                     if (viewItemSetting == MapContentType.Paths)
-                        PathEditor?.Draw();
+                        continue;
                     else
                     {
                         foreach (ITileCoordinate item in ContentByTile[viewItemSetting].BoundingBox(bottomLeft, topRight))
@@ -341,7 +404,9 @@ namespace FreeTrainSimulator.Graphics.MapView
                     }
                 }
             }
-            if (ContentMode == ToolboxContentMode.EditPath && !viewSettings[MapContentType.Paths])
+            foreach (SavedPathComparison comparison in SavedPathComparisons)
+                comparison.Draw(Renderer);
+            if (viewSettings[MapContentType.Paths] || ContentMode == ToolboxContentMode.EditPath)
                 PathEditor?.Draw();
 
             if (ContentMode == ToolboxContentMode.ViewRoute || !viewSettings[MapContentType.Paths])
@@ -454,10 +519,9 @@ namespace FreeTrainSimulator.Graphics.MapView
 
         private void AddTrackItems()
         {
-            // Materialized once to avoid repeated enumeration of the concatenated sequence (CA1851).
-            List<TrackItemWidget> trackItems = TrackItemWidget.CreateTrackItems(
-                trackWorld.TrackDatabase,
-                trackWorld).Concat(TrackItemWidget.CreateRoadItems(trackWorld.RoadDatabase)).ToList();
+            ImmutableArray<TrackItemWidget> railItems = TrackItemWidget.CreateTrackItems(trackWorld.TrackDatabase, trackWorld);
+            ImmutableArray<TrackItemWidget> roadItems = TrackItemWidget.CreateRoadItems(trackWorld.RoadDatabase);
+            List<TrackItemWidget> trackItems = railItems.Concat(roadItems).ToList();
 
             IEnumerable<PlatformPath> platforms = PlatformPath.CreatePlatforms(trackWorld, trackItems.OfType<Widgets.PlatformTrackItem>());
             ContentByTile[MapContentType.Platforms] = new TileIndexedList<PlatformPath>(platforms);
@@ -472,14 +536,15 @@ namespace FreeTrainSimulator.Graphics.MapView
             ContentByTile[MapContentType.StationNames] = new TileIndexedList<StationNameItem>(StationNameItem.CreateStationItems(stations));
             ContentByTile[MapContentType.PlatformNames] = new TileIndexedList<PlatformNameItem>(platforms.Select(p => new PlatformNameItem(p)));
             ContentByTile[MapContentType.SidingNames] = new TileIndexedList<SidingNameItem>(sidings.Select(p => new SidingNameItem(p)));
-            ContentByTile[MapContentType.LevelCrossings] = new TileIndexedList<Widgets.LevelCrossingTrackItem>(trackItems.OfType<Widgets.LevelCrossingTrackItem>());
+            ContentByTile[MapContentType.LevelCrossings] = new TileIndexedList<Widgets.LevelCrossingTrackItem>(railItems.OfType<Widgets.LevelCrossingTrackItem>());
             ContentByTile[MapContentType.SpeedPosts] = new TileIndexedList<SpeedPostTrackItem>(trackItems.OfType<SpeedPostTrackItem>());
             ContentByTile[MapContentType.MilePosts] = new TileIndexedList<MilePostTrackItem>(trackItems.OfType<MilePostTrackItem>());
             ContentByTile[MapContentType.Hazards] = new TileIndexedList<Widgets.HazardTrackItem>(trackItems.OfType<Widgets.HazardTrackItem>());
             ContentByTile[MapContentType.Pickups] = new TileIndexedList<Widgets.PickupTrackItem>(trackItems.OfType<Widgets.PickupTrackItem>());
             ContentByTile[MapContentType.SoundRegions] = new TileIndexedList<Widgets.SoundRegionTrackItem>(trackItems.OfType<Widgets.SoundRegionTrackItem>());
             ContentByTile[MapContentType.CarSpawners] = new TileIndexedList<Widgets.CarSpawnerTrackItem>(trackItems.OfType<Widgets.CarSpawnerTrackItem>());
-            ContentByTile[MapContentType.RoadCrossings] = new TileIndexedList<CrossOverTrackItem>(trackItems.OfType<CrossOverTrackItem>());
+            ContentByTile[MapContentType.Crossovers] = new TileIndexedList<CrossOverTrackItem>(railItems.OfType<CrossOverTrackItem>());
+            ContentByTile[MapContentType.RoadCrossings] = new TileIndexedList<Widgets.LevelCrossingTrackItem>(roadItems.OfType<Widgets.LevelCrossingTrackItem>());
 
             BuildNavigationData(platforms, sidings);
         }
@@ -596,14 +661,30 @@ namespace FreeTrainSimulator.Graphics.MapView
         }
 
         // Builds the pinned detail rows for a track node (rail or road) located by its index.
-        private static InformationDictionary BuildTrackNodeDetails(int index, bool road, TrackSegmentSection section)
+        private static InformationDictionary BuildTrackNodeDetails(int index, bool road, TrackNodeBase node, TrackSegmentSection section)
         {
-            return new InformationDictionary
+            InformationDictionary details = new InformationDictionary
             {
                 ["Item Type"] = road ? "Road Node" : "Track Node",
                 ["Node Index"] = index.ToString(System.Globalization.CultureInfo.InvariantCulture),
-                ["Segments"] = section.SectionSegments.Count.ToString(System.Globalization.CultureInfo.InvariantCulture),
+                ["Location"] = node.Location.ToString(),
             };
+            switch (node)
+            {
+                case VectorNode:
+                    details["Node Type"] = "Vector Section";
+                    details["Segments"] = section.SectionSegments.Count.ToString(System.Globalization.CultureInfo.InvariantCulture);
+                    break;
+                case Models.Track.JunctionNode junction:
+                    details["Node Type"] = "Junction";
+                    details["Main Route"] = junction.MainRoute.ToString(System.Globalization.CultureInfo.InvariantCulture);
+                    details["Shape Index"] = junction.ShapeIndex.ToString(System.Globalization.CultureInfo.InvariantCulture);
+                    break;
+                case Models.Track.EndNode:
+                    details["Node Type"] = "End Node";
+                    break;
+            }
+            return details;
         }
 
         // Pairs an internal map entity widget with the public navigation item it backs under a shared index.

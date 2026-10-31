@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -10,6 +11,7 @@ using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Position;
 using FreeTrainSimulator.Models.Content;
 using FreeTrainSimulator.Models.Handler;
+using FreeTrainSimulator.Models.Imported.ImportHandler.TrainSimulator;
 using FreeTrainSimulator.Models.Shim;
 using FreeTrainSimulator.Models.Track;
 using FreeTrainSimulator.Runtime.Track;
@@ -78,6 +80,81 @@ namespace Tests.FreeTrainSimulator.Toolbox.PathEditing
             Assert.IsTrue(result.PersistenceAllowed);
             Assert.AreEqual(PathValidationState.Valid, savedPath.ValidationState);
             Assert.AreSequenceEqual(result.PathModel.PathNodes, savedPath.PathNodes);
+        }
+
+        [TestMethod]
+        [DataRow(29999)]
+        [DataRow(30000)]
+        [DataRow(40000)]
+        [DataRow(40001)]
+        [DataRow(60001)]
+        [DataRow(60002)]
+        [DataRow(60011)]
+        [DataRow(60021)]
+        [DataRow(65535)]
+        public async Task WhenLegacyWaitIsImportedThenUnchangedNormalSavePreservesRawPayloadAndClearRemainsSupported(int waitTime)
+        {
+            RouteModel route = CreateRoute() with
+            {
+                Tags = ImmutableDictionary<string, string>.Empty.Add(RouteModelImportHandler.SourceNameKey, "LegacyWaitRoute"),
+            };
+            string pathsFolder = Path.Combine(route.Parent.ContentPath, "ROUTES", "LegacyWaitRoute", "PATHS");
+            _ = Directory.CreateDirectory(pathsFolder);
+            string sourceFile = Path.Combine(pathsFolder, "legacy-wait.pat");
+            TestContext.WriteLine(sourceFile);
+            await File.WriteAllTextAsync(sourceFile, $"""
+                SIMISA@@@@@@@@@@JINX0P0t______
+                Serial ( 1 )
+                TrackPDPs (
+                    TrackPDP ( 1 0 0 0 0 1 1 )
+                    TrackPDP ( 1 0 50 0 0 1 1 )
+                    TrackPDP ( 1 0 100 0 0 1 1 )
+                )
+                TrackPath (
+                    TrPathName ( legacy-wait )
+                    Name ( "Legacy Wait" )
+                    TrPathStart ( Start )
+                    TrPathEnd ( End )
+                    TrPathNodes ( 3
+                        TrPathNode ( 00000000 1 4294967295 0 )
+                        TrPathNode ( {((uint)waitTime << 16 | 2):X8} 2 4294967295 1 )
+                        TrPathNode ( 00000000 4294967295 4294967295 2 )
+                    )
+                )
+                """, Encoding.Unicode, TestContext.CancellationToken).ConfigureAwait(false);
+            PathModelHeader importedHeader = (await PathModelImportHandler.ExpandPathModels(route, TestContext.CancellationToken).ConfigureAwait(false)).Single();
+            PathModel imported = await importedHeader.GetExtended(TestContext.CancellationToken).ConfigureAwait(false);
+            WorldLocation start = new WorldLocation(new Tile(1, 0), Vector3.Zero);
+            WorldLocation end = new WorldLocation(new Tile(1, 0), new Vector3(100, 0, 0));
+            VectorNode vectorNode = new VectorNode(start, new Tile(1, 0), end)
+            {
+                NodeIndex = 1,
+                VectorSections = ImmutableArray.Create(new VectorSectionNode(start, new Tile(1, 0), new Vector3(0, MathHelper.PiOver2, 0), end)
+                { NodeIndex = 1 }),
+            };
+            TrackDatabase database = new TrackDatabase
+            {
+                TrackNodes = ImmutableArray.Create<TrackNodeBase>(null, vectorNode),
+                TrackNodeConnectors = ImmutableArray.Create(new TrackNodeConnectorIndex(), new TrackNodeConnectorIndex
+                { NodeIndex = 1, TrackNodeConnectors = ImmutableArray<TrackNodeConnector>.Empty }),
+            };
+            TrackWorldTestFixture.InitializeTrackDatabase(database);
+            TrackWorld world = TrackWorld.Initialize(null, new TrackModel { TrackDatabase = database }, new TrackSectionModel
+            {
+                TrackSections = ImmutableDictionary<int, TrackSection>.Empty.Add(1,
+                    new TrackSection { SectionIndex = 1, Gauge = 1.435f, Length = 100 }),
+            });
+
+            PathPersistenceValidationResult saved = await PathEditor.SaveValidatedPath(imported, route, world, TestContext.CancellationToken).ConfigureAwait(false);
+            PathModel reloaded = await route.PathModel(imported.Id, TestContext.CancellationToken).ConfigureAwait(false);
+            PathEditResult cleared = PathModelEditor.ClearWaitPoint(reloaded, 1);
+            PathPersistenceValidationResult clearedSave = await PathEditor.SaveValidatedPath(cleared.PathModel, route, world, TestContext.CancellationToken).ConfigureAwait(false);
+            PathModel clearedReloaded = await route.PathModel(imported.Id, TestContext.CancellationToken).ConfigureAwait(false);
+
+            Assert.AreEqual((waitTime, true, waitTime, true, true, false),
+                (imported.PathNodes[1].WaitInfo.WaitTime, saved.PersistenceAllowed, reloaded.PathNodes[1].WaitInfo.WaitTime,
+                    cleared.Success, clearedSave.PersistenceAllowed, clearedReloaded.PathNodes.Any(node => node.WaitInfo != null || node.NodeType.Includes(PathNodeType.Wait))),
+                $"Save: {saved.FailureMessage}; cleared save: {clearedSave.FailureMessage}");
         }
 
         [TestMethod]
