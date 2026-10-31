@@ -877,11 +877,8 @@ namespace FreeTrainSimulator.Runtime.Track
 
                     void RelaxConnectedState(int incomingConnectorIndex)
                     {
-                        TrackNodeConnector incomingConnector = IsInRange(incomingConnectorIndex, nextConnectors.Length)
-                            ? nextConnectors[incomingConnectorIndex]
-                            : null;
                         double nextCost = currentCost + RouteSearchNodeCost(trackWorld, trackDatabase.TrackNodes[nextNodeIndex],
-                            nextNodeIndex, toAnchor, incomingConnector);
+                            nextNodeIndex, toAnchor, incomingConnectorIndex);
 
                         if (nextCost > maximumCost)
                             return;
@@ -1213,18 +1210,18 @@ namespace FreeTrainSimulator.Runtime.Track
             }
         }
 
-        private static double RouteSearchNodeCost(TrackWorld trackWorld, TrackNodeBase trackNode, int trackNodeIndex,
-            PathRouteAnchor targetAnchor, TrackNodeConnector incomingConnector)
+        private static double RouteSearchNodeCost(TrackWorld trackWorld, TrackNodeBase trackNode, int trackNodeIndex, PathRouteAnchor targetAnchor, int incomingConnectorIndex)
         {
             if (trackNode is VectorNode vectorNode)
             {
                 double length = trackWorld.VectorNodeLength(vectorNode);
-                if (trackNodeIndex == targetAnchor.TrackNodeIndex && incomingConnector != null)
+                if (trackNodeIndex == targetAnchor.TrackNodeIndex && incomingConnectorIndex is 0 or 1)
                 {
                     double targetPosition = AnchorPosition(targetAnchor, vectorNode, trackWorld);
                     if (!double.IsNaN(targetPosition))
                     {
-                        return incomingConnector.Direction == TrackDirection.Ahead
+                        // As in TerminalArrival, pin 0 enters the vector start and pin 1 its end.
+                        return incomingConnectorIndex == 0
                             ? targetPosition
                             : Math.Max(0.0, length - targetPosition);
                     }

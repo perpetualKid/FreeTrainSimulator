@@ -278,7 +278,7 @@ namespace Tests.FreeTrainSimulator.Graphics.MapView.Widgets
             PathModel saved = await fixture.GenerateSelectedPath(4, TestContext.CancellationToken).ConfigureAwait(false);
             using (CancellationTokenSource cancellation = new CancellationTokenSource())
             {
-                cancellation.Cancel();
+                await cancellation.CancelAsync().ConfigureAwait(false);
 
                 _ = Assert.ThrowsExactly<OperationCanceledException>(() =>
                     SavedPathComparison.Create(saved, world, Color.Orange, cancellation.Token));

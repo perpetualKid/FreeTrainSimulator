@@ -23,7 +23,7 @@ namespace Tests.FreeTrainSimulator.Graphics.MapView.Widgets
         [TestMethod]
         public async Task ItemZeroPopulatesIndexAndSubtypeOnFirstInspection()
         {
-            using (ToolboxInspectionFixture fixture = await ToolboxInspectionFixture.CreateDefaultAsync())
+            using (ToolboxInspectionFixture fixture = await ToolboxInspectionFixture.CreateDefaultAsync().ConfigureAwait(false))
             {
                 INameValueInformationProvider widget = fixture.Items[MapContentType.Crossovers]
                     .Cast<INameValueInformationProvider>().Single();
@@ -37,7 +37,7 @@ namespace Tests.FreeTrainSimulator.Graphics.MapView.Widgets
         [TestMethod]
         public async Task RepeatedInspectionReturnsSamePopulatedDictionary()
         {
-            using (ToolboxInspectionFixture fixture = await ToolboxInspectionFixture.CreateDefaultAsync())
+            using (ToolboxInspectionFixture fixture = await ToolboxInspectionFixture.CreateDefaultAsync().ConfigureAwait(false))
             {
                 INameValueInformationProvider widget = fixture.Items[MapContentType.Crossovers]
                     .Cast<INameValueInformationProvider>().Single();
@@ -51,7 +51,7 @@ namespace Tests.FreeTrainSimulator.Graphics.MapView.Widgets
         [TestMethod]
         public async Task InspectingAnotherItemDoesNotMutatePreviouslyReturnedDetails()
         {
-            using (ToolboxInspectionFixture fixture = await ToolboxInspectionFixture.CreateDefaultAsync())
+            using (ToolboxInspectionFixture fixture = await ToolboxInspectionFixture.CreateDefaultAsync().ConfigureAwait(false))
             {
                 INameValueInformationProvider widget = fixture.Items[MapContentType.Crossovers]
                     .Cast<INameValueInformationProvider>().Single();
@@ -67,7 +67,7 @@ namespace Tests.FreeTrainSimulator.Graphics.MapView.Widgets
         [TestMethod]
         public async Task ItemZeroIncludesDerivedSignalFields()
         {
-            using (ToolboxInspectionFixture fixture = await CreateSignalFixtureAsync("Route A", true))
+            using (ToolboxInspectionFixture fixture = await CreateSignalFixtureAsync("Route A", true).ConfigureAwait(false))
             {
 
                 InformationDictionary details = fixture.Items[MapContentType.Signals]
@@ -81,7 +81,7 @@ namespace Tests.FreeTrainSimulator.Graphics.MapView.Widgets
         [TestMethod]
         public async Task RailAndRoadItemsWithSameIndexKeepIndependentDetails()
         {
-            using (ToolboxInspectionFixture fixture = await CreateSignalFixtureAsync("Route A", true))
+            using (ToolboxInspectionFixture fixture = await CreateSignalFixtureAsync("Route A", true).ConfigureAwait(false))
             {
                 InformationDictionary rail = fixture.Items[MapContentType.Signals]
                     .Cast<INameValueInformationProvider>().Single().DetailInfo;
@@ -97,7 +97,7 @@ namespace Tests.FreeTrainSimulator.Graphics.MapView.Widgets
         [TestMethod]
         public async Task DifferentItemSubtypesDoNotRetainUnrelatedFields()
         {
-            using (ToolboxInspectionFixture fixture = await CreateSignalFixtureAsync("Route A", true))
+            using (ToolboxInspectionFixture fixture = await CreateSignalFixtureAsync("Route A", true).ConfigureAwait(false))
             {
                 _ = fixture.Items[MapContentType.Signals].Cast<INameValueInformationProvider>().Single().DetailInfo;
 
@@ -112,9 +112,9 @@ namespace Tests.FreeTrainSimulator.Graphics.MapView.Widgets
         [TestMethod]
         public async Task SameItemIndexInDifferentRoutesKeepsRouteLocalDerivedFields()
         {
-            using (ToolboxInspectionFixture first = await CreateSignalFixtureAsync("Route A", true))
+            using (ToolboxInspectionFixture first = await CreateSignalFixtureAsync("Route A", true).ConfigureAwait(false))
             {
-                using (ToolboxInspectionFixture second = await CreateSignalFixtureAsync("Route B", false))
+                using (ToolboxInspectionFixture second = await CreateSignalFixtureAsync("Route B", false).ConfigureAwait(false))
                 {
                     INameValueInformationProvider firstWidget = first.Items[MapContentType.Signals].Cast<INameValueInformationProvider>().Single();
                     INameValueInformationProvider secondWidget = second.Items[MapContentType.OtherSignals].Cast<INameValueInformationProvider>().Single();
@@ -134,9 +134,7 @@ namespace Tests.FreeTrainSimulator.Graphics.MapView.Widgets
         public async Task RailAndRoadCrossingsWithSameIndexKeepTheirProvenanceAndCaches()
         {
             WorldLocation[] locations = ToolboxInspectionFixture.CrossingLocations();
-            using (ToolboxInspectionFixture fixture = await ToolboxInspectionFixture.CreateAsync(
-                ImmutableArray.Create<ModelItem>(new ModelTrack.LevelCrossingTrackItem(locations[1]) { TrackItemIndex = 0, NodeIndex = 1 }),
-                ImmutableArray.Create<ModelItem>(new ModelTrack.RoadLevelCrossingTrackItem(locations[2]) { TrackItemIndex = 0, NodeIndex = 1 })))
+            using (ToolboxInspectionFixture fixture = await ToolboxInspectionFixture.CreateAsync(ImmutableArray.Create<ModelItem>(new ModelTrack.LevelCrossingTrackItem(locations[1]) { TrackItemIndex = 0, NodeIndex = 1 }), ImmutableArray.Create<ModelItem>(new ModelTrack.RoadLevelCrossingTrackItem(locations[2]) { TrackItemIndex = 0, NodeIndex = 1 })).ConfigureAwait(false))
             {
                 LevelCrossingTrackItem rail = fixture.Items[MapContentType.LevelCrossings].Cast<LevelCrossingTrackItem>().Single();
                 LevelCrossingTrackItem road = fixture.Items[MapContentType.RoadCrossings].Cast<LevelCrossingTrackItem>().Single();
@@ -153,7 +151,7 @@ namespace Tests.FreeTrainSimulator.Graphics.MapView.Widgets
         [TestMethod]
         public async Task CopyBeforeInspectionPopulatesItsOwnItemZeroDetails()
         {
-            using (ToolboxInspectionFixture fixture = await ToolboxInspectionFixture.CreateDefaultAsync())
+            using (ToolboxInspectionFixture fixture = await ToolboxInspectionFixture.CreateDefaultAsync().ConfigureAwait(false))
             {
                 CrossOverTrackItem source = fixture.Items[MapContentType.Crossovers].Cast<CrossOverTrackItem>().Single();
                 CrossOverTrackItem copy = source with { };
@@ -168,7 +166,7 @@ namespace Tests.FreeTrainSimulator.Graphics.MapView.Widgets
         [TestMethod]
         public async Task CopyAfterInspectionDoesNotShareTheSourcesPopulatedCache()
         {
-            using (ToolboxInspectionFixture fixture = await ToolboxInspectionFixture.CreateDefaultAsync())
+            using (ToolboxInspectionFixture fixture = await ToolboxInspectionFixture.CreateDefaultAsync().ConfigureAwait(false))
             {
                 CrossOverTrackItem source = fixture.Items[MapContentType.Crossovers].Cast<CrossOverTrackItem>().Single();
                 InformationDictionary sourceDetails = source.DetailInfo;

@@ -39,7 +39,7 @@ namespace Tests.FreeTrainSimulator.Graphics.MapView
         [DataRow(MapContentType.RoadCrossings, 2)]
         public async Task CrossingLayersContainOnlyTheirSourceWidgets(MapContentType layer, int locationIndex)
         {
-            using (ToolboxInspectionFixture fixture = await ToolboxInspectionFixture.CreateDefaultAsync())
+            using (ToolboxInspectionFixture fixture = await ToolboxInspectionFixture.CreateDefaultAsync().ConfigureAwait(false))
             {
                 WorldLocation[] locations = ToolboxInspectionFixture.CrossingLocations();
 
@@ -53,7 +53,7 @@ namespace Tests.FreeTrainSimulator.Graphics.MapView
         [DataRow(MapContentType.RoadCrossings, 2)]
         public async Task VisibilityProjectsOnlyTheEnabledCrossingLayer(MapContentType layer, int locationIndex)
         {
-            using (ToolboxInspectionFixture fixture = await ToolboxInspectionFixture.CreateDefaultAsync())
+            using (ToolboxInspectionFixture fixture = await ToolboxInspectionFixture.CreateDefaultAsync().ConfigureAwait(false))
             {
                 WorldLocation[] locations = ToolboxInspectionFixture.CrossingLocations();
                 fixture.Content.UpdateItemVisiblity(layer, true);
@@ -70,7 +70,7 @@ namespace Tests.FreeTrainSimulator.Graphics.MapView
         [DataRow(MapContentType.RoadCrossings)]
         public async Task DisablingCrossingLayerRemovesItsProjection(MapContentType layer)
         {
-            using (ToolboxInspectionFixture fixture = await ToolboxInspectionFixture.CreateDefaultAsync())
+            using (ToolboxInspectionFixture fixture = await ToolboxInspectionFixture.CreateDefaultAsync().ConfigureAwait(false))
             {
                 fixture.Content.UpdateItemVisiblity(layer, true);
                 fixture.Draw();
@@ -88,7 +88,7 @@ namespace Tests.FreeTrainSimulator.Graphics.MapView
         [DataRow(true)]
         public async Task VectorNavigationCentersAndFitsChosenDatabase(bool road)
         {
-            using (ToolboxInspectionFixture fixture = await ToolboxInspectionFixture.CreateDefaultAsync())
+            using (ToolboxInspectionFixture fixture = await ToolboxInspectionFixture.CreateDefaultAsync().ConfigureAwait(false))
             {
                 TrackSegmentSection section = fixture.GetSegmentSection(1, road);
 
@@ -109,7 +109,7 @@ namespace Tests.FreeTrainSimulator.Graphics.MapView
         [DataRow(6, true, MapContentType.RoadEndNodes)]
         public async Task NavigationHighlightsActualWidgetInChosenLayer(int index, bool road, MapContentType layer)
         {
-            using (ToolboxInspectionFixture fixture = await ToolboxInspectionFixture.CreateDefaultAsync())
+            using (ToolboxInspectionFixture fixture = await ToolboxInspectionFixture.CreateDefaultAsync().ConfigureAwait(false))
             {
                 ITileCoordinate widget = fixture.Items[layer].Single(item => NodeIndex(item) == index);
 
@@ -128,7 +128,7 @@ namespace Tests.FreeTrainSimulator.Graphics.MapView
         [DataRow(6, true)]
         public async Task PointNodeNavigationCentersWithoutVectorGeometry(int index, bool road)
         {
-            using (ToolboxInspectionFixture fixture = await ToolboxInspectionFixture.CreateDefaultAsync())
+            using (ToolboxInspectionFixture fixture = await ToolboxInspectionFixture.CreateDefaultAsync().ConfigureAwait(false))
             {
                 TrackNodeBase node = fixture.GetTrackNode(index, road);
 
@@ -149,7 +149,7 @@ namespace Tests.FreeTrainSimulator.Graphics.MapView
         [DataRow(6, true, "Road Node", "End Node", null, null, null)]
         public async Task NavigationPinsDatabaseAndSubtypeDetails(int index, bool road, string itemType, string nodeType, string segments, string mainRoute, string shape)
         {
-            using (ToolboxInspectionFixture fixture = await ToolboxInspectionFixture.CreateDefaultAsync())
+            using (ToolboxInspectionFixture fixture = await ToolboxInspectionFixture.CreateDefaultAsync().ConfigureAwait(false))
             {
                 TrackNodeBase node = fixture.GetTrackNode(index, road);
 
@@ -164,7 +164,7 @@ namespace Tests.FreeTrainSimulator.Graphics.MapView
         [TestMethod]
         public async Task RoadJunctionDoesNotCreateARailHighlight()
         {
-            using (ToolboxInspectionFixture fixture = await ToolboxInspectionFixture.CreateDefaultAsync())
+            using (ToolboxInspectionFixture fixture = await ToolboxInspectionFixture.CreateDefaultAsync().ConfigureAwait(false))
             {
                 fixture.Content.NavigateToTrackNode(3, true);
 
@@ -175,7 +175,7 @@ namespace Tests.FreeTrainSimulator.Graphics.MapView
         [TestMethod]
         public async Task PinnedNodeDetailsRemainStableAfterAnotherSelection()
         {
-            using (ToolboxInspectionFixture fixture = await ToolboxInspectionFixture.CreateDefaultAsync())
+            using (ToolboxInspectionFixture fixture = await ToolboxInspectionFixture.CreateDefaultAsync().ConfigureAwait(false))
             {
                 fixture.Content.NavigateToTrackNode(2, false);
                 var previous = fixture.Content.PinnedNavigationInfo.DetailInfo;
@@ -202,7 +202,7 @@ namespace Tests.FreeTrainSimulator.Graphics.MapView
         [DataRow(int.MaxValue, true)]
         public async Task InvalidOrEmptyNodeLeavesNavigationUnchanged(int index, bool road)
         {
-            using (ToolboxInspectionFixture fixture = await ToolboxInspectionFixture.CreateDefaultAsync())
+            using (ToolboxInspectionFixture fixture = await ToolboxInspectionFixture.CreateDefaultAsync().ConfigureAwait(false))
             {
                 fixture.Content.NavigateToTrackNode(1, false);
                 var previous = fixture.Content.PinnedNavigationInfo.DetailInfo;
@@ -276,7 +276,7 @@ namespace Tests.FreeTrainSimulator.Graphics.MapView
             ToolboxInspectionFixture fixture = new ToolboxInspectionFixture { World = world };
             fixture.Content = new ToolboxContent(new MapContentContext(new MapRuntimeServices(new InspectionRuntime(world, sections)), fixture, null, null));
             // Initialization's host completion owns GPU resources; the CPU conversion is still executed normally.
-            await fixture.Content.InitializeAsync(_ => Task.CompletedTask);
+            await fixture.Content.InitializeAsync(_ => Task.CompletedTask).ConfigureAwait(false);
             fixture.Content.InitializeItemVisiblity(new EnumArray<bool, MapContentType>(false));
             return fixture;
         }

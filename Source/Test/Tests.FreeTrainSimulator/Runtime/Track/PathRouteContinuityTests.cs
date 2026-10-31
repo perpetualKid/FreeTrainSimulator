@@ -26,6 +26,41 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
         public TestContext TestContext { get; set; }
 
         /// <summary>
+        /// Destination cost follows the entered endpoint even when its reciprocal pin describes the opposite heading.
+        /// </summary>
+        [TestMethod]
+        [DataRow(true, TrackDirection.Ahead)]
+        [DataRow(true, TrackDirection.Reverse)]
+        [DataRow(false, TrackDirection.Ahead)]
+        [DataRow(false, TrackDirection.Reverse)]
+        public void ResolveWhenTargetIsNearEnteredEndpointThenCostIgnoresReciprocalDirection(bool enterAtStart,
+            TrackDirection reciprocalDirection)
+        {
+            TrackWorld world = CreateContinuityWorld(reciprocalDirection);
+            PathModel source = new PathModel
+            {
+                PathNodes = ImmutableArray.Create(
+                    CreateNode(PathNodeType.Start | PathNodeType.Junction, 1, enterAtStart ? 2 : 3, enterAtStart ? 0 : 100),
+                    CreateNode(PathNodeType.End, -1, 1, enterAtStart ? 10 : 90)),
+            };
+            PathRouteResolverOptions options = new PathRouteResolverOptions(1.0, false, false, true, true);
+
+            PathRouteResolution result = PathRouteResolver.Resolve(source, world, options, TestContext.CancellationToken);
+
+            AssertSpanStatuses(result, PathRouteSpanStatus.Resolved);
+            ResolvedRouteCandidate candidate = result.MainRoute.Spans[0].Candidates.Single();
+            Assert.AreEqual(10.0, candidate.Cost, 0.000001);
+            Assert.AreSequenceEqual(new[] { enterAtStart ? 2 : 3, 1 }, candidate.RouteNodeIndexes.ToArray());
+
+            PathEditResult reversed = PathModelEditor.ReversePath(source);
+            Assert.IsTrue(reversed.Success, reversed.Message);
+            PathRouteResolution backward = PathRouteResolver.Resolve(reversed.PathModel, world, options, TestContext.CancellationToken);
+            AssertSpanStatuses(backward, PathRouteSpanStatus.Resolved);
+            Assert.AreSequenceEqual(candidate.RouteNodeIndexes.Reverse().ToArray(),
+                backward.MainRoute.Spans[0].Candidates.Single().RouteNodeIndexes.ToArray());
+        }
+
+        /// <summary>
         /// Arrival heading follows the entered vector endpoint, not the reciprocal pin's direction
         /// describing the linked junction. Only an explicit reversal permits continuing against that heading.
         /// </summary>

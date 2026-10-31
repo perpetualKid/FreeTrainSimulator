@@ -100,7 +100,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.Hosting
         {
             (SyntheticPathFixture fixture, RuntimeDataResolver runtime, PathModel saved, _) = await CreateComparisonModelsAsync().ConfigureAwait(false);
             string target = ModelFileResolver<PathModelHeader>.FilePath(saved) + ContentHandlerBase<PathModelHeader>.SaveStateExtension;
-            File.WriteAllBytes(target, MemoryPackSerializer.Serialize<PathModel>(null));
+            await File.WriteAllBytesAsync(target, MemoryPackSerializer.Serialize<PathModel>(null)).ConfigureAwait(false);
             Assert.IsNull(await fixture.Route.PathModelUncached(saved.Id, TestContext.CancellationToken).ConfigureAwait(false));
             // Exercise the sibling header reader without borrowing the fixture's populated path cache.
             PathCache.Remove(saved.Hierarchy());
@@ -122,7 +122,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.Hosting
         {
             (SyntheticPathFixture fixture, RuntimeDataResolver runtime, PathModel saved, _) = await CreateComparisonModelsAsync().ConfigureAwait(false);
             string target = ModelFileResolver<PathModelHeader>.FilePath(saved) + ContentHandlerBase<PathModelHeader>.SaveStateExtension;
-            File.WriteAllBytes(target, MemoryPackSerializer.Serialize(saved with { PathNodes = saved.PathNodes.SetItem(1, null) }));
+            await File.WriteAllBytesAsync(target, MemoryPackSerializer.Serialize(saved with { PathNodes = saved.PathNodes.SetItem(1, null) })).ConfigureAwait(false );
             SessionScope scope = await SessionScope.StartAsync().ConfigureAwait(false);
             await using (scope.ConfigureAwait(false))
             {
