@@ -151,7 +151,7 @@ namespace FreeTrainSimulator.Toolbox
                 // Persistence owns the saved baseline even when the editor that initiated it is no longer current.
                 if (PersistenceSucceeded(operation))
                 {
-                    await RefreshSavedPathComparisonAfterSaveAsync(route, saveRouteContentVersion, operation.PersistenceTask.Result.PathModel.Id).ConfigureAwait(false);
+                    await RefreshSavedPathComparisonAfterSaveAsync(route, saveRouteContentVersion, (await operation.PersistenceTask.ConfigureAwait(false)).PathModel.Id).ConfigureAwait(false);
                     await RefreshPathListAfterSaveAsync(route, saveRouteContentVersion).ConfigureAwait(false);
                 }
             }

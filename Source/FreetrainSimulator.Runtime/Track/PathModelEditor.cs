@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Threading;
 
 using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Position;
@@ -29,6 +30,10 @@ namespace FreeTrainSimulator.Runtime.Track
         private const string reverseChainRequiredMessage = "Reverse Path requires a complete, reachable main chain with exactly one Start and End and at least two nodes.";
         private const string reverseUnsupportedDataMessage = "Reverse Path supports only event-free paths without siding links, invalid nodes, or unknown flags.";
         private const string pathReversedMessage = "Path reversed.";
+        private const string appendChainRequiredMessage = "Path composition requires complete, reachable, event-free main paths with exactly one Start and End and no siding links or wait payloads.";
+        private const string appendRouteRequiredMessage = "Path composition requires unambiguous matching track anchors and continuous routes without repeated track nodes or duplicate connectors.";
+        private const string appendEndpointRequiredMessage = "The current end and extension start must have the same track node, section, and stored location. Move the endpoints into alignment before composing paths.";
+        private const string appendContinuityRequiredMessage = "Path composition would change a selected track route or require a reversal at the join. Choose an extension with a compatible departure direction.";
 
         /// <summary>
         /// Reverses a complete, event-free main chain without resolving or relocating its anchors. Traversal order
@@ -87,6 +92,152 @@ namespace FreeTrainSimulator.Runtime.Track
             return PathEditResult.Succeeded(pathReversedMessage,
                 pathModel with { Start = pathModel.End, End = pathModel.Start, PathNodes = reversed.MoveToImmutable() },
                 Enumerable.Range(0, nodes.Length).ToImmutableArray());
+        }
+
+        /// <summary>
+        /// Appends a different event-free main path at an exactly matching hybrid endpoint, preserving both
+        /// inputs and the current identity. Linked traversal becomes array order; the shared endpoint becomes
+        /// a Via and the extension supplies the destination label. Refuses rerouting, implicit reversal,
+        /// disconnected or repeated routes, stale bindings, unsupported data and unsafe materialization.
+        /// Both paths must belong to the supplied track world; attached route identities must agree.
+        /// This operation performs no persistence or history mutation; callers own those workflows.
+        /// </summary>
+        public static PathEditResult AppendPathAtMatchingEndpoint(PathModel pathModel, PathModel extension, TrackWorld trackWorld,
+            CancellationToken cancellationToken)
+        {
+            ArgumentNullException.ThrowIfNull(pathModel);
+            ArgumentNullException.ThrowIfNull(extension);
+            cancellationToken.ThrowIfCancellationRequested();
+
+            if (trackWorld?.TrackDatabase == null)
+                return PathEditResult.Failed("Path composition requires a loaded track world.", pathModel);
+            if (ReferenceEquals(pathModel, extension) || (!string.IsNullOrEmpty(pathModel.Id) && string.Equals(pathModel.Id, extension.Id, StringComparison.OrdinalIgnoreCase)))
+                return PathEditResult.Failed("Choose a different saved path as the extension.", pathModel);
+            if (!string.Equals(pathModel.Parent?.Hierarchy(), extension.Parent?.Hierarchy(), StringComparison.OrdinalIgnoreCase))
+                return PathEditResult.Failed("Both paths must belong to the same route.", pathModel);
+            if (!TryGetAppendableMainRoute(pathModel, out ImmutableArray<int> currentRoute) || !TryGetAppendableMainRoute(extension, out ImmutableArray<int> extensionRoute))
+                return PathEditResult.Failed(appendChainRequiredMessage, pathModel);
+
+            PathRouteResolution current = PathRouteResolver.Resolve(pathModel, trackWorld, cancellationToken);
+            PathRouteResolution tail = PathRouteResolver.Resolve(extension, trackWorld, cancellationToken);
+            if (!HasAppendableTrackRoute(pathModel, current, trackWorld) || !HasAppendableTrackRoute(extension, tail, trackWorld))
+                return PathEditResult.Failed(appendRouteRequiredMessage, pathModel);
+
+            PathRouteAnchor end = current.AuthoredNodeAnchors[currentRoute[^1]];
+            PathRouteAnchor start = tail.AuthoredNodeAnchors[extensionRoute[0]];
+            if (end.TrackNodeIndex != start.TrackNodeIndex || end.TrackVectorSectionIndex != start.TrackVectorSectionIndex
+                || end.Location != start.Location)
+                return PathEditResult.Failed(appendEndpointRequiredMessage, pathModel);
+
+            int nodeCount = currentRoute.Length + extensionRoute.Length - 1;
+            ImmutableArray<PathNode>.Builder builder = ImmutableArray.CreateBuilder<PathNode>(nodeCount);
+            foreach (int nodeIndex in currentRoute)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                PathNode node = pathModel.PathNodes[nodeIndex];
+                builder.Add(node with
+                {
+                    NodeType = nodeIndex == currentRoute[^1] ? (node.NodeType & ~PathNodeType.End) | PathNodeType.Via : node.NodeType,
+                    NextMainNode = builder.Count + 1,
+                });
+            }
+            foreach (int nodeIndex in extensionRoute.Skip(1))
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                builder.Add(extension.PathNodes[nodeIndex] with { NextMainNode = builder.Count + 1 == nodeCount ? -1 : builder.Count + 1 });
+            }
+            PathModel composed = pathModel with
+            {
+                End = extension.End,
+                PathNodes = builder.MoveToImmutable(),
+                ValidationState = PathValidationState.NotValidated,
+            };
+            PathRouteResolution joined = PathRouteResolver.Resolve(composed, trackWorld, cancellationToken);
+            if (!HasAppendableTrackRoute(composed, joined, trackWorld))
+                return PathEditResult.Failed(appendContinuityRequiredMessage, pathModel);
+
+            ResolvedPathSpan[] expectedSpans = current.MainRoute.Spans.Concat(tail.MainRoute.Spans).ToArray();
+            if (expectedSpans.Length != joined.MainRoute.Spans.Length || expectedSpans.Where((span, index) =>
+                !span.Candidates[0].RouteNodeIndexes.SequenceEqual(joined.MainRoute.Spans[index].Candidates[0].RouteNodeIndexes)
+                || !span.Candidates[0].PhysicalTraversals.SequenceEqual(joined.MainRoute.Spans[index].Candidates[0].PhysicalTraversals)
+                || span.Candidates[0].Arrival?.Direction != joined.MainRoute.Spans[index].Candidates[0].Arrival?.Direction).Any())
+                return PathEditResult.Failed(appendContinuityRequiredMessage, pathModel);
+
+            PathGenerationResult materialized = PathModelRouteGenerator.GeneratePath(composed, joined, trackWorld, PathRouteResolverOptions.Default);
+            if (!materialized.Success)
+                return PathEditResult.Failed(materialized.Message, pathModel);
+            PathRouteResolution savedRoute = PathRouteResolver.Resolve(materialized.PathModel, trackWorld, cancellationToken);
+            return !HasAppendableTrackRoute(materialized.PathModel, savedRoute, trackWorld)
+                || !joined.MainRoute.Spans.SelectMany(span => span.Candidates[0].PhysicalTraversals)
+                    .SequenceEqual(savedRoute.MainRoute.Spans.SelectMany(span => span.Candidates[0].PhysicalTraversals))
+                || joined.MainRoute.Spans[^1].Candidates[0].Arrival?.Direction != savedRoute.MainRoute.Spans[^1].Candidates[0].Arrival?.Direction
+                ? PathEditResult.Failed(appendContinuityRequiredMessage, pathModel)
+                : PathEditResult.Succeeded("Path extension composed at the matching endpoint.", composed,
+                Enumerable.Range(0, nodeCount).ToImmutableArray());
+        }
+
+        private static bool TryGetAppendableMainRoute(PathModel model, out ImmutableArray<int> route)
+        {
+            route = ImmutableArray<int>.Empty;
+            ImmutableArray<PathNode> nodes = Nodes(model);
+            const PathNodeType allowedFlags = PathNodeType.Start | PathNodeType.End | PathNodeType.Via | PathNodeType.Junction;
+            return nodes.Length >= 2 && nodes.All(node => node != null && node.NextSidingNode == -1
+                    && node.WaitInfo == null && (node.NodeType & ~allowedFlags) == 0)
+                && nodes.Count(node => node.NodeType.Includes(PathNodeType.Start)) == 1
+                && nodes.Count(node => node.NodeType.Includes(PathNodeType.End)) == 1
+                && TryGetMainRouteNodes(nodes, out route, out _)
+                && route.Length == nodes.Length && nodes[route[^1]].NodeType.Includes(PathNodeType.End);
+        }
+
+        private static bool HasAppendableTrackRoute(PathModel model, PathRouteResolution resolution, TrackWorld world)
+        {
+            if (!resolution.IsValid || resolution.MainRoute == null || !resolution.PassingRoutes.IsEmpty
+                || resolution.AuthoredNodeAnchors.Length != model.PathNodes.Length
+                || resolution.MainRoute.Spans.Length != model.PathNodes.Length - 1
+                || resolution.MainRoute.Spans.Any(span => span.Status != PathRouteSpanStatus.Resolved || span.Candidates.Length != 1)
+                || resolution.Diagnostics.Any(diagnostic => diagnostic.Code is PathRouteDiagnosticCode.AnchorLocationMismatch or PathRouteDiagnosticCode.AmbiguousRoute))
+                return false;
+
+            foreach (PathRouteAnchor anchor in resolution.AuthoredNodeAnchors)
+            {
+                if (!anchor.HasTrackAnchor || anchor.AuthoredNodeIndex < 0 || anchor.AuthoredNodeIndex >= model.PathNodes.Length
+                    || (model.PathNodes[anchor.AuthoredNodeIndex].NodeIndex > 0 && model.PathNodes[anchor.AuthoredNodeIndex].NodeIndex != anchor.TrackNodeIndex)
+                    || (model.PathNodes[anchor.AuthoredNodeIndex].NodeIndex <= 0 && resolution.Diagnostics.Any(diagnostic =>
+                        diagnostic.Code == PathRouteDiagnosticCode.AmbiguousAnchor && diagnostic.NodeIndex == anchor.AuthoredNodeIndex)))
+                    return false;
+            }
+            HashSet<int> visited = new HashSet<int>();
+            int previousNode = -1;
+            foreach (ResolvedPathSpan span in resolution.MainRoute.Spans)
+            {
+                ResolvedRouteCandidate candidate = span.Candidates[0];
+                if (candidate.RouteNodeIndexes.IsEmpty || (candidate.RouteNodeIndexes.Length == 1 && candidate.Arrival?.Direction == null))
+                    return false;
+                for (int i = 0; i < candidate.RouteNodeIndexes.Length; i++)
+                {
+                    int node = candidate.RouteNodeIndexes[i];
+                    if (i == 0 && node == previousNode)
+                        continue;
+                    if (!visited.Add(node))
+                        return false;
+                    previousNode = node;
+                }
+                foreach (TrackRouteTraversal traversal in candidate.PhysicalTraversals)
+                {
+                    if (traversal.FromNodeIndex < 0 || traversal.FromNodeIndex >= world.TrackDatabase.TrackNodeConnectors.Length
+                        || traversal.ToNodeIndex < 0 || traversal.ToNodeIndex >= world.TrackDatabase.TrackNodeConnectors.Length
+                        || world.TrackDatabase.TrackNodeConnectors[traversal.FromNodeIndex] == null
+                        || world.TrackDatabase.TrackNodeConnectors[traversal.ToNodeIndex] == null)
+                        return false;
+                    ImmutableArray<TrackNodeConnector> from = world.TrackDatabase.TrackNodeConnectors[traversal.FromNodeIndex].TrackNodeConnectors;
+                    ImmutableArray<TrackNodeConnector> to = world.TrackDatabase.TrackNodeConnectors[traversal.ToNodeIndex].TrackNodeConnectors;
+                    if (from.IsDefaultOrEmpty || to.IsDefaultOrEmpty
+                        || from.Count(connector => connector?.Link == traversal.ToNodeIndex) != 1
+                        || to.Count(connector => connector?.Link == traversal.FromNodeIndex) != 1)
+                        return false;
+                }
+            }
+            return true;
         }
 
         /// <summary>Updates editable path metadata without changing route nodes or path identity.</summary>

@@ -43,8 +43,7 @@ namespace FreeTrainSimulator.Toolbox.PathEditing
         /// <summary>
         /// Awaits one save operation and completes or cancels only its owned editor token on the game thread.
         /// </summary>
-        public static async Task<PathPersistenceValidationResult> ConsumeAsync(PathEditor editor, PathSaveOperation operation,
-            Func<Func<Task>, Task> gameThreadInvoker)
+        public static async Task<PathPersistenceValidationResult> ConsumeAsync(PathEditor editor, PathSaveOperation operation, Func<Func<Task>, Task> gameThreadInvoker)
         {
             ArgumentNullException.ThrowIfNull(editor);
             ArgumentNullException.ThrowIfNull(operation);

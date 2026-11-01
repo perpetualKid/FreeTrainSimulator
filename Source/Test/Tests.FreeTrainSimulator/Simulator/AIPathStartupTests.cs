@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Immutable;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -8,6 +9,7 @@ using FreeTrainSimulator.Graphics.MapView;
 using FreeTrainSimulator.Models.Content;
 using FreeTrainSimulator.Models.Handler;
 using FreeTrainSimulator.Models.Imported.State;
+using FreeTrainSimulator.Models.Shim;
 using FreeTrainSimulator.Models.Track;
 using FreeTrainSimulator.Runtime.Track;
 using FreeTrainSimulator.Toolbox.PathEditing;
@@ -70,6 +72,93 @@ namespace Tests.FreeTrainSimulator.Simulator
                         snapshot.RoutePathSaveState.AlternativePaths.Count, snapshot.RoutePathSaveState.Waitpoints.Count));
                 Assert.AreEqual($"2:Ahead, 6:Reverse, {selectedVector}:Ahead, 3:Ahead, 1:Ahead, 7:Ahead", RouteSignature(snapshot.RoutePathSaveState.RoutePaths.Single()));
             }
+        }
+
+        /// <summary>Matching native paths compose without changing either saved source or selected physical route.</summary>
+        [TestMethod]
+        [DataRow(4, false)]
+        [DataRow(5, false)]
+        [DataRow(4, true)]
+        [DataRow(5, true)]
+        public async Task WhenMatchingNativePathsAreComposedThenSaveAsAndStartupPreserveBothSourcesAsync(int selectedVector, bool vectorSeam)
+        {
+            SyntheticPathFixture fixture = new SyntheticPathFixture(TestContext);
+            Simulation simulator = await fixture.CreateSimulator(false, TestContext.CancellationToken).ConfigureAwait(false);
+            float seamX = vectorSeam ? 50 : 0;
+            float seamZ = vectorSeam && selectedVector == 5 ? 100 : 0;
+            int seamTrack = vectorSeam ? selectedVector : 3;
+            PathNodeType seamFlag = vectorSeam ? PathNodeType.None : PathNodeType.Junction;
+            PathModel current = await fixture.RoundTripPathAsync(new PathModel
+            {
+                Id = "CompositionCurrent" + Guid.NewGuid().ToString("N"), Name = "First leg", Start = "Origin", End = "Join", PlayerPath = true,
+                PathNodes = ImmutableArray.Create(SyntheticPathFixture.Node(PathNodeType.Start, 1, -50, 0, 1, -1),
+                    SyntheticPathFixture.Node(PathNodeType.End | seamFlag, seamTrack, seamX, seamZ, -1, -1)),
+            }, TestContext.CancellationToken).ConfigureAwait(false);
+            PathModel extension = await fixture.RoundTripPathAsync(new PathModel
+            {
+                Id = "CompositionExtension" + Guid.NewGuid().ToString("N"), Name = "Second leg", Start = "Join", End = "Destination",
+                PathNodes = vectorSeam
+                    ? ImmutableArray.Create(SyntheticPathFixture.Node(PathNodeType.Start, seamTrack, seamX, seamZ, 1, -1),
+                        SyntheticPathFixture.Node(PathNodeType.End, 2, 150, 0, -1, -1))
+                    : ImmutableArray.Create(SyntheticPathFixture.Node(PathNodeType.Start | PathNodeType.Junction, 3, 0, 0, 1, -1),
+                        SyntheticPathFixture.Node(PathNodeType.Via, selectedVector, 50, selectedVector == 5 ? 100 : 0, 2, -1),
+                        SyntheticPathFixture.Node(PathNodeType.End, 2, 150, 0, -1, -1)),
+            }, TestContext.CancellationToken).ConfigureAwait(false);
+            string currentFile = ModelFileResolver<PathModelHeader>.FilePath(current) + ContentHandlerBase<PathModelHeader>.SaveStateExtension;
+            string extensionFile = ModelFileResolver<PathModelHeader>.FilePath(extension) + ContentHandlerBase<PathModelHeader>.SaveStateExtension;
+            byte[] currentBytes = await File.ReadAllBytesAsync(currentFile, TestContext.CancellationToken).ConfigureAwait(false);
+            byte[] extensionBytes = await File.ReadAllBytesAsync(extensionFile, TestContext.CancellationToken).ConfigureAwait(false);
+            ImmutableArray<PathNode> currentNodes = current.PathNodes;
+            ImmutableArray<PathNode> extensionNodes = extension.PathNodes;
+
+            PathEditResult composed = PathModelEditor.AppendPathAtMatchingEndpoint(current, extension, TrackWorld.Instance, TestContext.CancellationToken);
+
+            Assert.IsTrue(composed.Success, composed.Message);
+            Assert.AreEqual((current.Id, current.Name, current.Start, extension.End, current.PlayerPath),
+                (composed.PathModel.Id, composed.PathModel.Name, composed.PathModel.Start, composed.PathModel.End, composed.PathModel.PlayerPath));
+            Assert.AreEqual(currentNodes, current.PathNodes);
+            Assert.AreEqual(extensionNodes, extension.PathNodes);
+            PathPersistenceValidationResult saved = await PathEditor.SaveValidatedPath(composed.PathModel with
+            {
+                Id = "ComposedCopy" + Guid.NewGuid().ToString("N"),
+            }, fixture.Route, TrackWorld.Instance, TestContext.CancellationToken).ConfigureAwait(false);
+            Assert.IsTrue(saved.PersistenceAllowed, saved.FailureMessage);
+            PathModel reloaded = await fixture.Route.PathModelUncached(saved.PathModel.Id, TestContext.CancellationToken).ConfigureAwait(false);
+            TrainSaveState snapshot = await StartExploreAndSnapshotAsync(fixture, simulator, reloaded).ConfigureAwait(false);
+
+            Assert.AreEqual($"1:Reverse, 3:Reverse, {selectedVector}:Reverse, 6:Ahead, 2:Reverse, 8:Reverse", RouteSignature(snapshot.RoutePathSaveState.RoutePaths.Single()));
+            Assert.IsEmpty(snapshot.RoutePathSaveState.AlternativePaths);
+            Assert.AreEqual((current.Name, current.Start, extension.End, true), (reloaded.Name, reloaded.Start, reloaded.End, reloaded.PlayerPath));
+            Assert.AreSequenceEqual(currentBytes, await File.ReadAllBytesAsync(currentFile, TestContext.CancellationToken).ConfigureAwait(false));
+            Assert.AreSequenceEqual(extensionBytes, await File.ReadAllBytesAsync(extensionFile, TestContext.CancellationToken).ConfigureAwait(false));
+        }
+
+        [TestMethod]
+        public async Task WhenMatchingJunctionJoinRequiresAnIllegalExitThenCompositionPreservesBothInputsAsync()
+        {
+            SyntheticPathFixture fixture = new SyntheticPathFixture(TestContext);
+            _ = await fixture.CreateSimulator(false, TestContext.CancellationToken).ConfigureAwait(false);
+            PathModel current = new PathModel
+            {
+                Id = "current",
+                PathNodes = ImmutableArray.Create(SyntheticPathFixture.Node(PathNodeType.Start, 4, 50, 0, 1, -1),
+                    SyntheticPathFixture.Node(PathNodeType.End | PathNodeType.Junction, 6, 100, 0, -1, -1)),
+            };
+            PathModel extension = new PathModel
+            {
+                Id = "extension",
+                PathNodes = ImmutableArray.Create(SyntheticPathFixture.Node(PathNodeType.Start | PathNodeType.Junction, 6, 100, 0, 1, -1),
+                    SyntheticPathFixture.Node(PathNodeType.End, 5, 50, 100, -1, -1)),
+            };
+            Assert.IsTrue(PathRouteResolver.Resolve(current, TrackWorld.Instance, TestContext.CancellationToken).IsValid);
+            Assert.IsTrue(PathRouteResolver.Resolve(extension, TrackWorld.Instance, TestContext.CancellationToken).IsValid);
+            ImmutableArray<PathNode> originalExtension = extension.PathNodes;
+
+            PathEditResult result = PathModelEditor.AppendPathAtMatchingEndpoint(current, extension, TrackWorld.Instance, TestContext.CancellationToken);
+
+            Assert.IsFalse(result.Success);
+            Assert.AreSame(current, result.PathModel);
+            Assert.AreEqual(originalExtension, extension.PathNodes);
         }
 
         /// <summary>Double reversal retains the original selected route through normal save and public startup.</summary>

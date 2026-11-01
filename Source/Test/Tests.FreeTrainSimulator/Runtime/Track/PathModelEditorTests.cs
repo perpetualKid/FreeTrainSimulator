@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Reflection;
+using System.Threading;
 
 using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Position;
@@ -19,6 +20,8 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
     [OSCondition(OperatingSystems.Windows)]
     public class PathModelEditorTests
     {
+        public TestContext TestContext { get; set; }
+
         [TestMethod]
         public void WhenWholePathIsReversedThenLinkedTraversalNotArrayOrderDeterminesPreservedAnchors()
         {
@@ -200,6 +203,8 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
         private static readonly int[] expectedArray1 = new[] { 1 };
         private static readonly int[] expectedArray0 = new[] { 0 };
         private static readonly int[] expectedArray0123 = new[] { 0, 1, 2, 3 };
+        private static readonly float[] expectedArrayf105090 = new[] { 10f, 50f, 90f };
+        private static readonly float[] expectedArrayf1030507090 = new[] { 10f, 30f, 50f, 70f, 90f };
 
         [TestMethod]
         public void WhenSetEndAnchorAfterStartThenEndIsAppended()
@@ -1876,6 +1881,287 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
 
             Assert.IsFalse(result.Success);
             Assert.AreSame(path, result.PathModel);
+        }
+
+        [TestMethod]
+        public void WhenMatchingPathIsAppendedThenInputsAndCurrentIdentityArePreserved()
+        {
+            TrackWorld world = CreateInitializedTrackWorldWithSingleVectorNode();
+            PathModel current = CreateCompositionPath("current", 10, 50) with { ValidationState = PathValidationState.Valid, PlayerPath = true };
+            PathModel extension = CreateCompositionPath("extension", 50, 90);
+
+            PathEditResult result = PathModelEditor.AppendPathAtMatchingEndpoint(current, extension, world, TestContext.CancellationToken);
+
+            Assert.IsTrue(result.Success, result.Message);
+            Assert.AreEqual((current.Id, current.Name, current.Start, extension.End, current.PlayerPath), (result.PathModel.Id, result.PathModel.Name, result.PathModel.Start, result.PathModel.End, result.PathModel.PlayerPath));
+            Assert.AreEqual(PathValidationState.NotValidated, result.PathModel.ValidationState);
+            Assert.HasCount(3, result.PathModel.PathNodes);
+            Assert.AreEqual(PathNodeType.Via, result.PathModel.PathNodes[1].NodeType);
+            Assert.AreSequenceEqual(new[] { 1, 2, -1 }, result.PathModel.PathNodes.Select(node => node.NextMainNode));
+            Assert.AreSequenceEqual(expectedArrayf105090, result.PathModel.PathNodes.Select(node => node.Location.Location.X));
+            Assert.HasCount(3, result.ChangedNodeIndexes);
+            Assert.HasCount(2, current.PathNodes);
+            Assert.HasCount(2, extension.PathNodes);
+            Assert.AreEqual(PathNodeType.End, current.PathNodes[1].NodeType);
+            Assert.AreEqual(PathNodeType.Start, extension.PathNodes[0].NodeType);
+        }
+
+        [TestMethod]
+        public void WhenMatchingPathsHavePermutedStorageThenCompositionFollowsTheirLinks()
+        {
+            TrackWorld world = CreateInitializedTrackWorldWithSingleVectorNode();
+            PathModel current = CreateCompositionPath("current", 10, 50) with
+            {
+                PathNodes = ImmutableArray.Create(Anchor(50, 1) with { NodeType = PathNodeType.End, NextMainNode = -1, NextSidingNode = -1 },
+                    Anchor(10, 1) with { NodeType = PathNodeType.Start, NextMainNode = 2, NextSidingNode = -1 },
+                    Anchor(30, 1) with { NodeType = PathNodeType.Via, NextMainNode = 0, NextSidingNode = -1 }),
+            };
+            PathModel extension = CreateCompositionPath("extension", 50, 90) with
+            {
+                PathNodes = ImmutableArray.Create(Anchor(90, 1) with { NodeType = PathNodeType.End, NextMainNode = -1, NextSidingNode = -1 },
+                    Anchor(70, 1) with { NodeType = PathNodeType.Via, NextMainNode = 0, NextSidingNode = -1 },
+                    Anchor(50, 1) with { NodeType = PathNodeType.Start, NextMainNode = 1, NextSidingNode = -1 }),
+            };
+
+            PathEditResult result = PathModelEditor.AppendPathAtMatchingEndpoint(current, extension, world, TestContext.CancellationToken);
+
+            Assert.IsTrue(result.Success, result.Message);
+            Assert.AreSequenceEqual(expectedArrayf1030507090, result.PathModel.PathNodes.Select(node => node.Location.Location.X));
+            Assert.AreSequenceEqual(new[] { 1, 2, 3, 4, -1 }, result.PathModel.PathNodes.Select(node => node.NextMainNode));
+        }
+
+        [TestMethod]
+        [DataRow(49f, 90f)]
+        [DataRow(50f, 20f)]
+        [DataRow(50f, 50f)]
+        public void WhenExtensionEndpointsMismatchReverseOrHaveNoLengthThenCompositionPreservesInputs(float start, float end)
+        {
+            TrackWorld world = CreateInitializedTrackWorldWithSingleVectorNode();
+            PathModel current = CreateCompositionPath("current", 10, 50);
+            PathModel extension = CreateCompositionPath("extension", start, end);
+            ImmutableArray<PathNode> original = extension.PathNodes;
+
+            PathEditResult result = PathModelEditor.AppendPathAtMatchingEndpoint(current, extension, world, TestContext.CancellationToken);
+
+            Assert.IsFalse(result.Success);
+            Assert.IsFalse(string.IsNullOrWhiteSpace(result.Message));
+            Assert.AreSame(current, result.PathModel);
+            Assert.AreEqual(original, extension.PathNodes);
+        }
+
+        [TestMethod]
+        [DataRow(PathNodeType.Wait, false)]
+        [DataRow(PathNodeType.Wait, true)]
+        [DataRow(PathNodeType.Reversal, false)]
+        [DataRow(PathNodeType.Reversal, true)]
+        [DataRow(PathNodeType.Invalid, false)]
+        [DataRow(PathNodeType.Invalid, true)]
+        [DataRow((PathNodeType)16384, false)]
+        [DataRow((PathNodeType)16384, true)]
+        public void WhenEitherCompositionPathHasUnsupportedFlagsThenItIsRefused(PathNodeType flag, bool changeExtension)
+        {
+            TrackWorld world = CreateInitializedTrackWorldWithSingleVectorNode();
+            PathModel current = CreateCompositionPath("current", 10, 50);
+            PathModel extension = CreateCompositionPath("extension", 50, 90);
+            PathModel target = changeExtension ? extension : current;
+            target = target with { PathNodes = target.PathNodes.SetItem(0, target.PathNodes[0] with { NodeType = target.PathNodes[0].NodeType | flag }) };
+            current = changeExtension ? current : target;
+            extension = changeExtension ? target : extension;
+
+            PathEditResult result = PathModelEditor.AppendPathAtMatchingEndpoint(current, extension, world, TestContext.CancellationToken);
+
+            Assert.IsFalse(result.Success);
+            Assert.AreSame(current, result.PathModel);
+        }
+
+        [TestMethod]
+        [DataRow(false)]
+        [DataRow(true)]
+        public void WhenEitherCompositionPathHasZeroWaitPayloadThenItIsRefused(bool changeExtension)
+        {
+            TrackWorld world = CreateInitializedTrackWorldWithSingleVectorNode();
+            PathModel current = CreateCompositionPath("current", 10, 50);
+            PathModel extension = CreateCompositionPath("extension", 50, 90);
+            PathModel target = changeExtension ? extension : current;
+            target = target with { PathNodes = target.PathNodes.SetItem(0, target.PathNodes[0] with { WaitInfo = new PathNodeWaitInfo { WaitTime = 0 } }) };
+
+            PathEditResult result = PathModelEditor.AppendPathAtMatchingEndpoint(changeExtension ? current : target,
+                changeExtension ? target : extension, world, TestContext.CancellationToken);
+
+            Assert.IsFalse(result.Success);
+            Assert.AreSame(changeExtension ? current : target, result.PathModel);
+        }
+
+        [TestMethod]
+        [DataRow(-2)]
+        [DataRow(0)]
+        [DataRow(99)]
+        public void WhenCompositionPathHasInvalidMainLinkThenItIsRefused(int endLink)
+        {
+            TrackWorld world = CreateInitializedTrackWorldWithSingleVectorNode();
+            PathModel current = CreateCompositionPath("current", 10, 50);
+            current = current with { PathNodes = current.PathNodes.SetItem(1, current.PathNodes[1] with { NextMainNode = endLink }) };
+
+            PathEditResult result = PathModelEditor.AppendPathAtMatchingEndpoint(current, CreateCompositionPath("extension", 50, 90), world, TestContext.CancellationToken);
+
+            Assert.IsFalse(result.Success);
+            Assert.AreSame(current, result.PathModel);
+        }
+
+        [TestMethod]
+        public void WhenCompositionPathHasDisconnectedNodeThenItIsRefused()
+        {
+            TrackWorld world = CreateInitializedTrackWorldWithSingleVectorNode();
+            PathModel current = CreateCompositionPath("current", 10, 50);
+            current = current with { PathNodes = current.PathNodes.Add(Anchor(30, 1) with { NodeType = PathNodeType.Via, NextMainNode = -1, NextSidingNode = -1 }) };
+
+            PathEditResult result = PathModelEditor.AppendPathAtMatchingEndpoint(current, CreateCompositionPath("extension", 50, 90), world, TestContext.CancellationToken);
+
+            Assert.IsFalse(result.Success);
+            Assert.AreSame(current, result.PathModel);
+        }
+
+        [TestMethod]
+        public void WhenCompositionPathHasSidingLinkThenItIsRefused()
+        {
+            TrackWorld world = CreateInitializedTrackWorldWithSingleVectorNode();
+            PathModel current = CreateCompositionPath("current", 10, 50);
+            current = current with { PathNodes = current.PathNodes.SetItem(0, current.PathNodes[0] with { NextSidingNode = 1 }) };
+
+            PathEditResult result = PathModelEditor.AppendPathAtMatchingEndpoint(current, CreateCompositionPath("extension", 50, 90), world, TestContext.CancellationToken);
+
+            Assert.IsFalse(result.Success);
+            Assert.AreSame(current, result.PathModel);
+        }
+
+        [TestMethod]
+        [DataRow(2)]
+        [DataRow(99)]
+        public void WhenCompositionAnchorIndexIsStaleThenItIsNotSilentlyRebound(int trackIndex)
+        {
+            TrackWorld world = CreateInitializedTrackWorldWithSingleVectorNode();
+            PathModel current = CreateCompositionPath("current", 10, 50);
+            PathModel extension = CreateCompositionPath("extension", 50, 90);
+            extension = extension with { PathNodes = extension.PathNodes.SetItem(0, extension.PathNodes[0] with { NodeIndex = trackIndex }) };
+
+            PathEditResult result = PathModelEditor.AppendPathAtMatchingEndpoint(current, extension, world, TestContext.CancellationToken);
+
+            Assert.IsFalse(result.Success);
+            Assert.AreSame(current, result.PathModel);
+        }
+
+        [TestMethod]
+        [DataRow(false, false, false, true)]
+        [DataRow(true, false, true, false)]
+        [DataRow(true, true, false, false)]
+        [DataRow(true, false, false, false)]
+        [DataRow(true, true, true, true)]
+        public void WhenCompositionUsesNonvectorAnchorsThenFallbackMustBeUnique(bool nearbyJunctions, bool bindJunction, bool bindEnd, bool expectedSuccess)
+        {
+            Tile tile = new Tile(1, 1);
+            JunctionNode junction = new JunctionNode(new WorldLocation(tile, new Vector3(3, 0, 0)), tile, Vector3.Zero) { NodeIndex = 1 };
+            TrackWorld world = nearbyJunctions
+                ? CreateTrackWorldWithJunctions(junction,
+                    new JunctionNode(new WorldLocation(tile, new Vector3(3.25f, 0, 0)), tile, Vector3.Zero) { NodeIndex = 2 })
+                : CreateTrackWorldWithJunctions(junction);
+            int firstVectorIndex = nearbyJunctions ? 3 : 2;
+            int endNodeIndex = firstVectorIndex + 3;
+            WorldLocation startLocation = new WorldLocation(tile,
+                Vector3.Lerp(junction.Location.Location, world.TrackDatabase.TrackNodes[firstVectorIndex + 1].Location.Location, 0.5f));
+            WorldLocation endLocation = world.TrackDatabase.TrackNodes[endNodeIndex].Location;
+            PathModel current = CreateCompositionPath("current", 10, 50) with
+            {
+                PathNodes = ImmutableArray.Create(
+                    new PathNode(startLocation) { NodeIndex = firstVectorIndex, NodeType = PathNodeType.Start, NextMainNode = 1, NextSidingNode = -1 },
+                    new PathNode(junction.Location) { NodeIndex = bindJunction ? 1 : 0, NodeType = PathNodeType.End | PathNodeType.Junction, NextMainNode = -1, NextSidingNode = -1 }),
+            };
+            PathModel extension = CreateCompositionPath("extension", 50, 90) with
+            {
+                PathNodes = ImmutableArray.Create(
+                    new PathNode(junction.Location) { NodeIndex = bindJunction ? 1 : 0, NodeType = PathNodeType.Start | PathNodeType.Junction, NextMainNode = 1, NextSidingNode = -1 },
+                    new PathNode(endLocation) { NodeIndex = bindEnd ? endNodeIndex : 0, NodeType = PathNodeType.End, NextMainNode = -1, NextSidingNode = -1 }),
+            };
+            ImmutableArray<PathNode> originalCurrent = current.PathNodes;
+            ImmutableArray<PathNode> originalExtension = extension.PathNodes;
+
+            PathRouteResolution currentRoute = PathRouteResolver.Resolve(current, world, TestContext.CancellationToken);
+            PathRouteResolution extensionRoute = PathRouteResolver.Resolve(extension, world, TestContext.CancellationToken);
+            Assert.IsTrue(currentRoute.IsValid, string.Join(Environment.NewLine, currentRoute.Diagnostics.Select(diagnostic => diagnostic.Message)));
+            Assert.IsTrue(extensionRoute.IsValid, string.Join(Environment.NewLine, extensionRoute.Diagnostics.Select(diagnostic => diagnostic.Message)));
+            Assert.AreEqual(1, currentRoute.AuthoredNodeAnchors[1].TrackNodeIndex);
+            Assert.AreEqual(endNodeIndex, extensionRoute.AuthoredNodeAnchors[1].TrackNodeIndex);
+
+            PathEditResult result = PathModelEditor.AppendPathAtMatchingEndpoint(current, extension, world, TestContext.CancellationToken);
+
+            Assert.AreEqual(expectedSuccess, result.Success, result.Message);
+            Assert.IsFalse(string.IsNullOrWhiteSpace(result.Message));
+            Assert.AreEqual(originalCurrent, current.PathNodes);
+            Assert.AreEqual(originalExtension, extension.PathNodes);
+            if (!expectedSuccess)
+                Assert.AreSame(current, result.PathModel);
+            Assert.AreEqual(nearbyJunctions && !bindJunction, currentRoute.Diagnostics.Any(diagnostic => diagnostic.Code == PathRouteDiagnosticCode.AmbiguousAnchor && diagnostic.NodeIndex == 1));
+            Assert.AreEqual(nearbyJunctions && !bindEnd, extensionRoute.Diagnostics.Any(diagnostic => diagnostic.Code == PathRouteDiagnosticCode.AmbiguousAnchor && diagnostic.NodeIndex == 1));
+        }
+
+        [TestMethod]
+        public void WhenCompositionPathsHaveDifferentRouteParentsThenTheyAreRefused()
+        {
+            TrackWorld world = CreateInitializedTrackWorldWithSingleVectorNode();
+            PathModel current = CreateCompositionPath("current", 10, 50);
+            PathModel extension = CreateCompositionPath("extension", 50, 90);
+            current.Initialize(new RouteModel(current.PathNodes[0].Location) { Id = "route-a" });
+            extension.Initialize(new RouteModel(extension.PathNodes[0].Location) { Id = "route-b" });
+
+            PathEditResult result = PathModelEditor.AppendPathAtMatchingEndpoint(current, extension, world, TestContext.CancellationToken);
+
+            Assert.IsFalse(result.Success);
+            Assert.AreSame(current, result.PathModel);
+        }
+
+        [TestMethod]
+        public void WhenCompositionUsesSamePathIdentityThenItIsRefused()
+        {
+            TrackWorld world = CreateInitializedTrackWorldWithSingleVectorNode();
+            PathModel current = CreateCompositionPath("current", 10, 50);
+
+            PathEditResult result = PathModelEditor.AppendPathAtMatchingEndpoint(current, CreateCompositionPath("CURRENT", 50, 90), world, TestContext.CancellationToken);
+
+            Assert.IsFalse(result.Success);
+            Assert.AreSame(current, result.PathModel);
+        }
+
+        [TestMethod]
+        public void WhenCompositionHasNoTrackWorldThenItIsRefused()
+        {
+            PathModel current = CreateCompositionPath("current", 10, 50);
+
+            PathEditResult result = PathModelEditor.AppendPathAtMatchingEndpoint(current, CreateCompositionPath("extension", 50, 90), null, TestContext.CancellationToken);
+
+            Assert.IsFalse(result.Success);
+            Assert.AreSame(current, result.PathModel);
+        }
+
+        [TestMethod]
+        public void WhenCompositionIsCanceledThenItThrowsWithoutChangingTheModel()
+        {
+            TrackWorld world = CreateInitializedTrackWorldWithSingleVectorNode();
+            PathModel current = CreateCompositionPath("current", 10, 50);
+
+            Assert.ThrowsExactly<OperationCanceledException>(() => PathModelEditor.AppendPathAtMatchingEndpoint(current, CreateCompositionPath("extension", 50, 90), world, new CancellationToken(true)));
+            Assert.HasCount(2, current.PathNodes);
+        }
+
+        private static PathModel CreateCompositionPath(string id, float start, float end)
+        {
+            return new PathModel
+            {
+                Id = id,
+                Name = id,
+                Start = "Start " + id,
+                End = "End " + id,
+                PathNodes = ImmutableArray.Create(Anchor(start, 1) with { NodeType = PathNodeType.Start, NextMainNode = 1, NextSidingNode = -1 },
+                    Anchor(end, 1) with { NodeType = PathNodeType.End, NextMainNode = -1, NextSidingNode = -1 }),
+            };
         }
 
         private static ResolvedRouteCandidate CreateCandidate(params int[] intermediaryTrackNodeIndexes)

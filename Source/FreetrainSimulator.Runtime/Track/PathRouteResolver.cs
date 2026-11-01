@@ -458,14 +458,20 @@ namespace FreeTrainSimulator.Runtime.Track
             {
                 JunctionNode junctionNode = trackWorld.JunctionAt(node.Location);
                 if (junctionNode != null)
+                {
+                    _ = ResolveNonVectorTrackNodeIndexByLocation<JunctionNode>(node.Location, trackWorld.TrackDatabase, out ambiguous);
                     return junctionNode.NodeIndex;
+                }
             }
 
             if (node.NodeType.Includes(PathNodeType.End))
             {
                 EndNode endNode = trackWorld.EndNodeAt(node.Location);
                 if (endNode != null)
+                {
+                    _ = ResolveNonVectorTrackNodeIndexByLocation<EndNode>(node.Location, trackWorld.TrackDatabase, out ambiguous);
                     return endNode.NodeIndex;
+                }
             }
 
             VectorSectionNode section = trackWorld.SectionAt(node.Location);

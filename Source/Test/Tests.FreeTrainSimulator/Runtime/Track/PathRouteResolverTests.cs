@@ -1328,8 +1328,7 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
 
         /// <summary>
         /// Verifies that <see cref="PathModelEditor.InsertPassingBranchViaPoint"/> can steer an already-created
-        /// passing branch away from the resolver's tied default pick and through a specific, physically distinct
-        /// alternative that the resolver does not otherwise expose as a selectable candidate.
+        /// passing branch through a specific, physically distinct alternative among equal-cost candidates.
         /// </summary>
         [TestMethod]
         public void ResolveWhenPassingBranchViaPointIsInsertedThenItSteersThroughTheForcedAlternative()
@@ -1369,6 +1368,87 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
             Assert.IsTrue(steered.PassingRoutes[0].Spans.All(span => span.Status == PathRouteSpanStatus.Resolved));
             Assert.AreSequenceEqual(expectedArray15, steered.PassingRoutes[0].Spans[0].Candidates.Single().RouteNodeIndexes.ToArray());
             Assert.AreSequenceEqual(expectedArray52, steered.PassingRoutes[0].Spans[1].Candidates.Single().RouteNodeIndexes.ToArray());
+            Assert.IsFalse(steered.Diagnostics.Any(diagnostic => diagnostic.Code == PathRouteDiagnosticCode.PassingBranchMatchesMainRoute));
+        }
+
+        [TestMethod]
+        public void ResolveWhenPassingBranchViaForcesLongerAlternativeThenItUsesRouteAbsentFromBaselineCandidates()
+        {
+            Tile tile = new Tile(0, 0);
+            WorldLocation start = new WorldLocation(tile, Vector3.Zero);
+            WorldLocation end = new WorldLocation(tile, new Vector3(100, 0, 0));
+            VectorNode longerAlternative = new VectorNode(start, tile, end)
+            {
+                NodeIndex = 5,
+                VectorSections = ImmutableArray.Create(
+                    CreateSection(0, 0, 0, 100, 0),
+                    CreateSection(0, 100, 100, 100, MathHelper.PiOver2),
+                    CreateSection(100, 100, 100, 0, MathHelper.Pi)),
+            };
+            TrackDatabase database = new TrackDatabase
+            {
+                TrackNodes = ImmutableArray.Create<TrackNodeBase>(null,
+                    new JunctionNode(start, tile, Vector3.Zero) { NodeIndex = 1 },
+                    new JunctionNode(end, tile, Vector3.Zero) { NodeIndex = 2 },
+                    CreateInitializedVectorNode(3, 0), CreateInitializedVectorNode(4, 0), longerAlternative),
+                TrackNodeConnectors = ImmutableArray.Create(
+                    new TrackNodeConnectorIndex(),
+                    CreatePinConnectors(1, (3, ConnectorType.OutPin, TrackDirection.Reverse),
+                        (4, ConnectorType.OutPin, TrackDirection.Reverse), (5, ConnectorType.OutPin, TrackDirection.Reverse)),
+                    CreatePinConnectors(2, (3, ConnectorType.OutPin, TrackDirection.Ahead),
+                        (4, ConnectorType.OutPin, TrackDirection.Ahead), (5, ConnectorType.OutPin, TrackDirection.Ahead)),
+                    CreatePinConnectors(3, (1, ConnectorType.InPin, TrackDirection.Ahead), (2, ConnectorType.OutPin, TrackDirection.Ahead)),
+                    CreatePinConnectors(4, (1, ConnectorType.InPin, TrackDirection.Ahead), (2, ConnectorType.OutPin, TrackDirection.Ahead)),
+                    CreatePinConnectors(5, (1, ConnectorType.InPin, TrackDirection.Ahead), (2, ConnectorType.OutPin, TrackDirection.Ahead))),
+            };
+            InitializeTrackDatabase(database);
+            TrackWorld world = TrackWorld.Initialize(null, new TrackModel { TrackDatabase = database }, new TrackSectionModel
+            {
+                TrackSections = ImmutableDictionary<int, TrackSection>.Empty.Add(1,
+                    new TrackSection { SectionIndex = 1, Gauge = 1.435f, Length = 100 }),
+            });
+            PathModel path = new PathModel
+            {
+                PathNodes = ImmutableArray.Create(
+                    CreateNode(PathNodeType.Start, 1, 2, 1, start),
+                    CreateNode(PathNodeType.Via, 2, -1, 3, new WorldLocation(tile, new Vector3(50, 0, 0))),
+                    CreateNode(PathNodeType.End, -1, -1, 2, end)),
+            };
+            ImmutableArray<PathNode> originalNodes = path.PathNodes;
+
+            PathRouteResolution baseline = PathRouteResolver.Resolve(path, world, TestContext.CancellationToken);
+
+            Assert.IsTrue(baseline.IsValid);
+            Assert.HasCount(1, baseline.PassingRoutes);
+            Assert.HasCount(1, baseline.PassingRoutes[0].Spans);
+            Assert.AreEqual(PathRouteSpanStatus.Resolved, baseline.PassingRoutes[0].Spans[0].Status);
+            ResolvedRouteCandidate cheapestPassingCandidate = baseline.PassingRoutes[0].Spans[0].Candidates.Single();
+            Assert.AreSequenceEqual(expectedArray142, cheapestPassingCandidate.RouteNodeIndexes.ToArray());
+            Assert.DoesNotContain(5, cheapestPassingCandidate.RouteNodeIndexes);
+            Assert.AreEqual(100.0, world.VectorNodeLength((VectorNode)database.TrackNodes[4]), 1e-6);
+            Assert.AreEqual(300.0, world.VectorNodeLength(longerAlternative), 1e-6);
+
+            PathNode viaAnchor = CreateNode(PathNodeType.Via, -1, -1, 5, new WorldLocation(tile, new Vector3(50, 0, 100)));
+            PathEditResult inserted = PathModelEditor.InsertPassingBranchViaPoint(path, 0, viaAnchor, false);
+
+            Assert.IsTrue(inserted.Success, inserted.Message);
+            Assert.AreEqual(originalNodes, path.PathNodes);
+
+            PathRouteResolution steered = PathRouteResolver.Resolve(inserted.PathModel, world, TestContext.CancellationToken);
+
+            Assert.IsTrue(steered.IsValid);
+            Assert.HasCount(1, steered.PassingRoutes);
+            Assert.HasCount(2, steered.PassingRoutes[0].Spans);
+            Assert.IsTrue(steered.PassingRoutes[0].Spans.All(span => span.Status == PathRouteSpanStatus.Resolved));
+            ResolvedRouteCandidate departure = steered.PassingRoutes[0].Spans[0].Candidates.Single();
+            ResolvedRouteCandidate rejoin = steered.PassingRoutes[0].Spans[1].Candidates.Single();
+            Assert.AreSequenceEqual(expectedArray15, departure.RouteNodeIndexes.ToArray());
+            Assert.AreSequenceEqual(expectedArray52, rejoin.RouteNodeIndexes.ToArray());
+            Assert.IsGreaterThan(cheapestPassingCandidate.Cost, departure.Cost + rejoin.Cost);
+            TrackRouteTraversal[] mainTraversals = steered.MainRoute.Spans
+                .SelectMany(span => span.Candidates.Single().PhysicalTraversals).ToArray();
+            Assert.AreSequenceEqual(baseline.MainRoute.Spans.SelectMany(span => span.Candidates.Single().PhysicalTraversals).ToArray(), mainTraversals);
+            Assert.IsEmpty(departure.PhysicalTraversals.Concat(rejoin.PhysicalTraversals).Intersect(mainTraversals));
             Assert.IsFalse(steered.Diagnostics.Any(diagnostic => diagnostic.Code == PathRouteDiagnosticCode.PassingBranchMatchesMainRoute));
         }
 
