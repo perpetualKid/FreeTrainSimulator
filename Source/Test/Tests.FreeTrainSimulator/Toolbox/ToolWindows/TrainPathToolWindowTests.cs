@@ -27,6 +27,34 @@ namespace Tests.FreeTrainSimulator.Toolbox.ToolWindows
     public class TrainPathToolWindowTests
     {
         [TestMethod]
+        [DataRow(false)]
+        [DataRow(true)]
+        public void WhenCombineIsQueuedThenChangedCheckboxSelectionOrRouteCannotCombineAnotherPair(bool changeRoute)
+        {
+            Queue<Action> commands = new Queue<Action>();
+            int combines = 0;
+            TrainPathToolWindow bridge = new TrainPathToolWindow(() => null, () => null, commands.Enqueue,
+                () => { }, () => { }, _ => { }, () => { }, () => { }, null, (_, _) => Task.CompletedTask, null,
+                _ => { combines++; return Task.CompletedTask; }) { Active = true };
+            ImmutableArray<TrainPathComparisonRow> rows = [
+                new TrainPathComparisonRow("first", "First", 1, true, false, null, System.Drawing.Color.Empty),
+                new TrainPathComparisonRow("second", "Second", 1, true, false, null, System.Drawing.Color.Empty)];
+            bridge.UpdateComparisons(rows);
+            bridge.RefreshSnapshot();
+            Assert.IsTrue(bridge.CaptureTrainPathSnapshot().CanCombineSelectedPaths);
+            bridge.CombineSelectedPaths(true);
+            bridge.UpdateComparisons(changeRoute
+                ? rows.Select(row => row with { RouteContentVersion = 2 }).ToImmutableArray()
+                : rows.SetItem(1, rows[1] with { Id = "other" }));
+            commands.Dequeue()();
+            bridge.RefreshSnapshot();
+
+            Assert.AreEqual(0, combines);
+            Assert.IsTrue(bridge.CaptureTrainPathSnapshot().CommandResultIsWarning);
+            Assert.Contains("changed", bridge.CaptureTrainPathSnapshot().CommandResultMessage);
+        }
+
+        [TestMethod]
         public void WhenInactiveRefreshSnapshotThenSnapshotStaysEmpty()
         {
             TrainPathToolWindow trainPathToolWindow = CreateTrainPathToolWindow(_ => { });

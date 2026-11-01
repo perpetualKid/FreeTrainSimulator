@@ -221,6 +221,11 @@
                     <MenuItem x:Name="ReversePathMenuItem" Header="{gt:Gettext 'Reverse Path'}" Command="{Binding ReversePathCommand}"
                               AutomationProperties.Name="{gt:Gettext 'Reverse Path'}"
                               Visibility="{Binding IsIdlePanelVisible, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                    <MenuItem x:Name="CombinePathsMenuItem" Header="{gt:Gettext 'Combine Paths'}" Command="{Binding CombineSelectedPathsCommand}"
+                              AutomationProperties.Name="{gt:Gettext 'Combine Paths'}"
+                              ToolTip="{gt:Gettext 'Check exactly two saved paths in the Paths list to combine them into a new unsaved path.'}" />
+                    <MenuItem x:Name="CancelPathCombineMenuItem" Header="{gt:Gettext 'Cancel combining paths'}" Command="{Binding CancelPathCombineCommand}"
+                              Visibility="{Binding IsCombiningPaths, Converter={StaticResource BooleanToVisibilityConverter}}" />
                     <MenuItem Header="Validate all paths" Command="{Binding ValidateAllPathsCommand}" />
                     <Separator />
                     <MenuItem x:Name="CancelNewPathMenuItem" Header="Cancel new path" Command="{Binding CancelNewPathCommand}" />
@@ -246,7 +251,8 @@
                     <RowDefinition Height="2*" />
                     <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
-                <ListView Grid.Row="0"
+                <DockPanel Grid.Row="0">
+                    <ListView
                           ItemsSource="{Binding Paths}"
                           SelectedItem="{Binding SelectedPath, Mode=OneWay}"
                           PreviewMouseLeftButtonDown="PathList_PreviewMouseLeftButtonDown"
@@ -292,7 +298,8 @@
                             </GridViewColumn>
                         </GridView>
                     </ListView.View>
-                </ListView>
+                    </ListView>
+                </DockPanel>
                 <GridSplitter Grid.Row="1"
                               Height="4"
                               HorizontalAlignment="Stretch"

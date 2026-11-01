@@ -154,6 +154,7 @@ namespace FreeTrainSimulator.Toolbox
                     request?.IsSelected == true ? DrawingColor.FromArgb(color.A, color.R, color.G, color.B) : DrawingColor.Empty);
             }).ToImmutableArray();
             game.HostedServices?.TrainPathToolWindow?.UpdateComparisons(rows);
+            PublishPathCompositionSources();
         }
 
         private void ClearSavedPathComparisons()

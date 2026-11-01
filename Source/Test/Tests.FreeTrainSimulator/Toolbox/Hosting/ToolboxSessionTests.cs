@@ -37,6 +37,25 @@ namespace Tests.FreeTrainSimulator.Toolbox.Hosting
 
         [TestMethod]
         [Timeout(10000, CooperativeCancellation = true)]
+        public async Task WhenIdleSessionIsDisposedThenCleanupIsSafeAndIdempotent()
+        {
+            SessionScope scope = await SessionScope.StartAsync().ConfigureAwait(false);
+            await using (scope.ConfigureAwait(false))
+            {
+                await scope.Host.OnOwnerAsync(() =>
+                {
+                    Assert.IsFalse(scope.Session.IsStopping);
+                    scope.Session.Dispose();
+                    Assert.IsTrue(scope.Session.IsStopping);
+                    Assert.IsTrue(scope.Session.IsDisposed);
+                    Assert.IsNull(scope.Session.ExistingPathEditor);
+                    scope.Session.Dispose();
+                }).ConfigureAwait(false);
+            }
+        }
+
+        [TestMethod]
+        [Timeout(10000, CooperativeCancellation = true)]
         public async Task WhenSessionOwnsSaveNotificationThenUnsubscribedConsumersAreNotRetained()
         {
             SessionScope scope = await SessionScope.StartAsync().ConfigureAwait(false);

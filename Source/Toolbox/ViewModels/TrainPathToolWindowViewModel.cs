@@ -35,6 +35,8 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
         private bool canRedo;
         private bool canSnapToTrack;
         private bool canReversePath;
+        private bool canCombineSelectedPaths;
+        private bool isCombiningPaths;
         private bool canCreatePath;
         private bool canValidatePaths;
         private bool canSavePath;
@@ -101,6 +103,14 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
 
         /// <summary>One representative candidate per span, allowing every pending span to be selected.</summary>
         public ObservableCollection<TrainPathRouteCandidateItemViewModel> CandidateSpans { get; } = new ObservableCollection<TrainPathRouteCandidateItemViewModel>();
+
+        /// <summary>Whether exactly two saved baselines are checked and ready to combine.</summary>
+        public bool CanCombineSelectedPaths => canCombineSelectedPaths;
+        /// <summary>Whether the checked paths are being read and combined.</summary>
+        public bool IsCombiningPaths => isCombiningPaths;
+
+        public RelayCommand CombineSelectedPathsCommand { get; }
+        public RelayCommand CancelPathCombineCommand { get; }
 
         /// <summary>The representative of the span currently displayed in the candidate panel.</summary>
         public TrainPathRouteCandidateItemViewModel SelectedCandidateSpan => CandidateSpans.FirstOrDefault(item =>
@@ -170,6 +180,13 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
             RedoCommand = new RelayCommand(_ => toolWindow.Redo(), _ => CanRedo);
             SnapToTrackCommand = new RelayCommand(_ => toolWindow.SnapToTrack(), _ => CanSnapToTrack);
             ReversePathCommand = new RelayCommand(_ => toolWindow.ReversePath(), _ => CanReversePath);
+            CombineSelectedPathsCommand = new RelayCommand(_ =>
+            {
+                toolWindow.CombineSelectedPaths(true);
+                isCombiningPaths = true;
+                NotifyCombineCapabilities();
+            }, _ => CanCombineSelectedPaths && !IsCombiningPaths);
+            CancelPathCombineCommand = new RelayCommand(_ => toolWindow.CombineSelectedPaths(false), _ => IsCombiningPaths);
             MoveSelectedNodeCommand = new RelayCommand(_ => MoveSelectedNode(), _ => CanMoveSelectedNode);
             CommitMoveNodeCommand = new RelayCommand(_ => toolWindow.CommitMoveNode(), _ => CanCommitMoveNode);
             CancelMoveNodeCommand = new RelayCommand(_ => toolWindow.CancelMoveNode(), _ => CanCancelMoveNode);
@@ -827,7 +844,9 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
 
             SyncPaths(snapshot.Paths);
             foreach (TrainPathListItemViewModel path in Paths)
+            {
                 path.UpdateComparison(snapshot.Comparisons.FirstOrDefault(row => string.Equals(row.Id, path.Id, StringComparison.OrdinalIgnoreCase)));
+            }
             SyncNodes(snapshot.Nodes, snapshot.SelectedNodeIndex);
             UpdateSelectedNodeDetailRows();
             DebugToolWindowRowViewModel.Sync(Metadata, snapshot.Metadata);
@@ -882,6 +901,20 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
                 snapshotSelectedPathId = snapshot.SelectedPathId;
                 UpdateSelectedPathFromSnapshot();
             }
+            if (canCombineSelectedPaths != snapshot.CanCombineSelectedPaths || isCombiningPaths != snapshot.IsCombiningPaths)
+            {
+                canCombineSelectedPaths = snapshot.CanCombineSelectedPaths;
+                isCombiningPaths = snapshot.IsCombiningPaths;
+                NotifyCombineCapabilities();
+            }
+        }
+
+        private void NotifyCombineCapabilities()
+        {
+            OnPropertyChanged(nameof(CanCombineSelectedPaths));
+            OnPropertyChanged(nameof(IsCombiningPaths));
+            CombineSelectedPathsCommand.RaiseCanExecuteChanged();
+            CancelPathCombineCommand.RaiseCanExecuteChanged();
         }
 
         private void SyncEditableMetadata(TrainPathSnapshot snapshot)

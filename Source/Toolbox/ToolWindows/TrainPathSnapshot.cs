@@ -17,6 +17,21 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
         /// <summary>Independent saved baselines; absent rows are never-persisted paths and cannot be compared.</summary>
         public ImmutableArray<TrainPathComparisonRow> Comparisons { get; init; } = ImmutableArray<TrainPathComparisonRow>.Empty;
 
+        /// <summary>Saved-native composition sources, separate from active and transient path selection.</summary>
+        public ImmutableArray<TrainPathCompositionSourceRow> CompositionSources { get; init; } = ImmutableArray<TrainPathCompositionSourceRow>.Empty;
+
+        /// <summary>Whether the active path can admit a saved-path composition request.</summary>
+        public bool CanAppendSavedPath { get; init; }
+
+        /// <summary>Whether a composition source is being read or prepared.</summary>
+        public bool IsAppendingSavedPath { get; init; }
+
+        /// <summary>Whether exactly two saved baselines are checked and ready to combine, without requiring an active path.</summary>
+        public bool CanCombineSelectedPaths { get; init; }
+
+        /// <summary>Whether the checked paths are being read and combined.</summary>
+        public bool IsCombiningPaths { get; init; }
+
         /// <summary>Id of the currently selected path, or null when none is selected.</summary>
         public string SelectedPathId { get; init; }
 

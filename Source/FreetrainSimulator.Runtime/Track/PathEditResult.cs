@@ -19,6 +19,13 @@ namespace FreeTrainSimulator.Runtime.Track
         public string Message { get; init; }
 
         /// <summary>
+        /// Identifies <see cref="Message"/> among the subset of outcomes the UI localizes and displays verbatim.
+        /// <see cref="PathEditorMessageKind.None"/> for the many diagnostic-only outcomes that are not surfaced
+        /// through dedicated UI strings.
+        /// </summary>
+        public PathEditorMessageKind MessageKind { get; init; }
+
+        /// <summary>
         /// The resulting authored path. On success this is a new instance; on failure it is the original
         /// model returned unchanged.
         /// </summary>
@@ -30,10 +37,11 @@ namespace FreeTrainSimulator.Runtime.Track
         /// <summary>
         /// Initializes a new instance of the <see cref="PathEditResult"/> record.
         /// </summary>
-        public PathEditResult(bool success, string message, PathModel pathModel, ImmutableArray<int> changedNodeIndexes)
+        public PathEditResult(bool success, string message, PathEditorMessageKind messageKind, PathModel pathModel, ImmutableArray<int> changedNodeIndexes)
         {
             Success = success;
             Message = message;
+            MessageKind = messageKind;
             PathModel = pathModel;
             ChangedNodeIndexes = changedNodeIndexes.IsDefault ? ImmutableArray<int>.Empty : changedNodeIndexes;
         }
@@ -43,7 +51,16 @@ namespace FreeTrainSimulator.Runtime.Track
         /// </summary>
         public static PathEditResult Failed(string message, PathModel pathModel)
         {
-            return new PathEditResult(false, message, pathModel, ImmutableArray<int>.Empty);
+            return new PathEditResult(false, message, PathEditorMessageKind.None, pathModel, ImmutableArray<int>.Empty);
+        }
+
+        /// <summary>
+        /// Creates a failed result tagged with <paramref name="messageKind"/> so the UI can display a localized
+        /// string instead of the English <paramref name="message"/>.
+        /// </summary>
+        public static PathEditResult Failed(string message, PathEditorMessageKind messageKind, PathModel pathModel)
+        {
+            return new PathEditResult(false, message, messageKind, pathModel, ImmutableArray<int>.Empty);
         }
 
         /// <summary>
@@ -51,7 +68,16 @@ namespace FreeTrainSimulator.Runtime.Track
         /// </summary>
         public static PathEditResult Succeeded(string message, PathModel pathModel, ImmutableArray<int> changedNodeIndexes)
         {
-            return new PathEditResult(true, message, pathModel, changedNodeIndexes);
+            return new PathEditResult(true, message, PathEditorMessageKind.None, pathModel, changedNodeIndexes);
+        }
+
+        /// <summary>
+        /// Creates a successful result tagged with <paramref name="messageKind"/> so the UI can display a
+        /// localized string instead of the English <paramref name="message"/>.
+        /// </summary>
+        public static PathEditResult Succeeded(string message, PathEditorMessageKind messageKind, PathModel pathModel, ImmutableArray<int> changedNodeIndexes)
+        {
+            return new PathEditResult(true, message, messageKind, pathModel, changedNodeIndexes);
         }
     }
 }

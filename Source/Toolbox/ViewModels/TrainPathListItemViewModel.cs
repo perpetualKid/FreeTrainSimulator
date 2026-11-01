@@ -75,7 +75,7 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
         public string ComparisonStatus => comparison?.Error ?? (comparison == null
             ? CatalogManager.Catalog.GetString("Save this new path before comparing it.")
             : comparison.IsLoading ? CatalogManager.Catalog.GetString("Loading saved path comparison...")
-            : CatalogManager.Catalog.GetString("Saved baseline only (read-only). Up to six comparisons; independent of Show Path and editor changes."));
+            : CatalogManager.Catalog.GetString("Saved baseline only (read-only). Up to six comparisons; check exactly two saved paths to use Path actions > Combine Paths. Independent of Show Path and editor changes."));
 
         /// <summary>Applies immutable owner state without issuing a command or changing editor selection.</summary>
         internal void UpdateComparison(TrainPathComparisonRow row)

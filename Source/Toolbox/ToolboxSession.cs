@@ -145,6 +145,8 @@ namespace FreeTrainSimulator.Toolbox
                 routeLoads.Stop();
                 ++routeContentVersion;
                 ClearSavedPathComparisons();
+                CancelPathComposition();
+                CancelPathCombine();
                 pendingFolder = null;
                 pendingRoute = null;
                 loadingRoute = null;
@@ -203,8 +205,7 @@ namespace FreeTrainSimulator.Toolbox
             }
         }
 
-        private void PathEditor_OnEditorPathUpdated(object sender, PathEditorChangedEventArgs e)
-            => PathEditor_OnEditorPathChanged(sender, e);
+        private void PathEditor_OnEditorPathUpdated(object sender, PathEditorChangedEventArgs e) => PathEditor_OnEditorPathChanged(sender, e);
 
         internal Task StartAsync() => RunAsync(async () =>
         {
@@ -499,12 +500,16 @@ namespace FreeTrainSimulator.Toolbox
 
         private Task<bool> LoadPathCoreAsync(PathModelHeader path, CancellationToken cancellationToken)
         {
+            CancelPathComposition();
+            CancelPathCombine();
             PathEditor editor = GetPathEditor();
             return editor?.InitializePathAsync(path, cancellationToken) ?? Task.FromResult(false);
         }
 
         internal Task EditPathAsync() => RunAsync(() =>
         {
+            CancelPathComposition();
+            CancelPathCombine();
             PathEditor editor = GetPathEditor();
             if (editor != null)
             {
@@ -584,6 +589,8 @@ namespace FreeTrainSimulator.Toolbox
         {
             ++routeContentVersion;
             ClearSavedPathComparisons();
+            CancelPathComposition();
+            CancelPathCombine();
             saveDialogEditor = null;
             saveDialogSource = null;
             if (pathEditor != null)

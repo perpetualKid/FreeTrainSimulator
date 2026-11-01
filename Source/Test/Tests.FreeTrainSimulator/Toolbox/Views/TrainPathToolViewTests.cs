@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Reflection;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Automation;
 using System.Windows.Automation.Peers;
@@ -24,6 +26,139 @@ namespace Tests.FreeTrainSimulator.Toolbox.Views
     [OSCondition(OperatingSystems.Windows)]
     public class TrainPathToolViewTests
     {
+        [TestMethod]
+        [Timeout(15000, CooperativeCancellation = true)]
+        [DataRow(0, false)]
+        [DataRow(1, false)]
+        [DataRow(2, false)]
+        [DataRow(3, false)]
+        [DataRow(6, false)]
+        [DataRow(2, true)]
+        public void WhenSavedCheckboxesAreSelectedThenCombineMenuRequiresExactlyTwoLoadedBaselinesWithoutAnActivePath(int count, bool loading)
+        {
+            Window window = null;
+            try
+            {
+                TrainPathToolWindow bridge = new TrainPathToolWindow(() => null, () => null, action => action(),
+                    () => { }, () => { }, _ => Assert.Fail("Checkbox selection must not load an editor path."),
+                    () => Assert.Fail("Checkbox selection must not unload an editor path."), () => { }, null,
+                    (_, _) => Task.CompletedTask, null, _ => Task.CompletedTask) { Active = true };
+                bridge.UpdateComparisons(Enumerable.Range(0, 6).Select(index => new TrainPathComparisonRow(index.ToString(System.Globalization.CultureInfo.InvariantCulture), "Saved " + index, 1,
+                    index < count, index < count && loading, null, System.Drawing.Color.Empty)).ToImmutableArray());
+                bridge.RefreshSnapshot();
+                TrainPathSnapshot snapshot = bridge.CaptureTrainPathSnapshot();
+                bridge.RefreshSnapshot();
+                Assert.AreSame(snapshot, bridge.CaptureTrainPathSnapshot(), "An unchanged paths-only snapshot must be reused.");
+                using ToolWindowRefreshScheduler scheduler = new ToolWindowRefreshScheduler(Dispatcher.CurrentDispatcher);
+                using TrainPathToolWindowViewModel viewModel = new TrainPathToolWindowViewModel(bridge, scheduler);
+                viewModel.Start();
+                TrainPathToolView view = new TrainPathToolView { DataContext = viewModel };
+                window = new Window { Content = view, Width = 520, Height = 700, ShowInTaskbar = false };
+                window.Show();
+                SettleLayout(window);
+                MenuItem combine = (MenuItem)view.FindName("CombinePathsMenuItem");
+                MenuItem actions = (MenuItem)combine.Parent;
+                actions.IsSubmenuOpen = true;
+                SettleLayout(window);
+
+                Assert.AreEqual(count == 2 && !loading, combine.IsEnabled);
+                Assert.IsTrue(combine.IsVisible);
+                Assert.AreEqual("Path actions", AutomationProperties.GetName(actions));
+                Assert.AreSame(viewModel.CombineSelectedPathsCommand, combine.Command);
+                Assert.IsNull(viewModel.SelectedPath);
+                Assert.IsNull(view.FindName("CompositionSourcePicker"));
+                Assert.IsNull(view.FindName("AppendSavedPathButton"));
+                Assert.IsFalse(view.Resources.Contains("TrainPathCombineCellTemplate"));
+            }
+            finally
+            {
+                window?.Close();
+            }
+        }
+
+        [TestMethod]
+        [Timeout(15000, CooperativeCancellation = true)]
+        public void WhenExistingCheckboxesAreUsedThenCombineAndImmediateCancelDispatchFromPathActions()
+        {
+            Window window = null;
+            try
+            {
+                List<bool> requests = new List<bool>();
+                TrainPathComparisonRow[] rows = Enumerable.Range(0, 3).Select(index => new TrainPathComparisonRow(index.ToString(System.Globalization.CultureInfo.InvariantCulture), "Saved " + index, 1,
+                    false, false, null, System.Drawing.Color.Empty)).ToArray();
+                TrainPathToolWindow bridge = null;
+                bridge = new TrainPathToolWindow(() => null, () => null, action => action(),
+                    () => { }, () => { }, _ => Assert.Fail("Checkbox selection must not load an editor path."),
+                    () => Assert.Fail("Checkbox selection must not unload an editor path."), () => { }, null,
+                    (id, selected) =>
+                    {
+                        int index = Array.FindIndex(rows, row => row.Id == id);
+                        rows[index] = rows[index] with { IsSelected = selected };
+                        bridge.UpdateComparisons(rows.ToImmutableArray());
+                        bridge.RefreshSnapshot();
+                        return Task.CompletedTask;
+                    }, null, combine =>
+                    {
+                        requests.Add(combine);
+                        bridge.UpdateCombineState(combine);
+                        bridge.RefreshSnapshot();
+                        return Task.CompletedTask;
+                    })
+                { Active = true };
+                bridge.UpdatePaths(rows.Select(row => new global::FreeTrainSimulator.Models.Content.PathModelHeader { Id = row.Id, Name = row.Name }).ToImmutableArray());
+                bridge.UpdateComparisons(rows.ToImmutableArray());
+                bridge.RefreshSnapshot();
+                using (ToolWindowRefreshScheduler scheduler = new ToolWindowRefreshScheduler(Dispatcher.CurrentDispatcher))
+                {
+                    using (TrainPathToolWindowViewModel viewModel = new TrainPathToolWindowViewModel(bridge, scheduler))
+                    {
+                        viewModel.Start();
+                        TrainPathToolView view = new TrainPathToolView { DataContext = viewModel };
+                        window = new Window { Content = view, Width = 520, Height = 700, ShowInTaskbar = false };
+                        window.Show();
+                        SettleLayout(window);
+                        ListView list = Descendants(view).OfType<ListView>().Single(element => ReferenceEquals(element.ItemsSource, viewModel.Paths));
+                        Assert.HasCount(3, ((GridView)list.View).Columns);
+                        CheckBox[] checkboxes = Descendants(list).OfType<CheckBox>().Where(toggle => toggle.Name == "SavedPathComparisonToggle").ToArray();
+                        MethodInfo click = typeof(CheckBox).GetMethod("OnClick", BindingFlags.Instance | BindingFlags.NonPublic);
+                        foreach (CheckBox checkbox in checkboxes.Take(2))
+                        {
+                            click.Invoke(checkbox, null);
+                            viewModel.Start();
+                            SettleLayout(window);
+                        }
+                        Assert.IsTrue(viewModel.CombineSelectedPathsCommand.CanExecute(null));
+                        click.Invoke(checkboxes[2], null);
+                        viewModel.Start();
+                        Assert.IsFalse(viewModel.CombineSelectedPathsCommand.CanExecute(null));
+                        click.Invoke(checkboxes[2], null);
+                        viewModel.Start();
+                        Assert.IsTrue(viewModel.CombineSelectedPathsCommand.CanExecute(null));
+                        MenuItem combine = (MenuItem)view.FindName("CombinePathsMenuItem");
+                        ((MenuItem)combine.Parent).IsSubmenuOpen = true;
+                        SettleLayout(window);
+                        ((IInvokeProvider)new MenuItemAutomationPeer(combine).GetPattern(PatternInterface.Invoke)).Invoke();
+                        SettleLayout(window);
+                        MenuItem cancel = (MenuItem)view.FindName("CancelPathCombineMenuItem");
+                        Assert.IsTrue(viewModel.CancelPathCombineCommand.CanExecute(null));
+                        ((MenuItem)cancel.Parent).IsSubmenuOpen = true;
+                        SettleLayout(window);
+                        ((IInvokeProvider)new MenuItemAutomationPeer(cancel).GetPattern(PatternInterface.Invoke)).Invoke();
+                        SettleLayout(window);
+
+                        Assert.AreSequenceEqual(expectedtruefalse, requests);
+                        Assert.IsNull(viewModel.SelectedPath);
+                        Assert.IsNull(list.SelectedItem);
+                        Assert.AreEqual(2, viewModel.Paths.Count(path => path.IsCompared));
+                    }
+                }
+            }
+            finally
+            {
+                window?.Close();
+            }
+        }
+
         [TestMethod]
         [Timeout(15000, CooperativeCancellation = true)]
         public void WhenWholePathReverseMenuItemIsInvokedThenItDispatchesTheBoundCommandAndTracksAvailability()
@@ -384,7 +519,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.Views
                         ListViewItem row = (ListViewItem)list.ItemContainerGenerator.ContainerFromIndex(0);
                         TextBlock status = Descendants(row).OfType<TextBlock>().Single(element => AutomationProperties.GetName(element) == expectedName);
 
-                        Assert.AreEqual(3, grid.Columns.Count);
+                        Assert.HasCount(3, grid.Columns);
                         Assert.AreEqual("Type", grid.Columns[2].Header);
                         Assert.AreEqual(expectedSymbol, status.Text);
                         Assert.IsTrue(status.IsVisible);
@@ -433,11 +568,11 @@ namespace Tests.FreeTrainSimulator.Toolbox.Views
                         SettleLayout(window);
 
                         Assert.AreSame(issue, viewModel.SelectedDiagnostic);
-                        Assert.IsTrue(list.ActualHeight >= 40);
+                        Assert.IsGreaterThanOrEqualTo(40, list.ActualHeight);
                         Assert.IsTrue(message.IsVisible);
-                        Assert.IsTrue(message.TranslatePoint(new Point(), view).Y >= list.TranslatePoint(new Point(0, list.ActualHeight), view).Y);
-                        Assert.IsTrue(Descendants(view).OfType<TextBlock>().Any(element => element.Text == issue.Message && element.IsVisible));
-                        Assert.IsTrue(Descendants(view).OfType<Button>().Any(element => Equals(element.Content, "Repair node") && element.IsVisible));
+                        Assert.IsGreaterThanOrEqualTo(list.TranslatePoint(new Point(0, list.ActualHeight), view).Y, message.TranslatePoint(new Point(), view).Y);
+                        Assert.Contains(element => element.Text == issue.Message && element.IsVisible, Descendants(view).OfType<TextBlock>());
+                        Assert.Contains(element => Equals(element.Content, "Repair node") && element.IsVisible, Descendants(view).OfType<Button>());
                     }
                 }
             }

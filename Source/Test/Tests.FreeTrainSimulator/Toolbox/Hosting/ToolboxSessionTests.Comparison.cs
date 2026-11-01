@@ -100,7 +100,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.Hosting
         {
             (SyntheticPathFixture fixture, RuntimeDataResolver runtime, PathModel saved, _) = await CreateComparisonModelsAsync().ConfigureAwait(false);
             string target = ModelFileResolver<PathModelHeader>.FilePath(saved) + ContentHandlerBase<PathModelHeader>.SaveStateExtension;
-            await File.WriteAllBytesAsync(target, MemoryPackSerializer.Serialize<PathModel>(null)).ConfigureAwait(false);
+            await File.WriteAllBytesAsync(target, MemoryPackSerializer.Serialize<PathModel>(null), TestContext.CancellationToken).ConfigureAwait(false);
             Assert.IsNull(await fixture.Route.PathModelUncached(saved.Id, TestContext.CancellationToken).ConfigureAwait(false));
             // Exercise the sibling header reader without borrowing the fixture's populated path cache.
             PathCache.Remove(saved.Hierarchy());
@@ -122,7 +122,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.Hosting
         {
             (SyntheticPathFixture fixture, RuntimeDataResolver runtime, PathModel saved, _) = await CreateComparisonModelsAsync().ConfigureAwait(false);
             string target = ModelFileResolver<PathModelHeader>.FilePath(saved) + ContentHandlerBase<PathModelHeader>.SaveStateExtension;
-            await File.WriteAllBytesAsync(target, MemoryPackSerializer.Serialize(saved with { PathNodes = saved.PathNodes.SetItem(1, null) })).ConfigureAwait(false );
+            await File.WriteAllBytesAsync(target, MemoryPackSerializer.Serialize(saved with { PathNodes = saved.PathNodes.SetItem(1, null) }), TestContext.CancellationToken).ConfigureAwait(false );
             SessionScope scope = await SessionScope.StartAsync().ConfigureAwait(false);
             await using (scope.ConfigureAwait(false))
             {
@@ -546,10 +546,21 @@ namespace Tests.FreeTrainSimulator.Toolbox.Hosting
                         Task operation = scope.Session.SetSavedPathComparisonAsync(id, selected);
                         commands.Enqueue(operation);
                         return operation;
+                    }, (source, append) =>
+                    {
+                        Task operation = scope.Session.SetSavedPathCompositionAsync(source, append);
+                        commands.Enqueue(operation);
+                        return operation;
+                    }, combine =>
+                    {
+                        Task operation = scope.Session.CombineSelectedPathsAsync(combine);
+                        commands.Enqueue(operation);
+                        return operation;
                     }) { Active = true };
                 SetField(scope.Game, "hostedServices", new HostedToolboxServices { Menu = scope.Game.HostedMenu, TrainPathToolWindow = bridge });
                 bridge.UpdatePaths(paths);
                 bridge.UpdateComparisons(paths.Select(path => new TrainPathComparisonRow(path.Id, path.Name, 0, false, false, null, System.Drawing.Color.Empty)).ToImmutableArray());
+                scope.Session.GetType().GetMethod("PublishPathCompositionSources", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(scope.Session, null);
                 bridge.RefreshSnapshot();
             }).ConfigureAwait(false);
             return (content, bridge);

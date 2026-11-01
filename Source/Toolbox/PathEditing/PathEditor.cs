@@ -31,6 +31,7 @@ namespace FreeTrainSimulator.Toolbox.PathEditing
         private readonly Func<Func<bool>, Task<bool>> pathLoadCommitDispatcher;
         private readonly Stack<PathModel> undoHistory = new Stack<PathModel>();
         private readonly Stack<PathModel> redoHistory = new Stack<PathModel>();
+        private long editRevision;
         // One resolution per path model instance, shared by the persisted validation state and by consumers such
         // as the train path tool window, so an edit resolves the path exactly once.
         private readonly PathRouteResolutionCache resolutionCache = new PathRouteResolutionCache();
@@ -44,12 +45,17 @@ namespace FreeTrainSimulator.Toolbox.PathEditing
         private const string reverseUnavailableMessage = "Reverse Path is unavailable during repair, placement, route selection, or saving.";
         private const string reverseRouteRequiredMessage = "Reverse Path requires an unambiguous route with exactly reversed track edges and matching anchors.";
         private const string reverseSaveRequiredMessage = "Reverse Path requires both directions to pass normal save validation.";
+        private const string combineUnavailableMessage = "Combine Paths is unavailable during repair, placement, route selection, or saving.";
+        internal const string CombineSourceChangedMessage = "The selected paths or editor changed while loading. Select two saved paths again to retry.";
         private const long DoubleClickIntervalMilliseconds = 500;
         private PathModelHeader path;
         private PathModel currentPathModel;
         private readonly RouteModel routeData;
 
         internal TrackWorld RuntimeTrackWorld => TrackWorld;
+
+        /// <summary>Monotonic load/edit witness, including undo back to a previously captured model.</summary>
+        internal long CompositionRevision => pathLoadGeneration + editRevision;
 
         private bool editorDragged;
         private bool stopped;
@@ -429,8 +435,61 @@ namespace FreeTrainSimulator.Toolbox.PathEditing
         /// <summary>Whether the current event-free main path can be reversed without changing its chosen track.</summary>
         public bool CanReversePath => !stopped && !repairMode && !IsSaveInProgress && !CanCancelPathInteraction && GetReversePathResult(TryGetEditablePathModel()).Success;
 
+        /// <summary>Cheap composition admission; exact graph and track checks run for the selected source.</summary>
+        internal bool CanAppendSavedPath => !stopped && !repairMode && !IsSaveInProgress && !CanCancelPathInteraction
+            && currentPathModel?.PathNodes.Length >= 2
+            && HasFlag(currentPathModel, PathNodeType.Start) && HasFlag(currentPathModel, PathNodeType.End)
+            && currentPathModel.PathNodes.All(node => node != null && node.NextSidingNode == -1 && node.WaitInfo == null
+                && (node.NodeType & ~(PathNodeType.Start | PathNodeType.End | PathNodeType.Via | PathNodeType.Junction)) == 0);
+
+        /// <summary>Commits an independently prepared composition only to its unchanged owning editor state.</summary>
+        internal PathEditorCommandResult CommitPathCompositionCommand(PathModel source, long revision, PathEditResult composition)
+        {
+            ArgumentNullException.ThrowIfNull(source);
+            ArgumentNullException.ThrowIfNull(composition);
+            if (!ReferenceEquals(currentPathModel, source) || CompositionRevision != revision || !CanAppendSavedPath)
+                return PathEditorCommandResult.Failed("The current path changed while its extension was loading. Select the saved path again to retry.", PathEditorMessageKind.CompositionSourceChangedWhileLoading, currentPathModel);
+            if (!composition.Success)
+                return PathEditorCommandResult.FromPathEditResult(composition);
+
+            PushUndoSnapshot(source);
+            RestoreSnapshot(composition.PathModel);
+            unsavedChanges = true;
+            OnPathUpdated?.Invoke(this, new PathEditorChangedEventArgs(TrainPath));
+            return PathEditorCommandResult.Succeeded(composition.Message, composition.MessageKind, currentPathModel);
+        }
+
+        /// <summary>Cheap combine admission; the session loads and combines both selected saved paths independently.</summary>
+        internal bool CanCombinePaths => !stopped && !repairMode && !IsSaveInProgress && !CanCancelPathInteraction;
+
         /// <summary>
-        /// Reverses the complete main path after checking both route directions and normal save preflight.
+        /// Loads an independently prepared combination of two saved paths as a new unsaved path, replacing any
+        /// current editor content the same way <see cref="InitializeNewPath"/> does. The combination is unrelated
+        /// to the path currently open in the editor, so unlike <see cref="CommitPathCompositionCommand"/> it
+        /// never extends that path's own undo history. Opens in view mode without starting interactive editing.
+        /// </summary>
+        internal PathEditorCommandResult CombinePathsCommand(PathEditResult combination)
+        {
+            ArgumentNullException.ThrowIfNull(combination);
+            if (!CanCombinePaths)
+                return PathEditorCommandResult.Failed(combineUnavailableMessage, PathEditorMessageKind.CombineUnavailable, currentPathModel);
+            if (!combination.Success)
+                return PathEditorCommandResult.FromPathEditResult(combination);
+
+            _ = BeginPathLoad();
+            PathModel combined = combination.PathModel with { Id = NewPathId, Name = NewPathId };
+            path = combined;
+            currentPathModel = combined;
+            repairMode = false;
+            ClearAuthoredNodeSelection();
+            ClearHistory();
+            unsavedChanges = true;
+            RestorePath(combined, false);
+            OnPathChanged?.Invoke(this, new PathEditorChangedEventArgs(TrainPath));
+            return PathEditorCommandResult.Succeeded(combination.Message, combination.MessageKind, currentPathModel);
+        }
+
+        /// <summary>        /// Reverses the complete main path after checking both route directions and normal save preflight.
         /// Preserves View/Edit mode, applies one undo step, and never replaces the mutation with a generated route.
         /// Conservatively refuses repeated physical nodes, non-unique used connectors, and zero-length vector spans.
         /// </summary>
@@ -438,7 +497,7 @@ namespace FreeTrainSimulator.Toolbox.PathEditing
         {
             PathModel source = TryGetEditablePathModel();
             if (stopped || repairMode || IsSaveInProgress || CanCancelPathInteraction)
-                return PathEditorCommandResult.Failed(reverseUnavailableMessage, source);
+                return PathEditorCommandResult.Failed(reverseUnavailableMessage, PathEditorMessageKind.ReverseUnavailable, source);
 
             PathEditResult result = GetReversePathResult(source);
             if (!result.Success)
@@ -448,13 +507,13 @@ namespace FreeTrainSimulator.Toolbox.PathEditing
             RestoreSnapshot(result.PathModel);
             unsavedChanges = true;
             OnPathUpdated?.Invoke(this, new PathEditorChangedEventArgs(TrainPath));
-            return PathEditorCommandResult.Succeeded(result.Message, currentPathModel);
+            return PathEditorCommandResult.Succeeded(result.Message, result.MessageKind, currentPathModel);
         }
 
         private PathEditResult GetReversePathResult(PathModel source)
         {
             if (source == null)
-                return PathEditResult.Failed(reverseRouteRequiredMessage, source);
+                return PathEditResult.Failed(reverseRouteRequiredMessage, PathEditorMessageKind.ReverseRouteRequired, source);
             if (ReferenceEquals(source, reverseSourceModel) && ReferenceEquals(TrackWorld, reverseTrackWorld))
                 return reversePathResult;
 
@@ -471,17 +530,17 @@ namespace FreeTrainSimulator.Toolbox.PathEditing
                 || !TryGetReversalTrackWitness(source, forward, out var forwardWitness)
                 || !TryGetReversalTrackWitness(reversed, backward, out var backwardWitness)
                 || !forwardWitness.AsEnumerable().Reverse().Select(token => (token.NodeIndex, token.Direction?.Reverse())).SequenceEqual(backwardWitness))
-                reversePathResult = PathEditResult.Failed(reverseRouteRequiredMessage, source);
+                reversePathResult = PathEditResult.Failed(reverseRouteRequiredMessage, PathEditorMessageKind.ReverseRouteRequired, source);
             else
             {
                 PathPersistenceValidationResult savedForward = PathPersistenceValidationPolicy.ValidateForPersistence(source, forward, TrackWorld);
                 PathPersistenceValidationResult savedBackward = PathPersistenceValidationPolicy.ValidateForPersistence(reversed, backward, TrackWorld);
                 if (!savedForward.PersistenceAllowed || !savedBackward.PersistenceAllowed)
-                    reversePathResult = PathEditResult.Failed(reverseSaveRequiredMessage, source);
+                    reversePathResult = PathEditResult.Failed(reverseSaveRequiredMessage, PathEditorMessageKind.ReverseSaveRequired, source);
                 else if (!TryGetReversalTrackWitness(savedForward.PathModel, ResolveCurrent(savedForward.PathModel), out var savedForwardWitness)
                     || !TryGetReversalTrackWitness(savedBackward.PathModel, ResolveCurrent(savedBackward.PathModel), out var savedBackwardWitness)
                     || !forwardWitness.SequenceEqual(savedForwardWitness) || !backwardWitness.SequenceEqual(savedBackwardWitness))
-                    reversePathResult = PathEditResult.Failed(reverseRouteRequiredMessage, source);
+                    reversePathResult = PathEditResult.Failed(reverseRouteRequiredMessage, PathEditorMessageKind.ReverseRouteRequired, source);
             }
 
             return reversePathResult;
@@ -3224,11 +3283,13 @@ namespace FreeTrainSimulator.Toolbox.PathEditing
 
             undoHistory.Push(snapshot);
             redoHistory.Clear();
+            ++editRevision;
         }
 
         private void RestoreSnapshot(PathModel snapshot)
         {
             ArgumentNullException.ThrowIfNull(snapshot);
+            ++editRevision;
 
             // Every mutation funnels through here, so this is where the model's validation state is refreshed.
             snapshot = RefreshValidationState(snapshot);

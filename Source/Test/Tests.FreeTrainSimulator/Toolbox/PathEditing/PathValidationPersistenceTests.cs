@@ -195,7 +195,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.PathEditing
             PathModel reloaded = await header.GetExtended(TestContext.CancellationToken).ConfigureAwait(false);
             Assert.AreSequenceEqual(persisted.PathNodes, reloaded.PathNodes);
             Assert.AreEqual(PathRouteDiagnosticCode.UnsupportedCombinedWaitReversal, result.HighestActionableDiagnostic.Code);
-            StringAssert.Contains(result.FailureMessage, result.HighestActionableDiagnostic.SuggestedAction, StringComparison.Ordinal);
+            Assert.Contains(result.HighestActionableDiagnostic.SuggestedAction, result.FailureMessage, StringComparison.Ordinal);
         }
 
         [TestMethod]

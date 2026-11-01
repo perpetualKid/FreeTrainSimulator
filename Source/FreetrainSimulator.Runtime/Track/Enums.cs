@@ -149,4 +149,38 @@ namespace FreeTrainSimulator.Runtime.Track
         BranchRejoin,
     }
 
+    /// <summary>
+    /// Identifies the subset of <see cref="PathEditResult"/>/path-editor command outcomes whose message the UI
+    /// localizes and displays verbatim, so the UI layer can match on a stable identifier instead of comparing
+    /// against the English <c>Message</c> text. Operations whose outcome is only used for diagnostics/logging
+    /// (the majority of path-editor messages) use <see cref="None"/> and keep showing their English <c>Message</c>
+    /// as-is.
+    /// </summary>
+    public enum PathEditorMessageKind
+    {
+        None = 0,
+        BasicWaitTimeOutOfRange,
+        ReverseChainRequired,
+        ReverseUnsupportedData,
+        PathReversed,
+        ReverseUnavailable,
+        ReverseRouteRequired,
+        ReverseSaveRequired,
+        CompositionSourceChangedWhileLoading,
+        CompositionChooseDifferentExtension,
+        CompositionRouteMismatch,
+        CompositionChainRequired,
+        CompositionRouteRequired,
+        CompositionEndpointRequired,
+        CompositionContinuityRequired,
+        CompositionComposedAtMatchingEndpoint,
+        CombineChooseDifferentPaths,
+        CombineRouteMismatch,
+        CombineChainRequired,
+        CombineUnconnectable,
+        CombineOrientationAmbiguous,
+        CombineCombined,
+        CombineUnavailable,
+        CombineSelectionChangedWhileLoading,
+    }
 }

@@ -34,6 +34,12 @@ namespace FreeTrainSimulator.Runtime.Track
         private const string appendRouteRequiredMessage = "Path composition requires unambiguous matching track anchors and continuous routes without repeated track nodes or duplicate connectors.";
         private const string appendEndpointRequiredMessage = "The current end and extension start must have the same track node, section, and stored location. Move the endpoints into alignment before composing paths.";
         private const string appendContinuityRequiredMessage = "Path composition would change a selected track route or require a reversal at the join. Choose an extension with a compatible departure direction.";
+        private const string combineChooseDifferentPathsMessage = "Choose two different saved paths to combine.";
+        private const string combineRouteMismatchMessage = "Both paths must belong to the same route.";
+        private const string combineChainRequiredMessage = "Path combination requires complete, reachable, event-free main paths with exactly one Start and End and no siding links or wait payloads.";
+        private const string combineUnconnectableMessage = "No supported orientation connects these two paths. Add via points to bridge them manually, or choose different paths.";
+        private const string combineOrientationAmbiguousMessage = "More than one orientation connects these two paths. Choosing among multiple valid orientations is not yet supported; choose different paths or combine them manually.";
+        private const string combinedMessage = "Paths combined into a new unsaved path.";
 
         /// <summary>
         /// Reverses a complete, event-free main chain without resolving or relocating its anchors. Traversal order
@@ -47,18 +53,18 @@ namespace FreeTrainSimulator.Runtime.Track
 
             ImmutableArray<PathNode> nodes = Nodes(pathModel);
             if (nodes.Length < 2 || nodes.Any(node => node == null))
-                return PathEditResult.Failed(reverseChainRequiredMessage, pathModel);
+                return PathEditResult.Failed(reverseChainRequiredMessage, PathEditorMessageKind.ReverseChainRequired, pathModel);
 
             const PathNodeType allowedFlags = PathNodeType.Start | PathNodeType.End | PathNodeType.Via | PathNodeType.Junction;
             if (nodes.Any(node => node.NextSidingNode != -1 || node.WaitInfo != null || (node.NodeType & ~allowedFlags) != 0))
-                return PathEditResult.Failed(reverseUnsupportedDataMessage, pathModel);
+                return PathEditResult.Failed(reverseUnsupportedDataMessage, PathEditorMessageKind.ReverseUnsupportedData, pathModel);
 
             int startIndex = IndexOfNodeType(nodes, PathNodeType.Start);
             int endIndex = IndexOfNodeType(nodes, PathNodeType.End);
             if (startIndex < 0 || endIndex < 0 || startIndex == endIndex
                 || nodes.Count(node => node.NodeType.Includes(PathNodeType.Start)) != 1
                 || nodes.Count(node => node.NodeType.Includes(PathNodeType.End)) != 1)
-                return PathEditResult.Failed(reverseChainRequiredMessage, pathModel);
+                return PathEditResult.Failed(reverseChainRequiredMessage, PathEditorMessageKind.ReverseChainRequired, pathModel);
 
             List<int> traversal = new List<int>(nodes.Length);
             HashSet<int> visited = new HashSet<int>();
@@ -74,7 +80,7 @@ namespace FreeTrainSimulator.Runtime.Track
                 index = nodes[index].NextMainNode;
             }
             if (traversal.Count != nodes.Length || traversal[^1] != endIndex || nodes[endIndex].NextMainNode != -1)
-                return PathEditResult.Failed(reverseChainRequiredMessage, pathModel);
+                return PathEditResult.Failed(reverseChainRequiredMessage, PathEditorMessageKind.ReverseChainRequired, pathModel);
 
             ImmutableArray<PathNode>.Builder reversed = ImmutableArray.CreateBuilder<PathNode>(nodes.Length);
             for (int i = 0; i < nodes.Length; i++)
@@ -89,7 +95,7 @@ namespace FreeTrainSimulator.Runtime.Track
                 });
             }
 
-            return PathEditResult.Succeeded(pathReversedMessage,
+            return PathEditResult.Succeeded(pathReversedMessage, PathEditorMessageKind.PathReversed,
                 pathModel with { Start = pathModel.End, End = pathModel.Start, PathNodes = reversed.MoveToImmutable() },
                 Enumerable.Range(0, nodes.Length).ToImmutableArray());
         }
@@ -112,22 +118,22 @@ namespace FreeTrainSimulator.Runtime.Track
             if (trackWorld?.TrackDatabase == null)
                 return PathEditResult.Failed("Path composition requires a loaded track world.", pathModel);
             if (ReferenceEquals(pathModel, extension) || (!string.IsNullOrEmpty(pathModel.Id) && string.Equals(pathModel.Id, extension.Id, StringComparison.OrdinalIgnoreCase)))
-                return PathEditResult.Failed("Choose a different saved path as the extension.", pathModel);
+                return PathEditResult.Failed("Choose a different saved path as the extension.", PathEditorMessageKind.CompositionChooseDifferentExtension, pathModel);
             if (!string.Equals(pathModel.Parent?.Hierarchy(), extension.Parent?.Hierarchy(), StringComparison.OrdinalIgnoreCase))
-                return PathEditResult.Failed("Both paths must belong to the same route.", pathModel);
+                return PathEditResult.Failed("Both paths must belong to the same route.", PathEditorMessageKind.CompositionRouteMismatch, pathModel);
             if (!TryGetAppendableMainRoute(pathModel, out ImmutableArray<int> currentRoute) || !TryGetAppendableMainRoute(extension, out ImmutableArray<int> extensionRoute))
-                return PathEditResult.Failed(appendChainRequiredMessage, pathModel);
+                return PathEditResult.Failed(appendChainRequiredMessage, PathEditorMessageKind.CompositionChainRequired, pathModel);
 
             PathRouteResolution current = PathRouteResolver.Resolve(pathModel, trackWorld, cancellationToken);
             PathRouteResolution tail = PathRouteResolver.Resolve(extension, trackWorld, cancellationToken);
             if (!HasAppendableTrackRoute(pathModel, current, trackWorld) || !HasAppendableTrackRoute(extension, tail, trackWorld))
-                return PathEditResult.Failed(appendRouteRequiredMessage, pathModel);
+                return PathEditResult.Failed(appendRouteRequiredMessage, PathEditorMessageKind.CompositionRouteRequired, pathModel);
 
             PathRouteAnchor end = current.AuthoredNodeAnchors[currentRoute[^1]];
             PathRouteAnchor start = tail.AuthoredNodeAnchors[extensionRoute[0]];
             if (end.TrackNodeIndex != start.TrackNodeIndex || end.TrackVectorSectionIndex != start.TrackVectorSectionIndex
                 || end.Location != start.Location)
-                return PathEditResult.Failed(appendEndpointRequiredMessage, pathModel);
+                return PathEditResult.Failed(appendEndpointRequiredMessage, PathEditorMessageKind.CompositionEndpointRequired, pathModel);
 
             int nodeCount = currentRoute.Length + extensionRoute.Length - 1;
             ImmutableArray<PathNode>.Builder builder = ImmutableArray.CreateBuilder<PathNode>(nodeCount);
@@ -154,14 +160,14 @@ namespace FreeTrainSimulator.Runtime.Track
             };
             PathRouteResolution joined = PathRouteResolver.Resolve(composed, trackWorld, cancellationToken);
             if (!HasAppendableTrackRoute(composed, joined, trackWorld))
-                return PathEditResult.Failed(appendContinuityRequiredMessage, pathModel);
+                return PathEditResult.Failed(appendContinuityRequiredMessage, PathEditorMessageKind.CompositionContinuityRequired, pathModel);
 
             ResolvedPathSpan[] expectedSpans = current.MainRoute.Spans.Concat(tail.MainRoute.Spans).ToArray();
             if (expectedSpans.Length != joined.MainRoute.Spans.Length || expectedSpans.Where((span, index) =>
                 !span.Candidates[0].RouteNodeIndexes.SequenceEqual(joined.MainRoute.Spans[index].Candidates[0].RouteNodeIndexes)
                 || !span.Candidates[0].PhysicalTraversals.SequenceEqual(joined.MainRoute.Spans[index].Candidates[0].PhysicalTraversals)
                 || span.Candidates[0].Arrival?.Direction != joined.MainRoute.Spans[index].Candidates[0].Arrival?.Direction).Any())
-                return PathEditResult.Failed(appendContinuityRequiredMessage, pathModel);
+                return PathEditResult.Failed(appendContinuityRequiredMessage, PathEditorMessageKind.CompositionContinuityRequired, pathModel);
 
             PathGenerationResult materialized = PathModelRouteGenerator.GeneratePath(composed, joined, trackWorld, PathRouteResolverOptions.Default);
             if (!materialized.Success)
@@ -171,8 +177,8 @@ namespace FreeTrainSimulator.Runtime.Track
                 || !joined.MainRoute.Spans.SelectMany(span => span.Candidates[0].PhysicalTraversals)
                     .SequenceEqual(savedRoute.MainRoute.Spans.SelectMany(span => span.Candidates[0].PhysicalTraversals))
                 || joined.MainRoute.Spans[^1].Candidates[0].Arrival?.Direction != savedRoute.MainRoute.Spans[^1].Candidates[0].Arrival?.Direction
-                ? PathEditResult.Failed(appendContinuityRequiredMessage, pathModel)
-                : PathEditResult.Succeeded("Path extension composed at the matching endpoint.", composed,
+                ? PathEditResult.Failed(appendContinuityRequiredMessage, PathEditorMessageKind.CompositionContinuityRequired, pathModel)
+                : PathEditResult.Succeeded("Path extension composed at the matching endpoint.", PathEditorMessageKind.CompositionComposedAtMatchingEndpoint, composed,
                 Enumerable.Range(0, nodeCount).ToImmutableArray());
         }
 
@@ -206,31 +212,23 @@ namespace FreeTrainSimulator.Runtime.Track
                         diagnostic.Code == PathRouteDiagnosticCode.AmbiguousAnchor && diagnostic.NodeIndex == anchor.AuthoredNodeIndex)))
                     return false;
             }
-            HashSet<int> visited = new HashSet<int>();
-            int previousNode = -1;
+
+            if (!HasUniqueRouteNodes(resolution))
+                return false;
+            
             foreach (ResolvedPathSpan span in resolution.MainRoute.Spans)
             {
-                ResolvedRouteCandidate candidate = span.Candidates[0];
-                if (candidate.RouteNodeIndexes.IsEmpty || (candidate.RouteNodeIndexes.Length == 1 && candidate.Arrival?.Direction == null))
-                    return false;
-                for (int i = 0; i < candidate.RouteNodeIndexes.Length; i++)
-                {
-                    int node = candidate.RouteNodeIndexes[i];
-                    if (i == 0 && node == previousNode)
-                        continue;
-                    if (!visited.Add(node))
-                        return false;
-                    previousNode = node;
-                }
-                foreach (TrackRouteTraversal traversal in candidate.PhysicalTraversals)
+                foreach (TrackRouteTraversal traversal in span.Candidates[0].PhysicalTraversals)
                 {
                     if (traversal.FromNodeIndex < 0 || traversal.FromNodeIndex >= world.TrackDatabase.TrackNodeConnectors.Length
                         || traversal.ToNodeIndex < 0 || traversal.ToNodeIndex >= world.TrackDatabase.TrackNodeConnectors.Length
                         || world.TrackDatabase.TrackNodeConnectors[traversal.FromNodeIndex] == null
                         || world.TrackDatabase.TrackNodeConnectors[traversal.ToNodeIndex] == null)
                         return false;
+            
                     ImmutableArray<TrackNodeConnector> from = world.TrackDatabase.TrackNodeConnectors[traversal.FromNodeIndex].TrackNodeConnectors;
                     ImmutableArray<TrackNodeConnector> to = world.TrackDatabase.TrackNodeConnectors[traversal.ToNodeIndex].TrackNodeConnectors;
+                    
                     if (from.IsDefaultOrEmpty || to.IsDefaultOrEmpty
                         || from.Count(connector => connector?.Link == traversal.ToNodeIndex) != 1
                         || to.Count(connector => connector?.Link == traversal.FromNodeIndex) != 1)
@@ -238,6 +236,145 @@ namespace FreeTrainSimulator.Runtime.Track
                 }
             }
             return true;
+        }
+
+        /// <summary>
+        /// Rejects repeated track nodes, allowing consecutive spans to share their one boundary node.
+        /// Append requires unique spans; Combine may retain alternatives only at its connecting span.
+        /// </summary>
+        private static bool HasUniqueRouteNodes(PathRouteResolution resolution)
+            => HasUniqueRouteNodes(resolution, -1);
+
+        private static bool HasUniqueRouteNodes(PathRouteResolution resolution, int connectingFromNodeIndex)
+        {
+            ResolvedPathSpan connectingSpan = resolution.MainRoute.Spans.FirstOrDefault(span => span.FromNodeIndex == connectingFromNodeIndex);
+            int candidateCount = connectingSpan?.Candidates.Length ?? 1;
+            for (int candidateIndex = 0; candidateIndex < candidateCount; candidateIndex++)
+            {
+                // Each alternative must be safe through the whole fixed prefix and suffix, not just at the join.
+                HashSet<int> visited = new HashSet<int>();
+                int previousNode = -1;
+                foreach (ResolvedPathSpan span in resolution.MainRoute.Spans)
+                {
+                    bool isConnectingSpan = span.FromNodeIndex == connectingFromNodeIndex;
+                    if ((span.Status != PathRouteSpanStatus.Resolved && !(isConnectingSpan && span.Status == PathRouteSpanStatus.Ambiguous))
+                        || span.Candidates.IsEmpty || (!isConnectingSpan && span.Candidates.Length != 1))
+                        return false;
+                    ResolvedRouteCandidate candidate = span.Candidates[isConnectingSpan ? candidateIndex : 0];
+                    if (candidate.RouteNodeIndexes.IsEmpty || (candidate.RouteNodeIndexes.Length == 1 && candidate.Arrival?.Direction == null))
+                        return false;
+                    for (int i = 0; i < candidate.RouteNodeIndexes.Length; i++)
+                    {
+                        int node = candidate.RouteNodeIndexes[i];
+                        if (i == 0 && node == previousNode)
+                            continue;
+                        if (!visited.Add(node))
+                            return false;
+                        previousNode = node;
+                    }
+                }
+            }
+            return candidateCount > 0;
+        }
+
+        /// <summary>
+        /// Combines two different, complete, reachable, event-free main-only saved paths into a single new
+        /// authored path. Tries all four ways to join one path's endpoint to the other's (optionally reversing
+        /// either side first via <see cref="ReversePath"/>) and resolves a connecting route for each orientation
+        /// with <see cref="PathRouteResolver"/>. Succeeds only when exactly one orientation yields a resolvable,
+        /// non-overlapping route; refuses when zero orientations connect or more than one remains viable, since
+        /// choosing among several valid orientations is not yet supported. The join itself may still be an
+        /// ambiguous span in the result: that is left for the normal route-candidate picker to resolve, the same
+        /// way it resolves any other via point. This operation performs no persistence or history mutation;
+        /// callers own those workflows.
+        /// </summary>
+        public static PathEditResult CombinePaths(PathModel first, PathModel second, TrackWorld trackWorld, CancellationToken cancellationToken)
+        {
+            ArgumentNullException.ThrowIfNull(first);
+            ArgumentNullException.ThrowIfNull(second);
+            cancellationToken.ThrowIfCancellationRequested();
+
+            if (trackWorld?.TrackDatabase == null)
+                return PathEditResult.Failed("Path combination requires a loaded track world.", first);
+            if (ReferenceEquals(first, second) || (!string.IsNullOrEmpty(first.Id) && string.Equals(first.Id, second.Id, StringComparison.OrdinalIgnoreCase)))
+                return PathEditResult.Failed(combineChooseDifferentPathsMessage, PathEditorMessageKind.CombineChooseDifferentPaths, first);
+            if (!string.Equals(first.Parent?.Hierarchy(), second.Parent?.Hierarchy(), StringComparison.OrdinalIgnoreCase))
+                return PathEditResult.Failed(combineRouteMismatchMessage, PathEditorMessageKind.CombineRouteMismatch, first);
+            if (!TryGetAppendableMainRoute(first, out ImmutableArray<int> firstRoute) || !TryGetAppendableMainRoute(second, out ImmutableArray<int> secondRoute))
+                return PathEditResult.Failed(combineChainRequiredMessage, PathEditorMessageKind.CombineChainRequired, first);
+
+            PathEditResult reversedFirst = ReversePath(first);
+            PathEditResult reversedSecond = ReversePath(second);
+            if (!reversedFirst.Success || !reversedSecond.Success)
+                return PathEditResult.Failed(combineChainRequiredMessage, PathEditorMessageKind.CombineChainRequired, first);
+
+            (PathModel Model, ImmutableArray<int> Route)[] firstOrientations =
+            {
+                (first, firstRoute),
+                (reversedFirst.PathModel, Enumerable.Range(0, reversedFirst.PathModel.PathNodes.Length).ToImmutableArray()),
+            };
+            (PathModel Model, ImmutableArray<int> Route)[] secondOrientations =
+            {
+                (second, secondRoute),
+                (reversedSecond.PathModel, Enumerable.Range(0, reversedSecond.PathModel.PathNodes.Length).ToImmutableArray()),
+            };
+
+            PathModel combined = null;
+            int viableCount = 0;
+            foreach ((PathModel Model, ImmutableArray<int> Route) in firstOrientations)
+            {
+                foreach ((PathModel Model, ImmutableArray<int> Route) secondSide in secondOrientations)
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+                    PathModel candidate = SpliceForCombine(Model, Route, secondSide.Model, secondSide.Route);
+                    PathRouteResolution resolution = PathRouteResolver.Resolve(candidate, trackWorld, cancellationToken);
+                    if (!resolution.IsValid || resolution.MainRoute == null || !HasUniqueRouteNodes(resolution, Route.Length - 1))
+                        continue;
+
+                    viableCount++;
+                    combined = candidate;
+                }
+            }
+
+            return viableCount switch
+            {
+                1 => PathEditResult.Succeeded(combinedMessage, PathEditorMessageKind.CombineCombined, combined,
+                    Enumerable.Range(0, combined.PathNodes.Length).ToImmutableArray()),
+                0 => PathEditResult.Failed(combineUnconnectableMessage, PathEditorMessageKind.CombineUnconnectable, first),
+                _ => PathEditResult.Failed(combineOrientationAmbiguousMessage, PathEditorMessageKind.CombineOrientationAmbiguous, first),
+            };
+        }
+
+        // Joins firstRoute's last node to secondRoute's first node by converting both into Via nodes and linking
+        // them, leaving the join span for the resolver (ambiguous or not) exactly like any other via point.
+        private static PathModel SpliceForCombine(PathModel first, ImmutableArray<int> firstRoute, PathModel second, ImmutableArray<int> secondRoute)
+        {
+            int nodeCount = firstRoute.Length + secondRoute.Length;
+            ImmutableArray<PathNode>.Builder builder = ImmutableArray.CreateBuilder<PathNode>(nodeCount);
+            foreach (int nodeIndex in firstRoute)
+            {
+                PathNode node = first.PathNodes[nodeIndex];
+                builder.Add(node with
+                {
+                    NodeType = nodeIndex == firstRoute[^1] ? (node.NodeType & ~PathNodeType.End) | PathNodeType.Via : node.NodeType,
+                    NextMainNode = builder.Count + 1,
+                });
+            }
+            foreach (int nodeIndex in secondRoute)
+            {
+                PathNode node = second.PathNodes[nodeIndex];
+                builder.Add(node with
+                {
+                    NodeType = nodeIndex == secondRoute[0] ? (node.NodeType & ~PathNodeType.Start) | PathNodeType.Via : node.NodeType,
+                    NextMainNode = builder.Count + 1 == nodeCount ? -1 : builder.Count + 1,
+                });
+            }
+            return first with
+            {
+                End = second.End,
+                PathNodes = builder.MoveToImmutable(),
+                ValidationState = PathValidationState.NotValidated,
+            };
         }
 
         /// <summary>Updates editable path metadata without changing route nodes or path identity.</summary>
@@ -1052,7 +1189,7 @@ namespace FreeTrainSimulator.Runtime.Track
             ArgumentNullException.ThrowIfNull(pathModel);
 
             if (waitTimeSeconds <= 0 || waitTimeSeconds > MaximumBasicWaitTimeSeconds)
-                return PathEditResult.Failed(basicWaitTimeOutOfRangeMessage, pathModel);
+                return PathEditResult.Failed(basicWaitTimeOutOfRangeMessage, PathEditorMessageKind.BasicWaitTimeOutOfRange, pathModel);
 
             ImmutableArray<PathNode> nodes = Nodes(pathModel);
             if (!CanAnnotateNode(nodes, nodeIndex, "wait point", out string failure))
