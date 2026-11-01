@@ -2,6 +2,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -138,17 +139,26 @@ namespace FreeTrainSimulator.Graphics.MapView
         }
 
         /// <summary>
-        /// Navigates the map to the track item with the given index and pins its details. Out-of-range indices
-        /// are ignored. Must be called on the game thread.
+        /// Navigates the map to a rail track item and pins its details. Must be called on the game thread.
         /// </summary>
-        public void NavigateToTrackItem(int index)
+        public void NavigateToTrackItem(int index) => NavigateToTrackItem(index, false);
+
+        /// <summary>
+        /// Navigates to an item in the selected rail or road database and pins its details. Missing items
+        /// are logged without changing the current navigation. Must be called on the game thread.
+        /// </summary>
+        public void NavigateToTrackItem(int index, bool searchRoads)
         {
-            Models.Track.TrackItemBase trackItem = trackWorld?.TrackItemByIndex(index);
+            TrackDataBaseType databaseType = searchRoads ? TrackDataBaseType.Road : TrackDataBaseType.Rail;
+            Models.Track.TrackItemBase trackItem = trackWorld?.TrackItemByIndex(index, databaseType);
             if (trackItem == null)
+            {
+                Trace.TraceWarning("Cannot navigate to {0} track item {1}: the item or database is unavailable.", databaseType, index);
                 return;
+            }
 
             Viewport?.SetTrackingPosition(trackItem.Location);
-            Pin(BuildTrackItemDetails(index, trackItem));
+            Pin(BuildTrackItemDetails(index, searchRoads, trackItem));
         }
 
         /// <summary>
@@ -649,11 +659,11 @@ namespace FreeTrainSimulator.Graphics.MapView
         }
 
         // Builds the pinned detail rows for a track item located by its database index.
-        private static InformationDictionary BuildTrackItemDetails(int index, Models.Track.TrackItemBase trackItem)
+        private static InformationDictionary BuildTrackItemDetails(int index, bool road, Models.Track.TrackItemBase trackItem)
         {
             return new InformationDictionary
             {
-                ["Item Type"] = "Track Item",
+                ["Item Type"] = road ? "Road Item" : "Track Item",
                 ["Item Index"] = index.ToString(System.Globalization.CultureInfo.InvariantCulture),
                 ["Node Index"] = trackItem.NodeIndex.ToString(System.Globalization.CultureInfo.InvariantCulture),
                 ["Location"] = trackItem.Location.ToString(),

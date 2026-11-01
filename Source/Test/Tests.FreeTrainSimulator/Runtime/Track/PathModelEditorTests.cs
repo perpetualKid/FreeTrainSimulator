@@ -1600,6 +1600,108 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
         }
 
         [TestMethod]
+        public void WhenPassingBranchViaPointIsInsertedAtBranchStartThenSidingChainIsSteeredThroughIt()
+        {
+            PathModel path = CreateSupportedPassingBranchPath();
+            PathNode anchor = new PathNode(new WorldLocation(new Tile(0, 0), new Vector3(50, 0, 0))) { NodeIndex = 9 };
+
+            PathEditResult result = PathModelEditor.InsertPassingBranchViaPoint(path, 1, anchor, false);
+
+            Assert.IsTrue(result.Success);
+            Assert.HasCount(8, result.PathModel.PathNodes);
+            Assert.AreEqual(3, result.PathModel.PathNodes[1].NextMainNode, "Branch start's main link must stay on the main chain, re-indexed.");
+            Assert.AreEqual(2, result.PathModel.PathNodes[1].NextSidingNode, "Branch start's siding link must redirect to the new via.");
+            Assert.AreEqual(PathNodeType.Via, result.PathModel.PathNodes[2].NodeType);
+            Assert.AreEqual(9, result.PathModel.PathNodes[2].NodeIndex);
+            Assert.AreEqual(-1, result.PathModel.PathNodes[2].NextMainNode);
+            Assert.AreEqual(6, result.PathModel.PathNodes[2].NextSidingNode, "New via must continue into the branch's original (re-indexed) first interior anchor.");
+            Assert.AreEqual(PassingBranchNodeRole.BranchInterior, GetRole(result.PathModel, 2));
+        }
+
+        [TestMethod]
+        public void WhenPassingBranchViaPointIsInsertedAtInteriorAnchorThenItIsSplicedAfterThatAnchor()
+        {
+            PathModel path = CreateSupportedPassingBranchPath();
+            PathNode anchor = new PathNode(new WorldLocation(new Tile(0, 0), new Vector3(50, 0, 0))) { NodeIndex = 9 };
+
+            PathEditResult result = PathModelEditor.InsertPassingBranchViaPoint(path, 5, anchor, false);
+
+            Assert.IsTrue(result.Success);
+            Assert.HasCount(8, result.PathModel.PathNodes);
+            Assert.AreEqual(6, result.PathModel.PathNodes[5].NextSidingNode, "Existing interior anchor must redirect to the new via.");
+            Assert.AreEqual(9, result.PathModel.PathNodes[6].NodeIndex);
+            Assert.AreEqual(7, result.PathModel.PathNodes[6].NextSidingNode, "New via must continue into the branch's original (re-indexed) remaining interior anchor.");
+            Assert.AreEqual(3, result.PathModel.PathNodes[7].NextSidingNode, "The branch must still rejoin the same main-route node, re-indexed.");
+        }
+
+        [TestMethod]
+        public void WhenPassingBranchViaPointIsInsertedAsJunctionThenNodeIsMarkedAsJunction()
+        {
+            PathModel path = CreateSupportedPassingBranchPath();
+            PathNode anchor = new PathNode(new WorldLocation(new Tile(0, 0), Vector3.Zero));
+
+            PathEditResult result = PathModelEditor.InsertPassingBranchViaPoint(path, 1, anchor, true);
+
+            Assert.IsTrue(result.Success);
+            Assert.AreEqual(PathNodeType.Junction, result.PathModel.PathNodes[2].NodeType);
+        }
+
+        [TestMethod]
+        public void WhenPassingBranchViaPointIsInsertedAtRejoinNodeThenEditFailsWithoutChangingModel()
+        {
+            PathModel path = CreateSupportedPassingBranchPath();
+            PathNode anchor = new PathNode(new WorldLocation(new Tile(0, 0), Vector3.Zero));
+
+            PathEditResult result = PathModelEditor.InsertPassingBranchViaPoint(path, 3, anchor, false);
+
+            Assert.IsFalse(result.Success);
+            Assert.AreSame(path, result.PathModel);
+        }
+
+        [TestMethod]
+        public void WhenPassingBranchViaPointIsInsertedAtMainRouteNodeThenEditFailsWithoutChangingModel()
+        {
+            PathModel path = CreateSupportedPassingBranchPath();
+            PathNode anchor = new PathNode(new WorldLocation(new Tile(0, 0), Vector3.Zero));
+
+            PathEditResult result = PathModelEditor.InsertPassingBranchViaPoint(path, 0, anchor, false);
+
+            Assert.IsFalse(result.Success);
+            Assert.AreSame(path, result.PathModel);
+        }
+
+        [TestMethod]
+        public void WhenPassingBranchViaPointIsInsertedWithoutASupportedBranchThenEditFails()
+        {
+            PathModel path = CreatePath(
+                Node(PathNodeType.Start, 1),
+                Node(PathNodeType.End, -1));
+            PathNode anchor = new PathNode(new WorldLocation(new Tile(0, 0), Vector3.Zero));
+
+            PathEditResult result = PathModelEditor.InsertPassingBranchViaPoint(path, 0, anchor, false);
+
+            Assert.IsFalse(result.Success);
+            Assert.AreSame(path, result.PathModel);
+        }
+
+        [TestMethod]
+        public void WhenPassingBranchViaPointIsInsertedWithOutOfRangeIndexThenEditFails()
+        {
+            PathModel path = CreateSupportedPassingBranchPath();
+            PathNode anchor = new PathNode(new WorldLocation(new Tile(0, 0), Vector3.Zero));
+
+            PathEditResult result = PathModelEditor.InsertPassingBranchViaPoint(path, 99, anchor, false);
+
+            Assert.IsFalse(result.Success);
+        }
+
+        private static PassingBranchNodeRole GetRole(PathModel pathModel, int nodeIndex)
+        {
+            Assert.IsTrue(PathModelEditor.TryGetPassingBranchNodeRole(pathModel, nodeIndex, out PassingBranchNodeRole role, out string failure), failure);
+            return role;
+        }
+
+        [TestMethod]
         public void WhenViaPointIsRemovedThenPathIsRelinkedAroundIt()
         {
             PathModel path = CreatePath(

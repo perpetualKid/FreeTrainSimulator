@@ -208,6 +208,76 @@ namespace Tests.FreeTrainSimulator.Simulator
             return GeneratePathAsync(source, 0, 4, cancellationToken);
         }
 
+        /// <summary>Builds a 13-node infrastructure with two independent split/rejoin bypasses in series, strictly
+        /// separated on the global main route (the first rejoin precedes the second split). Node numbering 1-6
+        /// duplicates the single-branch topology verbatim (approach 2 -&gt; split 3 -&gt; main 4 / passing 5 -&gt; rejoin 6);
+        /// node 7 is a shared middle vector that is simultaneously the first bypass's departure and the second
+        /// bypass's approach, followed by an isomorphic second block (split 8 -&gt; main 9 / passing 10 -&gt; rejoin 11)
+        /// and a terminal departure 12. Used only to gather EVID-B1 evidence; never exercised by the Toolbox editor.</summary>
+        public static TrackDatabase CreateTwoSeparatedBranchesDatabase()
+        {
+            return new TrackDatabase
+            {
+                TrackNodes = ImmutableArray.Create<TrackNodeBase>(null,
+                    new EndNode(Location(-100, 0), tile, Vector3.Zero) { NodeIndex = 1 }, Vector(2, Section(-100, 0, 0, 0, MathHelper.PiOver2)),
+                    new JunctionNode(Location(0, 0), tile, Vector3.Zero) { NodeIndex = 3 }, Vector(4, Section(0, 0, 100, 0, MathHelper.PiOver2)), Vector(5, Section(0, 0, 0, 100, 0), Section(0, 100, 100, 100, MathHelper.PiOver2), Section(100, 100, 100, 0, MathHelper.Pi)),
+                    new JunctionNode(Location(100, 0), tile, Vector3.Zero) { NodeIndex = 6 }, Vector(7, Section(100, 0, 200, 0, MathHelper.PiOver2)),
+                    new JunctionNode(Location(200, 0), tile, Vector3.Zero) { NodeIndex = 8 }, Vector(9, Section(200, 0, 300, 0, MathHelper.PiOver2)),
+                    Vector(10, Section(200, 0, 200, 100, 0), Section(200, 100, 300, 100, MathHelper.PiOver2), Section(300, 100, 300, 0, MathHelper.Pi)),
+                    new JunctionNode(Location(300, 0), tile, Vector3.Zero) { NodeIndex = 11 }, Vector(12, Section(300, 0, 400, 0, MathHelper.PiOver2)),
+                    new EndNode(Location(400, 0), tile, Vector3.Zero) { NodeIndex = 13 }),
+                TrackNodeConnectors = ImmutableArray.Create(new TrackNodeConnectorIndex(),
+                    Pins(1, 0, (2, TrackDirection.Reverse)),
+                    Pins(2, 1, (1, TrackDirection.Ahead), (3, TrackDirection.Reverse)),
+                    Pins(3, 1, (2, TrackDirection.Ahead), (4, TrackDirection.Reverse), (5, TrackDirection.Reverse)),
+                    Pins(4, 1, (3, TrackDirection.Ahead), (6, TrackDirection.Ahead)),
+                    Pins(5, 1, (3, TrackDirection.Ahead), (6, TrackDirection.Ahead)),
+                    Pins(6, 1, (7, TrackDirection.Reverse), (4, TrackDirection.Ahead), (5, TrackDirection.Ahead)),
+                    Pins(7, 1, (6, TrackDirection.Reverse), (8, TrackDirection.Reverse)),
+                    Pins(8, 1, (7, TrackDirection.Ahead), (9, TrackDirection.Reverse), (10, TrackDirection.Reverse)),
+                    Pins(9, 1, (8, TrackDirection.Ahead), (11, TrackDirection.Ahead)),
+                    Pins(10, 1, (8, TrackDirection.Ahead), (11, TrackDirection.Ahead)),
+                    Pins(11, 1, (12, TrackDirection.Reverse), (9, TrackDirection.Ahead), (10, TrackDirection.Ahead)),
+                    Pins(12, 1, (11, TrackDirection.Reverse), (13, TrackDirection.Reverse)),
+                    Pins(13, 1, (12, TrackDirection.Ahead))),
+            };
+        }
+
+        /// <summary>Builds the two-branch main path, authored at the physical switches exactly like the junction-bound
+        /// single-branch source, with each bypass's <see cref="PathNode.NextSidingNode"/> rejoining its own junction.</summary>
+        public static PathModel CreateTwoSeparatedBranchesSource()
+        {
+            return new PathModel
+            {
+                Id = "TwoSeparatedBranches" + Guid.NewGuid().ToString("N"),
+                Name = "Synthetic two separated passing branches route",
+                PathNodes = ImmutableArray.Create(Node(PathNodeType.Start, 2, -50, 0, 1, -1),
+                    Node(PathNodeType.Junction | PathNodeType.Via, 3, 0, 0, 2, 6),
+                    Node(PathNodeType.Junction | PathNodeType.Via, 6, 100, 0, 3, -1),
+                    Node(PathNodeType.Junction | PathNodeType.Via, 8, 200, 0, 4, 7),
+                    Node(PathNodeType.Junction | PathNodeType.Via, 11, 300, 0, 5, -1),
+                    Node(PathNodeType.End, 12, 350, 0, -1, -1),
+                    Node(PathNodeType.Via, 5, 50, 100, -1, 2),
+                    Node(PathNodeType.Via, 10, 250, 100, -1, 4)),
+            };
+        }
+
+        /// <summary>Resolves both independent split/rejoin spans to their main interior, generates the two-branch
+        /// path, and persists its round trip. Evidence-only: calls the resolver and generator directly, exactly like
+        /// <see cref="GeneratePassingPath"/>, bypassing the interactive editor and its one-branch authoring guard.</summary>
+        public async Task<PathModel> GenerateTwoSeparatedBranchesPathAsync(CancellationToken cancellationToken)
+        {
+            PathModel source = CreateTwoSeparatedBranchesSource();
+            TrackWorld world = TrackWorld.Instance;
+            PathRouteResolution initial = PathRouteResolver.Resolve(source, world, cancellationToken);
+            ResolvedRouteCandidate ChoiceFor(int sourceIndex, int selectedVector) => initial.MainRoute.Spans.Single(span => span.FromNodeIndex == sourceIndex) .Candidates.Single(candidate => candidate.RouteNodeIndexes.Contains(selectedVector));
+            ImmutableDictionary<int, ResolvedRouteCandidate> selections = ImmutableDictionary<int, ResolvedRouteCandidate>.Empty .Add(1, ChoiceFor(1, 4)).Add(3, ChoiceFor(3, 9));
+            PathRouteResolution selected = PathRouteResolver.ResolveSelectedRoutes(source, world, PathRouteResolverOptions.Default, selections, cancellationToken);
+            PathGenerationResult generated = PathModelRouteGenerator.GeneratePath(source, selected, world, PathRouteResolverOptions.Default);
+            Assert.IsTrue(generated.Success, generated.Message);
+            return await RoundTripPathAsync(generated.PathModel, cancellationToken).ConfigureAwait(false);
+        }
+
         /// <summary>Serializes and reloads a native path through the isolated production model store.</summary>
         public async Task<PathModel> RoundTripPathAsync(PathModel source, CancellationToken cancellationToken)
         {

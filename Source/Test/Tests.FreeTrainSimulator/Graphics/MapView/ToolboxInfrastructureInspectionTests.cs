@@ -216,6 +216,80 @@ namespace Tests.FreeTrainSimulator.Graphics.MapView
             }
         }
 
+        [TestMethod]
+        [DataRow(0, false)]
+        [DataRow(0, true)]
+        [DataRow(1, false)]
+        public async Task TrackItemNavigationCentersOnItemLocationWithoutFitting(int index, bool road)
+        {
+            using (ToolboxInspectionFixture fixture = await ToolboxInspectionFixture.CreateDefaultAsync().ConfigureAwait(false))
+            {
+                ModelItem item = fixture.GetTrackItem(index, road);
+
+                fixture.Content.NavigateToTrackItem(index, road);
+
+                Assert.AreEqual((PointD.FromWorldLocation(item.Location), 0), (fixture.Camera.State.CenterPoint, fixture.Camera.FitCount));
+            }
+        }
+
+        [TestMethod]
+        [DataRow(0, false, "Track Item")]
+        [DataRow(0, true, "Road Item")]
+        [DataRow(1, false, "Track Item")]
+        public async Task TrackItemNavigationPinsDatabaseAndIndexDetails(int index, bool road, string itemType)
+        {
+            using (ToolboxInspectionFixture fixture = await ToolboxInspectionFixture.CreateDefaultAsync().ConfigureAwait(false))
+            {
+                ModelItem item = fixture.GetTrackItem(index, road);
+
+                fixture.Content.NavigateToTrackItem(index, road);
+                InformationDictionary details = fixture.Content.PinnedNavigationInfo.DetailInfo;
+
+                Assert.AreEqual((itemType, index.ToString(System.Globalization.CultureInfo.InvariantCulture),
+                    item.NodeIndex.ToString(System.Globalization.CultureInfo.InvariantCulture), item.Location.ToString()),
+                    (details["Item Type"], details["Item Index"], details["Node Index"], details["Location"]));
+            }
+        }
+
+        [TestMethod]
+        public async Task TrackItemSearchDistinguishesOverlappingIndexByDatabase()
+        {
+            using (ToolboxInspectionFixture fixture = await ToolboxInspectionFixture.CreateDefaultAsync().ConfigureAwait(false))
+            {
+                fixture.Content.NavigateToTrackItem(0, false);
+                KeyValuePair<string, string>[] rail = fixture.Content.PinnedNavigationInfo.DetailInfo.ToArray();
+
+                fixture.Content.NavigateToTrackItem(0, true);
+                KeyValuePair<string, string>[] roadItem = fixture.Content.PinnedNavigationInfo.DetailInfo.ToArray();
+
+                Assert.AreEqual(("Track Item", "Road Item"),
+                    (rail.Single(entry => entry.Key == "Item Type").Value, roadItem.Single(entry => entry.Key == "Item Type").Value));
+                Assert.AreNotEqual(rail.Single(entry => entry.Key == "Location").Value, roadItem.Single(entry => entry.Key == "Location").Value);
+            }
+        }
+
+        [TestMethod]
+        [DataRow(-1, false)]
+        [DataRow(-1, true)]
+        [DataRow(1, true)]
+        [DataRow(2, false)]
+        [DataRow(int.MaxValue, false)]
+        [DataRow(int.MaxValue, true)]
+        public async Task InvalidOrMissingTrackItemLeavesNavigationUnchanged(int index, bool road)
+        {
+            using (ToolboxInspectionFixture fixture = await ToolboxInspectionFixture.CreateDefaultAsync().ConfigureAwait(false))
+            {
+                fixture.Content.NavigateToTrackItem(0, false);
+                var previous = fixture.Content.PinnedNavigationInfo.DetailInfo;
+                PointD center = fixture.Camera.State.CenterPoint;
+
+                fixture.Content.NavigateToTrackItem(index, road);
+
+                Assert.AreEqual((center, true), (fixture.Camera.State.CenterPoint,
+                    ReferenceEquals(previous, fixture.Content.PinnedNavigationInfo.DetailInfo)));
+            }
+        }
+
         private static int NodeIndex(ITileCoordinate item) => item switch
         {
             TrackSegmentBase segment => segment.TrackNodeIndex,
@@ -322,6 +396,7 @@ namespace Tests.FreeTrainSimulator.Graphics.MapView
         }
 
         internal TrackNodeBase GetTrackNode(int index, bool road) => World.TrackNodeByIndex(index, road ? TrackDataBaseType.Road : TrackDataBaseType.Rail);
+        internal ModelItem GetTrackItem(int index, bool road) => World.TrackItemByIndex(index, road ? TrackDataBaseType.Road : TrackDataBaseType.Rail);
         internal TrackSegmentSection GetSegmentSection(int index, bool road) => (road ? World.RoadSegmentSections : World.SegmentSections)[index];
         internal void Draw() => Content.Draw(new Tile(0, -1), new Tile(3, 1));
         public IMapSession Compose(MapSessionRequest request) => this;

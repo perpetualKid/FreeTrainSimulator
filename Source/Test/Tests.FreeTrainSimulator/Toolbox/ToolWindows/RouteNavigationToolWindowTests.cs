@@ -8,6 +8,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace Tests.FreeTrainSimulator.Toolbox.ToolWindows
 {
     [TestClass]
+    [OSCondition(OperatingSystems.Windows)]
     public class RouteNavigationToolWindowTests
     {
         [TestMethod]
@@ -16,7 +17,18 @@ namespace Tests.FreeTrainSimulator.Toolbox.ToolWindows
             int invocations = 0;
             RouteNavigationToolWindow routeNavigationToolWindow = new RouteNavigationToolWindow(_ => invocations++);
 
-            routeNavigationToolWindow.SearchTrackItemByIndex("abc");
+            routeNavigationToolWindow.SearchTrackItemByIndex("abc", false);
+
+            Assert.AreEqual(0, invocations);
+        }
+
+        [TestMethod]
+        public void WhenTrackItemSearchTextIsNegativeThenGameThreadInvokerIsNotCalled()
+        {
+            int invocations = 0;
+            RouteNavigationToolWindow routeNavigationToolWindow = new RouteNavigationToolWindow(_ => invocations++);
+
+            routeNavigationToolWindow.SearchTrackItemByIndex("-1", false);
 
             Assert.AreEqual(0, invocations);
         }
@@ -32,7 +44,38 @@ namespace Tests.FreeTrainSimulator.Toolbox.ToolWindows
             });
             routeNavigationToolWindow.UpdateContext(new TestTrackNodeInfoContext());
 
-            routeNavigationToolWindow.SearchTrackItemByIndex("12");
+            routeNavigationToolWindow.SearchTrackItemByIndex("12", false);
+
+            Assert.AreEqual(1, invocations);
+        }
+
+        [TestMethod]
+        public void WhenRoadTrackItemSearchTextIsNumericThenGameThreadInvokerIsCalled()
+        {
+            int invocations = 0;
+            RouteNavigationToolWindow routeNavigationToolWindow = new RouteNavigationToolWindow(action =>
+            {
+                invocations++;
+                action();
+            });
+            routeNavigationToolWindow.UpdateContext(new TestTrackNodeInfoContext());
+
+            routeNavigationToolWindow.SearchTrackItemByIndex("3", true);
+
+            Assert.AreEqual(1, invocations);
+        }
+
+        [TestMethod]
+        public void WhenTrackItemSearchHasNoContentThenGameThreadInvokerIsStillCalledButNavigationIsSkipped()
+        {
+            int invocations = 0;
+            RouteNavigationToolWindow routeNavigationToolWindow = new RouteNavigationToolWindow(action =>
+            {
+                invocations++;
+                action();
+            });
+
+            routeNavigationToolWindow.SearchTrackItemByIndex("0", false);
 
             Assert.AreEqual(1, invocations);
         }

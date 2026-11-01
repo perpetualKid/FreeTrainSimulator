@@ -768,10 +768,21 @@ namespace FreeTrainSimulator.Runtime.Track
         /// Returns a <see cref="Models.Track.TrackItemBase"/> by its index in the track database,
         /// or <see langword="null"/> for out-of-range indices.
         /// </summary>
-        public Models.Track.TrackItemBase TrackItemByIndex(int index)
+        public Models.Track.TrackItemBase TrackItemByIndex(int index) => TrackItemByIndex(index, TrackDataBaseType.Rail);
+
+        /// <summary>
+        /// Returns an item from the selected rail or road database, or <see langword="null"/> when the
+        /// database, item collection or requested item is unavailable.
+        /// </summary>
+        public Models.Track.TrackItemBase TrackItemByIndex(int index, TrackDataBaseType trackDataBaseType)
         {
-            ImmutableArray<Models.Track.TrackItemBase> items = TrackDatabase?.TrackItems ?? ImmutableArray<Models.Track.TrackItemBase>.Empty;
-            return index > -1 && index < items.Length ? items[index] : null;
+            ImmutableArray<Models.Track.TrackItemBase> items = trackDataBaseType switch
+            {
+                TrackDataBaseType.Rail => TrackDatabase?.TrackItems ?? ImmutableArray<Models.Track.TrackItemBase>.Empty,
+                TrackDataBaseType.Road => RoadDatabase?.TrackItems ?? ImmutableArray<Models.Track.TrackItemBase>.Empty,
+                _ => throw new ArgumentOutOfRangeException(nameof(trackDataBaseType), trackDataBaseType, "Expected a rail or road database."),
+            };
+            return !items.IsDefaultOrEmpty && index > -1 && index < items.Length ? items[index] : null;
         }
 
         /// <summary>

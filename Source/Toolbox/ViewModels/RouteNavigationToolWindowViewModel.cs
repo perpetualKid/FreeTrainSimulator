@@ -22,6 +22,7 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
         private string trackItemSearchText = string.Empty;
         private string trackNodeSearchText = string.Empty;
         private bool searchRoads;
+        private bool searchItemRoads;
         private RouteNavigationItemViewModel selectedStation;
         private RouteNavigationItemViewModel selectedPlatform;
         private RouteNavigationItemViewModel selectedSiding;
@@ -33,7 +34,7 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
             ArgumentNullException.ThrowIfNull(toolWindow);
 
             this.toolWindow = toolWindow;
-            TrackItemSearchCommand = new RelayCommand(_ => toolWindow.SearchTrackItemByIndex(TrackItemSearchText));
+            TrackItemSearchCommand = new RelayCommand(_ => toolWindow.SearchTrackItemByIndex(TrackItemSearchText, SearchItemRoads));
             TrackNodeSearchCommand = new RelayCommand(_ => toolWindow.SearchTrackNodeByIndex(TrackNodeSearchText, SearchRoads));
         }
 
@@ -99,6 +100,13 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
         {
             get => searchRoads;
             set => SetProperty(ref searchRoads, value);
+        }
+
+        /// <summary>When true the track item search targets road items independently of the node search.</summary>
+        public bool SearchItemRoads
+        {
+            get => searchItemRoads;
+            set => SetProperty(ref searchItemRoads, value);
         }
 
         public RouteNavigationItemViewModel SelectedStation
@@ -191,11 +199,9 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
 
         private int SelectedIndexOf(ObservableCollection<RouteNavigationItemViewModel> target)
         {
-            if (ReferenceEquals(target, Stations))
-                return SelectedStation?.Index ?? -1;
-            if (ReferenceEquals(target, Platforms))
-                return SelectedPlatform?.Index ?? -1;
-            return SelectedSiding?.Index ?? -1;
+            return ReferenceEquals(target, Stations)
+                ? SelectedStation?.Index ?? -1
+                : ReferenceEquals(target, Platforms) ? SelectedPlatform?.Index ?? -1 : SelectedSiding?.Index ?? -1;
         }
 
         private void RestoreSelection(ObservableCollection<RouteNavigationItemViewModel> target, int index)
@@ -229,7 +235,7 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
         private static void ApplyFilter(ObservableCollection<RouteNavigationItemViewModel> target, string filter)
         {
             foreach (RouteNavigationItemViewModel item in target)
-                item.IsVisible = string.IsNullOrEmpty(filter)
+                item.Visible = string.IsNullOrEmpty(filter)
                     || (item.Name?.Contains(filter, StringComparison.OrdinalIgnoreCase) ?? false)
                     || (item.GroupName?.Contains(filter, StringComparison.OrdinalIgnoreCase) ?? false);
         }
@@ -241,7 +247,6 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
         private int index;
         private string name;
         private string groupName;
-        private bool isVisible = true;
 
         public RouteNavigationItemViewModel(int index, string name, string groupName)
         {
@@ -268,11 +273,11 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
             private set => SetProperty(ref groupName, value);
         }
 
-        public bool IsVisible
+        public bool Visible
         {
-            get => isVisible;
-            set => SetProperty(ref isVisible, value);
-        }
+            get;
+            set => SetProperty(ref field, value);
+        } = true;
 
         internal void Update(int index, string name, string groupName)
         {

@@ -473,6 +473,47 @@ namespace FreeTrainSimulator.Runtime.Track
         }
 
         /// <summary>
+        /// Inserts a via point directly after the node at <paramref name="nodeIndex"/> into the siding chain of the
+        /// one supported passing branch, steering its interior route through the new anchor instead of the
+        /// resolver's default pick. Unlike <see cref="InsertViaPoint"/>, which always targets the main chain, this
+        /// always targets the branch's siding links, and only accepts the branch's start node or one of its
+        /// existing interior anchors, so the insertion always lands inside the branch and before its rejoin node.
+        /// </summary>
+        public static PathEditResult InsertPassingBranchViaPoint(PathModel pathModel, int nodeIndex, PathNode anchor, bool isJunction)
+        {
+            ArgumentNullException.ThrowIfNull(pathModel);
+            ArgumentNullException.ThrowIfNull(anchor);
+
+            if (!TryGetPassingBranchNodeRole(pathModel, nodeIndex, out PassingBranchNodeRole role, out string failure))
+                return PathEditResult.Failed(failure, pathModel);
+
+            if (role != PassingBranchNodeRole.BranchStart && role != PassingBranchNodeRole.BranchInterior)
+                return PathEditResult.Failed($"Node {nodeIndex} is not the start or an interior anchor of the supported passing branch.", pathModel);
+
+            ImmutableArray<PathNode> nodes = Nodes(pathModel);
+            int nextSidingNode = nodes[nodeIndex].NextSidingNode;
+            int insertIndex = nodeIndex + 1;
+
+            ImmutableArray<PathNode>.Builder builder = ImmutableArray.CreateBuilder<PathNode>(nodes.Length + 1);
+            for (int i = 0; i < nodes.Length; i++)
+            {
+                if (i == insertIndex)
+                    builder.Add(CreateSidingViaNode(anchor, isJunction, ShiftLink(nextSidingNode, insertIndex)));
+
+                builder.Add(nodes[i] with
+                {
+                    NextMainNode = ShiftLink(nodes[i].NextMainNode, insertIndex),
+                    NextSidingNode = i == nodeIndex ? insertIndex : ShiftLink(nodes[i].NextSidingNode, insertIndex),
+                });
+            }
+
+            if (insertIndex == nodes.Length)
+                builder.Add(CreateSidingViaNode(anchor, isJunction, ShiftLink(nextSidingNode, insertIndex)));
+
+            return PathEditResult.Succeeded($"Inserted passing-branch via point at node {insertIndex}.", pathModel with { PathNodes = builder.ToImmutable() }, ImmutableArray.Create(insertIndex));
+        }
+
+        /// <summary>
         /// Removes the via point at <paramref name="nodeIndex"/>, relinking its predecessors to its successor and
         /// re-indexing the remaining links. Passing-branch endpoints and edits that invalidate a supported passing
         /// branch are rejected.
@@ -664,6 +705,17 @@ namespace FreeTrainSimulator.Runtime.Track
                 NodeIndex = anchor.NodeIndex,
                 NextMainNode = nextMainNode,
                 NextSidingNode = -1,
+            };
+        }
+
+        private static PathNode CreateSidingViaNode(PathNode anchor, bool junction, int nextSidingNode)
+        {
+            return new PathNode(anchor.Location)
+            {
+                NodeType = junction ? PathNodeType.Junction : PathNodeType.Via,
+                NodeIndex = anchor.NodeIndex,
+                NextMainNode = -1,
+                NextSidingNode = nextSidingNode,
             };
         }
 

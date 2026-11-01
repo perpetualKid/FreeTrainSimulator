@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Immutable;
+using System.Diagnostics;
 
 using FreeTrainSimulator.Graphics.MapView;
 using FreeTrainSimulator.Toolbox.Hosting;
@@ -173,10 +174,7 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
         private static ImmutableArray<ToolWindowRow> BuildDetailRows(ToolboxContent content)
         {
             ToolWindowSnapshot hover = ToolWindowSnapshotFactory.FromProviders(new[] { content.TrackNodeInfo, content.TrackItemInfo });
-            if (!hover.Rows.IsDefaultOrEmpty)
-                return hover.Rows;
-
-            return ToolWindowSnapshotFactory.FromProvider(content.PinnedNavigationInfo).Rows;
+            return !hover.Rows.IsDefaultOrEmpty ? hover.Rows : ToolWindowSnapshotFactory.FromProvider(content.PinnedNavigationInfo).Rows;
         }
 
         /// <summary>Centers and highlights the map on the station at the given list index. Safe to call from the WPF UI thread.</summary>
@@ -197,15 +195,24 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
         }
 
         /// <summary>
-        /// Navigates the map to the track item with the given index and pins its details. Safe to call from the
-        /// WPF UI thread: the parse happens inline and the navigation is marshaled onto the game thread.
+        /// Navigates to an item in the selected rail or road database and pins its details. Safe to call from
+        /// the WPF UI thread: parsing happens inline and navigation is marshaled onto the game thread.
         /// </summary>
-        internal void SearchTrackItemByIndex(string searchText)
+        internal void SearchTrackItemByIndex(string searchText, bool searchRoads)
         {
-            if (!int.TryParse(searchText, out int index))
+            if (!int.TryParse(searchText, out int index) || index < 0)
+            {
+                Trace.TraceWarning("Cannot search for a track item: enter a non-negative integer index.");
                 return;
+            }
 
-            gameThreadInvoker(() => context?.Content?.NavigateToTrackItem(index));
+            gameThreadInvoker(() =>
+            {
+                if (context?.Content is ToolboxContent content)
+                    content.NavigateToTrackItem(index, searchRoads);
+                else
+                    Trace.TraceWarning("Cannot search for a track item: no route is loaded.");
+            });
         }
 
         /// <summary>

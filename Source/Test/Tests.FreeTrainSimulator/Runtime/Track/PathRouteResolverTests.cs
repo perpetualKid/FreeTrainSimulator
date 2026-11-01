@@ -21,6 +21,7 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
     /// Unit tests for <see cref="PathRouteResolver"/>.
     /// </summary>
     [TestClass]
+    [OSCondition(OperatingSystems.Windows)]
     public class PathRouteResolverTests
     {
         /// <summary>
@@ -1325,6 +1326,52 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
             Assert.AreSequenceEqual(expectedArray1452, result.PassingRoutes[0].Spans[0].Candidates.Single().RouteNodeIndexes.ToArray());
         }
 
+        /// <summary>
+        /// Verifies that <see cref="PathModelEditor.InsertPassingBranchViaPoint"/> can steer an already-created
+        /// passing branch away from the resolver's tied default pick and through a specific, physically distinct
+        /// alternative that the resolver does not otherwise expose as a selectable candidate.
+        /// </summary>
+        [TestMethod]
+        public void ResolveWhenPassingBranchViaPointIsInsertedThenItSteersThroughTheForcedAlternative()
+        {
+            TrackWorld trackWorld = CreateTrackWorld(
+                ImmutableArray.Create<TrackNodeBase>(null, CreateJunctionNode(1), CreateJunctionNode(2),
+                    CreateVectorNode(3), CreateVectorNode(4), CreateVectorNode(5)),
+                ImmutableArray.Create(
+                    new TrackNodeConnectorIndex(),
+                    CreateConnectors(1, 3, 4, 5),
+                    CreateConnectors(2, 3, 4, 5),
+                    CreateConnectors(3, 1, 2),
+                    CreateConnectors(4, 1, 2),
+                    CreateConnectors(5, 1, 2)));
+            PathModel pathModel = new PathModel
+            {
+                PathNodes = ImmutableArray.Create(
+                    CreateNode(PathNodeType.Start, 1, 1, 1, trackWorld.TrackDatabase.TrackNodes[1].Location),
+                    CreateNode(PathNodeType.End, -1, -1, 2, trackWorld.TrackDatabase.TrackNodes[2].Location)),
+            };
+
+            PathRouteResolution baseline = PathRouteResolver.Resolve(pathModel, trackWorld, TestContext.CancellationToken);
+
+            Assert.AreEqual(PathRouteSpanStatus.Ambiguous, baseline.PassingRoutes[0].Spans[0].Status);
+            Assert.HasCount(2, baseline.PassingRoutes[0].Spans[0].Candidates);
+            Assert.IsFalse(baseline.PassingRoutes[0].Spans[0].Candidates.Any(candidate => candidate.RouteNodeIndexes.Contains(3)),
+                "The tied passing candidates must already exclude the main route's selected edge.");
+
+            PathNode viaAnchor = CreateNode(PathNodeType.Via, -1, -1, 5, trackWorld.TrackDatabase.TrackNodes[5].Location);
+            PathEditResult viaResult = PathModelEditor.InsertPassingBranchViaPoint(pathModel, 0, viaAnchor, false);
+
+            Assert.IsTrue(viaResult.Success, viaResult.Message);
+
+            PathRouteResolution steered = PathRouteResolver.Resolve(viaResult.PathModel, trackWorld, TestContext.CancellationToken);
+
+            Assert.HasCount(2, steered.PassingRoutes[0].Spans);
+            Assert.IsTrue(steered.PassingRoutes[0].Spans.All(span => span.Status == PathRouteSpanStatus.Resolved));
+            Assert.AreSequenceEqual(expectedArray15, steered.PassingRoutes[0].Spans[0].Candidates.Single().RouteNodeIndexes.ToArray());
+            Assert.AreSequenceEqual(expectedArray52, steered.PassingRoutes[0].Spans[1].Candidates.Single().RouteNodeIndexes.ToArray());
+            Assert.IsFalse(steered.Diagnostics.Any(diagnostic => diagnostic.Code == PathRouteDiagnosticCode.PassingBranchMatchesMainRoute));
+        }
+
         [TestMethod]
         public void ResolveWhenPassingEndpointsShareNodeThenLoopAlternativeIsUsed()
         {
@@ -1789,5 +1836,7 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
         private static readonly int[] expectedArray45 = new[] { 4, 5 };
         private static readonly int[] expectedArray124 = new[] { 1, 2, 4 };
         private static readonly int[] expectedArray468 = new[] { 4, 6, 8 };
+        private static readonly int[] expectedArray15 = new[] { 1, 5 };
+        private static readonly int[] expectedArray52 = new[] { 5, 2 };
     }
 }

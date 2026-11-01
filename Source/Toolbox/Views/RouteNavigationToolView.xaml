@@ -7,6 +7,7 @@
              xmlns:vm="clr-namespace:FreeTrainSimulator.Toolbox.ViewModels"
              xmlns:views="clr-namespace:FreeTrainSimulator.Toolbox.Views"
              xmlns:behaviors="clr-namespace:FreeTrainSimulator.Toolbox.Behaviors"
+             xmlns:gt="clr-namespace:GetText.Wpf;assembly=GetText.Wpf"
              mc:Ignorable="d"
              d:DataContext="{d:DesignInstance Type=vm:RouteNavigationToolWindowViewModel, IsDesignTimeCreatable=False}"
              views:ToolWindow.DefaultFloatingSize="520,560"
@@ -110,6 +111,17 @@
                         </TextBox.InputBindings>
                     </TextBox>
                 </DockPanel>
+                <StackPanel DockPanel.Dock="Top"
+                            Orientation="Horizontal"
+                            Margin="0,0,0,6">
+                    <RadioButton GroupName="RouteNavigationItemSearchType"
+                                 Content="{gt:Gettext 'Tracks'}"
+                                 IsChecked="True" />
+                    <RadioButton GroupName="RouteNavigationItemSearchType"
+                                 Margin="12,0,0,0"
+                                 Content="{gt:Gettext 'Roads'}"
+                                 IsChecked="{Binding SearchItemRoads}" />
+                </StackPanel>
                 <TextBlock TextWrapping="Wrap"
                            Text="Enter a track item index to center the map on it." />
             </DockPanel>

@@ -35,6 +35,12 @@ namespace Tests.FreeTrainSimulator.Simulator
         private static readonly int[] exptectedArray1346 = new int[] { 1, 3, 4, 6 };
         private static readonly int[] expectedArray346 = new int[] { 3, 4, 6 };
         private static readonly int[] expectedArray356 = new int[] { 3, 5, 6 };
+        private static readonly string[] expectedArray3R5R6A8R10R11A = new[] { "3:Reverse, 5:Reverse, 6:Ahead", "8:Reverse, 10:Reverse, 11:Ahead" };
+        private static readonly string[] sourceArray = new[]
+            {
+                "11:Reverse, 9:Ahead, 8:Ahead", "3:Reverse, 4:Reverse, 6:Ahead", "3:Reverse, 5:Reverse, 6:Ahead",
+                "6:Reverse, 4:Ahead, 3:Ahead", "8:Reverse, 10:Reverse, 11:Ahead", "8:Reverse, 9:Reverse, 11:Ahead",
+            };
 
         /// <summary>Bounded Toolbox reversal retains its selected track through guarded save, reload, and public startup.</summary>
         [TestMethod]
@@ -526,6 +532,70 @@ namespace Tests.FreeTrainSimulator.Simulator
                 else
                     AssertAlternativeRoute(snapshot);
             }
+        }
+
+        /// <summary>EVID-B1 evidence: two main-attached passing bypasses, strictly separated on the global main
+        /// route, resolved and generated directly (bypassing the editor's one-branch guard, exactly like the
+        /// existing single-branch fixtures), then started through the public explore workflow in train-alternative
+        /// mode. Establishes whether both branches actually survive resolution, generation, persistence, and
+        /// startup, rather than inferring support from structural compatibility alone.</summary>
+        [TestMethod]
+        public async Task StartExploreWhenTwoSeparatedBranchesAreGeneratedThenSnapshotContainsBothAlternativeRoutesAsync()
+        {
+            SyntheticPathFixture fixture = new SyntheticPathFixture(TestContext);
+            TrackModel track = fixture.Track with { TrackDatabase = SyntheticPathFixture.CreateTwoSeparatedBranchesDatabase() };
+            Simulation simulator = await fixture.CreateSimulator(track, false, TestContext.CancellationToken).ConfigureAwait(false);
+            PathModel path = await fixture.GenerateTwoSeparatedBranchesPathAsync(TestContext.CancellationToken).ConfigureAwait(false);
+
+            TrainSaveState snapshot = await StartExploreAndSnapshotAsync(fixture, simulator, path).ConfigureAwait(false);
+
+            Assert.HasCount(1, snapshot.RoutePathSaveState.RoutePaths);
+            Assert.AreEqual("2:Reverse, 3:Reverse, 4:Reverse, 6:Ahead, 7:Reverse, 8:Reverse, 9:Reverse, 11:Ahead, 12:Reverse, 13:Reverse",
+                RouteSignature(snapshot.RoutePathSaveState.RoutePaths[0]));
+            Assert.HasCount(2, snapshot.RoutePathSaveState.AlternativePaths);
+            Assert.AreSequenceEqual(expectedArray3R5R6A8R10R11A, snapshot.RoutePathSaveState.AlternativePaths.Select(RouteSignature).ToArray());
+
+            // Each branch's split/rejoin must anchor to its own, distinct alternative path index, with no cross-branch mixing.
+            TrackCircuitRouteElementSaveState[] mainRoute = snapshot.RoutePathSaveState.RoutePaths[0].RouteElements.ToArray();
+            TrackCircuitRouteElementSaveState split1 = mainRoute.Single(element => element.TrackCircuitSectionIndex == 3);
+            TrackCircuitRouteElementSaveState rejoin1 = mainRoute.Single(element => element.TrackCircuitSectionIndex == 6);
+            TrackCircuitRouteElementSaveState split2 = mainRoute.Single(element => element.TrackCircuitSectionIndex == 8);
+            TrackCircuitRouteElementSaveState rejoin2 = mainRoute.Single(element => element.TrackCircuitSectionIndex == 11);
+            Assert.IsNotNull(split1.AlternativePathStart);
+            Assert.IsNotNull(rejoin1.AlternativePathEnd);
+            Assert.IsNotNull(split2.AlternativePathStart);
+            Assert.IsNotNull(rejoin2.AlternativePathEnd);
+            Assert.AreEqual((0, 6, 0, 3), (split1.AlternativePathStart.PathIndex, split1.AlternativePathStart.TrackCircuitSectionIndex, rejoin1.AlternativePathEnd.PathIndex, rejoin1.AlternativePathEnd.TrackCircuitSectionIndex));
+            Assert.AreEqual((1, 11, 1, 8), (split2.AlternativePathStart.PathIndex, split2.AlternativePathStart.TrackCircuitSectionIndex, rejoin2.AlternativePathEnd.PathIndex, rejoin2.AlternativePathEnd.TrackCircuitSectionIndex));
+        }
+
+        /// <summary>The same strictly-separated two-branch graph in location-based passing (deadlock) mode.</summary>
+        [TestMethod]
+        public async Task StartExploreWhenTwoSeparatedLocationPassingBranchesAreGeneratedThenSnapshotContainsBothDeadlockRoutesAsync()
+        {
+            SyntheticPathFixture fixture = new SyntheticPathFixture(TestContext);
+            TrackModel track = fixture.Track with { TrackDatabase = SyntheticPathFixture.CreateTwoSeparatedBranchesDatabase() };
+            Simulation simulator = await fixture.CreateSimulator(track, true, TestContext.CancellationToken).ConfigureAwait(false);
+            PathModel path = await fixture.GenerateTwoSeparatedBranchesPathAsync(TestContext.CancellationToken).ConfigureAwait(false);
+
+            TrainSaveState snapshot = await StartExploreAndSnapshotAsync(fixture, simulator, path).ConfigureAwait(false);
+
+            Assert.IsEmpty(snapshot.RoutePathSaveState.AlternativePaths);
+            SignalEnvironmentSaveState signals = await simulator.SignalEnvironment.Snapshot().ConfigureAwait(false);
+            Assert.IsTrue(signals.LocationPassingPathsEnabled);
+            Assert.HasCount(2, signals.DeadlockDetails.Values);
+
+            // Each independent deadlock zone must remain confined to its own branch's track circuits (no leakage).
+            foreach (DeadlockInfoSaveState deadlock in signals.DeadlockDetails.Values)
+            {
+                int[] sections = deadlock.AvailablePaths.SelectMany(available => available.PathInfo.RouteElements
+                    .Select(element => element.TrackCircuitSectionIndex)).Distinct().ToArray();
+                bool branch1 = sections.All(section => section is 3 or 4 or 5 or 6);
+                bool branch2 = sections.All(section => section is 8 or 9 or 10 or 11);
+                Assert.IsTrue(branch1 || branch2, $"Deadlock zone sections [{string.Join(", ", sections)}] must not cross branches.");
+            }
+            string[] allDeadlockSignatures = signals.DeadlockDetails.Values.SelectMany(deadlock => deadlock.AvailablePaths) .Select(available => RouteSignature(available.PathInfo)).Order().ToArray();
+            Assert.AreSequenceEqual(sourceArray.Order().ToArray(), allDeadlockSignatures);
         }
 
         private async Task<TrainSaveState> StartExploreAndSnapshotAsync(SyntheticPathFixture fixture, Simulation simulator, PathModel path)
