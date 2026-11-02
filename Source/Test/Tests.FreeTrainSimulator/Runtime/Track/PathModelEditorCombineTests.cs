@@ -27,6 +27,11 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
         public TestContext TestContext { get; set; }
 
         private static readonly float[] expectedArrayf10406090 = new[] { 10f, 40f, 60f, 90f };
+        private static readonly int[] expectedArray135462 = new[] { 1, 3, 4, 6, 2 };
+        private static readonly int[] expectedArray13562 = new[] { 1, 3, 5, 6, 2 };
+        private static readonly int[] expectedArray2463 = new[] { 2, 4, 6, 3 };
+        private static readonly int[] expectedArray2513 = new[] { 2, 5, 1, 3 };
+        private static readonly int[] expectedArray27138 = new[] { 2, 7, 1, 3, 8 };
 
         [TestMethod]
         public void WhenCombiningTheSameInstanceThenItIsRefused()
@@ -58,8 +63,8 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
             ResolvedPathSpan join = resolution.MainRoute.Spans.Single(span => span.Status == PathRouteSpanStatus.Ambiguous);
             Assert.AreEqual(1, join.FromNodeIndex);
             Assert.HasCount(2, join.Candidates);
-            Assert.AreSequenceEqual(new[] { 1, 3, 4, 6, 2 }, join.Candidates[0].RouteNodeIndexes);
-            Assert.AreSequenceEqual(new[] { 1, 3, 5, 6, 2 }, join.Candidates[1].RouteNodeIndexes);
+            Assert.AreSequenceEqual(expectedArray135462, join.Candidates[0].RouteNodeIndexes);
+            Assert.AreSequenceEqual(expectedArray13562, join.Candidates[1].RouteNodeIndexes);
             Assert.HasCount(2, first.PathNodes);
             Assert.HasCount(2, second.PathNodes);
         }
@@ -118,13 +123,13 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
             Assert.IsTrue(normalResolution.IsValid, string.Join(Environment.NewLine, normalResolution.Diagnostics.Select(diagnostic => diagnostic.Message)));
             ResolvedPathSpan join = normalResolution.MainRoute.Spans.Single(span => span.FromNodeIndex == 2);
             Assert.HasCount(2, join.Candidates);
-            Assert.AreSequenceEqual(new[] { 2, 4, 6, 3 }, join.Candidates[0].RouteNodeIndexes);
-            Assert.AreSequenceEqual(new[] { 2, 5, 1, 3 }, join.Candidates[1].RouteNodeIndexes);
+            Assert.AreSequenceEqual(expectedArray2463, join.Candidates[0].RouteNodeIndexes);
+            Assert.AreSequenceEqual(expectedArray2513, join.Candidates[1].RouteNodeIndexes);
 
             PathEditResult result = PathModelEditor.CombinePaths(first, second, world, TestContext.CancellationToken);
 
             Assert.IsTrue(result.Success, result.Message);
-            Assert.AreSequenceEqual(new[] { 2, 7, 1, 3, 8 }, result.PathModel.PathNodes.Select(node => node.NodeIndex));
+            Assert.AreSequenceEqual(expectedArray27138, result.PathModel.PathNodes.Select(node => node.NodeIndex));
         }
 
         [TestMethod]

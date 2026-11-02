@@ -55,46 +55,49 @@ namespace Tests.FreeTrainSimulator.Toolbox.Hosting
             PathModel first = new PathModel
             {
                 Id = "first",
-                PathNodes = [Anchor(-90, 1) with { NodeType = PathNodeType.Start, NextMainNode = 1, NextSidingNode = -1 },
-                    Anchor(-70, 1) with { NodeType = PathNodeType.End, NextMainNode = -1, NextSidingNode = -1 }],
+                PathNodes = [Anchor(-90, 1) with { NodeType = PathNodeType.Start, NextMainNode = 1, NextSidingNode = -1 }, Anchor(-70, 1) with { NodeType = PathNodeType.End, NextMainNode = -1, NextSidingNode = -1 }],
             };
             PathModel second = new PathModel
             {
                 Id = "second",
-                PathNodes = [Anchor(120, 2) with { NodeType = PathNodeType.Start, NextMainNode = 1, NextSidingNode = -1 },
-                    Anchor(170, 2) with { NodeType = PathNodeType.End, NextMainNode = -1, NextSidingNode = -1 }],
+                PathNodes = [Anchor(120, 2) with { NodeType = PathNodeType.Start, NextMainNode = 1, NextSidingNode = -1 }, Anchor(170, 2) with { NodeType = PathNodeType.End, NextMainNode = -1, NextSidingNode = -1 }],
             };
             PathEditResult combination = PathModelEditor.CombinePaths(first, second, world, TestContext.CancellationToken);
             Assert.IsTrue(combination.Success, combination.Message);
-            ToolboxContent content = new ToolboxContent(new MapContentContext(new MapRuntimeServices(runtime), new JourneyMapSession(), null, null));
-            using PathEditor editor = new PathEditor(content);
-            Assert.IsTrue(editor.CombinePathsCommand(combination).Success);
-            Assert.IsFalse(editor.EditMode);
-            Assert.AreEqual(ToolboxContentMode.ViewPath, content.ContentMode);
-            ResolvedPathSpan join = editor.GetAmbiguousSpans().Single();
-            Assert.AreEqual(1, join.FromNodeIndex);
-            Assert.HasCount(2, join.Candidates);
-            PathModel beforePreview = editor.TryCaptureCurrentPathModel();
-            Assert.IsTrue(editor.PreviewRouteCandidate(join.FromNodeIndex, candidateIndex).Success);
-            Assert.AreSame(beforePreview, editor.TryCaptureCurrentPathModel());
-            Assert.IsFalse(editor.CanUndo);
-            PathEditResult acceptance = editor.AcceptRouteCandidate(join.FromNodeIndex, candidateIndex);
-            Assert.IsTrue(acceptance.Success, acceptance.Message);
-            Assert.IsEmpty(editor.GetAmbiguousSpans());
-            Assert.IsFalse(editor.EditMode);
-            Assert.IsTrue(editor.CanUndo);
-            PathModel chosen = editor.TryCaptureCurrentPathModel();
-            int selectedVector = candidateIndex == 0 ? 4 : 5;
-            Assert.Contains(node => node.NodeIndex == selectedVector, chosen.PathNodes);
-            Assert.DoesNotContain(node => node.NodeIndex == (selectedVector == 4 ? 5 : 4), chosen.PathNodes);
-            PathPersistenceValidationResult save = await PathEditor.SaveValidatedPath(chosen with { Id = "Combined" + Guid.NewGuid().ToString("N"), Name = "Chosen combined path" },
-                fixture.Route, world, TestContext.CancellationToken).ConfigureAwait(false);
-            Assert.IsTrue(save.PersistenceAllowed, save.FailureMessage);
-            PathModel reopened = await fixture.Route.PathModelUncached(save.PathModel.Id, TestContext.CancellationToken).ConfigureAwait(false);
-            Assert.AreSequenceEqual(save.PathModel.PathNodes, reopened.PathNodes);
-            Assert.IsTrue(editor.Undo());
-            Assert.AreSequenceEqual(beforePreview.PathNodes, editor.TryCaptureCurrentPathModel().PathNodes);
-            Assert.HasCount(1, editor.GetAmbiguousSpans());
+            using (JourneyMapSession journeyMapSession = new JourneyMapSession())
+            {
+                ToolboxContent content = new ToolboxContent(new MapContentContext(new MapRuntimeServices(runtime), journeyMapSession, null, null));
+                using (PathEditor editor = new PathEditor(content))
+                {
+                    Assert.IsTrue(editor.CombinePathsCommand(combination).Success);
+                    Assert.IsFalse(editor.EditMode);
+                    Assert.AreEqual(ToolboxContentMode.ViewPath, content.ContentMode);
+                    ResolvedPathSpan join = editor.GetAmbiguousSpans().Single();
+                    Assert.AreEqual(1, join.FromNodeIndex);
+                    Assert.HasCount(2, join.Candidates);
+                    PathModel beforePreview = editor.TryCaptureCurrentPathModel();
+                    Assert.IsTrue(editor.PreviewRouteCandidate(join.FromNodeIndex, candidateIndex).Success);
+                    Assert.AreSame(beforePreview, editor.TryCaptureCurrentPathModel());
+                    Assert.IsFalse(editor.CanUndo);
+                    PathEditResult acceptance = editor.AcceptRouteCandidate(join.FromNodeIndex, candidateIndex);
+                    Assert.IsTrue(acceptance.Success, acceptance.Message);
+                    Assert.IsEmpty(editor.GetAmbiguousSpans());
+                    Assert.IsFalse(editor.EditMode);
+                    Assert.IsTrue(editor.CanUndo);
+                    PathModel chosen = editor.TryCaptureCurrentPathModel();
+                    int selectedVector = candidateIndex == 0 ? 4 : 5;
+                    Assert.Contains(node => node.NodeIndex == selectedVector, chosen.PathNodes);
+                    Assert.DoesNotContain(node => node.NodeIndex == (selectedVector == 4 ? 5 : 4), chosen.PathNodes);
+                    PathPersistenceValidationResult save = await PathEditor.SaveValidatedPath(chosen with { Id = "Combined" + Guid.NewGuid().ToString("N"), Name = "Chosen combined path" },
+                        fixture.Route, world, TestContext.CancellationToken).ConfigureAwait(false);
+                    Assert.IsTrue(save.PersistenceAllowed, save.FailureMessage);
+                    PathModel reopened = await fixture.Route.PathModelUncached(save.PathModel.Id, TestContext.CancellationToken).ConfigureAwait(false);
+                    Assert.AreSequenceEqual(save.PathModel.PathNodes, reopened.PathNodes);
+                    Assert.IsTrue(editor.Undo());
+                    Assert.AreSequenceEqual(beforePreview.PathNodes, editor.TryCaptureCurrentPathModel().PathNodes);
+                    Assert.HasCount(1, editor.GetAmbiguousSpans());
+                }
+            }
         }
 
         [TestMethod]

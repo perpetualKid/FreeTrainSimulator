@@ -174,6 +174,12 @@ namespace FreeTrainSimulator.Toolbox
         {
             if (IsDisposed)
                 return;
+
+            combineRequest?.Cancel();
+            combineRequest?.Dispose();
+            compositionRequest?.Cancel();
+            compositionRequest?.Dispose();
+
             game.VerifySessionOwner();
             if (!StopAndDrainAsync().IsCompleted)
                 throw new InvalidOperationException("Drain the Toolbox session before disposing its resources.");
