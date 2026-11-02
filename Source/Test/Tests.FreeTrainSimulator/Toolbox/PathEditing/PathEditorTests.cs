@@ -2330,6 +2330,213 @@ namespace Tests.FreeTrainSimulator.Toolbox.PathEditing
         }
 
         [TestMethod]
+        [DataRow(0, PassingBranchNodeRole.BranchStart)]
+        [DataRow(2, PassingBranchNodeRole.BranchRejoin)]
+        public async Task WhenResolvedPassingEndpointMoveIsRequestedThenAdmissionAndCommandLeaveLoadedStateUnchanged(int nodeIndex, PassingBranchNodeRole expectedRole)
+        {
+            TrackWorld world = CreateEventSidingTrackWorld();
+            PathModel source = CreateResolvablePassingBranchPath(world);
+            TestPathEditorContext context = new TestPathEditorContext(world);
+            using (PathEditor editor = new PathEditor(context))
+            {
+                Assert.IsTrue(await editor.InitializePathAsync(source, CancellationToken.None).ConfigureAwait(false));
+                Assert.IsTrue(editor.ResolveCurrent(source).IsValid);
+                Assert.IsTrue(PathModelEditor.TryGetPassingBranchNodeRole(source, nodeIndex, out PassingBranchNodeRole role, out string failure), failure);
+                Assert.AreEqual(expectedRole, role);
+                editor.SelectAuthoredNode(nodeIndex);
+                PathModel baseline = editor.TryCaptureCurrentPathModel();
+                bool canMove = editor.CanMoveNode(nodeIndex);
+
+                PathEditorCommandResult result = editor.BeginMoveNodeCommand(nodeIndex);
+
+                Assert.IsFalse(canMove);
+                Assert.IsFalse(result.Success);
+                Assert.IsFalse(editor.IsPlacementActive);
+                Assert.AreEqual((false, ToolboxContentMode.ViewPath), (editor.EditMode, context.ContentMode));
+                Assert.AreSame(baseline, editor.TryCaptureCurrentPathModel());
+                Assert.AreEqual(nodeIndex, editor.SelectedAuthoredNodeIndex);
+                Assert.AreEqual((false, false, false), (editor.HasUnsavedChanges, editor.CanUndo, editor.CanRedo));
+            }
+        }
+
+        [TestMethod]
+        [DataRow(0, PathRouteDiagnosticCode.MissingStartNode, PassingBranchNodeRole.None)]
+        [DataRow(1, PathRouteDiagnosticCode.MissingStartNode, PassingBranchNodeRole.None)]
+        [DataRow(2, PathRouteDiagnosticCode.MissingStartNode, PassingBranchNodeRole.None)]
+        [DataRow(3, PathRouteDiagnosticCode.MissingStartNode, PassingBranchNodeRole.None)]
+        [DataRow(0, PathRouteDiagnosticCode.InvalidMainLink, PassingBranchNodeRole.None)]
+        [DataRow(1, PathRouteDiagnosticCode.InvalidMainLink, PassingBranchNodeRole.None)]
+        [DataRow(2, PathRouteDiagnosticCode.InvalidMainLink, PassingBranchNodeRole.None)]
+        [DataRow(3, PathRouteDiagnosticCode.InvalidMainLink, PassingBranchNodeRole.None)]
+        [DataRow(0, PathRouteDiagnosticCode.MissingEndNode, PassingBranchNodeRole.BranchStart)]
+        [DataRow(2, PathRouteDiagnosticCode.MissingEndNode, PassingBranchNodeRole.BranchRejoin)]
+        public async Task WhenRepairPassingNodeCannotBeMovedThenAdmissionAndCommandPreserveLoadedState(int nodeIndex, PathRouteDiagnosticCode defect, PassingBranchNodeRole expectedRole)
+        {
+            TrackWorld world = CreateEventSidingTrackWorld();
+            PathModel source = CreateResolvablePassingBranchPath(world);
+            source = source with
+            {
+                PathNodes = defect switch
+                {
+                    PathRouteDiagnosticCode.MissingStartNode => source.PathNodes.SetItem(0, source.PathNodes[0] with { NodeType = PathNodeType.Via }),
+                    PathRouteDiagnosticCode.InvalidMainLink => source.PathNodes.SetItem(1, source.PathNodes[1] with { NextMainNode = source.PathNodes.Length + 1 }),
+                    PathRouteDiagnosticCode.MissingEndNode => source.PathNodes.SetItem(2, source.PathNodes[2] with { NodeType = PathNodeType.Via }),
+                    _ => throw new ArgumentOutOfRangeException(nameof(defect)),
+                },
+            };
+            TestPathEditorContext context = new TestPathEditorContext(world);
+            using (PathEditor editor = new PathEditor(context))
+            {
+                Assert.IsTrue(await editor.InitializePathAsync(source, CancellationToken.None).ConfigureAwait(false));
+                Assert.IsTrue(editor.IsRepairMode);
+                Assert.IsTrue(editor.ResolveCurrent(source).Diagnostics.Any(diagnostic => diagnostic.Code == defect && diagnostic.Severity == PathRouteDiagnosticSeverity.Fatal));
+                Assert.AreEqual(expectedRole != PassingBranchNodeRole.None, PathModelEditor.TryGetPassingBranchNodeRole(source, nodeIndex, out PassingBranchNodeRole role, out _));
+                Assert.AreEqual(expectedRole, role);
+                editor.SelectAuthoredNode(nodeIndex);
+                PathModel baseline = editor.TryCaptureCurrentPathModel();
+                (bool, ToolboxContentMode) mode = (editor.EditMode, context.ContentMode);
+                Assert.IsFalse(editor.CanMoveNode(nodeIndex));
+
+                PathEditorCommandResult result = editor.BeginMoveNodeCommand(nodeIndex);
+
+                Assert.IsFalse(result.Success);
+                Assert.AreSame(baseline, editor.TryCaptureCurrentPathModel());
+                Assert.AreEqual(nodeIndex, editor.SelectedAuthoredNodeIndex);
+                Assert.AreEqual(mode, (editor.EditMode, context.ContentMode));
+                Assert.AreEqual((true, false, false, false, false), (editor.IsRepairMode, editor.IsPlacementActive, editor.HasUnsavedChanges, editor.CanUndo, editor.CanRedo));
+            }
+        }
+
+        [TestMethod]
+        [DataRow(1, 4, PassingBranchNodeRole.MainRoute)]
+        [DataRow(3, 5, PassingBranchNodeRole.BranchInterior)]
+        public async Task WhenRepairPassingMainOrInteriorIsMovedThenPartialRepairIsUndoable(int nodeIndex, int trackNodeIndex, PassingBranchNodeRole expectedRole)
+        {
+            TrackWorld world = CreateEventSidingTrackWorld();
+            PathModel source = CreateResolvablePassingBranchPath(world);
+            source = source with
+            {
+                PathNodes = source.PathNodes.SetItem(2, source.PathNodes[2] with { NodeType = PathNodeType.Via })
+                    .SetItem(nodeIndex, new PathNode(new WorldLocation(new Tile(1, 0), new Vector3(10000, 0, 10000)))
+                    {
+                        NodeType = source.PathNodes[nodeIndex].NodeType,
+                        NodeIndex = trackNodeIndex,
+                        NextMainNode = source.PathNodes[nodeIndex].NextMainNode,
+                        NextSidingNode = source.PathNodes[nodeIndex].NextSidingNode,
+                    }),
+            };
+            TrackSegmentBase segment = world.SegmentSections[trackNodeIndex].SectionSegments.Single();
+            PointD target = segment.Location + (segment.Vector - segment.Location) * 0.5;
+            WorldLocation expectedLocation = PointD.ToWorldLocation(segment.SnapToSegment(target));
+            using (PathEditor editor = new PathEditor(new TestPathEditorContext(world)))
+            {
+                Assert.IsTrue(await editor.InitializePathAsync(source, CancellationToken.None).ConfigureAwait(false));
+                Assert.IsTrue(editor.IsRepairMode);
+                Assert.IsTrue(editor.ResolveCurrent(source).Diagnostics.Any(diagnostic => diagnostic.Code == PathRouteDiagnosticCode.MissingEndNode && diagnostic.Severity == PathRouteDiagnosticSeverity.Fatal));
+                Assert.IsTrue(PathModelEditor.TryGetPassingBranchNodeRole(source, nodeIndex, out PassingBranchNodeRole role, out string failure), failure);
+                Assert.AreEqual(expectedRole, role);
+                editor.SelectAuthoredNode(nodeIndex);
+                Assert.IsTrue(editor.CanMoveNode(nodeIndex));
+                Assert.IsTrue(editor.BeginMoveNodeCommand(nodeIndex).Success);
+
+                editor.UpdatePointerLocation(target, segment);
+
+                Assert.IsTrue(editor.CanCommitMoveNode);
+                Assert.AreSame(source, editor.TryCaptureCurrentPathModel());
+                Assert.AreEqual((false, false), (editor.HasUnsavedChanges, editor.CanUndo));
+                PathEditResult result = editor.CommitMoveNode();
+                Assert.IsTrue(result.Success, result.Message);
+                PathModel moved = editor.TryCaptureCurrentPathModel();
+                Assert.AreEqual(expectedLocation, moved.PathNodes[nodeIndex].Location);
+                Assert.AreSequenceEqual(source.PathNodes.SetItem(nodeIndex, new PathNode(expectedLocation)
+                {
+                    NodeType = source.PathNodes[nodeIndex].NodeType,
+                    NodeIndex = trackNodeIndex,
+                    NextMainNode = source.PathNodes[nodeIndex].NextMainNode,
+                    NextSidingNode = source.PathNodes[nodeIndex].NextSidingNode,
+                }), moved.PathNodes);
+                Assert.AreEqual((true, true, true, false), (editor.IsRepairMode, editor.HasUnsavedChanges, editor.CanUndo, editor.IsPlacementActive));
+                Assert.IsTrue(HasDiagnostic(editor.ResolveCurrent(moved), PathRouteDiagnosticCode.MissingEndNode));
+                Assert.IsTrue(editor.Undo());
+                Assert.AreSequenceEqual(source.PathNodes, editor.TryCaptureCurrentPathModel().PathNodes);
+                Assert.IsFalse(editor.CanUndo, "A repair move must create exactly one undo step.");
+                Assert.IsTrue(editor.Redo());
+                Assert.AreSequenceEqual(moved.PathNodes, editor.TryCaptureCurrentPathModel().PathNodes);
+                Assert.IsTrue(editor.IsRepairMode);
+            }
+        }
+
+        [TestMethod]
+        public async Task WhenRepairPathHasNoPassingBranchThenNodeMovePreservesStructuralDefectAndIsUndoable()
+        {
+            Tile tile = new Tile(1, 0);
+            TrackWorld world = CreatePlacementTrackWorld(tile, out TrackSegmentBase segment);
+            PathModel source = CreateEditablePath() with
+            {
+                PathNodes = ImmutableArray.Create(CreateNodeAt(tile, 10, PathNodeType.Via, 1), CreateNodeAt(tile, 90, PathNodeType.End, -1)),
+            };
+            PointD target = segment.Location + (segment.Vector - segment.Location) * 0.5;
+            WorldLocation expectedLocation = PointD.ToWorldLocation(segment.SnapToSegment(target));
+            using (PathEditor editor = new PathEditor(new TestPathEditorContext(world)))
+            {
+                Assert.IsTrue(await editor.InitializePathAsync(source, CancellationToken.None).ConfigureAwait(false));
+                Assert.IsTrue(editor.IsRepairMode);
+                Assert.IsTrue(editor.ResolveCurrent(source).Diagnostics.Any(diagnostic => diagnostic.Code == PathRouteDiagnosticCode.MissingStartNode && diagnostic.Severity == PathRouteDiagnosticSeverity.Fatal));
+                Assert.IsTrue(editor.CanMoveNode(0));
+                Assert.IsTrue(editor.BeginMoveNodeCommand(0).Success);
+
+                editor.UpdatePointerLocation(target, segment);
+
+                Assert.IsTrue(editor.CanCommitMoveNode);
+                Assert.AreSame(source, editor.TryCaptureCurrentPathModel());
+                PathEditResult result = editor.CommitMoveNode();
+                Assert.IsTrue(result.Success, result.Message);
+                PathModel moved = editor.TryCaptureCurrentPathModel();
+                Assert.AreEqual(expectedLocation, moved.PathNodes[0].Location);
+                Assert.AreSequenceEqual(source.PathNodes.SetItem(0, new PathNode(expectedLocation) { NodeType = PathNodeType.Via, NodeIndex = 1, NextMainNode = 1, NextSidingNode = -1 }), moved.PathNodes);
+                Assert.AreEqual((true, true, false), (editor.IsRepairMode, editor.HasUnsavedChanges, editor.IsPlacementActive));
+                Assert.IsTrue(HasDiagnostic(editor.ResolveCurrent(moved), PathRouteDiagnosticCode.MissingStartNode));
+                Assert.IsTrue(editor.Undo());
+                Assert.AreSequenceEqual(source.PathNodes, editor.TryCaptureCurrentPathModel().PathNodes);
+                Assert.IsFalse(editor.CanUndo, "A repair move must create exactly one undo step.");
+                Assert.IsTrue(editor.Redo());
+                Assert.AreSequenceEqual(moved.PathNodes, editor.TryCaptureCurrentPathModel().PathNodes);
+            }
+        }
+
+        [TestMethod]
+        [DataRow(1, PassingBranchNodeRole.MainRoute)]
+        [DataRow(3, PassingBranchNodeRole.BranchInterior)]
+        public async Task WhenResolvedPassingInteriorOrMainNodeMoveIsCanceledThenCleanLoadedStateReturns(int nodeIndex, PassingBranchNodeRole expectedRole)
+        {
+            TrackWorld world = CreateEventSidingTrackWorld();
+            PathModel source = CreateResolvablePassingBranchPath(world);
+            TestPathEditorContext context = new TestPathEditorContext(world);
+            using (PathEditor editor = new PathEditor(context))
+            {
+                Assert.IsTrue(await editor.InitializePathAsync(source, CancellationToken.None).ConfigureAwait(false));
+                Assert.IsTrue(editor.ResolveCurrent(source).IsValid);
+                Assert.IsTrue(PathModelEditor.TryGetPassingBranchNodeRole(source, nodeIndex, out PassingBranchNodeRole role, out string failure), failure);
+                Assert.AreEqual(expectedRole, role);
+                Assert.IsTrue(editor.CanMoveNode(nodeIndex));
+                PathModel baseline = editor.TryCaptureCurrentPathModel();
+
+                PathEditorCommandResult begin = editor.BeginMoveNodeCommand(nodeIndex);
+
+                Assert.IsTrue(begin.Success, begin.Message);
+                Assert.IsTrue(editor.IsMovingNode);
+                Assert.AreEqual(nodeIndex, editor.SelectedAuthoredNodeIndex);
+                Assert.AreSame(baseline, editor.TryCaptureCurrentPathModel());
+                Assert.AreEqual((false, false, false), (editor.HasUnsavedChanges, editor.CanUndo, editor.CanRedo));
+                Assert.IsTrue(editor.CancelPlacementCommand().Success);
+                Assert.AreSame(baseline, editor.TryCaptureCurrentPathModel());
+                Assert.AreEqual((false, ToolboxContentMode.ViewPath), (editor.EditMode, context.ContentMode));
+                Assert.AreEqual((false, false, false, false), (editor.IsPlacementActive, editor.HasUnsavedChanges, editor.CanUndo, editor.CanRedo));
+                Assert.IsTrue(editor.CanMoveNode(nodeIndex));
+            }
+        }
+
+        [TestMethod]
         [DataRow(0)]
         [DataRow(2)]
         public void WhenPassingBranchEndpointIsRemovedAsViaThenEditorStateRemainsUnchanged(int nodeIndex)
@@ -2458,8 +2665,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.PathEditing
             using (PathEditor editor = CreateEditor(source))
             {
                 PathModel baseline = editor.TryCaptureCurrentPathModel();
-                SetPrivateField(editor, "pendingPassingBranchCandidate", new PendingPassingBranchCandidate(baseline, 0, 1,
-                    new ResolvedPathSpan(0, 1, PathRouteSpanStatus.Ambiguous)));
+                SetPrivateField(editor, "pendingPassingBranchCandidate", new PendingPassingBranchCandidate(baseline, 0, 1, new ResolvedPathSpan(0, 1, PathRouteSpanStatus.Ambiguous)));
                 typeof(PathEditor).GetMethod("RestoreSnapshot", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(editor, new object[] { replacement });
                 PathModel restoredReplacement = editor.TryCaptureCurrentPathModel();
 
@@ -2773,6 +2979,173 @@ namespace Tests.FreeTrainSimulator.Toolbox.PathEditing
                 PathRouteResolution resolution = editor.ResolveCurrent(editor.TryCaptureCurrentPathModel());
 
                 Assert.IsFalse(HasDiagnostic(resolution, PathRouteDiagnosticCode.MissingEndNode));
+            }
+        }
+
+        [TestMethod]
+        [DataRow(nameof(PathEditor.AddViaPointHereCommand), new float[] { 10, 50, 90 })]
+        [DataRow(nameof(PathEditor.SetStartAnchorCommand), new float[] { 25, 90 })]
+        [DataRow(nameof(PathEditor.SetEndAnchorCommand), new float[] { 10, 75 })]
+        [DataRow(nameof(PathEditor.ReResolvePathCommand), new float[] { 10, 90 })]
+        public async Task WhenLoadedViewModePathIsEditedDirectlyThenOneUndoAndRedoPreserveMode(string command, float[] expectedLocations)
+        {
+            Tile tile = new Tile(1, 0);
+            TrackWorld world = CreatePlacementTrackWorld(tile, out _);
+            PathModel source = new PathModel
+            {
+                Id = "loaded-direct-map-edit",
+                PathNodes = ImmutableArray.Create(CreateNodeAt(tile, 10, PathNodeType.Start, 1), CreateNodeAt(tile, 90, PathNodeType.End, -1)),
+            };
+            TestPathEditorContext context = new TestPathEditorContext(world);
+            using (PathEditor editor = new PathEditor(context))
+            {
+                Assert.IsTrue(await editor.InitializePathAsync(source, CancellationToken.None).ConfigureAwait(false));
+                Assert.AreEqual((false, ToolboxContentMode.ViewPath), (editor.EditMode, context.ContentMode));
+                Assert.AreEqual((false, false, false), (editor.HasUnsavedChanges, editor.CanUndo, editor.CanRedo));
+                PathModel baseline = editor.TryCaptureCurrentPathModel();
+
+                PathEditorCommandResult result = command switch
+                {
+                    nameof(PathEditor.AddViaPointHereCommand) => editor.AddViaPointHereCommand(0, CreateNodeAt(tile, 50, PathNodeType.None, -1), false),
+                    nameof(PathEditor.SetStartAnchorCommand) => editor.SetStartAnchorCommand(CreateNodeAt(tile, 25, PathNodeType.None, -1), false),
+                    nameof(PathEditor.SetEndAnchorCommand) => editor.SetEndAnchorCommand(CreateNodeAt(tile, 75, PathNodeType.None, -1), false),
+                    nameof(PathEditor.ReResolvePathCommand) => editor.ReResolvePathCommand(),
+                    _ => throw new ArgumentOutOfRangeException(nameof(command)),
+                };
+
+                Assert.IsTrue(result.Success, result.Message);
+                PathModel edited = editor.TryCaptureCurrentPathModel();
+                Assert.AreSequenceEqual(expectedLocations.Select(x => new WorldLocation(tile, new Vector3(x, 0, 0))), edited.PathNodes.Select(node => node.Location));
+                Assert.AreSequenceEqual(Enumerable.Repeat(1, expectedLocations.Length), edited.PathNodes.Select(node => node.NodeIndex));
+                Assert.AreSequenceEqual(Enumerable.Range(1, expectedLocations.Length - 1).Append(-1), edited.PathNodes.Select(node => node.NextMainNode));
+                Assert.AreSequenceEqual(Enumerable.Repeat(-1, expectedLocations.Length), edited.PathNodes.Select(node => node.NextSidingNode));
+                Assert.IsTrue(edited.PathNodes[0].NodeType.Includes(PathNodeType.Start));
+                Assert.IsTrue(edited.PathNodes[^1].NodeType.Includes(PathNodeType.End));
+                Assert.AreEqual(expectedLocations[^1] - expectedLocations[0], editor.TrainPath.Length, 0.001f);
+                Assert.IsTrue(editor.HasUnsavedChanges);
+                Assert.AreEqual((false, false, false, false), (editor.IsPlacementActive, editor.HasPendingAmbiguousSpanCommit, editor.HasPendingPassingBranchCandidate, editor.IsSelectingPassingBranchRejoin));
+                Assert.AreEqual((false, ToolboxContentMode.ViewPath), (editor.EditMode, context.ContentMode));
+                Assert.IsTrue(editor.Undo());
+                Assert.AreSequenceEqual(baseline.PathNodes, editor.TryCaptureCurrentPathModel().PathNodes);
+                Assert.IsFalse(editor.CanUndo, "A direct map edit must record exactly one undo step.");
+                Assert.AreEqual((false, ToolboxContentMode.ViewPath), (editor.EditMode, context.ContentMode));
+                Assert.IsTrue(editor.Redo());
+                Assert.AreSequenceEqual(edited.PathNodes, editor.TryCaptureCurrentPathModel().PathNodes);
+                Assert.IsFalse(editor.CanRedo);
+                Assert.AreEqual((false, ToolboxContentMode.ViewPath), (editor.EditMode, context.ContentMode));
+            }
+        }
+
+        [TestMethod]
+        public void WhenCombinedViewModePathGetsViaThenOneUndoAndRedoPreserveCombination()
+        {
+            Tile tile = new Tile(1, 0);
+            TrackWorld world = CreatePlacementTrackWorld(tile, out _);
+            PathModel first = new PathModel
+            {
+                Id = "combine-first",
+                PathNodes = ImmutableArray.Create(CreateNodeAt(tile, 10, PathNodeType.Start, 1), CreateNodeAt(tile, 40, PathNodeType.End, -1)),
+            };
+            PathModel second = new PathModel
+            {
+                Id = "combine-second",
+                PathNodes = ImmutableArray.Create(CreateNodeAt(tile, 60, PathNodeType.Start, 1), CreateNodeAt(tile, 90, PathNodeType.End, -1)),
+            };
+            PathEditResult combination = PathModelEditor.CombinePaths(first, second, world, TestContext.CancellationToken);
+            Assert.IsTrue(combination.Success, combination.Message);
+            TestPathEditorContext context = new TestPathEditorContext(world);
+            using (PathEditor editor = new PathEditor(context))
+            {
+                Assert.IsTrue(editor.CombinePathsCommand(combination).Success);
+                Assert.AreEqual((false, ToolboxContentMode.ViewPath), (editor.EditMode, context.ContentMode));
+                Assert.IsTrue(editor.HasUnsavedChanges);
+                Assert.IsFalse(editor.CanUndo);
+                PathModel baseline = editor.TryCaptureCurrentPathModel();
+
+                PathEditorCommandResult result = editor.AddViaPointHereCommand(1, CreateNodeAt(tile, 50, PathNodeType.None, -1), false);
+
+                Assert.IsTrue(result.Success, result.Message);
+                PathModel edited = editor.TryCaptureCurrentPathModel();
+                Assert.AreSequenceEqual(new[] { CreateNodeAt(tile, 10, PathNodeType.Start, 1), CreateNodeAt(tile, 40, PathNodeType.Via, 2),
+                    CreateNodeAt(tile, 50, PathNodeType.Via, 3), CreateNodeAt(tile, 60, PathNodeType.Via, 4), CreateNodeAt(tile, 90, PathNodeType.End, -1) }, edited.PathNodes);
+                Assert.AreEqual(80f, editor.TrainPath.Length, 0.001f);
+                Assert.IsTrue(editor.HasUnsavedChanges);
+                Assert.AreEqual((false, false, false, false), (editor.IsPlacementActive, editor.HasPendingAmbiguousSpanCommit, editor.HasPendingPassingBranchCandidate, editor.IsSelectingPassingBranchRejoin));
+                Assert.AreEqual((false, ToolboxContentMode.ViewPath), (editor.EditMode, context.ContentMode));
+                Assert.IsTrue(editor.Undo());
+                Assert.AreSequenceEqual(baseline.PathNodes, editor.TryCaptureCurrentPathModel().PathNodes);
+                Assert.IsFalse(editor.CanUndo, "Undo must retain the combination rather than reopen either source path.");
+                Assert.IsTrue(editor.HasUnsavedChanges);
+                Assert.AreEqual((false, ToolboxContentMode.ViewPath), (editor.EditMode, context.ContentMode));
+                Assert.IsTrue(editor.Redo());
+                Assert.AreSequenceEqual(edited.PathNodes, editor.TryCaptureCurrentPathModel().PathNodes);
+                Assert.IsFalse(editor.CanRedo);
+                Assert.AreEqual((false, ToolboxContentMode.ViewPath), (editor.EditMode, context.ContentMode));
+            }
+        }
+
+        [TestMethod]
+        [DataRow("Move")]
+        [DataRow("Save")]
+        [DataRow("Stopped")]
+        public async Task WhenLoadedEditorHasExclusiveStateThenReResolveIsUnavailableAndPreservesState(string state)
+        {
+            TestPathEditorContext context = new TestPathEditorContext(CreatePlacementTrackWorld(out _));
+            using (PathEditor editor = new PathEditor(context))
+            {
+                Assert.IsTrue(await editor.InitializePathAsync(CreateEditablePath(), CancellationToken.None).ConfigureAwait(false));
+                PathModel baseline = editor.TryCaptureCurrentPathModel();
+                switch (state)
+                {
+                    case "Move":
+                        Assert.IsTrue(editor.BeginMoveNodeCommand(0).Success);
+                        break;
+                    case "Save":
+                        _ = CreatePendingSaveOperation(editor, baseline, Task.FromResult<PathPersistenceValidationResult>(null));
+                        break;
+                    case "Stopped":
+                        editor.Stop();
+                        break;
+                    default:
+                        throw new ArgumentOutOfRangeException(nameof(state));
+                }
+                bool editMode = editor.EditMode;
+                ToolboxContentMode contentMode = context.ContentMode;
+                bool placement = editor.IsPlacementActive;
+                bool saving = editor.IsSaveInProgress;
+                bool canSnap = editor.CanSnapToTrack;
+
+                PathEditorCommandResult result = editor.ReResolvePathCommand();
+
+                Assert.IsFalse(canSnap);
+                Assert.IsFalse(result.Success);
+                Assert.AreSame(baseline, editor.TryCaptureCurrentPathModel());
+                Assert.AreEqual((editMode, contentMode, placement, saving), (editor.EditMode, context.ContentMode, editor.IsPlacementActive, editor.IsSaveInProgress));
+                Assert.AreEqual((false, false, false), (editor.HasUnsavedChanges, editor.CanUndo, editor.CanRedo));
+            }
+        }
+
+        [TestMethod]
+        public async Task WhenLoadedViewModeRouteCandidateIsPendingThenReResolvePreservesTheDecision()
+        {
+            PathModel source = new PathModel
+            {
+                PathNodes = ImmutableArray.Create(CreateNodeAt(100, PathNodeType.Start, 1), CreateNodeAt(200, PathNodeType.End, -1) with { NodeIndex = 2 }),
+            };
+            using (PathEditor editor = new PathEditor(new TestPathEditorContext(CreateAmbiguousTrackWorld())))
+            {
+                Assert.IsTrue(await editor.InitializePathAsync(source, CancellationToken.None).ConfigureAwait(false));
+                Assert.IsFalse(editor.AddViaPointHereCommand(0, CreateNodeAt(125, PathNodeType.None, -1), false).Success);
+                Assert.IsTrue(editor.HasPendingAmbiguousSpanCommit);
+                PathModel baseline = editor.TryCaptureCurrentPathModel();
+
+                PathEditorCommandResult result = editor.ReResolvePathCommand();
+
+                Assert.IsFalse(editor.CanSnapToTrack);
+                Assert.IsFalse(result.Success);
+                Assert.AreSame(baseline, editor.TryCaptureCurrentPathModel());
+                Assert.IsTrue(editor.HasPendingAmbiguousSpanCommit);
+                Assert.AreEqual((false, false, false, false, false), (editor.EditMode, editor.IsPlacementActive, editor.HasUnsavedChanges, editor.CanUndo, editor.CanRedo));
             }
         }
 
@@ -3517,7 +3890,9 @@ namespace Tests.FreeTrainSimulator.Toolbox.PathEditing
         public async Task WhenEndpointsAndTailAreEditedThenPhysicalLengthTracksCommitUndoAndRedo()
         {
             TrackWorld world = CreatePlacementTrackWorld(new Tile(1, 0), out TrackSegmentBase segment);
-            WorldLocation At(float x) => new WorldLocation(new Tile(1, 0), new Vector3(x, 0, 0));
+
+            static WorldLocation At(float x) => new WorldLocation(new Tile(1, 0), new Vector3(x, 0, 0));
+            
             PathModel source = new PathModel
             {
                 Id = "physical-length-editing",

@@ -16,6 +16,8 @@ using FreeTrainSimulator.Models.Track;
 using FreeTrainSimulator.Runtime;
 using FreeTrainSimulator.Runtime.Track;
 
+using GetText;
+
 namespace FreeTrainSimulator.Toolbox.PathEditing
 {
 
@@ -426,11 +428,11 @@ namespace FreeTrainSimulator.Toolbox.PathEditing
         public bool CanPlaceEndAnchor => !stopped && !IsPlacementActive && !HasPendingRouteCandidateInteraction && TryGetEditablePathModel() is PathModel currentModel && HasFlag(currentModel, PathNodeType.Start);
 
         /// <summary>
-        /// <see langword="true"/> when the current path can be snapped to track: it is in edit mode and has a
-        /// start node. Passing branches are woven back into the generated path where they rejoin the main route;
+        /// <see langword="true"/> when the idle current path has a start node and can be snapped to track without
+        /// changing its View/Edit mode. Passing branches are woven back in where they rejoin the main route;
         /// shapes the generator cannot represent are reported when the snap is attempted.
         /// </summary>
-        public bool CanSnapToTrack => !HasPendingRouteCandidateInteraction && HasNodeType(snapshot => snapshot.PathNodes.Length > 0 && HasFlag(snapshot, PathNodeType.Start));
+        public bool CanSnapToTrack => HasNodeType(snapshot => snapshot.PathNodes.Length > 0 && HasFlag(snapshot, PathNodeType.Start));
 
         /// <summary>Whether the current event-free main path can be reversed without changing its chosen track.</summary>
         public bool CanReversePath => !stopped && !repairMode && !IsSaveInProgress && !CanCancelPathInteraction && GetReversePathResult(TryGetEditablePathModel()).Success;
@@ -894,8 +896,8 @@ namespace FreeTrainSimulator.Toolbox.PathEditing
             ArgumentNullException.ThrowIfNull(sourceModel);
             ArgumentNullException.ThrowIfNull(anchorEdit);
 
-            if (pendingPassingBranchCandidate != null)
-                return PathSpanCommitResult.Failed("Accept or cancel the pending passing-route candidate before editing the path.", sourceModel);
+            if (stopped || CanCancelPathInteraction)
+                return PathSpanCommitResult.Failed(CatalogManager.Catalog.GetString("Finish or cancel the active path interaction before editing the path."), sourceModel);
 
             PathEditResult edit = anchorEdit(sourceModel);
             return edit.Success
@@ -1286,7 +1288,12 @@ namespace FreeTrainSimulator.Toolbox.PathEditing
         /// the resolver cannot resolve or whose passing shapes the generator cannot represent; the reason is
         /// returned in the result.
         /// </summary>
-        public PathEditResult SnapToTrack() => ApplyUndoableEdit(model => SnapPathToTrack(model, TrackWorld));
+        public PathEditResult SnapToTrack()
+        {
+            return IsSaveInProgress
+                ? PathEditResult.Failed(CatalogManager.Catalog.GetString("Wait for the current save to finish before re-resolving the path."), TryGetEditablePathModel())
+                : ApplyUndoableEdit(model => SnapPathToTrack(model, TrackWorld));
+        }
 
         public PathEditorCommandResult ReResolvePathCommand()
         {
@@ -1351,7 +1358,12 @@ namespace FreeTrainSimulator.Toolbox.PathEditing
         {
             PathModel currentModel = TryGetEditablePathModel();
             ImmutableArray<PathNode> nodes = currentModel?.PathNodes ?? ImmutableArray<PathNode>.Empty;
-            return !stopped && !IsPlacementActive && !HasPendingRouteCandidateInteraction && nodeIndex >= 0 && nodeIndex < nodes.Length;
+            if (stopped || IsSaveInProgress || CanCancelPathInteraction || nodeIndex < 0 || nodeIndex >= nodes.Length)
+                return false;
+
+            return !nodes.Any(node => node.NextSidingNode >= 0)
+                || PathModelEditor.TryGetPassingBranchNodeRole(currentModel, nodeIndex, out PassingBranchNodeRole role, out _)
+                    && role is PassingBranchNodeRole.BranchInterior or PassingBranchNodeRole.MainRoute;
         }
 
         /// <summary>
@@ -2310,13 +2322,10 @@ namespace FreeTrainSimulator.Toolbox.PathEditing
 
         public bool BeginMoveNode(int nodeIndex)
         {
-            if (stopped || HasPendingRouteCandidateInteraction)
+            if (!CanMoveNode(nodeIndex))
                 return false;
 
             PathModel currentModel = TryGetEditablePathModel();
-            ImmutableArray<PathNode> nodes = currentModel?.PathNodes ?? ImmutableArray<PathNode>.Empty;
-            if (nodeIndex < 0 || nodeIndex >= nodes.Length || IsPlacementActive)
-                return false;
 
             placementSourceEditMode = EditMode;
             placementSourceUnsavedChanges = unsavedChanges;
@@ -2624,18 +2633,16 @@ namespace FreeTrainSimulator.Toolbox.PathEditing
                 : PathEditorCommandResult.Failed("No path placement is active.", currentPathModel);
         }
 
-        // Captures the current authored path, runs the edit, and on success records an undo snapshot and
-        // rebuilds the editor from the new model. Returns a failed result (with a reason) when the editor is not
-        // in edit mode, no path is currently loaded, or the edit reports failure.
+        // Direct edits preserve View/Edit mode; an idle loaded path does not require interactive tail extension.
         private PathEditResult ApplyUndoableEdit(Func<PathModel, PathEditResult> edit)
         {
             PathModel currentModel = TryGetEditablePathModel() ?? moveSourceModel;
             if (stopped)
-                return PathEditResult.Failed("The path is not in edit mode.", currentModel);
+                return PathEditResult.Failed(CatalogManager.Catalog.GetString("Path editing is unavailable after the editor has stopped."), currentModel);
             if (HasPendingRouteCandidateInteraction)
                 return PendingRouteCandidateEditFailure(currentModel);
-            if (!EditMode)
-                return PathEditResult.Failed("The path is not in edit mode.", null);
+            if (CanCancelPathInteraction)
+                return PathEditResult.Failed(CatalogManager.Catalog.GetString("Finish or cancel the active path interaction before editing the path."), currentModel);
             if (currentModel == null)
                 return PathEditResult.Failed("No editable path is currently loaded.", null);
 
@@ -2657,7 +2664,7 @@ namespace FreeTrainSimulator.Toolbox.PathEditing
 
         private bool HasNodeType(Func<PathModel, bool> predicate)
         {
-            if (stopped || !EditMode || HasPendingRouteCandidateInteraction)
+            if (stopped || IsSaveInProgress || CanCancelPathInteraction)
                 return false;
 
             PathModel currentModel = TryGetEditablePathModel();

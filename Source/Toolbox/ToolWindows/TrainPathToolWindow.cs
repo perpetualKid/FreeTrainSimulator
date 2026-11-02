@@ -236,7 +236,7 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
             bool canCancelNewPath = pathEditor.IsNewPath;
             bool isBuildingRoute = pathEditor.IsBuildingRoute;
             bool canContinuePath = pathEditor.CanContinuePath;
-            bool canFinishPath = isBuildingRoute && pathEditor.CanRemoveEnd;
+            bool canFinishPath = isBuildingRoute && editorPathModel?.PathNodes.Any(node => (node.NodeType & PathNodeType.End) == PathNodeType.End) == true;
             bool canBeginPassingBranch = pathEditor.CanBeginPassingBranch(selectedNodeIndex);
             bool canCompletePassingBranch = pathEditor.CanCompletePassingBranch(selectedNodeIndex);
             bool canCancelPassingBranch = pathEditor.CanCancelPassingBranch;

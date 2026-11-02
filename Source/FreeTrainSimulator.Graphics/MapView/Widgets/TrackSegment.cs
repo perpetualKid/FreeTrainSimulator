@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Globalization;
 
 using FreeTrainSimulator.Common.DebugInfo;
@@ -13,8 +12,7 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
 {
     internal record TrackSegment : TrackSegmentBase, IDrawable<VectorPrimitive>, INameValueInformationProvider
     {
-        private protected static InformationDictionary debugInformation = new InformationDictionary() { ["Node Type"] = "Vector Section" };
-        private protected static int debugInfoHash;
+        private InformationDictionary debugInformation;
 
         public Dictionary<string, FormatOption> FormattingOptions { get; }
 
@@ -22,19 +20,18 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
         {
             get
             {
-                int hash = HashCode.Combine(TrackNodeIndex, TrackVectorSectionIndex);
-                if (hash != debugInfoHash)
-                {
-                    debugInformation["Segment Type"] = "Rail Track";
-                    debugInformation["Node Index"] = TrackNodeIndex.ToString(CultureInfo.InvariantCulture);
-                    debugInformation["Section Index"] = TrackVectorSectionIndex.ToString(CultureInfo.InvariantCulture);
-                    debugInformation["Curved"] = Curved.ToString(CultureInfo.InvariantCulture);
-                    debugInformation["Length"] = $"{Length:F1}m";
-                    debugInformation["Direction"] = $"{MathHelper.ToDegrees(MathHelper.WrapAngle(Direction + MathHelper.PiOver2)):F1}º ";
-                    debugInformation["Radius"] = Curved ? $"{Radius:F1}m" : "n/a";
-                    debugInformation["Angle"] = Curved ? $"{MathHelper.ToDegrees(Angle):F1}º" : "n/a";
-                    debugInfoHash = hash;
-                }
+                debugInformation ??= new InformationDictionary
+                    {
+                        ["Node Type"] = "Vector Section",
+                        ["Segment Type"] = "Rail Track",
+                        ["Node Index"] = TrackNodeIndex.ToString(CultureInfo.InvariantCulture),
+                        ["Section Index"] = TrackVectorSectionIndex.ToString(CultureInfo.InvariantCulture),
+                        ["Curved"] = Curved.ToString(CultureInfo.InvariantCulture),
+                        ["Length"] = $"{Length:F1}m",
+                        ["Direction"] = $"{MathHelper.ToDegrees(MathHelper.WrapAngle(Direction + MathHelper.PiOver2)):F1}º ",
+                        ["Radius"] = Curved ? $"{Radius:F1}m" : "n/a",
+                        ["Angle"] = Curved ? $"{MathHelper.ToDegrees(Angle):F1}º" : "n/a",
+                    };
                 return debugInformation;
             }
         }
@@ -46,6 +43,12 @@ namespace FreeTrainSimulator.Graphics.MapView.Widgets
 
         public TrackSegment(TrackSegmentBase source) : base(source)
         {
+        }
+
+        // Record copies must populate their own details rather than sharing the source's lazy cache.
+        protected TrackSegment(TrackSegment source) : base(source)
+        {
+            FormattingOptions = source.FormattingOptions;
         }
 
         public virtual void Draw(IMapRenderer renderer, ColorVariation colorVariation = ColorVariation.None, double scaleFactor = 1)

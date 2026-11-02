@@ -113,7 +113,7 @@ namespace FreeTrainSimulator.Toolbox
                 CanUndo = editor.CanUndo,
                 CanRedo = editor.CanRedo,
                 CanContinuePath = editor.CanContinuePath,
-                CanReResolvePath = editor.TrainPath != null,
+                CanReResolvePath = editor.CanSnapToTrack,
                 CanSavePath = hostedTrainPathToolWindow?.CanSavePath == true,
                 CanStartNewPath = hostedTrainPathToolWindow?.CanCreatePath == true,
                 IsNewPath = editor.IsNewPath,
