@@ -15,7 +15,7 @@
     <PackageReference Include="Dirkster.AvalonDock.Serializer.Json" Version="5.0.1" />
     <PackageReference Include="GetText.NET" Version="11.0.10-preview.1" />
     <PackageReference Include="GetText.NET.Wpf" Version="11.0.10-preview.1" />
-    <PackageReference Include="MonoGame.Framework.WindowsDX" Version="3.8.6" />
+    <PackageReference Include="MonoGame.Framework.WindowsDX" Version="3.8.6.1" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\FreeTrainSimulator.Common\FreeTrainSimulator.Common.csproj" />
