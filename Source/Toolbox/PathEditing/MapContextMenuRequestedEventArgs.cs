@@ -9,6 +9,8 @@ namespace FreeTrainSimulator.Toolbox.PathEditing
     /// </summary>
     internal sealed class MapContextMenuRequestedEventArgs : EventArgs
     {
+        private readonly PathEditorMenuRequest request;
+
         /// <summary>Pointer x position in map surface client pixels.</summary>
         public int X { get; }
 
@@ -19,17 +21,22 @@ namespace FreeTrainSimulator.Toolbox.PathEditing
         public int NodeIndex { get; }
 
         /// <summary>Menu entries available at the pointer position, in display order.</summary>
-        public ImmutableArray<MapContextMenuItem> Items { get; }
+        public ImmutableArray<MapContextMenuItem> Items => request.Items;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="MapContextMenuRequestedEventArgs"/> class.
         /// </summary>
-        public MapContextMenuRequestedEventArgs(int x, int y, int nodeIndex, ImmutableArray<MapContextMenuItem> items)
+        public MapContextMenuRequestedEventArgs(int x, int y, int nodeIndex, ImmutableArray<MapContextMenuItem> items, PathEditor owner)
         {
+            ArgumentNullException.ThrowIfNull(owner);
+            request = new PathEditorMenuRequest(items, owner);
             X = x;
             Y = y;
             NodeIndex = nodeIndex;
-            Items = items;
         }
+
+        /// <summary>Checks menu-construction ownership on the game thread before dispatching any action.</summary>
+        internal bool IsCurrent(PathEditor editor)
+            => request.IsCurrent(editor);
     }
 }

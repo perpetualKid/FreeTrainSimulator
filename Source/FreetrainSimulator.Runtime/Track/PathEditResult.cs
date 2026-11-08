@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Immutable;
 
 using FreeTrainSimulator.Models.Content;
@@ -24,6 +25,12 @@ namespace FreeTrainSimulator.Runtime.Track
         /// through dedicated UI strings.
         /// </summary>
         public PathEditorMessageKind MessageKind { get; init; }
+
+        /// <summary>
+        /// Carries the stable passing-branch message template and its original arguments for presentation.
+        /// The English <see cref="Message"/> remains unchanged for diagnostics and callers.
+        /// </summary>
+        public FormattableString MessageFormat { get; init; }
 
         /// <summary>
         /// The resulting authored path. On success this is a new instance; on failure it is the original

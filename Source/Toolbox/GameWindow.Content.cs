@@ -16,6 +16,7 @@ using FreeTrainSimulator.Models.Content;
 using FreeTrainSimulator.Runtime;
 using FreeTrainSimulator.Toolbox.PathEditing;
 using FreeTrainSimulator.Toolbox.PopupWindows;
+using FreeTrainSimulator.Toolbox.ToolWindows;
 
 using Microsoft.Xna.Framework;
 
@@ -126,7 +127,13 @@ namespace FreeTrainSimulator.Toolbox
         }
 
         private void PathEditor_MarkToolWindowDirty(object sender, PathEditorChangedEventArgs e)
-            => HostedServices?.TrainPathToolWindow?.MarkDirty();
+        {
+            TrainPathToolWindow toolWindow = HostedServices?.TrainPathToolWindow;
+            if (e.PreviewResult != null && sender is PathEditor editor)
+                toolWindow?.ReportPreviewResult(editor, e.PreviewResult);
+            else
+                toolWindow?.MarkDirty();
+        }
 
         /// <summary>Shows route loading status, or closes it when the request has ended.</summary>
         internal void SetRouteLoadingStatus(RouteModelHeader route)

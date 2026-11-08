@@ -522,7 +522,7 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
                 System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
 
             currentNodeProp.SetValue(boxedTraveller, vectorNode);
-            sectionIndexProp.SetValue(boxedTraveller, 1); // Set to second section
+            sectionIndexProp.SetValue(boxedTraveller, 1); // Set to expectedArray18 section
             TrackTraveller traveller = (TrackTraveller)boxedTraveller; // Unbox after all mutations
 
             // Act - Verify the internal state was updated correctly

@@ -44,6 +44,17 @@ namespace FreeTrainSimulator.Graphics.MapView
             editorContext.ContentMode = ToolboxContentMode.EditPath;
         }
 
+        /// <summary>Restores the owning editor's input mode without rebuilding its path or candidate preview.</summary>
+        protected void RestorePathPlacementInput()
+        {
+            if (ReferenceEquals(editorContext.PathEditor, this))
+            {
+                activePathPoint = null;
+                if (editorContext.ContentMode == ToolboxContentMode.EditPath)
+                    editorContext.ContentMode = EditMode ? ToolboxContentMode.EditPath : ToolboxContentMode.ViewPath;
+            }
+        }
+
         protected bool TryGetRenderedMainPathSpanAt(in PointD location, double toleranceWorldUnits, out int fromNodeIndex, out PathNode placementAnchor)
         {
             if (trainPath != null)

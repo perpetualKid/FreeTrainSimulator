@@ -65,6 +65,43 @@ namespace FreeTrainSimulator.Runtime.Track
             PathRouteResolverOptions options, IReadOnlyDictionary<int, ResolvedRouteCandidate> selectedCandidates,
             CancellationToken cancellationToken)
         {
+            return ResolveSelectedRoutes(pathModel, trackWorld, options, selectedCandidates, -1,
+                ImmutableDictionary<int, ResolvedRouteCandidate>.Empty, cancellationToken);
+        }
+
+        /// <summary>
+        /// Resolves a supported passing branch with exact span choices while retaining whole-branch arrival
+        /// correlation and rejoin validation. Main-route selection keys are not used for siding choices.
+        /// </summary>
+        public static PathRouteResolution ResolveSelectedPassingRoutes(PathModel pathModel, TrackWorld trackWorld, PathRouteResolverOptions options, int branchStartNodeIndex,
+            IReadOnlyDictionary<int, ResolvedRouteCandidate> selectedCandidates, CancellationToken cancellationToken)
+        {
+            ArgumentNullException.ThrowIfNull(pathModel);
+            ArgumentNullException.ThrowIfNull(selectedCandidates);
+            if (!PathModelEditor.TryGetPassingBranchNodeRole(pathModel, branchStartNodeIndex, out PassingBranchNodeRole role, out _) || role != PassingBranchNodeRole.BranchStart)
+                throw new ArgumentOutOfRangeException(nameof(branchStartNodeIndex));
+
+            HashSet<int> spanSources = new HashSet<int>();
+            int current = branchStartNodeIndex;
+            while (pathModel.PathNodes[current].NextSidingNode >= 0 && spanSources.Add(current))
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                current = pathModel.PathNodes[current].NextSidingNode;
+            }
+            foreach (KeyValuePair<int, ResolvedRouteCandidate> selection in selectedCandidates)
+            {
+                ArgumentNullException.ThrowIfNull(selection.Value);
+                if (!spanSources.Contains(selection.Key))
+                    throw new ArgumentOutOfRangeException(nameof(selectedCandidates));
+            }
+
+            return ResolveSelectedRoutes(pathModel, trackWorld, options, ImmutableDictionary<int, ResolvedRouteCandidate>.Empty, branchStartNodeIndex, selectedCandidates, cancellationToken);
+        }
+
+        private static PathRouteResolution ResolveSelectedRoutes(PathModel pathModel, TrackWorld trackWorld, PathRouteResolverOptions options, IReadOnlyDictionary<int, ResolvedRouteCandidate> selectedCandidates,
+            int passingBranchStartNodeIndex, IReadOnlyDictionary<int, ResolvedRouteCandidate> passingSelections,
+            CancellationToken cancellationToken)
+        {
             ArgumentNullException.ThrowIfNull(pathModel);
             ArgumentNullException.ThrowIfNull(options);
             ArgumentNullException.ThrowIfNull(selectedCandidates);
@@ -134,7 +171,8 @@ namespace FreeTrainSimulator.Runtime.Track
                 : null;
             ValidateMainRouteReachesEnd(mainRoute, endNodeIndex, diagnostics);
             ImmutableArray<ResolvedPathRoute> passingRoutes = options.ResolvePassingBranches
-                ? BuildPassingRoutes(pathNodes, anchors, mainRoute, trackWorld, options, diagnostics, cancellationToken)
+                ? BuildPassingRoutes(pathNodes, anchors, mainRoute, trackWorld, options, diagnostics,
+                    passingBranchStartNodeIndex, passingSelections, cancellationToken)
                 : ImmutableArray<ResolvedPathRoute>.Empty;
             ValidatePassingBranchRejoins(mainRoute, passingRoutes, diagnostics);
             ValidatePassingBranchDistinctness(mainRoute, passingRoutes, diagnostics);
@@ -615,7 +653,8 @@ namespace FreeTrainSimulator.Runtime.Track
         }
 
         private static ImmutableArray<ResolvedPathRoute> BuildPassingRoutes(ImmutableArray<PathNode> pathNodes, ImmutableArray<PathRouteAnchor> anchors, ResolvedPathRoute mainRoute, TrackWorld trackWorld,
-            PathRouteResolverOptions options, List<PathRouteDiagnostic> diagnostics, CancellationToken cancellationToken)
+            PathRouteResolverOptions options, List<PathRouteDiagnostic> diagnostics, int selectedBranchStartNodeIndex,
+            IReadOnlyDictionary<int, ResolvedRouteCandidate> selectedCandidates, CancellationToken cancellationToken)
         {
             ImmutableArray<ResolvedPathRoute>.Builder routes = ImmutableArray.CreateBuilder<ResolvedPathRoute>();
             for (int i = 0; i < pathNodes.Length; i++)
@@ -633,7 +672,8 @@ namespace FreeTrainSimulator.Runtime.Track
                     TrackRouteArrival? arrival = mainRoute?.Spans.LastOrDefault(span => span.ToNodeIndex == i)?.Candidates.FirstOrDefault()?.Arrival;
                     TrackRouteSearchConstraints searchConstraints = new TrackRouteSearchConstraints(arrival, mainRouteEdges, requireAlternativeRoute);
                     ResolvedPathRoute route = BuildRoute(PathRouteBranchKind.Passing, pathNodes, anchors, trackWorld, options, diagnostics, i,
-                        static pathNode => pathNode.NextSidingNode, searchConstraints, mainRoute, ImmutableDictionary<int, ResolvedRouteCandidate>.Empty, cancellationToken);
+                        static pathNode => pathNode.NextSidingNode, searchConstraints, mainRoute,
+                        i == selectedBranchStartNodeIndex ? selectedCandidates : ImmutableDictionary<int, ResolvedRouteCandidate>.Empty, cancellationToken);
                     routes.Add(route);
 
                     if (requireAlternativeRoute && trackWorld != null && route.Spans.Any(span => span.Status == PathRouteSpanStatus.Unresolved))

@@ -175,7 +175,8 @@ namespace FreeTrainSimulator.Toolbox.Views
         private static void PopulateNodeActions(ItemsControl menu, TrainPathToolWindowViewModel viewModel)
         {
             menu.Items.Clear();
-            foreach (MapContextMenuItem action in viewModel.GetSelectedNodeActions())
+            PathEditorMenuRequest request = viewModel.CaptureSelectedNodeMenuRequest();
+            foreach (MapContextMenuItem action in request.Items)
             {
                 if (action.IsSeparator)
                 {
@@ -185,7 +186,7 @@ namespace FreeTrainSimulator.Toolbox.Views
 
                 MenuItem item = new MenuItem() { Header = MainWindow.GetMapContextMenuCaption(action) };
                 MapContextMenuItem capturedAction = action;
-                item.Click += (_, _) => viewModel.ExecuteNodeAction(capturedAction);
+                item.Click += (_, _) => viewModel.ExecuteNodeAction(request, capturedAction);
                 menu.Items.Add(item);
             }
         }

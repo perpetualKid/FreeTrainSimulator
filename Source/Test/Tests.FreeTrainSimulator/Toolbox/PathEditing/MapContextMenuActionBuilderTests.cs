@@ -14,8 +14,81 @@ using static FreeTrainSimulator.Toolbox.PathEditing.MapContextMenuActionBuilder;
 namespace Tests.FreeTrainSimulator.Toolbox.PathEditing
 {
     [TestClass]
+    [OSCondition(OperatingSystems.Windows)]
     public class MapContextMenuActionBuilderTests
     {
+        [TestMethod]
+        [DataRow(false, "RejoinPassingBranchWithVia,CancelPassingBranch")]
+        [DataRow(true, "RejoinPassingBranch,RejoinPassingBranchWithVia,CancelPassingBranch")]
+        public void WhenStructuralRejoinSupportsGuidanceThenNodeMenuOffersGuidanceIndependentlyOfFastCompletion(bool canComplete, string expected)
+        {
+            ImmutableArray<MapContextMenuItem> items = BuildNodeActions(2, new MapContextMenuState
+            {
+                CanCompletePassingBranch = canComplete,
+                CanRejoinPassingBranchWithVia = true,
+                CanCancelPassingBranch = true,
+                CanRemoveViaPoint = true,
+                CanMoveNode = true,
+            });
+
+            Assert.AreEqual(expected, string.Join(",", Actions(items)));
+        }
+
+        [TestMethod]
+        [DataRow(false, "PreviewPassingBranchViaHere,CancelPassingBranch")]
+        [DataRow(true, "PreviewPassingBranchViaHere,ConfirmPassingBranchVia,CancelPassingBranch")]
+        public void WhenGuidedViaIsPlacedThenMapMenuOnlyOffersCurrentGuidedCommands(bool canConfirm, string expected)
+        {
+            PathNode anchor = PlacementAnchor();
+            ImmutableArray<MapContextMenuItem> items = BuildForMap(new MapContextMenuState
+            {
+                IsPlacementActive = true,
+                IsPlacingPassingBranchVia = true,
+                CanConfirmPassingBranchVia = canConfirm,
+                CanSavePath = true,
+                CanUndo = true,
+                IsBuildingRoute = true,
+                CanFinishPath = true,
+            }, anchor);
+
+            Assert.AreEqual(expected, string.Join(",", Actions(items)));
+            Assert.AreSame(anchor, items[0].PlacementAnchor);
+        }
+
+        [TestMethod]
+        [DataRow(false, "CancelPassingBranch")]
+        [DataRow(true, "ConfirmPassingBranchVia,CancelPassingBranch")]
+        public void WhenGuidedViaIsPlacedThenNodeMenuDoesNotOfferUnrelatedPlacementOrEditing(bool canConfirm, string expected)
+        {
+            ImmutableArray<MapContextMenuItem> items = BuildNodeActions(2, new MapContextMenuState
+            {
+                IsPlacementActive = true,
+                IsPlacingPassingBranchVia = true,
+                CanConfirmPassingBranchVia = canConfirm,
+                CanMoveNode = true,
+                CanRemoveViaPoint = true,
+            });
+
+            Assert.AreEqual(expected, string.Join(",", Actions(items)));
+        }
+
+        [TestMethod]
+        public void WhenGuidedViaIsPlacedThenSpanMenuPreservesAnchorAndSuppressesRouteCandidateActions()
+        {
+            PathNode anchor = PlacementAnchor();
+            ImmutableArray<MapContextMenuItem> items = BuildForSpan(2, anchor, [Candidate(1, 2)], new MapContextMenuState
+            {
+                IsPlacementActive = true,
+                IsPlacingPassingBranchVia = true,
+                CanConfirmPassingBranchVia = true,
+                CanRemoveRestOfPath = true,
+            });
+
+            Assert.AreSequenceEqual(new[] { MapContextMenuAction.PreviewPassingBranchViaHere, MapContextMenuAction.ConfirmPassingBranchVia,
+                MapContextMenuAction.CancelPassingBranch }, Actions(items));
+            Assert.AreSame(anchor, items[0].PlacementAnchor);
+        }
+
         [TestMethod]
         public void WhenNodeMoveIsInProgressThenNodeMenuOnlyOffersCancelMove()
         {
@@ -76,15 +149,18 @@ namespace Tests.FreeTrainSimulator.Toolbox.PathEditing
         }
 
         [TestMethod]
-        public void WhenBuildRouteHasNoCommittedEndpointThenMapMenuOmitsFinishPath()
+        [DataRow(false)]
+        [DataRow(true)]
+        public void WhenBuildRouteFinishCapabilityIsSuppliedThenMapMenuMatchesIt(bool canFinishPath)
         {
             ImmutableArray<MapContextMenuItem> items = BuildForMap(new MapContextMenuState
             {
                 IsPlacementActive = true,
                 IsBuildingRoute = true,
+                CanFinishPath = canFinishPath,
             }, PlacementAnchor());
 
-            Assert.DoesNotContain(MapContextMenuAction.FinishPath, Actions(items));
+            Assert.AreEqual(canFinishPath, Actions(items).Contains(MapContextMenuAction.FinishPath));
         }
 
         [TestMethod]
@@ -298,17 +374,16 @@ namespace Tests.FreeTrainSimulator.Toolbox.PathEditing
                 new TestPathPoint(PathNodeType.Via), 1, true,
                 new MapContextMenuState { CanCancelPassingBranch = true, CanRemoveViaPoint = true, CanRemoveRestOfPath = true });
 
-            Assert.AreEqual(1, items.Length);
+            Assert.HasCount(1, items);
             Assert.AreEqual(MapContextMenuAction.CancelPassingBranch, items[0].Action);
         }
 
         [TestMethod]
         public void WhenPassingRejoinSelectionIsActiveThenSpanActionsAreSuppressed()
         {
-            ImmutableArray<MapContextMenuItem> items = BuildForSpan(1, PlacementAnchor(), ImmutableArray<ResolvedRouteCandidate>.Empty,
-                new MapContextMenuState { CanCancelPassingBranch = true, CanRemoveRestOfPath = true });
+            ImmutableArray<MapContextMenuItem> items = BuildForSpan(1, PlacementAnchor(), ImmutableArray<ResolvedRouteCandidate>.Empty, new MapContextMenuState { CanCancelPassingBranch = true, CanRemoveRestOfPath = true });
 
-            Assert.AreEqual(1, items.Length);
+            Assert.HasCount(1, items);
             Assert.AreEqual(MapContextMenuAction.CancelPassingBranch, items[0].Action);
         }
 
@@ -328,18 +403,13 @@ namespace Tests.FreeTrainSimulator.Toolbox.PathEditing
             ImmutableArray<MapContextMenuItem> items = BuildForNode(
                 new TestPathPoint(PathNodeType.Via), 4, true, default);
 
-            Assert.IsTrue(items.All(item => item.IsSeparator
-                || item.Action == MapContextMenuAction.Undo
-                || item.Action == MapContextMenuAction.Redo
-                || item.NodeIndex == 4));
+            Assert.IsTrue(items.All(item => item.IsSeparator || item.Action == MapContextMenuAction.Undo || item.Action == MapContextMenuAction.Redo || item.NodeIndex == 4));
         }
 
         [TestMethod]
         public void WhenMenuHasMultipleSectionsThenSeparatorsAreInserted()
         {
-            ImmutableArray<MapContextMenuItem> items = BuildForNode(
-                new TestPathPoint(PathNodeType.Via), 1, true,
-                new MapContextMenuState { CanUndo = true, CanRemoveRestOfPath = true });
+            ImmutableArray<MapContextMenuItem> items = BuildForNode( new TestPathPoint(PathNodeType.Via), 1, true, new MapContextMenuState { CanUndo = true, CanRemoveRestOfPath = true });
 
             Assert.AreEqual(2, items.Count(item => item.IsSeparator));
         }

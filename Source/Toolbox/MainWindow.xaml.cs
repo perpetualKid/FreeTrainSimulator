@@ -388,7 +388,7 @@ namespace FreeTrainSimulator.Toolbox
                 {
                     Header = GetMapContextMenuCaption(current),
                 };
-                item.Click += (_, _) => MapHost.ExecuteMapContextMenuAction(current.Action, current.NodeIndex, current.CandidateIndex, current.PlacementAnchor);
+                item.Click += (_, _) => MapHost.ExecuteMapContextMenuAction(e, current);
                 contextMenu.Items.Add(item);
             }
 
@@ -410,6 +410,9 @@ namespace FreeTrainSimulator.Toolbox
                 MapContextMenuAction.ClearReversalPoint => CatalogManager.Catalog.GetString("Clear Reversal Point"),
                 MapContextMenuAction.StartPassingBranch => CatalogManager.Catalog.GetString("Start Passing Branch"),
                 MapContextMenuAction.RejoinPassingBranch => CatalogManager.Catalog.GetString("Rejoin Passing Branch"),
+                MapContextMenuAction.RejoinPassingBranchWithVia => CatalogManager.Catalog.GetString("Rejoin Passing Branch With Via"),
+                MapContextMenuAction.PreviewPassingBranchViaHere => CatalogManager.Catalog.GetString("Preview Passing Via Here"),
+                MapContextMenuAction.ConfirmPassingBranchVia => CatalogManager.Catalog.GetString("Confirm Passing Via"),
                 MapContextMenuAction.CancelPassingBranch => CatalogManager.Catalog.GetString("Cancel Passing Branch"),
                 MapContextMenuAction.RemovePassingBranch => CatalogManager.Catalog.GetString("Remove Passing Branch"),
                 MapContextMenuAction.RepairNode => CatalogManager.Catalog.GetString("Repair Node"),

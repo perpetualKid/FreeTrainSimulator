@@ -106,8 +106,10 @@ namespace FreeTrainSimulator.Toolbox
             MapContextMenuActionBuilder.MapContextMenuState state = new MapContextMenuActionBuilder.MapContextMenuState
             {
                 IsPlacementActive = editor.IsPlacementActive,
+                IsPlacingPassingBranchVia = editor.IsPlacingPassingBranchVia,
+                CanConfirmPassingBranchVia = editor.IsPlacingPassingBranchVia && editor.CanCommitPlacement,
                 IsBuildingRoute = editor.IsBuildingRoute,
-                CanFinishPath = editor.IsBuildingRoute && (editor.TryCaptureCurrentPathModel()?.PathNodes.Length ?? 0) > 1,
+                CanFinishPath = editor.CanFinishPath,
                 CanSetStartAnchor = editor.CanPlaceStartAnchor,
                 CanSetEndAnchor = editor.CanPlaceEndAnchor,
                 CanUndo = editor.CanUndo,
@@ -127,6 +129,7 @@ namespace FreeTrainSimulator.Toolbox
                 {
                     CanBeginPassingBranch = editor.CanBeginPassingBranch(nodeIndex),
                     CanCompletePassingBranch = editor.CanCompletePassingBranch(nodeIndex),
+                    CanRejoinPassingBranchWithVia = editor.CanRejoinPassingBranchWithVia(nodeIndex),
                     CanRemovePassingBranch = editor.CanRemovePassingBranch(nodeIndex),
                     CanClearWaitPoint = editor.CanClearWaitPoint(nodeIndex),
                     CanSetReversalPoint = editor.CanSetReversalPoint(nodeIndex),
@@ -154,7 +157,7 @@ namespace FreeTrainSimulator.Toolbox
                 return;
 
             MapContextMenuRequested?.Invoke(this, new MapContextMenuRequestedEventArgs(
-                pointerCommandArgs.Position.X, pointerCommandArgs.Position.Y, nodeIndex, items));
+                pointerCommandArgs.Position.X, pointerCommandArgs.Position.Y, nodeIndex, items, editor));
         }
 
         // Left button press on the map surface: starts a new pointer interaction, which turns into a pan drag
@@ -271,12 +274,19 @@ namespace FreeTrainSimulator.Toolbox
         /// window rather than the path editor directly, so its node list, status message and dirty state stay in
         /// sync with edits started on the map.
         /// </summary>
-        internal void ExecuteMapContextMenuAction(MapContextMenuAction action, int nodeIndex, int candidateIndex, PathNode placementAnchor)
+        internal void ExecuteMapContextMenuAction(MapContextMenuRequestedEventArgs request, MapContextMenuItem item)
         {
+            ArgumentNullException.ThrowIfNull(request);
+            ArgumentNullException.ThrowIfNull(item);
             TrainPathToolWindow toolWindow = hostedTrainPathToolWindow;
-            if (toolWindow == null)
+            if (toolWindow == null || session?.IsStopping == true || !request.IsCurrent(HostedPathEditor)
+                || !request.Items.Contains(item))
                 return;
 
+            MapContextMenuAction action = item.Action;
+            int nodeIndex = item.NodeIndex;
+            int candidateIndex = item.CandidateIndex;
+            PathNode placementAnchor = item.PlacementAnchor;
             switch (action)
             {
                 case MapContextMenuAction.MoveNode:
@@ -288,6 +298,8 @@ namespace FreeTrainSimulator.Toolbox
                 case MapContextMenuAction.RepairNode:
                 case MapContextMenuAction.StartPassingBranch:
                 case MapContextMenuAction.RejoinPassingBranch:
+                case MapContextMenuAction.RejoinPassingBranchWithVia:
+                case MapContextMenuAction.ConfirmPassingBranchVia:
                 case MapContextMenuAction.CancelPassingBranch:
                 case MapContextMenuAction.RemovePassingBranch:
                 case MapContextMenuAction.RemoveRestOfPath:
@@ -300,6 +312,13 @@ namespace FreeTrainSimulator.Toolbox
                     {
                         bool junction = HostedPathEditor?.RuntimeTrackWorld?.JunctionAt(placementAnchor.Location) != null;
                         toolWindow.AddViaPointHere(nodeIndex, placementAnchor, junction);
+                    }
+                    break;
+                case MapContextMenuAction.PreviewPassingBranchViaHere:
+                    if (placementAnchor != null)
+                    {
+                        bool junction = HostedPathEditor?.RuntimeTrackWorld?.JunctionAt(placementAnchor.Location) != null;
+                        toolWindow.PreviewPassingBranchVia(placementAnchor, junction);
                     }
                     break;
                 case MapContextMenuAction.SelectRouteCandidate:

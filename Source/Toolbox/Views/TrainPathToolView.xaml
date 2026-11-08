@@ -375,7 +375,14 @@
                     <StackPanel Visibility="{Binding IsRejoinPanelVisible, Converter={StaticResource BooleanToVisibilityConverter}}">
                         <TextBlock Text="Select a later main-path node to rejoin the passing branch." TextWrapping="Wrap" />
                         <Button Content="Rejoin at selected node" Command="{Binding CompletePassingBranchCommand}" />
+                        <Button Content="{gt:Gettext 'Rejoin with one passing via'}" Command="{Binding RejoinPassingBranchWithViaCommand}"
+                                AutomationProperties.Name="Rejoin with one passing via" />
                         <Button Content="Cancel interaction" Command="{Binding CancelPassingBranchCommand}" />
+                    </StackPanel>
+                    <StackPanel Visibility="{Binding IsPassingViaPanelVisible, Converter={StaticResource BooleanToVisibilityConverter}}">
+                        <TextBlock Text="{gt:Gettext 'Choose one passing via on the track. Confirm its preview before selecting any ambiguous route legs.'}" TextWrapping="Wrap" />
+                        <Button Content="{gt:Gettext 'Confirm passing via'}" Command="{Binding CommitPlacementCommand}" AutomationProperties.Name="Confirm passing via" />
+                        <Button Content="{gt:Gettext 'Cancel'}" Command="{Binding CancelPassingBranchCommand}" />
                     </StackPanel>
                     <Grid Visibility="{Binding IsCandidatePanelVisible, Converter={StaticResource BooleanToVisibilityConverter}}">
                         <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>

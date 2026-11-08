@@ -25,6 +25,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.Xna.Framework;
 
 using Tests.FreeTrainSimulator.Common;
+using Tests.FreeTrainSimulator.Simulator;
 
 namespace Tests.FreeTrainSimulator.Toolbox.ViewModels
 {
@@ -32,6 +33,9 @@ namespace Tests.FreeTrainSimulator.Toolbox.ViewModels
     [OSCondition(OperatingSystems.Windows)]
     public class TrainPathToolWindowViewModelTests
     {
+        /// <summary>Provides cancellation and retained synthetic fixture locations for this test run.</summary>
+        public TestContext TestContext { get; set; }
+
         [TestMethod]
         [DataRow(4L, "True,False")]
         [DataRow(5L, "")]
@@ -384,6 +388,82 @@ namespace Tests.FreeTrainSimulator.Toolbox.ViewModels
                     Assert.IsFalse(viewModel.SavePathCommand.CanExecute(null));
                 }
             }
+        }
+
+        [TestMethod]
+        [DataRow(false)]
+        [DataRow(true)]
+        public void WhenGuidedRejoinCapabilityIsAppliedThenCommandRequiresTheAuthoritativeSelectedNode(bool canRejoin)
+        {
+            Queue<Action> commands = new Queue<Action>();
+            TrainPathToolWindow bridge = CreateBridge(commands.Enqueue);
+            SetBridgeSnapshot(bridge, TrainPathSnapshot.Empty with
+            {
+                PassingBranchPhase = PassingBranchAuthoringPhase.SelectingRejoin,
+                Nodes = [new TrainPathNodeRow(2, PathNodeType.Via, true, 1, 3, -1, null, null),
+                    new TrainPathNodeRow(3, PathNodeType.Via, true, 1, 4, -1, null, null)],
+                SelectedNodeIndex = 2,
+                CanRejoinPassingBranchWithVia = canRejoin,
+                CanCancelPassingBranch = true,
+                CanCancelPathInteraction = true,
+            });
+            using ToolWindowRefreshScheduler scheduler = new ToolWindowRefreshScheduler(Dispatcher.CurrentDispatcher);
+            using TrainPathToolWindowViewModel viewModel = new TrainPathToolWindowViewModel(bridge, scheduler);
+            viewModel.Start();
+            Assert.AreEqual(canRejoin, viewModel.RejoinPassingBranchWithViaCommand.CanExecute(null));
+
+            viewModel.UserSelectNode(viewModel.Nodes.Single(node => node.Index == 3));
+
+            Assert.IsFalse(viewModel.RejoinPassingBranchWithViaCommand.CanExecute(null));
+        }
+
+        [TestMethod]
+        public async Task WhenGuidedViewModelCommandsRunThenBridgePublishesPrivatePreviewAndOneUndoableCommit()
+        {
+            SyntheticPathFixture fixture = new SyntheticPathFixture(TestContext);
+            TrackWorld world = TrackWorld.Initialize(null, fixture.Track, fixture.Sections);
+            PathModel source = await fixture.GenerateSelectedPath(4, TestContext.CancellationToken).ConfigureAwait(false);
+            using PathEditor editor = new PathEditor(new TestPathEditorContext(world));
+            Assert.IsTrue(await editor.InitializePathAsync(source, TestContext.CancellationToken).ConfigureAwait(false));
+            PathModel baseline = editor.TryCaptureCurrentPathModel();
+            int split = baseline.PathNodes.IndexOf(baseline.PathNodes.Single(node => node.Location == SyntheticPathFixture.Location(0, 0)));
+            int rejoin = baseline.PathNodes.IndexOf(baseline.PathNodes.Single(node => node.Location == SyntheticPathFixture.Location(100, 0)));
+            Queue<Action> commands = new Queue<Action>();
+            TrainPathToolWindow bridge = new TrainPathToolWindow(() => editor, () => null, commands.Enqueue,
+                () => { }, () => { }, _ => { }, () => { }, () => { }) { Active = true };
+            Assert.IsTrue(editor.BeginPassingBranchCommand(split).Success);
+            editor.SelectAuthoredNode(rejoin);
+            bridge.RefreshSnapshot();
+            using ToolWindowRefreshScheduler scheduler = new ToolWindowRefreshScheduler(Dispatcher.CurrentDispatcher);
+            using TrainPathToolWindowViewModel viewModel = new TrainPathToolWindowViewModel(bridge, scheduler);
+            viewModel.Start();
+            Assert.IsTrue(viewModel.RejoinPassingBranchWithViaCommand.CanExecute(null));
+
+            viewModel.RejoinPassingBranchWithViaCommand.Execute(null);
+            Assert.HasCount(1, commands);
+            commands.Dequeue()();
+            bridge.RefreshSnapshot();
+            viewModel.Start();
+            Assert.AreEqual((PassingBranchAuthoringPhase.PlacingVia, true, false),
+                (viewModel.PassingBranchPhase, viewModel.IsPassingViaPanelVisible, viewModel.CommitPlacementCommand.CanExecute(null)));
+            bridge.PreviewPassingBranchVia(SyntheticPathFixture.Node(PathNodeType.Via, 5, 50, 100, -1, -1), false);
+            commands.Dequeue()();
+            bridge.RefreshSnapshot();
+            viewModel.Start();
+            Assert.AreEqual((PassingBranchAuthoringPhase.ConfirmingVia, true, false, false),
+                (viewModel.PassingBranchPhase, viewModel.CommitPlacementCommand.CanExecute(null),
+                viewModel.FinishPathCommand.CanExecute(null), viewModel.SavePathCommand.CanExecute(null)),
+                bridge.CaptureTrainPathSnapshot().CommandResultMessage);
+            Assert.AreSame(baseline, editor.TryCaptureCurrentPathModel());
+            Assert.IsFalse(editor.HasUnsavedChanges);
+
+            viewModel.CommitPlacementCommand.Execute(null);
+            commands.Dequeue()();
+            bridge.RefreshSnapshot();
+            viewModel.Start();
+
+            Assert.AreEqual((PassingBranchAuthoringPhase.Idle, false, true, true),
+                (viewModel.PassingBranchPhase, viewModel.IsPassingViaPanelVisible, editor.HasUnsavedChanges, editor.CanUndo));
         }
 
         [TestMethod]

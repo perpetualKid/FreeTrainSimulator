@@ -7,12 +7,15 @@ namespace FreeTrainSimulator.Toolbox.PathEditing
         StartAnchor,
         EndAnchor,
         BuildRoute,
+        PassingBranchVia,
     }
 
     internal enum PassingBranchAuthoringPhase
     {
         Idle,
         SelectingRejoin,
+        PlacingVia,
+        ConfirmingVia,
         SelectingCandidate,
     }
 
@@ -49,6 +52,9 @@ namespace FreeTrainSimulator.Toolbox.PathEditing
         RepairNode,
         StartPassingBranch,
         RejoinPassingBranch,
+        RejoinPassingBranchWithVia,
+        PreviewPassingBranchViaHere,
+        ConfirmPassingBranchVia,
         CancelPassingBranch,
         RemovePassingBranch,
 

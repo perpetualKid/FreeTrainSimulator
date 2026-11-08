@@ -19,6 +19,8 @@ using Microsoft.Xna.Framework;
 
 using Orts.Simulation.AIs;
 
+using Tests.FreeTrainSimulator.Toolbox.PathEditing;
+
 using Simulation = Orts.Simulation.Simulator;
 
 namespace Tests.FreeTrainSimulator.Simulator
@@ -685,6 +687,73 @@ namespace Tests.FreeTrainSimulator.Simulator
             }
             string[] allDeadlockSignatures = signals.DeadlockDetails.Values.SelectMany(deadlock => deadlock.AvailablePaths) .Select(available => RouteSignature(available.PathInfo)).Order().ToArray();
             Assert.AreSequenceEqual(sourceArray.Order().ToArray(), allDeadlockSignatures);
+        }
+
+        /// <summary>Editor commands, not synthetic branch generation, deliver both owners to public startup in either passing mode.</summary>
+        [TestMethod]
+        [DataRow(false, false, false, false)]
+        [DataRow(false, true, false, false)]
+        [DataRow(true, false, false, false)]
+        [DataRow(true, true, false, false)]
+        [DataRow(false, false, true, false)]
+        [DataRow(false, true, true, false)]
+        [DataRow(true, false, true, false)]
+        [DataRow(true, true, true, false)]
+        [DataRow(false, false, false, true)]
+        [DataRow(false, true, false, true)]
+        [DataRow(true, false, false, true)]
+        [DataRow(true, true, false, true)]
+        [DataRow(false, false, true, true)]
+        [DataRow(false, true, true, true)]
+        [DataRow(true, false, true, true)]
+        [DataRow(true, true, true, true)]
+        public async Task WhenTwoSeparatedBranchesAreEditorAuthoredThenNativeReloadAndPublicStartupPreserveBothOwnersAsync(
+            bool firstGuided, bool secondGuided, bool reverseOrder, bool locationPassingPaths)
+        {
+            SyntheticPathFixture fixture = new SyntheticPathFixture(TestContext);
+            TrackModel track = fixture.Track with { TrackDatabase = SyntheticPathFixture.CreateTwoSeparatedBranchesDatabase() };
+            Simulation simulator = await fixture.CreateSimulator(track, locationPassingPaths, TestContext.CancellationToken).ConfigureAwait(false);
+            PathModel source = await fixture.RoundTripPathAsync(SeparatedPassingFixture.CreateMain(), TestContext.CancellationToken).ConfigureAwait(false);
+            string sourceFile = ModelFileResolver<PathModelHeader>.FilePath(source) + ContentHandlerBase<PathModelHeader>.SaveStateExtension;
+            byte[] sourceBytes = await File.ReadAllBytesAsync(sourceFile, TestContext.CancellationToken).ConfigureAwait(false);
+            PathModel disk;
+            using (SeparatedPassingFixture composition = await SeparatedPassingFixture.CreateAsync(TrackWorld.Instance, fixture.Sections).ConfigureAwait(false))
+            {
+                using (PathEditor editor = new PathEditor(composition.Content))
+                {
+                    Assert.IsTrue(await editor.InitializePathAsync(source, TestContext.CancellationToken).ConfigureAwait(false));
+
+                    SeparatedPassingFixture.AuthorBranch(editor, reverseOrder ? 8 : 3, reverseOrder ? 11 : 6, firstGuided);
+                    SeparatedPassingFixture.AuthorBranch(editor, reverseOrder ? 3 : 8, reverseOrder ? 6 : 11, secondGuided);
+                    PathModel authored = editor.TryCaptureCurrentPathModel();
+                    PathPersistenceValidationResult saved = await PathEditor.SaveValidatedPath(
+                        authored with { Id = "EditorTwoOwners" + Guid.NewGuid().ToString("N") }, fixture.Route, composition.World,
+                        TestContext.CancellationToken).ConfigureAwait(false);
+                    Assert.IsTrue(saved.PersistenceAllowed, saved.FailureMessage);
+                    disk = await fixture.Route.PathModelUncached(saved.PathModel.Id, TestContext.CancellationToken).ConfigureAwait(false);
+                    PathRouteResolution expected = editor.ResolveCurrent(authored);
+                    PathRouteResolution reloaded = PathRouteResolver.Resolve(disk, composition.World, TestContext.CancellationToken);
+                    Assert.IsTrue(reloaded.IsValid);
+                    Assert.HasCount(2, reloaded.PassingRoutes);
+                    Assert.IsTrue(expected.MainRoute.HasSamePhysicalTraversal(reloaded.MainRoute));
+                    Assert.IsTrue(expected.PassingRoutes.All(owner => owner.HasSamePhysicalTraversal(reloaded.PassingRoutes.Single(route =>
+                        disk.PathNodes[route.StartNodeIndex].NodeIndex == authored.PathNodes[owner.StartNodeIndex].NodeIndex))));
+                    Assert.AreSequenceEqual(sourceBytes, await File.ReadAllBytesAsync(sourceFile, TestContext.CancellationToken).ConfigureAwait(false));
+                }
+            }
+
+            TrainSaveState snapshot = await StartExploreAndSnapshotAsync(fixture, simulator, disk).ConfigureAwait(false);
+
+            Assert.AreEqual("2:Reverse, 3:Reverse, 4:Reverse, 6:Ahead, 7:Reverse, 8:Reverse, 9:Reverse, 11:Ahead, 12:Reverse, 13:Reverse",
+                RouteSignature(snapshot.RoutePathSaveState.RoutePaths.Single()));
+            SignalEnvironmentSaveState signals = await simulator.SignalEnvironment.Snapshot().ConfigureAwait(false);
+            Assert.AreEqual(locationPassingPaths, signals.LocationPassingPathsEnabled);
+            string[] passing = snapshot.RoutePathSaveState.AlternativePaths
+                .Concat(signals.DeadlockDetails.Values.SelectMany(deadlock => deadlock.AvailablePaths).Select(available => available.PathInfo))
+                .Select(RouteSignature).Where(signature => expectedArray3R5R6A8R10R11A.Contains(signature)).Order().ToArray();
+            Assert.AreSequenceEqual(expectedArray3R5R6A8R10R11A.Order().ToArray(), passing);
+            Assert.AreEqual((locationPassingPaths ? 0 : 2, locationPassingPaths ? 2 : 0),
+                (snapshot.RoutePathSaveState.AlternativePaths.Count, signals.DeadlockDetails.Count));
         }
 
         private async Task<TrainSaveState> StartExploreAndSnapshotAsync(SyntheticPathFixture fixture, Simulation simulator, PathModel path)

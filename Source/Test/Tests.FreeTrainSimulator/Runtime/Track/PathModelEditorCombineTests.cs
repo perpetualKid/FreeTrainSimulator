@@ -206,7 +206,7 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
         }
 
         /// <summary>
-        /// On a single vector node, joining first's end to second's start is the only orientation whose
+        /// On a single vector node, joining first's end to expectedArray18's start is the only orientation whose
         /// onward direction matches both inputs' own authored direction; the other three each require an
         /// unsupported reversal at some point in the joined chain.
         /// </summary>

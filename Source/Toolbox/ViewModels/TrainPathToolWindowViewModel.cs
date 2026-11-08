@@ -72,6 +72,7 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
         private int? pendingSelectedNodeIndex;
         private bool canBeginPassingBranch;
         private bool canCompletePassingBranch;
+        private bool canRejoinPassingBranchWithVia;
         private bool canCancelPassingBranch;
         private bool canRemovePassingBranch;
         private bool hasPendingPassingBranchCandidate;
@@ -158,6 +159,10 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
         /// <summary>Whether a passing rejoin is being selected.</summary>
         public bool IsRejoinPanelVisible => !IsCandidatePanelVisible && PassingBranchPhase == PassingBranchAuthoringPhase.SelectingRejoin;
 
+        /// <summary>Whether the single private forced-via placement and confirmation panel is applicable.</summary>
+        public bool IsPassingViaPanelVisible => PassingBranchPhase is PassingBranchAuthoringPhase.PlacingVia
+            or PassingBranchAuthoringPhase.ConfirmingVia;
+
         public TrainPathToolWindowViewModel(TrainPathToolWindow toolWindow, ToolWindowRefreshScheduler scheduler)
             : this(toolWindow, scheduler, PathsTabIndex)
         {
@@ -201,6 +206,11 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
             RemoveViaPointCommand = new RelayCommand(_ => RemoveViaPoint(), _ => CanRemoveViaPoint);
             BeginPassingBranchCommand = new RelayCommand(_ => BeginPassingBranch(), _ => CanBeginPassingBranch);
             CompletePassingBranchCommand = new RelayCommand(_ => CompletePassingBranch(), _ => CanCompletePassingBranch);
+            RejoinPassingBranchWithViaCommand = new RelayCommand(_ =>
+            {
+                if (SelectedNode != null)
+                    toolWindow.RejoinPassingBranchWithVia(SelectedNode.Index);
+            }, _ => CanRejoinPassingBranchWithVia);
             CancelPassingBranchCommand = new RelayCommand(_ => toolWindow.CancelPassingBranch(), _ => CanCancelPassingBranch);
             RemovePassingBranchCommand = new RelayCommand(_ => RemovePassingBranch(), _ => CanRemovePassingBranch);
             NewPathCommand = new RelayCommand(_ => toolWindow.StartNewPathPlacement(), _ => CanCreatePath);
@@ -303,6 +313,14 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
                 ? ImmutableArray<MapContextMenuItem>.Empty
                 : toolWindow.GetNodeActions(SelectedNode.Index);
 
+        /// <summary>Captures the selected node's entries and editor ownership before displaying either WPF menu.</summary>
+        public PathEditorMenuRequest CaptureSelectedNodeMenuRequest()
+            => SelectedNode == null ? PathEditorMenuRequest.Empty : toolWindow.CaptureNodeMenuRequest(SelectedNode.Index);
+
+        /// <summary>Executes an entry against its menu-construction owner, not the editor present at click time.</summary>
+        public void ExecuteNodeAction(PathEditorMenuRequest request, MapContextMenuItem action)
+            => toolWindow.ExecuteNodeAction(request, action);
+
         public void ExecuteNodeAction(MapContextMenuItem action)
         {
             ArgumentNullException.ThrowIfNull(action);
@@ -355,6 +373,9 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
         public RelayCommand BeginPassingBranchCommand { get; }
 
         public RelayCommand CompletePassingBranchCommand { get; }
+
+        /// <summary>Selects a structural rejoin before materialization and starts guided via placement.</summary>
+        public RelayCommand RejoinPassingBranchWithViaCommand { get; }
 
         public RelayCommand CancelPassingBranchCommand { get; }
 
@@ -664,6 +685,9 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
 
         public bool CanCompletePassingBranch => canCompletePassingBranch && IsSelectedCapabilityNode();
 
+        /// <summary>Whether the selected main node can become the guided branch's structural rejoin.</summary>
+        public bool CanRejoinPassingBranchWithVia => canRejoinPassingBranchWithVia && IsSelectedCapabilityNode();
+
         public bool CanCancelPassingBranch => canCancelPassingBranch;
 
         public bool CanRemovePassingBranch => canRemovePassingBranch && IsSelectedCapabilityNode();
@@ -880,6 +904,7 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
             CanFinishPath = snapshot.CanFinishPath;
             canBeginPassingBranch = snapshot.CanBeginPassingBranch;
             canCompletePassingBranch = snapshot.CanCompletePassingBranch;
+            canRejoinPassingBranchWithVia = snapshot.CanRejoinPassingBranchWithVia;
             canCancelPassingBranch = snapshot.CanCancelPassingBranch;
             canRemovePassingBranch = snapshot.CanRemovePassingBranch;
             HasPendingPassingBranchCandidate = snapshot.HasPendingPassingBranchCandidate;
@@ -889,6 +914,8 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
             BeginPassingBranchCommand.RaiseCanExecuteChanged();
             CompletePassingBranchCommand.RaiseCanExecuteChanged();
             CancelPassingBranchCommand.RaiseCanExecuteChanged();
+            RejoinPassingBranchWithViaCommand.RaiseCanExecuteChanged();
+            OnPropertyChanged(nameof(CanRejoinPassingBranchWithVia));
             RemovePassingBranchCommand.RaiseCanExecuteChanged();
 
             if (wasMovingNode && !CanCancelMoveNode && IsMoveGuidanceMessage(StatusMessage))
@@ -1204,6 +1231,7 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
             OnPropertyChanged(nameof(IsPlacementPanelVisible));
             OnPropertyChanged(nameof(IsBuildingPanelVisible));
             OnPropertyChanged(nameof(IsRejoinPanelVisible));
+            OnPropertyChanged(nameof(IsPassingViaPanelVisible));
             AcceptRouteCandidateCommand.RaiseCanExecuteChanged();
             CancelPathInteractionCommand.RaiseCanExecuteChanged();
         }

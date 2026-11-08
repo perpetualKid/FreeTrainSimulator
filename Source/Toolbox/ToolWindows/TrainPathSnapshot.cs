@@ -149,6 +149,12 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
 
         public bool CanCompletePassingBranch { get; init; }
 
+        /// <summary>Whether the selected structural rejoin can start one forced-via draft.</summary>
+        public bool CanRejoinPassingBranchWithVia { get; init; }
+
+        /// <summary>The passing-interaction witness captured with these capabilities and candidates.</summary>
+        public long PassingBranchInteractionRevision { get; init; }
+
         public bool CanCancelPassingBranch { get; init; }
 
         public bool CanRemovePassingBranch { get; init; }

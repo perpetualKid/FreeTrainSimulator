@@ -209,10 +209,10 @@ namespace Tests.FreeTrainSimulator.Simulator
         }
 
         /// <summary>Builds a 13-node infrastructure with two independent split/rejoin bypasses in series, strictly
-        /// separated on the global main route (the first rejoin precedes the second split). Node numbering 1-6
+        /// separated on the global main route (the first rejoin precedes the expectedArray18 split). Node numbering 1-6
         /// duplicates the single-branch topology verbatim (approach 2 -&gt; split 3 -&gt; main 4 / passing 5 -&gt; rejoin 6);
-        /// node 7 is a shared middle vector that is simultaneously the first bypass's departure and the second
-        /// bypass's approach, followed by an isomorphic second block (split 8 -&gt; main 9 / passing 10 -&gt; rejoin 11)
+        /// node 7 is a shared middle vector that is simultaneously the first bypass's departure and the expectedArray18
+        /// bypass's approach, followed by an isomorphic expectedArray18 block (split 8 -&gt; main 9 / passing 10 -&gt; rejoin 11)
         /// and a terminal departure 12. Used only to gather EVID-B1 evidence; never exercised by the Toolbox editor.</summary>
         public static TrackDatabase CreateTwoSeparatedBranchesDatabase()
         {

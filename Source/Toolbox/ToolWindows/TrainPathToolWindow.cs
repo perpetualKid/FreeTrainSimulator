@@ -236,9 +236,11 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
             bool canCancelNewPath = pathEditor.IsNewPath;
             bool isBuildingRoute = pathEditor.IsBuildingRoute;
             bool canContinuePath = pathEditor.CanContinuePath;
-            bool canFinishPath = isBuildingRoute && editorPathModel?.PathNodes.Any(node => (node.NodeType & PathNodeType.End) == PathNodeType.End) == true;
+            bool canFinishPath = pathEditor.CanFinishPath;
             bool canBeginPassingBranch = pathEditor.CanBeginPassingBranch(selectedNodeIndex);
             bool canCompletePassingBranch = pathEditor.CanCompletePassingBranch(selectedNodeIndex);
+            bool canRejoinPassingBranchWithVia = pathEditor.CanRejoinPassingBranchWithVia(selectedNodeIndex);
+            long passingBranchInteractionRevision = pathEditor.PassingBranchInteractionRevision;
             bool canCancelPassingBranch = pathEditor.CanCancelPassingBranch;
             bool canRemovePassingBranch = pathEditor.CanRemovePassingBranch(selectedNodeIndex);
             bool hasPendingPassingBranchCandidate = pathEditor.HasPendingPassingBranchCandidate;
@@ -284,6 +286,8 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
                 && canFinishPath == snapshot.CanFinishPath
                 && canBeginPassingBranch == snapshot.CanBeginPassingBranch
                 && canCompletePassingBranch == snapshot.CanCompletePassingBranch
+                && canRejoinPassingBranchWithVia == snapshot.CanRejoinPassingBranchWithVia
+                && passingBranchInteractionRevision == snapshot.PassingBranchInteractionRevision
                 && canCancelPassingBranch == snapshot.CanCancelPassingBranch
                 && canRemovePassingBranch == snapshot.CanRemovePassingBranch
                 && hasPendingPassingBranchCandidate == snapshot.HasPendingPassingBranchCandidate
@@ -359,6 +363,8 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
                 CanFinishPath = canFinishPath,
                 CanBeginPassingBranch = canBeginPassingBranch,
                 CanCompletePassingBranch = canCompletePassingBranch,
+                CanRejoinPassingBranchWithVia = canRejoinPassingBranchWithVia,
+                PassingBranchInteractionRevision = passingBranchInteractionRevision,
                 CanCancelPassingBranch = canCancelPassingBranch,
                 CanRemovePassingBranch = canRemovePassingBranch,
                 HasPendingPassingBranchCandidate = hasPendingPassingBranchCandidate,
@@ -422,6 +428,18 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
         internal void UpdateComparisons(ImmutableArray<TrainPathComparisonRow> rows)
         {
             cachedComparisons = setComparisonAsync == null || rows.IsDefault ? ImmutableArray<TrainPathComparisonRow>.Empty : rows;
+            MarkDirty();
+        }
+
+        /// <summary>Publishes a completed hover only while its editor still belongs to this tool window.</summary>
+        internal void ReportPreviewResult(PathEditor owner, PathEditorCommandResult result)
+        {
+            if (!ReferenceEquals(owner, pathEditorAccessor()))
+                return;
+
+            PublishCommandResult(result);
+            if (!result.Success)
+                Trace.TraceWarning(result.Message);
             MarkDirty();
         }
 
@@ -553,7 +571,7 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
             => ExecuteEditorCommand(pathEditor => pathEditor.RemoveViaPointCommand(pathEditor.SelectedAuthoredNodeIndex));
 
         internal void CycleRouteCandidate(int direction)
-            => ExecuteEditorCommand(pathEditor => pathEditor.CycleRouteCandidateCommand(direction));
+            => ExecuteEditorCommand(pathEditor => pathEditor.CycleRouteCandidateCommand(direction), null, allowSameDraftPreview: true);
 
         internal void AcceptPreviewedRouteCandidate()
             => ExecuteEditorCommand(pathEditor => pathEditor.AcceptPreviewedRouteCandidateCommand());
@@ -622,11 +640,20 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
 
         internal void CompletePassingBranch(int rejoinNodeIndex) => ExecuteEditorCommand(pathEditor => pathEditor.CompletePassingBranchCommand(rejoinNodeIndex));
 
+        /// <summary>Begins guided via placement after selecting only a structural rejoin.</summary>
+        internal void RejoinPassingBranchWithVia(int rejoinNodeIndex)
+            => ExecuteEditorCommand(pathEditor => pathEditor.RejoinPassingBranchWithViaCommand(rejoinNodeIndex), activateMapInputAction);
+
+        /// <summary>Previews the snapped map-menu via without confirming or publishing it.</summary>
+        internal void PreviewPassingBranchVia(PathNode anchor, bool isJunction)
+            => ExecuteEditorCommand(pathEditor => pathEditor.PreviewPassingBranchViaCommand(anchor, isJunction));
+
         internal void CancelPassingBranch() => ExecuteEditorCommand(pathEditor => pathEditor.CancelPassingBranchCommand());
 
         internal void RemovePassingBranch(int startNodeIndex) => ExecuteEditorCommand(pathEditor => pathEditor.RemovePassingBranchCommand(startNodeIndex));
 
-        internal void PreviewRouteCandidate(int fromNodeIndex, int candidateIndex) => ExecuteEditorCommand(pathEditor => pathEditor.PreviewRouteCandidateCommand(fromNodeIndex, candidateIndex));
+        internal void PreviewRouteCandidate(int fromNodeIndex, int candidateIndex)
+            => ExecuteEditorCommand(pathEditor => pathEditor.PreviewRouteCandidateCommand(fromNodeIndex, candidateIndex), null, allowSameDraftPreview: true);
 
         internal void ClearRouteCandidatePreview() => InvokeEditorAction(pathEditor => pathEditor.ClearRouteCandidatePreview());
 
@@ -744,19 +771,27 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
             => ExecuteEditorCommand(pathEditor => pathEditor.SetMetadataCommand(name, start, end, playerPath));
 
         internal ImmutableArray<MapContextMenuItem> GetNodeActions(int nodeIndex)
+            => CaptureNodeMenuRequest(nodeIndex).Items;
+
+        /// <summary>Freezes node-menu ownership before reading capabilities and rechecks the current owner before publication.</summary>
+        internal PathEditorMenuRequest CaptureNodeMenuRequest(int nodeIndex)
         {
             PathEditor pathEditor = pathEditorAccessor();
+            PathEditorMenuRequest request = PathEditorMenuRequest.Capture(pathEditor);
             PathModel model = pathEditor?.TryCaptureCurrentPathModel();
             if (model == null || nodeIndex < 0 || nodeIndex >= model.PathNodes.Length)
-                return ImmutableArray<MapContextMenuItem>.Empty;
+                return PathEditorMenuRequest.Empty;
 
             MapContextMenuActionBuilder.MapContextMenuState state = new MapContextMenuActionBuilder.MapContextMenuState()
             {
                 CanBeginPassingBranch = pathEditor.CanBeginPassingBranch(nodeIndex),
                 CanCompletePassingBranch = pathEditor.CanCompletePassingBranch(nodeIndex),
+                CanRejoinPassingBranchWithVia = pathEditor.CanRejoinPassingBranchWithVia(nodeIndex),
                 CanCancelPassingBranch = pathEditor.CanCancelPassingBranch,
                 CanRemovePassingBranch = pathEditor.CanRemovePassingBranch(nodeIndex),
                 IsPlacementActive = pathEditor.IsPlacementActive,
+                IsPlacingPassingBranchVia = pathEditor.IsPlacingPassingBranchVia,
+                CanConfirmPassingBranchVia = pathEditor.IsPlacingPassingBranchVia && pathEditor.CanCommitPlacement,
                 CanMoveNode = pathEditor.CanMoveNode(nodeIndex),
                 CanClearWaitPoint = pathEditor.CanClearWaitPoint(nodeIndex),
                 CanSetReversalPoint = pathEditor.CanSetReversalPoint(nodeIndex),
@@ -765,54 +800,69 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
                 CanRepairNode = pathEditor.CanRepairNode(nodeIndex),
                 CanRemoveRestOfPath = pathEditor.CanRemoveRestOfPath(nodeIndex),
             };
-            return MapContextMenuActionBuilder.BuildNodeActions(nodeIndex, state);
+            return request.WithItems(MapContextMenuActionBuilder.BuildNodeActions(nodeIndex, state), pathEditorAccessor());
         }
 
         internal void ExecuteNodeAction(MapContextMenuAction action, int nodeIndex)
         {
-            switch (action)
+            Func<PathEditor, PathEditorCommandResult> command = CreateNodeActionCommand(action, nodeIndex);
+            if (command == null)
             {
-                case MapContextMenuAction.MoveNode:
-                    BeginMoveNode(nodeIndex);
-                    break;
-                case MapContextMenuAction.CancelPlacement:
-                    CancelPlacement();
-                    break;
-                case MapContextMenuAction.ClearWaitPoint:
-                    ClearWaitPoint(nodeIndex);
-                    break;
-                case MapContextMenuAction.SetReversalPoint:
-                    SetReversalPoint(nodeIndex);
-                    break;
-                case MapContextMenuAction.ClearReversalPoint:
-                    ClearReversalPoint(nodeIndex);
-                    break;
-                case MapContextMenuAction.RemoveViaPoint:
-                    RemoveViaPoint(nodeIndex);
-                    break;
-                case MapContextMenuAction.RepairNode:
-                    RepairSelectedNode(nodeIndex);
-                    break;
-                case MapContextMenuAction.StartPassingBranch:
-                    BeginPassingBranch(nodeIndex);
-                    break;
-                case MapContextMenuAction.RejoinPassingBranch:
-                    CompletePassingBranch(nodeIndex);
-                    break;
-                case MapContextMenuAction.CancelPassingBranch:
-                    CancelPassingBranch();
-                    break;
-                case MapContextMenuAction.RemovePassingBranch:
-                    RemovePassingBranch(nodeIndex);
-                    break;
-                case MapContextMenuAction.RemoveRestOfPath:
-                    RemoveRestOfPath(nodeIndex);
-                    break;
-                default:
-                    Trace.TraceWarning($"Unsupported path node action {action}.");
-                    break;
+                Trace.TraceWarning($"Unsupported path node action {action}.");
+                return;
             }
+
+            ExecuteEditorCommand(command, action is MapContextMenuAction.MoveNode or MapContextMenuAction.RejoinPassingBranchWithVia
+                ? activateMapInputAction : null);
         }
+
+        /// <summary>Dispatches a captured menu entry with its ownership checked in the final game-thread callback.</summary>
+        internal void ExecuteNodeAction(PathEditorMenuRequest request, MapContextMenuItem item)
+        {
+            ArgumentNullException.ThrowIfNull(request);
+            ArgumentNullException.ThrowIfNull(item);
+            gameThreadInvoker(() =>
+            {
+                PathEditor pathEditor = pathEditorAccessor();
+                if (!request.Items.Contains(item) || !request.IsCurrent(pathEditor))
+                {
+                    PublishCommandResult(PathEditorCommandResult.Failed(CatalogManager.Catalog.GetString(
+                        "The passing-branch interaction changed before the queued command ran; retry the current action."), pathEditor?.TryCaptureCurrentPathModel()));
+                    MarkDirty();
+                    return;
+                }
+
+                Func<PathEditor, PathEditorCommandResult> command = CreateNodeActionCommand(item.Action, item.NodeIndex);
+                if (command == null)
+                {
+                    Trace.TraceWarning($"Unsupported path node action {item.Action}.");
+                    return;
+                }
+
+                ApplyEditorCommand(pathEditor, command, item.Action is MapContextMenuAction.MoveNode or MapContextMenuAction.RejoinPassingBranchWithVia
+                    ? activateMapInputAction : null);
+            });
+        }
+
+        private static Func<PathEditor, PathEditorCommandResult> CreateNodeActionCommand(MapContextMenuAction action, int nodeIndex)
+            => action switch
+            {
+                MapContextMenuAction.MoveNode => editor => editor.BeginMoveNodeCommand(nodeIndex),
+                MapContextMenuAction.CancelPlacement => editor => editor.CancelPlacementCommand(),
+                MapContextMenuAction.ClearWaitPoint => editor => editor.ClearWaitPointCommand(nodeIndex),
+                MapContextMenuAction.SetReversalPoint => editor => editor.SetReversalPointCommand(nodeIndex),
+                MapContextMenuAction.ClearReversalPoint => editor => editor.ClearReversalPointCommand(nodeIndex),
+                MapContextMenuAction.RemoveViaPoint => editor => editor.RemoveViaPointCommand(nodeIndex),
+                MapContextMenuAction.RepairNode => editor => editor.RepairSelectedNodeCommand(nodeIndex),
+                MapContextMenuAction.StartPassingBranch => editor => editor.BeginPassingBranchCommand(nodeIndex),
+                MapContextMenuAction.RejoinPassingBranch => editor => editor.CompletePassingBranchCommand(nodeIndex),
+                MapContextMenuAction.RejoinPassingBranchWithVia => editor => editor.RejoinPassingBranchWithViaCommand(nodeIndex),
+                MapContextMenuAction.ConfirmPassingBranchVia => editor => editor.CommitPlacementCommand(),
+                MapContextMenuAction.CancelPassingBranch => editor => editor.CancelPassingBranchCommand(),
+                MapContextMenuAction.RemovePassingBranch => editor => editor.RemovePassingBranchCommand(nodeIndex),
+                MapContextMenuAction.RemoveRestOfPath => editor => editor.RemoveRestOfPathCommand(nodeIndex),
+                _ => null,
+            };
 
         internal bool ReportBlockedSave(PathPersistenceValidationResult validation, PathModel sourceModel)
         {
@@ -853,8 +903,18 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
         }
 
         private void ExecuteEditorCommand(Func<PathEditor, PathEditorCommandResult> command, Action onSuccess = null)
+            => ExecuteEditorCommand(command, onSuccess, allowSameDraftPreview: false);
+
+        private void ExecuteEditorCommand(Func<PathEditor, PathEditorCommandResult> command, Action onSuccess, bool allowSameDraftPreview)
         {
             ArgumentNullException.ThrowIfNull(command);
+
+            PathEditor owner = pathEditorAccessor();
+            PathModel sourceModel = owner?.TryCaptureCurrentPathModel();
+            long sourceRevision = owner?.CompositionRevision ?? -1;
+            long interactionRevision = owner?.PassingBranchInteractionRevision ?? -1;
+            bool wasPassingInteraction = owner?.CanCancelPassingBranch == true;
+            GuidedPassingCandidatePreviewWitness previewWitness = allowSameDraftPreview ? owner?.CaptureGuidedPassingCandidatePreviewWitness() : null;
 
             gameThreadInvoker(() =>
             {
@@ -865,17 +925,34 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
                     return;
                 }
 
-                PathEditorCommandResult result = command(pathEditor);
-                PublishCommandResult(result);
-                MarkDirty();
-                if (result.Success)
+                if ((wasPassingInteraction || pathEditor.CanCancelPassingBranch)
+                    && (!ReferenceEquals(owner, pathEditor) || !ReferenceEquals(sourceModel, pathEditor.TryCaptureCurrentPathModel())
+                        || sourceRevision != pathEditor.CompositionRevision
+                        || (previewWitness != null ? !pathEditor.IsCurrentGuidedPassingCandidatePreview(previewWitness)
+                            : interactionRevision != pathEditor.PassingBranchInteractionRevision)))
                 {
-                    onSuccess?.Invoke();
+                    PublishCommandResult(PathEditorCommandResult.Failed(CatalogManager.Catalog.GetString(
+                        "The passing-branch interaction changed before the queued command ran; retry the current action."), pathEditor.TryCaptureCurrentPathModel()));
+                    MarkDirty();
                     return;
                 }
 
-                Trace.TraceWarning(result.Message);
+                ApplyEditorCommand(pathEditor, command, onSuccess);
             });
+        }
+
+        private void ApplyEditorCommand(PathEditor pathEditor, Func<PathEditor, PathEditorCommandResult> command, Action onSuccess)
+        {
+            PathEditorCommandResult result = command(pathEditor);
+            PublishCommandResult(result);
+            MarkDirty();
+            if (result.Success)
+            {
+                onSuccess?.Invoke();
+                return;
+            }
+
+            Trace.TraceWarning(result.Message);
         }
 
         private void PublishCommandResult(PathEditorCommandResult result)
@@ -925,10 +1002,64 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
                     CatalogManager.Catalog.GetString("Combine Paths is unavailable during repair, placement, route selection, or saving."),
                 PathEditorMessageKind.CombineSelectionChangedWhileLoading =>
                     CatalogManager.Catalog.GetString("The selected paths or editor changed while loading. Select two saved paths again to retry."),
-                _ => result.Message,
+                PathEditorMessageKind.PassingBranchOutcome when result.MessageFormat != null =>
+                    LocalizePassingBranchMessage(result.MessageFormat),
+                _ => result.Message switch
+                {
+                    "Adding a passing branch must preserve the main route and every existing passing branch." =>
+                        CatalogManager.Catalog.GetString("Adding a passing branch must preserve the main route and every existing passing branch."),
+                    "Passing-branch materialization did not preserve the selected route or supported events." =>
+                        CatalogManager.Catalog.GetString("Passing-branch materialization did not preserve the selected route or supported events."),
+                    "Passing-branch preview resolved." => CatalogManager.Catalog.GetString("Passing-branch preview resolved."),
+                    "The forced passing via cannot form a continuous, physically distinct branch with the unchanged main route." =>
+                        CatalogManager.Catalog.GetString("The forced passing via cannot form a continuous, physically distinct branch with the unchanged main route."),
+                    "Passing-branch via previewed; confirm this via or choose another track location." =>
+                        CatalogManager.Catalog.GetString("Passing-branch via previewed; confirm this via or choose another track location."),
+                    _ => result.Message,
+                },
             };
             commandResultIsWarning = !result.Success;
             commandResultVersion++;
+        }
+
+        private static string LocalizePassingBranchMessage(FormattableString message)
+        {
+            // Match stable source templates, never formatted text or indexes reconstructed from the edited model.
+            return message.Format switch
+            {
+                "At most two strictly separated passing branches can be authored." =>
+                    CatalogManager.Catalog.GetString("At most two strictly separated passing branches can be authored."),
+                "Passing branches must be strictly separated; touching, nested, or overlapping branches are not supported." =>
+                    CatalogManager.Catalog.GetString("Passing branches must be strictly separated; touching, nested, or overlapping branches are not supported."),
+                "The passing branch is cyclic, shared, nested, or does not rejoin the main route." =>
+                    CatalogManager.Catalog.GetString("The passing branch is cyclic, shared, nested, or does not rejoin the main route."),
+                "The passing branch does not rejoin a later main-route node." =>
+                    CatalogManager.Catalog.GetString("The passing branch does not rejoin a later main-route node."),
+                "The path contains disconnected nodes outside the main route and passing branches." =>
+                    CatalogManager.Catalog.GetString("The path contains disconnected nodes outside the main route and passing branches."),
+                "Passing topology requires exactly one main-route start node." =>
+                    CatalogManager.Catalog.GetString("Passing topology requires exactly one main-route start node."),
+                "The passing branch already has authored interior anchors; insert a via point instead of replacing them." =>
+                    CatalogManager.Catalog.GetString("The passing branch already has authored interior anchors; insert a via point instead of replacing them."),
+                "The passing route candidate contains a null anchor." =>
+                    CatalogManager.Catalog.GetString("The passing route candidate contains a null anchor."),
+                "Node {0} is null." =>
+                    CatalogManager.Catalog.GetString("Node {0} is null.", message.GetArguments()),
+                "Node {0} is a start or end node and is not a via point." =>
+                    CatalogManager.Catalog.GetString("Node {0} is a start or end node and is not a via point.", message.GetArguments()),
+                "Node {0} does not start a passing branch." =>
+                    CatalogManager.Catalog.GetString("Node {0} does not start a passing branch.", message.GetArguments()),
+                "Inserted passing-branch via point at node {0}." =>
+                    CatalogManager.Catalog.GetString("Inserted passing-branch via point at node {0}.", message.GetArguments()),
+                "Removed passing branch from node {0}." =>
+                    CatalogManager.Catalog.GetString("Removed passing branch from node {0}.", message.GetArguments()),
+                "Truncating after node {0} would invalidate the passing topology: {1}" when message.GetArgument(1) is FormattableString truncationFailure =>
+                    CatalogManager.Catalog.GetString("Truncating after node {0} would invalidate the passing topology: {1}",
+                        message.GetArgument(0), LocalizePassingBranchMessage(truncationFailure)),
+                "Removing node {0} would invalidate the supported passing branch: {1}" when message.GetArgument(1) is FormattableString removalFailure =>
+                    CatalogManager.Catalog.GetString("Removing node {0} would invalidate the supported passing branch: {1}",
+                        message.GetArgument(0), LocalizePassingBranchMessage(removalFailure)), _ => message.ToString(System.Globalization.CultureInfo.InvariantCulture),
+            };
         }
 
         // Marshals onto the game thread, resolves the current (possibly not-yet-created) editor, and runs

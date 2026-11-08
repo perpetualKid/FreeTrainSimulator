@@ -1,3 +1,5 @@
+using System;
+
 using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Models.Content;
 using FreeTrainSimulator.Runtime.Track;
@@ -27,6 +29,9 @@ namespace FreeTrainSimulator.Toolbox.PathEditing
         /// <see cref="PathEditorMessageKind.None"/> for outcomes that are not surfaced through dedicated UI strings.
         /// </summary>
         public PathEditorMessageKind MessageKind { get; }
+
+        /// <summary>Original passing-branch template and arguments, without parsing the English message.</summary>
+        public FormattableString MessageFormat { get; init; }
 
         public Severity Severity { get; }
 
@@ -59,9 +64,10 @@ namespace FreeTrainSimulator.Toolbox.PathEditing
 
         public static PathEditorCommandResult FromPathEditResult(PathEditResult result)
         {
-            return result.Success
+            PathEditorCommandResult commandResult = result.Success
                 ? Succeeded(result.Message, result.MessageKind, result.PathModel)
                 : Failed(result.Message, result.MessageKind, result.PathModel);
+            return commandResult with { MessageFormat = result.MessageFormat };
         }
     }
 }

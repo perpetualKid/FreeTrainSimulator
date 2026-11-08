@@ -56,6 +56,15 @@ namespace FreeTrainSimulator.Toolbox.PathEditing
 
             public bool CanCompletePassingBranch { get; init; }
 
+            /// <summary>Whether a structural rejoin can begin guided via placement.</summary>
+            public bool CanRejoinPassingBranchWithVia { get; init; }
+
+            /// <summary>Whether the private forced passing via is being placed.</summary>
+            public bool IsPlacingPassingBranchVia { get; init; }
+
+            /// <summary>Whether the current private passing-via preview can be confirmed.</summary>
+            public bool CanConfirmPassingBranchVia { get; init; }
+
             public bool CanCancelPassingBranch { get; init; }
 
             public bool CanRemovePassingBranch { get; init; }
@@ -110,6 +119,8 @@ namespace FreeTrainSimulator.Toolbox.PathEditing
             ImmutableArray<MapContextMenuItem>.Builder items = ImmutableArray.CreateBuilder<MapContextMenuItem>();
             if (state.IsPlacementActive)
             {
+                if (state.IsPlacingPassingBranchVia)
+                    return BuildPlacementActions(state, null, nodeIndex);
                 items.Add(new MapContextMenuItem(MapContextMenuAction.CancelPlacement, nodeIndex));
                 return items.ToImmutable();
             }
@@ -117,6 +128,8 @@ namespace FreeTrainSimulator.Toolbox.PathEditing
             {
                 if (state.CanCompletePassingBranch)
                     items.Add(new MapContextMenuItem(MapContextMenuAction.RejoinPassingBranch, nodeIndex));
+                if (state.CanRejoinPassingBranchWithVia)
+                    items.Add(new MapContextMenuItem(MapContextMenuAction.RejoinPassingBranchWithVia, nodeIndex));
                 items.Add(new MapContextMenuItem(MapContextMenuAction.CancelPassingBranch, nodeIndex));
                 return items.ToImmutable();
             }
@@ -254,6 +267,16 @@ namespace FreeTrainSimulator.Toolbox.PathEditing
         private static ImmutableArray<MapContextMenuItem> BuildPlacementActions(in MapContextMenuState state,
             PathNode placementAnchor, int nodeIndex)
         {
+            if (state.IsPlacingPassingBranchVia)
+            {
+                ImmutableArray<MapContextMenuItem>.Builder passingItems = ImmutableArray.CreateBuilder<MapContextMenuItem>();
+                if (placementAnchor != null)
+                    passingItems.Add(new MapContextMenuItem(MapContextMenuAction.PreviewPassingBranchViaHere, nodeIndex) { PlacementAnchor = placementAnchor });
+                if (state.CanConfirmPassingBranchVia)
+                    passingItems.Add(new MapContextMenuItem(MapContextMenuAction.ConfirmPassingBranchVia, nodeIndex));
+                passingItems.Add(new MapContextMenuItem(MapContextMenuAction.CancelPassingBranch, nodeIndex));
+                return passingItems.ToImmutable();
+            }
             if (!state.IsBuildingRoute)
                 return ImmutableArray.Create(new MapContextMenuItem(MapContextMenuAction.CancelPlacement, nodeIndex));
 

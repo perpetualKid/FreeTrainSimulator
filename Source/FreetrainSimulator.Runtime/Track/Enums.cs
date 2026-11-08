@@ -182,5 +182,6 @@ namespace FreeTrainSimulator.Runtime.Track
         CombineCombined,
         CombineUnavailable,
         CombineSelectionChangedWhileLoading,
+        PassingBranchOutcome,
     }
 }

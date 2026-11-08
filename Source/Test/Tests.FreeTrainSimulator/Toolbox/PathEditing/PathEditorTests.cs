@@ -843,7 +843,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.PathEditing
         {
             PathModel source = CreateTruncationPassingBranchPath() with
             {
-                PathNodes = CreateTruncationPassingBranchPath().PathNodes.Select(node => node with { NextSidingNode = -1 }).ToImmutableArray(),
+                PathNodes = CreateTruncationPassingBranchPath().PathNodes.Take(6).Select(node => node with { NextSidingNode = -1 }).ToImmutableArray(),
             };
             using (PathEditor editor = CreateEditor(source))
             {
@@ -889,10 +889,16 @@ namespace Tests.FreeTrainSimulator.Toolbox.PathEditing
             };
             using (PathEditor editor = CreateEditor(source))
             {
-                Assert.IsTrue(editor.BeginPassingBranchCommand(0).Success);
+                PathModel baseline = editor.TryCaptureCurrentPathModel();
+                // Structural admission must not begin a workflow that would drop the disconnected node.
+                Assert.IsFalse(editor.CanBeginPassingBranch(0));
+                Assert.IsFalse(editor.BeginPassingBranchCommand(0).Success);
 
                 Assert.IsFalse(editor.CanCompletePassingBranch(1));
                 Assert.IsFalse(editor.CanCompletePassingBranch(2));
+                Assert.IsFalse(editor.CompletePassingBranchCommand(1).Success);
+                Assert.AreSame(baseline, editor.TryCaptureCurrentPathModel());
+                Assert.IsFalse(editor.CanUndo);
             }
         }
 
@@ -2180,7 +2186,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.PathEditing
         [TestMethod]
         public void WhenResolvedPassingBranchIsCreatedThenUndoAndRedoRestoreItsLifecycle()
         {
-            TrackWorld trackWorld = TrackWorldTestFixture.CreateSidingTrackWorld();
+            TrackWorld trackWorld = CreateEventSidingTrackWorld();
             PathModel source = CreateSidingEndpointPath(trackWorld);
             using (PathEditor editor = CreateEditor(source, trackWorld))
             {
@@ -2194,6 +2200,33 @@ namespace Tests.FreeTrainSimulator.Toolbox.PathEditing
                 Assert.IsFalse(editor.TryCaptureCurrentPathModel().PathNodes.Any(node => node.NextSidingNode >= 0));
                 Assert.IsTrue(editor.Redo());
                 Assert.IsTrue(editor.TryCaptureCurrentPathModel().PathNodes.Any(node => node.NextSidingNode >= 0));
+            }
+        }
+
+        [TestMethod]
+        public void WhenPassingBranchMaterializationChangesNodeIndexesThenExactEndpointsAndTraversalsArePreserved()
+        {
+            TrackWorld world = CreateEventSidingTrackWorld();
+            PathModel source = CreateSidingEndpointPath(world);
+            PathModel tentative = PathModelEditor.CreatePassingBranch(source, 0, 1).PathModel;
+            PathRouteResolution selected = PathRouteResolver.Resolve(tentative, world, TestContext.CancellationToken);
+            using (PathEditor editor = CreateEditor(source, world))
+            {
+                Assert.IsTrue(editor.BeginPassingBranchCommand(0).Success);
+                PathEditorCommandResult result = editor.CompletePassingBranchCommand(1);
+                Assert.IsTrue(result.Success, result.Message);
+
+                PathRouteResolution verified = PathRouteResolver.Resolve(editor.TryCaptureCurrentPathModel(), world, TestContext.CancellationToken);
+                ResolvedPathRoute owner = verified.PassingRoutes.Single();
+                PathRouteAnchor start = verified.AuthoredNodeAnchors[owner.StartNodeIndex];
+                PathRouteAnchor rejoin = verified.AuthoredNodeAnchors[owner.EndNodeIndex];
+
+                Assert.AreEqual((true, true, true, 0, 2, selected.AuthoredNodeAnchors[0].Location, 1, 0,
+                    selected.AuthoredNodeAnchors[1].Location, 4, 0),
+                    (verified.IsValid, selected.MainRoute.HasSamePhysicalTraversal(verified.MainRoute),
+                    selected.PassingRoutes.Single().HasSamePhysicalTraversal(owner), owner.StartNodeIndex, owner.EndNodeIndex,
+                    start.Location, start.TrackNodeIndex, start.TrackVectorSectionIndex,
+                    rejoin.Location, rejoin.TrackNodeIndex, rejoin.TrackVectorSectionIndex));
             }
         }
 
@@ -2643,8 +2676,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.PathEditing
             using (PathEditor editor = CreateEditor(source))
             {
                 PathModel baseline = editor.TryCaptureCurrentPathModel();
-                SetPrivateField(editor, "pendingPassingBranchCandidate", new PendingPassingBranchCandidate(baseline, 0, 1,
-                    new ResolvedPathSpan(0, 1, PathRouteSpanStatus.Ambiguous)));
+                SetPrivateField(editor, "pendingPassingBranchCandidate", new PendingPassingBranchCandidate(baseline, 0, 1, new ResolvedPathSpan(0, 1, PathRouteSpanStatus.Ambiguous)));
                 typeof(PathEditor).GetMethod("RestoreSnapshot", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(editor, new object[] { replacement });
                 PathModel restoredReplacement = editor.TryCaptureCurrentPathModel();
 
@@ -2681,7 +2713,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.PathEditing
         [TestMethod]
         public void WhenPassingBranchIsRemovedThenUndoRestoresIt()
         {
-            TrackWorld trackWorld = TrackWorldTestFixture.CreateSidingTrackWorld();
+            TrackWorld trackWorld = CreateEventSidingTrackWorld();
             PathModel source = CreateSidingEndpointPath(trackWorld);
             using (PathEditor editor = CreateEditor(source, trackWorld))
             {
@@ -2989,6 +3021,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.PathEditing
         [DataRow(nameof(PathEditor.ReResolvePathCommand), new float[] { 10, 90 })]
         public async Task WhenLoadedViewModePathIsEditedDirectlyThenOneUndoAndRedoPreserveMode(string command, float[] expectedLocations)
         {
+            ArgumentNullException.ThrowIfNull(expectedLocations);
             Tile tile = new Tile(1, 0);
             TrackWorld world = CreatePlacementTrackWorld(tile, out _);
             PathModel source = new PathModel
@@ -4209,7 +4242,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.PathEditing
         public void WhenPathHasEndThenPrecedingEndNodeIsTheLastCommittedRoutePoint()
         {
             // The automatic reversal marks the route point committed just before the end anchor, which is the
-            // node linking to it on the main chain rather than simply the second-to-last array entry.
+            // node linking to it on the main chain rather than simply the expectedArray18-to-last array entry.
             PathModel pathModel = new PathModel
             {
                 PathNodes = ImmutableArray.Create(

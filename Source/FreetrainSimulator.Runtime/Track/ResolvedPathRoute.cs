@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Immutable;
+using System.Linq;
 
 namespace FreeTrainSimulator.Runtime.Track
 {
@@ -19,6 +20,20 @@ namespace FreeTrainSimulator.Runtime.Track
 
         /// <summary>Resolved spans in branch order.</summary>
         public ImmutableArray<ResolvedPathSpan> Spans { get; init; }
+
+        /// <summary>
+        /// Checks the selected physical traversal and final arrival heading independently of authored span
+        /// boundaries. Used to verify that branch materialization preserves both the main and siding routes.
+        /// </summary>
+        public bool HasSamePhysicalTraversal(ResolvedPathRoute other)
+        {
+            ArgumentNullException.ThrowIfNull(other);
+            return BranchKind != other.BranchKind || Spans.IsEmpty || other.Spans.IsEmpty || Spans.Any(span => span.Status != PathRouteSpanStatus.Resolved || span.Candidates.IsEmpty)
+                || other.Spans.Any(span => span.Status != PathRouteSpanStatus.Resolved || span.Candidates.IsEmpty)
+                ? false
+                : Spans.SelectMany(span => span.Candidates[0].PhysicalTraversals) .SequenceEqual(other.Spans.SelectMany(span => span.Candidates[0].PhysicalTraversals))
+                && Spans[^1].Candidates[0].Arrival == other.Spans[^1].Candidates[0].Arrival;
+        }
 
         /// <summary>
         /// Initializes a new instance of the <see cref="ResolvedPathRoute"/> record.

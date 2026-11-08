@@ -602,8 +602,8 @@ namespace FreeTrainSimulator.Runtime.Track
             if (nodeIndex < 0 || nodeIndex >= nodes.Length)
                 return PathEditResult.Failed($"Node index {nodeIndex} is out of range.", pathModel);
 
-            if (!TryGetMainRouteNodes(nodes, out ImmutableArray<int> mainRoute, out string failure))
-                return PathEditResult.Failed(failure, pathModel);
+            if (!TryGetMainRouteNodes(nodes, out ImmutableArray<int> mainRoute, out FormattableString failure))
+                return FailedPassingBranchMessage(failure, pathModel);
 
             if (nodes.Any(node => node.NextSidingNode >= 0))
                 return RemoveRestOfBranchedPath(pathModel, nodes, mainRoute, nodeIndex);
@@ -619,7 +619,7 @@ namespace FreeTrainSimulator.Runtime.Track
             if (selectedMainPosition == mainRoute.Length - 1)
                 return PathEditResult.Failed("The selected node is already the last main-route node; there is nothing to remove.", pathModel);
 
-            return BuildTruncatedPath(pathModel, nodes, mainRoute.Take(selectedMainPosition + 1).ToHashSet(), nodeIndex, false, -1);
+            return BuildTruncatedPath(pathModel, nodes, mainRoute.Take(selectedMainPosition + 1).ToHashSet(), nodeIndex);
         }
 
         private static PathEditResult RemoveRestOfBranchedPath(PathModel pathModel, ImmutableArray<PathNode> nodes, ImmutableArray<int> mainRoute, int nodeIndex)
@@ -632,24 +632,20 @@ namespace FreeTrainSimulator.Runtime.Track
             if (selectedMainPosition == mainRoute.Length - 1)
                 return PathEditResult.Failed("The selected node is already the last main-route node; there is nothing to remove.", pathModel);
 
-            ImmutableArray<int> branchStarts = Enumerable.Range(0, nodes.Length).Where(index => nodes[index].NextMainNode >= 0 && nodes[index].NextSidingNode >= 0).ToImmutableArray();
-            string failure = null;
+            if (!TryCollectPassingBranches(nodes, out _, out var branches, out FormattableString failure))
+                return FailedPassingBranchMessage(failure, pathModel);
 
-            if (branchStarts.Length != 1 || !TryGetSinglePassingBranch(nodes, branchStarts[0], out int rejoinNodeIndex, out ImmutableArray<int> interiorNodes, out failure))
+            HashSet<int> retained = mainRoute.Take(selectedMainPosition + 1).ToHashSet();
+            foreach (var branch in branches)
             {
-                return PathEditResult.Failed(failure ?? "The path does not contain exactly one supported passing branch.", pathModel);
+                if (mainRoute.IndexOf(branch.RejoinNodeIndex) <= selectedMainPosition)
+                    retained.UnionWith(branch.InteriorNodes);
             }
 
-            int rejoinPosition = mainRoute.IndexOf(rejoinNodeIndex);
-            HashSet<int> retained = mainRoute.Take(selectedMainPosition + 1).ToHashSet();
-            bool preserveBranch = selectedMainPosition >= rejoinPosition;
-            if (preserveBranch)
-                retained.UnionWith(interiorNodes);
-
-            return BuildTruncatedPath(pathModel, nodes, retained, nodeIndex, preserveBranch, branchStarts[0]);
+            return BuildTruncatedPath(pathModel, nodes, retained, nodeIndex);
         }
 
-        private static PathEditResult BuildTruncatedPath(PathModel pathModel, ImmutableArray<PathNode> nodes, HashSet<int> retained, int nodeIndex, bool preserveBranch, int branchStartIndex)
+        private static PathEditResult BuildTruncatedPath(PathModel pathModel, ImmutableArray<PathNode> nodes, HashSet<int> retained, int nodeIndex)
         {
             ImmutableArray<int> retainedIndexes = Enumerable.Range(0, nodes.Length).Where(retained.Contains).ToImmutableArray();
             Dictionary<int, int> indexMap = retainedIndexes.Select((oldIndex, newIndex) => (oldIndex, newIndex)).ToDictionary(item => item.oldIndex, item => item.newIndex);
@@ -673,12 +669,8 @@ namespace FreeTrainSimulator.Runtime.Track
             }
 
             ImmutableArray<PathNode> updatedNodes = builder.ToImmutable();
-            if (preserveBranch)
-            {
-                int updatedStartIndex = indexMap[branchStartIndex];
-                if (!TryGetSinglePassingBranch(updatedNodes, updatedStartIndex, out _, out _, out string failure))
-                    return PathEditResult.Failed($"Truncating after node {nodeIndex} would invalidate the supported passing branch: {failure}", pathModel);
-            }
+            if (!TryCollectPassingBranches(updatedNodes, out _, out _, out FormattableString failure))
+                return FailedPassingBranchMessage($"Truncating after node {nodeIndex} would invalidate the passing topology: {failure}", pathModel);
 
             return PathEditResult.Succeeded($"Removed {nodes.Length - updatedNodes.Length} node(s) after node {nodeIndex}.", pathModel with { PathNodes = updatedNodes }, ImmutableArray.Create(updatedNodeIndex));
         }
@@ -762,7 +754,7 @@ namespace FreeTrainSimulator.Runtime.Track
 
         /// <summary>
         /// Inserts a via point directly after the node at <paramref name="nodeIndex"/> into the siding chain of the
-        /// one supported passing branch, steering its interior route through the new anchor instead of the
+        /// owning passing branch, steering its interior route through the new anchor instead of the
         /// resolver's default pick. Unlike <see cref="InsertViaPoint"/>, which always targets the main chain, this
         /// always targets the branch's siding links, and only accepts the branch's start node or one of its
         /// existing interior anchors, so the insertion always lands inside the branch and before its rejoin node.
@@ -772,8 +764,8 @@ namespace FreeTrainSimulator.Runtime.Track
             ArgumentNullException.ThrowIfNull(pathModel);
             ArgumentNullException.ThrowIfNull(anchor);
 
-            if (!TryGetPassingBranchNodeRole(pathModel, nodeIndex, out PassingBranchNodeRole role, out string failure))
-                return PathEditResult.Failed(failure, pathModel);
+            if (!TryClassifyPassingBranchNode(pathModel, nodeIndex, out PassingBranchNodeRole role, out FormattableString failure))
+                return FailedPassingBranchMessage(failure, pathModel);
 
             if (role != PassingBranchNodeRole.BranchStart && role != PassingBranchNodeRole.BranchInterior)
                 return PathEditResult.Failed($"Node {nodeIndex} is not the start or an interior anchor of the supported passing branch.", pathModel);
@@ -798,7 +790,11 @@ namespace FreeTrainSimulator.Runtime.Track
             if (insertIndex == nodes.Length)
                 builder.Add(CreateSidingViaNode(anchor, isJunction, ShiftLink(nextSidingNode, insertIndex)));
 
-            return PathEditResult.Succeeded($"Inserted passing-branch via point at node {insertIndex}.", pathModel with { PathNodes = builder.ToImmutable() }, ImmutableArray.Create(insertIndex));
+            ImmutableArray<PathNode> updatedNodes = builder.ToImmutable();
+            if (!TryCollectPassingBranches(updatedNodes, out _, out _, out failure))
+                return FailedPassingBranchMessage(failure, pathModel);
+
+            return SucceededPassingBranchMessage($"Inserted passing-branch via point at node {insertIndex}.", pathModel with { PathNodes = updatedNodes }, ImmutableArray.Create(insertIndex));
         }
 
         /// <summary>
@@ -815,23 +811,19 @@ namespace FreeTrainSimulator.Runtime.Track
             if (nodeIndex < 0 || nodeIndex >= nodes.Length)
                 return PathEditResult.Failed($"Node index {nodeIndex} is out of range.", pathModel);
 
-            PathNode removed = nodes[nodeIndex];
-            if ((removed.NodeType & (PathNodeType.Start | PathNodeType.End)) != PathNodeType.None)
-                return PathEditResult.Failed($"Node {nodeIndex} is a start or end node and is not a via point.", pathModel);
-
-            bool hasPassingBranchLinks = nodes.Any(node => node.NextSidingNode >= 0);
-            int passingBranchStartIndex = -1;
-
+            bool hasPassingBranchLinks = nodes.Any(node => node == null || node.NextSidingNode != -1);
             if (hasPassingBranchLinks)
             {
-                if (!TryGetPassingBranchNodeRole(pathModel, nodeIndex, out PassingBranchNodeRole role, out string failure))
-                    return PathEditResult.Failed(failure, pathModel);
+                if (!TryClassifyPassingBranchNode(pathModel, nodeIndex, out PassingBranchNodeRole role, out FormattableString failure))
+                    return FailedPassingBranchMessage(failure, pathModel);
 
                 if (role == PassingBranchNodeRole.BranchStart || role == PassingBranchNodeRole.BranchRejoin)
                     return PathEditResult.Failed($"Node {nodeIndex} is a passing-branch endpoint and cannot be removed as a via point.", pathModel);
-
-                passingBranchStartIndex = Enumerable.Range(0, nodes.Length).Single(index => nodes[index].NextMainNode >= 0 && nodes[index].NextSidingNode >= 0);
             }
+
+            PathNode removed = nodes[nodeIndex];
+            if ((removed.NodeType & (PathNodeType.Start | PathNodeType.End)) != PathNodeType.None)
+                return FailedPassingBranchMessage($"Node {nodeIndex} is a start or end node and is not a via point.", pathModel);
 
             // Bridge the gap first (still using pre-removal indexes), then let RemoveNodeAt re-index everything.
             ImmutableArray<PathNode> relinked = ImmutableArray.CreateRange(nodes, node => node with
@@ -843,19 +835,49 @@ namespace FreeTrainSimulator.Runtime.Track
             ImmutableArray<PathNode> updatedNodes = RemoveNodeAt(relinked, nodeIndex);
             if (hasPassingBranchLinks)
             {
-                int updatedStartIndex = passingBranchStartIndex > nodeIndex ? passingBranchStartIndex - 1 : passingBranchStartIndex;
-
-                if (!TryGetSinglePassingBranch(updatedNodes, updatedStartIndex, out _, out _, out string failure))
-                    return PathEditResult.Failed($"Removing node {nodeIndex} would invalidate the supported passing branch: {failure}", pathModel);
+                if (!TryCollectPassingBranches(updatedNodes, out _, out _, out FormattableString failure))
+                    return FailedPassingBranchMessage($"Removing node {nodeIndex} would invalidate the supported passing branch: {failure}", pathModel);
             }
 
             return PathEditResult.Succeeded($"Removed via point {nodeIndex}.", pathModel with { PathNodes = updatedNodes }, ImmutableArray.Create(nodeIndex));
         }
 
         /// <summary>
-        /// Creates one single-level passing branch from a main-route node to a later main-route node. The branch
+        /// Collects structural begin/remove eligibility by authored node index without creating an edited model.
+        /// Invalid topology yields no capabilities. The two-branch authoring ceiling applies only to beginning
+        /// a branch, not to removing an imported owner or classifying a main path without an End marker.
+        /// </summary>
+        /// <param name="pathModel">The immutable authored model whose complete topology is validated once.</param>
+        /// <returns>Main-route node capabilities; absent indexes have neither capability.</returns>
+        public static ImmutableDictionary<int, (bool CanBegin, bool CanRemove)> GetPassingBranchCapabilities(PathModel pathModel)
+        {
+            ArgumentNullException.ThrowIfNull(pathModel);
+
+            if (!TryCollectPassingBranches(Nodes(pathModel), out ImmutableArray<int> mainRoute, out var branches, out _))
+                return ImmutableDictionary<int, (bool CanBegin, bool CanRemove)>.Empty;
+
+            ImmutableDictionary<int, (bool CanBegin, bool CanRemove)>.Builder capabilities =
+                ImmutableDictionary.CreateBuilder<int, (bool CanBegin, bool CanRemove)>();
+            for (int position = 0; position < mainRoute.Length; position++)
+            {
+                int nodeIndex = mainRoute[position];
+                // If any later rejoin is strictly separated, the immediate linked successor is too.
+                bool canBegin = branches.Length < 2 && position + 1 < mainRoute.Length
+                    && IsEligiblePassingBranch(mainRoute, branches, nodeIndex, mainRoute[position + 1], out _);
+                bool canRemove = false;
+                foreach (var branch in branches)
+                    canRemove |= branch.StartNodeIndex == nodeIndex;
+                capabilities.Add(nodeIndex, (canBegin, canRemove));
+            }
+
+            return capabilities.ToImmutable();
+        }
+
+        /// <summary>
+        /// Creates a single-level passing branch from a main-route node to a later main-route node. The branch
         /// initially has no authored interior anchors; callers can materialize resolver-selected candidates with
-        /// <see cref="AddPassingBranchAnchors"/>. Existing, nested, and overlapping branches are refused.
+        /// <see cref="AddPassingBranchAnchors"/>. At most two strictly separated branches can be authored; this
+        /// ceiling does not restrict structural classification or repairs of imported separated branches.
         /// </summary>
         public static PathEditResult CreatePassingBranch(PathModel pathModel, int startNodeIndex, int rejoinNodeIndex)
         {
@@ -863,11 +885,11 @@ namespace FreeTrainSimulator.Runtime.Track
 
             ImmutableArray<PathNode> nodes = Nodes(pathModel);
 
-            if (!TryGetMainRouteNodes(nodes, out ImmutableArray<int> mainRoute, out string failure))
-                return PathEditResult.Failed(failure, pathModel);
+            if (!TryCollectPassingBranches(nodes, out ImmutableArray<int> mainRoute, out var branches, out FormattableString failure))
+                return FailedPassingBranchMessage(failure, pathModel);
             
-            if (!IsEligiblePassingBranch(nodes, mainRoute, startNodeIndex, rejoinNodeIndex, out failure))
-                return PathEditResult.Failed(failure, pathModel);
+            if (!IsEligiblePassingBranch(mainRoute, branches, startNodeIndex, rejoinNodeIndex, out failure))
+                return FailedPassingBranchMessage(failure, pathModel);
 
             ImmutableArray<PathNode> updatedNodes = nodes.SetItem(startNodeIndex, nodes[startNodeIndex] with { NextSidingNode = rejoinNodeIndex });
             
@@ -883,8 +905,18 @@ namespace FreeTrainSimulator.Runtime.Track
 
             ImmutableArray<PathNode> nodes = Nodes(pathModel);
 
-            if (!TryGetSinglePassingBranch(nodes, startNodeIndex, out int rejoinNodeIndex, out _, out string failure))
-                return PathEditResult.Failed(failure, pathModel);
+            if (!TryCollectPassingBranches(nodes, out _, out var branches, out FormattableString failure))
+                return FailedPassingBranchMessage(failure, pathModel);
+
+            var branch = branches.FirstOrDefault(item => item.StartNodeIndex == startNodeIndex);
+            if (branch.InteriorNodes.IsDefault)
+                return FailedPassingBranchMessage($"Node {startNodeIndex} does not start a passing branch.", pathModel);
+            if (!branch.InteriorNodes.IsEmpty)
+                return FailedPassingBranchMessage($"The passing branch already has authored interior anchors; insert a via point instead of replacing them.", pathModel);
+            if (anchors.Any(anchor => anchor == null))
+                return FailedPassingBranchMessage($"The passing route candidate contains a null anchor.", pathModel);
+
+            int rejoinNodeIndex = branch.RejoinNodeIndex;
 
             ImmutableArray<PathNode>.Builder builder = nodes.ToBuilder();
             ImmutableArray<int>.Builder changed = ImmutableArray.CreateBuilder<int>(anchors.Length + 2);
@@ -908,8 +940,12 @@ namespace FreeTrainSimulator.Runtime.Track
             changed.Add(startNodeIndex);
             changed.Add(rejoinNodeIndex);
 
+            ImmutableArray<PathNode> updatedNodes = builder.ToImmutable();
+            if (!TryCollectPassingBranches(updatedNodes, out _, out _, out failure))
+                return FailedPassingBranchMessage(failure, pathModel);
+
             return PathEditResult.Succeeded($"Added {anchors.Length} passing-branch anchor(s) after node {startNodeIndex}.",
-                pathModel with { PathNodes = builder.ToImmutable() }, changed.ToImmutable());
+                pathModel with { PathNodes = updatedNodes }, changed.ToImmutable());
         }
 
         /// <summary>
@@ -921,12 +957,10 @@ namespace FreeTrainSimulator.Runtime.Track
             ArgumentNullException.ThrowIfNull(pathModel);
             ArgumentNullException.ThrowIfNull(anchor);
 
-            ImmutableArray<PathNode> nodes = Nodes(pathModel);
-
-            if (!TryGetPassingBranchInteriorNodes(nodes, out ImmutableArray<int> interiorNodes, out string failure))
-                return PathEditResult.Failed(failure, pathModel);
+            if (!TryClassifyPassingBranchNode(pathModel, nodeIndex, out PassingBranchNodeRole role, out FormattableString failure))
+                return FailedPassingBranchMessage(failure, pathModel);
             
-            if (!interiorNodes.Contains(nodeIndex))
+            if (role != PassingBranchNodeRole.BranchInterior)
                 return PathEditResult.Failed($"Node {nodeIndex} is not an interior anchor of the supported passing branch.", pathModel);
 
             return MoveNode(pathModel, nodeIndex, anchor, isJunction);
@@ -934,6 +968,13 @@ namespace FreeTrainSimulator.Runtime.Track
 
         /// <summary>Returns the node's role after validating the complete supported passing-branch topology.</summary>
         public static bool TryGetPassingBranchNodeRole(PathModel pathModel, int nodeIndex, out PassingBranchNodeRole role, out string failure)
+        {
+            bool classified = TryClassifyPassingBranchNode(pathModel, nodeIndex, out role, out FormattableString message);
+            failure = message?.ToString(System.Globalization.CultureInfo.InvariantCulture);
+            return classified;
+        }
+
+        private static bool TryClassifyPassingBranchNode(PathModel pathModel, int nodeIndex, out PassingBranchNodeRole role, out FormattableString failure)
         {
             ArgumentNullException.ThrowIfNull(pathModel);
 
@@ -945,44 +986,62 @@ namespace FreeTrainSimulator.Runtime.Track
                 return false;
             }
 
-            ImmutableArray<int> starts = Enumerable.Range(0, nodes.Length).Where(index => nodes[index].NextMainNode >= 0 && nodes[index].NextSidingNode >= 0).ToImmutableArray();
+            if (!TryCollectPassingBranches(nodes, out _, out var branches, out failure))
+                return false;
 
-            if (starts.Length != 1)
+            role = PassingBranchNodeRole.MainRoute;
+            foreach (var branch in branches)
             {
-                failure = "Exactly one supported passing branch is required.";
-                return false;
+                if (nodeIndex == branch.StartNodeIndex)
+                    role = PassingBranchNodeRole.BranchStart;
+                else if (nodeIndex == branch.RejoinNodeIndex)
+                    role = PassingBranchNodeRole.BranchRejoin;
+                else if (branch.InteriorNodes.Contains(nodeIndex))
+                    role = PassingBranchNodeRole.BranchInterior;
             }
-
-            if (!TryGetSinglePassingBranch(nodes, starts[0], out int rejoinNodeIndex, out ImmutableArray<int> interiorNodes, out failure))
-                return false;
-
-            role = nodeIndex == starts[0]
-                ? PassingBranchNodeRole.BranchStart
-                : nodeIndex == rejoinNodeIndex
-                    ? PassingBranchNodeRole.BranchRejoin
-                    : interiorNodes.Contains(nodeIndex)
-                        ? PassingBranchNodeRole.BranchInterior
-                        : PassingBranchNodeRole.MainRoute;
             failure = null;
 
             return true;
         }
 
-        /// <summary>Removes the supported single-level passing branch and its interior anchors.</summary>
+        /// <summary>Removes the selected single-level passing branch and its interiors, retaining other owners.</summary>
         public static PathEditResult RemovePassingBranch(PathModel pathModel, int startNodeIndex)
         {
             ArgumentNullException.ThrowIfNull(pathModel);
 
             ImmutableArray<PathNode> nodes = Nodes(pathModel);
-            if (!TryGetSinglePassingBranch(nodes, startNodeIndex, out _, out ImmutableArray<int> interiorNodes, out string failure))
-                return PathEditResult.Failed(failure, pathModel);
+            if (!TryCollectPassingBranches(nodes, out _, out var branches, out FormattableString failure))
+                return FailedPassingBranchMessage(failure, pathModel);
 
-            ImmutableArray<PathNode> updatedNodes = nodes.SetItem(startNodeIndex, nodes[startNodeIndex] with { NextSidingNode = -1 });
+            var branch = branches.FirstOrDefault(item => item.StartNodeIndex == startNodeIndex);
+            if (branch.InteriorNodes.IsDefault)
+                return FailedPassingBranchMessage($"Node {startNodeIndex} does not start a passing branch.", pathModel);
 
-            foreach (int interiorIndex in interiorNodes.OrderByDescending(index => index))
-                updatedNodes = RemoveNodeAt(updatedNodes, interiorIndex);
+            HashSet<int> removed = branch.InteriorNodes.ToHashSet();
+            Dictionary<int, int> indexMap = Enumerable.Range(0, nodes.Length).Where(index => !removed.Contains(index))
+                .Select((oldIndex, newIndex) => (oldIndex, newIndex)).ToDictionary(item => item.oldIndex, item => item.newIndex);
+            ImmutableArray<PathNode> updatedNodes = Enumerable.Range(0, nodes.Length).Where(indexMap.ContainsKey).Select(index => nodes[index] with
+            {
+                NextMainNode = nodes[index].NextMainNode < 0 ? -1 : indexMap[nodes[index].NextMainNode],
+                NextSidingNode = index == startNodeIndex || nodes[index].NextSidingNode < 0 ? -1 : indexMap[nodes[index].NextSidingNode],
+            }).ToImmutableArray();
 
-            return PathEditResult.Succeeded($"Removed passing branch from node {startNodeIndex}.", pathModel with { PathNodes = updatedNodes }, interiorNodes.Add(startNodeIndex));
+            if (!TryCollectPassingBranches(updatedNodes, out _, out _, out failure))
+                return FailedPassingBranchMessage(failure, pathModel);
+
+            return SucceededPassingBranchMessage($"Removed passing branch from node {startNodeIndex}.", pathModel with { PathNodes = updatedNodes }, ImmutableArray.Create(indexMap[startNodeIndex]));
+        }
+
+        private static PathEditResult FailedPassingBranchMessage(FormattableString message, PathModel pathModel)
+        {
+            return PathEditResult.Failed(message.ToString(System.Globalization.CultureInfo.InvariantCulture), PathEditorMessageKind.PassingBranchOutcome, pathModel)
+                with { MessageFormat = message };
+        }
+
+        private static PathEditResult SucceededPassingBranchMessage(FormattableString message, PathModel pathModel, ImmutableArray<int> changedNodeIndexes)
+        {
+            return PathEditResult.Succeeded(message.ToString(System.Globalization.CultureInfo.InvariantCulture), PathEditorMessageKind.PassingBranchOutcome, pathModel, changedNodeIndexes)
+                with { MessageFormat = message };
         }
 
         private static PathNode CreateViaNode(PathNode anchor, bool junction, int nextMainNode)
@@ -1007,33 +1066,38 @@ namespace FreeTrainSimulator.Runtime.Track
             };
         }
 
-        private static bool IsEligiblePassingBranch(ImmutableArray<PathNode> nodes, ImmutableArray<int> mainRoute, int startNodeIndex, int rejoinNodeIndex, out string failure)
+        private static bool IsEligiblePassingBranch(ImmutableArray<int> mainRoute,
+            ImmutableArray<(int StartNodeIndex, int RejoinNodeIndex, ImmutableArray<int> InteriorNodes)> branches,
+            int startNodeIndex, int rejoinNodeIndex, out FormattableString failure)
         {
             int startPosition = mainRoute.IndexOf(startNodeIndex);
             int rejoinPosition = mainRoute.IndexOf(rejoinNodeIndex);
 
             if (startPosition < 0 || rejoinPosition < 0)
             {
-                failure = "A passing branch must start and rejoin on authored main-route nodes.";
+                failure = $"A passing branch must start and rejoin on authored main-route nodes.";
                 return false;
             }
 
             if (rejoinPosition <= startPosition)
             {
-                failure = "A passing branch must rejoin a later main-route node.";
+                failure = $"A passing branch must rejoin a later main-route node.";
                 return false;
             }
 
-            if (nodes.Any(node => node.NextSidingNode >= 0))
+            if (branches.Length >= 2)
             {
-                failure = "Nested or overlapping passing branches are not supported.";
+                failure = $"At most two strictly separated passing branches can be authored.";
                 return false;
             }
 
-            if (nodes.Length != mainRoute.Length)
+            foreach (var branch in branches)
             {
-                failure = "A passing branch cannot be added while disconnected authored nodes exist.";
-                return false;
+                if (rejoinPosition >= mainRoute.IndexOf(branch.StartNodeIndex) && startPosition <= mainRoute.IndexOf(branch.RejoinNodeIndex))
+                {
+                    failure = $"Passing branches must be strictly separated; touching, nested, or overlapping branches are not supported.";
+                    return false;
+                }
             }
 
             failure = null;
@@ -1041,90 +1105,78 @@ namespace FreeTrainSimulator.Runtime.Track
             return true;
         }
 
-        private static bool TryGetSinglePassingBranch(ImmutableArray<PathNode> nodes, int startNodeIndex, out int rejoinNodeIndex, out ImmutableArray<int> interiorNodes, out string failure)
+        // Collect in linked main order, not storage order. This is structural validation, not the authoring
+        // ceiling or whole-route resolution: incomplete main paths remain classifiable for local repairs.
+        private static bool TryCollectPassingBranches(ImmutableArray<PathNode> nodes, out ImmutableArray<int> mainRoute,
+            out ImmutableArray<(int StartNodeIndex, int RejoinNodeIndex, ImmutableArray<int> InteriorNodes)> branches, out FormattableString failure)
         {
-            rejoinNodeIndex = -1;
-            interiorNodes = ImmutableArray<int>.Empty;
+            branches = ImmutableArray<(int, int, ImmutableArray<int>)>.Empty;
+            if (!TryGetMainRouteNodes(nodes, out mainRoute, out failure))
+                return false;
 
-            if (!TryGetMainRouteNodes(nodes, out ImmutableArray<int> mainRoute, out failure))
-                return false;
-            
-            if (startNodeIndex < 0 || startNodeIndex >= nodes.Length || nodes[startNodeIndex].NextSidingNode < 0 || !mainRoute.Contains(startNodeIndex))
+            Dictionary<int, int> mainPositions = mainRoute.Select((index, position) => (index, position))
+                .ToDictionary(item => item.index, item => item.position);
+            HashSet<int> owned = mainRoute.ToHashSet();
+            var collected = ImmutableArray.CreateBuilder<(int StartNodeIndex, int RejoinNodeIndex, ImmutableArray<int> InteriorNodes)>();
+            int previousRejoinPosition = -1;
+
+            for (int startPosition = 0; startPosition < mainRoute.Length; startPosition++)
             {
-                failure = $"Node {startNodeIndex} does not start a passing branch.";
-                return false;
+                int startNodeIndex = mainRoute[startPosition];
+                int current = nodes[startNodeIndex].NextSidingNode;
+                if (current == -1)
+                    continue;
+
+                if (startPosition <= previousRejoinPosition)
+                {
+                    failure = $"Passing branches must be strictly separated; touching, nested, or overlapping branches are not supported.";
+                    return false;
+                }
+
+                ImmutableArray<int>.Builder interior = ImmutableArray.CreateBuilder<int>();
+                while (!mainPositions.ContainsKey(current))
+                {
+                    if (current < 0 || !owned.Add(current) || nodes[current].NextMainNode != -1 || nodes[current].NextSidingNode == -1)
+                    {
+                        failure = $"The passing branch is cyclic, shared, nested, or does not rejoin the main route.";
+                        return false;
+                    }
+                    interior.Add(current);
+                    current = nodes[current].NextSidingNode;
+                }
+
+                int rejoinPosition = mainPositions[current];
+                if (rejoinPosition <= startPosition)
+                {
+                    failure = $"The passing branch does not rejoin a later main-route node.";
+                    return false;
+                }
+                collected.Add((startNodeIndex, current, interior.ToImmutable()));
+                previousRejoinPosition = rejoinPosition;
             }
-            
-            ImmutableArray<int> branchStarts = Enumerable.Range(0, nodes.Length).Where(index => nodes[index].NextMainNode >= 0 && nodes[index].NextSidingNode >= 0).ToImmutableArray();
-            
-            if (branchStarts.Length != 1 || branchStarts[0] != startNodeIndex)
+
+            if (owned.Count != nodes.Length)
             {
-                failure = "The path does not contain exactly one supported passing-branch start.";
+                failure = $"The path contains disconnected nodes outside the main route and passing branches.";
                 return false;
             }
 
-            ImmutableArray<int>.Builder interior = ImmutableArray.CreateBuilder<int>();
-            HashSet<int> visited = new HashSet<int>();
-            int current = nodes[startNodeIndex].NextSidingNode;
-            
-            while (!mainRoute.Contains(current))
-            {
-                if (current < 0 || current >= nodes.Length || !visited.Add(current) || nodes[current].NextMainNode >= 0 || nodes[current].NextSidingNode < 0)
-                {
-                    failure = "The passing branch is unresolved, nested, or does not rejoin the main route.";
-                    return false;
-                }
-                interior.Add(current);
-                current = nodes[current].NextSidingNode;
-            }
-            
-            if (mainRoute.IndexOf(current) <= mainRoute.IndexOf(startNodeIndex))
-            {
-                failure = "The passing branch does not rejoin a later main-route node.";
-                return false;
-            }
-            
-            rejoinNodeIndex = current;
-            interiorNodes = interior.ToImmutable();
-            ImmutableHashSet<int> allowedNodes = mainRoute.ToImmutableHashSet().Union(interiorNodes);
-            
-            for (int index = 0; index < nodes.Length; index++)
-            {
-                if (!allowedNodes.Contains(index))
-                {
-                    failure = "The path contains disconnected nodes outside the passing branch.";
-                    return false;
-                }
-                if (nodes[index].NextSidingNode >= 0 && index != startNodeIndex && !interiorNodes.Contains(index))
-                {
-                    failure = "The path contains an overlapping or nested passing-branch link.";
-                    return false;
-                }
-            }
-            
+            branches = collected.ToImmutable();
             failure = null;
             return true;
         }
 
-        private static bool TryGetPassingBranchInteriorNodes(ImmutableArray<PathNode> nodes, out ImmutableArray<int> interiorNodes, out string failure)
-        {
-            ImmutableArray<int> starts = Enumerable.Range(0, nodes.Length)
-                .Where(index => nodes[index].NextMainNode >= 0 && nodes[index].NextSidingNode >= 0).ToImmutableArray();
-
-            if (starts.Length != 1)
-            {
-                interiorNodes = ImmutableArray<int>.Empty;
-                failure = "Exactly one supported passing branch is required.";
-                return false;
-            }
-
-            return TryGetSinglePassingBranch(nodes, starts[0], out _, out interiorNodes, out failure);
-        }
-
-        private static bool TryGetMainRouteNodes(ImmutableArray<PathNode> nodes, out ImmutableArray<int> mainRoute, out string failure)
+        private static bool TryGetMainRouteNodes(ImmutableArray<PathNode> nodes, out ImmutableArray<int> mainRoute, out FormattableString failure)
         {
             for (int index = 0; index < nodes.Length; index++)
             {
+                if (nodes[index] == null)
+                {
+                    mainRoute = ImmutableArray<int>.Empty;
+                    failure = $"Node {index} is null.";
+                    return false;
+                }
+
                 if (nodes[index].NextMainNode < -1 || nodes[index].NextMainNode >= nodes.Length)
                 {
                     mainRoute = ImmutableArray<int>.Empty;
@@ -1142,10 +1194,10 @@ namespace FreeTrainSimulator.Runtime.Track
 
             int startIndex = IndexOfNodeType(nodes, PathNodeType.Start);
             
-            if (startIndex < 0)
+            if (startIndex < 0 || nodes.Count(node => node.NodeType.Includes(PathNodeType.Start)) != 1)
             {
                 mainRoute = ImmutableArray<int>.Empty;
-                failure = "A passing branch requires a main-route start node.";
+                failure = $"Passing topology requires exactly one main-route start node.";
                 return false;
             }
             
@@ -1158,7 +1210,7 @@ namespace FreeTrainSimulator.Runtime.Track
                 if (current >= nodes.Length || !visited.Add(current))
                 {
                     mainRoute = ImmutableArray<int>.Empty;
-                    failure = "The main route contains an invalid link or cycle.";
+                    failure = $"The main route contains an invalid link or cycle.";
                     return false;
                 }
             
@@ -1201,8 +1253,8 @@ namespace FreeTrainSimulator.Runtime.Track
                 WaitInfo = new PathNodeWaitInfo { WaitTime = waitTimeSeconds },
             };
 
-            return !TryValidateNodeEvents(pathModel, nodeIndex, node, out failure)
-                ? PathEditResult.Failed(failure, pathModel)
+            return !TryValidateNodeEvents(pathModel, nodeIndex, node, out FormattableString eventFailure)
+                ? FailedPassingBranchMessage(eventFailure, pathModel)
                 : PathEditResult.Succeeded($"Set wait point of {waitTimeSeconds}s on node {nodeIndex}.", pathModel with { PathNodes = nodes.SetItem(nodeIndex, node) }, ImmutableArray.Create(nodeIndex));
         }
 
@@ -1246,8 +1298,8 @@ namespace FreeTrainSimulator.Runtime.Track
 
             PathNode node = nodes[nodeIndex] with { NodeType = nodes[nodeIndex].NodeType | PathNodeType.Reversal };
 
-            return !TryValidateNodeEvents(pathModel, nodeIndex, node, out failure)
-                ? PathEditResult.Failed(failure, pathModel)
+            return !TryValidateNodeEvents(pathModel, nodeIndex, node, out FormattableString eventFailure)
+                ? FailedPassingBranchMessage(eventFailure, pathModel)
                 : PathEditResult.Succeeded($"Set reversal point on node {nodeIndex}.", pathModel with { PathNodes = nodes.SetItem(nodeIndex, node) }, ImmutableArray.Create(nodeIndex));
         }
 
@@ -1298,7 +1350,7 @@ namespace FreeTrainSimulator.Runtime.Track
             return true;
         }
 
-        private static bool TryValidateNodeEvents(PathModel pathModel, int nodeIndex, PathNode node, out string failure)
+        private static bool TryValidateNodeEvents(PathModel pathModel, int nodeIndex, PathNode node, out FormattableString failure)
         {
             failure = null;
             if ((node.NodeType & (PathNodeType.Wait | PathNodeType.Reversal)) == PathNodeType.None
@@ -1308,7 +1360,7 @@ namespace FreeTrainSimulator.Runtime.Track
             bool isPassingInterior = false;
             if (Nodes(pathModel).Any(pathNode => pathNode.NextSidingNode != -1))
             {
-                if (!TryGetPassingBranchNodeRole(pathModel, nodeIndex, out PassingBranchNodeRole role, out failure))
+                if (!TryClassifyPassingBranchNode(pathModel, nodeIndex, out PassingBranchNodeRole role, out failure))
                     return false;
 
                 isPassingInterior = role == PassingBranchNodeRole.BranchInterior;
@@ -1316,7 +1368,7 @@ namespace FreeTrainSimulator.Runtime.Track
 
             // Setters guard endpoints separately; moving an imported first-node event must remain a local repair.
             PathRouteDiagnostic diagnostic = PathSimulatorEventCompatibility.ValidateNode(node, nodeIndex, false, isPassingInterior);
-            failure = diagnostic?.Message;
+            failure = diagnostic == null ? null : (FormattableString)$"{diagnostic.Message}";
             return diagnostic == null;
         }
 
@@ -1357,8 +1409,8 @@ namespace FreeTrainSimulator.Runtime.Track
                 WaitInfo = original.WaitInfo,
             };
 
-            return !TryValidateNodeEvents(pathModel, nodeIndex, movedNode, out string failure)
-                ? PathEditResult.Failed(failure, pathModel)
+            return !TryValidateNodeEvents(pathModel, nodeIndex, movedNode, out FormattableString failure)
+                ? FailedPassingBranchMessage(failure, pathModel)
                 : PathEditResult.Succeeded($"Moved node {nodeIndex}.",
                 pathModel with { PathNodes = nodes.SetItem(nodeIndex, movedNode) },
                 ImmutableArray.Create(nodeIndex));

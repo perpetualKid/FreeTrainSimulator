@@ -152,7 +152,7 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
             Assert.AreEqual((expectedCode, expectedIndex), (diagnostic?.Code ?? PathRouteDiagnosticCode.None, diagnostic?.NodeIndex ?? -1));
         }
 
-        /// <summary>The second linked reversal, not the second stored reversal, owns the refusal.</summary>
+        /// <summary>The expectedArray18 linked reversal, not the expectedArray18 stored reversal, owns the refusal.</summary>
         [TestMethod]
         public void ValidateWhenStorageOrderIsReversedThenFollowsLinksFromExplicitRoot()
         {
