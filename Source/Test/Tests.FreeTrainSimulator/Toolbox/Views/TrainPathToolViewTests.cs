@@ -36,7 +36,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.Views
     {
         public TestContext TestContext { get; set; }
 
-        [TestMethod]
+        [STATestMethod(UseSTASynchronizationContext = true)]
         [Timeout(15000, CooperativeCancellation = true)]
         [DataRow(false, 0, "replace")]
         [DataRow(true, 0, "replace")]
@@ -124,7 +124,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.Views
             }
         }
 
-        [TestMethod]
+        [STATestMethod(UseSTASynchronizationContext = true)]
         [Timeout(15000, CooperativeCancellation = true)]
         [DataRow(false, 0, "restart")]
         [DataRow(true, 0, "restart")]
@@ -186,7 +186,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.Views
             }
         }
 
-        [TestMethod]
+        [STATestMethod(UseSTASynchronizationContext = true)]
         [Timeout(15000, CooperativeCancellation = true)]
         [DataRow(false)]
         [DataRow(true)]
@@ -213,7 +213,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.Views
             }
         }
 
-        [TestMethod]
+        [STATestMethod(UseSTASynchronizationContext = true)]
         [Timeout(15000, CooperativeCancellation = true)]
         [DataRow(false)]
         [DataRow(true)]
@@ -236,7 +236,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.Views
             });
         }
 
-        [TestMethod]
+        [STATestMethod(UseSTASynchronizationContext = true)]
         public async Task WhenNodeMenuIsCapturedThenCollectionOwnerIsRecheckedBeforePublication()
         {
             using SeparatedPassingFixture fixture = await SeparatedPassingFixture.CreateAsync().ConfigureAwait(true);
@@ -252,7 +252,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.Views
             Assert.AreEqual((2, true, true), (accesses, request.IsCurrent(editor), request.Items.Any(item => item.Action == MapContextMenuAction.RemoveViaPoint)));
         }
 
-        [TestMethod]
+        [STATestMethod(UseSTASynchronizationContext = true)]
         [DataRow("reload")]
         [DataRow("edit-undo")]
         [DataRow("placement")]
@@ -285,7 +285,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.Views
             Assert.AreSame(PathEditorMenuRequest.Empty, request);
         }
 
-        [TestMethod]
+        [STATestMethod(UseSTASynchronizationContext = true)]
         [DataRow("restart")]
         [DataRow("via")]
         [DataRow("phase")]
@@ -326,7 +326,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.Views
             Assert.AreSame(PathEditorMenuRequest.Empty, request);
         }
 
-        [TestMethod]
+        [STATestMethod(UseSTASynchronizationContext = true)]
         public async Task WhenOnlySelectionChangesBeforeEntriesAreAttachedThenFrozenRequestRemainsUsable()
         {
             using SeparatedPassingFixture fixture = await SeparatedPassingFixture.CreateAsync().ConfigureAwait(true);
@@ -344,7 +344,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.Views
             Assert.AreEqual((true, true, true), (ownership.Items.IsEmpty, request.Items == entries, request.IsCurrent(editor)));
         }
 
-        [TestMethod]
+        [STATestMethod(UseSTASynchronizationContext = true)]
         [DataRow(false)]
         [DataRow(true)]
         public async Task WhenCurrentEditorChangesBeforeNodeMenuPublicationThenEntriesAreRejected(bool unavailable)
@@ -365,7 +365,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.Views
             Assert.AreSame(PathEditorMenuRequest.Empty, request);
         }
 
-        [TestMethod]
+        [STATestMethod(UseSTASynchronizationContext = true)]
         [Timeout(15000, CooperativeCancellation = true)]
         [DataRow(false, "reload")]
         [DataRow(true, "reload")]
@@ -443,7 +443,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.Views
             Assert.AreEqual((true, false, true, 0), (request.Items.IsEmpty, request.IsCurrent(null), bridge.GetNodeActions(0).IsEmpty, commands.Count));
         }
 
-        [TestMethod]
+        [STATestMethod(UseSTASynchronizationContext = true)]
         public async Task WhenEntryDoesNotBelongToCapturedNodeMenuThenCurrentOwnerIsNotMutated()
         {
             using SeparatedPassingFixture fixture = await SeparatedPassingFixture.CreateAsync().ConfigureAwait(true);
