@@ -295,7 +295,14 @@ namespace FreeTrainSimulator.Models.Imported.ImportHandler.TrainSimulator
                         // items have been found to have an invalid location but a valid related TrackNode and SectionDistance that can be used to determine the correct location.
                         itemLocation = WorldLocation.None;
                         if (trackDatabase.TrackNodes[trackNodeIndex] is not VectorNode vectorNode)
-                            continue; // again, nothing we can do with this, but we'll add an empty item to at least preserve the index
+                        {
+                            result.Add(new EmptyTrackItem()
+                            {
+                                TrackItemIndex = trackItem.TrackItemId,
+                            });
+                            Trace.TraceWarning($"Track {trackItem.GetType().Name} #{trackItem.TrackItemId} in track database {trackdatabaseFile} has no valid location and references non-vector node #{trackNodeIndex}; preserving its index with an empty item.");
+                            continue;
+                        }
                         float distance = trackItem.SData1;
                         for (int i = 0; i < vectorNode.VectorSections.Length; i++)
                         {
@@ -466,6 +473,10 @@ namespace FreeTrainSimulator.Models.Imported.ImportHandler.TrainSimulator
                         });
                         break;
                     default:
+                        result.Add(new EmptyTrackItem()
+                        {
+                            TrackItemIndex = trackItem.TrackItemId,
+                        });
                         Trace.TraceWarning($"{trackItem.GetType().Name} Index #{trackItem.TrackItemId} not supported for Track Items in track database {trackdatabaseFile}");
                         break;
                 }
