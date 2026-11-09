@@ -870,6 +870,82 @@ namespace Tests.FreeTrainSimulator.Toolbox.PathEditing
             }
         }
 
+        /// <summary>Unseeded keyboard cycles preview each remaining guided leg without accepting it or changing history.</summary>
+        [TestMethod]
+        [DataRow(1, 0, new int[] { 1, 2, 4, 6, 8 })]
+        [DataRow(-1, 1, new int[] { 1, 3, 4, 5, 8 })]
+        public async Task WhenGuidedCandidatesAreCycledFromRejoinThenEachLegRequiresExplicitAcceptance(int direction, int candidateIndex, int[] expected)
+        {
+            TrackWorld world = CreateCorrelatedTrackWorld(true);
+            using (PathEditor editor = new PathEditor(new TestPathEditorContext(world)))
+            {
+                Assert.IsTrue(await editor.InitializePathAsync(CreatePassingSource(world), TestContext.CancellationToken).ConfigureAwait(false));
+                PrepareExistingHistory(editor, true);
+                PathModel source = editor.TryCaptureCurrentPathModel();
+                PathModel[] undo = CaptureHistory(editor, "undoHistory");
+                PathModel[] redo = CaptureHistory(editor, "redoHistory");
+                BeginGuidedPhase(editor, world, 3);
+                editor.SelectAuthoredNode(2);
+                ImmutableArray<ResolvedPathSpan> initial = editor.GetAmbiguousSpans();
+                Assert.HasCount(2, initial);
+                Assert.HasCount(2, initial[0].Candidates);
+                Assert.AreEqual((2, -1, -1), (editor.SelectedPathNodeIndex, editor.PreviewedRouteCandidateFromNodeIndex, editor.PreviewedRouteCandidateIndex));
+                Assert.IsFalse(editor.AcceptPreviewedRouteCandidateCommand().Success);
+                Assert.AreSame(source, editor.TryCaptureCurrentPathModel());
+                Assert.AreSequenceEqual(undo, CaptureHistory(editor, "undoHistory"));
+                Assert.AreSequenceEqual(redo, CaptureHistory(editor, "redoHistory"));
+
+                PathEditorCommandResult upstreamCycle = editor.CycleRouteCandidateCommand(direction);
+
+                Assert.IsTrue(upstreamCycle.Success, upstreamCycle.Message);
+                Assert.AreEqual((initial[0].FromNodeIndex, candidateIndex), (editor.PreviewedRouteCandidateFromNodeIndex, editor.PreviewedRouteCandidateIndex));
+                PathRouteResolution upstreamPreview = PathRouteResolver.Resolve(CaptureCandidatePreview(editor), world, TestContext.CancellationToken);
+                Assert.IsTrue(upstreamPreview.IsValid);
+                AssertJunctionRoute(expected, upstreamPreview.PassingRoutes.Single().Spans.SelectMany(span => span.Candidates.Single().RouteNodeIndexes).Distinct());
+                Assert.AreSame(source, editor.TryCaptureCurrentPathModel());
+                Assert.AreSequenceEqual(undo, CaptureHistory(editor, "undoHistory"));
+                Assert.AreSequenceEqual(redo, CaptureHistory(editor, "redoHistory"));
+                Assert.HasCount(2, editor.GetAmbiguousSpans());
+
+                PathEditorCommandResult upstreamAcceptance = editor.AcceptPreviewedRouteCandidateCommand();
+
+                Assert.IsTrue(upstreamAcceptance.Success, upstreamAcceptance.Message);
+                Assert.AreEqual(PassingBranchAuthoringPhase.SelectingCandidate, editor.PassingBranchPhase);
+                Assert.AreEqual((2, -1, -1), (editor.SelectedPathNodeIndex, editor.PreviewedRouteCandidateFromNodeIndex, editor.PreviewedRouteCandidateIndex));
+                ResolvedPathSpan suffix = editor.GetAmbiguousSpans().Single();
+                Assert.AreEqual(initial[1].FromNodeIndex, suffix.FromNodeIndex);
+                Assert.HasCount(1, suffix.Candidates);
+                Assert.IsFalse(editor.AcceptPreviewedRouteCandidateCommand().Success);
+                Assert.AreSame(source, editor.TryCaptureCurrentPathModel());
+                Assert.AreSequenceEqual(undo, CaptureHistory(editor, "undoHistory"));
+                Assert.AreSequenceEqual(redo, CaptureHistory(editor, "redoHistory"));
+
+                PathEditorCommandResult suffixCycle = editor.CycleRouteCandidateCommand(direction);
+
+                Assert.IsTrue(suffixCycle.Success, suffixCycle.Message);
+                Assert.AreEqual((suffix.FromNodeIndex, 0), (editor.PreviewedRouteCandidateFromNodeIndex, editor.PreviewedRouteCandidateIndex));
+                PathRouteResolution suffixPreview = PathRouteResolver.Resolve(CaptureCandidatePreview(editor), world, TestContext.CancellationToken);
+                Assert.IsTrue(suffixPreview.IsValid);
+                Assert.IsTrue(upstreamPreview.PassingRoutes.Single().HasSamePhysicalTraversal(suffixPreview.PassingRoutes.Single()));
+                Assert.AreSame(source, editor.TryCaptureCurrentPathModel());
+                Assert.AreSequenceEqual(undo, CaptureHistory(editor, "undoHistory"));
+                Assert.AreSequenceEqual(redo, CaptureHistory(editor, "redoHistory"));
+                Assert.AreEqual(PassingBranchAuthoringPhase.SelectingCandidate, editor.PassingBranchPhase);
+
+                PathEditorCommandResult accepted = editor.AcceptPreviewedRouteCandidateCommand();
+
+                Assert.IsTrue(accepted.Success, accepted.Message);
+                PathRouteResolution committed = PathRouteResolver.Resolve(editor.TryCaptureCurrentPathModel(), world, TestContext.CancellationToken);
+                Assert.IsTrue(committed.IsValid);
+                AssertJunctionRoute(expected, committed.PassingRoutes.Single().Spans.SelectMany(span => span.Candidates.Single().RouteNodeIndexes).Distinct());
+                Assert.IsTrue(suffixPreview.PassingRoutes.Single().HasSamePhysicalTraversal(committed.PassingRoutes.Single()));
+                Assert.IsTrue(PathRouteResolver.Resolve(source, world, TestContext.CancellationToken).MainRoute.HasSamePhysicalTraversal(committed.MainRoute));
+                Assert.AreEqual((PassingBranchAuthoringPhase.Idle, -1, -1), (editor.PassingBranchPhase, editor.PreviewedRouteCandidateFromNodeIndex, editor.PreviewedRouteCandidateIndex));
+                Assert.AreSequenceEqual(new PathModel[] { source }.Concat(undo).ToArray(), CaptureHistory(editor, "undoHistory"));
+                Assert.IsEmpty(CaptureHistory(editor, "redoHistory"));
+            }
+        }
+
         /// <summary>Both queued previews remain admitted while the correlated candidate structure is unchanged.</summary>
         [TestMethod]
         [DataRow(0, 1, new int[] { 1, 3, 4, 5, 8 })]

@@ -2697,9 +2697,10 @@ namespace FreeTrainSimulator.Toolbox.PathEditing
                 candidateIndex = -1;
             }
 
-            if (candidates.IsDefaultOrEmpty && pendingAmbiguousSpanCommit != null)
+            if (candidates.IsDefaultOrEmpty && (pendingAmbiguousSpanCommit != null
+                || pendingPassingBranchCandidate != null || pendingGuidedPassingBranch != null))
             {
-                ResolvedPathSpan span = pendingAmbiguousSpanCommit.AmbiguousSpans.FirstOrDefault();
+                ResolvedPathSpan span = GetAmbiguousSpans().FirstOrDefault();
                 if (span != null)
                 {
                     fromNodeIndex = span.FromNodeIndex;

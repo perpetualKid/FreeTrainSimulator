@@ -417,6 +417,8 @@ namespace Tests.FreeTrainSimulator.Toolbox.Views
                 SettleLayout(window);
                 DrainCommands(commands);
 
+                // Menu layout pumps the dispatcher; exclude polling reads from the construction witness.
+                viewModel.Stop();
                 constructingMenu = true;
                 object[] entries = OpenNodeMenu(view, window, viewModel, contextMenu).ToArray();
                 constructingMenu = false;

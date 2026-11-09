@@ -27,6 +27,42 @@
                       SelectedItem="{Binding SelectedRoute, Mode=TwoWay}"
                       DisplayMemberPath="Name"
                       ToolTip="Select a route to open" />
+            <TextBlock x:Name="RouteStatusMessage"
+                       Text="{Binding StatusMessage}"
+                       TextWrapping="Wrap"
+                       AutomationProperties.LiveSetting="Polite">
+                <TextBlock.Style>
+                    <Style TargetType="TextBlock">
+                        <Setter Property="Margin" Value="0,9,0,0" />
+                        <Style.Triggers>
+                            <Trigger Property="Text" Value="">
+                                <Setter Property="Visibility" Value="Collapsed" />
+                            </Trigger>
+                            <Trigger Property="Text" Value="{x:Null}">
+                                <Setter Property="Visibility" Value="Collapsed" />
+                            </Trigger>
+                        </Style.Triggers>
+                    </Style>
+                </TextBlock.Style>
+            </TextBlock>
+            <TextBlock x:Name="RouteErrorDetails"
+                       Text="{Binding Error}"
+                       TextWrapping="Wrap"
+                       AutomationProperties.LiveSetting="Polite">
+                <TextBlock.Style>
+                    <Style TargetType="TextBlock">
+                        <Setter Property="Margin" Value="0,6,0,0" />
+                        <Style.Triggers>
+                            <Trigger Property="Text" Value="">
+                                <Setter Property="Visibility" Value="Collapsed" />
+                            </Trigger>
+                            <Trigger Property="Text" Value="{x:Null}">
+                                <Setter Property="Visibility" Value="Collapsed" />
+                            </Trigger>
+                        </Style.Triggers>
+                    </Style>
+                </TextBlock.Style>
+            </TextBlock>
         </StackPanel>
         <TextBox Text="{Binding SelectedRoute.Description, Mode=OneWay}"
                  IsReadOnly="True"

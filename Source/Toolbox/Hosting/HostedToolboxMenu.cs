@@ -47,6 +47,9 @@ namespace FreeTrainSimulator.Toolbox.Hosting
         /// <summary>Loads the given route, or unloads it when it is already selected.</summary>
         public void ToggleRoute(ToolboxMenuCommand command) => InvokeOnGameThreadAsync("Toggle route", () => game.Session.ToggleRouteAsync(command));
 
+        /// <summary>Unloads only the captured committed route lifetime; never loads a route.</summary>
+        public void UnloadRoute(ToolboxMenuCommand command) => InvokeOnGameThreadAsync("Unload route", () => game.Session.UnloadRouteAsync(command));
+
         /// <summary>Loads the given path, or unloads it when it is already selected.</summary>
         public void TogglePath(ToolboxMenuCommand command) => InvokeOnGameThreadAsync("Toggle path", () => game.Session.TogglePathAsync(command));
 

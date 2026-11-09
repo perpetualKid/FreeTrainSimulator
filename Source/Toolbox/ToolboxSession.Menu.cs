@@ -31,8 +31,8 @@ namespace FreeTrainSimulator.Toolbox
 
         // Freshness table:
         // folder: session + current root list membership (rapid root picks survive folder acceptance);
-        // route: session + accepted folder epoch + qualified membership (not route/revision changes);
-        // path/editor command: additionally the committed route lifetime, rejecting unload/reload reuse.
+        // route selection: session + accepted folder epoch + qualified membership (not route/revision changes);
+        // route unload/path/editor command: additionally the committed route lifetime, rejecting unload/reload reuse.
         // Confirmation retains accepted content. Acceptance clears before discovery/load; failure retains
         // the accepted folder and its routes. UI revision orders publications only, never user intent.
         private static ToolboxMenuKey FolderKey(FolderModel folder)
@@ -95,6 +95,31 @@ namespace FreeTrainSimulator.Toolbox
 
         private PathModelHeader ResolvePath(ToolboxMenuCommand command)
             => !IsRouteContext(command) ? null : menuPaths.FirstOrDefault(path => PathEntry(path).Key.Equals(command.Key));
+
+        internal Task UnloadRouteAsync(ToolboxMenuCommand command) => RunAsync(async () =>
+        {
+            if (!IsRouteContext(command) || command.Key.PathId != null || MenuStatus != ToolboxMenuStatus.Ready)
+                return;
+            ToolboxMenuCommand route = new ToolboxMenuCommand(menuSessionId, folderContext, routeContentVersion, RouteKey(selectedRoute));
+            long selection = routeLoads.BeginSelection();
+            pendingRoute = route.Key;
+            PublishMenu();
+            bool confirmed = await ConfirmDiscardUnsavedPathsCoreAsync().ConfigureAwait(false);
+            await game.InvokeOnGameThreadAsync(() =>
+            {
+                if (!routeLoads.IsLatestSelection(selection) || !IsRouteContext(route))
+                    return Task.CompletedTask;
+                pendingRoute = null;
+                if (confirmed)
+                {
+                    routeLoads.CancelCurrent();
+                    ClearRoute();
+                    menuError = null;
+                }
+                PublishMenu();
+                return Task.CompletedTask;
+            }).ConfigureAwait(false);
+        });
 
         internal Task EditMenuPathAsync(ToolboxMenuCommand command)
             => IsRouteContext(command) && MenuStatus != ToolboxMenuStatus.Confirming ? EditPathAsync() : Task.CompletedTask;

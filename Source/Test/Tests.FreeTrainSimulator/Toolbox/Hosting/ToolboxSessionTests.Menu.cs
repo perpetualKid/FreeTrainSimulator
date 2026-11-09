@@ -6,25 +6,231 @@ using System.Linq;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Windows;
+using System.Windows.Automation.Peers;
+using System.Windows.Automation.Provider;
 using System.Windows.Controls;
 using System.Windows.Threading;
 
 using FreeTrainSimulator.Common.Position;
+using FreeTrainSimulator.Graphics.MapView;
 using FreeTrainSimulator.Models.Content;
 using FreeTrainSimulator.Models.Handler;
 using FreeTrainSimulator.Models.Shim;
+using FreeTrainSimulator.Runtime;
 using FreeTrainSimulator.Toolbox;
 using FreeTrainSimulator.Toolbox.Hosting;
 using FreeTrainSimulator.Toolbox.PathEditing;
+using FreeTrainSimulator.Toolbox.ToolWindows;
 using FreeTrainSimulator.Toolbox.ViewModels;
 using FreeTrainSimulator.Toolbox.Views;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
+using Tests.FreeTrainSimulator.Simulator;
+using Tests.FreeTrainSimulator.Toolbox.Views;
+
 namespace Tests.FreeTrainSimulator.Toolbox.Hosting
 {
     public sealed partial class ToolboxSessionTests
     {
+        [TestMethod]
+        [Timeout(20000, CooperativeCancellation = true)]
+        public async Task WhenActualCloseRouteMenuItemIsInvokedThenDirtyCancelAcceptAndQueuedStaleLifetimeRespectSession()
+        {
+            SessionScope scope = await SessionScope.StartAsync().ConfigureAwait(false);
+            await using (scope.ConfigureAwait(false))
+            {
+                StaControlHost wpf = await StaControlHost.StartAsync().ConfigureAwait(false);
+                await using (wpf.ConfigureAwait(false))
+                {
+                    FolderModel folder = MenuFolder("Folder");
+                    RouteModelHeader route = MenuRoute(folder, "route", "Route");
+                    TaskCompletionSource<UnsavedPathConfirmationEventArgs>[] prompts =
+                    [
+                        new TaskCompletionSource<UnsavedPathConfirmationEventArgs>(TaskCreationOptions.RunContinuationsAsynchronously),
+                        new TaskCompletionSource<UnsavedPathConfirmationEventArgs>(TaskCreationOptions.RunContinuationsAsynchronously),
+                    ];
+                    TaskCompletionSource canceled = Completion();
+                    TaskCompletionSource unloaded = Completion();
+                    int promptCount = 0;
+                    PathEditor editor = null;
+                    PathModel authored = null;
+                    RouteToolView view = null;
+                    MenuItem closeRoute = null;
+                    ToolboxMenuViewModel viewModel = null;
+                    Window window = null;
+                    try
+                    {
+                        await scope.Host.OnOwnerAsync(() =>
+                        {
+                            SetMenuState(scope, folder, [folder], [route], route);
+                            editor = CreateEditor();
+                            editor.InitializeNewPath();
+                            authored = editor.TryCaptureCurrentPathModel();
+                            SetField(scope.Session, "pathEditor", editor);
+                            scope.Session.UnsavedPathConfirmationRequested += (_, args) =>
+                            {
+                                ++promptCount;
+                                if (promptCount <= prompts.Length)
+                                    prompts[promptCount - 1].SetResult(args);
+                                else
+                                    args.Completion.TrySetResult(false);
+                            };
+                            scope.Game.HostedMenu.SnapshotChanged += (_, state) =>
+                            {
+                                if (state.Status != ToolboxMenuStatus.Ready)
+                                    return;
+                                if (state.CommittedRoute == null)
+                                    unloaded.TrySetResult();
+                                else if (promptCount == 1)
+                                    canceled.TrySetResult();
+                            };
+                        }).ConfigureAwait(false);
+                        ToolboxMenuSnapshot initial = scope.Game.HostedMenu.Current;
+                        await wpf.OnOwnerAsync(() =>
+                        {
+                            viewModel = new ToolboxMenuViewModel(scope.Game.HostedMenu, Dispatcher.CurrentDispatcher);
+                            view = new RouteToolView { DataContext = viewModel };
+                            Menu mainMenu = ProductionMainMenu.Load();
+                            closeRoute = ProductionMainMenu.FindCloseRouteItem(mainMenu);
+                            DockPanel content = new DockPanel();
+                            content.Children.Add(mainMenu);
+                            content.Children.Add(view);
+                            window = new Window
+                            {
+                                DataContext = new MainWindowViewModel { Menu = viewModel },
+                                Content = content,
+                                Width = 360,
+                                Height = 420,
+                                ShowInTaskbar = false,
+                            };
+                            window.Show();
+                            OpenFileMenu(closeRoute);
+                            Assert.AreSame(viewModel.UnloadRouteCommand, closeRoute.Command);
+                            Assert.IsNull(view.FindName("UnloadRouteButton"));
+                            Assert.IsTrue(closeRoute.IsEnabled);
+                            InvokeCloseRouteMenuItem(closeRoute);
+                        }).ConfigureAwait(false);
+                        UnsavedPathConfirmationEventArgs cancel = await prompts[0].Task.WaitAsync(TestContext.CancellationToken).ConfigureAwait(false);
+                        await wpf.OnOwnerAsync(() =>
+                        {
+                            OpenFileMenu(closeRoute);
+                            Assert.AreEqual(ToolboxMenuStatus.Confirming, viewModel.Status);
+                            Assert.IsFalse(closeRoute.IsEnabled);
+                            Assert.IsFalse(string.IsNullOrEmpty(((TextBlock)view.FindName("RouteStatusMessage")).Text));
+                            Assert.AreEqual(route.Id, ((ToolboxMenuEntry)MenuRouteSelector(view).SelectedItem).Key.RouteId);
+                            // Direct Execute must not bypass the disabled menu item while confirmation is pending.
+                            viewModel.UnloadRouteCommand.Execute(null);
+                        }).ConfigureAwait(false);
+                        cancel.Completion.SetResult(false);
+                        await canceled.Task.WaitAsync(TestContext.CancellationToken).ConfigureAwait(false);
+                        await scope.Host.OnOwnerAsync(() =>
+                        {
+                            Assert.AreEqual(1, promptCount);
+                            Assert.AreSame(route, scope.Session.SelectedRoute);
+                            Assert.AreSame(editor, scope.Session.ExistingPathEditor);
+                            Assert.AreSame(authored, editor.TryCaptureCurrentPathModel());
+                            Assert.IsTrue(editor.HasUnsavedChanges);
+                            Assert.AreEqual(initial.RouteContext, scope.Game.HostedMenu.Current.RouteContext);
+                        }).ConfigureAwait(false);
+                        await wpf.OnOwnerAsync(() =>
+                        {
+                            OpenFileMenu(closeRoute);
+                            Assert.IsTrue(closeRoute.IsEnabled);
+                            Assert.AreEqual(route.Description, ((TextBox)((DockPanel)view.Content).Children[1]).Text);
+                            Assert.AreEqual(Visibility.Collapsed, ((TextBlock)view.FindName("RouteStatusMessage")).Visibility);
+                            InvokeCloseRouteMenuItem(closeRoute);
+                        }).ConfigureAwait(false);
+                        UnsavedPathConfirmationEventArgs accept = await prompts[1].Task.WaitAsync(TestContext.CancellationToken).ConfigureAwait(false);
+                        accept.Completion.SetResult(true);
+                        await unloaded.Task.WaitAsync(TestContext.CancellationToken).ConfigureAwait(false);
+                        await scope.Host.OnOwnerAsync(() =>
+                        {
+                            Assert.AreEqual(2, promptCount);
+                            Assert.IsNull(scope.Session.SelectedRoute);
+                            Assert.IsNull(scope.Session.ExistingPathEditor);
+                        }).ConfigureAwait(false);
+                        await wpf.OnOwnerAsync(() =>
+                        {
+                            OpenFileMenu(closeRoute);
+                            Assert.IsNull(MenuRouteSelector(view).SelectedItem);
+                            Assert.IsTrue(string.IsNullOrEmpty(((TextBox)((DockPanel)view.Content).Children[1]).Text));
+                            Assert.IsFalse(closeRoute.IsEnabled);
+                            Assert.AreEqual(Visibility.Collapsed, ((TextBlock)view.FindName("RouteStatusMessage")).Visibility);
+                            Assert.AreEqual(Visibility.Collapsed, ((TextBlock)view.FindName("RouteErrorDetails")).Visibility);
+                        }).ConfigureAwait(false);
+
+                        // Queue an actual WPF click behind an owner-side replacement of the same route key.
+                        // The click must retain its old lifetime, not reread Current when transport runs.
+                        await scope.Host.OnOwnerAsync(() => SetMenuState(scope, folder, [folder], [route], route)).ConfigureAwait(false);
+                        await wpf.OnOwnerAsync(() => OpenFileMenu(closeRoute)).ConfigureAwait(false);
+                        ToolboxMenuSnapshot beforeReplacement = scope.Game.HostedMenu.Current;
+                        ToolboxMenuSnapshot replacementState = null;
+                        PathEditor replacementEditor = null;
+                        TaskCompletionSource ownerBlocked = Completion();
+                        using (ManualResetEventSlim releaseOwner = new ManualResetEventSlim())
+                        {
+                            Task replacement = scope.Host.OnOwnerAsync(() =>
+                            {
+                                ownerBlocked.SetResult();
+                                releaseOwner.Wait(TestContext.CancellationToken);
+                                typeof(ToolboxSession).GetMethod("ClearRoute", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(scope.Session, null);
+                                SetMenuState(scope, folder, [folder], [route], route);
+                                replacementEditor = CreateEditor();
+                                replacementEditor.InitializeNewPath();
+                                SetField(scope.Session, "pathEditor", replacementEditor);
+                                replacementState = scope.Game.HostedMenu.Current;
+                            });
+                            try
+                            {
+                                await ownerBlocked.Task.WaitAsync(TestContext.CancellationToken).ConfigureAwait(false);
+                                await wpf.OnOwnerAsync(() =>
+                                {
+                                    Assert.IsTrue(closeRoute.IsEnabled);
+                                    InvokeCloseRouteMenuItem(closeRoute);
+                                }).ConfigureAwait(false);
+                            }
+                            finally
+                            {
+                                releaseOwner.Set();
+                                await replacement.WaitAsync(TestContext.CancellationToken).ConfigureAwait(false);
+                            }
+                        }
+                        await scope.Game.InvokeOnGameThreadAsync(() => Task.CompletedTask).WaitAsync(TestContext.CancellationToken).ConfigureAwait(false);
+                        await scope.Host.OnOwnerAsync(() =>
+                        {
+                            Assert.IsGreaterThan(beforeReplacement.RouteContext, replacementState.RouteContext);
+                            Assert.AreEqual(beforeReplacement.CommittedRoute, replacementState.CommittedRoute);
+                            Assert.AreSame(replacementState, scope.Game.HostedMenu.Current);
+                            Assert.AreEqual(2, promptCount, "A queued stale unload must not prompt for the replacement's dirty path.");
+                            Assert.AreSame(route, scope.Session.SelectedRoute);
+                            Assert.AreSame(replacementEditor, scope.Session.ExistingPathEditor);
+                            Assert.IsTrue(replacementEditor.HasUnsavedChanges);
+                        }).ConfigureAwait(false);
+                        await wpf.OnOwnerAsync(() =>
+                        {
+                            OpenFileMenu(closeRoute);
+                            Assert.IsTrue(closeRoute.IsEnabled);
+                            Assert.AreEqual(route.Id, viewModel.SelectedRoute.Key.RouteId);
+                        }).ConfigureAwait(false);
+                    }
+                    finally
+                    {
+                        foreach (TaskCompletionSource<UnsavedPathConfirmationEventArgs> prompt in prompts)
+                            if (prompt.Task.IsCompletedSuccessfully)
+                                prompt.Task.Result.Completion.TrySetResult(false);
+                        await wpf.OnOwnerAsync(() =>
+                        {
+                            window?.Close();
+                            view?.DataContext = null;
+                            viewModel?.Dispose();
+                        }).ConfigureAwait(false);
+                    }
+                }
+            }
+        }
+
         [TestMethod]
         [Timeout(10000, CooperativeCancellation = true)]
         public async Task WhenActualRouteViewBindsNativeProjectionThenHierarchyReplacementAndReattachmentEmitOnlyUserIntent()
@@ -544,6 +750,382 @@ namespace Tests.FreeTrainSimulator.Toolbox.Hosting
         [TestMethod]
         [DataRow(false)]
         [DataRow(true)]
+        [Timeout(30000, CooperativeCancellation = true)]
+        public async Task WhenExplicitRouteUnloadSucceedsThenOwnerReleasesEditorComparisonsAndPathState(bool dirty)
+        {
+            (SyntheticPathFixture fixture, RuntimeDataResolver runtime, PathModel saved, _) = await CreateComparisonModelsAsync().ConfigureAwait(false);
+            SessionScope scope = await SessionScope.StartAsync().ConfigureAwait(false);
+            await using (scope.ConfigureAwait(false))
+            {
+                (ToolboxContent content, TrainPathToolWindow bridge) = await InitializeComparisonSessionAsync(scope, fixture, runtime, [saved]).ConfigureAwait(false);
+                Assert.IsTrue(await scope.Game.InvokeOnGameThreadAsync(() => scope.Session.LoadPathAsync(saved)).ConfigureAwait(false));
+                await scope.Game.InvokeOnGameThreadAsync(() => scope.Session.SetSavedPathComparisonAsync(saved.Id, true)).ConfigureAwait(false);
+                PathEditor editor = null;
+                RouteLoadCoordinator loads = null;
+                RouteLoadCoordinator.Request request = null;
+                int prompts = 0;
+                int releases = 0;
+                await scope.Host.OnOwnerAsync(() =>
+                {
+                    editor = scope.Session.ExistingPathEditor;
+                    if (dirty)
+                        Assert.IsTrue(editor.SetMetadataCommand("Unsaved unload", saved.Start, saved.End, saved.PlayerPath).Success);
+                    Assert.AreEqual(dirty, editor.HasUnsavedChanges);
+                    Assert.IsNotNull(scope.Session.CaptureTrainPathSaveState());
+                    Assert.HasCount(1, content.SavedPathComparisons);
+                    loads = (RouteLoadCoordinator)typeof(ToolboxSession).GetField("routeLoads", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(scope.Session);
+                    request = loads.BeginRequest(loads.BeginSelection());
+                    scope.Session.UnsavedPathConfirmationRequested += (_, args) =>
+                    {
+                        Assert.AreEqual(scope.Host.OwnerThreadId, Environment.CurrentManagedThreadId);
+                        ++prompts;
+                        args.Completion.SetResult(true);
+                    };
+                    scope.Session.OnPathEditorChanged += (_, args) =>
+                    {
+                        Assert.AreEqual(scope.Host.OwnerThreadId, Environment.CurrentManagedThreadId);
+                        Assert.IsNull(args.PathEditor);
+                        ++releases;
+                    };
+                    scope.Game.HostedMenu.SnapshotChanged += (_, _) => Assert.AreEqual(scope.Host.OwnerThreadId, Environment.CurrentManagedThreadId);
+                }).ConfigureAwait(false);
+                using (request)
+                {
+                    ToolboxMenuSnapshot initial = scope.Game.HostedMenu.Current;
+                    Assert.HasCount(1, initial.Paths);
+                    Assert.IsNotNull(initial.SelectedPath);
+                    await scope.Game.InvokeOnGameThreadAsync(() => scope.Session.UnloadRouteAsync(initial.Command(initial.CommittedRoute)))
+                        .WaitAsync(TestContext.CancellationToken).ConfigureAwait(false);
+                    await scope.Host.OnOwnerAsync(() =>
+                    {
+                        ToolboxMenuSnapshot state = scope.Game.HostedMenu.Current;
+                        Assert.AreEqual((initial.AcceptedFolder, initial.FolderContext, ToolboxMenuStatus.Ready), (state.AcceptedFolder, state.FolderContext, state.Status));
+                        Assert.AreSequenceEqual(initial.Routes, state.Routes);
+                        Assert.IsGreaterThan(initial.RouteContext, state.RouteContext);
+                        Assert.IsNull(state.CommittedRoute);
+                        Assert.IsNull(state.PendingRoute);
+                        Assert.IsNull(state.SelectedPath);
+                        Assert.IsNull(state.Error);
+                        Assert.IsEmpty(state.Paths);
+                        Assert.IsFalse(state.CanEditPath);
+                        Assert.IsNull(scope.Session.SelectedRoute);
+                        Assert.IsNull(scope.Session.ExistingPathEditor);
+                        Assert.IsNull(scope.Session.TrainPathToolingContext);
+                        Assert.IsNull(loads.Current);
+                        Assert.IsTrue(request.Token.IsCancellationRequested);
+                        Assert.IsTrue((bool)typeof(PathEditor).GetField("stopped", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(editor));
+                        Assert.IsEmpty(content.SavedPathComparisons);
+                        bridge.RefreshSnapshot();
+                        Assert.IsEmpty(bridge.CaptureTrainPathSnapshot().Paths);
+                        Assert.IsEmpty(bridge.CaptureTrainPathSnapshot().Comparisons);
+                        foreach (string field in new[] { "toolboxContent", "saveDialogEditor", "saveDialogSource" })
+                            Assert.IsNull(typeof(ToolboxSession).GetField(field, BindingFlags.Instance | BindingFlags.NonPublic).GetValue(scope.Session), field);
+                        Assert.AreEqual((dirty ? 1 : 0, 1), (prompts, releases));
+                    }).ConfigureAwait(false);
+                }
+            }
+        }
+
+        [TestMethod]
+        [Timeout(10000, CooperativeCancellation = true)]
+        public async Task WhenExplicitRouteUnloadIsCanceledThenDirtyEditorAndAcceptedContentRemain()
+        {
+            SessionScope scope = await SessionScope.StartAsync().ConfigureAwait(false);
+            await using (scope.ConfigureAwait(false))
+            {
+                FolderModel folder = MenuFolder("Folder");
+                RouteModelHeader route = MenuRoute(folder, "route", "Route");
+                PathEditor editor = null;
+                PathModel authored = null;
+                TaskCompletionSource<UnsavedPathConfirmationEventArgs> prompt = new TaskCompletionSource<UnsavedPathConfirmationEventArgs>(TaskCreationOptions.RunContinuationsAsynchronously);
+                await scope.Host.OnOwnerAsync(() =>
+                {
+                    SetMenuState(scope, folder, [folder], [route], route);
+                    editor = CreateEditor();
+                    editor.InitializeNewPath();
+                    authored = editor.TryCaptureCurrentPathModel();
+                    Assert.IsTrue(editor.HasUnsavedChanges);
+                    SetField(scope.Session, "pathEditor", editor);
+                    scope.Session.UnsavedPathConfirmationRequested += (_, args) => prompt.SetResult(args);
+                }).ConfigureAwait(false);
+                ToolboxMenuSnapshot initial = scope.Game.HostedMenu.Current;
+                Task unload = scope.Game.InvokeOnGameThreadAsync(() => scope.Session.UnloadRouteAsync(initial.Command(initial.CommittedRoute)));
+                UnsavedPathConfirmationEventArgs confirmation = await prompt.Task.WaitAsync(TestContext.CancellationToken).ConfigureAwait(false);
+                try
+                {
+                    ToolboxMenuSnapshot pending = scope.Game.HostedMenu.Current;
+                    Assert.AreEqual((initial.CommittedRoute, initial.CommittedRoute, ToolboxMenuStatus.Confirming, false),
+                        (pending.CommittedRoute, pending.PendingRoute, pending.Status, pending.CanEditPath));
+                }
+                finally
+                {
+                    confirmation.Completion.TrySetResult(false);
+                    await unload.WaitAsync(TestContext.CancellationToken).ConfigureAwait(false);
+                }
+                await scope.Host.OnOwnerAsync(() =>
+                {
+                    ToolboxMenuSnapshot state = scope.Game.HostedMenu.Current;
+                    Assert.AreEqual((initial.AcceptedFolder, initial.CommittedRoute, initial.RouteContext, ToolboxMenuStatus.Ready), (state.AcceptedFolder, state.CommittedRoute, state.RouteContext, state.Status));
+                    Assert.AreSequenceEqual(initial.Routes, state.Routes);
+                    Assert.IsNull(state.PendingRoute);
+                    Assert.IsTrue(state.CanEditPath);
+                    Assert.AreSame(route, scope.Session.SelectedRoute);
+                    Assert.AreSame(editor, scope.Session.ExistingPathEditor);
+                    Assert.AreSame(authored, editor.TryCaptureCurrentPathModel());
+                    Assert.IsTrue(editor.HasUnsavedChanges);
+                }).ConfigureAwait(false);
+            }
+        }
+
+        [TestMethod]
+        [DataRow("session")]
+        [DataRow("folder-context")]
+        [DataRow("route-context")]
+        [DataRow("folder-key")]
+        [DataRow("route-key")]
+        [DataRow("path-key")]
+        [DataRow("folder-only-key")]
+        [DataRow("null-key")]
+        [DataRow("null-command")]
+        [DataRow("confirming-route")]
+        [DataRow("confirming-folder")]
+        [DataRow("discovering")]
+        [DataRow("loading")]
+        [DataRow("failed")]
+        [DataRow("disabled")]
+        [Timeout(10000, CooperativeCancellation = true)]
+        public async Task WhenExplicitRouteUnloadIsNotAdmissibleThenOwnerRejectsItWithoutPromptOrPublication(string invalid)
+        {
+            SessionScope scope = await SessionScope.StartAsync().ConfigureAwait(false);
+            await using (scope.ConfigureAwait(false))
+            {
+                FolderModel folder = MenuFolder("Folder");
+                RouteModelHeader route = MenuRoute(folder, "route", "Route");
+                PathEditor editor = null;
+                int prompts = 0;
+                await scope.Host.OnOwnerAsync(() =>
+                {
+                    SetMenuState(scope, folder, [folder], [route], route);
+                    editor = CreateEditor();
+                    editor.InitializeNewPath();
+                    SetField(scope.Session, "pathEditor", editor);
+                    scope.Session.UnsavedPathConfirmationRequested += (_, args) => { ++prompts; args.Completion.SetResult(false); };
+                    switch (invalid)
+                    {
+                        case "confirming-route": SetField(scope.Session, "pendingRoute", new ToolboxMenuKey(folder.Id, route.Id, null)); break;
+                        case "confirming-folder": SetField(scope.Session, "pendingFolder", new ToolboxMenuKey(folder.Id, null, null)); break;
+                        case "discovering": SetField(scope.Session, "discoveringRoutes", true); break;
+                        case "loading": SetField(scope.Session, "loadingRoute", new ToolboxMenuKey(folder.Id, route.Id, null)); break;
+                        case "failed": SetField(scope.Session, "menuError", "Existing failure"); break;
+                        case "disabled": scope.Session.SetMenuEnabled(false); break;
+                    }
+                    PublishMenu(scope);
+                }).ConfigureAwait(false);
+                ToolboxMenuSnapshot initial = scope.Game.HostedMenu.Current;
+                ToolboxMenuCommand command = invalid switch
+                {
+                    "session" => new ToolboxMenuCommand(Guid.NewGuid(), initial.FolderContext, initial.RouteContext, initial.CommittedRoute),
+                    "folder-context" => new ToolboxMenuCommand(initial.SessionId, initial.FolderContext + 1, initial.RouteContext, initial.CommittedRoute),
+                    "route-context" => new ToolboxMenuCommand(initial.SessionId, initial.FolderContext, initial.RouteContext + 1, initial.CommittedRoute),
+                    "folder-key" => initial.Command(new ToolboxMenuKey("other-folder", route.Id, null)),
+                    "route-key" => initial.Command(new ToolboxMenuKey(folder.Id, "other-route", null)),
+                    "path-key" => initial.Command(new ToolboxMenuKey(folder.Id, route.Id, "path")),
+                    "folder-only-key" => initial.Command(new ToolboxMenuKey(folder.Id, null, null)),
+                    "null-key" => initial.Command(null),
+                    "null-command" => null,
+                    _ => initial.Command(initial.CommittedRoute),
+                };
+                await scope.Game.InvokeOnGameThreadAsync(() => scope.Session.UnloadRouteAsync(command)).WaitAsync(TestContext.CancellationToken).ConfigureAwait(false);
+                await scope.Host.OnOwnerAsync(() =>
+                {
+                    Assert.AreEqual(0, prompts);
+                    Assert.AreSame(initial, scope.Game.HostedMenu.Current);
+                    Assert.AreSame(route, scope.Session.SelectedRoute);
+                    Assert.AreSame(editor, scope.Session.ExistingPathEditor);
+                    Assert.IsTrue(editor.HasUnsavedChanges);
+                }).ConfigureAwait(false);
+            }
+        }
+
+        [TestMethod]
+        [DataRow(false)]
+        [DataRow(true)]
+        [Timeout(10000, CooperativeCancellation = true)]
+        public async Task WhenSameRouteKeyIsReusedThenExplicitUnloadRejectsOldLifetimeBeforeOrAfterConfirmation(bool duringConfirmation)
+        {
+            SessionScope scope = await SessionScope.StartAsync().ConfigureAwait(false);
+            await using (scope.ConfigureAwait(false))
+            {
+                FolderModel folder = MenuFolder("Folder");
+                RouteModelHeader route = MenuRoute(folder, "route", "Route");
+                List<UnsavedPathConfirmationEventArgs> prompts = new List<UnsavedPathConfirmationEventArgs>();
+                await scope.Host.OnOwnerAsync(() =>
+                {
+                    SetMenuState(scope, folder, [folder], [route], route);
+                    PathEditor editor = CreateEditor();
+                    editor.InitializeNewPath();
+                    SetField(scope.Session, "pathEditor", editor);
+                    scope.Session.UnsavedPathConfirmationRequested += (_, args) => prompts.Add(args);
+                }).ConfigureAwait(false);
+                ToolboxMenuSnapshot initial = scope.Game.HostedMenu.Current;
+                ToolboxMenuCommand captured = initial.Command(initial.CommittedRoute);
+                Task unload = null;
+                PathEditor replacement = null;
+                await scope.Host.OnOwnerAsync(() =>
+                {
+                    if (duringConfirmation)
+                    {
+                        unload = scope.Session.UnloadRouteAsync(captured);
+                        Assert.HasCount(1, prompts);
+                    }
+                    // ClearRoute advances the lifetime, not selection intent. Reuse even the same route object.
+                    typeof(ToolboxSession).GetMethod("ClearRoute", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(scope.Session, null);
+                    SetField(scope.Session, "pendingRoute", null);
+                    SetMenuState(scope, folder, [folder], [route], route);
+                    replacement = CreateEditor();
+                    replacement.InitializeNewPath();
+                    SetField(scope.Session, "pathEditor", replacement);
+                }).ConfigureAwait(false);
+                ToolboxMenuSnapshot current = scope.Game.HostedMenu.Current;
+                Assert.AreEqual(initial.CommittedRoute, current.CommittedRoute);
+                Assert.IsGreaterThan(initial.RouteContext, current.RouteContext);
+                if (duringConfirmation)
+                    prompts[0].Completion.SetResult(true);
+                else
+                    unload = scope.Game.InvokeOnGameThreadAsync(() => scope.Session.UnloadRouteAsync(captured));
+                await unload.WaitAsync(TestContext.CancellationToken).ConfigureAwait(false);
+                await scope.Host.OnOwnerAsync(() =>
+                {
+                    Assert.HasCount(duringConfirmation ? 1 : 0, prompts);
+                    Assert.AreSame(current, scope.Game.HostedMenu.Current);
+                    Assert.AreSame(route, scope.Session.SelectedRoute);
+                    Assert.AreSame(replacement, scope.Session.ExistingPathEditor);
+                    Assert.IsTrue(replacement.HasUnsavedChanges);
+                }).ConfigureAwait(false);
+            }
+        }
+
+        [TestMethod]
+        [DataRow(false, false)]
+        [DataRow(false, true)]
+        [DataRow(true, false)]
+        [DataRow(true, true)]
+        [Timeout(10000, CooperativeCancellation = true)]
+        public async Task WhenExplicitUnloadConfirmationIsSupersededThenOldCompletionCannotClearNewFolderOrRouteIntent(bool selectFolder, bool confirmUnload)
+        {
+            SessionScope scope = await SessionScope.StartAsync().ConfigureAwait(false);
+            await using (scope.ConfigureAwait(false))
+            {
+                FolderModel folder = MenuFolder("Accepted");
+                FolderModel target = MenuFolder("Pending");
+                RouteModelHeader route = MenuRoute(folder, "accepted", "Accepted route");
+                RouteModelHeader other = MenuRoute(folder, "pending", "Pending route");
+                List<UnsavedPathConfirmationEventArgs> prompts = new List<UnsavedPathConfirmationEventArgs>();
+                Task unload = null;
+                Task selection = null;
+                await scope.Host.OnOwnerAsync(() =>
+                {
+                    SetMenuState(scope, folder, [folder, target], [route, other], route);
+                    PathEditor editor = CreateEditor();
+                    editor.InitializeNewPath();
+                    SetField(scope.Session, "pathEditor", editor);
+                    scope.Session.UnsavedPathConfirmationRequested += (_, args) => prompts.Add(args);
+                    ToolboxMenuSnapshot initial = scope.Game.HostedMenu.Current;
+                    unload = scope.Session.UnloadRouteAsync(initial.Command(initial.CommittedRoute));
+                    selection = selectFolder
+                        ? scope.Session.SelectFolderAsync(initial.Command(new ToolboxMenuKey(target.Id, null, null)))
+                        : scope.Session.ToggleRouteAsync(initial.Command(new ToolboxMenuKey(folder.Id, other.Id, null)));
+                    Assert.HasCount(2, prompts);
+                }).ConfigureAwait(false);
+                try
+                {
+                    ToolboxMenuSnapshot current = scope.Game.HostedMenu.Current;
+                    Assert.AreEqual(ToolboxMenuStatus.Confirming, current.Status);
+                    Assert.AreEqual(selectFolder ? target.Id : other.Id, selectFolder ? current.PendingFolder.FolderId : current.PendingRoute.RouteId);
+                    prompts[0].Completion.SetResult(confirmUnload);
+                    await unload.WaitAsync(TestContext.CancellationToken).ConfigureAwait(false);
+                    Assert.AreSame(current, scope.Game.HostedMenu.Current, "Neither acceptance nor Cancel may clear newer selection intent.");
+                }
+                finally
+                {
+                    foreach (UnsavedPathConfirmationEventArgs prompt in prompts)
+                        prompt.Completion.TrySetResult(false);
+                    await Task.WhenAll(unload, selection).WaitAsync(TestContext.CancellationToken).ConfigureAwait(false);
+                }
+                Assert.AreSame(route, scope.Session.SelectedRoute);
+                Assert.IsTrue(scope.Session.ExistingPathEditor.HasUnsavedChanges);
+                Assert.AreEqual(ToolboxMenuStatus.Ready, scope.Game.HostedMenu.Current.Status);
+            }
+        }
+
+        [TestMethod]
+        [Timeout(10000, CooperativeCancellation = true)]
+        public async Task WhenExplicitUnloadIsRepeatedThenStaleAndFreshCommandsCannotLoadTheUnloadedRoute()
+        {
+            SessionScope scope = await SessionScope.StartAsync().ConfigureAwait(false);
+            await using (scope.ConfigureAwait(false))
+            {
+                FolderModel folder = MenuFolder("Folder");
+                RouteModelHeader route = MenuRoute(folder, "route", "Route");
+                await scope.Host.OnOwnerAsync(() => SetMenuState(scope, folder, [folder], [route], route)).ConfigureAwait(false);
+                ToolboxMenuSnapshot initial = scope.Game.HostedMenu.Current;
+                ToolboxMenuCommand captured = initial.Command(initial.CommittedRoute);
+                TaskCompletionSource unloaded = Completion();
+                await scope.Host.OnOwnerAsync(() => scope.Game.HostedMenu.SnapshotChanged += (_, state) =>
+                {
+                    if (state.Status == ToolboxMenuStatus.Ready && state.CommittedRoute == null)
+                        unloaded.TrySetResult();
+                }).ConfigureAwait(false);
+                scope.Game.HostedMenu.UnloadRoute(captured);
+                await unloaded.Task.WaitAsync(TestContext.CancellationToken).ConfigureAwait(false);
+                ToolboxMenuSnapshot current = scope.Game.HostedMenu.Current;
+                await scope.Game.InvokeOnGameThreadAsync(() => scope.Session.UnloadRouteAsync(captured)).WaitAsync(TestContext.CancellationToken).ConfigureAwait(false);
+                await scope.Game.InvokeOnGameThreadAsync(() => scope.Session.UnloadRouteAsync(current.Command(captured.Key))).WaitAsync(TestContext.CancellationToken).ConfigureAwait(false);
+                Assert.AreSame(current, scope.Game.HostedMenu.Current);
+                Assert.AreEqual((folder.Id, 1, ToolboxMenuStatus.Ready), (current.AcceptedFolder.FolderId, current.Routes.Length, current.Status));
+                Assert.IsNull(scope.Session.SelectedRoute);
+                Assert.IsNull(current.PendingRoute);
+            }
+        }
+
+        [TestMethod]
+        [Timeout(10000, CooperativeCancellation = true)]
+        public async Task WhenSessionStopsDuringExplicitUnloadConfirmationThenDrainClosesIntentAndLateAcceptanceCannotUnload()
+        {
+            SessionScope scope = await SessionScope.StartAsync().ConfigureAwait(false);
+            await using (scope.ConfigureAwait(false))
+            {
+                FolderModel folder = MenuFolder("Folder");
+                RouteModelHeader route = MenuRoute(folder, "route", "Route");
+                UnsavedPathConfirmationEventArgs confirmation = null;
+                Task unload = null;
+                await scope.Host.OnOwnerAsync(() =>
+                {
+                    SetMenuState(scope, folder, [folder], [route], route);
+                    PathEditor editor = CreateEditor();
+                    editor.InitializeNewPath();
+                    SetField(scope.Session, "pathEditor", editor);
+                    scope.Session.UnsavedPathConfirmationRequested += (_, args) => confirmation = args;
+                    ToolboxMenuSnapshot initial = scope.Game.HostedMenu.Current;
+                    unload = scope.Session.UnloadRouteAsync(initial.Command(initial.CommittedRoute));
+                    Assert.IsNotNull(confirmation);
+                }).ConfigureAwait(false);
+                await scope.Game.InvokeOnGameThreadAsync(scope.Session.StopAndDrainAsync).WaitAsync(TestContext.CancellationToken).ConfigureAwait(false);
+                await unload.WaitAsync(TestContext.CancellationToken).ConfigureAwait(false);
+                ToolboxMenuSnapshot stopped = scope.Game.HostedMenu.Current;
+                Assert.AreEqual(ToolboxMenuStatus.Stopped, stopped.Status);
+                Assert.IsNull(stopped.PendingRoute);
+                Assert.IsFalse(confirmation.Completion.TrySetResult(true));
+                Assert.AreSame(route, scope.Session.SelectedRoute);
+                Assert.AreSame(stopped, scope.Game.HostedMenu.Current);
+                _ = await Assert.ThrowsExactlyAsync<InvalidOperationException>(() => scope.Game.InvokeOnGameThreadAsync(
+                    () => scope.Session.UnloadRouteAsync(stopped.Command(stopped.CommittedRoute)))).ConfigureAwait(false);
+            }
+        }
+
+        [TestMethod]
+        [DataRow(false)]
+        [DataRow(true)]
         [Timeout(10000, CooperativeCancellation = true)]
         public async Task WhenStartupRouteDiscoveryFaultsThenOnlyItsAcceptedFolderGetsTerminalFailure(bool replaceFolder)
         {
@@ -856,6 +1438,22 @@ namespace Tests.FreeTrainSimulator.Toolbox.Hosting
 
         private static ComboBox MenuRouteSelector(RouteToolView view) => (ComboBox)((StackPanel)((DockPanel)view.Content).Children[0]).Children[3];
         private static ComboBox MenuFolderSelector(RouteToolView view) => (ComboBox)((StackPanel)((DockPanel)view.Content).Children[0]).Children[1];
+
+        private static void OpenFileMenu(MenuItem closeRoute)
+        {
+            PumpMenuBindings();
+            // WPF defers submenu command admission until its parent opens.
+            ((MenuItem)closeRoute.Parent).IsSubmenuOpen = true;
+            PumpMenuBindings();
+        }
+
+        private static void InvokeCloseRouteMenuItem(MenuItem closeRoute)
+        {
+            OpenFileMenu(closeRoute);
+            IInvokeProvider provider = (IInvokeProvider)new MenuItemAutomationPeer(closeRoute).GetPattern(PatternInterface.Invoke);
+            provider.Invoke();
+            PumpMenuBindings();
+        }
 
         private static void PumpMenuBindings()
         {

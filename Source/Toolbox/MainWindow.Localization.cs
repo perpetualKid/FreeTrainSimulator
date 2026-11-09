@@ -50,6 +50,7 @@ namespace FreeTrainSimulator.Toolbox
             GettextExtension.DefaultCatalog = catalog;
 
             Localizer.Localize(this, catalog, wpfLocalizationStore);
+            viewModel.Menu?.RefreshLocalization();
         }
 
         private static CultureInfo ResolveCulture(string language)

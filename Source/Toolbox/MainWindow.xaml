@@ -22,6 +22,11 @@
             <MenuItem Header="_File">
                 <MenuItem Header="_Open Route"
                           Command="{Binding DataContext.ShowRouteToolCommand, ElementName=RootWindow}" />
+                <MenuItem x:Name="CloseRouteMenuItem"
+                          Header="_Close Route"
+                          Command="{Binding UnloadRouteCommand}"
+                          ToolTip="Close the current route after confirming any unsaved path changes"
+                          AutomationProperties.HelpText="{Binding ToolTip, RelativeSource={RelativeSource Self}}" />
                 <Separator />
                 <MenuItem Header="Take _Screenshot" Command="{Binding TakeScreenshotCommand}" />
                 <Separator />

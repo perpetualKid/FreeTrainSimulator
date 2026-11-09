@@ -5,6 +5,8 @@ using System.Windows.Threading;
 
 using FreeTrainSimulator.Toolbox.Hosting;
 
+using GetText;
+
 namespace FreeTrainSimulator.Toolbox.ViewModels
 {
     /// <summary>WPF presentation of captured menu state. The session alone accepts content selections.</summary>
@@ -22,6 +24,15 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
         {
             this.menu = menu ?? throw new ArgumentNullException(nameof(menu));
             this.dispatcher = dispatcher ?? throw new ArgumentNullException(nameof(dispatcher));
+            UnloadRouteCommand = new RelayCommand(_ =>
+            {
+                // RelayCommand.Execute can be called without CanExecute. Capture the route lifetime on
+                // WPF before transport queues the action; never reread the bridge on the game owner.
+                if (!CanUnloadRoute())
+                    return;
+                ToolboxMenuCommand command = snapshot.Command(snapshot.CommittedRoute);
+                menu.UnloadRoute(command);
+            }, _ => CanUnloadRoute());
             EditPathCommand = new RelayCommand(_ => menu.EditPath(snapshot.Command(snapshot.CommittedRoute)), _ => snapshot?.CanEditPath == true);
             SavePathCommand = new RelayCommand(_ => menu.SavePath(snapshot.Command(snapshot.CommittedRoute)), _ => snapshot?.CanEditPath == true);
             TakeScreenshotCommand = new RelayCommand(_ => menu.TakeScreenshot(), _ => Enabled);
@@ -42,6 +53,16 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
         public bool Enabled => snapshot?.Enabled == true;
         /// <summary>The current transition, for status presentation.</summary>
         public ToolboxMenuStatus Status => snapshot?.Status ?? ToolboxMenuStatus.Ready;
+        /// <summary>Localized transition text, separate from unmodified failure details.</summary>
+        public string StatusMessage => Status switch
+        {
+            ToolboxMenuStatus.Confirming => CatalogManager.Catalog.GetString("Waiting for confirmation of unsaved path changes."),
+            ToolboxMenuStatus.DiscoveringRoutes => CatalogManager.Catalog.GetString("Discovering routes..."),
+            ToolboxMenuStatus.LoadingRoute => CatalogManager.Catalog.GetString("Loading route..."),
+            ToolboxMenuStatus.Failed => CatalogManager.Catalog.GetString("Unable to load routes or open the selected route."),
+            ToolboxMenuStatus.Stopped => CatalogManager.Catalog.GetString("The Toolbox session has stopped."),
+            _ => string.Empty,
+        };
         /// <summary>The captured failure message.</summary>
         public string Error => snapshot?.Error;
 
@@ -71,11 +92,19 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
             }
         }
 
+        /// <summary>Unloads only the captured committed route while the session is ready.</summary>
+        public RelayCommand UnloadRouteCommand { get; }
         public RelayCommand EditPathCommand { get; }
         public RelayCommand SavePathCommand { get; }
         public RelayCommand TakeScreenshotCommand { get; }
         public RelayCommand ShowAboutCommand { get; }
         public RelayCommand QuitCommand { get; }
+
+        private bool CanUnloadRoute() => !disposed && snapshot?.Enabled == true
+            && snapshot.CommittedRoute != null && snapshot.Status == ToolboxMenuStatus.Ready;
+
+        /// <summary>Refreshes bound text after the shell resets and applies the active catalog.</summary>
+        internal void RefreshLocalization() => OnPropertyChanged(nameof(StatusMessage));
 
         private void MenuSnapshotChanged(object sender, ToolboxMenuSnapshot captured)
         {
@@ -107,8 +136,10 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
                 OnPropertyChanged(nameof(SelectedFolder));
                 OnPropertyChanged(nameof(SelectedRoute));
                 OnPropertyChanged(nameof(Status));
+                OnPropertyChanged(nameof(StatusMessage));
                 OnPropertyChanged(nameof(Error));
                 OnPropertyChanged(nameof(Enabled));
+                UnloadRouteCommand.RaiseCanExecuteChanged();
                 EditPathCommand.RaiseCanExecuteChanged();
                 SavePathCommand.RaiseCanExecuteChanged();
                 TakeScreenshotCommand.RaiseCanExecuteChanged();
@@ -126,6 +157,7 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
                 return;
             disposed = true;
             menu.SnapshotChanged -= MenuSnapshotChanged;
+            UnloadRouteCommand.RaiseCanExecuteChanged();
         }
     }
 }

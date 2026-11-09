@@ -1,8 +1,12 @@
 ﻿using System;
+using System.Globalization;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Windows;
+using System.Windows.Automation;
+using System.Windows.Automation.Peers;
 using System.Windows.Controls;
 using System.Windows.Threading;
 
@@ -13,16 +17,237 @@ using FreeTrainSimulator.Toolbox.Hosting;
 using FreeTrainSimulator.Toolbox.ViewModels;
 using FreeTrainSimulator.Toolbox.Views;
 
+using GetText;
+using GetText.Wpf;
+
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Tests.FreeTrainSimulator.Toolbox.Hosting;
+using Tests.FreeTrainSimulator.Toolbox.Views;
 
 namespace Tests.FreeTrainSimulator.Toolbox.ViewModels
 {
     [TestClass]
+    [DoNotParallelize]
     [OSCondition(OperatingSystems.Windows)]
     public class ToolboxMenuViewModelTests
     {
+        [TestMethod]
+        public async Task WhenRouteStatusChangesThenActualViewShowsStatusAndRawErrorsAndClearsOnRecovery()
+        {
+            StaControlHost host = await StaControlHost.StartAsync().ConfigureAwait(false);
+            await using (host.ConfigureAwait(false))
+            {
+                await host.OnOwnerAsync(() =>
+                {
+                    CultureInfo previous = CultureInfo.CurrentUICulture;
+                    try
+                    {
+                        CultureInfo.CurrentUICulture = CultureInfo.GetCultureInfo("en-US");
+                        HostedToolboxMenu menu = CreateMenu();
+                        Guid session = Guid.NewGuid();
+                        long revision = 1;
+                        menu.Publish(Snapshot(session, revision, "folder", "route", ToolboxMenuStatus.Ready));
+                        using (ToolboxMenuViewModel viewModel = new ToolboxMenuViewModel(menu, Dispatcher.CurrentDispatcher))
+                        {
+                            RouteToolView view = new RouteToolView { DataContext = viewModel, Foreground = SystemColors.ControlTextBrush };
+                            TextBlock status = (TextBlock)view.FindName("RouteStatusMessage");
+                            TextBlock error = (TextBlock)view.FindName("RouteErrorDetails");
+                            Assert.IsNull(view.FindName("UnloadRouteButton"));
+                            (ToolboxMenuStatus Status, string Message)[] transitions =
+                            [
+                                (ToolboxMenuStatus.Ready, string.Empty),
+                                (ToolboxMenuStatus.Confirming, "Waiting for confirmation of unsaved path changes."),
+                                (ToolboxMenuStatus.DiscoveringRoutes, "Discovering routes..."),
+                                (ToolboxMenuStatus.LoadingRoute, "Loading route..."),
+                                (ToolboxMenuStatus.Failed, "Unable to load routes or open the selected route."),
+                                (ToolboxMenuStatus.Stopped, "The Toolbox session has stopped."),
+                                (ToolboxMenuStatus.Ready, string.Empty),
+                            ];
+                            const string details = "Synthetic failure in C:\\Content\\Route {0}.\nOriginal user-authored details.";
+                            foreach ((ToolboxMenuStatus state, string message) in transitions)
+                            {
+                                menu.Publish(Snapshot(session, ++revision, "folder", "route", state,
+                                    state == ToolboxMenuStatus.Failed ? details : null, true));
+                                PumpBindings();
+                                Assert.AreEqual(message, status.Text);
+                                Assert.AreEqual(message.Length == 0 ? Visibility.Collapsed : Visibility.Visible, status.Visibility);
+                                Assert.AreEqual(state == ToolboxMenuStatus.Failed ? details : string.Empty, error.Text);
+                                Assert.AreEqual(state == ToolboxMenuStatus.Failed ? Visibility.Visible : Visibility.Collapsed, error.Visibility);
+                            }
+                            Assert.AreEqual(TextWrapping.Wrap, status.TextWrapping);
+                            Assert.AreEqual(TextWrapping.Wrap, error.TextWrapping);
+                            Assert.AreSame(view.Foreground, status.Foreground);
+                            Assert.AreSame(view.Foreground, error.Foreground);
+                            Assert.AreEqual(AutomationLiveSetting.Polite, AutomationProperties.GetLiveSetting(status));
+                            Assert.AreEqual(AutomationLiveSetting.Polite, AutomationProperties.GetLiveSetting(error));
+                            view.DataContext = null;
+                        }
+                    }
+                    finally
+                    {
+                        CultureInfo.CurrentUICulture = previous;
+                    }
+                }).ConfigureAwait(false);
+            }
+        }
+
+        [TestMethod]
+        public async Task WhenUnloadIsUnavailableThenActualCloseRouteMenuItemAndDirectExecutionRespectStatusModalStopAndDisposal()
+        {
+            StaControlHost host = await StaControlHost.StartAsync().ConfigureAwait(false);
+            await using (host.ConfigureAwait(false))
+            {
+                await host.OnOwnerAsync(() =>
+                {
+                    HostedToolboxMenu menu = CreateMenu();
+                    Guid session = Guid.NewGuid();
+                    long revision = 1;
+                    menu.Publish(Snapshot(session, revision, "folder", "route", ToolboxMenuStatus.Ready));
+                    using (ToolboxMenuViewModel viewModel = new ToolboxMenuViewModel(menu, Dispatcher.CurrentDispatcher))
+                    {
+                        Menu mainMenu = ProductionMainMenu.Load();
+                        DockPanel content = new DockPanel();
+                        content.Children.Add(mainMenu);
+                        Window window = new Window
+                        {
+                            DataContext = new MainWindowViewModel { Menu = viewModel },
+                            Content = content,
+                            Width = 360,
+                            Height = 420,
+                            ShowInTaskbar = false,
+                        };
+                        try
+                        {
+                            window.Show();
+                            MenuItem closeRoute = ProductionMainMenu.FindCloseRouteItem(mainMenu);
+                            MenuItem file = (MenuItem)closeRoute.Parent;
+                            MenuItemAutomationPeer peer = new MenuItemAutomationPeer(closeRoute);
+                            PumpBindings();
+                            // WPF defers submenu command admission until its parent opens.
+                            file.IsSubmenuOpen = true;
+                            PumpBindings();
+                            Assert.AreSame(mainMenu.Items[0], file);
+                            Assert.AreEqual("_File", file.Header);
+                            Assert.AreEqual("_Open Route", ((MenuItem)file.Items[0]).Header);
+                            Assert.AreSame(closeRoute, file.Items[1]);
+                            Assert.AreEqual("_Close Route", closeRoute.Header);
+                            Assert.AreEqual(string.Empty, closeRoute.InputGestureText);
+                            Assert.AreEqual(0, closeRoute.InputBindings.Count);
+                            Assert.AreEqual(0, mainMenu.InputBindings.Count);
+                            Assert.AreSame(viewModel, mainMenu.DataContext);
+                            Assert.IsTrue(mainMenu.IsEnabled);
+                            Assert.IsTrue(closeRoute.IsEnabled);
+                            Assert.IsTrue(closeRoute.Focusable && closeRoute.IsTabStop);
+                            Assert.AreSame(viewModel.UnloadRouteCommand, closeRoute.Command);
+                            Assert.AreEqual("Close Route", peer.GetName().Replace("_", string.Empty, StringComparison.Ordinal));
+                            Assert.AreEqual("Close the current route after confirming any unsaved path changes", closeRoute.ToolTip);
+                            Assert.AreEqual(closeRoute.ToolTip, peer.GetHelpText());
+                            closeRoute.ToolTip = "Updated close-route help";
+                            PumpBindings();
+                            Assert.AreEqual(closeRoute.ToolTip, peer.GetHelpText());
+                            int notifications = 0;
+                            viewModel.UnloadRouteCommand.CanExecuteChanged += (_, _) => ++notifications;
+                            foreach (ToolboxMenuStatus state in Enum.GetValues<ToolboxMenuStatus>())
+                            {
+                                menu.Publish(Snapshot(session, ++revision, "folder", "route", state));
+                                PumpBindings();
+                                bool ready = state == ToolboxMenuStatus.Ready;
+                                Assert.AreEqual(ready, viewModel.UnloadRouteCommand.CanExecute(null), state.ToString());
+                                Assert.AreEqual(ready, closeRoute.IsEnabled, state.ToString());
+                                if (!ready)
+                                    viewModel.UnloadRouteCommand.Execute(null);
+                            }
+                            menu.Publish(Snapshot(session, ++revision, "folder", "route", ToolboxMenuStatus.Ready, null, false));
+                            PumpBindings();
+                            Assert.IsFalse(mainMenu.IsEnabled);
+                            Assert.IsFalse(closeRoute.IsEnabled);
+                            Assert.IsFalse(viewModel.UnloadRouteCommand.CanExecute(null));
+                            viewModel.UnloadRouteCommand.Execute(null);
+                            menu.Publish(Snapshot(session, ++revision, "folder", null, ToolboxMenuStatus.Ready));
+                            PumpBindings();
+                            file.IsSubmenuOpen = true;
+                            PumpBindings();
+                            Assert.IsTrue(mainMenu.IsEnabled);
+                            Assert.IsFalse(closeRoute.IsEnabled);
+                            Assert.IsFalse(viewModel.UnloadRouteCommand.CanExecute(null));
+                            viewModel.UnloadRouteCommand.Execute(null);
+                            menu.Publish(Snapshot(session, ++revision, "folder", "route", ToolboxMenuStatus.Ready));
+                            PumpBindings();
+                            Assert.IsTrue(closeRoute.IsEnabled);
+                            Assert.AreEqual((int)revision - 1, notifications, "Each applied snapshot must refresh command admission.");
+                            viewModel.Dispose();
+                            PumpBindings();
+                            Assert.IsFalse(closeRoute.IsEnabled);
+                            Assert.IsFalse(viewModel.UnloadRouteCommand.CanExecute(null));
+                            Assert.AreEqual((int)revision, notifications);
+                            viewModel.UnloadRouteCommand.Execute(null);
+                            viewModel.Dispose();
+                            Assert.AreEqual((int)revision, notifications, "Repeated disposal must not notify again.");
+                            // This menu has no game transport: any disabled direct execution would have thrown.
+                        }
+                        finally
+                        {
+                            window.Close();
+                            window.DataContext = null;
+                        }
+                    }
+                }).ConfigureAwait(false);
+            }
+        }
+
+        [TestMethod]
+        public async Task WhenLanguageIsRefreshedThenBoundStatusNotifiesWithoutRepublishingOrTranslatingErrorDetails()
+        {
+            StaControlHost host = await StaControlHost.StartAsync().ConfigureAwait(false);
+            await using (host.ConfigureAwait(false))
+            {
+                await host.OnOwnerAsync(() =>
+                {
+                    HostedToolboxMenu menu = CreateMenu();
+                    menu.Publish(Snapshot(Guid.NewGuid(), 1, "folder", null, ToolboxMenuStatus.Failed, "Raw failure {0}", true));
+                    ToolboxMenuSnapshot captured = menu.Current;
+                    using (ToolboxMenuViewModel viewModel = new ToolboxMenuViewModel(menu, Dispatcher.CurrentDispatcher))
+                    {
+                        RouteToolView view = new RouteToolView { DataContext = viewModel };
+                        Menu mainMenu = ProductionMainMenu.Load();
+                        MenuItem closeRoute = ProductionMainMenu.FindCloseRouteItem(mainMenu);
+                        DockPanel content = new DockPanel { DataContext = new MainWindowViewModel { Menu = viewModel } };
+                        content.Children.Add(mainMenu);
+                        content.Children.Add(view);
+                        PumpBindings();
+                        int statusNotifications = 0;
+                        int otherNotifications = 0;
+                        viewModel.PropertyChanged += (_, args) =>
+                        {
+                            if (args.PropertyName == nameof(ToolboxMenuViewModel.StatusMessage))
+                                ++statusNotifications;
+                            else
+                                ++otherNotifications;
+                        };
+                        ObjectPropertiesStore store = new ObjectPropertiesStore();
+                        Localizer.Localize(content, CatalogManager.Catalog, store);
+                        Localizer.Revert(content, store);
+                        CatalogManager.Reset();
+                        Localizer.Localize(content, CatalogManager.Catalog, store);
+                        viewModel.RefreshLocalization();
+                        PumpBindings();
+                        Assert.AreEqual((1, 0), (statusNotifications, otherNotifications));
+                        Assert.AreSame(captured, menu.Current);
+                        Assert.AreEqual(viewModel.StatusMessage, ((TextBlock)view.FindName("RouteStatusMessage")).Text);
+                        Assert.AreEqual("Raw failure {0}", ((TextBlock)view.FindName("RouteErrorDetails")).Text);
+                        MenuItemAutomationPeer peer = new MenuItemAutomationPeer(closeRoute);
+                        Assert.AreEqual(((string)closeRoute.Header).Replace("_", string.Empty, StringComparison.Ordinal),
+                            peer.GetName().Replace("_", string.Empty, StringComparison.Ordinal));
+                        Assert.AreEqual(closeRoute.ToolTip, peer.GetHelpText());
+                        Assert.AreSame(viewModel.UnloadRouteCommand, closeRoute.Command);
+                        content.DataContext = null;
+                        view.DataContext = null;
+                    }
+                }).ConfigureAwait(false);
+            }
+        }
+
         [TestMethod]
         public async Task WhenRouteIsExplicitlyClearedThenActualRouteSelectorAndDescriptionClear()
         {
@@ -216,11 +441,14 @@ namespace Tests.FreeTrainSimulator.Toolbox.ViewModels
         }
 
         private static ToolboxMenuSnapshot Snapshot(Guid session, long revision, string folderId, string routeId, ToolboxMenuStatus status)
+            => Snapshot(session, revision, folderId, routeId, status, null, true);
+
+        private static ToolboxMenuSnapshot Snapshot(Guid session, long revision, string folderId, string routeId, ToolboxMenuStatus status, string error, bool enabled)
         {
             ToolboxMenuEntry folder = new ToolboxMenuEntry(new ToolboxMenuKey(folderId, null, null), "Folder", null);
             ToolboxMenuEntry route = routeId == null ? null : new ToolboxMenuEntry(new ToolboxMenuKey(folderId, routeId, null), "Route", "Description");
             return new ToolboxMenuSnapshot(session, revision, revision, revision, [folder], route == null ? [] : [route], [],
-                folder.Key, null, null, route?.Key, null, status, null, true);
+                folder.Key, null, null, route?.Key, null, status, error, enabled);
         }
 
         private static ComboBox RouteSelector(RouteToolView view) => (ComboBox)((StackPanel)((DockPanel)view.Content).Children[0]).Children[3];
