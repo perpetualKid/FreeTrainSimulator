@@ -34,6 +34,8 @@ namespace Tests.FreeTrainSimulator.Toolbox.Hosting
 {
     public sealed partial class ToolboxSessionTests
     {
+        private static readonly string[] menuItemNames = new string[] { "toolboxContent", "saveDialogEditor", "saveDialogSource" };
+
         [TestMethod]
         [Timeout(20000, CooperativeCancellation = true)]
         public async Task WhenActualCloseRouteMenuItemIsInvokedThenDirtyCancelAcceptAndQueuedStaleLifetimeRespectSession()
@@ -219,7 +221,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.Hosting
                     {
                         foreach (TaskCompletionSource<UnsavedPathConfirmationEventArgs> prompt in prompts)
                             if (prompt.Task.IsCompletedSuccessfully)
-                                prompt.Task.Result.Completion.TrySetResult(false);
+                                (await prompt.Task.ConfigureAwait(false)).Completion.TrySetResult(false);
                         await wpf.OnOwnerAsync(() =>
                         {
                             window?.Close();
@@ -818,7 +820,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.Hosting
                         bridge.RefreshSnapshot();
                         Assert.IsEmpty(bridge.CaptureTrainPathSnapshot().Paths);
                         Assert.IsEmpty(bridge.CaptureTrainPathSnapshot().Comparisons);
-                        foreach (string field in new[] { "toolboxContent", "saveDialogEditor", "saveDialogSource" })
+                        foreach (string field in menuItemNames)
                             Assert.IsNull(typeof(ToolboxSession).GetField(field, BindingFlags.Instance | BindingFlags.NonPublic).GetValue(scope.Session), field);
                         Assert.AreEqual((dirty ? 1 : 0, 1), (prompts, releases));
                     }).ConfigureAwait(false);
