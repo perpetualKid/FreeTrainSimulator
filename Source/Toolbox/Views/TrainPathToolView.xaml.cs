@@ -1,9 +1,13 @@
+using System;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 
 using FreeTrainSimulator.Toolbox.PathEditing;
+using FreeTrainSimulator.Toolbox.ToolWindows;
 using FreeTrainSimulator.Toolbox.ViewModels;
 
 namespace FreeTrainSimulator.Toolbox.Views
@@ -23,13 +27,20 @@ namespace FreeTrainSimulator.Toolbox.Views
             PreviewKeyDown += EditorAction_PreviewKeyDown;
             AddHandler(Keyboard.GotKeyboardFocusEvent, new KeyboardFocusChangedEventHandler(Editor_GotKeyboardFocus), true);
             AddHandler(Keyboard.LostKeyboardFocusEvent, new KeyboardFocusChangedEventHandler(Editor_LostKeyboardFocus), true);
+            DataContextChanged += (_, _) => CloseNodeActions();
+            Unloaded += (_, _) => CloseNodeActions();
         }
 
         private int? waitEditorNodeIndex;
-        private string waitEditorPathId;
+        private TrainPathSnapshot waitEditorSnapshot;
+        private TrainPathToolWindowViewModel waitEditorViewModel;
         private TextBox metadataEditor;
-        private string metadataEditorPathId;
+        private TrainPathSnapshot metadataEditorSnapshot;
+        private TrainPathToolWindowViewModel metadataEditorViewModel;
         private UIElement focusedEditorElement;
+        private ItemsControl nodeActionsMenu;
+        private long nodeActionsGeneration;
+        private CancellationTokenSource nodeActionsCancellation;
 
         private void Editor_GotKeyboardFocus(object sender, KeyboardFocusChangedEventArgs e)
         {
@@ -116,7 +127,8 @@ namespace FreeTrainSimulator.Toolbox.Views
                 if (DataContext is TrainPathToolWindowViewModel viewModel)
                 {
                     waitEditorNodeIndex = viewModel.SelectedNode?.Index;
-                    waitEditorPathId = viewModel.SelectedPath?.Id;
+                    waitEditorSnapshot = viewModel.DisplayedSnapshot;
+                    waitEditorViewModel = viewModel;
                 }
 
                 e.Handled = true;
@@ -141,7 +153,8 @@ namespace FreeTrainSimulator.Toolbox.Views
             if (DataContext is TrainPathToolWindowViewModel viewModel)
             {
                 waitEditorNodeIndex = viewModel.SelectedNode?.Index;
-                waitEditorPathId = viewModel.SelectedPath?.Id;
+                waitEditorSnapshot = viewModel.DisplayedSnapshot;
+                waitEditorViewModel = viewModel;
             }
         }
 
@@ -152,12 +165,17 @@ namespace FreeTrainSimulator.Toolbox.Views
 
         private void CommitWaitEditor()
         {
-            if (waitEditorNodeIndex.HasValue && DataContext is TrainPathToolWindowViewModel viewModel && waitEditorPathId == viewModel.SelectedPath?.Id && waitEditorNodeIndex == viewModel.SelectedNode?.Index
+            if (waitEditorNodeIndex.HasValue && DataContext is TrainPathToolWindowViewModel viewModel
+                && ReferenceEquals(viewModel, waitEditorViewModel) && viewModel.IsDisplayedPathCurrent(waitEditorSnapshot)
+                && waitEditorNodeIndex == viewModel.SelectedNode?.Index
                 && viewModel.CanEditSelectedNodeWaitTime)
                 WaitTimeEditor.GetBindingExpression(TextBox.TextProperty)?.UpdateSource();
+            else if (waitEditorSnapshot != null)
+                WaitTimeEditor.GetBindingExpression(TextBox.TextProperty)?.UpdateTarget();
 
             waitEditorNodeIndex = null;
-            waitEditorPathId = null;
+            waitEditorSnapshot = null;
+            waitEditorViewModel = null;
         }
 
         private void NodeActions_SubmenuOpened(object sender, RoutedEventArgs e)
@@ -165,17 +183,96 @@ namespace FreeTrainSimulator.Toolbox.Views
             if (sender is not MenuItem menu || e.Source != menu || DataContext is not TrainPathToolWindowViewModel viewModel)
                 return;
 
+            int nodeIndex = viewModel.SelectedNode?.Index ?? -1;
+            TrainPathSnapshot displayed = viewModel.DisplayedSnapshot;
             CommitWaitEditor();
-            PopulateNodeActions(menu, viewModel);
-
-            if (menu.Items.Count == 0)
-                menu.Items.Add(new Separator());
+            CommitMetadataEditor();
+            PopulateNodeActions(menu, viewModel, nodeIndex, displayed);
         }
 
-        private static void PopulateNodeActions(ItemsControl menu, TrainPathToolWindowViewModel viewModel)
+        private void NodeActions_Closed(object sender, RoutedEventArgs e)
+        {
+            if (ReferenceEquals(sender, nodeActionsMenu) && ReferenceEquals(e.Source, sender))
+            {
+                nodeActionsGeneration++;
+                nodeActionsMenu = null;
+                CancelNodeActions();
+            }
+        }
+
+        private void CloseNodeActions()
+        {
+            ItemsControl menu = nodeActionsMenu;
+            nodeActionsMenu = null;
+            nodeActionsGeneration++;
+            CancelNodeActions();
+            if (menu is ContextMenu contextMenu)
+                contextMenu.IsOpen = false;
+            else if (menu is MenuItem menuItem)
+                menuItem.IsSubmenuOpen = false;
+        }
+
+        private void CancelNodeActions()
+        {
+            nodeActionsCancellation?.Cancel();
+            nodeActionsCancellation?.Dispose();
+            nodeActionsCancellation = null;
+        }
+
+        private bool IsNodeActionsCurrent(ItemsControl menu, TrainPathToolWindowViewModel viewModel, long generation)
+            => generation == nodeActionsGeneration && ReferenceEquals(menu, nodeActionsMenu)
+                && ReferenceEquals(DataContext, viewModel) && IsLoaded
+                && menu is MenuItem { IsSubmenuOpen: true } or ContextMenu { IsOpen: true };
+
+        private void PopulateNodeActions(ItemsControl menu, TrainPathToolWindowViewModel viewModel, int nodeIndex, TrainPathSnapshot displayed)
+        {
+            CancelNodeActions();
+            nodeActionsCancellation = new CancellationTokenSource();
+            CancellationToken cancellation = nodeActionsCancellation.Token;
+            long generation = ++nodeActionsGeneration;
+            nodeActionsMenu = menu;
+            menu.Items.Clear();
+            // Keep the opening alive while the owner collects entries; never reopen it from a completion.
+            menu.Items.Add(new Separator());
+            if (viewModel.PendingInlineInput is { } pending)
+            {
+                _ = pending.WaitAsync(cancellation).ContinueWith(completion =>
+                {
+                    if (!completion.IsCompletedSuccessfully)
+                        return;
+                    // Always dispatch: ContextMenuOpening runs before IsOpen is set, even for an immediate acknowledgement.
+                    Dispatcher.BeginInvoke(new Action(() =>
+                    {
+                        if (!IsNodeActionsCurrent(menu, viewModel, generation))
+                            return;
+                        if (!viewModel.ApplyInlineInputAcknowledgement(pending, displayed, completion.Result))
+                        {
+                            SetNodeActions(menu, viewModel, PathEditorMenuRequest.Empty);
+                            return;
+                        }
+                        RequestEntries();
+                    }));
+                }, CancellationToken.None, TaskContinuationOptions.ExecuteSynchronously, TaskScheduler.Default);
+                return;
+            }
+            RequestEntries();
+
+            void RequestEntries()
+            {
+                PathEditorMenuRequest ownership = viewModel.NodeMenuOwnership;
+                viewModel.RequestNodeMenu(ownership, nodeIndex, request => Dispatcher.BeginInvoke(new Action(() =>
+                {
+                    if (!IsNodeActionsCurrent(menu, viewModel, generation))
+                        return;
+
+                    SetNodeActions(menu, viewModel, viewModel.IsNodeMenuOwnershipCurrent(ownership) ? request : PathEditorMenuRequest.Empty);
+                })));
+            }
+        }
+
+        private static void SetNodeActions(ItemsControl menu, TrainPathToolWindowViewModel viewModel, PathEditorMenuRequest request)
         {
             menu.Items.Clear();
-            PathEditorMenuRequest request = viewModel.CaptureSelectedNodeMenuRequest();
             foreach (MapContextMenuItem action in request.Items)
             {
                 if (action.IsSeparator)
@@ -188,6 +285,14 @@ namespace FreeTrainSimulator.Toolbox.Views
                 MapContextMenuItem capturedAction = action;
                 item.Click += (_, _) => viewModel.ExecuteNodeAction(request, capturedAction);
                 menu.Items.Add(item);
+            }
+
+            if (menu.Items.Count == 0)
+            {
+                if (menu is ContextMenu contextMenu)
+                    contextMenu.IsOpen = false;
+                else if (menu is MenuItem menuItem)
+                    menuItem.IsSubmenuOpen = false;
             }
         }
 
@@ -351,16 +456,14 @@ namespace FreeTrainSimulator.Toolbox.Views
                 return;
             }
 
+            TrainPathSnapshot displayed = viewModel.DisplayedSnapshot;
+            int nodeIndex = node.Index;
             CommitWaitEditor();
+            CommitMetadataEditor();
             listView.SelectedItem = node;
             viewModel.UserSelectNode(node);
             ContextMenu menu = listView.ContextMenu;
-            PopulateNodeActions(menu, viewModel);
-            if (menu.Items.Count == 0)
-            {
-                e.Handled = true;
-                return;
-            }
+            PopulateNodeActions(menu, viewModel, nodeIndex, displayed);
 
             menu.PlacementTarget = row;
         }
@@ -370,25 +473,34 @@ namespace FreeTrainSimulator.Toolbox.Views
             if (sender is TextBox textBox && DataContext is TrainPathToolWindowViewModel viewModel)
             {
                 metadataEditor = textBox;
-                metadataEditorPathId = viewModel.SelectedPath?.Id;
+                metadataEditorSnapshot = viewModel.DisplayedSnapshot;
+                metadataEditorViewModel = viewModel;
             }
         }
 
         private void CommitMetadataEditor()
         {
             TextBox editor = metadataEditor;
-            string pathId = metadataEditorPathId;
+            TrainPathSnapshot displayed = metadataEditorSnapshot;
+            TrainPathToolWindowViewModel editingViewModel = metadataEditorViewModel;
             metadataEditor = null;
-            metadataEditorPathId = null;
-            if (editor != null && DataContext is TrainPathToolWindowViewModel viewModel && pathId == viewModel.SelectedPath?.Id)
+            metadataEditorSnapshot = null;
+            metadataEditorViewModel = null;
+            if (editor != null && DataContext is TrainPathToolWindowViewModel viewModel
+                && ReferenceEquals(viewModel, editingViewModel) && viewModel.IsDisplayedPathCurrent(displayed))
             {
                 editor.GetBindingExpression(TextBox.TextProperty)?.UpdateSource();
                 viewModel.CommitMetadata();
                 if (editor.IsKeyboardFocusWithin)
                 {
                     metadataEditor = editor;
-                    metadataEditorPathId = pathId;
+                    metadataEditorSnapshot = displayed;
+                    metadataEditorViewModel = viewModel;
                 }
+            }
+            else if (editor != null)
+            {
+                editor.GetBindingExpression(TextBox.TextProperty)?.UpdateTarget();
             }
         }
 

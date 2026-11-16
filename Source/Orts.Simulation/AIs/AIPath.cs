@@ -336,9 +336,15 @@ namespace Orts.Simulation.AIs
 
                 for (int i = 0; i < mainSection.Count - 1; i++)
                 {
-                    if ((i < mainSplit.Position || i > mainEnd.Position) &&
-                        mainSection[i].Type is TrainPathNodeType.Stop or TrainPathNodeType.Reverse)
-                        throw new InvalidDataException($"Siding projection changes branch participation in main event at node {mainSection[i].Index} in the common prefix or suffix.");
+                    PathNodeType eventType = mainSection[i].Type switch
+                    {
+                        TrainPathNodeType.Stop => PathNodeType.Wait,
+                        TrainPathNodeType.Reverse => PathNodeType.Reversal,
+                        _ => PathNodeType.None,
+                    };
+                    PathRouteDiagnostic eventDiagnostic = PathSimulatorEventCompatibility.ValidateProjectedMainEvent(eventType, mainSection[i].Index, i < mainSplit.Position || i > mainEnd.Position);
+                    if (eventDiagnostic != null)
+                        throw new InvalidDataException(eventDiagnostic.Message);
                 }
                 
                 if (!physicalSplits.Add(mainSplit.Node.JunctionIndex))

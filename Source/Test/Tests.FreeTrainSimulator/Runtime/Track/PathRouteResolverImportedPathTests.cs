@@ -5,8 +5,10 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
+using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Position;
 using FreeTrainSimulator.Models.Content;
+using FreeTrainSimulator.Models.Handler;
 using FreeTrainSimulator.Models.Imported.ImportHandler.TrainSimulator;
 using FreeTrainSimulator.Models.Shim;
 using FreeTrainSimulator.Runtime.Track;
@@ -14,6 +16,8 @@ using FreeTrainSimulator.Toolbox.PathEditing;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.Xna.Framework;
+
+using Orts.Formats.Msts.Files;
 
 namespace Tests.FreeTrainSimulator.Runtime.Track
 {
@@ -135,6 +139,85 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
             Assert.AreEqual(sourceContent, await File.ReadAllTextAsync(pathFile, CancellationToken.None).ConfigureAwait(false));
         }
 
+        /// <summary>
+        /// Preserves canonical source flags through parsing, native import, and reload without rewriting the source.
+        /// </summary>
+        [TestMethod]
+        [DataRow(0, 0x00000001u, PathNodeType.Start | PathNodeType.Reversal, 1, 1)]
+        [DataRow(0, 0x00000002u, PathNodeType.Start | PathNodeType.Wait, 1, 1)]
+        [DataRow(0, 0x00000003u, PathNodeType.Start | PathNodeType.Wait | PathNodeType.Reversal, 1, 1)]
+        [DataRow(0, 0x001E0001u, PathNodeType.Start | PathNodeType.Reversal, 1, 1)]
+        [DataRow(0, 0x001E0002u, PathNodeType.Start | PathNodeType.Wait, 1, 1)]
+        [DataRow(0, 0x001E0003u, PathNodeType.Start | PathNodeType.Wait | PathNodeType.Reversal, 1, 1)]
+        [DataRow(1, 0x00000001u, PathNodeType.Reversal, 1, 1)]
+        [DataRow(1, 0x00000002u, PathNodeType.Wait, 1, 1)]
+        [DataRow(1, 0x00000003u, PathNodeType.Wait | PathNodeType.Reversal, 1, 1)]
+        [DataRow(1, 0x001E0001u, PathNodeType.Reversal, 1, 1)]
+        [DataRow(1, 0x001E0002u, PathNodeType.Wait, 1, 1)]
+        [DataRow(1, 0x001E0003u, PathNodeType.Wait | PathNodeType.Reversal, 1, 1)]
+        [DataRow(3, 0x00000001u, PathNodeType.End | PathNodeType.Reversal, 1, 1)]
+        [DataRow(3, 0x00000002u, PathNodeType.End | PathNodeType.Wait, 1, 1)]
+        [DataRow(3, 0x00000003u, PathNodeType.End | PathNodeType.Wait | PathNodeType.Reversal, 1, 1)]
+        [DataRow(3, 0x001E0001u, PathNodeType.End | PathNodeType.Reversal, 1, 1)]
+        [DataRow(3, 0x001E0002u, PathNodeType.End | PathNodeType.Wait, 1, 1)]
+        [DataRow(3, 0x001E0003u, PathNodeType.End | PathNodeType.Wait | PathNodeType.Reversal, 1, 1)]
+        [DataRow(0, 0x00000003u, PathNodeType.Start | PathNodeType.Wait | PathNodeType.Reversal | PathNodeType.Junction | PathNodeType.Invalid, 2, 8)]
+        [DataRow(1, 0x00000002u, PathNodeType.Wait | PathNodeType.Junction, 2, 0)]
+        [DataRow(1, 0x00000001u, PathNodeType.Reversal | PathNodeType.Junction | PathNodeType.Invalid, 2, 9)]
+        [DataRow(1, 0x00000003u, PathNodeType.Wait | PathNodeType.Reversal | PathNodeType.Invalid, 1, 12)]
+        [DataRow(3, 0x001E0002u, PathNodeType.End | PathNodeType.Wait | PathNodeType.Junction | PathNodeType.Invalid, 2, 13)]
+        [DataRow(1, 0x001E0000u, PathNodeType.None, 1, 1)]
+        [DataRow(1, 0x001EFFFCu, PathNodeType.Via, 1, 1)]
+        [DataRow(1, 0x0000FFF8u, PathNodeType.None, 1, 1)]
+        [DataRow(1, 0x001EFFFFu, PathNodeType.Wait | PathNodeType.Reversal, 1, 1)]
+        [DataRow(1, 0x00000005u, PathNodeType.Reversal, 1, 1)]
+        [DataRow(1, 0x00000006u, PathNodeType.Wait, 1, 1)]
+        [DataRow(1, 0x00000007u, PathNodeType.Wait | PathNodeType.Reversal, 1, 1)]
+        [DataRow(0, 0x00000004u, PathNodeType.Start, 1, 1)]
+        [DataRow(3, 0x00000004u, PathNodeType.End, 1, 1)]
+        public async Task ImportWhenSourceHasKnownFlagsThenParserImportAndReloadAgree(int eventIndex, uint sourceFlags,
+            PathNodeType expectedType, int junctionFlag, int invalidFlag)
+        {
+            string contentRoot = CreateContentRoot();
+            string routeName = "Route" + Guid.NewGuid().ToString("N");
+            string pathId = "ImportedEvents" + Guid.NewGuid().ToString("N");
+            string dataPoints = string.Join(Environment.NewLine, Enumerable.Range(0, 4).Select(index =>
+                $"    TrackPDP ( 0 0 {index * 50} 0 0 {(index == eventIndex ? junctionFlag : 1)} {(index == eventIndex ? invalidFlag : 1)} )"));
+            string nodes = string.Join(Environment.NewLine, Enumerable.Range(0, 4).Select(index =>
+                $"        TrPathNode ( {(index == eventIndex ? sourceFlags : index is 1 or 2 ? 4u : 0u):X8} {(index == 3 ? uint.MaxValue : (uint)(index + 1))} {(index == 0 ? 2u : uint.MaxValue)} {index} )"));
+            string sourceFile = CreatePathFile(contentRoot, routeName, pathId, dataPoints, nodes);
+            byte[] sourceBytes = await File.ReadAllBytesAsync(sourceFile, TestContext.CancellationToken).ConfigureAwait(false);
+            PathFile source = new PathFile(sourceFile);
+            FolderModel folder = new FolderModel("Folder" + Guid.NewGuid().ToString("N"), contentRoot, null);
+            RouteModel route = new RouteModel(WorldLocation.None)
+            {
+                Id = routeName,
+                Tags = ImmutableDictionary<string, string>.Empty.Add(RouteModelImportHandler.SourceNameKey, routeName),
+            };
+            route.Initialize(folder);
+
+            PathModel imported = (await PathModelImportHandler.ExpandPathModels(route, TestContext.CancellationToken).ConfigureAwait(false)).OfType<PathModel>().Single();
+            PathModel reloaded = await ContentHandlerBase<PathModelHeader>.FromFile<PathModel, RouteModelHeader>(pathId, route, TestContext.CancellationToken).ConfigureAwait(false);
+
+            Assert.HasCount(4, source.PathNodes);
+            Assert.HasCount(4, imported.PathNodes);
+            for (int index = 0; index < source.PathNodes.Count; index++)
+            {
+                PathNodeType expected = index == eventIndex ? expectedType : index == 0 ? PathNodeType.Start
+                    : index == 3 ? PathNodeType.End : PathNodeType.Via;
+                Assert.AreEqual(expected, source.PathNodes[index].NodeType, $"Parsed flags at {index}");
+                Assert.AreEqual(source.PathNodes[index].NodeType, imported.PathNodes[index].NodeType, $"Imported flags at {index}");
+                Assert.AreEqual(source.PathNodes[index].Location, imported.PathNodes[index].Location);
+                Assert.AreEqual(source.PathNodes[index].NextMainNode, imported.PathNodes[index].NextMainNode);
+                Assert.AreEqual(source.PathNodes[index].NextSidingNode, imported.PathNodes[index].NextSidingNode);
+                int waitTime = index == eventIndex ? (int)(sourceFlags >> 16) : 0;
+                Assert.AreEqual(waitTime, source.PathNodes[index].WaitTime);
+                Assert.AreEqual(waitTime > 0 ? (int?)waitTime : null, imported.PathNodes[index].WaitInfo?.WaitTime);
+            }
+            Assert.AreSequenceEqual(imported.PathNodes, reloaded.PathNodes);
+            Assert.AreSequenceEqual(sourceBytes, await File.ReadAllBytesAsync(sourceFile, TestContext.CancellationToken).ConfigureAwait(false));
+        }
+
         private static string CreateContentRoot()
         {
             string contentRoot = Path.Combine(Path.GetTempPath(), "FreeTrainSimulator", "ImportedPathTests", Guid.NewGuid().ToString("N"));
@@ -143,6 +226,17 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
         }
 
         private static string CreatePathFile(string contentRoot, string routeName, string pathId, string pathNodes)
+        {
+            return CreatePathFile(contentRoot, routeName, pathId,
+                """
+                    TrackPDP ( 0 0 0 0 0 1 1 )
+                    TrackPDP ( 0 0 100 0 0 2 0 )
+                    TrackPDP ( 0 0 100 0 100 1 1 )
+                    TrackPDP ( 0 0 200 0 0 1 1 )
+                """, pathNodes);
+        }
+
+        private static string CreatePathFile(string contentRoot, string routeName, string pathId, string pathDataPoints, string pathNodes)
         {
             string pathsFolder = Path.Combine(contentRoot, "Routes", routeName, "Paths");
             _ = Directory.CreateDirectory(pathsFolder);
@@ -153,10 +247,7 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
 
                 Serial ( 1 )
                 TrackPDPs (
-                    TrackPDP ( 0 0 0 0 0 1 1 )
-                    TrackPDP ( 0 0 100 0 0 2 0 )
-                    TrackPDP ( 0 0 100 0 100 1 1 )
-                    TrackPDP ( 0 0 200 0 0 1 1 )
+                {pathDataPoints}
                 )
                 TrackPath (
                     TrPathName ( {pathId} )

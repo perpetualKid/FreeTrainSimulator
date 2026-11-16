@@ -51,6 +51,8 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
         private bool isCombiningPaths;
         private volatile TrainPathSnapshot snapshot = TrainPathSnapshot.Empty;
         private volatile bool active;
+        private TrainPathSnapshot displayedCommandSnapshot;
+        private volatile int displayedCommandThreadId;
 
         private ImmutableArray<PathModelHeader> cachedPaths = ImmutableArray<PathModelHeader>.Empty;
         private readonly Dictionary<string, PathModel> transientPaths = new Dictionary<string, PathModel>(StringComparer.OrdinalIgnoreCase);
@@ -146,6 +148,11 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
                 return;
 
             PathEditor pathEditor = pathEditorAccessor();
+            if (pathEditor?.IsStopped == true)
+                pathEditor = null;
+            long pathLifetime = pathEditor?.PathLifetime ?? 0;
+            PathEditorMenuRequest nodeMenuOwnership = snapshot.NodeMenuOwnership.IsCurrent(pathEditor)
+                ? snapshot.NodeMenuOwnership : PathEditorMenuRequest.Capture(pathEditor);
             bool canCombineSelectedPaths = combinePathsAsync != null
                 && !isCombiningPaths && !isAppendingSavedPath && pathEditor?.CanCombinePaths != false
                 && cachedComparisons.Count(row => row.IsSelected) == 2
@@ -161,6 +168,7 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
                 // avoid per-frame allocations.
                 int pathsSnapshotVersion = snapshotVersion;
                 bool snapshotIsPathsOnly = snapshot.SelectedPathId == null
+                    && snapshot.PathEditorOwner == null
                     && snapshot.Nodes.IsEmpty
                     && snapshot.Metadata.IsEmpty
                     && !snapshot.CanUndo
@@ -223,6 +231,8 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
             bool canCommitMoveNode = pathEditor.CanCommitMoveNode;
             PathEditorPlacementMode placementMode = pathEditor.PlacementMode;
             bool canCancelPathInteraction = pathEditor.CanCancelPathInteraction;
+            bool canSavePath = authoredPath != null && pathEditor.HasUnsavedChanges && !pathEditor.IsSaveInProgress
+                && !canCancelPathInteraction;
             bool canCommitPlacement = pathEditor.CanCommitPlacement;
             bool canPlaceStartAnchor = pathEditor.CanPlaceStartAnchor;
             bool canPlaceEndAnchor = pathEditor.CanPlaceEndAnchor;
@@ -254,12 +264,16 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
             // Only rebuild the heavier node/metadata content when the selected path, node count, path list, or
             // editor version changed.
             if (snapshot != TrainPathSnapshot.Empty
+                && ReferenceEquals(nodeMenuOwnership, snapshot.NodeMenuOwnership)
+                && ReferenceEquals(pathEditor, snapshot.PathEditorOwner)
+                && pathLifetime == snapshot.PathLifetime
                 && string.Equals(selectedPathId, lastPathId, StringComparison.Ordinal)
                 && nodeCount == lastNodeCount
                 && selectedNodeIndex == snapshot.SelectedNodeIndex
                 && currentSnapshotVersion == lastSnapshotVersion
                 && canUndo == snapshot.CanUndo
                 && canRedo == snapshot.CanRedo
+                && canSavePath == snapshot.CanSavePath
                 && canSnapToTrack == snapshot.CanSnapToTrack
                 && canReversePath == snapshot.CanReversePath
                 && canAppendSavedPath == snapshot.CanAppendSavedPath
@@ -307,14 +321,14 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
                 return;
             }
 
-            lastPathId = selectedPathId;
-            lastNodeCount = nodeCount;
-            lastSnapshotVersion = currentSnapshotVersion;
             PathRouteResolution resolution = currentPathModel == null ? null : pathEditor.ResolveCurrent(currentPathModel);
             ImmutableArray<TrainPathDiagnosticRow> diagnostics = BuildDiagnostics(resolution, pathEditor);
 
-            snapshot = new TrainPathSnapshot
+            TrainPathSnapshot updatedSnapshot = new TrainPathSnapshot
             {
+                PathEditorOwner = pathEditor,
+                PathLifetime = pathLifetime,
+                NodeMenuOwnership = nodeMenuOwnership,
                 Paths = paths,
                 Comparisons = cachedComparisons,
                 CompositionSources = cachedCompositionSources,
@@ -341,6 +355,7 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
                 BlockedSaveFeedbackVersion = blockedSaveFeedbackVersion,
                 CanUndo = canUndo,
                 CanRedo = canRedo,
+                CanSavePath = canSavePath,
                 CanSnapToTrack = canSnapToTrack,
                 CanReversePath = canReversePath,
                 CanCancelMoveNode = canCancelMoveNode,
@@ -373,6 +388,15 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
                 CommandResultIsWarning = commandResultIsWarning,
                 CommandResultVersion = commandResultVersion,
             };
+
+            if (!ReferenceEquals(pathEditor, pathEditorAccessor()) || pathLifetime != pathEditor.PathLifetime
+                || !nodeMenuOwnership.IsCurrent(pathEditor))
+                return;
+
+            lastPathId = selectedPathId;
+            lastNodeCount = nodeCount;
+            lastSnapshotVersion = currentSnapshotVersion;
+            snapshot = updatedSnapshot;
         }
 
         /// <summary>
@@ -455,7 +479,7 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
         /// <summary>Submits source intent without selecting or loading that path as the active editor.</summary>
         internal void SetSavedPathComposition(TrainPathCompositionSourceRow source, bool append)
         {
-            gameThreadInvoker(() =>
+            InvokeEditorAction(_ =>
             {
                 if (setCompositionAsync == null)
                 {
@@ -690,9 +714,8 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
         /// </summary>
         internal void CancelNewPath()
         {
-            gameThreadInvoker(() =>
+            InvokeEditorAction(pathEditor =>
             {
-                PathEditor pathEditor = pathEditorAccessor();
                 if (pathEditor?.IsNewPath != true)
                 {
                     PublishCommandResult(PathEditorCommandResult.Failed("No unsaved new path is active.", pathEditor?.TryCaptureCurrentPathModel()));
@@ -736,12 +759,8 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
 
         internal void SavePath()
         {
-            gameThreadInvoker(() =>
+            InvokeEditorAction(pathEditor =>
             {
-                PathEditor pathEditor = pathEditorAccessor();
-                if (pathEditor == null)
-                    return;
-
                 PathModel currentModel = pathEditor.TryCaptureCurrentPathModel();
                 if (currentModel == null || string.IsNullOrWhiteSpace(currentModel.Name)
                     || currentModel.Name.Trim().IndexOfAny(System.IO.Path.GetInvalidFileNameChars()) >= 0
@@ -770,18 +789,30 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
         internal void SetMetadata(string name, string start, string end, bool playerPath)
             => ExecuteEditorCommand(pathEditor => pathEditor.SetMetadataCommand(name, start, end, playerPath));
 
-        internal ImmutableArray<MapContextMenuItem> GetNodeActions(int nodeIndex)
-            => CaptureNodeMenuRequest(nodeIndex).Items;
+        /// <summary>Collects node entries on the owner without blocking WPF. A rejected session admission need not complete.</summary>
+        internal void RequestNodeMenu(PathEditorMenuRequest ownership, int nodeIndex, Action<PathEditorMenuRequest> completed)
+        {
+            ArgumentNullException.ThrowIfNull(ownership);
+            ArgumentNullException.ThrowIfNull(completed);
+            gameThreadInvoker(() => completed(CaptureNodeMenuRequest(ownership, nodeIndex)));
+        }
 
-        /// <summary>Freezes node-menu ownership before reading capabilities and rechecks the current owner before publication.</summary>
-        internal PathEditorMenuRequest CaptureNodeMenuRequest(int nodeIndex)
+        private PathEditorMenuRequest CaptureNodeMenuRequest(PathEditorMenuRequest ownership, int nodeIndex)
         {
             PathEditor pathEditor = pathEditorAccessor();
-            PathEditorMenuRequest request = PathEditorMenuRequest.Capture(pathEditor);
-            PathModel model = pathEditor?.TryCaptureCurrentPathModel();
+            if (!ownership.IsCurrent(pathEditor))
+                return PathEditorMenuRequest.Empty;
+
+            PathModel model = pathEditor.TryCaptureCurrentPathModel();
             if (model == null || nodeIndex < 0 || nodeIndex >= model.PathNodes.Length)
                 return PathEditorMenuRequest.Empty;
 
+            return ownership.WithItems(MapContextMenuActionBuilder.BuildNodeActions(nodeIndex, BuildMapContextMenuState(pathEditor, nodeIndex)),
+                pathEditorAccessor());
+        }
+
+        private static MapContextMenuActionBuilder.MapContextMenuState BuildMapContextMenuState(PathEditor pathEditor, int nodeIndex)
+        {
             MapContextMenuActionBuilder.MapContextMenuState state = new MapContextMenuActionBuilder.MapContextMenuState()
             {
                 CanBeginPassingBranch = pathEditor.CanBeginPassingBranch(nodeIndex),
@@ -800,7 +831,7 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
                 CanRepairNode = pathEditor.CanRepairNode(nodeIndex),
                 CanRemoveRestOfPath = pathEditor.CanRemoveRestOfPath(nodeIndex),
             };
-            return request.WithItems(MapContextMenuActionBuilder.BuildNodeActions(nodeIndex, state), pathEditorAccessor());
+            return state;
         }
 
         internal void ExecuteNodeAction(MapContextMenuAction action, int nodeIndex)
@@ -902,34 +933,25 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
             blockedSaveFeedbackVersion++;
         }
 
-        private void ExecuteEditorCommand(Func<PathEditor, PathEditorCommandResult> command, Action onSuccess = null)
+        private void ExecuteEditorCommand(Func<PathEditor, PathEditorCommandResult> command)
+            => ExecuteEditorCommand(command, null);
+
+        private void ExecuteEditorCommand(Func<PathEditor, PathEditorCommandResult> command, Action onSuccess)
             => ExecuteEditorCommand(command, onSuccess, allowSameDraftPreview: false);
 
         private void ExecuteEditorCommand(Func<PathEditor, PathEditorCommandResult> command, Action onSuccess, bool allowSameDraftPreview)
         {
             ArgumentNullException.ThrowIfNull(command);
 
-            PathEditor owner = pathEditorAccessor();
-            PathModel sourceModel = owner?.TryCaptureCurrentPathModel();
-            long sourceRevision = owner?.CompositionRevision ?? -1;
-            long interactionRevision = owner?.PassingBranchInteractionRevision ?? -1;
-            bool wasPassingInteraction = owner?.CanCancelPassingBranch == true;
-            GuidedPassingCandidatePreviewWitness previewWitness = allowSameDraftPreview ? owner?.CaptureGuidedPassingCandidatePreviewWitness() : null;
+            TrainPathSnapshot displayed = CurrentDisplayedCommandSnapshot;
+            PathEditor owner = displayed == null ? pathEditorAccessor() : null;
+            PathEditorMenuRequest ownership = displayed?.NodeMenuOwnership ?? PathEditorMenuRequest.Capture(owner);
+            bool wasPassingInteraction = displayed?.CanCancelPassingBranch ?? owner?.CanCancelPassingBranch == true;
 
-            gameThreadInvoker(() =>
+            InvokeEditorAction(pathEditor =>
             {
-                PathEditor pathEditor = pathEditorAccessor();
-                if (pathEditor == null)
-                {
-                    Trace.TraceWarning("Cannot execute path editor command because no path editor is active.");
-                    return;
-                }
-
                 if ((wasPassingInteraction || pathEditor.CanCancelPassingBranch)
-                    && (!ReferenceEquals(owner, pathEditor) || !ReferenceEquals(sourceModel, pathEditor.TryCaptureCurrentPathModel())
-                        || sourceRevision != pathEditor.CompositionRevision
-                        || (previewWitness != null ? !pathEditor.IsCurrentGuidedPassingCandidatePreview(previewWitness)
-                            : interactionRevision != pathEditor.PassingBranchInteractionRevision)))
+                    && !ownership.IsCurrent(pathEditor, allowSameDraftPreview))
                 {
                     PublishCommandResult(PathEditorCommandResult.Failed(CatalogManager.Catalog.GetString(
                         "The passing-branch interaction changed before the queued command ran; retry the current action."), pathEditor.TryCaptureCurrentPathModel()));
@@ -1058,34 +1080,98 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
                         message.GetArgument(0), LocalizePassingBranchMessage(truncationFailure)),
                 "Removing node {0} would invalidate the supported passing branch: {1}" when message.GetArgument(1) is FormattableString removalFailure =>
                     CatalogManager.Catalog.GetString("Removing node {0} would invalidate the supported passing branch: {1}",
-                        message.GetArgument(0), LocalizePassingBranchMessage(removalFailure)), _ => message.ToString(System.Globalization.CultureInfo.InvariantCulture),
+                        message.GetArgument(0), LocalizePassingBranchMessage(removalFailure)), _ => message.ToString(CultureInfo.InvariantCulture),
             };
         }
 
-        // Marshals onto the game thread, resolves the current (possibly not-yet-created) editor, and runs
-        // <paramref name="mutate"/> against it, marking the snapshot dirty when the mutation reports a change.
-        // No-op when no editor exists yet.
+        // Runs against the captured path owner, marking the snapshot dirty when the mutation reports a change.
         private void InvokeEditorMutation(Func<PathEditor, bool> mutate)
         {
-            gameThreadInvoker(() =>
+            InvokeEditorAction(pathEditor =>
             {
-                PathEditor pathEditor = pathEditorAccessor();
-                if (pathEditor != null && mutate(pathEditor))
+                if (mutate(pathEditor))
                     MarkDirty();
             });
         }
 
-        // Marshals onto the game thread, resolves the current (possibly not-yet-created) editor, and runs
-        // <paramref name="action"/> against it. No-op when no editor exists yet. Unlike InvokeEditorMutation this
-        // does not mark the snapshot dirty; callers that change snapshot-relevant state do so explicitly.
-        private void InvokeEditorAction(Action<PathEditor> action)
+        /// <summary>Dispatches a rendered presentation once; named editor commands run synchronously inside its owner callback.</summary>
+        internal void ExecuteDisplayedPathCommand(TrainPathSnapshot presentationSnapshot, Action<TrainPathToolWindow> command) => ExecuteDisplayedPathCommand(presentationSnapshot, command, null);
+
+        /// <summary>Completes an admitted command with its published immutable snapshot, or null when its displayed owner was refused.</summary>
+        internal void ExecuteDisplayedPathCommand(TrainPathSnapshot presentationSnapshot, Action<TrainPathToolWindow> command,
+            Action<TrainPathSnapshot> completed)
         {
+            ArgumentNullException.ThrowIfNull(presentationSnapshot);
+            ArgumentNullException.ThrowIfNull(command);
             gameThreadInvoker(() =>
             {
-                PathEditor pathEditor = pathEditorAccessor();
-                if (pathEditor != null)
-                    action(pathEditor);
+                bool applied = false;
+                try
+                {
+                    ApplyOwnedEditorAction(presentationSnapshot.PathEditorOwner, presentationSnapshot.PathLifetime, _ =>
+                    {
+                        TrainPathSnapshot previous = displayedCommandSnapshot;
+                        int previousThreadId = displayedCommandThreadId;
+                        displayedCommandSnapshot = presentationSnapshot;
+                        displayedCommandThreadId = Environment.CurrentManagedThreadId;
+                        try
+                        {
+                            command(this);
+                            applied = true;
+                        }
+                        finally
+                        {
+                            displayedCommandThreadId = previousThreadId;
+                            displayedCommandSnapshot = previous;
+                        }
+                    });
+                }
+                finally
+                {
+                    if (completed != null)
+                    {
+                        RefreshSnapshot();
+                        TrainPathSnapshot acknowledged = snapshot;
+                        completed(applied && Active && ReferenceEquals(acknowledged.PathEditorOwner, presentationSnapshot.PathEditorOwner)
+                            && acknowledged.PathLifetime == presentationSnapshot.PathLifetime ? acknowledged : null);
+                    }
+                }
             });
+        }
+
+        // Only the synchronous owner callback may inherit displayed intent. A simultaneous native/WPF
+        // submission on another thread must not inherit it, and the scope must never survive an async return.
+        private TrainPathSnapshot CurrentDisplayedCommandSnapshot => displayedCommandThreadId == Environment.CurrentManagedThreadId ? displayedCommandSnapshot : null;
+
+        private void InvokeEditorAction(Action<PathEditor> action)
+        {
+            TrainPathSnapshot displayed = CurrentDisplayedCommandSnapshot;
+            if (displayed != null)
+            {
+                ApplyOwnedEditorAction(displayed.PathEditorOwner, displayed.PathLifetime, action);
+                return;
+            }
+
+            PathEditor owner = pathEditorAccessor();
+            long pathLifetime = owner?.PathLifetime ?? -1;
+            gameThreadInvoker(() => ApplyOwnedEditorAction(owner, pathLifetime, action));
+        }
+
+        private void ApplyOwnedEditorAction(PathEditor owner, long pathLifetime, Action<PathEditor> action)
+        {
+            PathEditor pathEditor = pathEditorAccessor();
+            if (pathEditor == null)
+                return;
+
+            if (pathEditor.IsStopped || !ReferenceEquals(owner, pathEditor) || pathLifetime != pathEditor.PathLifetime)
+            {
+                PublishCommandResult(PathEditorCommandResult.Failed(CatalogManager.Catalog.GetString(
+                    "The path changed before the queued command ran; retry the current action."), pathEditor.TryCaptureCurrentPathModel()));
+                MarkDirty();
+                return;
+            }
+
+            action(pathEditor);
         }
 
         /// <summary>
@@ -1344,6 +1430,7 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
         private static bool IsSimulatorEventDiagnostic(PathRouteDiagnosticCode code) => code is
             PathRouteDiagnosticCode.UnsupportedFirstMainEvent or PathRouteDiagnosticCode.UnsupportedJunctionEvent
             or PathRouteDiagnosticCode.UnsupportedCombinedWaitReversal or PathRouteDiagnosticCode.UnsupportedPassingInteriorEvent
+            or PathRouteDiagnosticCode.UnsupportedProjectedMainEvent
             or PathRouteDiagnosticCode.MultipleReversalsInContinuousVector;
 
         private static (string Message, string Action) TranslateSimulatorEventDiagnostic(PathRouteDiagnostic diagnostic)
@@ -1366,6 +1453,9 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
                 PathRouteDiagnosticCode.MultipleReversalsInContinuousVector =>
                     (CatalogManager.Catalog.GetString("Multiple reversals in one continuous vector occurrence at node {0}; the circuit consumer cannot preserve every leg."),
                      CatalogManager.Catalog.GetString("Separate successive reversals with a junction before using the path in Simulator.")),
+                PathRouteDiagnosticCode.UnsupportedProjectedMainEvent =>
+                    (CatalogManager.Catalog.GetString("Siding projection changes branch participation in main event at node {0} in the common prefix or suffix."),
+                     CatalogManager.Catalog.GetString("Place the wait or reversal outside the common passing prefix or suffix.")),
                 _ => (diagnostic.Message, diagnostic.SuggestedAction),
             };
             return (string.Format(CultureInfo.CurrentCulture, message, diagnostic.NodeIndex), action);

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Concurrent;
+using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -20,6 +21,21 @@ namespace Tests.FreeTrainSimulator.Toolbox.Hosting
 {
     public sealed partial class ToolboxSessionTests
     {
+        private async Task<ImmutableArray<MapContextMenuItem>> RequestNodeActionsAsync(SessionScope scope, TrainPathToolWindow bridge,
+            ConcurrentQueue<Task> commands, int nodeIndex)
+        {
+            PathEditorMenuRequest result = null;
+            await scope.Host.OnOwnerAsync(() =>
+            {
+                bridge.RefreshSnapshot();
+                bridge.RequestNodeMenu(bridge.CaptureTrainPathSnapshot().NodeMenuOwnership, nodeIndex, request => result = request);
+            }).ConfigureAwait(false);
+            while (commands.TryDequeue(out Task operation))
+                await operation.WaitAsync(TestContext.CancellationToken).ConfigureAwait(false);
+            Assert.IsNotNull(result);
+            return result.Items;
+        }
+
         /// <summary>Menu ownership is captured before clicking, including cancel and placement actions.</summary>
         [TestMethod]
         [Timeout(30000, CooperativeCancellation = true)]
@@ -108,7 +124,8 @@ namespace Tests.FreeTrainSimulator.Toolbox.Hosting
                     (split, rejoin) = GuidedEndpoints(scope.Session.ExistingPathEditor);
                 }).ConfigureAwait(false);
                 await CommandAsync(() => bridge.BeginPassingBranch(split)).ConfigureAwait(false);
-                await MapActionAsync(() => bridge.GetNodeActions(rejoin).Single(entry => entry.Action == MapContextMenuAction.RejoinPassingBranchWithVia)).ConfigureAwait(false);
+                ImmutableArray<MapContextMenuItem> entries = await RequestNodeActionsAsync(scope, bridge, commands, rejoin).ConfigureAwait(false);
+                await MapActionAsync(() => entries.Single(entry => entry.Action == MapContextMenuAction.RejoinPassingBranchWithVia)).ConfigureAwait(false);
                 await MapActionAsync(() => MapContextMenuActionBuilder.BuildForMap(new MapContextMenuActionBuilder.MapContextMenuState
                 {
                     IsPlacementActive = true,
@@ -116,7 +133,8 @@ namespace Tests.FreeTrainSimulator.Toolbox.Hosting
                     CanCancelPassingBranch = true,
                 }, GuidedVia()).Single(entry => entry.Action == MapContextMenuAction.PreviewPassingBranchViaHere)).ConfigureAwait(false);
                 await scope.Host.OnOwnerAsync(() => Assert.AreSame(baseline, scope.Session.ExistingPathEditor.TryCaptureCurrentPathModel())).ConfigureAwait(false);
-                await MapActionAsync(() => bridge.GetNodeActions(rejoin).Single(entry => entry.Action == MapContextMenuAction.ConfirmPassingBranchVia)).ConfigureAwait(false);
+                entries = await RequestNodeActionsAsync(scope, bridge, commands, rejoin).ConfigureAwait(false);
+                await MapActionAsync(() => entries.Single(entry => entry.Action == MapContextMenuAction.ConfirmPassingBranchVia)).ConfigureAwait(false);
                 PathModel authored = null;
                 await scope.Host.OnOwnerAsync(() =>
                 {

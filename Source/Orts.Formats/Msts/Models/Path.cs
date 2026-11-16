@@ -36,6 +36,7 @@ namespace Orts.Formats.Msts.Models
 
         public ref readonly WorldLocation Location => ref location;
 
+        /// <summary>Gets the recognized positional, event, junction, and validity flags without discarding event combinations.</summary>
         public PathNodeType NodeType { get; }
 
         internal PathNode(STFReader stf, List<PathDataPoint> pathDataPoints, bool firstNode = false)
@@ -70,20 +71,15 @@ namespace Orts.Formats.Msts.Models
             {
                 NodeType = PathNodeType.End;
             }
-            // if bit 0 is set: reversal
-            else if ((pathFlags & PathFlags.ReversalPoint) == PathFlags.ReversalPoint)
-            {
-                NodeType = PathNodeType.Reversal;
-            }
-            // bit 0 is not set, but bit 1 is set:waiting point
-            else if ((pathFlags & PathFlags.WaitPoint) == PathFlags.WaitPoint)
-            {
-                NodeType = PathNodeType.Wait;
-            }
-            else if ((pathFlags & PathFlags.IntermediatePoint) == PathFlags.IntermediatePoint)
+            else if ((pathFlags & (PathFlags.WaitPoint | PathFlags.ReversalPoint)) == PathFlags.None && (pathFlags & PathFlags.IntermediatePoint) == PathFlags.IntermediatePoint)
             {
                 NodeType = PathNodeType.Via;
             }
+
+            if ((pathFlags & PathFlags.WaitPoint) == PathFlags.WaitPoint)
+                NodeType |= PathNodeType.Wait;
+            if ((pathFlags & PathFlags.ReversalPoint) == PathFlags.ReversalPoint)
+                NodeType |= PathNodeType.Reversal;
 
             if (junctionFlag == 2)
                 NodeType |= PathNodeType.Junction;

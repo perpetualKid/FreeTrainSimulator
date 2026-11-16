@@ -2,9 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Globalization;
+using System.Linq;
 
 using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Models.Content;
+using FreeTrainSimulator.Models.Track;
 
 namespace FreeTrainSimulator.Runtime.Track
 {
@@ -12,7 +14,7 @@ namespace FreeTrainSimulator.Runtime.Track
     /// Checks the event combinations supported by the current Simulator path consumer, not general MSTS validity.
     /// </summary>
     /// <remarks>
-    /// Does not resolve track geometry or certify siding topology, projection, node placement, or start/end markers.
+    /// Does not resolve track geometry or certify siding topology, node placement, or start/end markers.
     /// Those checks remain with the route resolver and Simulator. Passing endpoints retain main-path event semantics.
     /// </remarks>
     public static class PathSimulatorEventCompatibility
@@ -25,6 +27,8 @@ namespace FreeTrainSimulator.Runtime.Track
         private const string passingInteriorEventAction = "Place the event on the main path outside the passing interior.";
         private const string multipleReversalsMessage = "Multiple reversals in one continuous vector occurrence at node {0}; the circuit consumer cannot preserve every leg.";
         private const string multipleReversalsAction = "Separate successive reversals with a junction before using the path in Simulator.";
+        private const string projectedMainEventMessage = "Siding projection changes branch participation in main event at node {0} in the common prefix or suffix.";
+        private const string projectedMainEventAction = "Place the wait or reversal outside the common passing prefix or suffix.";
         private const string emptyPathMessage = "Path has no authored nodes.";
         private const string emptyPathAction = "Add a start node and an end node.";
         private const string missingStartMessage = "Path has no usable main root at node index {0}.";
@@ -229,6 +233,84 @@ namespace FreeTrainSimulator.Runtime.Track
             return diagnostics.ToImmutable();
         }
 
+        /// <summary>Checks an event whose participation changes when passing endpoints move to physical switches.</summary>
+        /// <param name="nodeType">Main-node event markers; markerless wait payloads are not events here.</param>
+        /// <param name="nodeIndex">Index in the caller's node domain.</param>
+        /// <param name="isCommonSection">Whether the occurrence is before the physical split or after its rejoin.</param>
+        /// <returns>A projection refusal, or <see langword="null"/> when participation is unchanged.</returns>
+        public static PathRouteDiagnostic ValidateProjectedMainEvent(PathNodeType nodeType, int nodeIndex, bool isCommonSection)
+        {
+            return isCommonSection && (nodeType & (PathNodeType.Wait | PathNodeType.Reversal)) != 0
+                ? CreateDiagnostic(PathRouteDiagnosticCode.UnsupportedProjectedMainEvent, nodeIndex) : null;
+        }
+
+        /// <summary>Checks main events against the ordered physical traversal of each resolved passing branch.</summary>
+        /// <param name="pathModel">The exact model whose node indexes are used by the resolution.</param>
+        /// <param name="resolution">Resolution of that model, including its selected physical candidates.</param>
+        /// <param name="trackWorld">Track context used by the resolution.</param>
+        /// <returns>Event refusals in the supplied model's index domain; no structural projection certification.</returns>
+        /// <remarks>Retains empty same-vector spans as event boundaries and excludes the authored rejoin event.</remarks>
+        public static ImmutableArray<PathRouteDiagnostic> ValidateProjection(PathModel pathModel, PathRouteResolution resolution, TrackWorld trackWorld)
+        {
+            ArgumentNullException.ThrowIfNull(pathModel);
+            ArgumentNullException.ThrowIfNull(resolution);
+            ArgumentNullException.ThrowIfNull(trackWorld);
+
+            ImmutableArray<PathRouteDiagnostic>.Builder diagnostics = ImmutableArray.CreateBuilder<PathRouteDiagnostic>();
+            if (!resolution.IsValid || resolution.MainRoute == null)
+                return diagnostics.ToImmutable();
+
+            foreach (ResolvedPathRoute passing in resolution.PassingRoutes)
+            {
+                ResolvedPathSpan[] mainSpans = resolution.MainRoute.Spans
+                    .SkipWhile(span => span.FromNodeIndex != passing.StartNodeIndex)
+                    .TakeWhile(span => span.FromNodeIndex != passing.EndNodeIndex).ToArray();
+                if (mainSpans.Length == 0 || mainSpans[^1].ToNodeIndex != passing.EndNodeIndex
+                    || mainSpans.Concat(passing.Spans).Any(span => span.Status != PathRouteSpanStatus.Resolved || span.Candidates.IsEmpty))
+                    continue;
+
+                // Arrival survives empty spans: an incompatible vector-bound rejoin is not a projection witness.
+                if (trackWorld.TrackNodeByIndex(resolution.AuthoredNodeAnchors[passing.EndNodeIndex].TrackNodeIndex) is VectorNode
+                    && mainSpans[^1].Candidates[0].Arrival != passing.Spans[^1].Candidates[0].Arrival)
+                    continue;
+
+                List<TrackRouteTraversal> main = mainSpans.SelectMany(span => span.Candidates[0].PhysicalTraversals).ToList();
+                List<TrackRouteTraversal> side = passing.Spans.SelectMany(span => span.Candidates[0].PhysicalTraversals).ToList();
+                int split = 0;
+                while (split < main.Count && split < side.Count && main[split] == side[split])
+                    split++;
+                if (split >= main.Count || split >= side.Count
+                    || main[split].FromNodeIndex != side[split].FromNodeIndex
+                    || trackWorld.TrackNodeByIndex(main[split].FromNodeIndex) is not JunctionNode)
+                    continue;
+
+                int mainRejoin = main.Count - 1;
+                int sideRejoin = side.Count - 1;
+                while (mainRejoin > split && sideRejoin > split && main[mainRejoin] == side[sideRejoin])
+                {
+                    mainRejoin--;
+                    sideRejoin--;
+                }
+                if (mainRejoin <= split || sideRejoin <= split
+                    || main[mainRejoin].ToNodeIndex != side[sideRejoin].ToNodeIndex
+                    || trackWorld.TrackNodeByIndex(main[mainRejoin].ToNodeIndex) is not JunctionNode)
+                    continue;
+
+                int position = 0;
+                foreach (ResolvedPathSpan span in mainSpans)
+                {
+                    // A boundary position counts directed connectors, not node identities or physical locations.
+                    // Empty spans still check their source event; the final authored rejoin is never a source here.
+                    PathRouteDiagnostic diagnostic = ValidateProjectedMainEvent(pathModel.PathNodes[span.FromNodeIndex].NodeType,
+                        span.FromNodeIndex, position < split || position > mainRejoin + 1);
+                    if (diagnostic != null)
+                        diagnostics.Add(diagnostic);
+                    position += span.Candidates[0].PhysicalTraversals.Length;
+                }
+            }
+            return diagnostics.DistinctBy(diagnostic => diagnostic.NodeIndex).ToImmutableArray();
+        }
+
         private static bool IsValidLink(int target, ImmutableArray<PathNode> nodes)
         {
             return target == -1 || (target >= 0 && target < nodes.Length && nodes[target] != null);
@@ -243,6 +325,7 @@ namespace FreeTrainSimulator.Runtime.Track
                     => (junctionOrCombinedEventMessage, junctionOrCombinedEventAction),
                 PathRouteDiagnosticCode.UnsupportedPassingInteriorEvent => (passingInteriorEventMessage, passingInteriorEventAction),
                 PathRouteDiagnosticCode.MultipleReversalsInContinuousVector => (multipleReversalsMessage, multipleReversalsAction),
+                PathRouteDiagnosticCode.UnsupportedProjectedMainEvent => (projectedMainEventMessage, projectedMainEventAction),
                 PathRouteDiagnosticCode.EmptyPath => (emptyPathMessage, emptyPathAction),
                 PathRouteDiagnosticCode.MissingStartNode => (missingStartMessage, missingStartAction),
                 PathRouteDiagnosticCode.InvalidMainLink => (invalidMainLinkMessage, invalidMainLinkAction),

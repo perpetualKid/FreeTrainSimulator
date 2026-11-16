@@ -24,6 +24,8 @@ using FreeTrainSimulator.Toolbox.Views;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using Tests.FreeTrainSimulator.Toolbox.PathEditing;
+using Tests.FreeTrainSimulator.Toolbox.Hosting;
+using Tests.FreeTrainSimulator.Toolbox.ToolWindows;
 
 using Vector3 = Microsoft.Xna.Framework.Vector3;
 
@@ -35,6 +37,315 @@ namespace Tests.FreeTrainSimulator.Toolbox.Views
     public class TrainPathToolViewTests
     {
         public TestContext TestContext { get; set; }
+
+        [STATestMethod(UseSTASynchronizationContext = true)]
+        [Timeout(15000, CooperativeCancellation = true)]
+        [DataRow(false, "current")]
+        [DataRow(true, "current")]
+        [DataRow(false, "previous-focus")]
+        [DataRow(true, "previous-focus")]
+        [DataRow(false, "polled-undo")]
+        [DataRow(true, "polled-undo")]
+        [DataRow(false, "closed")]
+        [DataRow(true, "closed")]
+        [DataRow(false, "reopened")]
+        [DataRow(true, "reopened")]
+        [DataRow(false, "data-context")]
+        [DataRow(true, "data-context")]
+        [DataRow(false, "superseded")]
+        [DataRow(true, "superseded")]
+        [DataRow(false, "reload")]
+        [DataRow(true, "reload")]
+        [DataRow(false, "buffer-reload")]
+        [DataRow(true, "buffer-reload")]
+        [DataRow(false, "buffer-reload-enter")]
+        [DataRow(true, "buffer-reload-enter")]
+        [DataRow(false, "metadata")]
+        [DataRow(true, "metadata")]
+        [DataRow(false, "metadata-reload")]
+        [DataRow(true, "metadata-reload")]
+        [DataRow(false, "metadata-previous-focus")]
+        [DataRow(true, "metadata-previous-focus")]
+        [DataRow(false, "rejected-admission")]
+        [DataRow(true, "rejected-admission")]
+        [DataRow(true, "right-click-target")]
+        public async Task WhenBufferedWaitIsCommittedThenNodeMenuUsesAcknowledgedSnapshot(bool contextMenu, string transition)
+        {
+            using (SeparatedPassingFixture fixture = await SeparatedPassingFixture.CreateAsync().ConfigureAwait(true))
+            {
+                using (PathEditor editor = new PathEditor(fixture.Content))
+                {
+                    PathModel source = SeparatedPassingFixture.CreateMain();
+                    Assert.IsTrue(await editor.InitializePathAsync(source, TestContext.CancellationToken).ConfigureAwait(true));
+                    int nodeIndex = SeparatedPassingFixture.Index(source, 4);
+                    editor.SelectAuthoredNode(nodeIndex);
+                    Queue<Action> commands = new Queue<Action>();
+                    TrainPathToolWindow bridge = new TrainPathToolWindow(() => editor, () => null, commands.Enqueue,
+                        () => { }, () => { }, _ => { }, () => { }, () => { })
+                    {
+                        Active = true
+                    };
+                    bridge.RefreshSnapshot();
+                    using (ToolWindowRefreshScheduler scheduler = new ToolWindowRefreshScheduler(Dispatcher.CurrentDispatcher))
+                    {
+                        using (TrainPathToolWindowViewModel viewModel = new TrainPathToolWindowViewModel(bridge, scheduler, TrainPathToolWindowViewModel.EditorTabIndex))
+                        {
+                            viewModel.Start();
+                            TrainPathToolView view = new TrainPathToolView { DataContext = viewModel };
+                            Window window = new Window { Content = view, Width = 520, Height = 700, ShowInTaskbar = false };
+                            try
+                            {
+                                window.Show();
+                                SettleLayout(window);
+                                DrainCommands(commands);
+                                TextBox input = (TextBox)view.FindName("WaitTimeEditor");
+                                Assert.IsTrue(input.Focus());
+                                input.Text = "37";
+                                TrainPathNodeItemViewModel target = viewModel.SelectedNode;
+                                TextBox metadataInput = null;
+                                if (transition.StartsWith("metadata", StringComparison.Ordinal))
+                                {
+                                    ((TabControl)view.FindName("PathEditorTabs")).SelectedIndex = TrainPathToolWindowViewModel.PathsTabIndex;
+                                    SettleLayout(window);
+                                    metadataInput = Descendants(view).OfType<TextBox>().Single(element => AutomationProperties.GetName(element) == "Path name");
+                                    Assert.IsTrue(metadataInput.Focus());
+                                    metadataInput.Text = "Buffered name";
+                                }
+                                if (transition is "previous-focus" or "right-click-target" or "metadata-previous-focus")
+                                {
+                                    Assert.IsTrue(((TabControl)view.FindName("PathEditorTabs")).Focus());
+                                    Assert.IsNotNull(viewModel.PendingInlineInput, "Lost focus must queue the text before opening the menu.");
+                                }
+                                if (transition == "polled-undo")
+                                {
+                                    Assert.IsTrue(((TabControl)view.FindName("PathEditorTabs")).Focus());
+                                    DrainCommands(commands);
+                                    bridge.RefreshSnapshot();
+                                    viewModel.Start();
+                                    Assert.AreEqual(37, viewModel.SelectedNode.WaitTime);
+                                    viewModel.UndoCommand.Execute(null);
+                                    DrainCommands(commands);
+                                    bridge.RefreshSnapshot();
+                                    viewModel.Start();
+                                    Assert.IsNull(viewModel.SelectedNode.WaitTime);
+                                }
+                                if (transition is "buffer-reload" or "buffer-reload-enter" or "metadata-reload")
+                                {
+                                    Assert.IsTrue(await editor.InitializePathAsync(source, TestContext.CancellationToken).ConfigureAwait(true));
+                                    editor.SelectAuthoredNode(nodeIndex);
+                                    bridge.RefreshSnapshot();
+                                    viewModel.Start();
+                                    if (metadataInput != null)
+                                        metadataInput.Text = "Stale name";
+                                    else
+                                        input.Text = "37";
+                                    if (transition == "buffer-reload-enter")
+                                    {
+                                        input.RaiseEvent(new KeyEventArgs(Keyboard.PrimaryDevice, PresentationSource.FromVisual(input), Environment.TickCount, Key.Enter)
+                                        {
+                                            RoutedEvent = Keyboard.PreviewKeyDownEvent,
+                                        });
+                                    }
+                                }
+                                if (transition == "right-click-target")
+                                    target = viewModel.Nodes.Last();
+                                if (metadataInput != null)
+                                {
+                                    ((TabControl)view.FindName("PathEditorTabs")).SelectedIndex = TrainPathToolWindowViewModel.EditorTabIndex;
+                                    SettleLayout(window);
+                                }
+                                ItemsControl menu = BeginNodeMenu(view, window, viewModel, contextMenu, target);
+                                Action[] delayed = commands.ToArray();
+                                commands.Clear();
+                                if (transition is "closed" or "reopened" or "rejected-admission")
+                                {
+                                    if (menu is ContextMenu popup)
+                                        popup.IsOpen = false;
+                                    else
+                                        ((MenuItem)menu).IsSubmenuOpen = false;
+                                }
+                                if (transition == "reopened")
+                                    menu = BeginNodeMenu(view, window, viewModel, contextMenu, target);
+                                if (transition == "data-context")
+                                {
+                                    view.DataContext = null;
+                                    view.DataContext = viewModel;
+                                }
+                                if (transition == "reload")
+                                    Assert.IsTrue(await editor.InitializePathAsync(source, TestContext.CancellationToken).ConfigureAwait(true));
+                                if (transition != "rejected-admission")
+                                    foreach (Action command in delayed)
+                                        command();
+                                if (transition == "superseded")
+                                {
+                                    Assert.IsTrue(editor.SetMetadataCommand("Superseding revision", "", "", false).Success);
+                                    bridge.RefreshSnapshot();
+                                }
+                                DrainCommands(commands);
+                                SettleLayout(window);
+                                DrainCommands(commands);
+                                SettleLayout(window);
+
+                                bridge.RefreshSnapshot();
+                                Assert.AreEqual(transition is "reload" or "buffer-reload" or "buffer-reload-enter" or "metadata-reload" or "rejected-admission" or "polled-undo" ? (int?)null : 37,
+                                    bridge.CaptureTrainPathSnapshot().Nodes.Single(node => node.Index == nodeIndex).WaitTime);
+                                if (metadataInput != null)
+                                    Assert.AreEqual(transition == "metadata-reload" ? source.Name : "Buffered name", bridge.CaptureTrainPathSnapshot().PathName);
+                                bool expectedActions = transition is "current" or "previous-focus" or "reopened" or "buffer-reload" or "buffer-reload-enter"
+                                    or "right-click-target" or "metadata" or "metadata-previous-focus" or "polled-undo";
+                                Assert.AreEqual(expectedActions, menu.Items.OfType<MenuItem>().Any(item => item.IsEnabled), "Only the current acknowledged opening may receive actions.");
+                                if (transition is "current" or "previous-focus" or "reopened")
+                                    Assert.AreEqual(37, viewModel.SelectedNode.WaitTime);
+                                if (transition == "right-click-target")
+                                    Assert.AreEqual(target.Index, editor.SelectedAuthoredNodeIndex);
+                                if (!expectedActions)
+                                    Assert.IsFalse(menu is MenuItem { IsSubmenuOpen: true } or ContextMenu { IsOpen: true });
+                            }
+                            finally
+                            {
+                                window.Close();
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        [STATestMethod(UseSTASynchronizationContext = true)]
+        [Timeout(15000, CooperativeCancellation = true)]
+        [DataRow(false, "current")]
+        [DataRow(true, "current")]
+        [DataRow(false, "closed")]
+        [DataRow(true, "closed")]
+        [DataRow(false, "reopened")]
+        [DataRow(true, "reopened")]
+        [DataRow(false, "data-context")]
+        [DataRow(true, "data-context")]
+        [DataRow(false, "stale")]
+        [DataRow(true, "stale")]
+        [DataRow(false, "superseded")]
+        [DataRow(true, "superseded")]
+        [DataRow(false, "rejected-admission")]
+        [DataRow(true, "rejected-admission")]
+        [DataRow(true, "right-click-target")]
+        public async Task WhenWpfNodeMenuOpensThenEditorAccessStaysOnSeparateOwner(bool contextMenu, string transition)
+        {
+            using (SeparatedPassingFixture fixture = await SeparatedPassingFixture.CreateAsync().ConfigureAwait(true))
+            {
+                await using (StaControlHost owner = await StaControlHost.StartAsync().ConfigureAwait(true))
+                {
+                    PathEditor editor = null;
+                    Queue<Action> commands = new Queue<Action>();
+                    TrainPathToolWindow bridge = new TrainPathToolWindow(() =>
+                    {
+                        Assert.AreEqual(owner.OwnerThreadId, Environment.CurrentManagedThreadId, "WPF must use only the published snapshot.");
+                        return editor;
+                    }, () => null, commands.Enqueue, () => { }, () => { }, _ => { }, () => { }, () => { })
+                    { Active = true };
+                    await owner.OnOwnerAsync(() =>
+                    {
+                        editor = new PathEditor(fixture.Content);
+                        PathModel source = SeparatedPassingFixture.CreateMain();
+                        Assert.IsTrue(editor.InitializePathAsync(source, TestContext.CancellationToken).GetAwaiter().GetResult());
+                        editor.SelectAuthoredNode(SeparatedPassingFixture.Index(source, 4));
+                        bridge.RefreshSnapshot();
+                    }).ConfigureAwait(true);
+                    try
+                    {
+                        using (ToolWindowRefreshScheduler scheduler = new ToolWindowRefreshScheduler(Dispatcher.CurrentDispatcher))
+                        {
+                            using (TrainPathToolWindowViewModel viewModel = new TrainPathToolWindowViewModel(bridge, scheduler, TrainPathToolWindowViewModel.EditorTabIndex))
+                            {
+                                viewModel.Start();
+                                TrainPathToolView view = new TrainPathToolView { DataContext = viewModel };
+                                Window window = new Window { Content = view, Width = 520, Height = 700, ShowInTaskbar = false };
+                                try
+                                {
+                                    window.Show();
+                                    SettleLayout(window);
+                                    await owner.OnOwnerAsync(() => DrainCommands(commands)).ConfigureAwait(true);
+                                    TrainPathNodeItemViewModel target = viewModel.SelectedNode;
+                                    if (transition == "right-click-target")
+                                    {
+                                        viewModel.UserSelectNode(viewModel.Nodes.Last());
+                                        await owner.OnOwnerAsync(() => DrainCommands(commands)).ConfigureAwait(true);
+                                    }
+                                    ItemsControl menu = BeginNodeMenu(view, window, viewModel, contextMenu, target);
+                                    Action[] pending = commands.ToArray();
+                                    commands.Clear();
+                                    void close()
+                                    {
+                                        if (menu is ContextMenu popup)
+                                            popup.IsOpen = false;
+                                        else
+                                            ((MenuItem)menu).IsSubmenuOpen = false;
+                                    }
+                                    if (transition is "closed" or "reopened")
+                                        close();
+                                    if (transition == "reopened")
+                                        menu = BeginNodeMenu(view, window, viewModel, contextMenu, target);
+                                    if (transition == "data-context")
+                                    {
+                                        view.DataContext = null;
+                                        view.DataContext = viewModel;
+                                    }
+                                    // Block only the test's WPF pump so publication can supersede an already queued result deterministically.
+                                    owner.OnOwnerAsync(() =>
+                                    {
+                                        if (transition == "stale")
+                                            Assert.IsTrue(editor.InitializePathAsync(editor.TryCaptureCurrentPathModel(), TestContext.CancellationToken).GetAwaiter().GetResult());
+                                        if (transition != "rejected-admission")
+                                            foreach (Action command in pending)
+                                                command();
+                                        if (transition == "superseded")
+                                        {
+                                            Assert.IsTrue(editor.SetMetadataCommand("New owner revision", "", "", false).Success);
+                                            bridge.RefreshSnapshot();
+                                        }
+                                    }).GetAwaiter().GetResult();
+                                    SettleLayout(window);
+                                    if (transition == "right-click-target")
+                                    {
+                                        await owner.OnOwnerAsync(() => DrainCommands(commands)).ConfigureAwait(true);
+                                        SettleLayout(window);
+                                    }
+                                    bool hasActions = menu.Items.OfType<MenuItem>().Any(item => item.IsEnabled);
+                                    Assert.AreEqual(transition is "current" or "right-click-target", hasActions);
+                                    if (transition is "closed" or "data-context" or "stale" or "superseded")
+                                        Assert.IsFalse(menu is MenuItem { IsSubmenuOpen: true } or ContextMenu { IsOpen: true });
+                                    if (transition == "reopened")
+                                    {
+                                        Assert.IsTrue(menu is MenuItem { IsSubmenuOpen: true } or ContextMenu { IsOpen: true });
+                                        await owner.OnOwnerAsync(() => DrainCommands(commands)).ConfigureAwait(true);
+                                        SettleLayout(window);
+                                        Assert.Contains(item => item.IsEnabled, menu.Items.OfType<MenuItem>());
+                                    }
+                                    if (transition == "right-click-target")
+                                    {
+                                        MenuItem remove = menu.Items.OfType<MenuItem>().Single(item => Equals(item.Header,
+                                            global::FreeTrainSimulator.Toolbox.MainWindow.GetMapContextMenuCaption(new MapContextMenuItem(MapContextMenuAction.RemoveViaPoint, target.Index))));
+                                        remove.RaiseEvent(new RoutedEventArgs(MenuItem.ClickEvent));
+                                        await owner.OnOwnerAsync(() =>
+                                        {
+                                            DrainCommands(commands);
+                                            Assert.IsFalse(editor.TryCaptureCurrentPathModel().PathNodes.Any(node => node.NodeIndex == 4));
+                                        }).ConfigureAwait(true);
+                                    }
+                                }
+                                finally
+                                {
+                                    window.Close();
+                                }
+                            }
+                        }
+                    }
+                    finally
+                    {
+                        await owner.OnOwnerAsync(() => editor.Dispose()).ConfigureAwait(true);
+                    }
+                }
+            }
+        }
 
         [STATestMethod(UseSTASynchronizationContext = true)]
         [Timeout(15000, CooperativeCancellation = true)]
@@ -84,7 +395,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.Views
                                     window.Show();
                                     SettleLayout(window);
                                     DrainCommands(commands);
-                                    MenuItem action = OpenNodeMenu(view, window, viewModel, contextMenu).OfType<MenuItem>()
+                                    MenuItem action = OpenNodeMenu(view, window, viewModel, contextMenu, commands).OfType<MenuItem>()
                                         .Single(item => Equals(item.Header, global::FreeTrainSimulator.Toolbox.MainWindow.GetMapContextMenuCaption(
                                             new MapContextMenuItem(MapContextMenuAction.RemoveViaPoint, nodeIndex))));
                                     DrainCommands(commands);
@@ -111,7 +422,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.Views
 
                                     Assert.AreSame(expected, current.TryCaptureCurrentPathModel());
                                     Assert.AreEqual(expectedPlacement, current.PlacementMode);
-                                    Assert.HasCount(0, commands, "Menu dispatch must not queue a second mutation callback.");
+                                    Assert.IsEmpty(commands, "Menu dispatch must not queue a second mutation callback.");
                                 }
                                 finally
                                 {
@@ -180,7 +491,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.Views
                         Assert.AreEqual(expectedInteraction,
                             (editor.PassingBranchInteractionRevision, editor.PassingBranchPhase, editor.PlacementMode, editor.CanCommitPlacement));
                         Assert.AreSame(expected, editor.TryCaptureCurrentPathModel());
-                        Assert.HasCount(0, commands);
+                        Assert.IsEmpty(commands);
                     });
                 }
             }
@@ -207,7 +518,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.Views
 
                         Assert.AreEqual((false, true), (editor.TryCaptureCurrentPathModel().PathNodes.Any(node => node.NodeIndex == 4),
                         editor.TryCaptureCurrentPathModel().PathNodes.Any(node => node.NodeIndex == 9)));
-                        Assert.HasCount(0, commands);
+                        Assert.IsEmpty(commands);
                     });
                 }
             }
@@ -219,37 +530,43 @@ namespace Tests.FreeTrainSimulator.Toolbox.Views
         [DataRow(true)]
         public async Task WhenWpfGuidedMenuOwnerRemainsCurrentThenCapturedConfirmationCommitsDraft(bool contextMenu)
         {
-            using SeparatedPassingFixture fixture = await SeparatedPassingFixture.CreateAsync().ConfigureAwait(true);
-            using PathEditor editor = new PathEditor(fixture.Content);
-            PathModel source = SeparatedPassingFixture.CreateMain();
-            Assert.IsTrue(editor.InitializePathAsync(source, TestContext.CancellationToken).GetAwaiter().GetResult());
-            int rejoin = SeparatedPassingFixture.Index(source, 6);
-            BeginGuidedMenuDraft(editor, SeparatedPassingFixture.Index(source, 3), rejoin);
-            WithWpfNodeMenu(editor, rejoin, MapContextMenuAction.ConfirmPassingBranchVia, contextMenu, (commands, action, _) =>
+            using (SeparatedPassingFixture fixture = await SeparatedPassingFixture.CreateAsync().ConfigureAwait(true))
             {
-                action.RaiseEvent(new RoutedEventArgs(MenuItem.ClickEvent));
-                commands.Dequeue()();
+                using (PathEditor editor = new PathEditor(fixture.Content))
+                {
+                    PathModel source = SeparatedPassingFixture.CreateMain();
+                    Assert.IsTrue(editor.InitializePathAsync(source, TestContext.CancellationToken).GetAwaiter().GetResult());
+                    int rejoin = SeparatedPassingFixture.Index(source, 6);
+                    BeginGuidedMenuDraft(editor, SeparatedPassingFixture.Index(source, 3), rejoin);
+                    WithWpfNodeMenu(editor, rejoin, MapContextMenuAction.ConfirmPassingBranchVia, contextMenu, (commands, action, _) =>
+                    {
+                        action.RaiseEvent(new RoutedEventArgs(MenuItem.ClickEvent));
+                        commands.Dequeue()();
 
-                Assert.AreEqual((PassingBranchAuthoringPhase.Idle, 13),
-                    (editor.PassingBranchPhase, editor.TryCaptureCurrentPathModel().PathNodes.Length));
-                Assert.HasCount(0, commands);
-            });
+                        Assert.AreEqual((PassingBranchAuthoringPhase.Idle, 13), (editor.PassingBranchPhase, editor.TryCaptureCurrentPathModel().PathNodes.Length));
+                        Assert.IsEmpty(commands);
+                    });
+                }
+            }
         }
 
         [STATestMethod(UseSTASynchronizationContext = true)]
         public async Task WhenNodeMenuIsCapturedThenCollectionOwnerIsRecheckedBeforePublication()
         {
-            using SeparatedPassingFixture fixture = await SeparatedPassingFixture.CreateAsync().ConfigureAwait(true);
-            using PathEditor editor = new PathEditor(fixture.Content);
-            PathModel source = SeparatedPassingFixture.CreateMain();
-            Assert.IsTrue(editor.InitializePathAsync(source, TestContext.CancellationToken).GetAwaiter().GetResult());
-            int accesses = 0;
-            TrainPathToolWindow bridge = new TrainPathToolWindow(() => { accesses++; return editor; }, () => null, _ => { },
-                () => { }, () => { }, _ => { }, () => { }, () => { });
+            using (SeparatedPassingFixture fixture = await SeparatedPassingFixture.CreateAsync().ConfigureAwait(true))
+            {
+                using (PathEditor editor = new PathEditor(fixture.Content))
+                {
+                    PathModel source = SeparatedPassingFixture.CreateMain();
+                    Assert.IsTrue(editor.InitializePathAsync(source, TestContext.CancellationToken).GetAwaiter().GetResult());
+                    TrainPathToolWindow bridge = new TrainPathToolWindow(() => editor, () => null, action => action(),
+                        () => { }, () => { }, _ => { }, () => { }, () => { });
 
-            PathEditorMenuRequest request = bridge.CaptureNodeMenuRequest(SeparatedPassingFixture.Index(source, 4));
+                    PathEditorMenuRequest request = TrainPathToolWindowTests.CaptureNodeMenuRequest(bridge, SeparatedPassingFixture.Index(source, 4), null);
 
-            Assert.AreEqual((2, true, true), (accesses, request.IsCurrent(editor), request.Items.Any(item => item.Action == MapContextMenuAction.RemoveViaPoint)));
+                    Assert.AreEqual((true, true), (request.IsCurrent(editor), request.Items.Any(item => item.Action == MapContextMenuAction.RemoveViaPoint)));
+                }
+            }
         }
 
         [STATestMethod(UseSTASynchronizationContext = true)]
@@ -258,31 +575,35 @@ namespace Tests.FreeTrainSimulator.Toolbox.Views
         [DataRow("placement")]
         public async Task WhenOwnershipChangesBeforeNodeMenuEntriesAreAttachedThenRequestIsRejected(string change)
         {
-            using SeparatedPassingFixture fixture = await SeparatedPassingFixture.CreateAsync().ConfigureAwait(true);
-            using PathEditor editor = new PathEditor(fixture.Content);
-            PathModel source = SeparatedPassingFixture.CreateMain();
-            Assert.IsTrue(editor.InitializePathAsync(source, TestContext.CancellationToken).GetAwaiter().GetResult());
-            int nodeIndex = SeparatedPassingFixture.Index(source, 4);
-            TrainPathToolWindow bridge = new TrainPathToolWindow(() => editor, () => null, _ => { },
-                () => { }, () => { }, _ => { }, () => { }, () => { });
-            PathEditorMenuRequest ownership = PathEditorMenuRequest.Capture(editor);
-            ImmutableArray<MapContextMenuItem> entries = bridge.GetNodeActions(nodeIndex);
-            Action changeOwnership = change switch
+            using (SeparatedPassingFixture fixture = await SeparatedPassingFixture.CreateAsync().ConfigureAwait(true))
             {
-                "reload" => () => Assert.IsTrue(editor.InitializePathAsync(source, TestContext.CancellationToken).GetAwaiter().GetResult()),
-                "edit-undo" => () =>
+                using (PathEditor editor = new PathEditor(fixture.Content))
                 {
-                    Assert.IsTrue(editor.SetMetadataCommand("Changed", source.Start, source.End, false).Success);
-                    Assert.IsTrue(editor.Undo());
-                },
-                "placement" => () => Assert.IsTrue(editor.BeginMoveNodeCommand(nodeIndex).Success),
-                _ => throw new ArgumentOutOfRangeException(nameof(change)),
-            };
+                    PathModel source = SeparatedPassingFixture.CreateMain();
+                    Assert.IsTrue(editor.InitializePathAsync(source, TestContext.CancellationToken).GetAwaiter().GetResult());
+                    int nodeIndex = SeparatedPassingFixture.Index(source, 4);
+                    TrainPathToolWindow bridge = new TrainPathToolWindow(() => editor, () => null, action => action(), () => { }, () => { }, _ => { }, () => { }, () => { });
+                    PathEditorMenuRequest ownership = PathEditorMenuRequest.Capture(editor);
+                    ImmutableArray<MapContextMenuItem> entries = TrainPathToolWindowTests.CaptureNodeMenuRequest(bridge, nodeIndex, null).Items;
+                    Action changeOwnership = change switch
+                    {
+                        "reload" => () => Assert.IsTrue(editor.InitializePathAsync(source, TestContext.CancellationToken).GetAwaiter().GetResult()),
+                        "edit-undo" => () =>
+                        {
+                            Assert.IsTrue(editor.SetMetadataCommand("Changed", source.Start, source.End, false).Success);
+                            Assert.IsTrue(editor.Undo());
+                        }
+                        ,
+                        "placement" => () => Assert.IsTrue(editor.BeginMoveNodeCommand(nodeIndex).Success),
+                        _ => throw new ArgumentOutOfRangeException(nameof(change)),
+                    };
 
-            changeOwnership();
-            PathEditorMenuRequest request = ownership.WithItems(entries, editor);
+                    changeOwnership();
+                    PathEditorMenuRequest request = ownership.WithItems(entries, editor);
 
-            Assert.AreSame(PathEditorMenuRequest.Empty, request);
+                    Assert.AreSame(PathEditorMenuRequest.Empty, request);
+                }
+            }
         }
 
         [STATestMethod(UseSTASynchronizationContext = true)]
@@ -291,39 +612,44 @@ namespace Tests.FreeTrainSimulator.Toolbox.Views
         [DataRow("phase")]
         public async Task WhenDraftChangesBeforeNodeMenuEntriesAreAttachedThenRequestIsRejected(string change)
         {
-            using SeparatedPassingFixture fixture = await SeparatedPassingFixture.CreateAsync().ConfigureAwait(true);
-            using PathEditor editor = new PathEditor(fixture.Content);
-            PathModel source = SeparatedPassingFixture.CreateMain();
-            Assert.IsTrue(editor.InitializePathAsync(source, TestContext.CancellationToken).GetAwaiter().GetResult());
-            int split = SeparatedPassingFixture.Index(source, 3);
-            int rejoin = SeparatedPassingFixture.Index(source, 6);
-            BeginGuidedMenuDraft(editor, split, rejoin);
-            TrainPathToolWindow bridge = new TrainPathToolWindow(() => editor, () => null, _ => { },
-                () => { }, () => { }, _ => { }, () => { }, () => { });
-            PathEditorMenuRequest ownership = PathEditorMenuRequest.Capture(editor);
-            ImmutableArray<MapContextMenuItem> entries = bridge.GetNodeActions(rejoin);
-            Action changeDraft = change switch
+            using (SeparatedPassingFixture fixture = await SeparatedPassingFixture.CreateAsync().ConfigureAwait(true))
             {
-                "restart" => () =>
+                using (PathEditor editor = new PathEditor(fixture.Content))
                 {
-                    Assert.IsTrue(editor.CancelPassingBranchCommand().Success);
+                    PathModel source = SeparatedPassingFixture.CreateMain();
+                    Assert.IsTrue(editor.InitializePathAsync(source, TestContext.CancellationToken).GetAwaiter().GetResult());
+                    int split = SeparatedPassingFixture.Index(source, 3);
+                    int rejoin = SeparatedPassingFixture.Index(source, 6);
                     BeginGuidedMenuDraft(editor, split, rejoin);
-                },
-                "via" => () => Assert.IsTrue(editor.PreviewPassingBranchViaCommand(new PathNode(
-                    new WorldLocation(SeparatedPassingFixture.Via(3).Location.Tile, new Vector3(60, 0, 100)))
-                    { NodeType = PathNodeType.Via, NodeIndex = 5, NextMainNode = -1, NextSidingNode = -1 }, false).Success),
-                "phase" => () =>
-                {
-                    Assert.IsTrue(editor.CancelPassingBranchCommand().Success);
-                    Assert.IsTrue(editor.BeginPassingBranchCommand(split).Success);
-                },
-                _ => throw new ArgumentOutOfRangeException(nameof(change)),
-            };
+                    TrainPathToolWindow bridge = new TrainPathToolWindow(() => editor, () => null, action => action(), () => { }, () => { }, _ => { }, () => { }, () => { });
+                    PathEditorMenuRequest ownership = PathEditorMenuRequest.Capture(editor);
+                    ImmutableArray<MapContextMenuItem> entries = TrainPathToolWindowTests.CaptureNodeMenuRequest(bridge, rejoin, null).Items;
+                    Action changeDraft = change switch
+                    {
+                        "restart" => () =>
+                        {
+                            Assert.IsTrue(editor.CancelPassingBranchCommand().Success);
+                            BeginGuidedMenuDraft(editor, split, rejoin);
+                        }
+                        ,
+                        "via" => () => Assert.IsTrue(editor.PreviewPassingBranchViaCommand(new PathNode(
+                            new WorldLocation(SeparatedPassingFixture.Via(3).Location.Tile, new Vector3(60, 0, 100)))
+                        { NodeType = PathNodeType.Via, NodeIndex = 5, NextMainNode = -1, NextSidingNode = -1 }, false).Success),
+                        "phase" => () =>
+                        {
+                            Assert.IsTrue(editor.CancelPassingBranchCommand().Success);
+                            Assert.IsTrue(editor.BeginPassingBranchCommand(split).Success);
+                        }
+                        ,
+                        _ => throw new ArgumentOutOfRangeException(nameof(change)),
+                    };
 
-            changeDraft();
-            PathEditorMenuRequest request = ownership.WithItems(entries, editor);
+                    changeDraft();
+                    PathEditorMenuRequest request = ownership.WithItems(entries, editor);
 
-            Assert.AreSame(PathEditorMenuRequest.Empty, request);
+                    Assert.AreSame(PathEditorMenuRequest.Empty, request);
+                }
+            }
         }
 
         [STATestMethod(UseSTASynchronizationContext = true)]
@@ -333,10 +659,9 @@ namespace Tests.FreeTrainSimulator.Toolbox.Views
             using PathEditor editor = new PathEditor(fixture.Content);
             PathModel source = SeparatedPassingFixture.CreateMain();
             Assert.IsTrue(editor.InitializePathAsync(source, TestContext.CancellationToken).GetAwaiter().GetResult());
-            TrainPathToolWindow bridge = new TrainPathToolWindow(() => editor, () => null, _ => { },
-                () => { }, () => { }, _ => { }, () => { }, () => { });
+            TrainPathToolWindow bridge = new TrainPathToolWindow(() => editor, () => null, action => action(), () => { }, () => { }, _ => { }, () => { }, () => { });
             PathEditorMenuRequest ownership = PathEditorMenuRequest.Capture(editor);
-            ImmutableArray<MapContextMenuItem> entries = bridge.GetNodeActions(SeparatedPassingFixture.Index(source, 4));
+            ImmutableArray<MapContextMenuItem> entries = TrainPathToolWindowTests.CaptureNodeMenuRequest(bridge, SeparatedPassingFixture.Index(source, 4), null).Items;
 
             editor.SelectAuthoredNode(SeparatedPassingFixture.Index(source, 9));
             PathEditorMenuRequest request = ownership.WithItems(entries, editor);
@@ -349,20 +674,34 @@ namespace Tests.FreeTrainSimulator.Toolbox.Views
         [DataRow(true)]
         public async Task WhenCurrentEditorChangesBeforeNodeMenuPublicationThenEntriesAreRejected(bool unavailable)
         {
-            using SeparatedPassingFixture fixture = await SeparatedPassingFixture.CreateAsync().ConfigureAwait(true);
-            using PathEditor editor = new PathEditor(fixture.Content);
-            using PathEditor replacement = new PathEditor(fixture.Content);
-            PathModel source = SeparatedPassingFixture.CreateMain();
-            Assert.IsTrue(editor.InitializePathAsync(source, TestContext.CancellationToken).GetAwaiter().GetResult());
-            Assert.IsTrue(replacement.InitializePathAsync(source, TestContext.CancellationToken).GetAwaiter().GetResult());
-            int accesses = 0;
-            PathEditor next = unavailable ? null : replacement;
-            TrainPathToolWindow bridge = new TrainPathToolWindow(() => ++accesses == 1 ? editor : next, () => null, _ => { },
-                () => { }, () => { }, _ => { }, () => { }, () => { });
+            using (SeparatedPassingFixture fixture = await SeparatedPassingFixture.CreateAsync().ConfigureAwait(true))
+            {
+                using (PathEditor editor = new PathEditor(fixture.Content))
+                {
+                    using (PathEditor replacement = new PathEditor(fixture.Content))
+                    {
+                        PathModel source = SeparatedPassingFixture.CreateMain();
+                        Assert.IsTrue(editor.InitializePathAsync(source, TestContext.CancellationToken).GetAwaiter().GetResult());
+                        Assert.IsTrue(replacement.InitializePathAsync(source, TestContext.CancellationToken).GetAwaiter().GetResult());
+                        PathEditor current = editor;
+                        Action onRead = null;
+                        PathEditor next = unavailable ? null : replacement;
+                        TrainPathToolWindow bridge = new TrainPathToolWindow(() =>
+                        {
+                            PathEditor captured = current;
+                            onRead?.Invoke();
+                            return captured;
+                        }, () => null, action => action(), () => { }, () => { }, _ => { }, () => { }, () => { }) { Active = true };
+                        bridge.RefreshSnapshot();
+                        PathEditorMenuRequest ownership = bridge.CaptureTrainPathSnapshot().NodeMenuOwnership;
+                        onRead = () => { current = next; onRead = null; };
+                        PathEditorMenuRequest request = null;
+                        bridge.RequestNodeMenu(ownership, SeparatedPassingFixture.Index(source, 4), result => request = result);
 
-            PathEditorMenuRequest request = bridge.CaptureNodeMenuRequest(SeparatedPassingFixture.Index(source, 4));
-
-            Assert.AreSame(PathEditorMenuRequest.Empty, request);
+                        Assert.AreSame(PathEditorMenuRequest.Empty, request);
+                    }
+                }
+            }
         }
 
         [STATestMethod(UseSTASynchronizationContext = true)]
@@ -373,61 +712,61 @@ namespace Tests.FreeTrainSimulator.Toolbox.Views
         [DataRow(true, "restart")]
         public async Task WhenOwnershipChangesDuringWpfMenuConstructionThenNoActionIsPublished(bool contextMenu, string change)
         {
-            using SeparatedPassingFixture fixture = await SeparatedPassingFixture.CreateAsync().ConfigureAwait(true);
-            using PathEditor editor = new PathEditor(fixture.Content);
-            PathModel source = SeparatedPassingFixture.CreateMain();
-            Assert.IsTrue(editor.InitializePathAsync(source, TestContext.CancellationToken).GetAwaiter().GetResult());
-            int split = SeparatedPassingFixture.Index(source, 3);
-            int rejoin = SeparatedPassingFixture.Index(source, 6);
-            Dictionary<string, Action> prepare = new Dictionary<string, Action>
+            using (SeparatedPassingFixture fixture = await SeparatedPassingFixture.CreateAsync().ConfigureAwait(true))
             {
-                ["reload"] = () => { },
-                ["restart"] = () => BeginGuidedMenuDraft(editor, split, rejoin),
-            };
-            prepare[change]();
-            editor.SelectAuthoredNode(rejoin);
-            Action changeOwnership = change switch
-            {
-                "reload" => () => Assert.IsTrue(editor.InitializePathAsync(source, TestContext.CancellationToken).GetAwaiter().GetResult()),
-                "restart" => () =>
+                using (PathEditor editor = new PathEditor(fixture.Content))
                 {
-                    Assert.IsTrue(editor.CancelPassingBranchCommand().Success);
-                    BeginGuidedMenuDraft(editor, split, rejoin);
-                },
-                _ => throw new ArgumentOutOfRangeException(nameof(change)),
-            };
-            int accesses = 0;
-            bool constructingMenu = false;
-            Queue<Action> commands = new Queue<Action>();
-            TrainPathToolWindow bridge = new TrainPathToolWindow(() =>
-            {
-                if (constructingMenu && ++accesses == 2)
-                    changeOwnership();
-                return editor;
-            }, () => null, commands.Enqueue, () => { }, () => { }, _ => { }, () => { }, () => { }) { Active = true };
-            bridge.RefreshSnapshot();
-            using ToolWindowRefreshScheduler scheduler = new ToolWindowRefreshScheduler(Dispatcher.CurrentDispatcher);
-            using TrainPathToolWindowViewModel viewModel = new TrainPathToolWindowViewModel(bridge, scheduler, TrainPathToolWindowViewModel.EditorTabIndex);
-            viewModel.Start();
-            TrainPathToolView view = new TrainPathToolView { DataContext = viewModel };
-            Window window = new Window { Content = view, Width = 520, Height = 700, ShowInTaskbar = false };
-            try
-            {
-                window.Show();
-                SettleLayout(window);
-                DrainCommands(commands);
+                    PathModel source = SeparatedPassingFixture.CreateMain();
+                    Assert.IsTrue(editor.InitializePathAsync(source, TestContext.CancellationToken).GetAwaiter().GetResult());
+                    int split = SeparatedPassingFixture.Index(source, 3);
+                    int rejoin = SeparatedPassingFixture.Index(source, 6);
+                    Dictionary<string, Action> prepare = new Dictionary<string, Action>
+                    {
+                        ["reload"] = () => { },
+                        ["restart"] = () => BeginGuidedMenuDraft(editor, split, rejoin),
+                    };
+                    prepare[change]();
+                    editor.SelectAuthoredNode(rejoin);
+                    Action changeOwnership = change switch
+                    {
+                        "reload" => () => Assert.IsTrue(editor.InitializePathAsync(source, TestContext.CancellationToken).GetAwaiter().GetResult()),
+                        "restart" => () =>
+                        {
+                            Assert.IsTrue(editor.CancelPassingBranchCommand().Success);
+                            BeginGuidedMenuDraft(editor, split, rejoin);
+                        }
+                        ,
+                        _ => throw new ArgumentOutOfRangeException(nameof(change)),
+                    };
+                    Queue<Action> commands = new Queue<Action>();
+                    TrainPathToolWindow bridge = new TrainPathToolWindow(() => editor, () => null, commands.Enqueue, () => { }, () => { }, _ => { }, () => { }, () => { }) { Active = true };
+                    bridge.RefreshSnapshot();
+                    using (ToolWindowRefreshScheduler scheduler = new ToolWindowRefreshScheduler(Dispatcher.CurrentDispatcher))
+                    {
+                        using (TrainPathToolWindowViewModel viewModel = new TrainPathToolWindowViewModel(bridge, scheduler, TrainPathToolWindowViewModel.EditorTabIndex))
+                        {
+                            viewModel.Start();
+                            TrainPathToolView view = new TrainPathToolView { DataContext = viewModel };
+                            Window window = new Window { Content = view, Width = 520, Height = 700, ShowInTaskbar = false };
+                            try
+                            {
+                                window.Show();
+                                SettleLayout(window);
+                                DrainCommands(commands);
 
-                // Menu layout pumps the dispatcher; exclude polling reads from the construction witness.
-                viewModel.Stop();
-                constructingMenu = true;
-                object[] entries = OpenNodeMenu(view, window, viewModel, contextMenu).ToArray();
-                constructingMenu = false;
+                                viewModel.Stop();
+                                commands.Enqueue(changeOwnership);
+                                object[] entries = OpenNodeMenu(view, window, viewModel, contextMenu, commands).ToArray();
 
-                Assert.AreEqual((2, 0), (accesses, entries.OfType<MenuItem>().Count()));
-            }
-            finally
-            {
-                window.Close();
+                                Assert.IsEmpty(entries.OfType<MenuItem>());
+                            }
+                            finally
+                            {
+                                window.Close();
+                            }
+                        }
+                    }
+                }
             }
         }
 
@@ -435,33 +774,35 @@ namespace Tests.FreeTrainSimulator.Toolbox.Views
         public void WhenNoEditorExistsThenNodeMenuCaptureAndDispatchAreEmptyAndSafe()
         {
             Queue<Action> commands = new Queue<Action>();
-            TrainPathToolWindow bridge = new TrainPathToolWindow(() => null, () => null, commands.Enqueue,
-                () => { }, () => { }, _ => { }, () => { }, () => { });
-            PathEditorMenuRequest request = bridge.CaptureNodeMenuRequest(0);
+            TrainPathToolWindow bridge = new TrainPathToolWindow(() => null, () => null, commands.Enqueue, () => { }, () => { }, _ => { }, () => { }, () => { });
+            PathEditorMenuRequest request = TrainPathToolWindowTests.CaptureNodeMenuRequest(bridge, 0, commands);
 
             bridge.ExecuteNodeAction(request, new MapContextMenuItem(MapContextMenuAction.RemoveViaPoint, 0));
             commands.Dequeue()();
 
-            Assert.AreEqual((true, false, true, 0), (request.Items.IsEmpty, request.IsCurrent(null), bridge.GetNodeActions(0).IsEmpty, commands.Count));
+            Assert.AreEqual((true, false, 0), (request.Items.IsEmpty, request.IsCurrent(null), commands.Count));
         }
 
         [STATestMethod(UseSTASynchronizationContext = true)]
         public async Task WhenEntryDoesNotBelongToCapturedNodeMenuThenCurrentOwnerIsNotMutated()
         {
-            using SeparatedPassingFixture fixture = await SeparatedPassingFixture.CreateAsync().ConfigureAwait(true);
-            using PathEditor editor = new PathEditor(fixture.Content);
-            PathModel source = SeparatedPassingFixture.CreateMain();
-            Assert.IsTrue(editor.InitializePathAsync(source, TestContext.CancellationToken).GetAwaiter().GetResult());
-            Queue<Action> commands = new Queue<Action>();
-            TrainPathToolWindow bridge = new TrainPathToolWindow(() => editor, () => null, commands.Enqueue,
-                () => { }, () => { }, _ => { }, () => { }, () => { });
-            PathEditorMenuRequest request = bridge.CaptureNodeMenuRequest(SeparatedPassingFixture.Index(source, 4));
-            PathModel expected = editor.TryCaptureCurrentPathModel();
+            using (SeparatedPassingFixture fixture = await SeparatedPassingFixture.CreateAsync().ConfigureAwait(true))
+            {
+                using (PathEditor editor = new PathEditor(fixture.Content))
+                {
+                    PathModel source = SeparatedPassingFixture.CreateMain();
+                    Assert.IsTrue(editor.InitializePathAsync(source, TestContext.CancellationToken).GetAwaiter().GetResult());
+                    Queue<Action> commands = new Queue<Action>();
+                    TrainPathToolWindow bridge = new TrainPathToolWindow(() => editor, () => null, commands.Enqueue, () => { }, () => { }, _ => { }, () => { }, () => { });
+                    PathEditorMenuRequest request = TrainPathToolWindowTests.CaptureNodeMenuRequest(bridge, SeparatedPassingFixture.Index(source, 4), commands);
+                    PathModel expected = editor.TryCaptureCurrentPathModel();
 
-            bridge.ExecuteNodeAction(request, new MapContextMenuItem(MapContextMenuAction.RemoveViaPoint, SeparatedPassingFixture.Index(source, 9)));
-            commands.Dequeue()();
+                    bridge.ExecuteNodeAction(request, new MapContextMenuItem(MapContextMenuAction.RemoveViaPoint, SeparatedPassingFixture.Index(source, 9)));
+                    commands.Dequeue()();
 
-            Assert.AreSame(expected, editor.TryCaptureCurrentPathModel());
+                    Assert.AreSame(expected, editor.TryCaptureCurrentPathModel());
+                }
+            }
         }
 
         private static void BeginGuidedMenuDraft(PathEditor editor, int split, int rejoin)
@@ -476,48 +817,59 @@ namespace Tests.FreeTrainSimulator.Toolbox.Views
         {
             editor.SelectAuthoredNode(nodeIndex);
             Queue<Action> commands = new Queue<Action>();
-            TrainPathToolWindow bridge = new TrainPathToolWindow(() => editor, () => null, commands.Enqueue,
-                () => { }, () => { }, _ => { }, () => { }, () => { }) { Active = true };
+            TrainPathToolWindow bridge = new TrainPathToolWindow(() => editor, () => null, commands.Enqueue, () => { }, () => { }, _ => { }, () => { }, () => { }) { Active = true };
             bridge.RefreshSnapshot();
-            using ToolWindowRefreshScheduler scheduler = new ToolWindowRefreshScheduler(Dispatcher.CurrentDispatcher);
-            using TrainPathToolWindowViewModel viewModel = new TrainPathToolWindowViewModel(bridge, scheduler, TrainPathToolWindowViewModel.EditorTabIndex);
-            viewModel.Start();
-            TrainPathToolView view = new TrainPathToolView { DataContext = viewModel };
-            Window window = new Window { Content = view, Width = 520, Height = 700, ShowInTaskbar = false };
-            try
+            using (ToolWindowRefreshScheduler scheduler = new ToolWindowRefreshScheduler(Dispatcher.CurrentDispatcher))
             {
-                window.Show();
-                SettleLayout(window);
-                DrainCommands(commands);
-                MenuItem action = OpenNodeMenu(view, window, viewModel, contextMenu).OfType<MenuItem>()
-                    .Single(item => Equals(item.Header, global::FreeTrainSimulator.Toolbox.MainWindow.GetMapContextMenuCaption(new MapContextMenuItem(actionKind, nodeIndex))));
-                DrainCommands(commands);
-                verify(commands, action, viewModel);
-            }
-            finally
-            {
-                window.Close();
+                using (TrainPathToolWindowViewModel viewModel = new TrainPathToolWindowViewModel(bridge, scheduler, TrainPathToolWindowViewModel.EditorTabIndex))
+                {
+                    viewModel.Start();
+                    TrainPathToolView view = new TrainPathToolView { DataContext = viewModel };
+                    Window window = new Window { Content = view, Width = 520, Height = 700, ShowInTaskbar = false };
+                    try
+                    {
+                        window.Show();
+                        SettleLayout(window);
+                        DrainCommands(commands);
+                        MenuItem action = OpenNodeMenu(view, window, viewModel, contextMenu, commands).OfType<MenuItem>()
+                            .Single(item => Equals(item.Header, global::FreeTrainSimulator.Toolbox.MainWindow.GetMapContextMenuCaption(new MapContextMenuItem(actionKind, nodeIndex))));
+                        DrainCommands(commands);
+                        verify(commands, action, viewModel);
+                    }
+                    finally
+                    {
+                        window.Close();
+                    }
+                }
             }
         }
 
-        private static object[] OpenNodeMenu(TrainPathToolView view, Window window, TrainPathToolWindowViewModel viewModel, bool contextMenu)
+        private static object[] OpenNodeMenu(TrainPathToolView view, Window window, TrainPathToolWindowViewModel viewModel, bool contextMenu, Queue<Action> commands)
+        {
+            ItemsControl menu = BeginNodeMenu(view, window, viewModel, contextMenu, viewModel.SelectedNode);
+            DrainCommands(commands);
+            SettleLayout(window);
+            return menu.Items.Cast<object>().ToArray();
+        }
+
+        private static ItemsControl BeginNodeMenu(TrainPathToolView view, Window window, TrainPathToolWindowViewModel viewModel, bool contextMenu, TrainPathNodeItemViewModel target)
         {
             if (!contextMenu)
             {
                 MenuItem menu = Descendants(view).OfType<MenuItem>().Single(item => AutomationProperties.GetName(item) == "Node actions");
                 menu.IsSubmenuOpen = true;
-                SettleLayout(window);
-                return menu.Items.Cast<object>().ToArray();
+                return menu;
             }
 
             ListView list = Descendants(view).OfType<ListView>().Single(element => ReferenceEquals(element.ItemsSource, viewModel.Nodes));
-            list.ScrollIntoView(viewModel.SelectedNode);
+            list.ScrollIntoView(target);
             SettleLayout(window);
-            ListViewItem row = (ListViewItem)list.ItemContainerGenerator.ContainerFromItem(viewModel.SelectedNode);
+            ListViewItem row = (ListViewItem)list.ItemContainerGenerator.ContainerFromItem(target);
             ContextMenuEventArgs opening = (ContextMenuEventArgs)Activator.CreateInstance(typeof(ContextMenuEventArgs),
                 BindingFlags.Instance | BindingFlags.NonPublic, null, new object[] { row, true }, null);
             row.RaiseEvent(opening);
-            return list.ContextMenu.Items.Cast<object>().ToArray();
+            list.ContextMenu.IsOpen = !opening.Handled;
+            return list.ContextMenu;
         }
 
         private static void DrainCommands(Queue<Action> commands)
@@ -537,33 +889,35 @@ namespace Tests.FreeTrainSimulator.Toolbox.Views
             try
             {
                 Queue<Action> commands = new Queue<Action>();
-                TrainPathToolWindow bridge = new TrainPathToolWindow(() => null, () => null, commands.Enqueue,
-                    () => { }, () => { }, _ => { }, () => { }, () => { });
-                typeof(TrainPathToolWindow).GetField("snapshot", BindingFlags.Instance | BindingFlags.NonPublic).SetValue(bridge,
-                    CreateGuidedSnapshot((PassingBranchAuthoringPhase)phase, true));
-                using ToolWindowRefreshScheduler scheduler = new ToolWindowRefreshScheduler(Dispatcher.CurrentDispatcher);
-                using TrainPathToolWindowViewModel viewModel = new TrainPathToolWindowViewModel(bridge, scheduler, TrainPathToolWindowViewModel.EditorTabIndex);
-                viewModel.Start();
-                TrainPathToolView view = new TrainPathToolView { DataContext = viewModel };
-                window = new Window { Content = view, Width = 520, Height = 700, ShowInTaskbar = false };
-                window.Show();
-                SettleLayout(window);
-                Button button = Descendants(view).OfType<Button>().Single(control => control.IsVisible && Equals(control.Content, actionName));
-                Dictionary<string, ICommand> expected = new Dictionary<string, ICommand>
+                TrainPathToolWindow bridge = new TrainPathToolWindow(() => null, () => null, commands.Enqueue, () => { }, () => { }, _ => { }, () => { }, () => { });
+                typeof(TrainPathToolWindow).GetField("snapshot", BindingFlags.Instance | BindingFlags.NonPublic).SetValue(bridge, CreateGuidedSnapshot((PassingBranchAuthoringPhase)phase, true));
+                using (ToolWindowRefreshScheduler scheduler = new ToolWindowRefreshScheduler(Dispatcher.CurrentDispatcher))
                 {
-                    ["Rejoin with one passing via"] = viewModel.RejoinPassingBranchWithViaCommand,
-                    ["Confirm passing via"] = viewModel.CommitPlacementCommand,
-                    ["Cancel"] = viewModel.CancelPassingBranchCommand,
-                };
-                Assert.AreSame(expected[actionName], button.Command);
-                Assert.IsTrue(button.IsEnabled);
-                Assert.IsFalse(viewModel.IsPlacementPanelVisible);
-                Assert.IsFalse(viewModel.IsBuildingPanelVisible);
+                    using (TrainPathToolWindowViewModel viewModel = new TrainPathToolWindowViewModel(bridge, scheduler, TrainPathToolWindowViewModel.EditorTabIndex))
+                    {
+                        viewModel.Start();
+                        TrainPathToolView view = new TrainPathToolView { DataContext = viewModel };
+                        window = new Window { Content = view, Width = 520, Height = 700, ShowInTaskbar = false };
+                        window.Show();
+                        SettleLayout(window);
+                        Button button = Descendants(view).OfType<Button>().Single(control => control.IsVisible && Equals(control.Content, actionName));
+                        Dictionary<string, ICommand> expected = new Dictionary<string, ICommand>
+                        {
+                            ["Rejoin with one passing via"] = viewModel.RejoinPassingBranchWithViaCommand,
+                            ["Confirm passing via"] = viewModel.CommitPlacementCommand,
+                            ["Cancel"] = viewModel.CancelPassingBranchCommand,
+                        };
+                        Assert.AreSame(expected[actionName], button.Command);
+                        Assert.IsTrue(button.IsEnabled);
+                        Assert.IsFalse(viewModel.IsPlacementPanelVisible);
+                        Assert.IsFalse(viewModel.IsBuildingPanelVisible);
 
-                ((IInvokeProvider)new ButtonAutomationPeer(button).GetPattern(PatternInterface.Invoke)).Invoke();
-                SettleLayout(window);
+                        ((IInvokeProvider)new ButtonAutomationPeer(button).GetPattern(PatternInterface.Invoke)).Invoke();
+                        SettleLayout(window);
 
-                Assert.HasCount(1, commands);
+                        Assert.HasCount(1, commands);
+                    }
+                }
             }
             finally
             {
@@ -582,21 +936,25 @@ namespace Tests.FreeTrainSimulator.Toolbox.Views
                     () => { }, () => { }, _ => { }, () => { }, () => { });
                 FieldInfo snapshotField = typeof(TrainPathToolWindow).GetField("snapshot", BindingFlags.Instance | BindingFlags.NonPublic);
                 snapshotField.SetValue(bridge, CreateGuidedSnapshot(PassingBranchAuthoringPhase.PlacingVia, false));
-                using ToolWindowRefreshScheduler scheduler = new ToolWindowRefreshScheduler(Dispatcher.CurrentDispatcher);
-                using TrainPathToolWindowViewModel viewModel = new TrainPathToolWindowViewModel(bridge, scheduler, TrainPathToolWindowViewModel.EditorTabIndex);
-                viewModel.Start();
-                TrainPathToolView view = new TrainPathToolView { DataContext = viewModel };
-                window = new Window { Content = view, Width = 520, Height = 700, ShowInTaskbar = false };
-                window.Show();
-                SettleLayout(window);
-                Button button = Descendants(view).OfType<Button>().Single(control => control.IsVisible && Equals(control.Content, "Confirm passing via"));
-                Assert.IsFalse(button.IsEnabled);
+                using (ToolWindowRefreshScheduler scheduler = new ToolWindowRefreshScheduler(Dispatcher.CurrentDispatcher))
+                {
+                    using (TrainPathToolWindowViewModel viewModel = new TrainPathToolWindowViewModel(bridge, scheduler, TrainPathToolWindowViewModel.EditorTabIndex))
+                    {
+                        viewModel.Start();
+                        TrainPathToolView view = new TrainPathToolView { DataContext = viewModel };
+                        window = new Window { Content = view, Width = 520, Height = 700, ShowInTaskbar = false };
+                        window.Show();
+                        SettleLayout(window);
+                        Button button = Descendants(view).OfType<Button>().Single(control => control.IsVisible && Equals(control.Content, "Confirm passing via"));
+                        Assert.IsFalse(button.IsEnabled);
 
-                snapshotField.SetValue(bridge, CreateGuidedSnapshot(PassingBranchAuthoringPhase.ConfirmingVia, true));
-                viewModel.Start();
-                SettleLayout(window);
+                        snapshotField.SetValue(bridge, CreateGuidedSnapshot(PassingBranchAuthoringPhase.ConfirmingVia, true));
+                        viewModel.Start();
+                        SettleLayout(window);
 
-                Assert.IsTrue(button.IsEnabled);
+                        Assert.IsTrue(button.IsEnabled);
+                    }
+                }
             }
             finally
             {
@@ -635,33 +993,38 @@ namespace Tests.FreeTrainSimulator.Toolbox.Views
                 TrainPathToolWindow bridge = new TrainPathToolWindow(() => null, () => null, action => action(),
                     () => { }, () => { }, _ => Assert.Fail("Checkbox selection must not load an editor path."),
                     () => Assert.Fail("Checkbox selection must not unload an editor path."), () => { }, null,
-                    (_, _) => Task.CompletedTask, null, _ => Task.CompletedTask) { Active = true };
+                    (_, _) => Task.CompletedTask, null, _ => Task.CompletedTask)
+                { Active = true };
                 bridge.UpdateComparisons(Enumerable.Range(0, 6).Select(index => new TrainPathComparisonRow(index.ToString(System.Globalization.CultureInfo.InvariantCulture), "Saved " + index, 1,
                     index < count, index < count && loading, null, System.Drawing.Color.Empty)).ToImmutableArray());
                 bridge.RefreshSnapshot();
                 TrainPathSnapshot snapshot = bridge.CaptureTrainPathSnapshot();
                 bridge.RefreshSnapshot();
                 Assert.AreSame(snapshot, bridge.CaptureTrainPathSnapshot(), "An unchanged paths-only snapshot must be reused.");
-                using ToolWindowRefreshScheduler scheduler = new ToolWindowRefreshScheduler(Dispatcher.CurrentDispatcher);
-                using TrainPathToolWindowViewModel viewModel = new TrainPathToolWindowViewModel(bridge, scheduler);
-                viewModel.Start();
-                TrainPathToolView view = new TrainPathToolView { DataContext = viewModel };
-                window = new Window { Content = view, Width = 520, Height = 700, ShowInTaskbar = false };
-                window.Show();
-                SettleLayout(window);
-                MenuItem combine = (MenuItem)view.FindName("CombinePathsMenuItem");
-                MenuItem actions = (MenuItem)combine.Parent;
-                actions.IsSubmenuOpen = true;
-                SettleLayout(window);
+                using (ToolWindowRefreshScheduler scheduler = new ToolWindowRefreshScheduler(Dispatcher.CurrentDispatcher))
+                {
+                    using (TrainPathToolWindowViewModel viewModel = new TrainPathToolWindowViewModel(bridge, scheduler))
+                    {
+                        viewModel.Start();
+                        TrainPathToolView view = new TrainPathToolView { DataContext = viewModel };
+                        window = new Window { Content = view, Width = 520, Height = 700, ShowInTaskbar = false };
+                        window.Show();
+                        SettleLayout(window);
+                        MenuItem combine = (MenuItem)view.FindName("CombinePathsMenuItem");
+                        MenuItem actions = (MenuItem)combine.Parent;
+                        actions.IsSubmenuOpen = true;
+                        SettleLayout(window);
 
-                Assert.AreEqual(count == 2 && !loading, combine.IsEnabled);
-                Assert.IsTrue(combine.IsVisible);
-                Assert.AreEqual("Path actions", AutomationProperties.GetName(actions));
-                Assert.AreSame(viewModel.CombineSelectedPathsCommand, combine.Command);
-                Assert.IsNull(viewModel.SelectedPath);
-                Assert.IsNull(view.FindName("CompositionSourcePicker"));
-                Assert.IsNull(view.FindName("AppendSavedPathButton"));
-                Assert.IsFalse(view.Resources.Contains("TrainPathCombineCellTemplate"));
+                        Assert.AreEqual(count == 2 && !loading, combine.IsEnabled);
+                        Assert.IsTrue(combine.IsVisible);
+                        Assert.AreEqual("Path actions", AutomationProperties.GetName(actions));
+                        Assert.AreSame(viewModel.CombineSelectedPathsCommand, combine.Command);
+                        Assert.IsNull(viewModel.SelectedPath);
+                        Assert.IsNull(view.FindName("CompositionSourcePicker"));
+                        Assert.IsNull(view.FindName("AppendSavedPathButton"));
+                        Assert.IsFalse(view.Resources.Contains("TrainPathCombineCellTemplate"));
+                    }
+                }
             }
             finally
             {
@@ -682,8 +1045,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.Views
                 TrainPathToolWindow bridge = null;
                 bridge = new TrainPathToolWindow(() => null, () => null, action => action(),
                     () => { }, () => { }, _ => Assert.Fail("Checkbox selection must not load an editor path."),
-                    () => Assert.Fail("Checkbox selection must not unload an editor path."), () => { }, null,
-                    (id, selected) =>
+                    () => Assert.Fail("Checkbox selection must not unload an editor path."), () => { }, null, (id, selected) =>
                     {
                         int index = Array.FindIndex(rows, row => row.Id == id);
                         rows[index] = rows[index] with { IsSelected = selected };
@@ -1263,7 +1625,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.Views
                 {
                     using (TrainPathToolWindowViewModel viewModel = new TrainPathToolWindowViewModel(bridge, scheduler))
                     {
-                        TrainPathListItemViewModel path = new TrainPathListItemViewModel("saved", "Saved path", global::FreeTrainSimulator.Models.Content.PathValidationState.Valid, true);
+                        TrainPathListItemViewModel path = new TrainPathListItemViewModel("saved", "Saved path", PathValidationState.Valid, true);
                         path.UpdateComparison(comparison);
                         viewModel.Paths.Add(path);
                         TrainPathToolView view = new TrainPathToolView { DataContext = viewModel };

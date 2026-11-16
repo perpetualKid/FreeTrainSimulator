@@ -35,6 +35,7 @@ namespace FreeTrainSimulator.Toolbox.PathEditing
         private readonly Stack<PathModel> undoHistory = new Stack<PathModel>();
         private readonly Stack<PathModel> redoHistory = new Stack<PathModel>();
         private long editRevision;
+        private long pathLifetime;
         // One resolution per path model instance, shared by the persisted validation state and by consumers such
         // as the train path tool window, so an edit resolves the path exactly once.
         private readonly PathRouteResolutionCache resolutionCache = new PathRouteResolutionCache();
@@ -60,8 +61,18 @@ namespace FreeTrainSimulator.Toolbox.PathEditing
 
         internal TrackWorld RuntimeTrackWorld => TrackWorld;
 
-        /// <summary>Monotonic load/edit witness, including undo back to a previously captured model.</summary>
-        internal long CompositionRevision => pathLoadGeneration + editRevision;
+        /// <summary>Monotonic lifetime/edit witness, including load commit and undo back to a captured model.</summary>
+        internal long CompositionRevision => PathLifetime + editRevision;
+
+        /// <summary>
+        /// Ownership witness for one loaded path, independent of edits and undo/redo. Invalidated at load
+        /// request and successful commit (including unload), New/Combine, and Stop; never derived from path identity.
+        /// Atomic reads also cover captures while an asynchronous load is awaiting its owner-thread commit.
+        /// </summary>
+        internal long PathLifetime => Volatile.Read(ref pathLifetime);
+
+        /// <summary>Whether this editor has permanently stopped admitting path commands.</summary>
+        internal bool IsStopped => stopped;
 
         private bool editorDragged;
         private bool stopped;
@@ -295,6 +306,7 @@ namespace FreeTrainSimulator.Toolbox.PathEditing
 
             stopped = true;
             PointerInputEnabled = false;
+            _ = Interlocked.Increment(ref pathLifetime);
             _ = Interlocked.Increment(ref pathLoadGeneration);
             ClearTransientPathInteractionState();
             userCommandController?.RemoveEvent(CommonUserCommand.PointerPressed, MousePressedLeft);
@@ -351,6 +363,8 @@ namespace FreeTrainSimulator.Toolbox.PathEditing
                 InitializePathModel(pathModel);
             }
 
+            // Publish only after the new state is installed, invalidating captures made during the load.
+            _ = Interlocked.Increment(ref pathLifetime);
             OnPathChanged?.Invoke(this, new PathEditorChangedEventArgs(TrainPath));
             return true;
         }
@@ -422,6 +436,7 @@ namespace FreeTrainSimulator.Toolbox.PathEditing
 
         private int BeginPathLoad()
         {
+            _ = Interlocked.Increment(ref pathLifetime);
             ClearTransientPathInteractionState();
             return Interlocked.Increment(ref pathLoadGeneration);
         }
@@ -1613,7 +1628,7 @@ namespace FreeTrainSimulator.Toolbox.PathEditing
 
             PathPersistenceValidationResult materialization = PathPersistenceValidationPolicy.ResolveAndMaterialize(model, ResolveCurrent(model), TrackWorld);
             simulatorEventDiagnostics = materialization.PersistenceAllowed
-                ? PathPersistenceValidationPolicy.GetSimulatorEventDiagnostics(model, materialization)
+                ? PathPersistenceValidationPolicy.GetSimulatorEventDiagnostics(model, materialization, TrackWorld)
                 : GetAuthoredSimulatorEventDiagnostics(model);
             simulatorEventDiagnosticsModel = model;
             return simulatorEventDiagnostics;
@@ -1685,13 +1700,13 @@ namespace FreeTrainSimulator.Toolbox.PathEditing
         private PathRouteDiagnostic FindNewSimulatorEventDiagnostic(PathModel sourceModel, PathModel tentativeModel,
             PathPersistenceValidationResult materialization, ImmutableArray<int> changedNodeIndexes)
         {
-            ImmutableArray<PathRouteDiagnostic> prospectiveDiagnostics = PathPersistenceValidationPolicy.GetSimulatorEventDiagnostics(materialization.PathModel);
+            ImmutableArray<PathRouteDiagnostic> prospectiveDiagnostics = PathPersistenceValidationPolicy.GetSimulatorEventDiagnostics(materialization.PathModel, TrackWorld);
             if (!prospectiveDiagnostics.Any(IsSimulatorEventDiagnostic))
                 return null;
 
             PathPersistenceValidationResult baseline = PathPersistenceValidationPolicy.ResolveAndMaterialize(sourceModel, TrackWorld);
             List<(PathRouteDiagnostic Diagnostic, int AuthoredNodeIndex)> existing = baseline.PersistenceAllowed
-                ? PathPersistenceValidationPolicy.GetSimulatorEventDiagnostics(baseline.PathModel).Where(IsSimulatorEventDiagnostic)
+                ? PathPersistenceValidationPolicy.GetSimulatorEventDiagnostics(baseline.PathModel, TrackWorld).Where(IsSimulatorEventDiagnostic)
                     .Select(diagnostic => (diagnostic, PathPersistenceValidationPolicy.RemapSimulatorEventDiagnostic(sourceModel, baseline, diagnostic).NodeIndex)).ToList()
                 : PathPersistenceValidationPolicy.GetSimulatorEventDiagnostics(sourceModel).AddRange(GetAuthoredSimulatorEventDiagnostics(sourceModel))
                     .Where(diagnostic => IsSimulatorEventDiagnostic(diagnostic) && diagnostic.NodeIndex >= 0)
@@ -1791,6 +1806,7 @@ namespace FreeTrainSimulator.Toolbox.PathEditing
                 or PathRouteDiagnosticCode.UnsupportedJunctionEvent
                 or PathRouteDiagnosticCode.UnsupportedCombinedWaitReversal
                 or PathRouteDiagnosticCode.UnsupportedPassingInteriorEvent
+                or PathRouteDiagnosticCode.UnsupportedProjectedMainEvent
                 or PathRouteDiagnosticCode.MultipleReversalsInContinuousVector;
         }
 
@@ -2026,7 +2042,8 @@ namespace FreeTrainSimulator.Toolbox.PathEditing
                 || selectedRoutes.Length != verifiedRoutes.Length
                 || !selectedRoutes.Zip(verifiedRoutes).All(pair => SamePassingEndpoints(pair.First, pair.Second)
                     && pair.First.Route.HasSamePhysicalTraversal(pair.Second.Route))
-                || !PathPersistenceValidationPolicy.GetSimulatorEventDiagnostics(materialization.PathModel).IsEmpty)
+                || !PathPersistenceValidationPolicy.GetSimulatorEventDiagnostics(materialization.PathModel).IsEmpty
+                || !PathSimulatorEventCompatibility.ValidateProjection(materialization.PathModel, verification, world).IsEmpty)
                 return PathEditResult.Failed("Passing-branch materialization did not preserve the selected route or supported events.", sourceModel);
 
             int ownerOrdinal = Enumerable.Range(0, selectedRoutes.Length).Single(index => selectedRoutes[index].Route.StartNodeIndex == startNodeIndex);

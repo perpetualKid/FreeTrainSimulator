@@ -107,6 +107,9 @@ namespace FreeTrainSimulator.Runtime.Track
 
         /// <summary>The current Simulator cannot preserve multiple main reversals before the next junction.</summary>
         MultipleReversalsInContinuousVector,
+
+        /// <summary>Projecting passing endpoints onto physical switches changes participation in a main event.</summary>
+        UnsupportedProjectedMainEvent,
     }
 
     /// <summary>

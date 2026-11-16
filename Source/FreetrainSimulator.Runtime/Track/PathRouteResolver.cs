@@ -361,32 +361,26 @@ namespace FreeTrainSimulator.Runtime.Track
 
                 if (storedTrackNode is not VectorNode || trackWorld.SectionGeometry.Count > 0)
                 {
+                    int locationTrackVectorSectionIndex = -1;
+                    bool locationAmbiguous;
                     int locationTrackNodeIndex = storedTrackNode switch
                     {
-                        VectorNode => ResolveTrackNodeIndexByLocation(node, trackWorld, out _, out _),
+                        VectorNode => ResolveTrackNodeIndexByLocation(node, trackWorld, out locationTrackVectorSectionIndex, out locationAmbiguous),
                         _ => node.NodeType switch
                         {
                             PathNodeType nodeType when nodeType.Includes(PathNodeType.Junction) =>
-                                ResolveNonVectorTrackNodeIndexByLocation<JunctionNode>(node.Location, trackDatabase, out _),
-                            _ => ResolveNonVectorTrackNodeIndexByLocation(node.Location, trackDatabase, out _),
+                                ResolveNonVectorTrackNodeIndexByLocation<JunctionNode>(node.Location, trackDatabase, out locationAmbiguous),
+                            _ => ResolveNonVectorTrackNodeIndexByLocation(node.Location, trackDatabase, out locationAmbiguous),
                         },
                     };
-
-                    int locationTrackVectorSectionIndex = -1;
-                    bool locationAmbiguous = false;
-
-                    if (storedTrackNode is VectorNode)
-                    {
-                        locationTrackNodeIndex = ResolveTrackNodeIndexByLocation(node, trackWorld,
-                            out locationTrackVectorSectionIndex, out locationAmbiguous);
-                    }
 
                     bool anchorContainsLocation = StoredAnchorContainsLocation(storedTrackNode, node, trackWorld, out int storedTrackVectorSectionIndex);
 
                     if (anchorContainsLocation)
                     {
                         trackVectorSectionIndex = storedTrackVectorSectionIndex;
-                        ambiguous = locationAmbiguous;
+                        // A valid stored nonvector binding remains authoritative over nearby candidates.
+                        ambiguous = storedTrackNode is VectorNode && locationAmbiguous;
                     }
                     else
                     {

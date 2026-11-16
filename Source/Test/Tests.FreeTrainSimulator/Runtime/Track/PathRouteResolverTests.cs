@@ -1215,6 +1215,66 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
             Assert.IsTrue(result.Diagnostics.Any(diagnostic => diagnostic.Code == PathRouteDiagnosticCode.AnchorLocationMismatch && diagnostic.NodeIndex == 0));
         }
 
+        /// <summary>
+        /// Verifies that stale nonvector bindings retain fallback ambiguity, nearest selection, and mismatch diagnostics.
+        /// </summary>
+        [TestMethod]
+        [DataRow(PathNodeType.Junction, 1, 200f, 200.5f, 600f, 2, true)]
+        [DataRow(PathNodeType.End, 3, 400f, 500f, 400.5f, 4, true)]
+        [DataRow(PathNodeType.None, 3, 400f, 500f, 400.5f, 4, true)]
+        [DataRow(PathNodeType.None, 1, 400f, 400f, 600f, 5, true)]
+        [DataRow(PathNodeType.None, 1, 400f, 400.5f, 600f, 4, false)]
+        [DataRow(PathNodeType.Junction, 1, 200f, 500f, 600f, 2, false)]
+        [DataRow(PathNodeType.End, 3, 400f, 500f, 600f, 4, false)]
+        [DataRow(PathNodeType.Junction, 1, 900f, 500f, 600f, -1, false)]
+        [DataRow(PathNodeType.End, 3, 900f, 500f, 600f, -1, false)]
+        public void ResolveWhenNonVectorIndexIsStaleThenPreservesFallbackAmbiguity(PathNodeType nodeType, int storedIndex, float locationX, float nearbyJunctionX, float nearbyEndX, int expectedIndex, bool expectedAmbiguous)
+        {
+            TrackWorld trackWorld = CreateInitializedNonVectorTrackWorld(nearbyJunctionX, nearbyEndX);
+            WorldLocation location = new WorldLocation(new Tile(0, 0), new Vector3(locationX, 0, 0));
+            PathModel pathModel = new PathModel
+            {
+                PathNodes = ImmutableArray.Create(
+                    CreateNode(PathNodeType.Start | PathNodeType.End | nodeType, -1, -1, storedIndex, location)),
+            };
+
+            PathRouteResolution result = PathRouteResolver.Resolve(pathModel, trackWorld, TestContext.CancellationToken);
+
+            Assert.AreEqual(expectedIndex, result.AuthoredNodeAnchors[0].TrackNodeIndex);
+            Assert.AreEqual(-1, result.AuthoredNodeAnchors[0].TrackVectorSectionIndex);
+            Assert.HasCount(1, result.Diagnostics.Where(diagnostic => diagnostic.Code == PathRouteDiagnosticCode.AnchorLocationMismatch && diagnostic.NodeIndex == 0));
+            Assert.AreEqual(expectedAmbiguous, result.Diagnostics.Any(diagnostic => diagnostic.Code == PathRouteDiagnosticCode.AmbiguousAnchor && diagnostic.NodeIndex == 0));
+            Assert.AreEqual(expectedIndex < 0, result.Diagnostics.Any(diagnostic => diagnostic.Code == PathRouteDiagnosticCode.AnchorNotOnTrack && diagnostic.NodeIndex == 0));
+            Assert.AreEqual(storedIndex, pathModel.PathNodes[0].NodeIndex);
+            Assert.AreEqual(location, pathModel.PathNodes[0].Location);
+        }
+
+        /// <summary>
+        /// Verifies that nearby nonvector competitors do not override or add ambiguity to valid stored bindings.
+        /// </summary>
+        [TestMethod]
+        [DataRow(PathNodeType.Junction, 2, 200f, 200.5f, 600f)]
+        [DataRow(PathNodeType.End, 4, 400f, 500f, 400.5f)]
+        [DataRow(PathNodeType.None, 4, 400f, 400f, 600f)]
+        [DataRow(PathNodeType.None, 5, 400f, 400f, 600f)]
+        public void ResolveWhenNonVectorIndexIsValidThenNearbyCandidatesDoNotAddAmbiguity(PathNodeType nodeType, int storedIndex, float locationX, float nearbyJunctionX, float nearbyEndX)
+        {
+            TrackWorld trackWorld = CreateInitializedNonVectorTrackWorld(nearbyJunctionX, nearbyEndX);
+            PathModel pathModel = new PathModel
+            {
+                PathNodes = ImmutableArray.Create(
+                    CreateNode(PathNodeType.Start | PathNodeType.End | nodeType, -1, -1, storedIndex,
+                        new WorldLocation(new Tile(0, 0), new Vector3(locationX, 0, 0)))),
+            };
+
+            PathRouteResolution result = PathRouteResolver.Resolve(pathModel, trackWorld, TestContext.CancellationToken);
+
+            Assert.AreEqual(storedIndex, result.AuthoredNodeAnchors[0].TrackNodeIndex);
+            Assert.IsFalse(result.Diagnostics.Any(diagnostic => diagnostic.Code == PathRouteDiagnosticCode.AnchorLocationMismatch));
+            Assert.IsFalse(result.Diagnostics.Any(diagnostic => diagnostic.Code == PathRouteDiagnosticCode.AmbiguousAnchor));
+            Assert.IsFalse(result.Diagnostics.Any(diagnostic => diagnostic.Code == PathRouteDiagnosticCode.AnchorNotOnTrack));
+        }
+
         [TestMethod]
         public void ResolveWhenAuthoredEndIndexNowReferencesJunctionThenLocationReanchorsToEndNode()
         {
@@ -1740,6 +1800,24 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
                 TrackNodeConnectors = ImmutableArray.Create(
                     new TrackNodeConnectorIndex(), CreateConnectors(1, 3), CreateConnectors(2, 4),
                     CreateConnectors(3, 1), CreateConnectors(4, 2)),
+            };
+            InitializeTrackDatabase(trackDatabase);
+            return TrackWorld.Initialize(null, new TrackModel { TrackDatabase = trackDatabase }, new TrackSectionModel());
+        }
+
+        private static TrackWorld CreateInitializedNonVectorTrackWorld(float nearbyJunctionX, float nearbyEndX)
+        {
+            Tile tile = new Tile(0, 0);
+            TrackDatabase trackDatabase = new TrackDatabase
+            {
+                TrackNodes = ImmutableArray.Create<TrackNodeBase>(null, CreateJunctionNode(1), CreateJunctionNode(2),
+                    new EndNode(new WorldLocation(tile, new Vector3(300, 0, 0)), tile, Vector3.Zero) { NodeIndex = 3 },
+                    new EndNode(new WorldLocation(tile, new Vector3(400, 0, 0)), tile, Vector3.Zero) { NodeIndex = 4 },
+                    new JunctionNode(new WorldLocation(tile, new Vector3(nearbyJunctionX, 0, 0)), tile, Vector3.Zero) { NodeIndex = 5 },
+                    new EndNode(new WorldLocation(tile, new Vector3(nearbyEndX, 0, 0)), tile, Vector3.Zero) { NodeIndex = 6 }),
+                TrackNodeConnectors = ImmutableArray.Create(
+                    new TrackNodeConnectorIndex(), CreateConnectors(1, 3), CreateConnectors(2, 4),
+                    CreateConnectors(3, 1), CreateConnectors(4, 2), CreateConnectors(5, 6), CreateConnectors(6, 5)),
             };
             InitializeTrackDatabase(trackDatabase);
             return TrackWorld.Initialize(null, new TrackModel { TrackDatabase = trackDatabase }, new TrackSectionModel());

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Threading.Tasks;
 
 using FreeTrainSimulator.Toolbox.PathEditing;
 using FreeTrainSimulator.Toolbox.ToolWindows;
@@ -70,6 +71,8 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
         private bool canClearSelectedReversalPoint;
         private int selectedNodeCapabilityIndex = -1;
         private int? pendingSelectedNodeIndex;
+        private TrainPathSnapshot pendingSelectedNodeSnapshot;
+        private Task<TrainPathSnapshot> pendingNodeSelection;
         private bool canBeginPassingBranch;
         private bool canCompletePassingBranch;
         private bool canRejoinPassingBranchWithVia;
@@ -87,6 +90,7 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
         private int? inspectedCandidateFromNodeIndex;
         private int? inspectedCandidateToNodeIndex;
         private TrainPathSnapshot presentationSnapshot = TrainPathSnapshot.Empty;
+        private Task<TrainPathSnapshot> pendingInlineInput;
         private bool syncingDiagnostics;
 
         public const int PathsTabIndex = 0;
@@ -181,10 +185,10 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
                 if (string.IsNullOrEmpty(SearchText))
                     IsPathFilterRowVisible = !IsPathFilterRowVisible;
             });
-            UndoCommand = new RelayCommand(_ => toolWindow.Undo(), _ => CanUndo);
-            RedoCommand = new RelayCommand(_ => toolWindow.Redo(), _ => CanRedo);
-            SnapToTrackCommand = new RelayCommand(_ => toolWindow.SnapToTrack(), _ => CanSnapToTrack);
-            ReversePathCommand = new RelayCommand(_ => toolWindow.ReversePath(), _ => CanReversePath);
+            UndoCommand = new RelayCommand(_ => toolWindow.ExecuteDisplayedPathCommand(presentationSnapshot, bridge => bridge.Undo()), _ => CanUndo);
+            RedoCommand = new RelayCommand(_ => toolWindow.ExecuteDisplayedPathCommand(presentationSnapshot, bridge => bridge.Redo()), _ => CanRedo);
+            SnapToTrackCommand = new RelayCommand(_ => toolWindow.ExecuteDisplayedPathCommand(presentationSnapshot, bridge => bridge.SnapToTrack()), _ => CanSnapToTrack);
+            ReversePathCommand = new RelayCommand(_ => toolWindow.ExecuteDisplayedPathCommand(presentationSnapshot, bridge => bridge.ReversePath()), _ => CanReversePath);
             CombineSelectedPathsCommand = new RelayCommand(_ =>
             {
                 toolWindow.CombineSelectedPaths(true);
@@ -193,11 +197,11 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
             }, _ => CanCombineSelectedPaths && !IsCombiningPaths);
             CancelPathCombineCommand = new RelayCommand(_ => toolWindow.CombineSelectedPaths(false), _ => IsCombiningPaths);
             MoveSelectedNodeCommand = new RelayCommand(_ => MoveSelectedNode(), _ => CanMoveSelectedNode);
-            CommitMoveNodeCommand = new RelayCommand(_ => toolWindow.CommitMoveNode(), _ => CanCommitMoveNode);
-            CancelMoveNodeCommand = new RelayCommand(_ => toolWindow.CancelMoveNode(), _ => CanCancelMoveNode);
-            SetStartHereCommand = new RelayCommand(_ => toolWindow.BeginStartAnchorPlacement(), _ => CanPlaceStartAnchor);
-            SetEndHereCommand = new RelayCommand(_ => toolWindow.BeginEndAnchorPlacement(), _ => CanPlaceEndAnchor);
-            CommitPlacementCommand = new RelayCommand(_ => toolWindow.CommitPlacement(), _ => CanCommitPlacement);
+            CommitMoveNodeCommand = new RelayCommand(_ => toolWindow.ExecuteDisplayedPathCommand(presentationSnapshot, bridge => bridge.CommitMoveNode()), _ => CanCommitMoveNode);
+            CancelMoveNodeCommand = new RelayCommand(_ => toolWindow.ExecuteDisplayedPathCommand(presentationSnapshot, bridge => bridge.CancelMoveNode()), _ => CanCancelMoveNode);
+            SetStartHereCommand = new RelayCommand(_ => toolWindow.ExecuteDisplayedPathCommand(presentationSnapshot, bridge => bridge.BeginStartAnchorPlacement()), _ => CanPlaceStartAnchor);
+            SetEndHereCommand = new RelayCommand(_ => toolWindow.ExecuteDisplayedPathCommand(presentationSnapshot, bridge => bridge.BeginEndAnchorPlacement()), _ => CanPlaceEndAnchor);
+            CommitPlacementCommand = new RelayCommand(_ => toolWindow.ExecuteDisplayedPathCommand(presentationSnapshot, bridge => bridge.CommitPlacement()), _ => CanCommitPlacement);
             CancelPathInteractionCommand = new RelayCommand(_ => CancelPathInteraction(), _ => CanCancelPathInteraction || IsCandidatePanelVisible);
             RepairSelectedNodeCommand = new RelayCommand(_ => RepairSelectedNode(), _ => CanRepairSelectedNode);
             ClearWaitPointCommand = new RelayCommand(_ => ClearWaitPoint(), _ => CanClearSelectedWaitPoint);
@@ -209,15 +213,18 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
             RejoinPassingBranchWithViaCommand = new RelayCommand(_ =>
             {
                 if (SelectedNode != null)
-                    toolWindow.RejoinPassingBranchWithVia(SelectedNode.Index);
+                {
+                    int nodeIndex = SelectedNode.Index;
+                    toolWindow.ExecuteDisplayedPathCommand(presentationSnapshot, bridge => bridge.RejoinPassingBranchWithVia(nodeIndex));
+                }
             }, _ => CanRejoinPassingBranchWithVia);
-            CancelPassingBranchCommand = new RelayCommand(_ => toolWindow.CancelPassingBranch(), _ => CanCancelPassingBranch);
+            CancelPassingBranchCommand = new RelayCommand(_ => toolWindow.ExecuteDisplayedPathCommand(presentationSnapshot, bridge => bridge.CancelPassingBranch()), _ => CanCancelPassingBranch);
             RemovePassingBranchCommand = new RelayCommand(_ => RemovePassingBranch(), _ => CanRemovePassingBranch);
             NewPathCommand = new RelayCommand(_ => toolWindow.StartNewPathPlacement(), _ => CanCreatePath);
-            CancelNewPathCommand = new RelayCommand(_ => toolWindow.CancelNewPath(), _ => CanCancelNewPath);
-            ContinuePathCommand = new RelayCommand(_ => toolWindow.ContinuePath(), _ => CanContinuePath);
-            FinishPathCommand = new RelayCommand(_ => toolWindow.FinishPath(), _ => CanFinishPath);
-            SavePathCommand = new RelayCommand(_ => toolWindow.SavePath(), _ => CanSavePath);
+            CancelNewPathCommand = new RelayCommand(_ => toolWindow.ExecuteDisplayedPathCommand(presentationSnapshot, bridge => bridge.CancelNewPath()), _ => CanCancelNewPath);
+            ContinuePathCommand = new RelayCommand(_ => toolWindow.ExecuteDisplayedPathCommand(presentationSnapshot, bridge => bridge.ContinuePath()), _ => CanContinuePath);
+            FinishPathCommand = new RelayCommand(_ => toolWindow.ExecuteDisplayedPathCommand(presentationSnapshot, bridge => bridge.FinishPath()), _ => CanFinishPath);
+            SavePathCommand = new RelayCommand(_ => toolWindow.ExecuteDisplayedPathCommand(presentationSnapshot, bridge => bridge.SavePath()), _ => CanSavePath);
             ValidateAllPathsCommand = new RelayCommand(_ => ValidateAllPaths(), _ => CanValidatePaths);
             AcceptRouteCandidateCommand = new RelayCommand(_ => AcceptRouteCandidate(), _ => CanAcceptRouteCandidate);
             RepairDiagnosticCommand = new RelayCommand(_ => RepairDiagnostic(), _ => CanRepairDiagnostic);
@@ -253,12 +260,14 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
                 if (value is int waitTime && waitTime > 0 && CanSetSelectedWaitPoint)
                 {
                     TrackSubmittedWaitCommand(value);
-                    toolWindow.SetWaitPoint(SelectedNode.Index, waitTime);
+                    int nodeIndex = SelectedNode.Index;
+                    ExecuteInlineInput(bridge => bridge.SetWaitPoint(nodeIndex, waitTime));
                 }
                 else if ((!value.HasValue || value.Value == 0) && CanClearSelectedWaitPoint)
                 {
                     TrackSubmittedWaitCommand(value);
-                    toolWindow.ClearWaitPoint(SelectedNode.Index);
+                    int nodeIndex = SelectedNode.Index;
+                    ExecuteInlineInput(bridge => bridge.ClearWaitPoint(nodeIndex));
                 }
                 else
                 {
@@ -305,27 +314,66 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
 
         public void CommitMetadata()
         {
-            toolWindow.SetMetadata(PathName, PathStart, PathEnd, PlayerPath);
+            string name = PathName;
+            string start = PathStart;
+            string end = PathEnd;
+            bool isPlayerPath = PlayerPath;
+            ExecuteInlineInput(bridge => bridge.SetMetadata(name, start, end, isPlayerPath));
         }
 
-        public ImmutableArray<MapContextMenuItem> GetSelectedNodeActions()
-            => SelectedNode == null
-                ? ImmutableArray<MapContextMenuItem>.Empty
-                : toolWindow.GetNodeActions(SelectedNode.Index);
+        private Task<TrainPathSnapshot> ExecuteInlineInput(Action<TrainPathToolWindow> command)
+        {
+            TaskCompletionSource<TrainPathSnapshot> completion = new TaskCompletionSource<TrainPathSnapshot>();
+            pendingInlineInput = completion.Task;
+            toolWindow.ExecuteDisplayedPathCommand(presentationSnapshot, command, acknowledged => completion.SetResult(acknowledged));
+            return completion.Task;
+        }
 
-        /// <summary>Captures the selected node's entries and editor ownership before displaying either WPF menu.</summary>
-        public PathEditorMenuRequest CaptureSelectedNodeMenuRequest()
-            => SelectedNode == null ? PathEditorMenuRequest.Empty : toolWindow.CaptureNodeMenuRequest(SelectedNode.Index);
+        /// <summary>The immutable presentation in which a buffered edit begins.</summary>
+        public TrainPathSnapshot DisplayedSnapshot => presentationSnapshot;
+
+        /// <summary>The latest queued text edit or node selection, including commits made before menu opening.</summary>
+        public Task<TrainPathSnapshot> PendingInlineInput => pendingInlineInput;
+
+        /// <summary>Checks published owner and lifetime only, allowing ordinary edits but not same-name reloads.</summary>
+        public bool IsDisplayedPathCurrent(TrainPathSnapshot displayed)
+        {
+            TrainPathSnapshot published = toolWindow.CaptureTrainPathSnapshot();
+            return displayed != null && ReferenceEquals(displayed.PathEditorOwner, presentationSnapshot.PathEditorOwner)
+                && displayed.PathLifetime == presentationSnapshot.PathLifetime
+                && ReferenceEquals(displayed.PathEditorOwner, published.PathEditorOwner) && displayed.PathLifetime == published.PathLifetime;
+        }
+
+        /// <summary>Applies an edit acknowledgement through the same full synchronization used by polling.</summary>
+        public bool ApplyInlineInputAcknowledgement(Task<TrainPathSnapshot> pending, TrainPathSnapshot displayed, TrainPathSnapshot acknowledged)
+        {
+            if (ReferenceEquals(pendingInlineInput, pending))
+                pendingInlineInput = null;
+            if (ReferenceEquals(pendingNodeSelection, pending) && acknowledged == null)
+                pendingSelectedNodeIndex = null;
+            if (acknowledged == null || !IsDisplayedPathCurrent(displayed)
+                || !ReferenceEquals(acknowledged, toolWindow.CaptureTrainPathSnapshot()))
+                return false;
+
+            ApplySnapshot(acknowledged);
+            return true;
+        }
+
+        /// <summary>The displayed immutable ownership witness; reading it never accesses the editor.</summary>
+        public PathEditorMenuRequest NodeMenuOwnership => presentationSnapshot.NodeMenuOwnership;
+
+        /// <summary>Compares only published witnesses, without reading live editor state on WPF.</summary>
+        public bool IsNodeMenuOwnershipCurrent(PathEditorMenuRequest ownership)
+            => ReferenceEquals(ownership, NodeMenuOwnership)
+                && ReferenceEquals(ownership, toolWindow.CaptureTrainPathSnapshot().NodeMenuOwnership);
+
+        /// <summary>Requests entries for the captured node and ownership on the game owner.</summary>
+        public void RequestNodeMenu(PathEditorMenuRequest ownership, int nodeIndex, Action<PathEditorMenuRequest> completed)
+            => toolWindow.RequestNodeMenu(ownership, nodeIndex, completed);
 
         /// <summary>Executes an entry against its menu-construction owner, not the editor present at click time.</summary>
         public void ExecuteNodeAction(PathEditorMenuRequest request, MapContextMenuItem action)
             => toolWindow.ExecuteNodeAction(request, action);
-
-        public void ExecuteNodeAction(MapContextMenuItem action)
-        {
-            ArgumentNullException.ThrowIfNull(action);
-            toolWindow.ExecuteNodeAction(action.Action, action.NodeIndex);
-        }
 
         /// <summary>Equal-cost route candidates of the current path's ambiguous spans.</summary>
         public ObservableCollection<TrainPathRouteCandidateItemViewModel> RouteCandidates { get; } = new ObservableCollection<TrainPathRouteCandidateItemViewModel>();
@@ -568,11 +616,14 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
 
             if (value == null)
             {
-                toolWindow.HighlightDiagnosticTarget(-1, -1, -1);
+                toolWindow.ExecuteDisplayedPathCommand(presentationSnapshot, bridge => bridge.HighlightDiagnosticTarget(-1, -1, -1));
                 return;
             }
 
-            toolWindow.HighlightDiagnosticTarget(value.NodeIndex, value.FromNodeIndex, value.ToNodeIndex);
+            int nodeIndex = value.NodeIndex;
+            int fromNodeIndex = value.FromNodeIndex;
+            int toNodeIndex = value.ToNodeIndex;
+            toolWindow.ExecuteDisplayedPathCommand(presentationSnapshot, bridge => bridge.HighlightDiagnosticTarget(nodeIndex, fromNodeIndex, toNodeIndex));
             if (value.IsAmbiguousRoute)
                 NavigateToRouteCandidates(value);
         }
@@ -609,11 +660,13 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
 
             if (value == null)
             {
-                toolWindow.ClearRouteCandidatePreview();
+                toolWindow.ExecuteDisplayedPathCommand(presentationSnapshot, bridge => bridge.ClearRouteCandidatePreview());
                 return;
             }
 
-            toolWindow.PreviewRouteCandidate(value.FromNodeIndex, value.CandidateIndex);
+            int fromNodeIndex = value.FromNodeIndex;
+            int candidateIndex = value.CandidateIndex;
+            toolWindow.ExecuteDisplayedPathCommand(presentationSnapshot, bridge => bridge.PreviewRouteCandidate(fromNodeIndex, candidateIndex));
         }
 
         public bool CanUndo
@@ -844,11 +897,13 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
             // previous SelectedNodeIndex until the highlight below is processed on the game thread) does not
             // briefly restore the old node and cause the selection to flicker back and forth.
             pendingSelectedNodeIndex = value?.Index ?? -1;
+            pendingSelectedNodeSnapshot = presentationSnapshot;
 
             pendingWaitNodeIndex = null;
             selectedNodeCapabilityIndex = -1;
             SelectedNode = value;
-            toolWindow.HighlightNode(value?.Index ?? -1);
+            int nodeIndex = value?.Index ?? -1;
+            pendingNodeSelection = ExecuteInlineInput(bridge => bridge.HighlightNode(nodeIndex));
             SyncWaitTimeFromSelectedNode();
             UpdateSelectedNodeDetailRows();
             MoveSelectedNodeCommand.RaiseCanExecuteChanged();
@@ -864,13 +919,28 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
 
         protected override void Refresh()
         {
+            Task<TrainPathSnapshot> pending = pendingInlineInput;
             TrainPathSnapshot snapshot = toolWindow.CaptureTrainPathSnapshot();
+            ApplySnapshot(snapshot);
+            // A completion during synchronization may publish a newer snapshot or a newer input.
+            // Retire only the barrier whose current authoritative state was fully reconciled.
+            if (pending is { IsCompleted: true } && ReferenceEquals(pendingInlineInput, pending)
+                && ReferenceEquals(snapshot, toolWindow.CaptureTrainPathSnapshot()))
+                pendingInlineInput = null;
+        }
 
+        private void ApplySnapshot(TrainPathSnapshot snapshot)
+        {
             SyncPaths(snapshot.Paths);
             foreach (TrainPathListItemViewModel path in Paths)
             {
                 path.UpdateComparison(snapshot.Comparisons.FirstOrDefault(row => string.Equals(row.Id, path.Id, StringComparison.OrdinalIgnoreCase)));
             }
+            if (pendingSelectedNodeIndex.HasValue
+                && (!ReferenceEquals(snapshot.PathEditorOwner, pendingSelectedNodeSnapshot.PathEditorOwner)
+                    || snapshot.PathLifetime != pendingSelectedNodeSnapshot.PathLifetime
+                    || pendingNodeSelection is { IsCompletedSuccessfully: true } && pendingNodeSelection.Result == null))
+                pendingSelectedNodeIndex = null;
             SyncNodes(snapshot.Nodes, snapshot.SelectedNodeIndex);
             UpdateSelectedNodeDetailRows();
             DebugToolWindowRowViewModel.Sync(Metadata, snapshot.Metadata);
@@ -897,7 +967,7 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
             CanCommitPlacement = snapshot.CanCommitPlacement;
             CanCreatePath = toolWindow.CanCreatePath;
             CanValidatePaths = toolWindow.CanValidatePaths;
-            CanSavePath = toolWindow.CanSavePath;
+            CanSavePath = snapshot.CanSavePath;
             CanCancelNewPath = snapshot.CanCancelNewPath;
             IsBuildingRoute = snapshot.IsBuildingRoute;
             CanContinuePath = snapshot.CanContinuePath;
@@ -1239,11 +1309,11 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
         private void CancelPathInteraction()
         {
             if (CanCancelPathInteraction)
-                toolWindow.CancelPathInteraction();
+                toolWindow.ExecuteDisplayedPathCommand(presentationSnapshot, bridge => bridge.CancelPathInteraction());
             else if (HasPendingPassingBranchCandidate)
-                toolWindow.CancelPassingBranch();
+                toolWindow.ExecuteDisplayedPathCommand(presentationSnapshot, bridge => bridge.CancelPassingBranch());
             else
-                toolWindow.ClearRouteCandidatePreview();
+                toolWindow.ExecuteDisplayedPathCommand(presentationSnapshot, bridge => bridge.ClearRouteCandidatePreview());
 
             // Clearing the issue selection allows its next mouse or keyboard selection to reopen the panel.
             if (inspectedCandidateFromNodeIndex.HasValue)
@@ -1261,7 +1331,8 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
             if (diagnostic?.CanRepair != true)
                 return;
 
-            toolWindow.RepairDiagnosticNode(diagnostic.NodeIndex);
+            int nodeIndex = diagnostic.NodeIndex;
+            toolWindow.ExecuteDisplayedPathCommand(presentationSnapshot, bridge => bridge.RepairDiagnosticNode(nodeIndex));
         }
 
         private void MoveSelectedNode()
@@ -1269,7 +1340,8 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
             if (SelectedNode == null)
                 return;
 
-            toolWindow.BeginMoveNode(SelectedNode.Index);
+            int nodeIndex = SelectedNode.Index;
+            toolWindow.ExecuteDisplayedPathCommand(presentationSnapshot, bridge => bridge.BeginMoveNode(nodeIndex));
         }
 
         private void RepairSelectedNode()
@@ -1277,7 +1349,8 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
             if (SelectedNode == null)
                 return;
 
-            toolWindow.RepairSelectedNode(SelectedNode.Index);
+            int nodeIndex = SelectedNode.Index;
+            toolWindow.ExecuteDisplayedPathCommand(presentationSnapshot, bridge => bridge.RepairSelectedNode(nodeIndex));
         }
 
         private void ClearWaitPoint()
@@ -1285,7 +1358,8 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
             if (!CanClearSelectedWaitPoint)
                 return;
 
-            toolWindow.ClearWaitPoint(SelectedNode.Index);
+            int nodeIndex = SelectedNode.Index;
+            toolWindow.ExecuteDisplayedPathCommand(presentationSnapshot, bridge => bridge.ClearWaitPoint(nodeIndex));
         }
 
         private void ToggleReversalPoint()
@@ -1296,11 +1370,11 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
             int nodeIndex = SelectedNode.Index;
             if (SelectedNode.HasReversalPoint)
             {
-                toolWindow.ClearReversalPoint(nodeIndex);
+                toolWindow.ExecuteDisplayedPathCommand(presentationSnapshot, bridge => bridge.ClearReversalPoint(nodeIndex));
                 return;
             }
 
-            toolWindow.SetReversalPoint(nodeIndex);
+            toolWindow.ExecuteDisplayedPathCommand(presentationSnapshot, bridge => bridge.SetReversalPoint(nodeIndex));
         }
 
         private void AddViaPoint()
@@ -1308,7 +1382,8 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
             if (SelectedNode == null)
                 return;
 
-            toolWindow.BeginViaPointPlacement(SelectedNode.Index);
+            int nodeIndex = SelectedNode.Index;
+            toolWindow.ExecuteDisplayedPathCommand(presentationSnapshot, bridge => bridge.BeginViaPointPlacement(nodeIndex));
         }
 
         private void RemoveViaPoint()
@@ -1316,7 +1391,8 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
             if (SelectedNode == null)
                 return;
 
-            toolWindow.RemoveViaPoint(SelectedNode.Index);
+            int nodeIndex = SelectedNode.Index;
+            toolWindow.ExecuteDisplayedPathCommand(presentationSnapshot, bridge => bridge.RemoveViaPoint(nodeIndex));
         }
 
         private void BeginPassingBranch()
@@ -1324,7 +1400,8 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
             if (SelectedNode == null)
                 return;
 
-            toolWindow.BeginPassingBranch(SelectedNode.Index);
+            int nodeIndex = SelectedNode.Index;
+            toolWindow.ExecuteDisplayedPathCommand(presentationSnapshot, bridge => bridge.BeginPassingBranch(nodeIndex));
         }
 
         private void CompletePassingBranch()
@@ -1332,7 +1409,8 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
             if (SelectedNode == null)
                 return;
 
-            toolWindow.CompletePassingBranch(SelectedNode.Index);
+            int nodeIndex = SelectedNode.Index;
+            toolWindow.ExecuteDisplayedPathCommand(presentationSnapshot, bridge => bridge.CompletePassingBranch(nodeIndex));
         }
 
         private void RemovePassingBranch()
@@ -1340,7 +1418,8 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
             if (SelectedNode == null)
                 return;
 
-            toolWindow.RemovePassingBranch(SelectedNode.Index);
+            int nodeIndex = SelectedNode.Index;
+            toolWindow.ExecuteDisplayedPathCommand(presentationSnapshot, bridge => bridge.RemovePassingBranch(nodeIndex));
         }
 
         // Runs the forced 'validate all paths' bridge.
@@ -1400,7 +1479,9 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
             if (candidate == null)
                 return;
 
-            toolWindow.AcceptRouteCandidate(candidate.FromNodeIndex, candidate.CandidateIndex);
+            int fromNodeIndex = candidate.FromNodeIndex;
+            int candidateIndex = candidate.CandidateIndex;
+            toolWindow.ExecuteDisplayedPathCommand(presentationSnapshot, bridge => bridge.AcceptRouteCandidate(fromNodeIndex, candidateIndex));
             RestoreRouteCandidateSelection(null);
         }
 

@@ -406,7 +406,7 @@
                         <Border BorderBrush="Black" BorderThickness="1" SnapsToDevicePixels="True" VerticalAlignment="Center">
                         <Menu Background="{Binding Background, ElementName=NewPathButton}">
                             <MenuItem Header="{gt:Gettext 'Node actions ▾'}" AutomationProperties.Name="Node actions"
-                                      SubmenuOpened="NodeActions_SubmenuOpened">
+                                      SubmenuOpened="NodeActions_SubmenuOpened" SubmenuClosed="NodeActions_Closed">
                                 <Separator />
                             </MenuItem>
                         </Menu>
@@ -421,7 +421,7 @@
                           SelectionChanged="NodeList_SelectionChanged"
                           behaviors:GridViewColumnBehavior.StretchListView="True">
                     <ListView.ContextMenu>
-                        <ContextMenu />
+                        <ContextMenu Closed="NodeActions_Closed" />
                     </ListView.ContextMenu>
                     <ListView.ItemContainerStyle>
                         <Style TargetType="ListViewItem">

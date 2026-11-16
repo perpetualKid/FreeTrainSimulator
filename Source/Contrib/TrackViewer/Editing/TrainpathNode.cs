@@ -743,14 +743,15 @@ namespace ORTS.TrackViewer.Editing
 
             ForwardOriented = true; // only initial setting
 
+            // The legacy editor has one event kind; retain reversal precedence for combined source markers.
             NodeType = tpn.NodeType switch
             {
                 PathNodeType _ when tpn.NodeType.Includes(PathNodeType.Junction) => TrainpathNodeType.Other,
                 PathNodeType _ when tpn.NodeType.Includes(PathNodeType.Via) => TrainpathNodeType.Other,
                 PathNodeType _ when tpn.NodeType.Includes(PathNodeType.Start) => TrainpathNodeType.Other,
                 PathNodeType _ when tpn.NodeType.Includes(PathNodeType.End) => TrainpathNodeType.Other,
-                PathNodeType _ when tpn.NodeType.Includes(PathNodeType.Wait) => TrainpathNodeType.Stop,
                 PathNodeType _ when tpn.NodeType.Includes(PathNodeType.Reversal) => TrainpathNodeType.Reverse,
+                PathNodeType _ when tpn.NodeType.Includes(PathNodeType.Wait) => TrainpathNodeType.Stop,
                 PathNodeType _ when tpn.NodeType.Includes(PathNodeType.None) => TrainpathNodeType.Other,
                 _ => throw new NotImplementedException(),
             };

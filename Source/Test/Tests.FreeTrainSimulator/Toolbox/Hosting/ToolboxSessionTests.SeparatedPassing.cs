@@ -173,18 +173,26 @@ namespace Tests.FreeTrainSimulator.Toolbox.Hosting
 
                     async Task AuthorAsync(int splitTrack, int rejoinTrack, bool guided)
                     {
-                        await MapAsync(() => bridge.GetNodeActions(SeparatedPassingFixture.Index(scope.Session.ExistingPathEditor.TryCaptureCurrentPathModel(), splitTrack))
-                            .Single(item => item.Action == MapContextMenuAction.StartPassingBranch)).ConfigureAwait(false);
-                        await MapAsync(() => bridge.GetNodeActions(SeparatedPassingFixture.Index(scope.Session.ExistingPathEditor.TryCaptureCurrentPathModel(), rejoinTrack))
-                            .Single(item => item.Action == (guided ? MapContextMenuAction.RejoinPassingBranchWithVia : MapContextMenuAction.RejoinPassingBranch))).ConfigureAwait(false);
+                        int splitIndex = -1;
+                        int rejoinIndex = -1;
+                        await scope.Host.OnOwnerAsync(() =>
+                        {
+                            PathModel model = scope.Session.ExistingPathEditor.TryCaptureCurrentPathModel();
+                            splitIndex = SeparatedPassingFixture.Index(model, splitTrack);
+                            rejoinIndex = SeparatedPassingFixture.Index(model, rejoinTrack);
+                        }).ConfigureAwait(false);
+                        ImmutableArray<MapContextMenuItem> entries = await RequestNodeActionsAsync(scope, bridge, commands, splitIndex).ConfigureAwait(false);
+                        await MapAsync(() => entries.Single(item => item.Action == MapContextMenuAction.StartPassingBranch)).ConfigureAwait(false);
+                        entries = await RequestNodeActionsAsync(scope, bridge, commands, rejoinIndex).ConfigureAwait(false);
+                        await MapAsync(() => entries.Single(item => item.Action == (guided ? MapContextMenuAction.RejoinPassingBranchWithVia : MapContextMenuAction.RejoinPassingBranch))).ConfigureAwait(false);
                         if (guided)
                         {
                             await MapAsync(() => MapContextMenuActionBuilder.BuildForMap(new MapContextMenuActionBuilder.MapContextMenuState
                             {
                                 IsPlacementActive = true, IsPlacingPassingBranchVia = true, CanCancelPassingBranch = true,
                             }, SeparatedPassingFixture.Via(splitTrack)).Single(item => item.Action == MapContextMenuAction.PreviewPassingBranchViaHere)).ConfigureAwait(false);
-                            await MapAsync(() => bridge.GetNodeActions(SeparatedPassingFixture.Index(scope.Session.ExistingPathEditor.TryCaptureCurrentPathModel(), rejoinTrack))
-                                .Single(item => item.Action == MapContextMenuAction.ConfirmPassingBranchVia)).ConfigureAwait(false);
+                            entries = await RequestNodeActionsAsync(scope, bridge, commands, rejoinIndex).ConfigureAwait(false);
+                            await MapAsync(() => entries.Single(item => item.Action == MapContextMenuAction.ConfirmPassingBranchVia)).ConfigureAwait(false);
                         }
                         await scope.Host.OnOwnerAsync(() => Assert.IsFalse(bridge.CaptureTrainPathSnapshot().CommandResultIsWarning)).ConfigureAwait(false);
                     }
@@ -194,14 +202,15 @@ namespace Tests.FreeTrainSimulator.Toolbox.Hosting
                         int index = -1;
                         await scope.Host.OnOwnerAsync(() => index = SeparatedPassingFixture.Index(scope.Session.ExistingPathEditor.TryCaptureCurrentPathModel(), track)).ConfigureAwait(false);
                         await CommandAsync(() => bridge.HighlightNode(index)).ConfigureAwait(false);
+                        ImmutableArray<MapContextMenuItem> entries = await RequestNodeActionsAsync(scope, bridge, commands, index).ConfigureAwait(false);
                         await scope.Host.OnOwnerAsync(() =>
                         {
                             viewModel.Start();
                             TrainPathSnapshot snapshot = bridge.CaptureTrainPathSnapshot();
                             Assert.AreEqual((begin, move, begin, move, begin, move),
                                 (snapshot.CanBeginPassingBranch, snapshot.CanMoveSelectedNode, viewModel.CanBeginPassingBranch, viewModel.CanMoveSelectedNode,
-                                    bridge.GetNodeActions(index).Any(item => item.Action == MapContextMenuAction.StartPassingBranch),
-                                    bridge.GetNodeActions(index).Any(item => item.Action == MapContextMenuAction.MoveNode)));
+                                    entries.Any(item => item.Action == MapContextMenuAction.StartPassingBranch),
+                                    entries.Any(item => item.Action == MapContextMenuAction.MoveNode)));
                             Assert.AreEqual(begin, viewModel.BeginPassingBranchCommand.CanExecute(null));
                             Assert.AreEqual(move, viewModel.MoveSelectedNodeCommand.CanExecute(null));
                         }).ConfigureAwait(false);

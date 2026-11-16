@@ -11,6 +11,15 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
     /// </summary>
     internal sealed record TrainPathSnapshot
     {
+        /// <summary>Editor that owned the displayed path when this snapshot was published.</summary>
+        public PathEditor PathEditorOwner { get; init; }
+
+        /// <summary>Path-load lifetime captured before reading the displayed editor state; ordinary edits retain it.</summary>
+        public long PathLifetime { get; init; }
+
+        /// <summary>Ownership-only node-menu witness, captured on the owner and reused until ownership changes.</summary>
+        public PathEditorMenuRequest NodeMenuOwnership { get; init; } = PathEditorMenuRequest.Empty;
+
         /// <summary>Available paths for the loaded route.</summary>
         public ImmutableArray<TrainPathListRow> Paths { get; init; }
 
@@ -84,6 +93,9 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
 
         /// <summary>Whether a redo step is available.</summary>
         public bool CanRedo { get; init; }
+
+        /// <summary>Whether the edited path can currently be saved, evaluated on its owner.</summary>
+        public bool CanSavePath { get; init; }
 
         /// <summary>Whether the current path can be snapped to track.</summary>
         public bool CanSnapToTrack { get; init; }

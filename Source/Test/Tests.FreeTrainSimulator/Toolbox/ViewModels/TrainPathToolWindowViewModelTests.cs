@@ -26,6 +26,7 @@ using Microsoft.Xna.Framework;
 
 using Tests.FreeTrainSimulator.Common;
 using Tests.FreeTrainSimulator.Simulator;
+using Tests.FreeTrainSimulator.Toolbox.PathEditing;
 
 namespace Tests.FreeTrainSimulator.Toolbox.ViewModels
 {
@@ -35,6 +36,123 @@ namespace Tests.FreeTrainSimulator.Toolbox.ViewModels
     {
         /// <summary>Provides cancellation and retained synthetic fixture locations for this test run.</summary>
         public TestContext TestContext { get; set; }
+
+        [TestMethod]
+        [DataRow(false, false)]
+        [DataRow(true, false)]
+        [DataRow(false, true)]
+        public async Task WhenQueuedNodeSelectionIsRefusedAfterReloadThenPollingRestoresAuthoritativeSelection(bool shorterPath, bool newerSelection)
+        {
+            using (SeparatedPassingFixture fixture = await SeparatedPassingFixture.CreateAsync().ConfigureAwait(false))
+            {
+                using (PathEditor editor = new PathEditor(fixture.Content))
+                {
+                    PathModel source = SeparatedPassingFixture.CreateMain();
+                    Assert.IsTrue(await editor.InitializePathAsync(source, TestContext.CancellationToken).ConfigureAwait(false));
+                    Queue<Action> commands = new Queue<Action>();
+                    TrainPathToolWindow bridge = new TrainPathToolWindow(() => editor, () => null, commands.Enqueue,
+                        () => { }, () => { }, _ => { }, () => { }, () => { })
+                    { Active = true };
+                    bridge.RefreshSnapshot();
+                    using (ToolWindowRefreshScheduler scheduler = new ToolWindowRefreshScheduler(Dispatcher.CurrentDispatcher))
+                    {
+                        using (TrainPathToolWindowViewModel viewModel = new TrainPathToolWindowViewModel(bridge, scheduler))
+                        {
+                            viewModel.Start();
+                            viewModel.UserSelectNode(viewModel.Nodes.Last());
+                            Task<TrainPathSnapshot> pending = viewModel.PendingInlineInput;
+                            TrainPathSnapshot displayed = viewModel.DisplayedSnapshot;
+                            PathModel replacement = shorterPath ? source with
+                            {
+                                Id = "shorter",
+                                PathNodes = [source.PathNodes[^1] with { NodeType = PathNodeType.Start, NextMainNode = 1 }, source.PathNodes[^2] with { NodeType = PathNodeType.End, NextMainNode = -1 }],
+                            } : source;
+                            Assert.IsTrue(await editor.InitializePathAsync(replacement, TestContext.CancellationToken).ConfigureAwait(false));
+                            Task<TrainPathSnapshot> newer = null;
+                            if (newerSelection)
+                            {
+                                bridge.RefreshSnapshot();
+                                viewModel.Start();
+                                Assert.IsNull(viewModel.SelectedNode, "Ownership change must retire the pick even before refusal arrives.");
+                                viewModel.UserSelectNode(viewModel.Nodes[0]);
+                                newer = viewModel.PendingInlineInput;
+                            }
+                            commands.Dequeue()();
+                            Assert.IsNull(await pending.ConfigureAwait(false));
+                            if (newerSelection)
+                            {
+                                Assert.IsFalse(viewModel.ApplyInlineInputAcknowledgement(pending, displayed, null));
+                                viewModel.Start();
+                                Assert.AreEqual(0, viewModel.SelectedNode?.Index);
+                                Assert.AreSame(newer, viewModel.PendingInlineInput);
+                                commands.Dequeue()();
+                                viewModel.Start();
+                                Assert.AreEqual(0, viewModel.SelectedNode?.Index);
+                                return;
+                            }
+
+                            for (int poll = 0; poll < 3; poll++)
+                            {
+                                viewModel.Start();
+                                Assert.AreEqual(-1, bridge.CaptureTrainPathSnapshot().SelectedNodeIndex);
+                                Assert.HasCount(replacement.PathNodes.Length, viewModel.Nodes);
+                                Assert.IsNull(viewModel.SelectedNode);
+                                Assert.IsNull(viewModel.SelectedNodeWaitTime);
+                                Assert.IsTrue(viewModel.SelectedNodeDetailRows.All(row => string.IsNullOrEmpty(row.Value)));
+                                Assert.IsFalse(viewModel.CanMoveSelectedNode);
+                                Assert.IsFalse(viewModel.CanEditSelectedNodeWaitTime);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        [TestMethod]
+        [DataRow(false)]
+        [DataRow(true)]
+        public void WhenInlineInputCompletesDuringOlderPollThenItsBarrierOrNewerInputSurvives(bool newerInput)
+        {
+            Queue<Action> commands = new Queue<Action>();
+            TrainPathToolWindow bridge = CreateBridge(commands.Enqueue);
+            TrainPathSnapshot snapshot = CreateIssueScopeSnapshot(0) with { PathName = "before" };
+            SetBridgeSnapshot(bridge, snapshot);
+            using (ToolWindowRefreshScheduler scheduler = new ToolWindowRefreshScheduler(Dispatcher.CurrentDispatcher))
+            {
+                using (TrainPathToolWindowViewModel viewModel = new TrainPathToolWindowViewModel(bridge, scheduler))
+                {
+                    viewModel.Start();
+                    viewModel.UserSelectNode(viewModel.Nodes[1]);
+                    Task<TrainPathSnapshot> pending = viewModel.PendingInlineInput;
+                    Task<TrainPathSnapshot> expected = pending;
+                    TrainPathSnapshot olderPoll = snapshot with { PathName = "during" };
+                    SetBridgeSnapshot(bridge, olderPoll);
+                    viewModel.PropertyChanged += (_, args) =>
+                    {
+                        if (args.PropertyName != nameof(viewModel.PathName) || viewModel.PathName != "during")
+                            return;
+                        commands.Dequeue()();
+                        if (newerInput)
+                        {
+                            viewModel.UserSelectNode(viewModel.Nodes[2]);
+                            expected = viewModel.PendingInlineInput;
+                        }
+                    };
+
+                    viewModel.Start();
+
+                    Assert.IsTrue(pending.IsCompletedSuccessfully);
+                    Assert.AreSame(olderPoll, viewModel.DisplayedSnapshot);
+                    Assert.AreNotSame(olderPoll, bridge.CaptureTrainPathSnapshot());
+                    Assert.AreSame(expected, viewModel.PendingInlineInput);
+                    if (newerInput)
+                        commands.Dequeue()();
+                    viewModel.Start();
+                    Assert.IsNull(viewModel.PendingInlineInput);
+                    Assert.IsNull(viewModel.SelectedNode);
+                }
+            }
+        }
 
         [TestMethod]
         [DataRow(4L, "True,False")]
@@ -65,7 +183,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.ViewModels
                     Assert.AreEqual(expectedStates, string.Join(",", requested));
                     Assert.AreEqual((false, true, null), (row.IsCompared, row.HasUnsavedChanges, viewModel.SelectedPath));
                 }
-            } 
+            }
         }
 
         [TestMethod]
@@ -430,7 +548,8 @@ namespace Tests.FreeTrainSimulator.Toolbox.ViewModels
             int rejoin = baseline.PathNodes.IndexOf(baseline.PathNodes.Single(node => node.Location == SyntheticPathFixture.Location(100, 0)));
             Queue<Action> commands = new Queue<Action>();
             TrainPathToolWindow bridge = new TrainPathToolWindow(() => editor, () => null, commands.Enqueue,
-                () => { }, () => { }, _ => { }, () => { }, () => { }) { Active = true };
+                () => { }, () => { }, _ => { }, () => { }, () => { })
+            { Active = true };
             Assert.IsTrue(editor.BeginPassingBranchCommand(split).Success);
             editor.SelectAuthoredNode(rejoin);
             bridge.RefreshSnapshot();

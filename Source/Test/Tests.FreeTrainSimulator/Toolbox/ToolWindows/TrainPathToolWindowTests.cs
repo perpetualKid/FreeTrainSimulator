@@ -1,12 +1,15 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Windows.Threading;
 
 using FreeTrainSimulator.Common;
+using FreeTrainSimulator.Common.Input;
 using FreeTrainSimulator.Common.Position;
 using FreeTrainSimulator.Graphics.MapView;
 using FreeTrainSimulator.Models.Content;
@@ -14,6 +17,7 @@ using FreeTrainSimulator.Models.Track;
 using FreeTrainSimulator.Runtime.Track;
 using FreeTrainSimulator.Toolbox.PathEditing;
 using FreeTrainSimulator.Toolbox.ToolWindows;
+using FreeTrainSimulator.Toolbox.ViewModels;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.Xna.Framework;
@@ -32,6 +36,785 @@ namespace Tests.FreeTrainSimulator.Toolbox.ToolWindows
 
         private static readonly int[] expectedArray13762 = new[] { 1, 3, 7, 6, 2 };
 
+        [STATestMethod]
+        public void WhenViewModelStillDisplaysAAfterBridgePublishesBThenCommandsNeverAccessWpfEditorOrMutateB()
+        {
+            using (BlockingCollection<Action> ownerWork = new BlockingCollection<Action>())
+            {
+                ConcurrentQueue<Action> commands = new ConcurrentQueue<Action>();
+                Thread ownerThread = new Thread(() =>
+                {
+                    foreach (Action action in ownerWork.GetConsumingEnumerable(TestContext.CancellationToken))
+                        action();
+                })
+                { IsBackground = true };
+                ownerThread.SetApartmentState(ApartmentState.STA);
+                ownerThread.Start();
+                void OnOwner(Action action)
+                {
+                    TaskCompletionSource completion = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+                    ownerWork.Add(() =>
+                    {
+                        try
+                        { action(); completion.SetResult(); }
+                        catch (Exception exception) { completion.SetException(exception); }
+                    }, TestContext.CancellationToken);
+                    completion.Task.GetAwaiter().GetResult();
+                }
+
+                PathEditor editor = null;
+                try
+                {
+                    TrainPathToolWindow bridge = null;
+                    int saves = 0;
+                    OnOwner(() =>
+                    {
+                        editor = CreatePathEditor(CreateEventPath(PathNodeType.Via, null));
+                        Assert.IsTrue(editor.SetMetadataCommand("A edited", "Start", "End", true).Success);
+                        editor.SelectAuthoredNode(1);
+                        bridge = new TrainPathToolWindow(() =>
+                        {
+                            Assert.AreEqual(ownerThread.ManagedThreadId, Environment.CurrentManagedThreadId, "Editor access must remain on the owner.");
+                            return editor;
+                        }, () => null, commands.Enqueue, () => { }, () => saves++, _ => { }, () => { }, () => { })
+                        { Active = true };
+                        bridge.RefreshSnapshot();
+                    });
+                    using (ToolWindowRefreshScheduler scheduler = new ToolWindowRefreshScheduler(Dispatcher.CurrentDispatcher))
+                    {
+                        using (TrainPathToolWindowViewModel viewModel = new TrainPathToolWindowViewModel(bridge, scheduler))
+                        {
+                            viewModel.Start();
+                            Assert.IsTrue(viewModel.CanSetSelectedWaitPoint && viewModel.CanUndo && viewModel.CanSavePath);
+                            PathModel replacement = null;
+                            OnOwner(() =>
+                            {
+                                Assert.IsTrue(editor.InitializePathAsync(CreateEventPath(PathNodeType.Via, null) with { Id = "path-b", Name = "B" }, TestContext.CancellationToken).GetAwaiter().GetResult());
+                                Assert.IsTrue(editor.SetMetadataCommand("B edited", "B start", "B end", false).Success);
+                                replacement = editor.TryCaptureCurrentPathModel();
+                                bridge.RefreshSnapshot();
+                            });
+
+                            viewModel.PathName = "Stale A";
+                            viewModel.CommitMetadata();
+                            viewModel.SelectedNodeWaitTime = 30;
+                            viewModel.UndoCommand.Execute(null);
+                            viewModel.SavePathCommand.Execute(null);
+                            Assert.HasCount(4, commands);
+                            OnOwner(() =>
+                            {
+                                while (commands.TryDequeue(out Action command))
+                                    command();
+                                Assert.AreSame(replacement, editor.TryCaptureCurrentPathModel());
+                                Assert.IsTrue(editor.CanUndo);
+                                Assert.AreEqual(0, saves);
+                            });
+                        }
+                    }
+                }
+                finally
+                {
+                    OnOwner(() => editor?.Dispose());
+                    ownerWork.CompleteAdding();
+                    ownerThread.Join();
+                }
+            }
+        }
+
+        [TestMethod]
+        [DataRow("reload")]
+        [DataRow("edit-undo")]
+        [DataRow("owner")]
+        [DataRow("placement")]
+        [DataRow("stop")]
+        [DataRow("unload")]
+        public async Task WhenOnlyMenuOwnershipChangesThenSnapshotInvalidatesAndReusesItsWitness(string transition)
+        {
+            using (PathEditor editor = new PathEditor(new TestPathEditorContext(CreateInitializedTrackWorld())))
+            {
+                using (PathEditor replacement = new PathEditor(new TestPathEditorContext(CreateInitializedTrackWorld())))
+                {
+                    PathModel source = CreateEventPath(PathNodeType.Via, null);
+                    Assert.IsTrue(await editor.InitializePathAsync(source, TestContext.CancellationToken));
+                    Assert.IsTrue(await replacement.InitializePathAsync(source, TestContext.CancellationToken));
+                    PathEditor current = editor;
+                    TrainPathToolWindow bridge = CreateCandidateBridge(() => current);
+                    bridge.RefreshSnapshot();
+                    TrainPathSnapshot before = bridge.CaptureTrainPathSnapshot();
+                    Assert.IsTrue(before.NodeMenuOwnership.Items.IsEmpty);
+                    bridge.RefreshSnapshot();
+                    Assert.AreSame(before, bridge.CaptureTrainPathSnapshot());
+
+                    if (transition == "reload")
+                        Assert.IsTrue(await editor.InitializePathAsync(source, TestContext.CancellationToken));
+                    else if (transition == "edit-undo")
+                    {
+                        long lifetime = editor.PathLifetime;
+                        long revision = editor.CompositionRevision;
+                        Assert.IsTrue(editor.SetMetadataCommand("ABA", source.Start, source.End, false).Success);
+                        Assert.IsTrue(editor.Undo());
+                        PathModel restored = editor.TryCaptureCurrentPathModel();
+                        Assert.AreEqual(source with { ValidationState = restored.ValidationState }, restored);
+                        Assert.AreEqual(lifetime, editor.PathLifetime);
+                        Assert.IsGreaterThan(revision, editor.CompositionRevision);
+                    }
+                    else if (transition == "owner")
+                        current = replacement;
+                    else if (transition == "placement")
+                        Assert.IsTrue(editor.BeginMoveNodeCommand(1).Success);
+                    else if (transition == "stop")
+                        editor.Stop();
+                    else
+                        current = null;
+
+                    bridge.RefreshSnapshot();
+                    TrainPathSnapshot after = bridge.CaptureTrainPathSnapshot();
+                    Assert.AreNotSame(before, after);
+                    Assert.AreNotSame(before.NodeMenuOwnership, after.NodeMenuOwnership);
+                    Assert.IsFalse(before.NodeMenuOwnership.IsCurrent(current));
+                    Assert.IsTrue(after.NodeMenuOwnership.Items.IsEmpty);
+                    bridge.RefreshSnapshot();
+                    Assert.AreSame(after, bridge.CaptureTrainPathSnapshot());
+                    editor.SelectAuthoredNode(0);
+                    bridge.RefreshSnapshot();
+                    Assert.AreSame(after.NodeMenuOwnership, bridge.CaptureTrainPathSnapshot().NodeMenuOwnership);
+                }
+            }
+        }
+
+        [TestMethod]
+        public async Task WhenOrdinaryEditsAreQueuedThenLoadingAnotherPathCannotEditIt()
+        {
+            Queue<Action> commands = new Queue<Action>();
+            using (PathEditor editor = new PathEditor(new TestPathEditorContext(CreateInitializedTrackWorld())))
+            {
+                PathModel source = CreateEventPath(PathNodeType.Via, null);
+                Assert.IsTrue(await editor.InitializePathAsync(source, TestContext.CancellationToken));
+                TrainPathToolWindow bridge = new TrainPathToolWindow(() => editor, () => null, commands.Enqueue, () => { }, () => { }, _ => { }, () => { }, () => { }) { Active = true };
+                bridge.RefreshSnapshot();
+                bridge.SetMetadata("Queued for A", "Start A", "End A", true);
+                bridge.SetWaitPoint(1, 30);
+
+                PathModel replacement = source with { Id = "path-b", Name = "Path B" };
+                Assert.IsTrue(await editor.InitializePathAsync(replacement, TestContext.CancellationToken));
+                while (commands.TryDequeue(out Action command))
+                    command();
+
+                Assert.AreSame(replacement, editor.TryCaptureCurrentPathModel());
+                Assert.IsFalse(editor.CanUndo);
+                bridge.RefreshSnapshot();
+                Assert.IsTrue(bridge.CaptureTrainPathSnapshot().CommandResultIsWarning);
+            }
+        }
+
+        [TestMethod]
+        [DataRow("same-instance")]
+        [DataRow("a-b-a")]
+        [DataRow("new-owner")]
+        [DataRow("new")]
+        [DataRow("combine")]
+        [DataRow("unload")]
+        [DataRow("stop")]
+        public async Task WhenOrdinaryEditsAreQueuedThenEveryPathLifetimeReplacementRejectsThem(string transition)
+        {
+            Queue<Action> commands = new Queue<Action>();
+            using (PathEditor editor = new PathEditor(new TestPathEditorContext(CreateInitializedTrackWorld())))
+            {
+                using (PathEditor otherOwner = new PathEditor(new TestPathEditorContext(CreateInitializedTrackWorld())))
+                {
+                    PathEditor current = editor;
+                    PathModel source = CreateEventPath(PathNodeType.Via, null);
+                    Assert.IsTrue(await editor.InitializePathAsync(source, TestContext.CancellationToken));
+                    TrainPathToolWindow bridge = new TrainPathToolWindow(() => current, () => null, commands.Enqueue, () => { }, () => { }, _ => { }, () => { }, () => { }) { Active = true };
+                    bridge.RefreshSnapshot();
+                    bridge.SetMetadata("Stale metadata", "Stale start", "Stale end", true);
+                    bridge.SetWaitPoint(1, 30);
+
+                    switch (transition)
+                    {
+                        case "same-instance":
+                            Assert.IsTrue(await editor.InitializePathAsync(source, TestContext.CancellationToken));
+                            break;
+                        case "a-b-a":
+                            Assert.IsTrue(await editor.InitializePathAsync(source with { Id = "path-b" }, TestContext.CancellationToken));
+                            Assert.IsTrue(await editor.InitializePathAsync(source, TestContext.CancellationToken));
+                            break;
+                        case "new-owner":
+                            Assert.IsTrue(await otherOwner.InitializePathAsync(source, TestContext.CancellationToken));
+                            current = otherOwner;
+                            break;
+                        case "new":
+                            editor.InitializeNewPath();
+                            break;
+                        case "combine":
+                            Assert.IsTrue(editor.CombinePathsCommand(PathEditResult.Succeeded("Combined", source, ImmutableArray<int>.Empty)).Success);
+                            break;
+                        case "unload":
+                            Assert.IsTrue(await editor.InitializePathAsync(null, TestContext.CancellationToken));
+                            break;
+                        case "stop":
+                            editor.Stop();
+                            break;
+                    }
+                    PathModel expected = current.TryCaptureCurrentPathModel();
+                    while (commands.TryDequeue(out Action command))
+                        command();
+
+                    Assert.AreSame(expected, current.TryCaptureCurrentPathModel());
+                    Assert.IsFalse(current.CanUndo);
+                    bridge.RefreshSnapshot();
+                    Assert.IsTrue(bridge.CaptureTrainPathSnapshot().CommandResultIsWarning);
+                }
+            }
+        }
+
+        [TestMethod]
+        [DataRow(false, false)]
+        [DataRow(false, true)]
+        [DataRow(true, false)]
+        [DataRow(true, true)]
+        public async Task WhenHistoryCommandIsQueuedThenReplacementPathHistoryIsUntouched(bool redo, bool replaceOwner)
+        {
+            Queue<Action> commands = new Queue<Action>();
+            using (PathEditor editor = new PathEditor(new TestPathEditorContext(CreateInitializedTrackWorld())))
+            {
+                using (PathEditor otherOwner = new PathEditor(new TestPathEditorContext(CreateInitializedTrackWorld())))
+                {
+                    PathEditor current = editor;
+                    PathModel source = CreateEventPath(PathNodeType.Via, null);
+                    Assert.IsTrue(await editor.InitializePathAsync(source, TestContext.CancellationToken));
+                    Assert.IsTrue(editor.SetMetadataCommand("A edit", "Start", "End", true).Success);
+                    if (redo)
+                        Assert.IsTrue(editor.Undo());
+                    TrainPathToolWindow bridge = new TrainPathToolWindow(() => current, () => null, commands.Enqueue, () => { }, () => { }, _ => { }, () => { }, () => { }) { Active = true };
+                    bridge.RefreshSnapshot();
+                    if (redo)
+                        bridge.Redo();
+                    else
+                        bridge.Undo();
+
+                    current = replaceOwner ? otherOwner : editor;
+                    Assert.IsTrue(await current.InitializePathAsync(source, TestContext.CancellationToken));
+                    Assert.IsTrue(current.SetMetadataCommand("Replacement edit", "Start", "End", true).Success);
+                    if (redo)
+                        Assert.IsTrue(current.Undo());
+                    PathModel expected = current.TryCaptureCurrentPathModel();
+                    var history = (current.CanUndo, current.CanRedo);
+                    commands.Dequeue()();
+
+                    Assert.AreSame(expected, current.TryCaptureCurrentPathModel());
+                    Assert.AreEqual(history, (current.CanUndo, current.CanRedo));
+                    bridge.RefreshSnapshot();
+                    Assert.IsTrue(bridge.CaptureTrainPathSnapshot().CommandResultIsWarning);
+                }
+            }
+        }
+
+        [TestMethod]
+        public async Task WhenSamePathEditsAndHistoryCommandsAreQueuedThenNoSnapshotRefreshIsRequired()
+        {
+            Queue<Action> commands = new Queue<Action>();
+            using (PathEditor editor = new PathEditor(new TestPathEditorContext(CreateInitializedTrackWorld())))
+            {
+                Assert.IsTrue(await editor.InitializePathAsync(CreateEventPath(PathNodeType.Via, null), TestContext.CancellationToken));
+                TrainPathToolWindow bridge = new TrainPathToolWindow(() => editor, () => null, commands.Enqueue, () => { }, () => { }, _ => { }, () => { }, () => { }) { Active = true };
+                bridge.RefreshSnapshot();
+                long lifetime = editor.PathLifetime;
+                long revision = editor.CompositionRevision;
+                bridge.SetMetadata("Updated", "Start", "End", true);
+                bridge.SetWaitPoint(1, 30);
+                while (commands.TryDequeue(out Action command))
+                    command();
+
+                PathModel edited = editor.TryCaptureCurrentPathModel();
+                Assert.AreEqual(("Updated", 30), (edited.Name, edited.PathNodes[1].WaitInfo.WaitTime));
+                bridge.Undo();
+                bridge.Undo();
+                bridge.Redo();
+                bridge.Redo();
+                while (commands.TryDequeue(out Action command))
+                    command();
+
+                Assert.AreSame(edited, editor.TryCaptureCurrentPathModel());
+                Assert.AreEqual(lifetime, editor.PathLifetime);
+                Assert.IsGreaterThan(revision, editor.CompositionRevision);
+            }
+        }
+
+        [TestMethod]
+        [DataRow(false)]
+        [DataRow(true)]
+        public async Task WhenLoadIsInFlightThenBothRequestAndCommitInvalidateQueuedEdits(bool captureDuringLoad)
+        {
+            Queue<Action> commands = new Queue<Action>();
+            Queue<Action> commits = new Queue<Action>();
+            using (PathEditor editor = new PathEditor(new TestPathEditorContext(CreateInitializedTrackWorld()),
+                new UserCommandController<global::FreeTrainSimulator.Toolbox.UserCommand>(), action => action(), commit =>
+                {
+                    TaskCompletionSource<bool> completion = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+                    commits.Enqueue(() => completion.SetResult(commit()));
+                    return completion.Task;
+                }))
+            {
+                PathModel source = CreateEventPath(PathNodeType.Via, null);
+                Task<bool> initialLoad = editor.InitializePathAsync(source, TestContext.CancellationToken);
+                commits.Dequeue()();
+                Assert.IsTrue(await initialLoad);
+                TrainPathToolWindow bridge = new TrainPathToolWindow(() => editor, () => null, commands.Enqueue, () => { }, () => { }, _ => { }, () => { }, () => { }) { Active = true };
+                bridge.RefreshSnapshot();
+                long initialLifetime = editor.PathLifetime;
+
+                if (!captureDuringLoad)
+                    bridge.SetMetadata("Before request", "Start", "End", true);
+
+                Task<bool> reload = editor.InitializePathAsync(source, TestContext.CancellationToken);
+                Assert.IsFalse(reload.IsCompleted);
+                Assert.IsGreaterThan(initialLifetime, editor.PathLifetime);
+
+                if (captureDuringLoad)
+                {
+                    bridge.RefreshSnapshot();
+                    bridge.SetMetadata("Before commit", "Start", "End", true);
+                    long loadingLifetime = editor.PathLifetime;
+                    commits.Dequeue()();
+                    Assert.IsTrue(await reload);
+                    Assert.IsGreaterThan(loadingLifetime, editor.PathLifetime);
+                }
+                commands.Dequeue()();
+                Assert.AreSame(source, editor.TryCaptureCurrentPathModel());
+                Assert.IsFalse(editor.CanUndo);
+                bridge.RefreshSnapshot();
+                Assert.IsTrue(bridge.CaptureTrainPathSnapshot().CommandResultIsWarning);
+                if (!captureDuringLoad)
+                {
+                    commits.Dequeue()();
+                    Assert.IsTrue(await reload);
+                }
+            }
+        }
+
+        [TestMethod]
+        [DataRow(false)]
+        [DataRow(true)]
+        public async Task WhenDisplayedSnapshotIsStaleThenCommandsDoNotRecaptureReplacementOwnership(bool replaceOwner)
+        {
+            Queue<Action> commands = new Queue<Action>();
+            using (PathEditor editor = new PathEditor(new TestPathEditorContext(CreateInitializedTrackWorld())))
+            {
+                using (PathEditor otherOwner = new PathEditor(new TestPathEditorContext(CreateInitializedTrackWorld())))
+                {
+                    PathEditor current = editor;
+                    PathModel source = CreateEventPath(PathNodeType.Via, null);
+                    Assert.IsTrue(await editor.InitializePathAsync(source, TestContext.CancellationToken));
+                    TrainPathToolWindow bridge = new TrainPathToolWindow(() => current, () => null, commands.Enqueue, () => { }, () => { }, _ => { }, () => { }, () => { }) { Active = true };
+                    bridge.RefreshSnapshot();
+                    TrainPathSnapshot displayed = bridge.CaptureTrainPathSnapshot();
+
+                    current = replaceOwner ? otherOwner : editor;
+                    Assert.IsTrue(await current.InitializePathAsync(source, TestContext.CancellationToken));
+                    bridge.RefreshSnapshot();
+                    bridge.ExecuteDisplayedPathCommand(displayed, command => command.SetMetadata("Stale pane", "Start", "End", true));
+                    bridge.ExecuteDisplayedPathCommand(displayed, command => command.SetWaitPoint(1, 30));
+                    while (commands.TryDequeue(out Action command))
+                        command();
+                    Assert.AreSame(source, current.TryCaptureCurrentPathModel());
+
+                    bridge.RefreshSnapshot();
+                    TrainPathSnapshot refreshed = bridge.CaptureTrainPathSnapshot();
+                    Assert.AreNotSame(displayed, refreshed);
+                    Assert.AreSame(current, refreshed.PathEditorOwner);
+                    Assert.AreEqual(current.PathLifetime, refreshed.PathLifetime);
+                    bridge.ExecuteDisplayedPathCommand(refreshed, command => command.SetMetadata("Fresh pane", "Start", "End", true));
+                    bridge.ExecuteDisplayedPathCommand(refreshed, command => command.SetWaitPoint(1, 30));
+                    while (commands.TryDequeue(out Action command))
+                        command();
+                    Assert.AreEqual(("Fresh pane", 30), (current.TryCaptureCurrentPathModel().Name, current.TryCaptureCurrentPathModel().PathNodes[1].WaitInfo.WaitTime));
+                }
+            }
+        }
+
+        [TestMethod]
+        public async Task WhenDisplayedCommandDoesNotChangeStateThenAcknowledgementReusesPublishedSnapshotAndWitness()
+        {
+            Queue<Action> commands = new Queue<Action>();
+            using (PathEditor editor = new PathEditor(new TestPathEditorContext(CreateInitializedTrackWorld())))
+            {
+                PathModel source = CreateEventPath(PathNodeType.Via, null);
+                Assert.IsTrue(await editor.InitializePathAsync(source, TestContext.CancellationToken));
+                TrainPathToolWindow bridge = new TrainPathToolWindow(() => editor, () => null, commands.Enqueue, () => { }, () => { }, _ => { }, () => { }, () => { }) { Active = true };
+                bridge.RefreshSnapshot();
+                TrainPathSnapshot displayed = bridge.CaptureTrainPathSnapshot();
+                TrainPathSnapshot acknowledged = null;
+                int commandCount = 0;
+                int acknowledgementCount = 0;
+                int acknowledgementThreadId = -1;
+
+                bridge.ExecuteDisplayedPathCommand(displayed, command =>
+                {
+                    commandCount++;
+                    command.Undo();
+                }, current =>
+                {
+                    acknowledgementCount++;
+                    acknowledgementThreadId = Environment.CurrentManagedThreadId;
+                    acknowledged = current;
+                });
+                Assert.AreEqual((0, 0, 1), (commandCount, acknowledgementCount, commands.Count));
+                await Task.Run(() =>
+                {
+                    commands.Dequeue()();
+                    Assert.AreEqual(Environment.CurrentManagedThreadId, acknowledgementThreadId);
+                }, TestContext.CancellationToken);
+
+                Assert.AreEqual((1, 1, 0), (commandCount, acknowledgementCount, commands.Count));
+                Assert.AreSame(displayed, acknowledged);
+                Assert.AreSame(bridge.CaptureTrainPathSnapshot(), acknowledged);
+                Assert.AreSame(displayed.NodeMenuOwnership, acknowledged.NodeMenuOwnership);
+                Assert.AreSame(source, editor.TryCaptureCurrentPathModel());
+                Assert.AreEqual((false, false), (editor.CanUndo, editor.CanRedo));
+            }
+        }
+
+        [TestMethod]
+        [DataRow(0)] // Missing owner.
+        [DataRow(1)] // Stopped owner.
+        [DataRow(2)] // Replaced owner, even with the same displayed path.
+        public async Task WhenDisplayedCommandOwnerIsRefusedThenAcknowledgementRunsOnceOnOwnerWithNull(int transition)
+        {
+            Queue<Action> commands = new Queue<Action>();
+            using (PathEditor editor = new PathEditor(new TestPathEditorContext(CreateInitializedTrackWorld())))
+            {
+                using (PathEditor replacement = new PathEditor(new TestPathEditorContext(CreateInitializedTrackWorld())))
+                {
+                    PathModel source = CreateEventPath(PathNodeType.Via, null);
+                    foreach (PathEditor owner in new PathEditor[] { editor, replacement })
+                    {
+                        Assert.IsTrue(await owner.InitializePathAsync(source, TestContext.CancellationToken));
+                        Assert.IsTrue(owner.SetMetadataCommand("First edit", "Start", "End", true).Success);
+                        Assert.IsTrue(owner.SetMetadataCommand("Redo entry", "Start", "End", true).Success);
+                        Assert.IsTrue(owner.Undo());
+                        Assert.AreEqual((true, true), (owner.CanUndo, owner.CanRedo));
+                    }
+                    PathEditor current = editor;
+                    TrainPathToolWindow bridge = new TrainPathToolWindow(() => current, () => null, commands.Enqueue, () => { }, () => { }, _ => { }, () => { }, () => { }) { Active = true };
+                    bridge.RefreshSnapshot();
+                    TrainPathSnapshot displayed = bridge.CaptureTrainPathSnapshot();
+                    TrainPathSnapshot acknowledged = displayed;
+                    int commandCount = 0;
+                    int acknowledgementCount = 0;
+                    int acknowledgementThreadId = -1;
+
+                    bridge.ExecuteDisplayedPathCommand(displayed, command =>
+                    {
+                        commandCount++;
+                        command.SetMetadata("Stale edit", "Stale start", "Stale end", false);
+                    }, snapshot =>
+                    {
+                        acknowledgementCount++;
+                        acknowledgementThreadId = Environment.CurrentManagedThreadId;
+                        acknowledged = snapshot;
+                    });
+                    Action[] transitions = new Action[] { () => current = null, editor.Stop, () => current = replacement };
+                    transitions[transition]();
+                    PathModel originalModel = editor.TryCaptureCurrentPathModel();
+                    PathModel replacementModel = replacement.TryCaptureCurrentPathModel();
+                    (bool CanUndo, bool CanRedo, long Revision) originalHistory = (editor.CanUndo, editor.CanRedo, editor.CompositionRevision);
+                    (bool CanUndo, bool CanRedo, long Revision) replacementHistory = (replacement.CanUndo, replacement.CanRedo, replacement.CompositionRevision);
+                    Assert.AreEqual((0, 0, 1), (commandCount, acknowledgementCount, commands.Count));
+                    await Task.Run(() =>
+                    {
+                        commands.Dequeue()();
+                        Assert.AreEqual(Environment.CurrentManagedThreadId, acknowledgementThreadId);
+                    }, TestContext.CancellationToken);
+
+                    Assert.AreEqual((0, 1, 0), (commandCount, acknowledgementCount, commands.Count));
+                    Assert.IsNull(acknowledged);
+                    Assert.AreSame(originalModel, editor.TryCaptureCurrentPathModel());
+                    Assert.AreSame(replacementModel, replacement.TryCaptureCurrentPathModel());
+                    Assert.AreEqual(originalHistory, (editor.CanUndo, editor.CanRedo, editor.CompositionRevision));
+                    Assert.AreEqual(replacementHistory, (replacement.CanUndo, replacement.CanRedo, replacement.CompositionRevision));
+                }
+            }
+        }
+
+        [TestMethod]
+        public async Task WhenDisplayedCommandMutatesActivePathThenAcknowledgementPublishesFullCurrentImmutableState()
+        {
+            Queue<Action> commands = new Queue<Action>();
+            using (PathEditor editor = new PathEditor(new TestPathEditorContext(CreateInitializedTrackWorld())))
+            {
+                PathModel source = CreateEventPath(PathNodeType.Via, null);
+                Assert.IsTrue(await editor.InitializePathAsync(source, TestContext.CancellationToken));
+                Assert.IsTrue(editor.SetMetadataCommand("Redo entry", "Start", "End", false).Success);
+                Assert.IsTrue(editor.Undo());
+                editor.SelectAuthoredNode(2);
+                TrainPathToolWindow bridge = new TrainPathToolWindow(() => editor, () => null, commands.Enqueue, () => { }, () => { }, _ => { }, () => { }, () => { }) { Active = true };
+                bridge.RefreshSnapshot();
+                TrainPathSnapshot displayed = bridge.CaptureTrainPathSnapshot();
+                TrainPathSnapshot acknowledged = null;
+                int commandCount = 0;
+                int acknowledgementCount = 0;
+                int acknowledgementThreadId = -1;
+
+                bridge.ExecuteDisplayedPathCommand(displayed, command =>
+                {
+                    commandCount++;
+                    command.SetMetadata("Acknowledged path", "New start", "New end", true);
+                    command.SetWaitPoint(1, 30);
+                    command.HighlightNode(1);
+                }, current =>
+                {
+                    acknowledgementCount++;
+                    acknowledgementThreadId = Environment.CurrentManagedThreadId;
+                    acknowledged = current;
+                    Assert.AreSame(current, bridge.CaptureTrainPathSnapshot());
+                });
+                Assert.AreEqual((0, 0, 1), (commandCount, acknowledgementCount, commands.Count));
+                await Task.Run(() =>
+                {
+                    commands.Dequeue()();
+                    Assert.AreEqual(Environment.CurrentManagedThreadId, acknowledgementThreadId);
+                }, TestContext.CancellationToken);
+
+                Assert.AreEqual((1, 1, 0), (commandCount, acknowledgementCount, commands.Count));
+                Assert.IsNotNull(acknowledged);
+                Assert.AreNotSame(displayed, acknowledged);
+                Assert.AreSame(editor, acknowledged.PathEditorOwner);
+                Assert.AreEqual(editor.PathLifetime, acknowledged.PathLifetime);
+                Assert.AreNotSame(displayed.NodeMenuOwnership, acknowledged.NodeMenuOwnership);
+                Assert.IsTrue(acknowledged.NodeMenuOwnership.IsCurrent(editor));
+                Assert.AreEqual(source.Id, acknowledged.SelectedPathId);
+                Assert.AreEqual(("Acknowledged path", "New start", "New end", true), (acknowledged.PathName, acknowledged.PathStart, acknowledged.PathEnd, acknowledged.PlayerPath));
+                Assert.AreEqual((source.Id, "Acknowledged path", true), (acknowledged.Paths.Single().Id, acknowledged.Paths.Single().Name, acknowledged.Paths.Single().HasUnsavedChanges));
+                Assert.HasCount(source.PathNodes.Length, acknowledged.Nodes);
+                Assert.AreSequenceEqual(editor.TryCaptureCurrentPathModel().PathNodes.Select(node => node.NodeType).ToArray(), acknowledged.Nodes.Select(node => node.NodeType).ToArray());
+                Assert.AreEqual(1, acknowledged.SelectedNodeIndex);
+                Assert.AreEqual(30, acknowledged.Nodes[1].WaitTime);
+                Assert.AreEqual((true, false, true, true), (acknowledged.CanUndo, acknowledged.CanRedo, acknowledged.CanSavePath, acknowledged.CanClearSelectedWaitPoint));
+                Assert.AreEqual(FormatStrings.FormatYesNo(true), acknowledged.Metadata.Single(row => row.Name == "Can Undo").Value);
+                Assert.AreEqual(FormatStrings.FormatYesNo(false), acknowledged.Metadata.Single(row => row.Name == "Can Redo").Value);
+                Assert.IsFalse(acknowledged.CommandResultIsWarning);
+                Assert.IsGreaterThan(displayed.CommandResultVersion, acknowledged.CommandResultVersion);
+                bridge.RefreshSnapshot();
+                Assert.AreSame(acknowledged, bridge.CaptureTrainPathSnapshot());
+
+                Assert.AreEqual((source.Name, source.Start, source.End, source.PlayerPath), (displayed.PathName, displayed.PathStart, displayed.PathEnd, displayed.PlayerPath));
+                Assert.AreEqual((2, false, true, false), (displayed.SelectedNodeIndex, displayed.CanUndo, displayed.CanRedo, displayed.CanClearSelectedWaitPoint));
+                Assert.IsNull(displayed.Nodes[1].WaitTime);
+                Assert.IsTrue(editor.SetMetadataCommand("Later edit", "Later start", "Later end", false).Success);
+                Assert.IsTrue(editor.SetWaitPointCommand(1, 60).Success);
+                Assert.AreEqual(("Acknowledged path", "New start", "New end", true), (acknowledged.PathName, acknowledged.PathStart, acknowledged.PathEnd, acknowledged.PlayerPath));
+                Assert.AreEqual(30, acknowledged.Nodes[1].WaitTime);
+            }
+        }
+
+        [TestMethod]
+        [DataRow("empty")]
+        [DataRow("paths-only")]
+        [DataRow("old")]
+        [DataRow("inactive")]
+        public async Task WhenNativeNewPathHereRunsThenCommandsIgnoreHiddenOrOldPaneOwnership(string pane)
+        {
+            Queue<Action> commands = new Queue<Action>();
+            using (PathEditor editor = new PathEditor(new TestPathEditorContext(CreateInitializedTrackWorld())))
+            {
+                PathModel source = CreateEventPath(PathNodeType.Via, null);
+                Assert.IsTrue(await editor.InitializePathAsync(source, TestContext.CancellationToken));
+                PathEditor current = pane == "paths-only" ? null : editor;
+                TrainPathToolWindow bridge = new TrainPathToolWindow(() => current, () => null, commands.Enqueue, () => { current = editor; editor.InitializeNewPath(); }, () => { }, _ => { }, () => { }, () => { }) { Active = true };
+
+                if (pane != "empty")
+                    bridge.RefreshSnapshot();
+
+                bridge.Active = pane == "old";
+                TrainPathSnapshot cached = bridge.CaptureTrainPathSnapshot();
+
+                bridge.StartNewPathAt(source.PathNodes[0], false);
+                commands.Dequeue()();
+                bridge.AddRoutePointHere(source.PathNodes[^1], false, true);
+                bridge.SetMetadata("Native new path", "Native start", "Native end", true);
+                while (commands.TryDequeue(out Action command))
+                    command();
+                PathModel authored = editor.TryCaptureCurrentPathModel();
+                Assert.AreEqual("Native new path", authored.Name);
+                Assert.HasCount(2, authored.PathNodes);
+                Assert.IsFalse(editor.IsBuildingRoute);
+                bridge.Undo();
+                bridge.Redo();
+                while (commands.TryDequeue(out Action command))
+                    command();
+                Assert.AreSame(authored, editor.TryCaptureCurrentPathModel());
+                Assert.AreSame(cached, bridge.CaptureTrainPathSnapshot());
+            }
+        }
+
+        [TestMethod]
+        public async Task WhenNativeSubmissionOverlapsDisplayedScopeThenItUsesItsOwnOwnerAndScopeRestoresAfterFailure()
+        {
+            ConcurrentQueue<Action> commands = new ConcurrentQueue<Action>();
+            using (PathEditor editor = new PathEditor(new TestPathEditorContext(CreateInitializedTrackWorld())))
+            {
+                using (PathEditor replacement = new PathEditor(new TestPathEditorContext(CreateInitializedTrackWorld())))
+                {
+                    PathModel source = CreateEventPath(PathNodeType.Via, null);
+                    Assert.IsTrue(await editor.InitializePathAsync(source, TestContext.CancellationToken));
+                    Assert.IsTrue(await replacement.InitializePathAsync(source with { Id = "b" }, TestContext.CancellationToken));
+                    PathEditor current = editor;
+                    TrainPathToolWindow bridge = new TrainPathToolWindow(() => current, () => null, commands.Enqueue, () => { }, () => { }, _ => { }, () => { }, () => { }) { Active = true };
+                    bridge.RefreshSnapshot();
+                    bridge.ExecuteDisplayedPathCommand(bridge.CaptureTrainPathSnapshot(), command =>
+                    {
+                        current = replacement;
+                        Thread nativeThread = new Thread(() => command.SetMetadata("Native B", "Start", "End", true));
+                        nativeThread.Start();
+                        nativeThread.Join();
+                        throw new InvalidOperationException("End displayed scope.");
+                    });
+                    Assert.IsTrue(commands.TryDequeue(out Action displayed));
+                    _ = Assert.ThrowsExactly<InvalidOperationException>(displayed);
+                    Assert.HasCount(1, commands);
+                    Assert.IsTrue(commands.TryDequeue(out Action native));
+                    native();
+                    Assert.AreEqual("Native B", replacement.TryCaptureCurrentPathModel().Name);
+                    bridge.SetWaitPoint(1, 30);
+                    Assert.HasCount(1, commands);
+                    Assert.IsTrue(commands.TryDequeue(out native));
+                    native();
+                    Assert.AreEqual(30, replacement.TryCaptureCurrentPathModel().PathNodes[1].WaitInfo.WaitTime);
+                    Assert.AreSame(source, editor.TryCaptureCurrentPathModel());
+                }
+            }
+        }
+
+        [TestMethod]
+        [DataRow(false)]
+        [DataRow(true)]
+        public async Task WhenOnlyPathOwnershipChangesThenSnapshotIsRepublishedAndReused(bool replaceOwner)
+        {
+            using (PathEditor editor = new PathEditor(new TestPathEditorContext(CreateInitializedTrackWorld())))
+            {
+                using (PathEditor otherOwner = new PathEditor(new TestPathEditorContext(CreateInitializedTrackWorld())))
+                {
+                    PathEditor current = editor;
+                    PathModel source = CreateEventPath(PathNodeType.Via, null);
+                    Assert.IsTrue(await editor.InitializePathAsync(source, TestContext.CancellationToken));
+                    TrainPathToolWindow bridge = CreateCandidateBridge(() => current);
+                    bridge.RefreshSnapshot();
+                    TrainPathSnapshot before = bridge.CaptureTrainPathSnapshot();
+
+                    current = replaceOwner ? otherOwner : editor;
+                    Assert.IsTrue(await current.InitializePathAsync(source, TestContext.CancellationToken));
+                    bridge.RefreshSnapshot();
+                    TrainPathSnapshot after = bridge.CaptureTrainPathSnapshot();
+                    Assert.AreNotSame(before, after);
+                    Assert.AreSame(current, after.PathEditorOwner);
+                    Assert.AreEqual(current.PathLifetime, after.PathLifetime);
+                    bridge.RefreshSnapshot();
+                    Assert.AreSame(after, bridge.CaptureTrainPathSnapshot());
+                }
+            }
+        }
+
+        [TestMethod]
+        public async Task WhenSaveIsQueuedThenReloadCannotSaveTheReplacementPath()
+        {
+            Queue<Action> commands = new Queue<Action>();
+            int saves = 0;
+            using (PathEditor editor = new PathEditor(new TestPathEditorContext(CreateInitializedTrackWorld())))
+            {
+                PathModel source = CreateEventPath(PathNodeType.Via, null);
+                Assert.IsTrue(await editor.InitializePathAsync(source, TestContext.CancellationToken));
+                TrainPathToolWindow bridge = new TrainPathToolWindow(() => editor, () => null, commands.Enqueue, () => { }, () => saves++, _ => { }, () => { }, () => { }) { Active = true };
+                bridge.RefreshSnapshot();
+                bridge.SavePath();
+                Assert.IsTrue(await editor.InitializePathAsync(source, TestContext.CancellationToken));
+                commands.Dequeue()();
+
+                Assert.AreEqual(0, saves);
+                Assert.AreSame(source, editor.TryCaptureCurrentPathModel());
+                bridge.RefreshSnapshot();
+                Assert.IsTrue(bridge.CaptureTrainPathSnapshot().CommandResultIsWarning);
+            }
+        }
+
+        [TestMethod]
+        public void WhenCancelNewPathIsQueuedThenAnotherNewDraftCannotBeUnloaded()
+        {
+            Queue<Action> commands = new Queue<Action>();
+            int unloads = 0;
+            using (PathEditor editor = new PathEditor(new TestPathEditorContext(CreateInitializedTrackWorld())))
+            {
+                editor.InitializeNewPath();
+                TrainPathToolWindow bridge = new TrainPathToolWindow(() => editor, () => null, commands.Enqueue, () => { }, () => { }, _ => { }, () => unloads++, () => { }) { Active = true };
+                bridge.RefreshSnapshot();
+                bridge.CancelNewPath();
+                editor.InitializeNewPath();
+                PathModel replacement = editor.TryCaptureCurrentPathModel();
+                commands.Dequeue()();
+
+                Assert.AreEqual(0, unloads);
+                Assert.AreSame(replacement, editor.TryCaptureCurrentPathModel());
+                bridge.RefreshSnapshot();
+                Assert.IsTrue(bridge.CaptureTrainPathSnapshot().CommandResultIsWarning);
+            }
+        }
+
+        [TestMethod]
+        public async Task WhenSnapshotIsRefreshedAfterStopThenMetadataStillCannotMutateTheStoppedEditor()
+        {
+            Queue<Action> commands = new Queue<Action>();
+            using (PathEditor editor = new PathEditor(new TestPathEditorContext(CreateInitializedTrackWorld())))
+            {
+                PathModel source = CreateEventPath(PathNodeType.Via, null);
+                Assert.IsTrue(await editor.InitializePathAsync(source, TestContext.CancellationToken));
+                TrainPathToolWindow bridge = new TrainPathToolWindow(() => editor, () => null, commands.Enqueue, () => { }, () => { }, _ => { }, () => { }, () => { }) { Active = true };
+                editor.Stop();
+                bridge.RefreshSnapshot();
+                bridge.SetMetadata("After stop", "Start", "End", true);
+                commands.Dequeue()();
+
+                Assert.AreSame(source, editor.TryCaptureCurrentPathModel());
+                bridge.RefreshSnapshot();
+                Assert.IsTrue(bridge.CaptureTrainPathSnapshot().CommandResultIsWarning);
+            }
+        }
+
+        [TestMethod]
+        public async Task WhenNodeMenuIsCapturedDuringLoadThenSameInstanceCommitInvalidatesIt()
+        {
+            Queue<Action> commands = new Queue<Action>();
+            Queue<Action> commits = new Queue<Action>();
+            using (PathEditor editor = new PathEditor(new TestPathEditorContext(CreateInitializedTrackWorld()),
+                new UserCommandController<global::FreeTrainSimulator.Toolbox.UserCommand>(), action => action(), commit =>
+                {
+                    TaskCompletionSource<bool> completion = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+                    commits.Enqueue(() => completion.SetResult(commit()));
+                    return completion.Task;
+                }))
+            {
+                PathModel source = CreateEventPath(PathNodeType.Wait, new PathNodeWaitInfo { WaitTime = 30 });
+                Task<bool> initialLoad = editor.InitializePathAsync(source, TestContext.CancellationToken);
+                commits.Dequeue()();
+                Assert.IsTrue(await initialLoad);
+                TrainPathToolWindow bridge = new TrainPathToolWindow(() => editor, () => null, commands.Enqueue,
+                    () => { }, () => { }, _ => { }, () => { }, () => { })
+                { Active = true };
+
+                Task<bool> reload = editor.InitializePathAsync(source, TestContext.CancellationToken);
+                PathEditorMenuRequest menu = CaptureNodeMenuRequest(bridge, 1, commands);
+                MapContextMenuItem clearWait = menu.Items.Single(item => item.Action == MapContextMenuAction.ClearWaitPoint);
+                bridge.ExecuteNodeAction(menu, clearWait);
+                commits.Dequeue()();
+                Assert.IsTrue(await reload);
+                commands.Dequeue()();
+
+                Assert.IsFalse(menu.IsCurrent(editor));
+                Assert.AreSame(source, editor.TryCaptureCurrentPathModel());
+                bridge.RefreshSnapshot();
+                Assert.IsTrue(bridge.CaptureTrainPathSnapshot().CommandResultIsWarning);
+            }
+        }
+
         [TestMethod]
         [DataRow(3, PathNodeType.Via, 4, 4, "Passing branches must be strictly separated; touching, nested, or overlapping branches are not supported.")]
         [DataRow(6, PathNodeType.Via, -1, 5, "The passing branch is cyclic, shared, nested, or does not rejoin the main route.")]
@@ -41,8 +824,11 @@ namespace Tests.FreeTrainSimulator.Toolbox.ToolWindows
         public void WhenPassingTopologyRefusalIsPublishedThenItsExactTemplateIsPresented(int index, PathNodeType type, int main, int siding, string expected)
         {
             PathModel source = CreateSupportedPassingBranchPath();
-            source = source with { PathNodes = source.PathNodes.SetItem(index, source.PathNodes[index] with
-                { NodeType = type, NextMainNode = main, NextSidingNode = siding }) };
+            source = source with
+            {
+                PathNodes = source.PathNodes.SetItem(index, source.PathNodes[index] with
+                { NodeType = type, NextMainNode = main, NextSidingNode = siding })
+            };
 
             PathEditResult result = PathModelEditor.RemovePassingBranch(source, 1);
             TrainPathSnapshot snapshot = PresentPassingBranchResult(result);
@@ -102,11 +888,14 @@ namespace Tests.FreeTrainSimulator.Toolbox.ToolWindows
             int[] order = [5, 6, 0, 1, 2, 3, 4];
             Dictionary<int, int> indexMap = order.Select((oldIndex, newIndex) => (oldIndex, newIndex))
                 .ToDictionary(item => item.oldIndex, item => item.newIndex);
-            source = source with { PathNodes = order.Select(index => source.PathNodes[index] with
+            source = source with
+            {
+                PathNodes = order.Select(index => source.PathNodes[index] with
                 {
                     NextMainNode = indexMap.GetValueOrDefault(source.PathNodes[index].NextMainNode, -1),
                     NextSidingNode = indexMap.GetValueOrDefault(source.PathNodes[index].NextSidingNode, -1),
-                }).ToImmutableArray() };
+                }).ToImmutableArray()
+            };
 
             PathEditResult result = PathModelEditor.RemovePassingBranch(source, 3);
             TrainPathSnapshot snapshot = PresentPassingBranchResult(result);
@@ -133,7 +922,8 @@ namespace Tests.FreeTrainSimulator.Toolbox.ToolWindows
             FormattableString cause = $"Node {7} is null.";
             FormattableString message = $"Truncating after node {3} would invalidate the passing topology: {cause}";
             PathEditResult result = PathEditResult.Failed(message.ToString(System.Globalization.CultureInfo.InvariantCulture), PathEditorMessageKind.PassingBranchOutcome, null)
-                with { MessageFormat = message };
+                with
+            { MessageFormat = message };
 
             TrainPathSnapshot snapshot = PresentPassingBranchResult(result);
 
@@ -173,7 +963,8 @@ namespace Tests.FreeTrainSimulator.Toolbox.ToolWindows
             int combines = 0;
             TrainPathToolWindow bridge = new TrainPathToolWindow(() => null, () => null, commands.Enqueue,
                 () => { }, () => { }, _ => { }, () => { }, () => { }, null, (_, _) => Task.CompletedTask, null,
-                _ => { combines++; return Task.CompletedTask; }) { Active = true };
+                _ => { combines++; return Task.CompletedTask; })
+            { Active = true };
             ImmutableArray<TrainPathComparisonRow> rows = [
                 new TrainPathComparisonRow("first", "First", 1, true, false, null, System.Drawing.Color.Empty),
                 new TrainPathComparisonRow("second", "Second", 1, true, false, null, System.Drawing.Color.Empty)];
@@ -261,7 +1052,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.ToolWindows
 
                 bridge.RefreshSnapshot();
                 TrainPathSnapshot snapshot = bridge.CaptureTrainPathSnapshot();
-                ImmutableArray<MapContextMenuItem> actions = bridge.GetNodeActions(5);
+                ImmutableArray<MapContextMenuItem> actions = CaptureNodeMenuRequest(bridge, 5, null).Items;
 
                 Assert.AreEqual((false, true, true, false), (snapshot.CanSetSelectedWaitPoint, snapshot.CanClearSelectedWaitPoint,
                     actions.Any(item => item.Action == MapContextMenuAction.ClearWaitPoint), actions.Any(item => item.Action == MapContextMenuAction.SetReversalPoint)));
@@ -682,10 +1473,12 @@ namespace Tests.FreeTrainSimulator.Toolbox.ToolWindows
                 {
                     NodeIndex = vector.NodeIndex,
                     VectorSections = ImmutableArray.Create(new VectorSectionNode(new WorldLocation(tile, vector.Location.Location), tile,
-                        new Vector3(0, MathHelper.PiOver2, 0), new WorldLocation(tile, vector.EndLocation.Location)) { NodeIndex = 1 }),
+                        new Vector3(0, MathHelper.PiOver2, 0), new WorldLocation(tile, vector.EndLocation.Location))
+                    { NodeIndex = 1 }),
                 },
                 JunctionNode junction => new JunctionNode(new WorldLocation(tile, junction.Location.Location), tile,
-                    junction.Direction) { NodeIndex = junction.NodeIndex },
+                    junction.Direction)
+                { NodeIndex = junction.NodeIndex },
                 _ => node,
             }).ToImmutableArray();
             TrackDatabase database = new TrackDatabase
@@ -719,6 +1512,19 @@ namespace Tests.FreeTrainSimulator.Toolbox.ToolWindows
             return new TrainPathToolWindow(editorAccessor, () => null, action => action(), () => { }, () => { }, _ => { }, () => { }, () => { }) { Active = true };
         }
 
+        internal static PathEditorMenuRequest CaptureNodeMenuRequest(TrainPathToolWindow bridge, int nodeIndex, Queue<Action> commands)
+        {
+            bridge.Active = true;
+            bridge.RefreshSnapshot();
+            PathEditorMenuRequest result = null;
+            bridge.RequestNodeMenu(bridge.CaptureTrainPathSnapshot().NodeMenuOwnership, nodeIndex, request => result = request);
+            if (commands != null)
+                while (commands.TryDequeue(out Action command))
+                    command();
+            Assert.IsNotNull(result);
+            return result;
+        }
+
         private static PathModel CreateCandidatePath(TrackWorld trackWorld, bool includeEnd)
         {
             PathNode start = CreateAnchoredNode(trackWorld, 1, PathNodeType.Start, includeEnd ? 1 : -1);
@@ -738,7 +1544,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.ToolWindows
             {
                 TrainPathToolWindow trainPathToolWindow = new TrainPathToolWindow(() => editor, () => null, action => action(), () => { }, () => { }, _ => { }, () => { }, () => { });
 
-                ImmutableArray<MapContextMenuItem> actions = trainPathToolWindow.GetNodeActions(1);
+                ImmutableArray<MapContextMenuItem> actions = CaptureNodeMenuRequest(trainPathToolWindow, 1, null).Items;
 
                 Assert.Contains(MapContextMenuAction.MoveNode, actions.Select(item => item.Action));
                 Assert.Contains(MapContextMenuAction.SetReversalPoint, actions.Select(item => item.Action));
@@ -756,7 +1562,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.ToolWindows
                 TrainPathToolWindow trainPathToolWindow = new TrainPathToolWindow(() => editor, () => null, action => action(),
                     () => { }, () => { }, _ => { }, () => { }, () => { });
 
-                ImmutableArray<MapContextMenuItem> actions = trainPathToolWindow.GetNodeActions(nodeIndex);
+                ImmutableArray<MapContextMenuItem> actions = CaptureNodeMenuRequest(trainPathToolWindow, nodeIndex, null).Items;
 
                 Assert.DoesNotContain(MapContextMenuAction.RemoveViaPoint, actions.Select(item => item.Action));
             }
@@ -788,7 +1594,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.ToolWindows
                 PathModel baseline = editor.TryCaptureCurrentPathModel();
                 TrainPathToolWindow bridge = CreateCandidateBridge(() => editor);
 
-                ImmutableArray<MapContextMenuItem> actions = bridge.GetNodeActions(nodeIndex);
+                ImmutableArray<MapContextMenuItem> actions = CaptureNodeMenuRequest(bridge, nodeIndex, null).Items;
 
                 Assert.AreEqual(canMove, actions.Any(item => item.Action == MapContextMenuAction.MoveNode));
                 Assert.AreSame(baseline, editor.TryCaptureCurrentPathModel());
@@ -840,7 +1646,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.ToolWindows
                 (bool, ToolboxContentMode) mode = (editor.EditMode, context.ContentMode);
                 bridge.RefreshSnapshot();
                 Assert.AreEqual((true, false), (bridge.CaptureTrainPathSnapshot().IsRepairMode, bridge.CaptureTrainPathSnapshot().CanMoveSelectedNode));
-                Assert.DoesNotContain(MapContextMenuAction.MoveNode, bridge.GetNodeActions(nodeIndex).Select(item => item.Action));
+                Assert.DoesNotContain(MapContextMenuAction.MoveNode, CaptureNodeMenuRequest(bridge, nodeIndex, null).Items.Select(item => item.Action));
 
                 bridge.ExecuteNodeAction(MapContextMenuAction.MoveNode, nodeIndex);
                 bridge.RefreshSnapshot();
@@ -864,7 +1670,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.ToolWindows
                 TrainPathToolWindow trainPathToolWindow = new TrainPathToolWindow(() => editor, () => null, action => action(),
                     () => { }, () => { }, _ => { }, () => { }, () => { });
 
-                ImmutableArray<MapContextMenuItem> actions = trainPathToolWindow.GetNodeActions(5);
+                ImmutableArray<MapContextMenuItem> actions = CaptureNodeMenuRequest(trainPathToolWindow, 5, null).Items;
 
                 Assert.DoesNotContain(MapContextMenuAction.RemoveViaPoint, actions.Select(item => item.Action));
             }
@@ -878,7 +1684,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.ToolWindows
                 TrainPathToolWindow trainPathToolWindow = new TrainPathToolWindow(() => editor, () => null, action => action(),
                     () => { }, () => { }, _ => { }, () => { }, () => { });
 
-                ImmutableArray<MapContextMenuItem> actions = trainPathToolWindow.GetNodeActions(2);
+                ImmutableArray<MapContextMenuItem> actions = CaptureNodeMenuRequest(trainPathToolWindow, 2, null).Items;
 
                 Assert.Contains(MapContextMenuAction.RemoveRestOfPath, actions.Select(item => item.Action));
             }
@@ -894,7 +1700,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.ToolWindows
                 TrainPathToolWindow trainPathToolWindow = new TrainPathToolWindow(() => editor, () => null, action => action(),
                     () => { }, () => { }, _ => { }, () => { }, () => { });
 
-                ImmutableArray<MapContextMenuItem> actions = trainPathToolWindow.GetNodeActions(nodeIndex);
+                ImmutableArray<MapContextMenuItem> actions = CaptureNodeMenuRequest(trainPathToolWindow, nodeIndex, null).Items;
 
                 Assert.DoesNotContain(MapContextMenuAction.RemoveRestOfPath, actions.Select(item => item.Action));
             }
@@ -992,7 +1798,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.ToolWindows
                 editor.SelectAuthoredNode(rejoin);
                 bridge.RefreshSnapshot();
                 Assert.IsTrue(bridge.CaptureTrainPathSnapshot().CanRejoinPassingBranchWithVia);
-                Assert.Contains(MapContextMenuAction.RejoinPassingBranchWithVia, bridge.GetNodeActions(rejoin).Select(item => item.Action));
+                Assert.Contains(MapContextMenuAction.RejoinPassingBranchWithVia, CaptureNodeMenuRequest(bridge, rejoin, null).Items.Select(item => item.Action));
 
                 bridge.ExecuteNodeAction(MapContextMenuAction.RejoinPassingBranchWithVia, rejoin);
                 bridge.RefreshSnapshot();

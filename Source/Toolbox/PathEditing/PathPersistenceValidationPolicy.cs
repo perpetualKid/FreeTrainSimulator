@@ -40,7 +40,7 @@ namespace FreeTrainSimulator.Toolbox.PathEditing
             if (!materialization.PersistenceAllowed)
                 return materialization;
 
-            ImmutableArray<PathRouteDiagnostic> eventDiagnostics = GetSimulatorEventDiagnostics(pathModel, materialization);
+            ImmutableArray<PathRouteDiagnostic> eventDiagnostics = GetSimulatorEventDiagnostics(pathModel, materialization, trackWorld);
             if (eventDiagnostics.IsEmpty)
                 return materialization;
 
@@ -119,16 +119,26 @@ namespace FreeTrainSimulator.Toolbox.PathEditing
             return PathSimulatorEventCompatibility.Validate(pathModel, startNodeIndex);
         }
 
-        /// <summary>Checks materialized events and maps only unambiguous targets back to the authored draft.</summary>
-        internal static ImmutableArray<PathRouteDiagnostic> GetSimulatorEventDiagnostics(PathModel sourceModel, PathPersistenceValidationResult materialization)
+        /// <summary>Checks projection in the actual generated graph's index domain, not an earlier ambiguous resolution.</summary>
+        internal static ImmutableArray<PathRouteDiagnostic> GetSimulatorEventDiagnostics(PathModel pathModel, TrackWorld trackWorld)
         {
-            ImmutableArray<PathRouteDiagnostic> diagnostics = GetSimulatorEventDiagnostics(materialization.PathModel);
+            ImmutableArray<PathRouteDiagnostic> diagnostics = GetSimulatorEventDiagnostics(pathModel);
+            if (!pathModel.PathNodes.Any(node => node?.NextSidingNode >= 0))
+                return diagnostics;
+
+            PathRouteResolution generatedResolution = PathRouteResolver.Resolve(pathModel, trackWorld, PersistenceOptions, CancellationToken.None);
+            return diagnostics.AddRange(PathSimulatorEventCompatibility.ValidateProjection(pathModel, generatedResolution, trackWorld));
+        }
+
+        /// <summary>Checks materialized events and maps only unambiguous targets back to the authored draft.</summary>
+        internal static ImmutableArray<PathRouteDiagnostic> GetSimulatorEventDiagnostics(PathModel sourceModel, PathPersistenceValidationResult materialization, TrackWorld trackWorld)
+        {
+            ImmutableArray<PathRouteDiagnostic> diagnostics = GetSimulatorEventDiagnostics(materialization.PathModel, trackWorld);
             return diagnostics.Select(diagnostic => RemapSimulatorEventDiagnostic(sourceModel, materialization, diagnostic)).ToImmutableArray();
         }
 
         /// <summary>Reindexes a generated refusal only when its authored event and location are uniquely identifiable.</summary>
-        internal static PathRouteDiagnostic RemapSimulatorEventDiagnostic(PathModel sourceModel,
-            PathPersistenceValidationResult materialization, PathRouteDiagnostic diagnostic)
+        internal static PathRouteDiagnostic RemapSimulatorEventDiagnostic(PathModel sourceModel, PathPersistenceValidationResult materialization, PathRouteDiagnostic diagnostic)
         {
             PathRouteDiagnostic mapped = diagnostic with
             {
@@ -141,7 +151,9 @@ namespace FreeTrainSimulator.Toolbox.PathEditing
 
             PathNode node = materialization.PathModel.PathNodes[diagnostic.NodeIndex];
             bool reversed = true;
-            PathRouteDiagnostic localized = diagnostic.Code == PathRouteDiagnosticCode.MultipleReversalsInContinuousVector
+            PathRouteDiagnostic localized = diagnostic.Code == PathRouteDiagnosticCode.UnsupportedProjectedMainEvent
+                ? PathSimulatorEventCompatibility.ValidateProjectedMainEvent(node.NodeType, mapped.NodeIndex, true)
+                : diagnostic.Code == PathRouteDiagnosticCode.MultipleReversalsInContinuousVector
                 ? PathSimulatorEventCompatibility.ValidateTraversalNode(node, mapped.NodeIndex, false, ref reversed)
                 : PathSimulatorEventCompatibility.ValidateNode(node, mapped.NodeIndex,
                     diagnostic.Code == PathRouteDiagnosticCode.UnsupportedFirstMainEvent,
