@@ -17,7 +17,7 @@ namespace FreeTrainSimulator.Toolbox.Views
     /// Its DataContext is supplied by the shell as a <see cref="ViewModels.TrainPathToolWindowViewModel"/>, so
     /// all bindings are relative to that view model.
     /// </summary>
-    internal partial class TrainPathToolView : UserControl
+    internal sealed partial class TrainPathToolView : UserControl, IDisposable
     {
         public TrainPathToolView()
         {
@@ -28,7 +28,7 @@ namespace FreeTrainSimulator.Toolbox.Views
             AddHandler(Keyboard.GotKeyboardFocusEvent, new KeyboardFocusChangedEventHandler(Editor_GotKeyboardFocus), true);
             AddHandler(Keyboard.LostKeyboardFocusEvent, new KeyboardFocusChangedEventHandler(Editor_LostKeyboardFocus), true);
             DataContextChanged += (_, _) => CloseNodeActions();
-            Unloaded += (_, _) => CloseNodeActions();
+            Unloaded += (_, _) => Dispose();
         }
 
         private int? waitEditorNodeIndex;
@@ -41,6 +41,15 @@ namespace FreeTrainSimulator.Toolbox.Views
         private ItemsControl nodeActionsMenu;
         private long nodeActionsGeneration;
         private CancellationTokenSource nodeActionsCancellation;
+
+        /// <summary>
+        /// Releases the current node-menu resources without preventing the view from being loaded again.
+        /// </summary>
+        public void Dispose()
+        {
+            CloseNodeActions();
+            GC.SuppressFinalize(this);
+        }
 
         private void Editor_GotKeyboardFocus(object sender, KeyboardFocusChangedEventArgs e)
         {
@@ -75,6 +84,7 @@ namespace FreeTrainSimulator.Toolbox.Views
                 return;
 
             ReleaseFocusedEditorElement();
+
             if (PathEditorTabs.IsVisible && PathEditorTabs.IsEnabled)
                 PathEditorTabs.Focus();
             else
@@ -498,9 +508,9 @@ namespace FreeTrainSimulator.Toolbox.Views
                     metadataEditorViewModel = viewModel;
                 }
             }
-            else if (editor != null)
+            else
             {
-                editor.GetBindingExpression(TextBox.TextProperty)?.UpdateTarget();
+                editor?.GetBindingExpression(TextBox.TextProperty)?.UpdateTarget();
             }
         }
 

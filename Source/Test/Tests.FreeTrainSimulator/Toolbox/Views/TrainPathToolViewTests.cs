@@ -71,6 +71,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.Views
         [DataRow(true, "right-click-target")]
         public async Task WhenBufferedWaitIsCommittedThenNodeMenuUsesAcknowledgedSnapshot(bool contextMenu, string transition)
         {
+            ArgumentNullException.ThrowIfNull(transition, nameof(transition));
             using (SeparatedPassingFixture fixture = await SeparatedPassingFixture.CreateAsync().ConfigureAwait(true))
             {
                 using (PathEditor editor = new PathEditor(fixture.Content))
@@ -232,7 +233,8 @@ namespace Tests.FreeTrainSimulator.Toolbox.Views
         {
             using (SeparatedPassingFixture fixture = await SeparatedPassingFixture.CreateAsync().ConfigureAwait(true))
             {
-                await using (StaControlHost owner = await StaControlHost.StartAsync().ConfigureAwait(true))
+                StaControlHost owner = await StaControlHost.StartAsync().ConfigureAwait(true);
+                await using (owner.ConfigureAwait(true))
                 {
                     PathEditor editor = null;
                     Queue<Action> commands = new Queue<Action>();
@@ -290,7 +292,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.Views
                                         view.DataContext = viewModel;
                                     }
                                     // Block only the test's WPF pump so publication can supersede an already queued result deterministically.
-                                    owner.OnOwnerAsync(() =>
+                                    await owner.OnOwnerAsync(() =>
                                     {
                                         if (transition == "stale")
                                             Assert.IsTrue(editor.InitializePathAsync(editor.TryCaptureCurrentPathModel(), TestContext.CancellationToken).GetAwaiter().GetResult());
@@ -302,7 +304,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.Views
                                             Assert.IsTrue(editor.SetMetadataCommand("New owner revision", "", "", false).Success);
                                             bridge.RefreshSnapshot();
                                         }
-                                    }).GetAwaiter().GetResult();
+                                    }).ConfigureAwait(false);
                                     SettleLayout(window);
                                     if (transition == "right-click-target")
                                     {

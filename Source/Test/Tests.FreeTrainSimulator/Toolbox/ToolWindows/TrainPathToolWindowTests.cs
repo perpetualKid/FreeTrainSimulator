@@ -56,8 +56,14 @@ namespace Tests.FreeTrainSimulator.Toolbox.ToolWindows
                     ownerWork.Add(() =>
                     {
                         try
-                        { action(); completion.SetResult(); }
-                        catch (Exception exception) { completion.SetException(exception); }
+                        {
+                            action();
+                            completion.SetResult();
+                        }
+                        catch (Exception exception) when (exception is not OperationCanceledException)
+                        {
+                            completion.SetException(exception);
+                        }
                     }, TestContext.CancellationToken);
                     completion.Task.GetAwaiter().GetResult();
                 }
@@ -135,8 +141,8 @@ namespace Tests.FreeTrainSimulator.Toolbox.ToolWindows
                 using (PathEditor replacement = new PathEditor(new TestPathEditorContext(CreateInitializedTrackWorld())))
                 {
                     PathModel source = CreateEventPath(PathNodeType.Via, null);
-                    Assert.IsTrue(await editor.InitializePathAsync(source, TestContext.CancellationToken));
-                    Assert.IsTrue(await replacement.InitializePathAsync(source, TestContext.CancellationToken));
+                    Assert.IsTrue(await editor.InitializePathAsync(source, TestContext.CancellationToken).ConfigureAwait(false));
+                    Assert.IsTrue(await replacement.InitializePathAsync(source, TestContext.CancellationToken).ConfigureAwait(false));
                     PathEditor current = editor;
                     TrainPathToolWindow bridge = CreateCandidateBridge(() => current);
                     bridge.RefreshSnapshot();
@@ -146,7 +152,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.ToolWindows
                     Assert.AreSame(before, bridge.CaptureTrainPathSnapshot());
 
                     if (transition == "reload")
-                        Assert.IsTrue(await editor.InitializePathAsync(source, TestContext.CancellationToken));
+                        Assert.IsTrue(await editor.InitializePathAsync(source, TestContext.CancellationToken).ConfigureAwait(false));
                     else if (transition == "edit-undo")
                     {
                         long lifetime = editor.PathLifetime;
@@ -189,14 +195,14 @@ namespace Tests.FreeTrainSimulator.Toolbox.ToolWindows
             using (PathEditor editor = new PathEditor(new TestPathEditorContext(CreateInitializedTrackWorld())))
             {
                 PathModel source = CreateEventPath(PathNodeType.Via, null);
-                Assert.IsTrue(await editor.InitializePathAsync(source, TestContext.CancellationToken));
+                Assert.IsTrue(await editor.InitializePathAsync(source, TestContext.CancellationToken).ConfigureAwait(false));
                 TrainPathToolWindow bridge = new TrainPathToolWindow(() => editor, () => null, commands.Enqueue, () => { }, () => { }, _ => { }, () => { }, () => { }) { Active = true };
                 bridge.RefreshSnapshot();
                 bridge.SetMetadata("Queued for A", "Start A", "End A", true);
                 bridge.SetWaitPoint(1, 30);
 
                 PathModel replacement = source with { Id = "path-b", Name = "Path B" };
-                Assert.IsTrue(await editor.InitializePathAsync(replacement, TestContext.CancellationToken));
+                Assert.IsTrue(await editor.InitializePathAsync(replacement, TestContext.CancellationToken).ConfigureAwait(false));
                 while (commands.TryDequeue(out Action command))
                     command();
 
@@ -224,7 +230,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.ToolWindows
                 {
                     PathEditor current = editor;
                     PathModel source = CreateEventPath(PathNodeType.Via, null);
-                    Assert.IsTrue(await editor.InitializePathAsync(source, TestContext.CancellationToken));
+                    Assert.IsTrue(await editor.InitializePathAsync(source, TestContext.CancellationToken).ConfigureAwait(false));
                     TrainPathToolWindow bridge = new TrainPathToolWindow(() => current, () => null, commands.Enqueue, () => { }, () => { }, _ => { }, () => { }, () => { }) { Active = true };
                     bridge.RefreshSnapshot();
                     bridge.SetMetadata("Stale metadata", "Stale start", "Stale end", true);
@@ -233,14 +239,14 @@ namespace Tests.FreeTrainSimulator.Toolbox.ToolWindows
                     switch (transition)
                     {
                         case "same-instance":
-                            Assert.IsTrue(await editor.InitializePathAsync(source, TestContext.CancellationToken));
+                            Assert.IsTrue(await editor.InitializePathAsync(source, TestContext.CancellationToken).ConfigureAwait(false));
                             break;
                         case "a-b-a":
-                            Assert.IsTrue(await editor.InitializePathAsync(source with { Id = "path-b" }, TestContext.CancellationToken));
-                            Assert.IsTrue(await editor.InitializePathAsync(source, TestContext.CancellationToken));
+                            Assert.IsTrue(await editor.InitializePathAsync(source with { Id = "path-b" }, TestContext.CancellationToken).ConfigureAwait(false));
+                            Assert.IsTrue(await editor.InitializePathAsync(source, TestContext.CancellationToken).ConfigureAwait(false));
                             break;
                         case "new-owner":
-                            Assert.IsTrue(await otherOwner.InitializePathAsync(source, TestContext.CancellationToken));
+                            Assert.IsTrue(await otherOwner.InitializePathAsync(source, TestContext.CancellationToken).ConfigureAwait(false));
                             current = otherOwner;
                             break;
                         case "new":
@@ -250,7 +256,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.ToolWindows
                             Assert.IsTrue(editor.CombinePathsCommand(PathEditResult.Succeeded("Combined", source, ImmutableArray<int>.Empty)).Success);
                             break;
                         case "unload":
-                            Assert.IsTrue(await editor.InitializePathAsync(null, TestContext.CancellationToken));
+                            Assert.IsTrue(await editor.InitializePathAsync(null, TestContext.CancellationToken).ConfigureAwait(false));
                             break;
                         case "stop":
                             editor.Stop();
@@ -282,7 +288,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.ToolWindows
                 {
                     PathEditor current = editor;
                     PathModel source = CreateEventPath(PathNodeType.Via, null);
-                    Assert.IsTrue(await editor.InitializePathAsync(source, TestContext.CancellationToken));
+                    Assert.IsTrue(await editor.InitializePathAsync(source, TestContext.CancellationToken).ConfigureAwait(false));
                     Assert.IsTrue(editor.SetMetadataCommand("A edit", "Start", "End", true).Success);
                     if (redo)
                         Assert.IsTrue(editor.Undo());
@@ -294,7 +300,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.ToolWindows
                         bridge.Undo();
 
                     current = replaceOwner ? otherOwner : editor;
-                    Assert.IsTrue(await current.InitializePathAsync(source, TestContext.CancellationToken));
+                    Assert.IsTrue(await current.InitializePathAsync(source, TestContext.CancellationToken).ConfigureAwait(false));
                     Assert.IsTrue(current.SetMetadataCommand("Replacement edit", "Start", "End", true).Success);
                     if (redo)
                         Assert.IsTrue(current.Undo());
@@ -316,7 +322,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.ToolWindows
             Queue<Action> commands = new Queue<Action>();
             using (PathEditor editor = new PathEditor(new TestPathEditorContext(CreateInitializedTrackWorld())))
             {
-                Assert.IsTrue(await editor.InitializePathAsync(CreateEventPath(PathNodeType.Via, null), TestContext.CancellationToken));
+                Assert.IsTrue(await editor.InitializePathAsync(CreateEventPath(PathNodeType.Via, null), TestContext.CancellationToken).ConfigureAwait(false));
                 TrainPathToolWindow bridge = new TrainPathToolWindow(() => editor, () => null, commands.Enqueue, () => { }, () => { }, _ => { }, () => { }, () => { }) { Active = true };
                 bridge.RefreshSnapshot();
                 long lifetime = editor.PathLifetime;
@@ -359,7 +365,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.ToolWindows
                 PathModel source = CreateEventPath(PathNodeType.Via, null);
                 Task<bool> initialLoad = editor.InitializePathAsync(source, TestContext.CancellationToken);
                 commits.Dequeue()();
-                Assert.IsTrue(await initialLoad);
+                Assert.IsTrue(await initialLoad.ConfigureAwait(false));
                 TrainPathToolWindow bridge = new TrainPathToolWindow(() => editor, () => null, commands.Enqueue, () => { }, () => { }, _ => { }, () => { }, () => { }) { Active = true };
                 bridge.RefreshSnapshot();
                 long initialLifetime = editor.PathLifetime;
@@ -377,7 +383,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.ToolWindows
                     bridge.SetMetadata("Before commit", "Start", "End", true);
                     long loadingLifetime = editor.PathLifetime;
                     commits.Dequeue()();
-                    Assert.IsTrue(await reload);
+                    Assert.IsTrue(await reload.ConfigureAwait(false));
                     Assert.IsGreaterThan(loadingLifetime, editor.PathLifetime);
                 }
                 commands.Dequeue()();
@@ -388,7 +394,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.ToolWindows
                 if (!captureDuringLoad)
                 {
                     commits.Dequeue()();
-                    Assert.IsTrue(await reload);
+                    Assert.IsTrue(await reload.ConfigureAwait(false));
                 }
             }
         }
@@ -405,13 +411,13 @@ namespace Tests.FreeTrainSimulator.Toolbox.ToolWindows
                 {
                     PathEditor current = editor;
                     PathModel source = CreateEventPath(PathNodeType.Via, null);
-                    Assert.IsTrue(await editor.InitializePathAsync(source, TestContext.CancellationToken));
+                    Assert.IsTrue(await editor.InitializePathAsync(source, TestContext.CancellationToken).ConfigureAwait(false));
                     TrainPathToolWindow bridge = new TrainPathToolWindow(() => current, () => null, commands.Enqueue, () => { }, () => { }, _ => { }, () => { }, () => { }) { Active = true };
                     bridge.RefreshSnapshot();
                     TrainPathSnapshot displayed = bridge.CaptureTrainPathSnapshot();
 
                     current = replaceOwner ? otherOwner : editor;
-                    Assert.IsTrue(await current.InitializePathAsync(source, TestContext.CancellationToken));
+                    Assert.IsTrue(await current.InitializePathAsync(source, TestContext.CancellationToken).ConfigureAwait(false));
                     bridge.RefreshSnapshot();
                     bridge.ExecuteDisplayedPathCommand(displayed, command => command.SetMetadata("Stale pane", "Start", "End", true));
                     bridge.ExecuteDisplayedPathCommand(displayed, command => command.SetWaitPoint(1, 30));
@@ -440,7 +446,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.ToolWindows
             using (PathEditor editor = new PathEditor(new TestPathEditorContext(CreateInitializedTrackWorld())))
             {
                 PathModel source = CreateEventPath(PathNodeType.Via, null);
-                Assert.IsTrue(await editor.InitializePathAsync(source, TestContext.CancellationToken));
+                Assert.IsTrue(await editor.InitializePathAsync(source, TestContext.CancellationToken).ConfigureAwait(false));
                 TrainPathToolWindow bridge = new TrainPathToolWindow(() => editor, () => null, commands.Enqueue, () => { }, () => { }, _ => { }, () => { }, () => { }) { Active = true };
                 bridge.RefreshSnapshot();
                 TrainPathSnapshot displayed = bridge.CaptureTrainPathSnapshot();
@@ -464,7 +470,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.ToolWindows
                 {
                     commands.Dequeue()();
                     Assert.AreEqual(Environment.CurrentManagedThreadId, acknowledgementThreadId);
-                }, TestContext.CancellationToken);
+                }, TestContext.CancellationToken).ConfigureAwait(false);
 
                 Assert.AreEqual((1, 1, 0), (commandCount, acknowledgementCount, commands.Count));
                 Assert.AreSame(displayed, acknowledged);
@@ -489,7 +495,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.ToolWindows
                     PathModel source = CreateEventPath(PathNodeType.Via, null);
                     foreach (PathEditor owner in new PathEditor[] { editor, replacement })
                     {
-                        Assert.IsTrue(await owner.InitializePathAsync(source, TestContext.CancellationToken));
+                        Assert.IsTrue(await owner.InitializePathAsync(source, TestContext.CancellationToken).ConfigureAwait(false));
                         Assert.IsTrue(owner.SetMetadataCommand("First edit", "Start", "End", true).Success);
                         Assert.IsTrue(owner.SetMetadataCommand("Redo entry", "Start", "End", true).Success);
                         Assert.IsTrue(owner.Undo());
@@ -525,7 +531,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.ToolWindows
                     {
                         commands.Dequeue()();
                         Assert.AreEqual(Environment.CurrentManagedThreadId, acknowledgementThreadId);
-                    }, TestContext.CancellationToken);
+                    }, TestContext.CancellationToken).ConfigureAwait(false);
 
                     Assert.AreEqual((0, 1, 0), (commandCount, acknowledgementCount, commands.Count));
                     Assert.IsNull(acknowledged);
@@ -544,7 +550,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.ToolWindows
             using (PathEditor editor = new PathEditor(new TestPathEditorContext(CreateInitializedTrackWorld())))
             {
                 PathModel source = CreateEventPath(PathNodeType.Via, null);
-                Assert.IsTrue(await editor.InitializePathAsync(source, TestContext.CancellationToken));
+                Assert.IsTrue(await editor.InitializePathAsync(source, TestContext.CancellationToken).ConfigureAwait(false));
                 Assert.IsTrue(editor.SetMetadataCommand("Redo entry", "Start", "End", false).Success);
                 Assert.IsTrue(editor.Undo());
                 editor.SelectAuthoredNode(2);
@@ -574,7 +580,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.ToolWindows
                 {
                     commands.Dequeue()();
                     Assert.AreEqual(Environment.CurrentManagedThreadId, acknowledgementThreadId);
-                }, TestContext.CancellationToken);
+                }, TestContext.CancellationToken).ConfigureAwait(false);
 
                 Assert.AreEqual((1, 1, 0), (commandCount, acknowledgementCount, commands.Count));
                 Assert.IsNotNull(acknowledged);
@@ -619,7 +625,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.ToolWindows
             using (PathEditor editor = new PathEditor(new TestPathEditorContext(CreateInitializedTrackWorld())))
             {
                 PathModel source = CreateEventPath(PathNodeType.Via, null);
-                Assert.IsTrue(await editor.InitializePathAsync(source, TestContext.CancellationToken));
+                Assert.IsTrue(await editor.InitializePathAsync(source, TestContext.CancellationToken).ConfigureAwait(false));
                 PathEditor current = pane == "paths-only" ? null : editor;
                 TrainPathToolWindow bridge = new TrainPathToolWindow(() => current, () => null, commands.Enqueue, () => { current = editor; editor.InitializeNewPath(); }, () => { }, _ => { }, () => { }, () => { }) { Active = true };
 
@@ -657,8 +663,8 @@ namespace Tests.FreeTrainSimulator.Toolbox.ToolWindows
                 using (PathEditor replacement = new PathEditor(new TestPathEditorContext(CreateInitializedTrackWorld())))
                 {
                     PathModel source = CreateEventPath(PathNodeType.Via, null);
-                    Assert.IsTrue(await editor.InitializePathAsync(source, TestContext.CancellationToken));
-                    Assert.IsTrue(await replacement.InitializePathAsync(source with { Id = "b" }, TestContext.CancellationToken));
+                    Assert.IsTrue(await editor.InitializePathAsync(source, TestContext.CancellationToken).ConfigureAwait(false));
+                    Assert.IsTrue(await replacement.InitializePathAsync(source with { Id = "b" }, TestContext.CancellationToken).ConfigureAwait(false));
                     PathEditor current = editor;
                     TrainPathToolWindow bridge = new TrainPathToolWindow(() => current, () => null, commands.Enqueue, () => { }, () => { }, _ => { }, () => { }, () => { }) { Active = true };
                     bridge.RefreshSnapshot();
@@ -697,13 +703,13 @@ namespace Tests.FreeTrainSimulator.Toolbox.ToolWindows
                 {
                     PathEditor current = editor;
                     PathModel source = CreateEventPath(PathNodeType.Via, null);
-                    Assert.IsTrue(await editor.InitializePathAsync(source, TestContext.CancellationToken));
+                    Assert.IsTrue(await editor.InitializePathAsync(source, TestContext.CancellationToken).ConfigureAwait(false));
                     TrainPathToolWindow bridge = CreateCandidateBridge(() => current);
                     bridge.RefreshSnapshot();
                     TrainPathSnapshot before = bridge.CaptureTrainPathSnapshot();
 
                     current = replaceOwner ? otherOwner : editor;
-                    Assert.IsTrue(await current.InitializePathAsync(source, TestContext.CancellationToken));
+                    Assert.IsTrue(await current.InitializePathAsync(source, TestContext.CancellationToken).ConfigureAwait(false));
                     bridge.RefreshSnapshot();
                     TrainPathSnapshot after = bridge.CaptureTrainPathSnapshot();
                     Assert.AreNotSame(before, after);
@@ -723,11 +729,11 @@ namespace Tests.FreeTrainSimulator.Toolbox.ToolWindows
             using (PathEditor editor = new PathEditor(new TestPathEditorContext(CreateInitializedTrackWorld())))
             {
                 PathModel source = CreateEventPath(PathNodeType.Via, null);
-                Assert.IsTrue(await editor.InitializePathAsync(source, TestContext.CancellationToken));
+                Assert.IsTrue(await editor.InitializePathAsync(source, TestContext.CancellationToken).ConfigureAwait(false));
                 TrainPathToolWindow bridge = new TrainPathToolWindow(() => editor, () => null, commands.Enqueue, () => { }, () => saves++, _ => { }, () => { }, () => { }) { Active = true };
                 bridge.RefreshSnapshot();
                 bridge.SavePath();
-                Assert.IsTrue(await editor.InitializePathAsync(source, TestContext.CancellationToken));
+                Assert.IsTrue(await editor.InitializePathAsync(source, TestContext.CancellationToken).ConfigureAwait(false));
                 commands.Dequeue()();
 
                 Assert.AreEqual(0, saves);
@@ -766,7 +772,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.ToolWindows
             using (PathEditor editor = new PathEditor(new TestPathEditorContext(CreateInitializedTrackWorld())))
             {
                 PathModel source = CreateEventPath(PathNodeType.Via, null);
-                Assert.IsTrue(await editor.InitializePathAsync(source, TestContext.CancellationToken));
+                Assert.IsTrue(await editor.InitializePathAsync(source, TestContext.CancellationToken).ConfigureAwait(false));
                 TrainPathToolWindow bridge = new TrainPathToolWindow(() => editor, () => null, commands.Enqueue, () => { }, () => { }, _ => { }, () => { }, () => { }) { Active = true };
                 editor.Stop();
                 bridge.RefreshSnapshot();
@@ -795,7 +801,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.ToolWindows
                 PathModel source = CreateEventPath(PathNodeType.Wait, new PathNodeWaitInfo { WaitTime = 30 });
                 Task<bool> initialLoad = editor.InitializePathAsync(source, TestContext.CancellationToken);
                 commits.Dequeue()();
-                Assert.IsTrue(await initialLoad);
+                Assert.IsTrue(await initialLoad.ConfigureAwait(false));
                 TrainPathToolWindow bridge = new TrainPathToolWindow(() => editor, () => null, commands.Enqueue,
                     () => { }, () => { }, _ => { }, () => { }, () => { })
                 { Active = true };
@@ -805,7 +811,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.ToolWindows
                 MapContextMenuItem clearWait = menu.Items.Single(item => item.Action == MapContextMenuAction.ClearWaitPoint);
                 bridge.ExecuteNodeAction(menu, clearWait);
                 commits.Dequeue()();
-                Assert.IsTrue(await reload);
+                Assert.IsTrue(await reload.ConfigureAwait(false));
                 commands.Dequeue()();
 
                 Assert.IsFalse(menu.IsCurrent(editor));
