@@ -291,7 +291,8 @@ namespace Tests.FreeTrainSimulator.Toolbox.Views
                                         view.DataContext = null;
                                         view.DataContext = viewModel;
                                     }
-                                    // Block only the test's WPF pump so publication can supersede an already queued result deterministically.
+                                    // MSTest resumes on its STA queue without pumping WPF before the owner's publication completes.
+                                    DispatcherOperation queuedWpfWork = window.Dispatcher.BeginInvoke(new Action(() => { }));
                                     await owner.OnOwnerAsync(() =>
                                     {
                                         if (transition == "stale")
@@ -304,8 +305,10 @@ namespace Tests.FreeTrainSimulator.Toolbox.Views
                                             Assert.IsTrue(editor.SetMetadataCommand("New owner revision", "", "", false).Success);
                                             bridge.RefreshSnapshot();
                                         }
-                                    }).ConfigureAwait(false);
+                                    }).WaitAsync(TestContext.CancellationToken).ConfigureAwait(true);
+                                    Assert.AreEqual(DispatcherOperationStatus.Pending, queuedWpfWork.Status, "Only SettleLayout should drain the WPF dispatcher.");
                                     SettleLayout(window);
+                                    Assert.AreEqual(DispatcherOperationStatus.Completed, queuedWpfWork.Status);
                                     if (transition == "right-click-target")
                                     {
                                         await owner.OnOwnerAsync(() => DrainCommands(commands)).ConfigureAwait(true);
