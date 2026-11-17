@@ -1066,7 +1066,7 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
                 PathEditorMessageKind.ReverseChainRequired =>
                     CatalogManager.Catalog.GetString("Reverse Path requires a complete, reachable main chain with exactly one Start and End and at least two nodes."),
                 PathEditorMessageKind.ReverseUnsupportedData =>
-                    CatalogManager.Catalog.GetString("Reverse Path supports only event-free paths without siding links, invalid nodes, or unknown flags."),
+                    CatalogManager.Catalog.GetString("Reverse Path supports only main paths with basic interior waits of 1 to 29999 seconds and no endpoint or junction waits, reversals, siding links, invalid nodes, or unknown flags."),
                 PathEditorMessageKind.PathReversed => CatalogManager.Catalog.GetString("Path reversed."),
                 PathEditorMessageKind.ReverseUnavailable =>
                     CatalogManager.Catalog.GetString("Reverse Path is unavailable during repair, placement, route selection, or saving."),

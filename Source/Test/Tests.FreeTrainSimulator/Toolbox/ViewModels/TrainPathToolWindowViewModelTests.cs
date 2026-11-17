@@ -215,7 +215,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.ViewModels
         }
 
         [TestMethod]
-        public async Task WhenWholePathReverseCommandRunsThenBridgePublishesResultAndPollingDisablesEventfulPath()
+        public async Task WhenWholePathReverseCommandRunsThenPollingRetainsBasicWaitAvailabilityButRefusesEncodedWaits()
         {
             Tile tile = new Tile(1, 0);
             WorldLocation start = new WorldLocation(tile, Vector3.Zero);
@@ -271,13 +271,29 @@ namespace Tests.FreeTrainSimulator.Toolbox.ViewModels
                         bridge.RefreshSnapshot();
                         viewModel.Start();
                         TrainPathSnapshot completed = bridge.CaptureTrainPathSnapshot();
-                        _ = editor.SetWaitPointCommand(1, 30);
+                        Assert.IsTrue(editor.SetWaitPointCommand(1, 30).Success);
                         bridge.RefreshSnapshot();
                         viewModel.Start();
 
-                        Assert.AreEqual((true, 1, "Destination", 1, false, false, false, true),
-                            (enabled, queued, completed.PathStart, completed.CommandResultVersion, completed.CommandResultIsWarning,
-                                bridge.CaptureTrainPathSnapshot().CanReversePath, viewModel.ReversePathCommand.CanExecute(null), editor.CanUndo));
+                        Assert.AreEqual((true, 1, "Destination", 1, false, true, true, true), (enabled, queued, completed.PathStart, completed.CommandResultVersion, completed.CommandResultIsWarning,
+                            bridge.CaptureTrainPathSnapshot().CanReversePath, viewModel.ReversePathCommand.CanExecute(null), editor.CanUndo));
+                        viewModel.ReversePathCommand.Execute(null);
+                        Assert.HasCount(1, gameCommands);
+                        gameCommands.Dequeue()();
+                        bridge.RefreshSnapshot();
+                        viewModel.Start();
+                        Assert.AreEqual("Origin", bridge.CaptureTrainPathSnapshot().PathStart);
+                        PathModel reversedWithWait = editor.TryCaptureCurrentPathModel();
+                        Assert.AreEqual((source.PathNodes[1].Location, 30), (reversedWithWait.PathNodes[1].Location, reversedWithWait.PathNodes[1].WaitInfo.WaitTime));
+                        Assert.IsTrue(await editor.InitializePathAsync(reversedWithWait with
+                        {
+                            PathNodes = reversedWithWait.PathNodes.SetItem(1, reversedWithWait.PathNodes[1] with
+                            { WaitInfo = new PathNodeWaitInfo { WaitTime = 30000 } }),
+                        }, CancellationToken.None).ConfigureAwait(false));
+                        bridge.RefreshSnapshot();
+                        viewModel.Start();
+                        Assert.IsFalse(bridge.CaptureTrainPathSnapshot().CanReversePath);
+                        Assert.IsFalse(viewModel.ReversePathCommand.CanExecute(null));
                     }
                 }
             }

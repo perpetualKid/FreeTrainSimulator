@@ -76,6 +76,78 @@ namespace Tests.FreeTrainSimulator.Simulator
             }
         }
 
+        [TestMethod]
+        [DataRow(4, false)]
+        [DataRow(5, false)]
+        [DataRow(4, true)]
+        [DataRow(5, true)]
+        public async Task WhenBasicWaitPathIsReversedThenSaveAsReloadAndStartupPreserveExactWaitOffsetsAsync(int selectedVector, bool reverseTwice)
+        {
+            SyntheticPathFixture fixture = new SyntheticPathFixture(TestContext);
+            Simulation simulator = await fixture.CreateSimulator(false, TestContext.CancellationToken).ConfigureAwait(false);
+            PathModel draft = new PathModel
+            {
+                Id = "WaitSource" + Guid.NewGuid().ToString("N"),
+                Name = "Wait route",
+                Start = "Origin",
+                End = "Destination",
+                PlayerPath = true,
+                PathNodes = ImmutableArray.Create(
+                    SyntheticPathFixture.Node(PathNodeType.Start, 1, -50, 0, 1, -1),
+                    SyntheticPathFixture.Node(PathNodeType.Wait, 1, -30, 0, 2, -1) with { WaitInfo = new PathNodeWaitInfo { WaitTime = 23 } },
+                    SyntheticPathFixture.Node(PathNodeType.Wait, selectedVector, 30, selectedVector == 5 ? 100 : 0, 3, -1) with
+                    { WaitInfo = new PathNodeWaitInfo { WaitTime = 37 } },
+                    SyntheticPathFixture.Node(PathNodeType.End, 2, 150, 0, -1, -1)),
+            };
+            PathPersistenceValidationResult original = await PathEditor.SaveValidatedPath(draft, fixture.Route, TrackWorld.Instance,
+                TestContext.CancellationToken).ConfigureAwait(false);
+            Assert.IsTrue(original.PersistenceAllowed, original.FailureMessage);
+            PathModel source = await fixture.Route.PathModelUncached(original.PathModel.Id, TestContext.CancellationToken).ConfigureAwait(false);
+            string sourceFile = ModelFileResolver<PathModelHeader>.FilePath(source) + ContentHandlerBase<PathModelHeader>.SaveStateExtension;
+            byte[] sourceBytes = await File.ReadAllBytesAsync(sourceFile, TestContext.CancellationToken).ConfigureAwait(false);
+            ImmutableArray<PathNode> sourceNodes = source.PathNodes;
+            using (PathEditor editor = new PathEditor(new ReversePathEditorContext(TrackWorld.Instance)))
+            {
+                Assert.IsTrue(await editor.InitializePathAsync(source, TestContext.CancellationToken).ConfigureAwait(false));
+
+                PathEditorCommandResult result = editor.ReversePathCommand();
+
+                Assert.IsTrue(result.Success, result.Message);
+                if (reverseTwice)
+                {
+                    result = editor.ReversePathCommand();
+                    Assert.IsTrue(result.Success, result.Message);
+                    Assert.AreSequenceEqual(sourceNodes, result.PathModel.PathNodes);
+                }
+                PathPersistenceValidationResult saved = await PathEditor.SaveValidatedPath(result.PathModel with
+                { Id = "WaitReversedCopy" + Guid.NewGuid().ToString("N") }, fixture.Route, TrackWorld.Instance,
+                    TestContext.CancellationToken).ConfigureAwait(false);
+                Assert.IsTrue(saved.PersistenceAllowed, saved.FailureMessage);
+                PathModel reloaded = await fixture.Route.PathModelUncached(saved.PathModel.Id, TestContext.CancellationToken).ConfigureAwait(false);
+                Assert.AreEqual(PathValidationState.Valid, reloaded.ValidationState);
+                PathNode[] expectedWaits = (reverseTwice ? sourceNodes : sourceNodes.Reverse()).Where(node => node.NodeType.Includes(PathNodeType.Wait)).ToArray();
+                Assert.AreSequenceEqual(expectedWaits.Select(node => (node.NodeIndex, node.Location, node.WaitInfo)).ToArray(), reloaded.PathNodes.Where(node => node.NodeType.Includes(PathNodeType.Wait))
+                        .Select(node => (node.NodeIndex, node.Location, node.WaitInfo)).ToArray());
+                Assert.AreEqual((source.Name, reverseTwice ? source.Start : source.End, reverseTwice ? source.End : source.Start, true), (reloaded.Name, reloaded.Start, reloaded.End, reloaded.PlayerPath));
+                Assert.AreEqual(sourceNodes, source.PathNodes);
+                Assert.AreSequenceEqual(sourceBytes, await File.ReadAllBytesAsync(sourceFile, TestContext.CancellationToken).ConfigureAwait(false));
+
+                TrainSaveState snapshot = await StartExploreAndSnapshotAsync(fixture, simulator, reloaded).ConfigureAwait(false);
+
+                Assert.HasCount(1, snapshot.RoutePathSaveState.RoutePaths);
+                Assert.AreEqual(reverseTwice ? $"1:Reverse, 3:Reverse, {selectedVector}:Reverse, 6:Ahead, 2:Reverse, 8:Reverse"
+                    : $"2:Ahead, 6:Reverse, {selectedVector}:Ahead, 3:Ahead, 1:Ahead, 7:Ahead",
+                    RouteSignature(snapshot.RoutePathSaveState.RoutePaths.Single()));
+                Assert.IsEmpty(snapshot.RoutePathSaveState.AlternativePaths);
+                Assert.HasCount(2, snapshot.RoutePathSaveState.Waitpoints);
+                int[][] waits = snapshot.RoutePathSaveState.Waitpoints.ToArray();
+                Assert.AreSequenceEqual(new[] { 0, reverseTwice ? 1 : selectedVector, reverseTwice ? 23 : 37, 0, -1,
+                reverseTwice ? 70 : selectedVector == 5 ? 170 : 70 }, waits[0]);
+                Assert.AreSequenceEqual(new[] { 0, reverseTwice ? selectedVector : 1, reverseTwice ? 37 : 23, 0, -1,
+                reverseTwice ? selectedVector == 5 ? 130 : 30 : 30 }, waits[1]);
+            }
+        }
+
         /// <summary>Matching native paths compose without changing either saved source or selected physical route.</summary>
         [TestMethod]
         [DataRow(4, false)]

@@ -187,6 +187,39 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
         }
 
         [TestMethod]
+        [DataRow(false)]
+        [DataRow(true)]
+        public void WhenEitherSourceHasAReversibleBasicWaitThenCombineAndAppendStillRefuseIt(bool changeSecond)
+        {
+            TrackWorld world = CreateSingleVectorNodeWorld();
+            PathModel first = CreateCombinePath("first", 10, 40);
+            PathModel second = CreateCombinePath("second", 40, 90);
+            PathModel target = changeSecond ? second : first;
+            target = target with
+            {
+                PathNodes = ImmutableArray.Create(target.PathNodes[0],
+                    Anchor(changeSecond ? 70 : 25, 1) with { NodeType = PathNodeType.Wait, NextMainNode = 2, NextSidingNode = -1,
+                        WaitInfo = new PathNodeWaitInfo { WaitTime = 60 } }, target.PathNodes[1]),
+            };
+            first = changeSecond ? first : target;
+            second = changeSecond ? target : second;
+            Assert.IsTrue(PathModelEditor.ReversePath(target).Success);
+
+            PathCombinationResult prepared = PathModelEditor.PreparePathCombination(first, second, world, TestContext.CancellationToken);
+            PathEditResult combined = PathModelEditor.CombinePaths(first, second, world, TestContext.CancellationToken);
+            PathEditResult appended = PathModelEditor.AppendPathAtMatchingEndpoint(first, second, world, TestContext.CancellationToken);
+
+            Assert.IsEmpty(prepared.Candidates);
+            Assert.AreEqual(PathEditorMessageKind.CombineChainRequired, prepared.Refusal.MessageKind);
+            Assert.IsFalse(combined.Success);
+            Assert.AreEqual(PathEditorMessageKind.CombineChainRequired, combined.MessageKind);
+            Assert.AreSame(first, combined.PathModel);
+            Assert.IsFalse(appended.Success);
+            Assert.AreEqual(PathEditorMessageKind.CompositionChainRequired, appended.MessageKind);
+            Assert.AreSame(first, appended.PathModel);
+        }
+
+        [TestMethod]
         public void WhenCombineHasNoTrackWorldThenItIsRefused()
         {
             PathModel first = CreateCombinePath("first", 10, 40);

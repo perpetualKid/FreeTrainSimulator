@@ -504,7 +504,7 @@ namespace FreeTrainSimulator.Toolbox.PathEditing
         /// </summary>
         public bool CanSnapToTrack => HasNodeType(snapshot => snapshot.PathNodes.Length > 0 && HasFlag(snapshot, PathNodeType.Start));
 
-        /// <summary>Whether the current event-free main path can be reversed without changing its chosen track.</summary>
+        /// <summary>Whether the current main path, including basic interior waits, can be reversed without changing its chosen track.</summary>
         public bool CanReversePath => !stopped && !repairMode && !IsSaveInProgress && !CanCancelPathInteraction && GetReversePathResult(TryGetEditablePathModel()).Success;
 
         /// <summary>Cheap composition admission; exact graph and track checks run for the selected source.</summary>

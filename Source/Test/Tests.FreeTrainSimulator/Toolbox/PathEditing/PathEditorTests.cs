@@ -130,6 +130,86 @@ namespace Tests.FreeTrainSimulator.Toolbox.PathEditing
         }
 
         [TestMethod]
+        [DataRow(1)]
+        [DataRow(29999)]
+        public async Task WhenWholePathHasBasicWaitsThenReversePreservesEventsModeAndOneUndoStep(int waitTime)
+        {
+            TrackWorld world = CreatePlacementTrackWorld(new Tile(1, 0), out _);
+            PathModel source = new PathModel
+            {
+                Id = "reverse-basic-waits",
+                Start = "Origin",
+                End = "Destination",
+                PathNodes = ImmutableArray.Create(
+                    CreateNodeAt(new Tile(1, 0), 10, PathNodeType.Start, 1),
+                    CreateNodeAt(new Tile(1, 0), 30, PathNodeType.Via | PathNodeType.Wait, 2) with
+                    { WaitInfo = new PathNodeWaitInfo { WaitTime = waitTime } },
+                    CreateNodeAt(new Tile(1, 0), 70, PathNodeType.Via | PathNodeType.Wait, 3) with
+                    { WaitInfo = new PathNodeWaitInfo { WaitTime = 17 } },
+                    CreateNodeAt(new Tile(1, 0), 90, PathNodeType.End, -1)),
+            };
+            using (PathEditor editor = new PathEditor(new TestPathEditorContext(world)))
+            {
+                Assert.IsTrue(await editor.InitializePathAsync(source, CancellationToken.None).ConfigureAwait(false));
+                Assert.IsTrue(editor.CanReversePath);
+                Assert.IsTrue(editor.CanReversePath);
+                Assert.AreSame(source, editor.TryCaptureCurrentPathModel());
+                Assert.IsFalse(editor.HasUnsavedChanges);
+                Assert.IsFalse(editor.CanUndo);
+
+                PathEditorCommandResult result = editor.ReversePathCommand();
+
+                Assert.IsTrue(result.Success, result.Message);
+                Assert.AreSequenceEqual(source.PathNodes.Reverse().Select(node => (node.Location, node.NodeIndex, node.WaitInfo)).ToArray(), result.PathModel.PathNodes.Select(node => (node.Location, node.NodeIndex, node.WaitInfo)).ToArray());
+                Assert.AreEqual((false, true, "Destination", "Origin"), (editor.EditMode, editor.HasUnsavedChanges, result.PathModel.Start, result.PathModel.End));
+                PathPersistenceValidationResult validation = editor.ValidateCurrentPathForPersistence();
+                Assert.IsTrue(validation.PersistenceAllowed, validation.FailureMessage);
+                Assert.IsTrue(editor.Undo());
+                Assert.AreSequenceEqual(source.PathNodes, editor.TryCaptureCurrentPathModel().PathNodes);
+                Assert.IsFalse(editor.CanUndo);
+                Assert.IsTrue(editor.Redo());
+                Assert.AreSequenceEqual(result.PathModel.PathNodes, editor.TryCaptureCurrentPathModel().PathNodes);
+                Assert.IsFalse(editor.EditMode);
+            }
+        }
+
+        [TestMethod]
+        [DataRow(false)]
+        [DataRow(true)]
+        public async Task WhenUnmarkedWaitMaterializesAtJunctionThenReverseRetainsSimulatorSaveRefusal(bool opposite)
+        {
+            Tile tile = new Tile(1, 0);
+            TrackWorld world = CreateEventJunctionTrackWorld(out _);
+            PathModel source = new PathModel
+            {
+                Id = "reverse-hidden-junction-wait",
+                PathNodes = ImmutableArray.Create(
+                    CreateNodeAt(tile, -50, PathNodeType.Start, 1) with { NodeIndex = 3 },
+                    CreateNodeAt(tile, 0, PathNodeType.Wait, 2) with { NodeIndex = 2, WaitInfo = new PathNodeWaitInfo { WaitTime = 60 } },
+                    CreateNodeAt(tile, 50, PathNodeType.End, -1)),
+            };
+            PathEditResult reversal = PathModelEditor.ReversePath(source);
+            Assert.IsTrue(reversal.Success, reversal.Message);
+            source = opposite ? reversal.PathModel : source;
+            using (PathEditor editor = new PathEditor(new TestPathEditorContext(world)))
+            {
+                Assert.IsTrue(await editor.InitializePathAsync(source, CancellationToken.None).ConfigureAwait(false));
+                Assert.IsFalse(editor.IsRepairMode);
+                PathPersistenceValidationResult validation = editor.ValidateCurrentPathForPersistence();
+                Assert.IsFalse(validation.PersistenceAllowed);
+                Assert.AreEqual(PathRouteDiagnosticCode.UnsupportedJunctionEvent, validation.HighestActionableDiagnostic.Code);
+
+                PathEditorCommandResult result = editor.ReversePathCommand();
+
+                Assert.IsFalse(editor.CanReversePath);
+                Assert.IsFalse(result.Success);
+                Assert.AreEqual(PathEditorMessageKind.ReverseSaveRequired, result.MessageKind);
+                Assert.AreSame(source, editor.TryCaptureCurrentPathModel());
+                Assert.AreEqual((false, false, false, false), (editor.HasUnsavedChanges, editor.CanUndo, editor.CanRedo, editor.EditMode));
+            }
+        }
+
+        [TestMethod]
         public async Task WhenWholePathPlacementIsActiveThenReverseRefusesWithoutChangingModelOrHistory()
         {
             using (PathEditor editor = new PathEditor(new TestPathEditorContext(CreatePlacementTrackWorld(out _))))
@@ -280,17 +360,21 @@ namespace Tests.FreeTrainSimulator.Toolbox.PathEditing
         }
 
         [TestMethod]
-        [DataRow(50)]
-        [DataRow(90)]
-        public async Task WhenWholePathHasZeroLengthOrDirectionChangingVectorSpanThenReverseRefuses(int endX)
+        [DataRow(50, false)]
+        [DataRow(90, false)]
+        [DataRow(50, true)]
+        [DataRow(90, true)]
+        public async Task WhenWholePathHasZeroLengthOrDirectionChangingVectorSpanThenReverseRefuses(int endX, bool hasWait)
         {
             TrackWorld world = CreatePlacementTrackWorld(out _);
             PathModel path = new PathModel
             {
                 Id = "reverse-degenerate-vector",
                 PathNodes = ImmutableArray.Create(CreateNodeAt(endX, PathNodeType.Start, 1),
-                    CreateNodeAt(50, PathNodeType.Via, 2), CreateNodeAt(endX, PathNodeType.End, -1)),
+                    CreateNodeAt(50, hasWait ? PathNodeType.Via | PathNodeType.Wait : PathNodeType.Via, 2) with
+                    { WaitInfo = hasWait ? new PathNodeWaitInfo { WaitTime = 60 } : null }, CreateNodeAt(endX, PathNodeType.End, -1)),
             };
+            Assert.IsTrue(PathModelEditor.ReversePath(path).Success);
             using (PathEditor editor = new PathEditor(new TestPathEditorContext(world)))
             {
                 _ = await editor.InitializePathAsync(path, CancellationToken.None).ConfigureAwait(false);

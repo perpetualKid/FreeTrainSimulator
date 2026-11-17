@@ -28,7 +28,7 @@ namespace FreeTrainSimulator.Runtime.Track
         private const string basicWaitTimeOutOfRangeMessage = "Basic wait time must be between 1 and 29999 seconds. Values of 30000 or greater may encode legacy AI operations instead of a duration.";
 
         private const string reverseChainRequiredMessage = "Reverse Path requires a complete, reachable main chain with exactly one Start and End and at least two nodes.";
-        private const string reverseUnsupportedDataMessage = "Reverse Path supports only event-free paths without siding links, invalid nodes, or unknown flags.";
+        private const string reverseUnsupportedDataMessage = "Reverse Path supports only main paths with basic interior waits of 1 to 29999 seconds and no endpoint or junction waits, reversals, siding links, invalid nodes, or unknown flags.";
         private const string pathReversedMessage = "Path reversed.";
         private const string appendChainRequiredMessage = "Path composition requires complete, reachable, event-free main paths with exactly one Start and End and no siding links or wait payloads.";
         private const string appendRouteRequiredMessage = "Path composition requires unambiguous matching track anchors and continuous routes without repeated track nodes or duplicate connectors.";
@@ -42,10 +42,11 @@ namespace FreeTrainSimulator.Runtime.Track
         private const string combinedMessage = "Paths combined into a new unsaved path.";
 
         /// <summary>
-        /// Reverses a complete, event-free main chain without resolving or relocating its anchors. Traversal order
+        /// Reverses a complete main chain with optional basic interior waits without resolving or relocating its anchors. Traversal order
         /// becomes array order with Start at zero; endpoint roles and labels swap, and all links are rebuilt.
-        /// Siding links, any wait payload (including zero), events, invalid or unknown flags, and incomplete graphs
-        /// are refused without changing the input. Track-route equivalence must be checked by the caller.
+        /// Waits retain location and duration, and must have both a marker and a payload of 1 to 29999 seconds.
+        /// Endpoint/junction waits, reversals, siding links, invalid or unknown flags, and incomplete graphs are
+        /// refused without changing the input. Callers must check track-route equivalence and materialized Simulator compatibility.
         /// </summary>
         public static PathEditResult ReversePath(PathModel pathModel)
         {
@@ -55,8 +56,12 @@ namespace FreeTrainSimulator.Runtime.Track
             if (nodes.Length < 2 || nodes.Any(node => node == null))
                 return PathEditResult.Failed(reverseChainRequiredMessage, PathEditorMessageKind.ReverseChainRequired, pathModel);
 
-            const PathNodeType allowedFlags = PathNodeType.Start | PathNodeType.End | PathNodeType.Via | PathNodeType.Junction;
-            if (nodes.Any(node => node.NextSidingNode != -1 || node.WaitInfo != null || (node.NodeType & ~allowedFlags) != 0))
+            const PathNodeType allowedFlags = PathNodeType.Start | PathNodeType.End | PathNodeType.Via | PathNodeType.Junction | PathNodeType.Wait;
+            if (nodes.Any(node => node.NextSidingNode != -1 || (node.NodeType & ~allowedFlags) != 0
+                || (node.NodeType.Includes(PathNodeType.Wait)
+                    ? node.WaitInfo?.WaitTime is not (>= 1 and <= MaximumBasicWaitTimeSeconds)
+                        || (node.NodeType & (PathNodeType.Start | PathNodeType.End | PathNodeType.Junction)) != 0
+                    : node.WaitInfo != null)))
                 return PathEditResult.Failed(reverseUnsupportedDataMessage, PathEditorMessageKind.ReverseUnsupportedData, pathModel);
 
             int startIndex = IndexOfNodeType(nodes, PathNodeType.Start);
@@ -642,11 +647,11 @@ namespace FreeTrainSimulator.Runtime.Track
             if (selectedMainPosition == mainRoute.Length - 1)
                 return PathEditResult.Failed("The selected node is already the last main-route node; there is nothing to remove.", pathModel);
 
-            if (!TryCollectPassingBranches(nodes, out _, out var branches, out FormattableString failure))
+            if (!TryCollectPassingBranches(nodes, out _, out ImmutableArray<(int StartNodeIndex, int RejoinNodeIndex, ImmutableArray<int> InteriorNodes)> branches, out FormattableString failure))
                 return FailedPassingBranchMessage(failure, pathModel);
 
             HashSet<int> retained = mainRoute.Take(selectedMainPosition + 1).ToHashSet();
-            foreach (var branch in branches)
+            foreach ((int StartNodeIndex, int RejoinNodeIndex, ImmutableArray<int> InteriorNodes) branch in branches)
             {
                 if (mainRoute.IndexOf(branch.RejoinNodeIndex) <= selectedMainPosition)
                     retained.UnionWith(branch.InteriorNodes);
@@ -863,7 +868,7 @@ namespace FreeTrainSimulator.Runtime.Track
         {
             ArgumentNullException.ThrowIfNull(pathModel);
 
-            if (!TryCollectPassingBranches(Nodes(pathModel), out ImmutableArray<int> mainRoute, out var branches, out _))
+            if (!TryCollectPassingBranches(Nodes(pathModel), out ImmutableArray<int> mainRoute, out ImmutableArray<(int StartNodeIndex, int RejoinNodeIndex, ImmutableArray<int> InteriorNodes)> branches, out _))
                 return ImmutableDictionary<int, (bool CanBegin, bool CanRemove)>.Empty;
 
             ImmutableDictionary<int, (bool CanBegin, bool CanRemove)>.Builder capabilities =
@@ -875,7 +880,7 @@ namespace FreeTrainSimulator.Runtime.Track
                 bool canBegin = branches.Length < 2 && position + 1 < mainRoute.Length
                     && IsEligiblePassingBranch(mainRoute, branches, nodeIndex, mainRoute[position + 1], out _);
                 bool canRemove = false;
-                foreach (var branch in branches)
+                foreach ((int StartNodeIndex, int RejoinNodeIndex, ImmutableArray<int> InteriorNodes) branch in branches)
                     canRemove |= branch.StartNodeIndex == nodeIndex;
                 capabilities.Add(nodeIndex, (canBegin, canRemove));
             }
@@ -895,7 +900,7 @@ namespace FreeTrainSimulator.Runtime.Track
 
             ImmutableArray<PathNode> nodes = Nodes(pathModel);
 
-            if (!TryCollectPassingBranches(nodes, out ImmutableArray<int> mainRoute, out var branches, out FormattableString failure))
+            if (!TryCollectPassingBranches(nodes, out ImmutableArray<int> mainRoute, out ImmutableArray<(int StartNodeIndex, int RejoinNodeIndex, ImmutableArray<int> InteriorNodes)> branches, out FormattableString failure))
                 return FailedPassingBranchMessage(failure, pathModel);
             
             if (!IsEligiblePassingBranch(mainRoute, branches, startNodeIndex, rejoinNodeIndex, out failure))
@@ -915,10 +920,10 @@ namespace FreeTrainSimulator.Runtime.Track
 
             ImmutableArray<PathNode> nodes = Nodes(pathModel);
 
-            if (!TryCollectPassingBranches(nodes, out _, out var branches, out FormattableString failure))
+            if (!TryCollectPassingBranches(nodes, out _, out ImmutableArray<(int StartNodeIndex, int RejoinNodeIndex, ImmutableArray<int> InteriorNodes)> branches, out FormattableString failure))
                 return FailedPassingBranchMessage(failure, pathModel);
 
-            var branch = branches.FirstOrDefault(item => item.StartNodeIndex == startNodeIndex);
+            (int StartNodeIndex, int RejoinNodeIndex, ImmutableArray<int> InteriorNodes) branch = branches.FirstOrDefault(item => item.StartNodeIndex == startNodeIndex);
             if (branch.InteriorNodes.IsDefault)
                 return FailedPassingBranchMessage($"Node {startNodeIndex} does not start a passing branch.", pathModel);
             if (!branch.InteriorNodes.IsEmpty)
@@ -996,11 +1001,11 @@ namespace FreeTrainSimulator.Runtime.Track
                 return false;
             }
 
-            if (!TryCollectPassingBranches(nodes, out _, out var branches, out failure))
+            if (!TryCollectPassingBranches(nodes, out _, out ImmutableArray<(int StartNodeIndex, int RejoinNodeIndex, ImmutableArray<int> InteriorNodes)> branches, out failure))
                 return false;
 
             role = PassingBranchNodeRole.MainRoute;
-            foreach (var branch in branches)
+            foreach ((int StartNodeIndex, int RejoinNodeIndex, ImmutableArray<int> InteriorNodes) branch in branches)
             {
                 if (nodeIndex == branch.StartNodeIndex)
                     role = PassingBranchNodeRole.BranchStart;
@@ -1020,10 +1025,10 @@ namespace FreeTrainSimulator.Runtime.Track
             ArgumentNullException.ThrowIfNull(pathModel);
 
             ImmutableArray<PathNode> nodes = Nodes(pathModel);
-            if (!TryCollectPassingBranches(nodes, out _, out var branches, out FormattableString failure))
+            if (!TryCollectPassingBranches(nodes, out _, out ImmutableArray<(int StartNodeIndex, int RejoinNodeIndex, ImmutableArray<int> InteriorNodes)> branches, out FormattableString failure))
                 return FailedPassingBranchMessage(failure, pathModel);
 
-            var branch = branches.FirstOrDefault(item => item.StartNodeIndex == startNodeIndex);
+            (int StartNodeIndex, int RejoinNodeIndex, ImmutableArray<int> InteriorNodes) branch = branches.FirstOrDefault(item => item.StartNodeIndex == startNodeIndex);
             if (branch.InteriorNodes.IsDefault)
                 return FailedPassingBranchMessage($"Node {startNodeIndex} does not start a passing branch.", pathModel);
 
@@ -1101,7 +1106,7 @@ namespace FreeTrainSimulator.Runtime.Track
                 return false;
             }
 
-            foreach (var branch in branches)
+            foreach ((int StartNodeIndex, int RejoinNodeIndex, ImmutableArray<int> InteriorNodes) branch in branches)
             {
                 if (rejoinPosition >= mainRoute.IndexOf(branch.StartNodeIndex) && startPosition <= mainRoute.IndexOf(branch.RejoinNodeIndex))
                 {
@@ -1127,7 +1132,7 @@ namespace FreeTrainSimulator.Runtime.Track
             Dictionary<int, int> mainPositions = mainRoute.Select((index, position) => (index, position))
                 .ToDictionary(item => item.index, item => item.position);
             HashSet<int> owned = mainRoute.ToHashSet();
-            var collected = ImmutableArray.CreateBuilder<(int StartNodeIndex, int RejoinNodeIndex, ImmutableArray<int> InteriorNodes)>();
+            ImmutableArray<(int StartNodeIndex, int RejoinNodeIndex, ImmutableArray<int> InteriorNodes)>.Builder collected = ImmutableArray.CreateBuilder<(int StartNodeIndex, int RejoinNodeIndex, ImmutableArray<int> InteriorNodes)>();
             int previousRejoinPosition = -1;
 
             for (int startPosition = 0; startPosition < mainRoute.Length; startPosition++)

@@ -53,6 +53,91 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
         }
 
         [TestMethod]
+        [DataRow(1)]
+        [DataRow(60)]
+        [DataRow(29999)]
+        public void WhenWholePathHasBasicWaitsThenReversePreservesLinkedEventsAndDoubleReverseRestoresThem(int waitTime)
+        {
+            PathModel source = CreatePath(
+                Anchor(30, 11) with { NodeType = PathNodeType.Via | PathNodeType.Wait, NextMainNode = 3, NextSidingNode = -1,
+                    WaitInfo = new PathNodeWaitInfo { WaitTime = waitTime } },
+                Anchor(90, 12) with { NodeType = PathNodeType.End, NextMainNode = -1, NextSidingNode = -1 },
+                Anchor(10, 10) with { NodeType = PathNodeType.Start, NextMainNode = 0, NextSidingNode = -1 },
+                Anchor(70, 11) with { NodeType = PathNodeType.Wait, NextMainNode = 1, NextSidingNode = -1,
+                    WaitInfo = new PathNodeWaitInfo { WaitTime = 17 } }) with { Start = "Origin", End = "Destination" };
+            ImmutableArray<PathNode> originalNodes = source.PathNodes;
+
+            PathEditResult result = PathModelEditor.ReversePath(source);
+
+            Assert.IsTrue(result.Success, result.Message);
+            Assert.AreSequenceEqual(new[]
+            {
+                originalNodes[1] with { NodeType = PathNodeType.Start, NextMainNode = 1 },
+                originalNodes[3] with { NextMainNode = 2 },
+                originalNodes[0] with { NextMainNode = 3 },
+                originalNodes[2] with { NodeType = PathNodeType.End, NextMainNode = -1 },
+            }, result.PathModel.PathNodes);
+            Assert.AreSequenceEqual(expectedArray0123, result.ChangedNodeIndexes);
+            Assert.AreEqual(originalNodes, source.PathNodes);
+            Assert.AreEqual((source.Id, source.Name, "Destination", "Origin"), (result.PathModel.Id, result.PathModel.Name, result.PathModel.Start, result.PathModel.End));
+            PathEditResult restored = PathModelEditor.ReversePath(result.PathModel);
+            Assert.IsTrue(restored.Success, restored.Message);
+            Assert.AreSequenceEqual(new[]
+            {
+                originalNodes[2] with { NextMainNode = 1 }, originalNodes[0] with { NextMainNode = 2 },
+                originalNodes[3] with { NextMainNode = 3 }, originalNodes[1],
+            }, restored.PathModel.PathNodes);
+            Assert.AreEqual((source.Start, source.End), (restored.PathModel.Start, restored.PathModel.End));
+        }
+
+        [TestMethod]
+        [DataRow(PathNodeType.Wait, false, 60)]
+        [DataRow(PathNodeType.Wait, true, 0)]
+        [DataRow(PathNodeType.Wait, true, -1)]
+        [DataRow(PathNodeType.Wait, true, 30000)]
+        [DataRow(PathNodeType.Wait, true, 40001)]
+        [DataRow(PathNodeType.Wait, true, 60001)]
+        [DataRow(PathNodeType.Wait, true, 60002)]
+        [DataRow(PathNodeType.Wait, true, 60011)]
+        [DataRow(PathNodeType.Wait, true, int.MaxValue)]
+        [DataRow(PathNodeType.Via, true, 60)]
+        [DataRow(PathNodeType.Via, true, 0)]
+        [DataRow(PathNodeType.Wait | PathNodeType.Reversal, true, 60)]
+        [DataRow(PathNodeType.Wait | PathNodeType.Junction, true, 60)]
+        [DataRow(PathNodeType.Wait | PathNodeType.Invalid, true, 60)]
+        [DataRow(PathNodeType.Wait | (PathNodeType)0x4000, true, 60)]
+        public void WhenWholePathHasUnsupportedWaitDataThenReversePreservesOriginal(PathNodeType nodeType, bool hasPayload, int waitTime)
+        {
+            PathModel source = CreatePath(Node(PathNodeType.Start, 1),
+                Node(nodeType, 2) with { WaitInfo = hasPayload ? new PathNodeWaitInfo { WaitTime = waitTime } : null },
+                Node(PathNodeType.End, -1));
+
+            PathEditResult result = PathModelEditor.ReversePath(source);
+
+            Assert.IsFalse(result.Success);
+            Assert.AreEqual(PathEditorMessageKind.ReverseUnsupportedData, result.MessageKind);
+            Assert.AreSame(source, result.PathModel);
+            Assert.IsEmpty(result.ChangedNodeIndexes);
+        }
+
+        [TestMethod]
+        [DataRow(0)]
+        [DataRow(2)]
+        public void WhenAnEndpointHasABasicWaitThenReverseRefusesRatherThanMovingItToTheFirstNode(int waitIndex)
+        {
+            PathModel source = CreatePath(Node(PathNodeType.Start, 1), Node(PathNodeType.Via, 2), Node(PathNodeType.End, -1));
+            source = source with { PathNodes = source.PathNodes.SetItem(waitIndex, source.PathNodes[waitIndex] with
+            { NodeType = source.PathNodes[waitIndex].NodeType | PathNodeType.Wait, WaitInfo = new PathNodeWaitInfo { WaitTime = 60 } }) };
+
+            PathEditResult result = PathModelEditor.ReversePath(source);
+
+            Assert.IsFalse(result.Success);
+            Assert.AreEqual(PathEditorMessageKind.ReverseUnsupportedData, result.MessageKind);
+            Assert.AreSame(source, result.PathModel);
+            Assert.IsEmpty(result.ChangedNodeIndexes);
+        }
+
+        [TestMethod]
         [DataRow(PathNodeType.Wait)]
         [DataRow(PathNodeType.Reversal)]
         [DataRow(PathNodeType.Invalid)]
