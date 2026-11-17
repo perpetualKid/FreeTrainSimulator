@@ -539,6 +539,7 @@ namespace FreeTrainSimulator.Toolbox.PathEditing
         {
             if (!CanCombinePaths)
                 return false;
+
             CancelInteractivePreview();
             IsChoosingPathCombination = true;
             return true;
@@ -547,8 +548,10 @@ namespace FreeTrainSimulator.Toolbox.PathEditing
         internal void PreviewPathCombination(PathModel model)
         {
             ArgumentNullException.ThrowIfNull(model);
+
             if (!IsChoosingPathCombination)
                 throw new InvalidOperationException("No path combination owns the preview.");
+
             if (!ReferenceEquals(PreviewPathModel, model))
             {
                 SetPreviewPath(model);
@@ -560,6 +563,7 @@ namespace FreeTrainSimulator.Toolbox.PathEditing
         {
             if (!IsChoosingPathCombination)
                 return;
+
             IsChoosingPathCombination = false;
             SetPreviewPath(null);
             editorContext.RequestRedraw();

@@ -1060,8 +1060,7 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
             {
                 suppressSelectionCommand = false;
             }
-            if (!combinationCandidates.IsEmpty && (snapshot.CombineRequestVersion != presentationSnapshot.CombineRequestVersion
-                || presentationSnapshot.CombinationCandidates.IsEmpty))
+            if (!combinationCandidates.IsEmpty && (snapshot.CombineRequestVersion != presentationSnapshot.CombineRequestVersion || presentationSnapshot.CombinationCandidates.IsEmpty))
                 SelectedTabIndex = EditorTabIndex;
             OnPropertyChanged(nameof(IsCombinationPanelVisible));
         }

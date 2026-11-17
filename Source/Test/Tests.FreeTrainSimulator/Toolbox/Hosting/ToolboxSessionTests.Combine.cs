@@ -201,7 +201,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.Hosting
                             await scope.Game.InvokeOnGameThreadAsync(() => scope.Session.CombineSelectedPathsAsync(true)).ConfigureAwait(false);
                         break;
                     case "keyboard-cancel":
-                        await scope.Host.OnOwnerAsync(() => bridge.CancelPathInteraction()).ConfigureAwait(false);
+                        await scope.Host.OnOwnerAsync(bridge.CancelPathInteraction).ConfigureAwait(false);
                         await Task.WhenAll(commands).WaitAsync(TestContext.CancellationToken).ConfigureAwait(false);
                         break;
                     case "direct-cancel":
@@ -220,10 +220,10 @@ namespace Tests.FreeTrainSimulator.Toolbox.Hosting
                         Assert.IsTrue(await scope.Game.InvokeOnGameThreadAsync(() => scope.Session.ExistingPathEditor.InitializePathAsync(third, TestContext.CancellationToken)).ConfigureAwait(false));
                         break;
                     case "new-path":
-                        await scope.Game.InvokeOnGameThreadAsync(() => scope.Session.EditPathAsync()).ConfigureAwait(false);
+                        await scope.Game.InvokeOnGameThreadAsync(scope.Session.EditPathAsync).ConfigureAwait(false);
                         break;
                     case "stop":
-                        await scope.Game.InvokeOnGameThreadAsync(() => scope.Session.StopAndDrainAsync()).ConfigureAwait(false);
+                        await scope.Game.InvokeOnGameThreadAsync(scope.Session.StopAndDrainAsync).ConfigureAwait(false);
                         break;
                 }
                 PathModel expected = null;
@@ -251,7 +251,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.Hosting
                     bridge.RefreshSnapshot();
                     TrainPathSnapshot snapshot = bridge.CaptureTrainPathSnapshot();
                     Assert.AreEqual(version, snapshot.CombineRequestVersion);
-                    Assert.AreEqual(transition == "supersede" ? 2 : 0, snapshot.CombinationCandidates.Length);
+                    Assert.HasCount(transition == "supersede" ? 2 : 0, snapshot.CombinationCandidates);
                     Assert.AreEqual(-1, snapshot.PreviewedCombinationIndex);
                     Assert.IsEmpty((Dictionary<string, PathModel>)typeof(TrainPathToolWindow).GetField("transientPaths", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(bridge));
                 }).ConfigureAwait(false);
@@ -320,7 +320,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.Hosting
                         Assert.IsTrue(viewModel.AcceptPathCombinationCommand.CanExecute(null));
                         int before = commands.Count;
                         viewModel.RefreshLocalization();
-                        Assert.AreEqual(before, commands.Count);
+                        Assert.HasCount(before, commands);
                         Assert.AreEqual(1, viewModel.SelectedCombinationCandidate.CandidateIndex);
                         Button action = (Button)view.FindName(accept ? "AcceptPathCombinationButton" : "CancelPathCombinationButton");
                         Assert.IsTrue(action.Command.CanExecute(null));
@@ -335,7 +335,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.Hosting
                         Assert.IsFalse(scope.Session.ExistingPathEditor.CanCancelPathInteraction);
                         Assert.AreEqual(accept, scope.Session.ExistingPathEditor.IsNewPath);
                         if (accept)
-                            Assert.AreSequenceEqual(new[] { 80f, 20f, 20f, 80f }, scope.Session.ExistingPathEditor.TryCaptureCurrentPathModel().PathNodes.Select(node => node.Location.Location.X).ToArray());
+                            Assert.AreSequenceEqual(expectedArray80f20f20f80f, scope.Session.ExistingPathEditor.TryCaptureCurrentPathModel().PathNodes.Select(node => node.Location.Location.X).ToArray());
                         else
                             Assert.IsNull(scope.Session.ExistingPathEditor.TryCaptureCurrentPathModel());
                     }).ConfigureAwait(false);
@@ -359,14 +359,19 @@ namespace Tests.FreeTrainSimulator.Toolbox.Hosting
         {
             TrackWorld world = PathModelEditorCombineTests.CreateTiedConnectingWorld();
             SyntheticPathFixture fixture = new SyntheticPathFixture(TestContext);
-            await RouteModelHandler.ToFile(fixture.Route, TestContext.CancellationToken).ConfigureAwait(false);
+            _ = await RouteModelHandler.ToFile(fixture.Route, TestContext.CancellationToken).ConfigureAwait(false);
             await TrackModelHandler.Create(new TrackModel { Id = fixture.Route.Id, TrackDatabase = world.TrackDatabase }, fixture.Route, TestContext.CancellationToken).ConfigureAwait(false);
             await TrackSectionsModelHandler.Create(fixture.Sections, fixture.Route, TestContext.CancellationToken).ConfigureAwait(false);
             await SignalConfigurationModelHandler.Create(new SignalConfigurationModel { Id = fixture.Route.Id, Tags = ImmutableDictionary<string, string>.Empty },
                 fixture.Route, TestContext.CancellationToken).ConfigureAwait(false);
             RuntimeDataResolver runtime = await RuntimeDataResolver.PrepareAsync(fixture.Route, true, null, TestContext.CancellationToken).ConfigureAwait(false);
             world = runtime.TrackWorld;
-            PathNode Anchor(float x, int nodeIndex) => new PathNode(new WorldLocation(new Tile(0, 0), new Microsoft.Xna.Framework.Vector3(x, 0, 0))) { NodeIndex = nodeIndex };
+
+            static PathNode Anchor(float x, int nodeIndex)
+            {
+                return new PathNode(new WorldLocation(new Tile(0, 0), new Microsoft.Xna.Framework.Vector3(x, 0, 0))) { NodeIndex = nodeIndex };
+            }
+
             PathModel first = new PathModel
             {
                 Id = "first",
@@ -497,7 +502,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.Hosting
                 }).ConfigureAwait(false);
                 await drain.WaitAsync(TestContext.CancellationToken).ConfigureAwait(false);
                 Assert.IsTrue(operation.IsCompletedSuccessfully);
-                Assert.ThrowsExactly<ObjectDisposedException>(() => _ = request.Token);
+                _ = Assert.ThrowsExactly<ObjectDisposedException>(() => _ = request.Token);
                 await scope.Host.OnOwnerAsync(() =>
                 {
                     scope.Session.Dispose();
@@ -736,7 +741,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.Hosting
                     world.TrackDatabase.TrackNodes[2], world.TrackDatabase.TrackNodes[3],
                     ((VectorNode)fixture.Track.TrackDatabase.TrackNodes[5]) with { NodeIndex = 4 }],
             };
-            await RouteModelHandler.ToFile(fixture.Route, TestContext.CancellationToken).ConfigureAwait(false);
+            _ = await RouteModelHandler.ToFile(fixture.Route, TestContext.CancellationToken).ConfigureAwait(false);
             await TrackModelHandler.Create(new TrackModel { Id = fixture.Route.Id, TrackDatabase = database }, fixture.Route, TestContext.CancellationToken).ConfigureAwait(false);
             await TrackSectionsModelHandler.Create(fixture.Sections, fixture.Route, TestContext.CancellationToken).ConfigureAwait(false);
             await SignalConfigurationModelHandler.Create(new SignalConfigurationModel { Id = fixture.Route.Id, Tags = ImmutableDictionary<string, string>.Empty }, fixture.Route, TestContext.CancellationToken).ConfigureAwait(false);
