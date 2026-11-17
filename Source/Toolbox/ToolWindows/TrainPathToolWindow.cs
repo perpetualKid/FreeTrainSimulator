@@ -45,6 +45,10 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
         private readonly Func<string, bool, Task> setComparisonAsync;
         private readonly Func<TrainPathCompositionSourceRow, bool, Task> setCompositionAsync;
         private readonly Func<bool, Task> combinePathsAsync;
+        private readonly Func<long, int, PathCombinationAction, Task> selectPathCombinationAsync;
+        private ImmutableArray<TrainPathCombinationRow> cachedCombinationCandidates = ImmutableArray<TrainPathCombinationRow>.Empty;
+        private long combineStateVersion;
+        private int previewedCombinationIndex = -1;
         private ImmutableArray<TrainPathCompositionSourceRow> cachedCompositionSources = ImmutableArray<TrainPathCompositionSourceRow>.Empty;
         private bool isAppendingSavedPath;
         private ImmutableArray<TrainPathComparisonRow> cachedComparisons = ImmutableArray<TrainPathComparisonRow>.Empty;
@@ -106,6 +110,16 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
             Action unloadPathAction, Action activateMapInputAction, Func<Action<ImmutableArray<PathModelHeader>>, Task<bool>> validateAllPaths,
             Func<string, bool, Task> setComparisonAsync, Func<TrainPathCompositionSourceRow, bool, Task> setCompositionAsync,
             Func<bool, Task> combinePathsAsync)
+            : this(pathEditorAccessor, toolingContextAccessor, gameThreadInvoker, createPathAction, savePathAction, loadPathAction,
+                  unloadPathAction, activateMapInputAction, validateAllPaths, setComparisonAsync, setCompositionAsync, combinePathsAsync, null)
+        {
+        }
+
+        internal TrainPathToolWindow(Func<PathEditor> pathEditorAccessor, Func<ITrainPathToolingContext> toolingContextAccessor,
+            Action<Action> gameThreadInvoker, Action createPathAction, Action savePathAction, Action<PathModelHeader> loadPathAction,
+            Action unloadPathAction, Action activateMapInputAction, Func<Action<ImmutableArray<PathModelHeader>>, Task<bool>> validateAllPaths,
+            Func<string, bool, Task> setComparisonAsync, Func<TrainPathCompositionSourceRow, bool, Task> setCompositionAsync,
+            Func<bool, Task> combinePathsAsync, Func<long, int, PathCombinationAction, Task> selectPathCombinationAsync)
         {
             this.pathEditorAccessor = pathEditorAccessor ?? throw new ArgumentNullException(nameof(pathEditorAccessor));
             this.toolingContextAccessor = toolingContextAccessor ?? throw new ArgumentNullException(nameof(toolingContextAccessor));
@@ -119,6 +133,7 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
             this.setComparisonAsync = setComparisonAsync;
             this.setCompositionAsync = setCompositionAsync;
             this.combinePathsAsync = combinePathsAsync;
+            this.selectPathCombinationAsync = selectPathCombinationAsync;
         }
 
         public ToolboxWindowType WindowType => ToolboxWindowType.TrainPathWindow;
@@ -204,6 +219,9 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
                     IsAppendingSavedPath = isAppendingSavedPath,
                     CanCombineSelectedPaths = canCombineSelectedPaths,
                     IsCombiningPaths = isCombiningPaths,
+                    CombineRequestVersion = combineStateVersion,
+                    CombinationCandidates = cachedCombinationCandidates,
+                    PreviewedCombinationIndex = previewedCombinationIndex,
                     CommandResultMessage = commandResultMessage,
                     CommandResultIsWarning = commandResultIsWarning,
                     CommandResultVersion = commandResultVersion,
@@ -315,7 +333,7 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
                 && string.Equals(currentPathModel?.Name, snapshot.PathName, StringComparison.Ordinal)
                 && string.Equals(currentPathModel?.Start, snapshot.PathStart, StringComparison.Ordinal)
                 && string.Equals(currentPathModel?.End, snapshot.PathEnd, StringComparison.Ordinal)
-                && currentPathModel?.PlayerPath == snapshot.PlayerPath
+                && (currentPathModel?.PlayerPath == true) == snapshot.PlayerPath
                 && paths.SequenceEqual(snapshot.Paths))
             {
                 return;
@@ -336,6 +354,9 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
                 IsAppendingSavedPath = isAppendingSavedPath,
                 CanCombineSelectedPaths = canCombineSelectedPaths,
                 IsCombiningPaths = isCombiningPaths,
+                CombineRequestVersion = combineStateVersion,
+                CombinationCandidates = cachedCombinationCandidates,
+                PreviewedCombinationIndex = previewedCombinationIndex,
                 SelectedPathId = selectedPathId,
                 Nodes = isRepairMode ? BuildAuthoredNodes(currentPathModel, resolution) : BuildNodes(authoredPath),
                 SelectedNodeIndex = selectedNodeIndex,
@@ -513,8 +534,14 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
 
         /// <summary>Publishes combine progress; inputs are the existing saved comparison selections.</summary>
         internal void UpdateCombineState(bool isLoading)
+            => UpdateCombineState(isLoading, combineStateVersion, ImmutableArray<TrainPathCombinationRow>.Empty, -1);
+
+        internal void UpdateCombineState(bool isLoading, long requestVersion, ImmutableArray<TrainPathCombinationRow> candidates, int previewedIndex)
         {
             isCombiningPaths = combinePathsAsync != null && isLoading;
+            combineStateVersion = requestVersion;
+            cachedCombinationCandidates = candidates;
+            previewedCombinationIndex = previewedIndex;
             MarkDirty();
         }
 
@@ -529,7 +556,7 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
                     ReportCombineResult(PathEditorCommandResult.Failed(CatalogManager.Catalog.GetString("Combine Paths is not available in this host."), pathEditorAccessor()?.TryCaptureCurrentPathModel()));
                     return;
                 }
-                if (combine && (!expected.CanCombineSelectedPaths
+                if (expected.CombineRequestVersion != combineStateVersion || combine && (!expected.CanCombineSelectedPaths
                     || !expected.Comparisons.Where(row => row.IsSelected).SequenceEqual(cachedComparisons.Where(row => row.IsSelected))))
                 {
                     ReportCombineResult(PathEditorCommandResult.Failed(PathEditor.CombineSourceChangedMessage,
@@ -546,6 +573,21 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
             if (!result.Success)
                 Trace.TraceWarning(result.Message);
             MarkDirty();
+        }
+
+        internal void SelectPathCombination(TrainPathCombinationRow row, PathCombinationAction action)
+        {
+            ArgumentNullException.ThrowIfNull(row);
+            gameThreadInvoker(() =>
+            {
+                if (selectPathCombinationAsync == null || !cachedCombinationCandidates.Contains(row))
+                {
+                    ReportCombineResult(PathEditorCommandResult.Failed(PathEditor.CombineSourceChangedMessage,
+                        PathEditorMessageKind.CombineSelectionChangedWhileLoading, pathEditorAccessor()?.TryCaptureCurrentPathModel()));
+                    return;
+                }
+                GameWindow.ObserveGameThreadOperation(selectPathCombinationAsync(row.RequestVersion, row.CandidateIndex, action));
+            });
         }
 
         internal void StartNewPathAt(PathNode anchor, bool isJunction)
@@ -589,16 +631,43 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
 
         internal void Redo() => InvokeEditorMutation(pathEditor => pathEditor.Redo());
 
-        internal void CancelPathInteraction() => ExecuteEditorCommand(pathEditor => pathEditor.CancelPathInteractionCommand());
+        internal void CancelPathInteraction()
+        {
+            ImmutableArray<TrainPathCombinationRow> choices = CurrentDisplayedCommandSnapshot?.CombinationCandidates ?? cachedCombinationCandidates;
+            if (!choices.IsEmpty)
+                SelectPathCombination(choices[0], PathCombinationAction.Cancel);
+            else
+                ExecuteEditorCommand(pathEditor => pathEditor.CancelPathInteractionCommand());
+        }
 
         internal void RemoveSelectedViaPoint()
             => ExecuteEditorCommand(pathEditor => pathEditor.RemoveViaPointCommand(pathEditor.SelectedAuthoredNodeIndex));
 
         internal void CycleRouteCandidate(int direction)
-            => ExecuteEditorCommand(pathEditor => pathEditor.CycleRouteCandidateCommand(direction), null, allowSameDraftPreview: true);
+        {
+            TrainPathSnapshot displayed = CurrentDisplayedCommandSnapshot;
+            ImmutableArray<TrainPathCombinationRow> choices = displayed?.CombinationCandidates ?? cachedCombinationCandidates;
+            if (!choices.IsEmpty && direction != 0)
+            {
+                int current = displayed?.PreviewedCombinationIndex ?? previewedCombinationIndex;
+                int next = current < 0 ? direction > 0 ? 0 : choices.Length - 1
+                    : (current + (direction > 0 ? 1 : choices.Length - 1)) % choices.Length;
+                SelectPathCombination(choices[next], PathCombinationAction.Preview);
+            }
+            else
+                ExecuteEditorCommand(pathEditor => pathEditor.CycleRouteCandidateCommand(direction), null, allowSameDraftPreview: true);
+        }
 
         internal void AcceptPreviewedRouteCandidate()
-            => ExecuteEditorCommand(pathEditor => pathEditor.AcceptPreviewedRouteCandidateCommand());
+        {
+            TrainPathSnapshot displayed = CurrentDisplayedCommandSnapshot;
+            ImmutableArray<TrainPathCombinationRow> choices = displayed?.CombinationCandidates ?? cachedCombinationCandidates;
+            int current = displayed?.PreviewedCombinationIndex ?? previewedCombinationIndex;
+            if (!choices.IsEmpty)
+                SelectPathCombination(choices[current < 0 ? 0 : current], PathCombinationAction.Accept);
+            else
+                ExecuteEditorCommand(pathEditor => pathEditor.AcceptPreviewedRouteCandidateCommand());
+        }
 
         internal void SnapToTrack() => ExecuteEditorCommand(pathEditor => pathEditor.ReResolvePathCommand());
 
@@ -947,9 +1016,16 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
             PathEditor owner = displayed == null ? pathEditorAccessor() : null;
             PathEditorMenuRequest ownership = displayed?.NodeMenuOwnership ?? PathEditorMenuRequest.Capture(owner);
             bool wasPassingInteraction = displayed?.CanCancelPassingBranch ?? owner?.CanCancelPassingBranch == true;
+            bool wasCombinationInteraction = displayed == null ? owner?.IsChoosingPathCombination == true : !displayed.CombinationCandidates.IsEmpty;
 
             InvokeEditorAction(pathEditor =>
             {
+                if (wasCombinationInteraction || pathEditor.IsChoosingPathCombination)
+                {
+                    ReportCombineResult(PathEditorCommandResult.Failed(CatalogManager.Catalog.GetString(
+                        "Finish or cancel the path combination before editing the path."), pathEditor.TryCaptureCurrentPathModel()));
+                    return;
+                }
                 if ((wasPassingInteraction || pathEditor.CanCancelPassingBranch)
                     && !ownership.IsCurrent(pathEditor, allowSameDraftPreview))
                 {
@@ -1018,7 +1094,7 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
                 PathEditorMessageKind.CombineUnconnectable =>
                     CatalogManager.Catalog.GetString("No supported orientation connects these two paths. Add via points to bridge them manually, or choose different paths."),
                 PathEditorMessageKind.CombineOrientationAmbiguous =>
-                    CatalogManager.Catalog.GetString("More than one orientation connects these two paths. Choosing among multiple valid orientations is not yet supported; choose different paths or combine them manually."),
+                    CatalogManager.Catalog.GetString("More than one orientation connects these two paths. Preview and accept an orientation using Combine Paths."),
                 PathEditorMessageKind.CombineCombined => CatalogManager.Catalog.GetString("Paths combined into a new unsaved path."),
                 PathEditorMessageKind.CombineUnavailable =>
                     CatalogManager.Catalog.GetString("Combine Paths is unavailable during repair, placement, route selection, or saving."),

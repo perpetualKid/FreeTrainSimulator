@@ -41,6 +41,15 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
         /// <summary>Whether the checked paths are being read and combined.</summary>
         public bool IsCombiningPaths { get; init; }
 
+        /// <summary>Monotonic Combine request witness, including preparation and pending decisions.</summary>
+        public long CombineRequestVersion { get; init; }
+
+        /// <summary>Safe whole-path orientations, separate from equal-cost connecting-span candidates.</summary>
+        public ImmutableArray<TrainPathCombinationRow> CombinationCandidates { get; init; } = ImmutableArray<TrainPathCombinationRow>.Empty;
+
+        /// <summary>Explicitly previewed whole-path orientation, or -1 before selection.</summary>
+        public int PreviewedCombinationIndex { get; init; } = -1;
+
         /// <summary>Id of the currently selected path, or null when none is selected.</summary>
         public string SelectedPathId { get; init; }
 

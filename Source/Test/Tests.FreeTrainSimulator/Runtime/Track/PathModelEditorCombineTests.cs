@@ -32,6 +32,10 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
         private static readonly int[] expectedArray2463 = new[] { 2, 4, 6, 3 };
         private static readonly int[] expectedArray2513 = new[] { 2, 5, 1, 3 };
         private static readonly int[] expectedArray27138 = new[] { 2, 7, 1, 3, 8 };
+        private static readonly float[] expectedArray80f20f20f80f = new[] { 80f, 20f, 20f, 80f };
+        private static readonly float[] expectedArray20f80f = new[] { 20f, 80f };
+        private static readonly float[] expectedArray80f20f = new[] { 80f, 20f };
+        private static readonly float[] expectedArray20f80f80f20f = new[] { 20f, 80f, 80f, 20f };
 
         [TestMethod]
         public void WhenCombiningTheSameInstanceThenItIsRefused()
@@ -200,7 +204,7 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
             PathModel first = CreateCombinePath("first", 10, 40);
             PathModel second = CreateCombinePath("second", 60, 90);
 
-            Assert.ThrowsExactly<OperationCanceledException>(() => PathModelEditor.CombinePaths(first, second, world, new CancellationToken(true)));
+            _ = Assert.ThrowsExactly<OperationCanceledException>(() => PathModelEditor.CombinePaths(first, second, world, new CancellationToken(true)));
             Assert.HasCount(2, first.PathNodes);
             Assert.HasCount(2, second.PathNodes);
         }
@@ -297,6 +301,38 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
             };
         }
 
+        [TestMethod]
+        [DataRow(0, false, 3)]
+        [DataRow(1, true, 2)]
+        public void WhenMultipleOrientationsArePreparedThenEachRetainsItsDirectionsAndPhysicalJoin(int index, bool reversed, int junction)
+        {
+            TrackWorld world = CreateLoopWorld();
+            PathModel first = CreateCombinePath("first", 20, 80);
+            PathModel second = CreateCombinePath("second", 80, 20) with
+            {
+                PathNodes = [Anchor(80, 4) with { NodeType = PathNodeType.Start, NextMainNode = 1, NextSidingNode = -1 },
+                    Anchor(20, 4) with { NodeType = PathNodeType.End, NextMainNode = -1, NextSidingNode = -1 }],
+            };
+
+            PathCombinationResult prepared = PathModelEditor.PreparePathCombination(first, second, world, TestContext.CancellationToken);
+
+            Assert.IsNull(prepared.Refusal);
+            Assert.HasCount(2, prepared.Candidates);
+            PathCombinationCandidate candidate = prepared.Candidates[index];
+            Assert.AreEqual(reversed, candidate.FirstReversed);
+            Assert.AreEqual(reversed, candidate.SecondReversed);
+            Assert.IsTrue(candidate.Combination.Success);
+            PathModel combined = candidate.Combination.PathModel;
+            Assert.AreSequenceEqual(reversed ? expectedArray80f20f20f80f : expectedArray20f80f80f20f, combined.PathNodes.Select(node => node.Location.Location.X).ToArray());
+            Assert.AreEqual(reversed ? first.End : first.Start, combined.Start);
+            Assert.AreEqual(reversed ? second.Start : second.End, combined.End);
+            PathRouteResolution resolution = PathRouteResolver.Resolve(combined, world, TestContext.CancellationToken);
+            Assert.IsTrue(resolution.IsValid);
+            Assert.AreSequenceEqual(new[] { 1, junction, 4 }, resolution.MainRoute.Spans.Single(span => span.FromNodeIndex == 1).Candidates.Single().RouteNodeIndexes);
+            Assert.AreSequenceEqual(expectedArray20f80f, first.PathNodes.Select(node => node.Location.Location.X).ToArray());
+            Assert.AreSequenceEqual(expectedArray80f20f, second.PathNodes.Select(node => node.Location.Location.X).ToArray());
+        }
+
         private static PathNode Anchor(float x, int nodeIndex)
         {
             return new PathNode(new WorldLocation(new Tile(0, 0), new Vector3(x, 0, 0)))
@@ -356,7 +392,7 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
         // A loop of two parallel vectors (1 and 4) between the same two junctions (2 and 3): vector(1)'s end and
         // vector(4)'s end both sit at junction(3); vector(1)'s start and vector(4)'s start both sit at junction(2).
         // Either rotational direction around the loop is a valid, unobstructed route between the two vectors.
-        private static TrackWorld CreateLoopWorld()
+        internal static TrackWorld CreateLoopWorld()
         {
             TrackDatabase trackDatabase = new TrackDatabase
             {

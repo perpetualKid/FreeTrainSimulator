@@ -2,6 +2,13 @@ using System.ComponentModel;
 
 namespace FreeTrainSimulator.Toolbox
 {
+    internal enum PathCombinationAction
+    {
+        Preview,
+        Accept,
+        Cancel,
+    }
+
     public enum UserCommand
     {
         [Description("Cancel or Close")] Cancel, //Escape Key

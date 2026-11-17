@@ -180,7 +180,10 @@ namespace FreeTrainSimulator.Toolbox.PathEditing
             || pendingGuidedPassingBranch != null && !IsPlacingPassingBranchVia;
 
         private bool HasPendingRouteCandidateInteraction => pendingAmbiguousSpanCommit != null || pendingPassingBranchStartNodeIndex >= 0
-            || pendingPassingBranchCandidate != null || pendingGuidedPassingBranch != null;
+            || pendingPassingBranchCandidate != null || pendingGuidedPassingBranch != null || IsChoosingPathCombination;
+
+        /// <summary>Whether the session owns an exclusive, non-mutating whole-path combination preview.</summary>
+        internal bool IsChoosingPathCombination { get; private set; }
 
         public PassingBranchAuthoringPhase PassingBranchPhase => IsPlacingPassingBranchVia
             ? pendingGuidedPassingBranch?.TentativeModel == null ? PassingBranchAuthoringPhase.PlacingVia : PassingBranchAuthoringPhase.ConfirmingVia
@@ -243,7 +246,7 @@ namespace FreeTrainSimulator.Toolbox.PathEditing
         }
 
         public bool CanCancelPathInteraction => IsPlacementActive || pendingAmbiguousSpanCommit != null
-            || PassingBranchPhase != PassingBranchAuthoringPhase.Idle || previewedRouteCandidateFromNodeIndex >= 0;
+            || PassingBranchPhase != PassingBranchAuthoringPhase.Idle || previewedRouteCandidateFromNodeIndex >= 0 || IsChoosingPathCombination;
 
         public ImmutableArray<ResolvedPathSpan> PendingAmbiguousSpans => pendingAmbiguousSpanCommit?.AmbiguousSpans
             ?? ImmutableArray<ResolvedPathSpan>.Empty;
@@ -530,6 +533,37 @@ namespace FreeTrainSimulator.Toolbox.PathEditing
 
         /// <summary>Cheap combine admission; the session loads and combines both selected saved paths independently.</summary>
         internal bool CanCombinePaths => !stopped && !repairMode && !IsSaveInProgress && !CanCancelPathInteraction;
+
+        /// <summary>Reserves the existing preview surface without loading a model or changing history, mode or dirty state.</summary>
+        internal bool BeginPathCombinationPreview()
+        {
+            if (!CanCombinePaths)
+                return false;
+            CancelInteractivePreview();
+            IsChoosingPathCombination = true;
+            return true;
+        }
+
+        internal void PreviewPathCombination(PathModel model)
+        {
+            ArgumentNullException.ThrowIfNull(model);
+            if (!IsChoosingPathCombination)
+                throw new InvalidOperationException("No path combination owns the preview.");
+            if (!ReferenceEquals(PreviewPathModel, model))
+            {
+                SetPreviewPath(model);
+                editorContext.RequestRedraw();
+            }
+        }
+
+        internal void ClearPathCombinationPreview()
+        {
+            if (!IsChoosingPathCombination)
+                return;
+            IsChoosingPathCombination = false;
+            SetPreviewPath(null);
+            editorContext.RequestRedraw();
+        }
 
         /// <summary>
         /// Loads an independently prepared combination of two saved paths as a new unsaved path, replacing any
@@ -2525,6 +2559,8 @@ namespace FreeTrainSimulator.Toolbox.PathEditing
         /// </summary>
         public PathEditResult PreviewRouteCandidate(int fromNodeIndex, int candidateIndex)
         {
+            if (IsChoosingPathCombination)
+                return PathEditResult.Failed(CatalogManager.Catalog.GetString("Finish or cancel the path combination before selecting a connecting route."), currentPathModel);
             if (pendingGuidedPassingBranch != null)
                 return SelectGuidedPassingCandidate(fromNodeIndex, candidateIndex, false);
             if (pendingPassingBranchCandidate != null)
@@ -2567,7 +2603,7 @@ namespace FreeTrainSimulator.Toolbox.PathEditing
                 _ = CancelPassingBranchCommand();
                 return;
             }
-            if (IsMovingNode)
+            if (IsMovingNode || IsChoosingPathCombination)
                 return;
 
             if (pendingAmbiguousSpanCommit != null)
@@ -2587,6 +2623,8 @@ namespace FreeTrainSimulator.Toolbox.PathEditing
         /// </summary>
         public PathEditResult AcceptRouteCandidate(int fromNodeIndex, int candidateIndex)
         {
+            if (IsChoosingPathCombination)
+                return PathEditResult.Failed(CatalogManager.Catalog.GetString("Finish or cancel the path combination before selecting a connecting route."), currentPathModel);
             if (pendingGuidedPassingBranch != null)
                 return SelectGuidedPassingCandidate(fromNodeIndex, candidateIndex, true);
             if (pendingPassingBranchCandidate != null)
@@ -2745,6 +2783,12 @@ namespace FreeTrainSimulator.Toolbox.PathEditing
 
         public PathEditorCommandResult CancelPathInteractionCommand()
         {
+            if (IsChoosingPathCombination)
+            {
+                ClearPathCombinationPreview();
+                OnPathUpdated?.Invoke(this, new PathEditorChangedEventArgs(TrainPath));
+                return PathEditorCommandResult.Succeeded(CatalogManager.Catalog.GetString("Path combination canceled."), currentPathModel);
+            }
             if (PassingBranchPhase != PassingBranchAuthoringPhase.Idle)
                 return CancelPassingBranchCommand();
 
@@ -3840,6 +3884,7 @@ namespace FreeTrainSimulator.Toolbox.PathEditing
 
         private void ClearTransientPathInteractionState()
         {
+            ClearPathCombinationPreview();
             RestoreGuidedPassingPlacementInput();
             ClearMoveNodeState();
             routeAuthoringModel = null;

@@ -51,6 +51,7 @@ namespace FreeTrainSimulator.Toolbox
 
             Localizer.Localize(this, catalog, wpfLocalizationStore);
             viewModel.Menu?.RefreshLocalization();
+            viewModel.TrainPathTool?.RefreshLocalization();
         }
 
         private static CultureInfo ResolveCulture(string language)

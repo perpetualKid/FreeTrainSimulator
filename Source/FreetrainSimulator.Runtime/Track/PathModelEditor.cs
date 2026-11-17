@@ -38,7 +38,7 @@ namespace FreeTrainSimulator.Runtime.Track
         private const string combineRouteMismatchMessage = "Both paths must belong to the same route.";
         private const string combineChainRequiredMessage = "Path combination requires complete, reachable, event-free main paths with exactly one Start and End and no siding links or wait payloads.";
         private const string combineUnconnectableMessage = "No supported orientation connects these two paths. Add via points to bridge them manually, or choose different paths.";
-        private const string combineOrientationAmbiguousMessage = "More than one orientation connects these two paths. Choosing among multiple valid orientations is not yet supported; choose different paths or combine them manually.";
+        private const string combineOrientationAmbiguousMessage = "More than one orientation connects these two paths. Preview and accept an orientation using Combine Paths.";
         private const string combinedMessage = "Paths combined into a new unsaved path.";
 
         /// <summary>
@@ -282,31 +282,43 @@ namespace FreeTrainSimulator.Runtime.Track
         /// authored path. Tries all four ways to join one path's endpoint to the other's (optionally reversing
         /// either side first via <see cref="ReversePath"/>) and resolves a connecting route for each orientation
         /// with <see cref="PathRouteResolver"/>. Succeeds only when exactly one orientation yields a resolvable,
-        /// non-overlapping route; refuses when zero orientations connect or more than one remains viable, since
-        /// choosing among several valid orientations is not yet supported. The join itself may still be an
+        /// non-overlapping route; refuses when zero orientations connect or more than one remains viable.
+        /// Interactive callers use <see cref="PreparePathCombination"/> to offer an explicit choice. The join itself may still be an
         /// ambiguous span in the result: that is left for the normal route-candidate picker to resolve, the same
         /// way it resolves any other via point. This operation performs no persistence or history mutation;
         /// callers own those workflows.
         /// </summary>
         public static PathEditResult CombinePaths(PathModel first, PathModel second, TrackWorld trackWorld, CancellationToken cancellationToken)
         {
+            PathCombinationResult prepared = PreparePathCombination(first, second, trackWorld, cancellationToken);
+            return prepared.Candidates.Length switch
+            {
+                0 => prepared.Refusal,
+                1 => prepared.Candidates[0].Combination,
+                _ => PathEditResult.Failed(combineOrientationAmbiguousMessage, PathEditorMessageKind.CombineOrientationAmbiguous, first),
+            };
+        }
+
+        /// <summary>Prepares every safe orientation for explicit preview and acceptance, retaining all existing combination restrictions.</summary>
+        public static PathCombinationResult PreparePathCombination(PathModel first, PathModel second, TrackWorld trackWorld, CancellationToken cancellationToken)
+        {
             ArgumentNullException.ThrowIfNull(first);
             ArgumentNullException.ThrowIfNull(second);
             cancellationToken.ThrowIfCancellationRequested();
 
             if (trackWorld?.TrackDatabase == null)
-                return PathEditResult.Failed("Path combination requires a loaded track world.", first);
+                return new PathCombinationResult(PathEditResult.Failed("Path combination requires a loaded track world.", first));
             if (ReferenceEquals(first, second) || (!string.IsNullOrEmpty(first.Id) && string.Equals(first.Id, second.Id, StringComparison.OrdinalIgnoreCase)))
-                return PathEditResult.Failed(combineChooseDifferentPathsMessage, PathEditorMessageKind.CombineChooseDifferentPaths, first);
+                return new PathCombinationResult(PathEditResult.Failed(combineChooseDifferentPathsMessage, PathEditorMessageKind.CombineChooseDifferentPaths, first));
             if (!string.Equals(first.Parent?.Hierarchy(), second.Parent?.Hierarchy(), StringComparison.OrdinalIgnoreCase))
-                return PathEditResult.Failed(combineRouteMismatchMessage, PathEditorMessageKind.CombineRouteMismatch, first);
+                return new PathCombinationResult(PathEditResult.Failed(combineRouteMismatchMessage, PathEditorMessageKind.CombineRouteMismatch, first));
             if (!TryGetAppendableMainRoute(first, out ImmutableArray<int> firstRoute) || !TryGetAppendableMainRoute(second, out ImmutableArray<int> secondRoute))
-                return PathEditResult.Failed(combineChainRequiredMessage, PathEditorMessageKind.CombineChainRequired, first);
+                return new PathCombinationResult(PathEditResult.Failed(combineChainRequiredMessage, PathEditorMessageKind.CombineChainRequired, first));
 
             PathEditResult reversedFirst = ReversePath(first);
             PathEditResult reversedSecond = ReversePath(second);
             if (!reversedFirst.Success || !reversedSecond.Success)
-                return PathEditResult.Failed(combineChainRequiredMessage, PathEditorMessageKind.CombineChainRequired, first);
+                return new PathCombinationResult(PathEditResult.Failed(combineChainRequiredMessage, PathEditorMessageKind.CombineChainRequired, first));
 
             (PathModel Model, ImmutableArray<int> Route)[] firstOrientations =
             {
@@ -319,30 +331,28 @@ namespace FreeTrainSimulator.Runtime.Track
                 (reversedSecond.PathModel, Enumerable.Range(0, reversedSecond.PathModel.PathNodes.Length).ToImmutableArray()),
             };
 
-            PathModel combined = null;
-            int viableCount = 0;
-            foreach ((PathModel Model, ImmutableArray<int> Route) in firstOrientations)
+            ImmutableArray<PathCombinationCandidate>.Builder candidates = ImmutableArray.CreateBuilder<PathCombinationCandidate>();
+            for (int firstDirection = 0; firstDirection < firstOrientations.Length; firstDirection++)
             {
-                foreach ((PathModel Model, ImmutableArray<int> Route) secondSide in secondOrientations)
+                (PathModel Model, ImmutableArray<int> Route) = firstOrientations[firstDirection];
+                for (int secondDirection = 0; secondDirection < secondOrientations.Length; secondDirection++)
                 {
+                    (PathModel Model, ImmutableArray<int> Route) secondSide = secondOrientations[secondDirection];
                     cancellationToken.ThrowIfCancellationRequested();
                     PathModel candidate = SpliceForCombine(Model, Route, secondSide.Model, secondSide.Route);
                     PathRouteResolution resolution = PathRouteResolver.Resolve(candidate, trackWorld, cancellationToken);
                     if (!resolution.IsValid || resolution.MainRoute == null || !HasUniqueRouteNodes(resolution, Route.Length - 1))
                         continue;
 
-                    viableCount++;
-                    combined = candidate;
+                    candidates.Add(new PathCombinationCandidate(
+                        PathEditResult.Succeeded(combinedMessage, PathEditorMessageKind.CombineCombined, candidate,
+                            Enumerable.Range(0, candidate.PathNodes.Length).ToImmutableArray()), firstDirection != 0, secondDirection != 0));
                 }
             }
 
-            return viableCount switch
-            {
-                1 => PathEditResult.Succeeded(combinedMessage, PathEditorMessageKind.CombineCombined, combined,
-                    Enumerable.Range(0, combined.PathNodes.Length).ToImmutableArray()),
-                0 => PathEditResult.Failed(combineUnconnectableMessage, PathEditorMessageKind.CombineUnconnectable, first),
-                _ => PathEditResult.Failed(combineOrientationAmbiguousMessage, PathEditorMessageKind.CombineOrientationAmbiguous, first),
-            };
+            return candidates.Count == 0
+                ? new PathCombinationResult(PathEditResult.Failed(combineUnconnectableMessage, PathEditorMessageKind.CombineUnconnectable, first))
+                : new PathCombinationResult(candidates.ToImmutable());
         }
 
         // Joins firstRoute's last node to secondRoute's first node by converting both into Via nodes and linking

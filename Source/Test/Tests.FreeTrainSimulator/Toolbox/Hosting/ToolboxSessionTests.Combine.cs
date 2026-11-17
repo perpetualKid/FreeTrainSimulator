@@ -36,6 +36,321 @@ namespace Tests.FreeTrainSimulator.Toolbox.Hosting
 {
     public sealed partial class ToolboxSessionTests
     {
+        private static readonly float[] expectedArray20f80f80f20f = new[] { 20f, 80f, 80f, 20f };
+        private static readonly float[] expectedArray80f20f20f80f = new[] { 80f, 20f, 20f, 80f };
+
+        [TestMethod]
+        [Timeout(30000, CooperativeCancellation = true)]
+        [DataRow(0, false)]
+        [DataRow(1, false)]
+        [DataRow(0, true)]
+        [DataRow(1, true)]
+        public async Task WhenAnOrientationIsAcceptedThenPreviewIsNonMutatingAndTheChosenRouteSurvivesNativeSave(int candidateIndex, bool dirty)
+        {
+            (SyntheticPathFixture fixture, RuntimeDataResolver runtime, PathModel first, PathModel second, PathModel third) = await CreateAmbiguousCombineModelsAsync().ConfigureAwait(false);
+            byte[] firstBytes = await File.ReadAllBytesAsync(CompositionFile(first), TestContext.CancellationToken).ConfigureAwait(false);
+            byte[] secondBytes = await File.ReadAllBytesAsync(CompositionFile(second), TestContext.CancellationToken).ConfigureAwait(false);
+            SessionScope scope = await SessionScope.StartAsync().ConfigureAwait(false);
+            await using (scope.ConfigureAwait(false))
+            {
+                ConcurrentQueue<Task> commands = new ConcurrentQueue<Task>();
+                (ToolboxContent content, TrainPathToolWindow bridge) = await InitializeComparisonSessionAsync(scope, fixture, runtime, [first, second, third], commands).ConfigureAwait(false);
+                PathModel source = null;
+                PathModel[] undo = [];
+                if (dirty)
+                {
+                    Assert.IsTrue(await scope.Game.InvokeOnGameThreadAsync(() => scope.Session.LoadPathAsync(third)).ConfigureAwait(false));
+                    await scope.Host.OnOwnerAsync(() =>
+                    {
+                        PathEditor editor = scope.Session.ExistingPathEditor;
+                        Assert.IsTrue(editor.SetMetadataCommand("Retained outgoing edits", third.Start, third.End, third.PlayerPath).Success);
+                        source = editor.TryCaptureCurrentPathModel();
+                        undo = SavePreflightHistory(editor, "undoHistory");
+                    }).ConfigureAwait(false);
+                }
+                await scope.Game.InvokeOnGameThreadAsync(() => scope.Session.SetSavedPathComparisonAsync(first.Id, true)).ConfigureAwait(false);
+                await scope.Game.InvokeOnGameThreadAsync(() => scope.Session.SetSavedPathComparisonAsync(second.Id, true)).ConfigureAwait(false);
+                await scope.Game.InvokeOnGameThreadAsync(() => scope.Session.CombineSelectedPathsAsync(true)).ConfigureAwait(false);
+                TrainPathCombinationRow row = null;
+                await scope.Host.OnOwnerAsync(() =>
+                {
+                    PathEditor editor = scope.Session.ExistingPathEditor;
+                    Assert.AreSame(source, editor.TryCaptureCurrentPathModel());
+                    Assert.AreEqual(dirty, editor.HasUnsavedChanges);
+                    Assert.IsTrue(editor.IsChoosingPathCombination);
+                    Assert.IsFalse(editor.CanCombinePaths);
+                    Assert.IsFalse(editor.CanUndo);
+                    Assert.IsFalse(editor.CanPlaceStartAnchor);
+                    Assert.IsFalse(editor.ValidateCurrentPathForPersistence().PersistenceAllowed);
+                    Assert.IsFalse(editor.SetMetadataCommand("Must not apply", "", "", false).Success);
+                    bridge.RefreshSnapshot();
+                    TrainPathSnapshot snapshot = bridge.CaptureTrainPathSnapshot();
+                    Assert.HasCount(2, snapshot.CombinationCandidates);
+                    Assert.AreEqual(-1, snapshot.PreviewedCombinationIndex);
+                    Assert.IsFalse(snapshot.IsCombiningPaths);
+                    Assert.IsTrue(snapshot.CanCancelPathInteraction);
+                    Assert.IsNull(typeof(PathEditorBase).GetProperty("PreviewPathModel", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(editor));
+                    bridge.RefreshSnapshot();
+                    Assert.AreSame(snapshot, bridge.CaptureTrainPathSnapshot());
+                    row = snapshot.CombinationCandidates[candidateIndex];
+                }).ConfigureAwait(false);
+                await scope.Game.InvokeOnGameThreadAsync(() => scope.Session.SelectPathCombinationAsync(row.RequestVersion, candidateIndex, PathCombinationAction.Accept)).ConfigureAwait(false);
+                await scope.Host.OnOwnerAsync(() =>
+                {
+                    if (dirty)
+                        bridge.SelectPathCombination(row, PathCombinationAction.Preview);
+                    else
+                        bridge.CycleRouteCandidate(candidateIndex == 0 ? 1 : -1);
+                }).ConfigureAwait(false);
+                await Task.WhenAll(commands).WaitAsync(TestContext.CancellationToken).ConfigureAwait(false);
+                PathModel preview = null;
+                await scope.Host.OnOwnerAsync(() =>
+                {
+                    PathEditor editor = scope.Session.ExistingPathEditor;
+                    preview = (PathModel)typeof(PathEditorBase).GetProperty("PreviewPathModel", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(editor);
+                    Assert.IsNotNull(preview);
+                    Assert.AreSequenceEqual(candidateIndex == 0 ? expectedArray20f80f80f20f : expectedArray80f20f20f80f, preview.PathNodes.Select(node => node.Location.Location.X).ToArray());
+                    Assert.AreSame(source, editor.TryCaptureCurrentPathModel());
+                    Assert.AreEqual(dirty, editor.HasUnsavedChanges);
+                    Assert.AreSequenceEqual(undo, SavePreflightHistory(editor, "undoHistory"));
+                    Assert.IsEmpty(SavePreflightHistory(editor, "redoHistory"));
+                    Assert.IsEmpty((Dictionary<string, PathModel>)typeof(TrainPathToolWindow).GetField("transientPaths", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(bridge));
+                    editor.ClearRouteCandidatePreview();
+                    Assert.AreSame(preview, typeof(PathEditorBase).GetProperty("PreviewPathModel", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(editor));
+                    if (dirty)
+                        bridge.SelectPathCombination(row, PathCombinationAction.Accept);
+                    else
+                        bridge.AcceptPreviewedRouteCandidate();
+                }).ConfigureAwait(false);
+                await Task.WhenAll(commands).WaitAsync(TestContext.CancellationToken).ConfigureAwait(false);
+                TrainPathSaveRequest saveRequest = null;
+                await scope.Host.OnOwnerAsync(() =>
+                {
+                    PathEditor editor = scope.Session.ExistingPathEditor;
+                    Assert.IsTrue(editor.IsNewPath);
+                    Assert.IsTrue(editor.HasUnsavedChanges);
+                    Assert.IsFalse(editor.EditMode);
+                    Assert.AreEqual(ToolboxContentMode.ViewPath, content.ContentMode);
+                    Assert.IsFalse(editor.CanCancelPathInteraction);
+                    Assert.IsFalse(editor.CanUndo);
+                    Assert.AreSequenceEqual(preview.PathNodes, editor.TryCaptureCurrentPathModel().PathNodes);
+                    Assert.IsNull(typeof(PathEditorBase).GetProperty("PreviewPathModel", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(editor));
+                    bridge.RefreshSnapshot();
+                    Assert.IsEmpty(bridge.CaptureTrainPathSnapshot().CombinationCandidates);
+                    Assert.AreEqual(dirty, bridge.CaptureTrainPathSnapshot().Paths.Single(path => path.Id == third.Id).HasUnsavedChanges);
+                    Assert.AreEqual(2, bridge.CaptureTrainPathSnapshot().Comparisons.Count(comparison => comparison.IsSelected));
+                    TrainPathSaveState state = scope.Session.CaptureTrainPathSaveState();
+                    saveRequest = new TrainPathSaveRequest(state.PathDetails with { Id = "ChosenOrientation" + Guid.NewGuid().ToString("N"), Name = "Chosen orientation" }, state.SourcePathId, false);
+                }).ConfigureAwait(false);
+                await scope.Game.InvokeOnGameThreadAsync(() => scope.Session.SubmitTrainPathSaveAsync(saveRequest)).ConfigureAwait(false);
+                PathModel saved = await fixture.Route.PathModelUncached(saveRequest.PathDetails.Id, TestContext.CancellationToken).ConfigureAwait(false);
+                Assert.AreSequenceEqual(PathRouteResolver.Resolve(preview, runtime.TrackWorld, TestContext.CancellationToken).MainRoute.Spans.SelectMany(span => span.Candidates.Single().PhysicalTraversals).ToArray(),
+                    PathRouteResolver.Resolve(saved, runtime.TrackWorld, TestContext.CancellationToken).MainRoute.Spans.SelectMany(span => span.Candidates.Single().PhysicalTraversals).ToArray());
+                Assert.IsTrue(await scope.Game.InvokeOnGameThreadAsync(() => scope.Session.LoadPathAsync(null)).ConfigureAwait(false));
+                Assert.IsTrue(await scope.Game.InvokeOnGameThreadAsync(() => scope.Session.LoadPathAsync(saved)).ConfigureAwait(false));
+                await scope.Host.OnOwnerAsync(() =>
+                {
+                    Assert.AreSequenceEqual(saved.PathNodes, scope.Session.ExistingPathEditor.TryCaptureCurrentPathModel().PathNodes);
+                    Assert.IsFalse(scope.Session.ExistingPathEditor.HasUnsavedChanges);
+                    Assert.IsFalse(scope.Session.ExistingPathEditor.EditMode);
+                }).ConfigureAwait(false);
+                Assert.AreSequenceEqual(firstBytes, await File.ReadAllBytesAsync(CompositionFile(first), TestContext.CancellationToken).ConfigureAwait(false));
+                Assert.AreSequenceEqual(secondBytes, await File.ReadAllBytesAsync(CompositionFile(second), TestContext.CancellationToken).ConfigureAwait(false));
+            }
+        }
+
+        [TestMethod]
+        [Timeout(30000, CooperativeCancellation = true)]
+        [DataRow("cancel")]
+        [DataRow("keyboard-cancel")]
+        [DataRow("direct-cancel")]
+        [DataRow("uncheck")]
+        [DataRow("selection-aba")]
+        [DataRow("reload")]
+        [DataRow("direct-reload")]
+        [DataRow("new-path")]
+        [DataRow("supersede")]
+        [DataRow("stop")]
+        public async Task WhenAnOrientationDecisionLosesItsOwnerThenQueuedChoicesCannotOverwriteTheCurrentState(string transition)
+        {
+            (SyntheticPathFixture fixture, RuntimeDataResolver runtime, PathModel first, PathModel second, PathModel third) = await CreateAmbiguousCombineModelsAsync().ConfigureAwait(false);
+            SessionScope scope = await SessionScope.StartAsync().ConfigureAwait(false);
+            await using (scope.ConfigureAwait(false))
+            {
+                ConcurrentQueue<Task> commands = new ConcurrentQueue<Task>();
+                (_, TrainPathToolWindow bridge) = await InitializeComparisonSessionAsync(scope, fixture, runtime, [first, second, third], commands).ConfigureAwait(false);
+                Assert.IsTrue(await scope.Game.InvokeOnGameThreadAsync(() => scope.Session.LoadPathAsync(third)).ConfigureAwait(false));
+                await scope.Game.InvokeOnGameThreadAsync(() => scope.Session.SetSavedPathComparisonAsync(first.Id, true)).ConfigureAwait(false);
+                await scope.Game.InvokeOnGameThreadAsync(() => scope.Session.SetSavedPathComparisonAsync(second.Id, true)).ConfigureAwait(false);
+                await scope.Game.InvokeOnGameThreadAsync(() => scope.Session.CombineSelectedPathsAsync(true)).ConfigureAwait(false);
+                TrainPathCombinationRow stale = null;
+                TrainPathSnapshot displayed = null;
+                await scope.Host.OnOwnerAsync(() =>
+                {
+                    bridge.RefreshSnapshot();
+                    displayed = bridge.CaptureTrainPathSnapshot();
+                    stale = displayed.CombinationCandidates[0];
+                }).ConfigureAwait(false);
+                await scope.Game.InvokeOnGameThreadAsync(() => scope.Session.SelectPathCombinationAsync(stale.RequestVersion, stale.CandidateIndex, PathCombinationAction.Preview)).ConfigureAwait(false);
+                switch (transition)
+                {
+                    case "cancel":
+                    case "supersede":
+                        await scope.Game.InvokeOnGameThreadAsync(() => scope.Session.CombineSelectedPathsAsync(false)).ConfigureAwait(false);
+                        if (transition == "supersede")
+                            await scope.Game.InvokeOnGameThreadAsync(() => scope.Session.CombineSelectedPathsAsync(true)).ConfigureAwait(false);
+                        break;
+                    case "keyboard-cancel":
+                        await scope.Host.OnOwnerAsync(() => bridge.CancelPathInteraction()).ConfigureAwait(false);
+                        await Task.WhenAll(commands).WaitAsync(TestContext.CancellationToken).ConfigureAwait(false);
+                        break;
+                    case "direct-cancel":
+                        await scope.Host.OnOwnerAsync(() => Assert.IsTrue(scope.Session.ExistingPathEditor.CancelPathInteractionCommand().Success)).ConfigureAwait(false);
+                        break;
+                    case "uncheck":
+                    case "selection-aba":
+                        await scope.Game.InvokeOnGameThreadAsync(() => scope.Session.SetSavedPathComparisonAsync(second.Id, false)).ConfigureAwait(false);
+                        if (transition == "selection-aba")
+                            await scope.Game.InvokeOnGameThreadAsync(() => scope.Session.SetSavedPathComparisonAsync(second.Id, true)).ConfigureAwait(false);
+                        break;
+                    case "reload":
+                        Assert.IsTrue(await scope.Game.InvokeOnGameThreadAsync(() => scope.Session.LoadPathAsync(third)).ConfigureAwait(false));
+                        break;
+                    case "direct-reload":
+                        Assert.IsTrue(await scope.Game.InvokeOnGameThreadAsync(() => scope.Session.ExistingPathEditor.InitializePathAsync(third, TestContext.CancellationToken)).ConfigureAwait(false));
+                        break;
+                    case "new-path":
+                        await scope.Game.InvokeOnGameThreadAsync(() => scope.Session.EditPathAsync()).ConfigureAwait(false);
+                        break;
+                    case "stop":
+                        await scope.Game.InvokeOnGameThreadAsync(() => scope.Session.StopAndDrainAsync()).ConfigureAwait(false);
+                        break;
+                }
+                PathModel expected = null;
+                long version = 0;
+                await scope.Host.OnOwnerAsync(() =>
+                {
+                    PathEditor editor = scope.Session.ExistingPathEditor;
+                    expected = editor.TryCaptureCurrentPathModel();
+                    bridge.RefreshSnapshot();
+                    version = bridge.CaptureTrainPathSnapshot().CombineRequestVersion;
+                    if (transition != "stop")
+                    {
+                        bridge.SelectPathCombination(stale, PathCombinationAction.Preview);
+                        bridge.SelectPathCombination(stale, PathCombinationAction.Accept);
+                        bridge.SelectPathCombination(stale, PathCombinationAction.Cancel);
+                        bridge.ExecuteDisplayedPathCommand(displayed, current => current.CancelPathInteraction());
+                    }
+                }).ConfigureAwait(false);
+                await Task.WhenAll(commands).WaitAsync(TestContext.CancellationToken).ConfigureAwait(false);
+                await scope.Host.OnOwnerAsync(() =>
+                {
+                    PathEditor editor = scope.Session.ExistingPathEditor;
+                    Assert.AreSame(expected, editor.TryCaptureCurrentPathModel());
+                    Assert.IsNull(typeof(PathEditorBase).GetProperty("PreviewPathModel", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(editor));
+                    bridge.RefreshSnapshot();
+                    TrainPathSnapshot snapshot = bridge.CaptureTrainPathSnapshot();
+                    Assert.AreEqual(version, snapshot.CombineRequestVersion);
+                    Assert.AreEqual(transition == "supersede" ? 2 : 0, snapshot.CombinationCandidates.Length);
+                    Assert.AreEqual(-1, snapshot.PreviewedCombinationIndex);
+                    Assert.IsEmpty((Dictionary<string, PathModel>)typeof(TrainPathToolWindow).GetField("transientPaths", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(bridge));
+                }).ConfigureAwait(false);
+            }
+        }
+
+        [TestMethod]
+        [Timeout(30000, CooperativeCancellation = true)]
+        [DataRow(false)]
+        [DataRow(true)]
+        public async Task WhenTheOrientationPickerIsUsedThenSelectionPreviewsBeforeTheVisibleAcceptOrCancelAction(bool accept)
+        {
+            (SyntheticPathFixture fixture, RuntimeDataResolver runtime, PathModel first, PathModel second, PathModel third) = await CreateAmbiguousCombineModelsAsync().ConfigureAwait(false);
+            SessionScope scope = await SessionScope.StartAsync().ConfigureAwait(false);
+            await using (scope.ConfigureAwait(false))
+            {
+                ConcurrentQueue<Task> commands = new ConcurrentQueue<Task>();
+                (_, TrainPathToolWindow bridge) = await InitializeComparisonSessionAsync(scope, fixture, runtime, [first, second, third], commands).ConfigureAwait(false);
+                Assert.IsTrue(await scope.Game.InvokeOnGameThreadAsync(() => scope.Session.LoadPathAsync(null)).ConfigureAwait(false));
+                TrainPathSnapshot beforeChoices = null;
+                await scope.Host.OnOwnerAsync(() =>
+                {
+                    bridge.RefreshSnapshot();
+                    beforeChoices = bridge.CaptureTrainPathSnapshot();
+                }).ConfigureAwait(false);
+                await scope.Game.InvokeOnGameThreadAsync(() => scope.Session.SetSavedPathComparisonAsync(first.Id, true)).ConfigureAwait(false);
+                await scope.Game.InvokeOnGameThreadAsync(() => scope.Session.SetSavedPathComparisonAsync(second.Id, true)).ConfigureAwait(false);
+                await scope.Game.InvokeOnGameThreadAsync(() => scope.Session.CombineSelectedPathsAsync(true)).ConfigureAwait(false);
+                ToolWindowRefreshScheduler scheduler = null;
+                TrainPathToolWindowViewModel viewModel = null;
+                TrainPathToolView view = null;
+                try
+                {
+                    await scope.Host.OnOwnerAsync(() =>
+                    {
+                        bridge.RefreshSnapshot();
+                        scheduler = new ToolWindowRefreshScheduler(Dispatcher.CurrentDispatcher);
+                        viewModel = new TrainPathToolWindowViewModel(bridge, scheduler);
+                        viewModel.Start();
+                        view = new TrainPathToolView { DataContext = viewModel };
+                        view.Measure(new Size(520, 700));
+                        view.Arrange(new Rect(0, 0, 520, 700));
+                        view.UpdateLayout();
+                        Assert.AreEqual(TrainPathToolWindowViewModel.EditorTabIndex, viewModel.SelectedTabIndex);
+                        Assert.IsTrue(viewModel.IsCombinationPanelVisible);
+                        Assert.IsFalse(viewModel.IsIdlePanelVisible);
+                        Assert.IsFalse(viewModel.IsCandidatePanelVisible);
+                        ListView choices = (ListView)view.FindName("CombinationCandidatesList");
+                        Assert.HasCount(2, choices.Items);
+                        Button acceptButton = (Button)view.FindName("AcceptPathCombinationButton");
+                        Assert.AreSame(viewModel.AcceptPathCombinationCommand, acceptButton.Command);
+                        Assert.IsFalse(acceptButton.Command.CanExecute(null));
+                        Assert.Contains("original direction", viewModel.CombinationCandidates[0].Description);
+                        Assert.Contains("reversed", viewModel.CombinationCandidates[1].Description);
+                        bridge.ExecuteDisplayedPathCommand(beforeChoices, current => current.CancelPathInteraction());
+                        choices.SelectedIndex = 1;
+                        Assert.AreEqual(1, viewModel.SelectedCombinationCandidate.CandidateIndex);
+                        Assert.IsFalse(acceptButton.Command.CanExecute(null), "The selected row must be acknowledged by its preview owner first.");
+                    }).ConfigureAwait(false);
+                    await Task.WhenAll(commands).WaitAsync(TestContext.CancellationToken).ConfigureAwait(false);
+                    await scope.Host.OnOwnerAsync(() =>
+                    {
+                        bridge.RefreshSnapshot();
+                        viewModel.Start();
+                        Assert.IsNull(scope.Session.ExistingPathEditor.TryCaptureCurrentPathModel());
+                        Assert.IsTrue(viewModel.AcceptPathCombinationCommand.CanExecute(null));
+                        int before = commands.Count;
+                        viewModel.RefreshLocalization();
+                        Assert.AreEqual(before, commands.Count);
+                        Assert.AreEqual(1, viewModel.SelectedCombinationCandidate.CandidateIndex);
+                        Button action = (Button)view.FindName(accept ? "AcceptPathCombinationButton" : "CancelPathCombinationButton");
+                        Assert.IsTrue(action.Command.CanExecute(null));
+                        action.Command.Execute(null);
+                    }).ConfigureAwait(false);
+                    await Task.WhenAll(commands).WaitAsync(TestContext.CancellationToken).ConfigureAwait(false);
+                    await scope.Host.OnOwnerAsync(() =>
+                    {
+                        bridge.RefreshSnapshot();
+                        viewModel.Start();
+                        Assert.IsFalse(viewModel.IsCombinationPanelVisible);
+                        Assert.IsFalse(scope.Session.ExistingPathEditor.CanCancelPathInteraction);
+                        Assert.AreEqual(accept, scope.Session.ExistingPathEditor.IsNewPath);
+                        if (accept)
+                            Assert.AreSequenceEqual(new[] { 80f, 20f, 20f, 80f }, scope.Session.ExistingPathEditor.TryCaptureCurrentPathModel().PathNodes.Select(node => node.Location.Location.X).ToArray());
+                        else
+                            Assert.IsNull(scope.Session.ExistingPathEditor.TryCaptureCurrentPathModel());
+                    }).ConfigureAwait(false);
+                }
+                finally
+                {
+                    await scope.Host.OnOwnerAsync(() =>
+                    {
+                        viewModel?.Dispose();
+                        scheduler?.Dispose();
+                    }).ConfigureAwait(false);
+                }
+            }
+        }
+
         [TestMethod]
         [Timeout(30000, CooperativeCancellation = true)]
         [DataRow(0)]
@@ -409,6 +724,34 @@ namespace Tests.FreeTrainSimulator.Toolbox.Hosting
                     Assert.AreEqual(count, snapshot.Comparisons.Count(row => row.IsSelected));
                 }).ConfigureAwait(false);
             }
+        }
+
+        private async Task<(SyntheticPathFixture Fixture, RuntimeDataResolver Runtime, PathModel First, PathModel Second, PathModel Third)> CreateAmbiguousCombineModelsAsync()
+        {
+            TrackWorld world = PathModelEditorCombineTests.CreateLoopWorld();
+            SyntheticPathFixture fixture = new SyntheticPathFixture(TestContext);
+            TrackDatabase database = world.TrackDatabase with
+            {
+                TrackNodes = [null, ((VectorNode)fixture.Track.TrackDatabase.TrackNodes[4]) with { NodeIndex = 1 },
+                    world.TrackDatabase.TrackNodes[2], world.TrackDatabase.TrackNodes[3],
+                    ((VectorNode)fixture.Track.TrackDatabase.TrackNodes[5]) with { NodeIndex = 4 }],
+            };
+            await RouteModelHandler.ToFile(fixture.Route, TestContext.CancellationToken).ConfigureAwait(false);
+            await TrackModelHandler.Create(new TrackModel { Id = fixture.Route.Id, TrackDatabase = database }, fixture.Route, TestContext.CancellationToken).ConfigureAwait(false);
+            await TrackSectionsModelHandler.Create(fixture.Sections, fixture.Route, TestContext.CancellationToken).ConfigureAwait(false);
+            await SignalConfigurationModelHandler.Create(new SignalConfigurationModel { Id = fixture.Route.Id, Tags = ImmutableDictionary<string, string>.Empty }, fixture.Route, TestContext.CancellationToken).ConfigureAwait(false);
+            RuntimeDataResolver runtime = await RuntimeDataResolver.PrepareAsync(fixture.Route, true, null, TestContext.CancellationToken).ConfigureAwait(false);
+            async Task<PathModel> SavePathAsync(string name, int vector, float start, float end) => await fixture.RoundTripPathAsync(new PathModel
+            {
+                Id = name + Guid.NewGuid().ToString("N"),
+                Name = name,
+                Start = name + " origin",
+                End = name + " destination",
+                PathNodes = [SyntheticPathFixture.Node(PathNodeType.Start, vector, start, vector == 4 ? 100 : 0, 1, -1),
+                    SyntheticPathFixture.Node(PathNodeType.End, vector, end, vector == 4 ? 100 : 0, -1, -1)],
+            }, TestContext.CancellationToken).ConfigureAwait(false);
+            return (fixture, runtime, await SavePathAsync("First", 1, 20, 80).ConfigureAwait(false),
+                await SavePathAsync("Second", 4, 80, 20).ConfigureAwait(false), await SavePathAsync("Third", 1, 30, 70).ConfigureAwait(false));
         }
 
         private async Task<(SyntheticPathFixture Fixture, RuntimeDataResolver Runtime, PathModel First, PathModel Second, PathModel Third)> CreateCombineModelsAsync()

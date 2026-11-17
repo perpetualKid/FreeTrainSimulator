@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -11,12 +12,15 @@ using FreeTrainSimulator.Models.Content;
 using FreeTrainSimulator.Models.Shim;
 using FreeTrainSimulator.Runtime.Track;
 using FreeTrainSimulator.Toolbox.PathEditing;
+using FreeTrainSimulator.Toolbox.ToolWindows;
 
 namespace FreeTrainSimulator.Toolbox
 {
     internal sealed partial class ToolboxSession
     {
         private CancellationTokenSource combineRequest;
+        private long combineRequestVersion;
+        private PendingPathCombination pendingPathCombination;
 
         /// <summary>Combines the two checked saved baselines, or cancels their outstanding combination.</summary>
         internal Task CombineSelectedPathsAsync(bool combine) => RunAsync(() => CombineSelectedPathsCoreAsync(combine));
@@ -50,6 +54,7 @@ namespace FreeTrainSimulator.Toolbox
             CancelPathCombine();
             using CancellationTokenSource request = CancellationTokenSource.CreateLinkedTokenSource(lifetime.Token);
             combineRequest = request;
+            long requestVersion = ++combineRequestVersion;
             PublishPathCombineState();
             try
             {
@@ -60,7 +65,7 @@ namespace FreeTrainSimulator.Toolbox
                     if (first == null || !string.Equals(first.Id, firstId, StringComparison.OrdinalIgnoreCase)
                         || second == null || !string.Equals(second.Id, secondId, StringComparison.OrdinalIgnoreCase))
                         throw new InvalidOperationException("A selected saved path is missing or has a different identity.");
-                    PathEditResult combination = PathModelEditor.CombinePaths(first, second, world, request.Token);
+                    PathCombinationResult prepared = PathModelEditor.PreparePathCombination(first, second, world, request.Token);
                     request.Token.ThrowIfCancellationRequested();
                     await game.InvokeOnGameThreadAsync(() =>
                     {
@@ -70,9 +75,23 @@ namespace FreeTrainSimulator.Toolbox
                             PathEditorCommandResult result;
                             if (IsUnchangedCombineSource(selected, selectionVersion, editor, source, revision))
                             {
-                                if (combination.Success && editor.CanCombinePaths)
-                                    game.HostedServices?.TrainPathToolWindow?.CaptureTransientCurrentPath();
-                                result = editor.CombinePathsCommand(combination);
+                                if (prepared.Candidates.Length > 1 && editor.BeginPathCombinationPreview())
+                                {
+                                    ImmutableArray<TrainPathCombinationRow> rows = prepared.Candidates.Select((candidate, index) =>
+                                        new TrainPathCombinationRow(requestVersion, index, first.Name ?? first.Id, second.Name ?? second.Id,
+                                            candidate.FirstReversed, candidate.SecondReversed, candidate.Combination.PathModel.Start, candidate.Combination.PathModel.End)).ToImmutableArray();
+                                    pendingPathCombination = new PendingPathCombination(editor, prepared.Candidates, rows,
+                                        () => !IsStopping && ReferenceEquals(selectedRoute, route) && ReferenceEquals(toolboxContent, content)
+                                            && version == routeContentVersion && ReferenceEquals(pathEditor, editor) && ReferenceEquals(editor.RuntimeTrackWorld, world)
+                                            && IsUnchangedCombineSource(selected, selectionVersion, editor, source, revision));
+                                    result = PathEditorCommandResult.Succeeded(game.Catalog.GetString("Choose a path orientation to preview, then accept it or Cancel."), source);
+                                }
+                                else if (prepared.Candidates.Length == 1)
+                                    result = CommitPathCombination(editor, prepared.Candidates[0].Combination);
+                                else if (prepared.Candidates.IsEmpty)
+                                    result = editor.CombinePathsCommand(prepared.Refusal);
+                                else
+                                    result = ChangedCombineSourceResult(editor);
                             }
                             else
                                 result = ChangedCombineSourceResult(editor);
@@ -126,19 +145,103 @@ namespace FreeTrainSimulator.Toolbox
 
         private static PathEditorCommandResult ChangedCombineSourceResult(PathEditor editor)
             => PathEditorCommandResult.Failed(PathEditor.CombineSourceChangedMessage,
-                PathEditorMessageKind.CombineSelectionChangedWhileLoading, editor.TryCaptureCurrentPathModel());
+                PathEditorMessageKind.CombineSelectionChangedWhileLoading, editor?.TryCaptureCurrentPathModel());
 
         private void CancelPathCombine()
         {
             CancellationTokenSource request = combineRequest;
             combineRequest = null;
             request?.Cancel();
+            PendingPathCombination pending = pendingPathCombination;
+            pendingPathCombination = null;
+            pending?.Editor.ClearPathCombinationPreview();
             PublishPathCombineState();
+        }
+
+        /// <summary>Resolves an immutable displayed orientation, never an index in a newer preparation.</summary>
+        internal Task SelectPathCombinationAsync(long requestVersion, int candidateIndex, PathCombinationAction action) => RunAsync(() =>
+        {
+            game.VerifySessionOwner();
+            PendingPathCombination pending = pendingPathCombination;
+            if (pending == null || requestVersion != combineRequestVersion)
+            {
+                ReportCombineResult(ChangedCombineSourceResult(pathEditor));
+                return Task.CompletedTask;
+            }
+            if (!pending.IsCurrent() || !pending.Editor.IsChoosingPathCombination)
+            {
+                CancelPathCombine();
+                ReportCombineResult(ChangedCombineSourceResult(pending.Editor));
+                return Task.CompletedTask;
+            }
+            if (action == PathCombinationAction.Cancel)
+            {
+                CancelPathCombine();
+                ReportCombineResult(PathEditorCommandResult.Succeeded(game.Catalog.GetString("Path combination canceled."), pending.Editor.TryCaptureCurrentPathModel()));
+                return Task.CompletedTask;
+            }
+            if (candidateIndex < 0 || candidateIndex >= pending.Candidates.Length
+                || action is not (PathCombinationAction.Preview or PathCombinationAction.Accept)
+                || action == PathCombinationAction.Accept && pending.PreviewedIndex != candidateIndex)
+            {
+                ReportCombineResult(PathEditorCommandResult.Failed(game.Catalog.GetString("Preview a current path orientation before accepting it."), pending.Editor.TryCaptureCurrentPathModel()));
+                return Task.CompletedTask;
+            }
+            PathEditResult combination = pending.Candidates[candidateIndex].Combination;
+            if (action == PathCombinationAction.Preview)
+            {
+                pending.Editor.PreviewPathCombination(combination.PathModel);
+                pending.PreviewedIndex = candidateIndex;
+                ReportCombineResult(PathEditorCommandResult.Succeeded(game.Catalog.GetString("Path orientation previewed. Accept to create a new unsaved path, or Cancel."), pending.Editor.TryCaptureCurrentPathModel()));
+            }
+            else
+            {
+                CancelPathCombine();
+                ReportCombineResult(CommitPathCombination(pending.Editor, combination));
+            }
+            PublishPathCombineState();
+            return Task.CompletedTask;
+        });
+
+        private PathEditorCommandResult CommitPathCombination(PathEditor editor, PathEditResult combination)
+        {
+            if (combination.Success && editor.CanCombinePaths)
+                game.HostedServices?.TrainPathToolWindow?.CaptureTransientCurrentPath();
+            return editor.CombinePathsCommand(combination);
+        }
+
+        private void InvalidatePendingPathCombination()
+        {
+            PendingPathCombination pending = pendingPathCombination;
+            if (pending != null && (!pending.IsCurrent() || !pending.Editor.IsChoosingPathCombination))
+            {
+                CancelPathCombine();
+                ReportCombineResult(ChangedCombineSourceResult(pending.Editor));
+            }
         }
 
         private void ReportCombineResult(PathEditorCommandResult result) => game.HostedServices?.TrainPathToolWindow?.ReportCombineResult(result);
 
         private void PublishPathCombineState()
-            => game.HostedServices?.TrainPathToolWindow?.UpdateCombineState(combineRequest != null);
+            => game.HostedServices?.TrainPathToolWindow?.UpdateCombineState(combineRequest != null, combineRequestVersion,
+                pendingPathCombination?.Rows ?? ImmutableArray<TrainPathCombinationRow>.Empty, pendingPathCombination?.PreviewedIndex ?? -1);
+
+        private sealed class PendingPathCombination
+        {
+            public PathEditor Editor { get; }
+            public ImmutableArray<PathCombinationCandidate> Candidates { get; }
+            public ImmutableArray<TrainPathCombinationRow> Rows { get; }
+            public Func<bool> IsCurrent { get; }
+            public int PreviewedIndex { get; set; } = -1;
+
+            public PendingPathCombination(PathEditor editor, ImmutableArray<PathCombinationCandidate> candidates,
+                ImmutableArray<TrainPathCombinationRow> rows, Func<bool> isCurrent)
+            {
+                Editor = editor;
+                Candidates = candidates;
+                Rows = rows;
+                IsCurrent = isCurrent;
+            }
+        }
     }
 }

@@ -146,6 +146,7 @@ namespace FreeTrainSimulator.Toolbox
 
         private void PublishSavedPathComparisons()
         {
+            InvalidatePendingPathCombination();
             ImmutableArray<TrainPathComparisonRow> rows = menuPaths.Select(path =>
             {
                 comparisons.TryGetValue(path.Id, out ComparisonRequest request);

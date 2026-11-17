@@ -203,6 +203,7 @@ namespace FreeTrainSimulator.Toolbox
 
         private void PathEditor_OnEditorPathChanged(object sender, PathEditorChangedEventArgs e)
         {
+            InvalidatePendingPathCombination();
             ToolboxMenuEntry updated = PathEntry(e.Path?.PathModel ?? pathEditor?.TryCaptureCurrentPathModel());
             if (!Equals(menuPath?.Key, updated?.Key) || menuPath?.Name != updated?.Name || menuPath?.Description != updated?.Description)
             {

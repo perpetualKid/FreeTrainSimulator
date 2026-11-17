@@ -356,6 +356,16 @@
                     <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
                 <StackPanel Grid.Row="0">
+                    <StackPanel Visibility="{Binding IsCombinationPanelVisible, Converter={StaticResource BooleanToVisibilityConverter}}">
+                        <TextBlock Text="{gt:Gettext 'Choose path orientation - selecting a candidate previews it.'}" TextWrapping="Wrap" />
+                        <ListView x:Name="CombinationCandidatesList" MaxHeight="140" ItemsSource="{Binding CombinationCandidates}"
+                                  SelectedItem="{Binding SelectedCombinationCandidate, Mode=TwoWay}"
+                                  AutomationProperties.Name="{gt:Gettext 'Path combination orientations'}" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                            <ListView.ItemTemplate><DataTemplate><TextBlock Text="{Binding Description}" TextWrapping="Wrap" /></DataTemplate></ListView.ItemTemplate>
+                        </ListView>
+                        <Button x:Name="AcceptPathCombinationButton" Content="{gt:Gettext 'Accept orientation'}" Command="{Binding AcceptPathCombinationCommand}" AutomationProperties.Name="{gt:Gettext 'Accept orientation'}" />
+                        <Button x:Name="CancelPathCombinationButton" Content="{gt:Gettext 'Cancel'}" Command="{Binding CancelPathInteractionCommand}" />
+                    </StackPanel>
                     <StackPanel Visibility="{Binding IsIdlePanelVisible, Converter={StaticResource BooleanToVisibilityConverter}}">
                         <StackPanel Orientation="Horizontal">
                             <Button Content="Set start" Command="{Binding SetStartHereCommand}" Padding="6,2" Margin="0,0,4,3" />

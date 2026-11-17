@@ -556,6 +556,11 @@ namespace Tests.FreeTrainSimulator.Toolbox.Hosting
                         Task operation = scope.Session.CombineSelectedPathsAsync(combine);
                         commands.Enqueue(operation);
                         return operation;
+                    }, (version, index, action) =>
+                    {
+                        Task operation = scope.Session.SelectPathCombinationAsync(version, index, action);
+                        commands.Enqueue(operation);
+                        return operation;
                     }) { Active = true };
                 SetField(scope.Game, "hostedServices", new HostedToolboxServices { Menu = scope.Game.HostedMenu, TrainPathToolWindow = bridge });
                 bridge.UpdatePaths(paths);

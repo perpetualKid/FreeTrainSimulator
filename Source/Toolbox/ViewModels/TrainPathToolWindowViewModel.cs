@@ -116,6 +116,32 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
 
         public RelayCommand CombineSelectedPathsCommand { get; }
         public RelayCommand CancelPathCombineCommand { get; }
+        public RelayCommand AcceptPathCombinationCommand { get; }
+
+        private ImmutableArray<TrainPathCombinationRow> combinationCandidates = ImmutableArray<TrainPathCombinationRow>.Empty;
+        private TrainPathCombinationRow selectedCombinationCandidate;
+
+        /// <summary>Whole-path direction choices, independent of equal-cost route-span candidates.</summary>
+        public ImmutableArray<TrainPathCombinationRow> CombinationCandidates => combinationCandidates;
+
+        public bool IsCombinationPanelVisible => !combinationCandidates.IsEmpty;
+
+        public TrainPathCombinationRow SelectedCombinationCandidate
+        {
+            get => selectedCombinationCandidate;
+            set
+            {
+                if (!SetProperty(ref selectedCombinationCandidate, value))
+                    return;
+                if (!suppressSelectionCommand && value != null && combinationCandidates.Contains(value))
+                    toolWindow.SelectPathCombination(value, PathCombinationAction.Preview);
+                AcceptPathCombinationCommand.RaiseCanExecuteChanged();
+            }
+        }
+
+        private bool CanAcceptPathCombination => SelectedCombinationCandidate != null
+            && SelectedCombinationCandidate.RequestVersion == presentationSnapshot.CombineRequestVersion
+            && SelectedCombinationCandidate.CandidateIndex == presentationSnapshot.PreviewedCombinationIndex;
 
         /// <summary>The representative of the span currently displayed in the candidate panel.</summary>
         public TrainPathRouteCandidateItemViewModel SelectedCandidateSpan => CandidateSpans.FirstOrDefault(item =>
@@ -145,12 +171,12 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
         public bool HasPendingAmbiguousSpanCommit => hasPendingAmbiguousSpanCommit;
 
         /// <summary>Whether a candidate decision or explicit issue inspection is visible.</summary>
-        public bool IsCandidatePanelVisible => HasPendingAmbiguousSpanCommit || HasPendingPassingBranchCandidate
-            || inspectedCandidateFromNodeIndex.HasValue;
+        public bool IsCandidatePanelVisible => !IsCombinationPanelVisible && (HasPendingAmbiguousSpanCommit || HasPendingPassingBranchCandidate
+            || inspectedCandidateFromNodeIndex.HasValue);
 
         /// <summary>Whether ordinary entry actions can be presented without interrupting a workflow.</summary>
         public bool IsIdlePanelVisible => !IsCandidatePanelVisible && PlacementMode == PathEditorPlacementMode.None
-            && !IsBuildingRoute && PassingBranchPhase == PassingBranchAuthoringPhase.Idle;
+            && !IsBuildingRoute && PassingBranchPhase == PassingBranchAuthoringPhase.Idle && !IsCombinationPanelVisible;
 
         /// <summary>Whether placement confirmation and cancellation are applicable.</summary>
         public bool IsPlacementPanelVisible => !IsCandidatePanelVisible && PlacementMode != PathEditorPlacementMode.None
@@ -196,6 +222,8 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
                 NotifyCombineCapabilities();
             }, _ => CanCombineSelectedPaths && !IsCombiningPaths);
             CancelPathCombineCommand = new RelayCommand(_ => toolWindow.CombineSelectedPaths(false), _ => IsCombiningPaths);
+            AcceptPathCombinationCommand = new RelayCommand(_ => toolWindow.SelectPathCombination(SelectedCombinationCandidate, PathCombinationAction.Accept),
+                _ => CanAcceptPathCombination);
             MoveSelectedNodeCommand = new RelayCommand(_ => MoveSelectedNode(), _ => CanMoveSelectedNode);
             CommitMoveNodeCommand = new RelayCommand(_ => toolWindow.ExecuteDisplayedPathCommand(presentationSnapshot, bridge => bridge.CommitMoveNode()), _ => CanCommitMoveNode);
             CancelMoveNodeCommand = new RelayCommand(_ => toolWindow.ExecuteDisplayedPathCommand(presentationSnapshot, bridge => bridge.CancelMoveNode()), _ => CanCancelMoveNode);
@@ -947,7 +975,9 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
             SyncEditableMetadata(snapshot);
             SyncRouteCandidates(snapshot.RouteCandidates);
             SyncDiagnostics(snapshot.Diagnostics);
+            SyncCombinationCandidates(snapshot);
             ApplyPresentationSnapshot(snapshot);
+            AcceptPathCombinationCommand.RaiseCanExecuteChanged();
             ApplyBlockedSaveFeedback(snapshot);
             ApplyCommandResultFeedback(snapshot);
             CanUndo = snapshot.CanUndo;
@@ -1012,6 +1042,48 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
             OnPropertyChanged(nameof(IsCombiningPaths));
             CombineSelectedPathsCommand.RaiseCanExecuteChanged();
             CancelPathCombineCommand.RaiseCanExecuteChanged();
+        }
+
+        private void SyncCombinationCandidates(TrainPathSnapshot snapshot)
+        {
+            suppressSelectionCommand = true;
+            try
+            {
+                if (!combinationCandidates.SequenceEqual(snapshot.CombinationCandidates))
+                {
+                    combinationCandidates = snapshot.CombinationCandidates;
+                    OnPropertyChanged(nameof(CombinationCandidates));
+                }
+                SelectedCombinationCandidate = combinationCandidates.FirstOrDefault(row => row.CandidateIndex == snapshot.PreviewedCombinationIndex);
+            }
+            finally
+            {
+                suppressSelectionCommand = false;
+            }
+            if (!combinationCandidates.IsEmpty && (snapshot.CombineRequestVersion != presentationSnapshot.CombineRequestVersion
+                || presentationSnapshot.CombinationCandidates.IsEmpty))
+                SelectedTabIndex = EditorTabIndex;
+            OnPropertyChanged(nameof(IsCombinationPanelVisible));
+        }
+
+        /// <summary>Rebinds the few immutable choice rows after a catalog switch without issuing preview commands.</summary>
+        internal void RefreshLocalization()
+        {
+            if (combinationCandidates.IsEmpty)
+                return;
+            suppressSelectionCommand = true;
+            try
+            {
+                TrainPathCombinationRow selected = selectedCombinationCandidate;
+                combinationCandidates = combinationCandidates.Select(row => row with { }).ToImmutableArray();
+                OnPropertyChanged(nameof(CombinationCandidates));
+                selectedCombinationCandidate = null;
+                SelectedCombinationCandidate = combinationCandidates.FirstOrDefault(row => row == selected);
+            }
+            finally
+            {
+                suppressSelectionCommand = false;
+            }
         }
 
         private void SyncEditableMetadata(TrainPathSnapshot snapshot)
