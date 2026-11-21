@@ -109,7 +109,7 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
         /// <summary>Whether the current path can be snapped to track.</summary>
         public bool CanSnapToTrack { get; init; }
 
-        /// <summary>Whether the complete event-free main path can be reversed on its existing track.</summary>
+        /// <summary>Whether the complete main path with only supported basic interior waits can be reversed on its existing track.</summary>
         public bool CanReversePath { get; init; }
 
         /// <summary>Whether a node move operation is currently active.</summary>

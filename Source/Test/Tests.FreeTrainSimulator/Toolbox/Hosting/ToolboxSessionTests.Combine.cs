@@ -422,6 +422,51 @@ namespace Tests.FreeTrainSimulator.Toolbox.Hosting
 
         [TestMethod]
         [Timeout(30000, CooperativeCancellation = true)]
+        public async Task WhenCombinedPathContainsBasicWaitThenSessionCommitAndNativeReopenPreserveIt()
+        {
+            (SyntheticPathFixture fixture, RuntimeDataResolver runtime, PathModel first, PathModel second, PathModel third) = await CreateCombineModelsAsync().ConfigureAwait(false);
+            first = await fixture.RoundTripPathAsync(first with
+            {
+                PathNodes = [first.PathNodes[0],
+                    SyntheticPathFixture.Node(PathNodeType.Wait, 1, -80, 0, 2, -1) with { WaitInfo = new PathNodeWaitInfo { WaitTime = 45 } },
+                    first.PathNodes[1] with { NextMainNode = -1 }],
+            }, TestContext.CancellationToken).ConfigureAwait(false);
+            SessionScope scope = await SessionScope.StartAsync().ConfigureAwait(false);
+            await using (scope.ConfigureAwait(false))
+            {
+                ConcurrentQueue<Task> commands = new ConcurrentQueue<Task>();
+                _ = await InitializeComparisonSessionAsync(scope, fixture, runtime, [first, second, third], commands).ConfigureAwait(false);
+                await scope.Game.InvokeOnGameThreadAsync(() => scope.Session.SetSavedPathComparisonAsync(first.Id, true)).ConfigureAwait(false);
+                await scope.Game.InvokeOnGameThreadAsync(() => scope.Session.SetSavedPathComparisonAsync(second.Id, true)).ConfigureAwait(false);
+                await scope.Game.InvokeOnGameThreadAsync(() => scope.Session.CombineSelectedPathsAsync(true)).WaitAsync(TestContext.CancellationToken).ConfigureAwait(false);
+
+                PathModel combined = null;
+                TrackWorld world = null;
+                await scope.Host.OnOwnerAsync(() =>
+                {
+                    PathEditor editor = scope.Session.ExistingPathEditor;
+                    Assert.IsTrue(editor.IsNewPath);
+                    combined = editor.TryCaptureCurrentPathModel();
+                    world = editor.RuntimeTrackWorld;
+                    PathNode wait = combined.PathNodes.Single(node => node.WaitInfo != null);
+                    Assert.AreEqual((-80, 45), (wait.Location.Location.X, wait.WaitInfo.WaitTime));
+                }).ConfigureAwait(false);
+
+                PathPersistenceValidationResult saved = await PathEditor.SaveValidatedPath(combined with
+                {
+                    Id = "WaitCombined" + Guid.NewGuid().ToString("N"),
+                    Name = "Wait combined path",
+                }, fixture.Route, world, TestContext.CancellationToken).ConfigureAwait(false);
+                Assert.IsTrue(saved.PersistenceAllowed, saved.FailureMessage);
+                PathModel reopened = await fixture.Route.PathModelUncached(saved.PathModel.Id, TestContext.CancellationToken).ConfigureAwait(false);
+                PathNode reopenedWait = reopened.PathNodes.Single(node => node.WaitInfo != null);
+                Assert.AreEqual((-80, 45), (reopenedWait.Location.Location.X, reopenedWait.WaitInfo.WaitTime));
+                await Task.WhenAll(commands).WaitAsync(TestContext.CancellationToken).ConfigureAwait(false);
+            }
+        }
+
+        [TestMethod]
+        [Timeout(30000, CooperativeCancellation = true)]
         [DataRow(false)]
         [DataRow(true)]
         public async Task WhenCombineReplacesAnExistingPathThenOnlyItsUnsavedEditsAreRetained(bool dirty)

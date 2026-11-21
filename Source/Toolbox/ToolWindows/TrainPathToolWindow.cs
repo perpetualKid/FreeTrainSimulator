@@ -1090,7 +1090,7 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
                 PathEditorMessageKind.CombineChooseDifferentPaths => CatalogManager.Catalog.GetString("Choose two different saved paths to combine."),
                 PathEditorMessageKind.CombineRouteMismatch => CatalogManager.Catalog.GetString("Both paths must belong to the same route."),
                 PathEditorMessageKind.CombineChainRequired =>
-                    CatalogManager.Catalog.GetString("Path combination requires complete, reachable, event-free main paths with exactly one Start and End and no siding links or wait payloads."),
+                    CatalogManager.Catalog.GetString("Path combination requires complete, reachable main paths with exactly one Start and End, no siding links, and only basic interior waits of 1 to 29999 seconds."),
                 PathEditorMessageKind.CombineUnconnectable =>
                     CatalogManager.Catalog.GetString("No supported orientation connects these two paths. Add via points to bridge them manually, or choose different paths."),
                 PathEditorMessageKind.CombineOrientationAmbiguous =>

@@ -36,6 +36,7 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
         private static readonly float[] expectedArray20f80f = new[] { 20f, 80f };
         private static readonly float[] expectedArray80f20f = new[] { 80f, 20f };
         private static readonly float[] expectedArray20f80f80f20f = new[] { 20f, 80f, 80f, 20f };
+        private static readonly float[] expectedArray50f50f = new[] { 50f, 50f };
 
         [TestMethod]
         public void WhenCombiningTheSameInstanceThenItIsRefused()
@@ -187,19 +188,84 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
         }
 
         [TestMethod]
-        [DataRow(false)]
-        [DataRow(true)]
-        public void WhenEitherSourceHasAReversibleBasicWaitThenCombineAndAppendStillRefuseIt(bool changeSecond)
+        [DataRow(0, PathNodeType.Start | PathNodeType.Wait, 60)]
+        [DataRow(1, PathNodeType.Junction | PathNodeType.Wait, 60)]
+        [DataRow(2, PathNodeType.End | PathNodeType.Wait, 60)]
+        [DataRow(1, PathNodeType.Wait, 0)]
+        [DataRow(1, PathNodeType.Wait, 30000)]
+        public void WhenCombinePathHasAnUnsupportedWaitShapeThenItIsRefused(int nodeIndex, PathNodeType nodeType, int waitTime)
+        {
+            TrackWorld world = CreateSingleVectorNodeWorld();
+            PathModel first = CreateCombinePath("first", 10, 40) with
+            {
+                PathNodes = ImmutableArray.Create(
+                    Anchor(10, 1) with { NodeType = PathNodeType.Start, NextMainNode = 1, NextSidingNode = -1 },
+                    Anchor(25, 1) with { NodeType = PathNodeType.Via, NextMainNode = 2, NextSidingNode = -1 },
+                    Anchor(40, 1) with { NodeType = PathNodeType.End, NextMainNode = -1, NextSidingNode = -1 }),
+            };
+            first = first with
+            {
+                PathNodes = first.PathNodes.SetItem(nodeIndex, first.PathNodes[nodeIndex] with
+                {
+                    NodeType = nodeType,
+                    WaitInfo = new PathNodeWaitInfo { WaitTime = waitTime },
+                }),
+            };
+
+            PathEditResult result = PathModelEditor.CombinePaths(first, CreateCombinePath("second", 40, 90), world,
+                TestContext.CancellationToken);
+
+            Assert.IsFalse(result.Success);
+            Assert.AreEqual(PathEditorMessageKind.CombineChainRequired, result.MessageKind);
+            Assert.AreSame(first, result.PathModel);
+        }
+
+        [TestMethod]
+        public void WhenCombinePathHasAWaitAnchoredOnAnUnflaggedPhysicalJunctionThenItIsRefused()
+        {
+            TrackWorld world = CreateLoopWorld();
+            PathModel first = new PathModel
+            {
+                Id = "first",
+                PathNodes = [Anchor(20, 1) with { NodeType = PathNodeType.Start, NextMainNode = 1, NextSidingNode = -1 },
+                    Anchor(100, 3) with { NodeType = PathNodeType.Wait, NextMainNode = 2, NextSidingNode = -1, WaitInfo = new PathNodeWaitInfo { WaitTime = 30 } },
+                    Anchor(50, 4) with { NodeType = PathNodeType.End, NextMainNode = -1, NextSidingNode = -1 }],
+            };
+            PathModel second = new PathModel
+            {
+                Id = "second",
+                PathNodes = [Anchor(50, 4) with { NodeType = PathNodeType.Start, NextMainNode = 1, NextSidingNode = -1 },
+                    Anchor(20, 4) with { NodeType = PathNodeType.End, NextMainNode = -1, NextSidingNode = -1 }],
+            };
+
+            PathRouteResolution sourceResolution = PathRouteResolver.Resolve(first, world, TestContext.CancellationToken);
+            PathRouteAnchor junctionWait = sourceResolution.AuthoredNodeAnchors.Single(anchor => anchor.AuthoredNodeIndex == 1);
+            _ = Assert.IsInstanceOfType<JunctionNode>(world.TrackDatabase.TrackNodes[junctionWait.TrackNodeIndex]);
+
+            PathEditResult result = PathModelEditor.CombinePaths(first, second, world, TestContext.CancellationToken);
+
+            Assert.IsFalse(result.Success);
+            Assert.AreEqual(PathEditorMessageKind.CombineChainRequired, result.MessageKind);
+            Assert.AreSame(first, result.PathModel);
+        }
+
+        [TestMethod]
+        [DataRow(false, 1)]
+        [DataRow(true, 1)]
+        [DataRow(false, 29999)]
+        [DataRow(true, 29999)]
+        public void WhenEitherSourceHasAReversibleBasicWaitThenCombinePreservesItAndAppendStillRefusesIt(bool changeSecond, int waitTime)
         {
             TrackWorld world = CreateSingleVectorNodeWorld();
             PathModel first = CreateCombinePath("first", 10, 40);
             PathModel second = CreateCombinePath("second", 40, 90);
             PathModel target = changeSecond ? second : first;
+            PathNode originalEnd = target.PathNodes[1];
             target = target with
             {
                 PathNodes = ImmutableArray.Create(target.PathNodes[0],
                     Anchor(changeSecond ? 70 : 25, 1) with { NodeType = PathNodeType.Wait, NextMainNode = 2, NextSidingNode = -1,
-                        WaitInfo = new PathNodeWaitInfo { WaitTime = 60 } }, target.PathNodes[1]),
+                        WaitInfo = new PathNodeWaitInfo { WaitTime = waitTime } }, originalEnd),
             };
             first = changeSecond ? first : target;
             second = changeSecond ? target : second;
@@ -209,14 +275,48 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
             PathEditResult combined = PathModelEditor.CombinePaths(first, second, world, TestContext.CancellationToken);
             PathEditResult appended = PathModelEditor.AppendPathAtMatchingEndpoint(first, second, world, TestContext.CancellationToken);
 
-            Assert.IsEmpty(prepared.Candidates);
-            Assert.AreEqual(PathEditorMessageKind.CombineChainRequired, prepared.Refusal.MessageKind);
-            Assert.IsFalse(combined.Success);
-            Assert.AreEqual(PathEditorMessageKind.CombineChainRequired, combined.MessageKind);
-            Assert.AreSame(first, combined.PathModel);
+            Assert.IsNull(prepared.Refusal);
+            Assert.HasCount(1, prepared.Candidates);
+            Assert.IsTrue(combined.Success, combined.Message);
+            PathNode combinedWait = combined.PathModel.PathNodes.Single(node => node.NodeType.Includes(PathNodeType.Wait));
+            Assert.AreEqual(target.PathNodes[1].Location, combinedWait.Location);
+            Assert.AreEqual(target.PathNodes[1].NodeIndex, combinedWait.NodeIndex);
+            Assert.AreEqual(waitTime, combinedWait.WaitInfo.WaitTime);
+            Assert.ContainsSingle(node => node.WaitInfo != null, target.PathNodes);
+            Assert.ContainsSingle(node => node.WaitInfo != null, combined.PathModel.PathNodes);
             Assert.IsFalse(appended.Success);
             Assert.AreEqual(PathEditorMessageKind.CompositionChainRequired, appended.MessageKind);
             Assert.AreSame(first, appended.PathModel);
+        }
+
+        [TestMethod]
+        [DataRow(0)]
+        [DataRow(1)]
+        public void WhenMultipleCombineOrientationsContainBasicWaitsThenEachOrientationPreservesThem(int candidateIndex)
+        {
+            TrackWorld world = CreateLoopWorld();
+            PathModel first = CreateCombinePath("first", 20, 80) with
+            {
+                PathNodes = [Anchor(20, 1) with { NodeType = PathNodeType.Start, NextMainNode = 1, NextSidingNode = -1 },
+                    Anchor(50, 1) with { NodeType = PathNodeType.Wait, NextMainNode = 2, NextSidingNode = -1, WaitInfo = new PathNodeWaitInfo { WaitTime = 30 } },
+                    Anchor(80, 1) with { NodeType = PathNodeType.End, NextMainNode = -1, NextSidingNode = -1 }],
+            };
+            PathModel second = CreateCombinePath("second", 80, 20) with
+            {
+                PathNodes = [Anchor(80, 4) with { NodeType = PathNodeType.Start, NextMainNode = 1, NextSidingNode = -1 },
+                    Anchor(50, 4) with { NodeType = PathNodeType.Wait, NextMainNode = 2, NextSidingNode = -1, WaitInfo = new PathNodeWaitInfo { WaitTime = 60 } },
+                    Anchor(20, 4) with { NodeType = PathNodeType.End, NextMainNode = -1, NextSidingNode = -1 }],
+            };
+
+            PathCombinationResult prepared = PathModelEditor.PreparePathCombination(first, second, world, TestContext.CancellationToken);
+
+            Assert.HasCount(2, prepared.Candidates);
+            PathCombinationCandidate candidate = prepared.Candidates[candidateIndex];
+            Assert.AreEqual(candidateIndex == 1, candidate.FirstReversed);
+            Assert.AreEqual(candidateIndex == 1, candidate.SecondReversed);
+            Assert.AreSequenceEqual(new[] { (1, 30), (4, 60) }, candidate.Combination.PathModel.PathNodes.Where(node => node.WaitInfo != null).Select(node => (node.NodeIndex, node.WaitInfo.WaitTime)));
+            Assert.AreSequenceEqual(expectedArray50f50f, candidate.Combination.PathModel.PathNodes.Where(node => node.WaitInfo != null).Select(node => node.Location.Location.X));
+            Assert.IsTrue(candidate.Combination.PathModel.PathNodes.Where(node => node.WaitInfo != null).All(node => node.NodeType.Includes(PathNodeType.Wait)));
         }
 
         [TestMethod]

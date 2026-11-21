@@ -36,7 +36,7 @@ namespace FreeTrainSimulator.Runtime.Track
         private const string appendContinuityRequiredMessage = "Path composition would change a selected track route or require a reversal at the join. Choose an extension with a compatible departure direction.";
         private const string combineChooseDifferentPathsMessage = "Choose two different saved paths to combine.";
         private const string combineRouteMismatchMessage = "Both paths must belong to the same route.";
-        private const string combineChainRequiredMessage = "Path combination requires complete, reachable, event-free main paths with exactly one Start and End and no siding links or wait payloads.";
+        private const string combineChainRequiredMessage = "Path combination requires complete, reachable main paths with exactly one Start and End, no siding links, and only basic interior waits of 1 to 29999 seconds.";
         private const string combineUnconnectableMessage = "No supported orientation connects these two paths. Add via points to bridge them manually, or choose different paths.";
         private const string combineOrientationAmbiguousMessage = "More than one orientation connects these two paths. Preview and accept an orientation using Combine Paths.";
         private const string combinedMessage = "Paths combined into a new unsaved path.";
@@ -56,12 +56,7 @@ namespace FreeTrainSimulator.Runtime.Track
             if (nodes.Length < 2 || nodes.Any(node => node == null))
                 return PathEditResult.Failed(reverseChainRequiredMessage, PathEditorMessageKind.ReverseChainRequired, pathModel);
 
-            const PathNodeType allowedFlags = PathNodeType.Start | PathNodeType.End | PathNodeType.Via | PathNodeType.Junction | PathNodeType.Wait;
-            if (nodes.Any(node => node.NextSidingNode != -1 || (node.NodeType & ~allowedFlags) != 0
-                || (node.NodeType.Includes(PathNodeType.Wait)
-                    ? node.WaitInfo?.WaitTime is not (>= 1 and <= MaximumBasicWaitTimeSeconds)
-                        || (node.NodeType & (PathNodeType.Start | PathNodeType.End | PathNodeType.Junction)) != 0
-                    : node.WaitInfo != null)))
+            if (nodes.Any(node => !IsBasicWaitCompatibleMainNode(node)))
                 return PathEditResult.Failed(reverseUnsupportedDataMessage, PathEditorMessageKind.ReverseUnsupportedData, pathModel);
 
             int startIndex = IndexOfNodeType(nodes, PathNodeType.Start);
@@ -192,8 +187,35 @@ namespace FreeTrainSimulator.Runtime.Track
             route = ImmutableArray<int>.Empty;
             ImmutableArray<PathNode> nodes = Nodes(model);
             const PathNodeType allowedFlags = PathNodeType.Start | PathNodeType.End | PathNodeType.Via | PathNodeType.Junction;
-            return nodes.Length >= 2 && nodes.All(node => node != null && node.NextSidingNode == -1
-                    && node.WaitInfo == null && (node.NodeType & ~allowedFlags) == 0)
+            return TryGetCompleteMainRoute(nodes, node => node != null && node.NextSidingNode == -1
+                    && node.WaitInfo == null && (node.NodeType & ~allowedFlags) == 0, out route);
+        }
+
+        private static bool TryGetCombinableMainRoute(PathModel model, out ImmutableArray<int> route)
+        {
+            ImmutableArray<PathNode> nodes = Nodes(model);
+            return TryGetCompleteMainRoute(nodes, IsBasicWaitCompatibleMainNode, out route);
+        }
+
+        private static bool IsBasicWaitCompatibleMainNode(PathNode node)
+        {
+            if (node == null || node.NextSidingNode != -1)
+                return false;
+
+            const PathNodeType allowedFlags = PathNodeType.Start | PathNodeType.End | PathNodeType.Via | PathNodeType.Junction | PathNodeType.Wait;
+            if ((node.NodeType & ~allowedFlags) != 0)
+                return false;
+
+            return node.NodeType.Includes(PathNodeType.Wait)
+                ? node.WaitInfo?.WaitTime is >= 1 and <= MaximumBasicWaitTimeSeconds
+                    && (node.NodeType & (PathNodeType.Start | PathNodeType.End | PathNodeType.Junction)) == 0
+                : node.WaitInfo == null;
+        }
+
+        private static bool TryGetCompleteMainRoute(ImmutableArray<PathNode> nodes, Func<PathNode, bool> isSupportedNode, out ImmutableArray<int> route)
+        {
+            route = ImmutableArray<int>.Empty;
+            return nodes.Length >= 2 && nodes.All(isSupportedNode)
                 && nodes.Count(node => node.NodeType.Includes(PathNodeType.Start)) == 1
                 && nodes.Count(node => node.NodeType.Includes(PathNodeType.End)) == 1
                 && TryGetMainRouteNodes(nodes, out route, out _)
@@ -283,12 +305,12 @@ namespace FreeTrainSimulator.Runtime.Track
         }
 
         /// <summary>
-        /// Combines two different, complete, reachable, event-free main-only saved paths into a single new
-        /// authored path. Tries all four ways to join one path's endpoint to the other's (optionally reversing
-        /// either side first via <see cref="ReversePath"/>) and resolves a connecting route for each orientation
-        /// with <see cref="PathRouteResolver"/>. Succeeds only when exactly one orientation yields a resolvable,
-        /// non-overlapping route; refuses when zero orientations connect or more than one remains viable.
-        /// Interactive callers use <see cref="PreparePathCombination"/> to offer an explicit choice. The join itself may still be an
+        /// Combines two different, complete, reachable main-only saved paths with optional basic interior waits
+        /// into a single new authored path. Tries all four ways to join one path's endpoint to the other's
+        /// (optionally reversing either side first via <see cref="ReversePath"/>) and resolves a connecting route
+        /// for each orientation with <see cref="PathRouteResolver"/>. Succeeds only when exactly one orientation
+        /// yields a resolvable, non-overlapping route; refuses when zero orientations connect or more than one
+        /// remains viable. Interactive callers use <see cref="PreparePathCombination"/> to offer an explicit choice. The join itself may still be an
         /// ambiguous span in the result: that is left for the normal route-candidate picker to resolve, the same
         /// way it resolves any other via point. This operation performs no persistence or history mutation;
         /// callers own those workflows.
@@ -317,7 +339,12 @@ namespace FreeTrainSimulator.Runtime.Track
                 return new PathCombinationResult(PathEditResult.Failed(combineChooseDifferentPathsMessage, PathEditorMessageKind.CombineChooseDifferentPaths, first));
             if (!string.Equals(first.Parent?.Hierarchy(), second.Parent?.Hierarchy(), StringComparison.OrdinalIgnoreCase))
                 return new PathCombinationResult(PathEditResult.Failed(combineRouteMismatchMessage, PathEditorMessageKind.CombineRouteMismatch, first));
-            if (!TryGetAppendableMainRoute(first, out ImmutableArray<int> firstRoute) || !TryGetAppendableMainRoute(second, out ImmutableArray<int> secondRoute))
+            if (!TryGetCombinableMainRoute(first, out ImmutableArray<int> firstRoute) || !TryGetCombinableMainRoute(second, out ImmutableArray<int> secondRoute))
+                return new PathCombinationResult(PathEditResult.Failed(combineChainRequiredMessage, PathEditorMessageKind.CombineChainRequired, first));
+
+            PathRouteResolution firstResolution = PathRouteResolver.Resolve(first, trackWorld, cancellationToken);
+            PathRouteResolution secondResolution = PathRouteResolver.Resolve(second, trackWorld, cancellationToken);
+            if (HasPhysicalJunctionWait(first, firstResolution, trackWorld) || HasPhysicalJunctionWait(second, secondResolution, trackWorld))
                 return new PathCombinationResult(PathEditResult.Failed(combineChainRequiredMessage, PathEditorMessageKind.CombineChainRequired, first));
 
             PathEditResult reversedFirst = ReversePath(first);
@@ -358,6 +385,24 @@ namespace FreeTrainSimulator.Runtime.Track
             return candidates.Count == 0
                 ? new PathCombinationResult(PathEditResult.Failed(combineUnconnectableMessage, PathEditorMessageKind.CombineUnconnectable, first))
                 : new PathCombinationResult(candidates.ToImmutable());
+        }
+
+        private static bool HasPhysicalJunctionWait(PathModel pathModel, PathRouteResolution resolution, TrackWorld trackWorld)
+        {
+            ImmutableArray<PathRouteAnchor> anchors = resolution.AuthoredNodeAnchors;
+            ImmutableArray<TrackNodeBase> trackNodes = trackWorld.TrackDatabase.TrackNodes;
+            for (int nodeIndex = 0; nodeIndex < pathModel.PathNodes.Length; nodeIndex++)
+            {
+                PathNode node = pathModel.PathNodes[nodeIndex];
+                if (node?.NodeType.Includes(PathNodeType.Wait) != true)
+                    continue;
+
+                PathRouteAnchor anchor = anchors.FirstOrDefault(item => item.AuthoredNodeIndex == nodeIndex);
+                if (anchor != null && anchor.HasTrackAnchor && anchor.TrackNodeIndex >= 0 && anchor.TrackNodeIndex < trackNodes.Length
+                    && trackNodes[anchor.TrackNodeIndex] is JunctionNode)
+                    return true;
+            }
+            return false;
         }
 
         // Joins firstRoute's last node to secondRoute's first node by converting both into Via nodes and linking
