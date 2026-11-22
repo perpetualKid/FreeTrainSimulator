@@ -227,6 +227,8 @@
                     <MenuItem x:Name="CancelPathCombineMenuItem" Header="{gt:Gettext 'Cancel combining paths'}" Command="{Binding CancelPathCombineCommand}"
                               Visibility="{Binding IsCombiningPaths, Converter={StaticResource BooleanToVisibilityConverter}}" />
                     <MenuItem Header="Validate all paths" Command="{Binding ValidateAllPathsCommand}" />
+                     <MenuItem x:Name="ShowPathChartMenuItem" Header="{gt:Gettext 'Show Path Chart'}"
+                               Command="{Binding ShowPathChartCommand}" />
                     <Separator />
                     <MenuItem x:Name="CancelNewPathMenuItem" Header="Cancel new path" Command="{Binding CancelNewPathCommand}" />
                 </MenuItem>

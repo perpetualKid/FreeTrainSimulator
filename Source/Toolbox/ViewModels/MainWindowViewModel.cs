@@ -14,6 +14,7 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
         private HelpToolWindowViewModel helpTool;
         private SettingsToolWindowViewModel settingsTool;
         private TrainPathToolWindowViewModel trainPathTool;
+        private PathChartToolWindowViewModel pathChartTool;
         private StatusBarViewModel statusBar;
         private RelayCommand toggleDebugToolCommand;
         private RelayCommand toggleLocationToolCommand;
@@ -25,6 +26,8 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
         private RelayCommand toggleRouteToolCommand;
         private RelayCommand showRouteToolCommand;
         private RelayCommand resetSettingsCommand;
+        private RelayCommand togglePathChartToolCommand;
+        private RelayCommand showPathChartToolCommand;
         private bool isDebugToolVisible;
         private bool isLocationToolVisible;
         private bool isLogToolVisible;
@@ -33,6 +36,7 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
         private bool isSettingsToolVisible;
         private bool isTrainPathToolVisible;
         private bool isRouteToolVisible;
+        private bool isPathChartToolVisible;
 
         public ToolboxMenuViewModel Menu
         {
@@ -86,6 +90,30 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
         {
             get => statusBar;
             set => SetProperty(ref statusBar, value);
+        }
+
+        public PathChartToolWindowViewModel PathChartTool
+        {
+            get => pathChartTool;
+            set => SetProperty(ref pathChartTool, value);
+        }
+
+        public RelayCommand TogglePathChartToolCommand
+        {
+            get => togglePathChartToolCommand;
+            set => SetProperty(ref togglePathChartToolCommand, value);
+        }
+
+        public RelayCommand ShowPathChartToolCommand
+        {
+            get => showPathChartToolCommand;
+            set => SetProperty(ref showPathChartToolCommand, value);
+        }
+
+        public bool IsPathChartToolVisible
+        {
+            get => isPathChartToolVisible;
+            set => SetProperty(ref isPathChartToolVisible, value);
         }
 
         public RelayCommand ToggleDebugToolCommand

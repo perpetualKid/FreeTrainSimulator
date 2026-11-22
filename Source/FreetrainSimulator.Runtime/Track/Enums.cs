@@ -142,6 +142,16 @@ namespace FreeTrainSimulator.Runtime.Track
         Unresolved,
     }
 
+    /// <summary>Numeric source items shown on a main path chart.</summary>
+    public enum PathChartMarkerKind
+    {
+        /// <summary>A directional speed-limit source sign.</summary>
+        Speedpost,
+
+        /// <summary>A directional distance source sign.</summary>
+        Milepost,
+    }
+
     /// <summary>Role of an authored node in the single supported passing-branch topology.</summary>
     public enum PassingBranchNodeRole
     {

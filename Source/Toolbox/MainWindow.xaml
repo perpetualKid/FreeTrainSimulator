@@ -8,6 +8,7 @@
         xmlns:avalonLayout="clr-namespace:AvalonDock.Layout;assembly=AvalonDock"
         xmlns:host="clr-namespace:FreeTrainSimulator.Toolbox.Hosting"
         xmlns:views="clr-namespace:FreeTrainSimulator.Toolbox.Views"
+        xmlns:gt="clr-namespace:GetText.Wpf;assembly=GetText.Wpf"
         mc:Ignorable="d"
         Title="Free Train Simulator Toolbox"
         Width="1400"
@@ -65,6 +66,10 @@
                           IsCheckable="True"
                           IsChecked="{Binding DataContext.IsTrainPathToolVisible, ElementName=RootWindow, Mode=OneWay}"
                           Command="{Binding DataContext.ToggleTrainPathToolCommand, ElementName=RootWindow}" />
+                <MenuItem Header="{gt:Gettext 'Path Chart'}"
+                          IsCheckable="True"
+                          IsChecked="{Binding DataContext.IsPathChartToolVisible, ElementName=RootWindow, Mode=OneWay}"
+                          Command="{Binding DataContext.TogglePathChartToolCommand, ElementName=RootWindow}" />
             </MenuItem>
             <MenuItem Header="_Help">
                 <MenuItem Header="_About" Command="{Binding ShowAboutCommand}" />
@@ -139,6 +144,14 @@
                                                               CanHide="True"
                                                               IsSelected="True">
                                     <views:LogToolView DataContext="{Binding DataContext.LogTool, ElementName=RootWindow}" />
+                                </avalonLayout:LayoutAnchorable>
+                                <avalonLayout:LayoutAnchorable x:Name="PathChartToolAnchorable"
+                                                              ContentId="PathChartToolWindow"
+                                                              Title="Path Chart"
+                                                              CanClose="False"
+                                                              CanHide="True"
+                                                              IsVisible="False">
+                                    <views:PathChartToolView DataContext="{Binding DataContext.PathChartTool, ElementName=RootWindow}" />
                                 </avalonLayout:LayoutAnchorable>
                             </avalonLayout:LayoutAnchorablePane>
                         </avalonLayout:LayoutPanel>

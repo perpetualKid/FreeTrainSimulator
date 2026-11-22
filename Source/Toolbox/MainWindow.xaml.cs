@@ -36,6 +36,7 @@ namespace FreeTrainSimulator.Toolbox
         private const string HelpToolWindowContentId = "HelpToolWindow";
         private const string SettingsToolWindowContentId = "SettingsToolWindow";
         private const string TrainPathToolWindowContentId = "TrainPathToolWindow";
+        private const string PathChartToolWindowContentId = "PathChartToolWindow";
 
         private readonly MainWindowViewModel viewModel = new MainWindowViewModel();
         private ProfileModel currentProfile;
@@ -136,6 +137,8 @@ namespace FreeTrainSimulator.Toolbox
             viewModel.ToggleHelpToolCommand = new RelayCommand(_ => ToggleToolWindow(HelpToolWindowContentId), _ => viewModel.HelpTool != null);
             viewModel.ToggleSettingsToolCommand = new RelayCommand(_ => ToggleToolWindow(SettingsToolWindowContentId), _ => viewModel.SettingsTool != null);
             viewModel.ToggleTrainPathToolCommand = new RelayCommand(_ => ToggleToolWindow(TrainPathToolWindowContentId), _ => viewModel.TrainPathTool != null);
+            viewModel.TogglePathChartToolCommand = new RelayCommand(_ => ToggleToolWindow(PathChartToolWindowContentId), _ => viewModel.PathChartTool != null);
+            viewModel.ShowPathChartToolCommand = new RelayCommand(_ => ShowToolWindow(PathChartToolWindowContentId), _ => viewModel.PathChartTool != null);
             viewModel.ResetSettingsCommand = new RelayCommand(_ => ResetToDefaultsAsync(), _ => viewModel.SettingsTool != null);
         }
 
@@ -145,19 +148,21 @@ namespace FreeTrainSimulator.Toolbox
             {
                 new ToolWindowDescriptor(RouteToolWindowContentId, "Routes", () => RouteToolAnchorable, value => viewModel.IsRouteToolVisible = value),
                 new ToolWindowDescriptor(LocationToolWindowContentId, "Location", () => LocationToolAnchorable, value => viewModel.IsLocationToolVisible = value,
-                    () => viewModel.LocationTool, viewModel.LocationTool.Start, viewModel.LocationTool.Stop),
+                    () => viewModel.LocationTool, () => viewModel.LocationTool.Start(), () => viewModel.LocationTool.Stop()),
                 new ToolWindowDescriptor(DebugToolWindowContentId, "Debug Information", () => DebugToolAnchorable, value => viewModel.IsDebugToolVisible = value,
-                    () => viewModel.DebugTool, viewModel.DebugTool.Start, viewModel.DebugTool.Stop),
+                    () => viewModel.DebugTool, () => viewModel.DebugTool.Start(), () => viewModel.DebugTool.Stop()),
                 new ToolWindowDescriptor(LogToolWindowContentId, "Logging", () => LogToolAnchorable, value => viewModel.IsLogToolVisible = value,
-                    () => viewModel.LogTool, viewModel.LogTool.Start, viewModel.LogTool.Stop),
+                    () => viewModel.LogTool, () => viewModel.LogTool.Start(), () => viewModel.LogTool.Stop()),
                 new ToolWindowDescriptor(RouteNavigationToolWindowContentId, "Route Navigation", () => RouteNavigationToolAnchorable, value => viewModel.IsRouteNavigationToolVisible = value,
-                    () => viewModel.RouteNavigationTool, viewModel.RouteNavigationTool.Start, viewModel.RouteNavigationTool.Stop),
+                    () => viewModel.RouteNavigationTool, () => viewModel.RouteNavigationTool.Start(), () => viewModel.RouteNavigationTool.Stop()),
                 new ToolWindowDescriptor(HelpToolWindowContentId, "Help", () => HelpToolAnchorable, value => viewModel.IsHelpToolVisible = value,
-                    () => viewModel.HelpTool, viewModel.HelpTool.Start, viewModel.HelpTool.Stop),
+                    () => viewModel.HelpTool, () => viewModel.HelpTool.Start(), () => viewModel.HelpTool.Stop()),
                 new ToolWindowDescriptor(SettingsToolWindowContentId, "Settings", () => SettingsToolAnchorable, value => viewModel.IsSettingsToolVisible = value,
-                    () => viewModel.SettingsTool, viewModel.SettingsTool.Start, viewModel.SettingsTool.Stop),
+                    () => viewModel.SettingsTool, () => viewModel.SettingsTool.Start(), () => viewModel.SettingsTool.Stop()),
                 new ToolWindowDescriptor(TrainPathToolWindowContentId, "Path Editor", () => TrainPathToolAnchorable, value => viewModel.IsTrainPathToolVisible = value,
-                    () => viewModel.TrainPathTool, viewModel.TrainPathTool.Start, viewModel.TrainPathTool.Stop),
+                    () => viewModel.TrainPathTool, () => viewModel.TrainPathTool.Start(), () => viewModel.TrainPathTool.Stop()),
+                new ToolWindowDescriptor(PathChartToolWindowContentId, "Path Chart", () => PathChartToolAnchorable, value => viewModel.IsPathChartToolVisible = value,
+                    () => viewModel.PathChartTool, () => viewModel.PathChartTool.Start(), () => viewModel.PathChartTool.Stop()),
             };
         }
 
@@ -215,6 +220,8 @@ namespace FreeTrainSimulator.Toolbox
             viewModel.ToggleHelpToolCommand?.RaiseCanExecuteChanged();
             viewModel.ToggleSettingsToolCommand?.RaiseCanExecuteChanged();
             viewModel.ToggleTrainPathToolCommand?.RaiseCanExecuteChanged();
+            viewModel.TogglePathChartToolCommand?.RaiseCanExecuteChanged();
+            viewModel.ShowPathChartToolCommand?.RaiseCanExecuteChanged();
             viewModel.ResetSettingsCommand?.RaiseCanExecuteChanged();
         }
 
@@ -470,7 +477,12 @@ namespace FreeTrainSimulator.Toolbox
             {
                 ResetCommand = viewModel.ResetSettingsCommand
             };
-            viewModel.TrainPathTool = new TrainPathToolWindowViewModel(services.TrainPathToolWindow, refreshScheduler, MapHost.ToolboxSettings?.PathEditorSelectedTabIndex ?? TrainPathToolWindowViewModel.PathsTabIndex);
+            viewModel.TrainPathTool = new TrainPathToolWindowViewModel(services.TrainPathToolWindow, refreshScheduler, MapHost.ToolboxSettings?.PathEditorSelectedTabIndex ?? TrainPathToolWindowViewModel.PathsTabIndex)
+            {
+                ShowPathChartCommand = viewModel.ShowPathChartToolCommand,
+            };
+            if (services.PathChartToolWindow != null)
+                viewModel.PathChartTool = new PathChartToolWindowViewModel(services.PathChartToolWindow, refreshScheduler);
 
             // The status bar is always visible (not a dockable pane), so it starts pulling snapshots as soon
             // as the hosted bridge is available.
@@ -501,7 +513,11 @@ namespace FreeTrainSimulator.Toolbox
                 return;
 
             if (!anchorable.IsVisible)
+            {
                 anchorable.Show();
+                if (string.Equals(anchorable.ContentId, PathChartToolWindowContentId, StringComparison.Ordinal))
+                    GrowPathChartPane(anchorable);
+            }
             else
                 anchorable.Hide();
 
@@ -520,11 +536,28 @@ namespace FreeTrainSimulator.Toolbox
                 return;
 
             if (!anchorable.IsVisible)
+            {
                 anchorable.Show();
+                if (string.Equals(contentId, PathChartToolWindowContentId, StringComparison.Ordinal))
+                    GrowPathChartPane(anchorable);
+            }
 
             anchorable.IsActive = true;
             UpdateToolWindowLifecycle(descriptor);
             UpdateHostedInputCapture();
+        }
+
+        private void GrowPathChartPane(LayoutAnchorable anchorable)
+        {
+            if (anchorable.IsFloating || anchorable.IsAutoHidden || anchorable.Parent is not LayoutAnchorablePane pane)
+                return;
+
+            const double preferredHeight = 400;
+            DockingManager.UpdateLayout();
+            double currentHeight = pane.DockHeight.IsAbsolute ? pane.DockHeight.Value
+                : (anchorable.Content as FrameworkElement)?.ActualHeight ?? 0;
+            if (currentHeight < preferredHeight)
+                pane.DockHeight = new GridLength(preferredHeight);
         }
 
         private void ToolWindowAnchorable_PropertyChanged(object sender, PropertyChangedEventArgs e)
@@ -560,7 +593,34 @@ namespace FreeTrainSimulator.Toolbox
             if (template is null || DockingManager.Layout?.RootPanel is null)
                 return null;
 
-            LayoutAnchorablePane pane = DockingManager.Layout.Descendents().OfType<LayoutAnchorablePane>().FirstOrDefault();
+            LayoutAnchorablePane pane;
+            if (string.Equals(descriptor.ContentId, PathChartToolWindowContentId, StringComparison.Ordinal))
+            {
+                pane = FindToolWindowAnchorable(LogToolWindowContentId)?.Parent as LayoutAnchorablePane;
+                if (pane == null)
+                {
+                    LayoutDocument mapDocument = DockingManager.Layout.Descendents().OfType<LayoutDocument>()
+                        .FirstOrDefault(document => document.ContentId == "MapViewDocument");
+                    LayoutPanel mapPanel = null;
+                    for (ILayoutContainer parent = mapDocument?.Parent; parent != null; parent = parent.Parent)
+                    {
+                        if (parent is LayoutPanel candidate && candidate.Orientation == System.Windows.Controls.Orientation.Vertical)
+                        {
+                            mapPanel = candidate;
+                            break;
+                        }
+                    }
+                    if (mapPanel == null)
+                    {
+                        Trace.TraceWarning("Cannot restore Path Chart: the dock layout has no lower map panel.");
+                        return null;
+                    }
+                    pane = new LayoutAnchorablePane() { DockHeight = new GridLength(160) };
+                    mapPanel.Children.Add(pane);
+                }
+            }
+            else
+                pane = DockingManager.Layout.Descendents().OfType<LayoutAnchorablePane>().FirstOrDefault();
             if (pane is null)
                 return null;
 
@@ -895,6 +955,7 @@ namespace FreeTrainSimulator.Toolbox
             viewModel.HelpTool?.Dispose();
             viewModel.SettingsTool?.Dispose();
             viewModel.TrainPathTool?.Dispose();
+            viewModel.PathChartTool?.Dispose();
             viewModel.StatusBar?.Dispose();
         }
 

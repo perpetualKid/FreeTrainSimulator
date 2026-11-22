@@ -129,6 +129,9 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
         public RelayCommand CancelPathCombineCommand { get; }
         public RelayCommand AcceptPathCombinationCommand { get; }
 
+        /// <summary>Shell-owned chart action that also works from a floating editor pane.</summary>
+        public RelayCommand ShowPathChartCommand { get; set; }
+
         private ImmutableArray<TrainPathCombinationRow> combinationCandidates = ImmutableArray<TrainPathCombinationRow>.Empty;
         private TrainPathCombinationRow selectedCombinationCandidate;
 

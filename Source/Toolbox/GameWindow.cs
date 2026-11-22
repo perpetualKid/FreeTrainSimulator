@@ -158,6 +158,7 @@ namespace FreeTrainSimulator.Toolbox
 
         // Non-null only in hosted mode; exposed to the WPF host for train-path browsing/editing.
         private TrainPathToolWindow hostedTrainPathToolWindow;
+        private PathChartToolWindow hostedPathChartToolWindow;
 
         // Non-null only in hosted mode; exposed to the WPF host for the bottom status bar (mouse-driven
         // tile/location coordinates and nearest track node/item).
@@ -263,6 +264,7 @@ namespace FreeTrainSimulator.Toolbox
                     (version, index, action) => session.SelectPathCombinationAsync(version, index, action));
                 hostedStatusBarToolWindow = new StatusBarToolWindow();
                 hostedRouteNavigationToolWindow = new RouteNavigationToolWindow(InvokeOnGameThread);
+                hostedPathChartToolWindow = new PathChartToolWindow(() => HostedPathEditor, () => HostedTrainPathToolingContext, InvokeSessionCommand);
                 hostedServices = new HostedToolboxServices
                 {
                     Menu = hostedMenu,
@@ -274,6 +276,7 @@ namespace FreeTrainSimulator.Toolbox
                     TrainPathToolWindow = hostedTrainPathToolWindow,
                     StatusBarToolWindow = hostedStatusBarToolWindow,
                     RouteNavigationToolWindow = hostedRouteNavigationToolWindow,
+                    PathChartToolWindow = hostedPathChartToolWindow,
                 };
                 OnContentAreaChanged += GameWindow_OnContentAreaChanged;
                 windowForm.KeyPreview = true;// need to preview keys to enable Monogames TextInput handler, otherwise adding the main menu will break text input
@@ -1098,6 +1101,7 @@ namespace FreeTrainSimulator.Toolbox
             hostedTrainPathToolWindow?.InvalidatePaths();
             hostedStatusBarToolWindow?.UpdateContexts(e.LocationContext, e.TrackNodeInfoContext, e.TrackItemInfoContext);
             hostedRouteNavigationToolWindow?.UpdateContext(e.TrackNodeInfoContext);
+            hostedPathChartToolWindow?.UpdateContext(e.TrackNodeInfoContext);
         }
 
         protected override void Draw(GameTime gameTime)
@@ -1117,6 +1121,7 @@ namespace FreeTrainSimulator.Toolbox
             hostedTrainPathToolWindow?.RefreshSnapshot();
             hostedStatusBarToolWindow?.RefreshSnapshot();
             hostedRouteNavigationToolWindow?.RefreshSnapshot();
+            hostedPathChartToolWindow?.RefreshSnapshot();
         }
 
         private sealed class CommonDebugInfo : DetailInfoBase

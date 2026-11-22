@@ -33,5 +33,8 @@ namespace FreeTrainSimulator.Toolbox.Hosting
 
         /// <summary>The route-navigation tool window bridge.</summary>
         public RouteNavigationToolWindow RouteNavigationToolWindow { get; init; }
+
+        /// <summary>The read-only main-route chart bridge.</summary>
+        public PathChartToolWindow PathChartToolWindow { get; init; }
     }
 }

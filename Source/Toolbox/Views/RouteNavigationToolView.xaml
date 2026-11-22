@@ -14,14 +14,19 @@
              d:DesignWidth="520"
              d:DesignHeight="560">
     <UserControl.Resources>
+        <ResourceDictionary>
+        <ResourceDictionary.MergedDictionaries>
+            <ResourceDictionary Source="/Toolbox;component/Themes/SharedResources.xaml" />
+        </ResourceDictionary.MergedDictionaries>
         <Style x:Key="RouteNavigationRowStyle" TargetType="ListViewItem">
             <Setter Property="Visibility" Value="Visible" />
             <Style.Triggers>
-                <DataTrigger Binding="{Binding IsVisible}" Value="False">
+                <DataTrigger Binding="{Binding Visible}" Value="False">
                     <Setter Property="Visibility" Value="Collapsed" />
                 </DataTrigger>
             </Style.Triggers>
         </Style>
+        </ResourceDictionary>
     </UserControl.Resources>
     <Grid Margin="6">
         <Grid.RowDefinitions>

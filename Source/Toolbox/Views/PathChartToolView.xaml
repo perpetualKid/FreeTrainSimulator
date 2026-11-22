@@ -1,0 +1,170 @@
+<UserControl x:Class="FreeTrainSimulator.Toolbox.Views.PathChartToolView"
+             x:ClassModifier="internal"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:views="clr-namespace:FreeTrainSimulator.Toolbox.Views"
+             mc:Ignorable="d"
+             views:ToolWindow.DefaultFloatingSize="1000,450"
+             d:DesignWidth="1000" d:DesignHeight="450">
+    <UserControl.Resources>
+        <!-- Encounters are separate ListView rows; this template renders only the run header. -->
+        <ControlTemplate x:Key="StationRunExpanderTemplate" TargetType="{x:Type Expander}">
+            <ToggleButton x:Name="HeaderSite" MinHeight="18" Padding="0" Margin="0"
+                          HorizontalContentAlignment="Stretch" VerticalContentAlignment="Center"
+                          Foreground="{TemplateBinding Foreground}" FontWeight="{TemplateBinding FontWeight}"
+                          Content="{TemplateBinding Header}" ContentTemplate="{TemplateBinding HeaderTemplate}"
+                          IsChecked="{Binding IsExpanded, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay}"
+                          ToolTip="{TemplateBinding ToolTip}" AutomationProperties.Name="{Binding ExpansionActionText}">
+                <ToggleButton.Template>
+                    <ControlTemplate TargetType="{x:Type ToggleButton}">
+                        <Grid MinHeight="18" Background="Transparent">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="18" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <Border x:Name="DisclosureBorder" Width="16" Height="18" BorderThickness="1"
+                                    BorderBrush="Transparent" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                <Path x:Name="DisclosureGlyph" Width="6" Height="6" Data="M1.5,0 L4.5,3 L1.5,6"
+                                      Stroke="{TemplateBinding Foreground}" StrokeThickness="1.2"
+                                      StrokeStartLineCap="Round" StrokeEndLineCap="Round"
+                                      HorizontalAlignment="Center" VerticalAlignment="Center" />
+                            </Border>
+                            <ContentPresenter x:Name="HeaderContent" Grid.Column="1" ContentSource="Content"
+                                              HorizontalAlignment="Stretch" VerticalAlignment="Center" />
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="DisclosureGlyph" Property="Data" Value="M0,1.5 L3,4.5 L6,1.5" />
+                            </Trigger>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="DisclosureBorder" Property="Background" Value="{DynamicResource {x:Static SystemColors.ControlLightBrushKey}}" />
+                            </Trigger>
+                            <Trigger Property="IsKeyboardFocused" Value="True">
+                                <Setter TargetName="DisclosureBorder" Property="BorderBrush" Value="{DynamicResource {x:Static SystemColors.HighlightBrushKey}}" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </ToggleButton.Template>
+            </ToggleButton>
+        </ControlTemplate>
+        <DataTemplate x:Key="StationNameCellTemplate">
+            <Grid MinHeight="18">
+                <Expander x:Name="StationRunExpander" Header="{Binding StationName}" Visibility="Collapsed"
+                          Template="{StaticResource StationRunExpanderTemplate}"
+                          Foreground="{Binding Path=(TextElement.Foreground), RelativeSource={RelativeSource AncestorType=Grid}}"
+                          IsExpanded="{Binding IsExpanded, Mode=TwoWay}"
+                          ToolTip="{Binding ExpansionActionText}" AutomationProperties.Name="{Binding StationName}">
+                    <Expander.HeaderTemplate>
+                        <DataTemplate>
+                            <TextBlock Text="{Binding}" TextTrimming="CharacterEllipsis" />
+                        </DataTemplate>
+                    </Expander.HeaderTemplate>
+                </Expander>
+                <TextBlock x:Name="EncounterName" Text="{Binding StationName}" ToolTip="{Binding StationName}"
+                           TextTrimming="CharacterEllipsis" VerticalAlignment="Center" Margin="18,0,0,0" />
+            </Grid>
+            <DataTemplate.Triggers>
+                <DataTrigger Binding="{Binding CanExpand}" Value="True">
+                    <Setter TargetName="StationRunExpander" Property="Visibility" Value="Visible" />
+                    <Setter TargetName="EncounterName" Property="Visibility" Value="Collapsed" />
+                </DataTrigger>
+                <DataTrigger Binding="{Binding IsIndented}" Value="True">
+                    <Setter TargetName="EncounterName" Property="Margin" Value="30,0,0,0" />
+                </DataTrigger>
+                <DataTrigger Binding="{Binding IsGroupingAnchor}" Value="True">
+                    <Setter TargetName="StationRunExpander" Property="FontWeight" Value="SemiBold" />
+                </DataTrigger>
+            </DataTemplate.Triggers>
+        </DataTemplate>
+    </UserControl.Resources>
+    <ScrollViewer x:Name="ChartLayoutScroll"
+                  HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto"
+                  HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch" Padding="6">
+    <Grid MinWidth="600" Width="{Binding ViewportWidth, ElementName=ChartLayoutScroll}">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" MinHeight="240" />
+        </Grid.RowDefinitions>
+        <Grid x:Name="ChartHeader" Margin="0,0,0,4">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" MaxWidth="280" />
+                <ColumnDefinition Width="*" MinWidth="240" />
+            </Grid.ColumnDefinitions>
+            <DockPanel Margin="0,0,12,0" VerticalAlignment="Top">
+                <TextBlock DockPanel.Dock="Left" FontWeight="Bold" Text="Main route" Margin="0,0,12,0" />
+                <TextBlock Text="{Binding TitleText}" ToolTip="{Binding TitleText}" TextTrimming="CharacterEllipsis" />
+            </DockPanel>
+            <StackPanel Grid.Column="1">
+                <ScrollViewer x:Name="SelectedValuesScroll" MaxHeight="32"
+                              HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto" Focusable="True">
+                    <TextBlock Text="{Binding SelectedValuesText}" TextWrapping="Wrap" AutomationProperties.LiveSetting="Polite" />
+                </ScrollViewer>
+                <ScrollViewer x:Name="DiagnosticScroll" MaxHeight="40" Margin="0,2,0,0"
+                              HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto" Focusable="True">
+                    <ScrollViewer.Style>
+                        <Style TargetType="ScrollViewer">
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding StatusMessage}" Value="">
+                                    <Setter Property="Visibility" Value="Collapsed" />
+                                </DataTrigger>
+                                <DataTrigger Binding="{Binding StatusMessage}" Value="{x:Null}">
+                                    <Setter Property="Visibility" Value="Collapsed" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </ScrollViewer.Style>
+                    <TextBlock Text="{Binding StatusMessage}" TextWrapping="Wrap" AutomationProperties.LiveSetting="Polite" />
+                </ScrollViewer>
+            </StackPanel>
+        </Grid>
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" MinWidth="260" />
+                <ColumnDefinition Width="235" />
+            </Grid.ColumnDefinitions>
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*" MinHeight="240" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+                <views:PathChartControl x:Name="Chart"
+                                        Profile="{Binding Profile}"
+                                        CursorDistance="{Binding CursorDistance, Mode=TwoWay}"
+                                        UseMetricUnits="{Binding UseMetricUnits}"
+                                        AutomationProperties.Name="{Binding SelectedValuesText}">
+                    <views:PathChartControl.ToolTip>
+                        <ToolTip MaxWidth="600">
+                            <TextBlock x:Name="ChartHint" TextWrapping="Wrap" />
+                        </ToolTip>
+                    </views:PathChartControl.ToolTip>
+                </views:PathChartControl>
+                <ScrollBar x:Name="ViewportScrollBar" Grid.Row="1" Orientation="Horizontal" Margin="82,0,18,0"
+                           IsEnabled="False" Focusable="True" ValueChanged="ViewportScrollBar_ValueChanged"
+                           PreviewMouseWheel="ViewportScrollBar_PreviewMouseWheel" />
+            </Grid>
+            <DockPanel Grid.Column="1" Margin="8,0,0,0">
+                <TextBlock DockPanel.Dock="Top" Text="Stations" FontWeight="Bold" Margin="0,0,0,4" />
+                <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" Margin="0,6,0,0">
+                    <Button Content="Show on Map" Command="{Binding ShowOnMapCommand}" Padding="8,3" />
+                    <Button Content="Reset View" Click="ResetView_Click" Margin="6,0,0,0" Padding="8,3" />
+                </StackPanel>
+                <ListView x:Name="StationList" ItemsSource="{Binding Stations}"
+                          SelectedItem="{Binding SelectedStation, Mode=TwoWay}"
+                          SelectionChanged="StationList_SelectionChanged"
+                          PreviewMouseLeftButtonDown="StationList_PreviewMouseLeftButtonDown"
+                          PreviewKeyDown="StationList_PreviewKeyDown"
+                          ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                    <ListView.View>
+                        <GridView>
+                            <GridViewColumn Header="Station" Width="135" CellTemplate="{StaticResource StationNameCellTemplate}" />
+                            <GridViewColumn Header="Distance" Width="85" DisplayMemberBinding="{Binding DistanceText}" />
+                        </GridView>
+                    </ListView.View>
+                </ListView>
+            </DockPanel>
+        </Grid>
+    </Grid>
+    </ScrollViewer>
+</UserControl>
