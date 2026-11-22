@@ -797,6 +797,7 @@ namespace Tests.FreeTrainSimulator.Toolbox
             ScrollViewer diagnostics = (ScrollViewer)view.FindName("DiagnosticScroll");
             ScrollViewer layout = (ScrollViewer)view.FindName("ChartLayoutScroll");
             PathChartControl chart = (PathChartControl)view.FindName("Chart");
+            Assert.AreEqual(ChartLayoutData.ExpectedSelectedValuesText, ((TextBlock)values.Content).Text);
             Assert.AreEqual(Visibility.Collapsed, diagnostics.Visibility, "An empty diagnostic area takes no header space.");
             Assert.AreEqual(2, ((Grid)layout.Content).RowDefinitions.Count, "The footer rows are removed rather than duplicated in the header.");
             Assert.IsTrue(new Rect(header.RenderSize).Contains(new Rect(values.TranslatePoint(new Point(), header), values.RenderSize)));
@@ -876,7 +877,7 @@ namespace Tests.FreeTrainSimulator.Toolbox
                 .Where(item => item.Geometry is StreamGeometry && item.Pen?.Thickness == 1.5).ToArray());
             Assert.AreEqual(2, stations.Items.Count);
             Assert.AreEqual(data.StatusMessage, ((TextBlock)diagnostics.Content).Text, "No diagnostic text is truncated or dropped.");
-            Assert.AreEqual(ChartLayoutData.SelectedValuesText, ((TextBlock)values.Content).Text);
+            Assert.AreEqual(ChartLayoutData.ExpectedSelectedValuesText, ((TextBlock)values.Content).Text);
             Assert.IsGreaterThan(diagnostics.ViewportHeight, diagnostics.ExtentHeight);
             Assert.AreEqual(scrollRequired, layout.ExtentHeight > layout.ViewportHeight + 0.1);
             Rect viewport = new Rect(0, 0, width, height);
@@ -996,7 +997,8 @@ namespace Tests.FreeTrainSimulator.Toolbox
             public double CursorDistance { get; set; }
             public PathChartStationItemViewModel[] Stations { get; }
             public PathChartStationItemViewModel SelectedStation { get; set; }
-            public const string SelectedValuesText = "Distance 5.00 km; elevation 150.0 m; grade 0.00%; curvature 0.00 /km (positive right). Selected main-route geometry values remain accessible.";
+            public const string ExpectedSelectedValuesText = "Distance 5.00 km; elevation 150.0 m; grade 0.00%; curvature 0.00 /km (positive right). Selected main-route geometry values remain accessible.";
+            public string SelectedValuesText => ExpectedSelectedValuesText;
             public string StatusMessage { get; }
 
             public ChartLayoutData(PathChartProfile profile)
