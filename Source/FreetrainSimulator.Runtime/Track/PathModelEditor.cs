@@ -26,6 +26,7 @@ namespace FreeTrainSimulator.Runtime.Track
         // Train.TestAbsDelay interprets 30000..39999 as 3HHMM; higher values also include legacy AI operations.
         private const int MaximumBasicWaitTimeSeconds = 29999;
         private const string basicWaitTimeOutOfRangeMessage = "Basic wait time must be between 1 and 29999 seconds. Values of 30000 or greater may encode legacy AI operations instead of a duration.";
+        private const string invalidWaitOperationMessage = "The selected advanced wait operation has invalid parameters.";
 
         private const string reverseChainRequiredMessage = "Reverse Path requires a complete, reachable main chain with exactly one Start and End and at least two nodes.";
         private const string reverseUnsupportedDataMessage = "Reverse Path supports only main paths with basic interior waits of 1 to 29999 seconds and no endpoint or junction waits, reversals, siding links, invalid nodes, or unknown flags.";
@@ -207,7 +208,8 @@ namespace FreeTrainSimulator.Runtime.Track
                 return false;
 
             return node.NodeType.Includes(PathNodeType.Wait)
-                ? node.WaitInfo?.WaitTime is >= 1 and <= MaximumBasicWaitTimeSeconds
+                ? node.WaitInfo?.WaitOperation == WaitOperationType.BasicWait
+                    && PathWaitOperationCodec.GetMstsWaitCode(node.WaitInfo) is >= 1 and <= MaximumBasicWaitTimeSeconds
                     && (node.NodeType & (PathNodeType.Start | PathNodeType.End | PathNodeType.Junction)) == 0
                 : node.WaitInfo == null;
         }
@@ -696,10 +698,11 @@ namespace FreeTrainSimulator.Runtime.Track
                 return FailedPassingBranchMessage(failure, pathModel);
 
             HashSet<int> retained = mainRoute.Take(selectedMainPosition + 1).ToHashSet();
-            foreach ((int StartNodeIndex, int RejoinNodeIndex, ImmutableArray<int> InteriorNodes) branch in branches)
+
+            foreach ((_, int RejoinNodeIndex, ImmutableArray<int> InteriorNodes) in branches)
             {
-                if (mainRoute.IndexOf(branch.RejoinNodeIndex) <= selectedMainPosition)
-                    retained.UnionWith(branch.InteriorNodes);
+                if (mainRoute.IndexOf(RejoinNodeIndex) <= selectedMainPosition)
+                    retained.UnionWith(InteriorNodes);
             }
 
             return BuildTruncatedPath(pathModel, nodes, retained, nodeIndex);
@@ -925,8 +928,10 @@ namespace FreeTrainSimulator.Runtime.Track
                 bool canBegin = branches.Length < 2 && position + 1 < mainRoute.Length
                     && IsEligiblePassingBranch(mainRoute, branches, nodeIndex, mainRoute[position + 1], out _);
                 bool canRemove = false;
-                foreach ((int StartNodeIndex, int RejoinNodeIndex, ImmutableArray<int> InteriorNodes) branch in branches)
-                    canRemove |= branch.StartNodeIndex == nodeIndex;
+
+
+                foreach ((int StartNodeIndex, _, _) in branches)
+                    canRemove |= StartNodeIndex == nodeIndex;
                 capabilities.Add(nodeIndex, (canBegin, canRemove));
             }
 
@@ -968,15 +973,16 @@ namespace FreeTrainSimulator.Runtime.Track
             if (!TryCollectPassingBranches(nodes, out _, out ImmutableArray<(int StartNodeIndex, int RejoinNodeIndex, ImmutableArray<int> InteriorNodes)> branches, out FormattableString failure))
                 return FailedPassingBranchMessage(failure, pathModel);
 
-            (int StartNodeIndex, int RejoinNodeIndex, ImmutableArray<int> InteriorNodes) branch = branches.FirstOrDefault(item => item.StartNodeIndex == startNodeIndex);
-            if (branch.InteriorNodes.IsDefault)
+            (int StartNodeIndex, int RejoinNodeIndex, ImmutableArray<int> InteriorNodes) = branches.FirstOrDefault(item => item.StartNodeIndex == startNodeIndex);
+
+            if (InteriorNodes.IsDefault)
                 return FailedPassingBranchMessage($"Node {startNodeIndex} does not start a passing branch.", pathModel);
-            if (!branch.InteriorNodes.IsEmpty)
+            if (!InteriorNodes.IsEmpty)
                 return FailedPassingBranchMessage($"The passing branch already has authored interior anchors; insert a via point instead of replacing them.", pathModel);
             if (anchors.Any(anchor => anchor == null))
                 return FailedPassingBranchMessage($"The passing route candidate contains a null anchor.", pathModel);
 
-            int rejoinNodeIndex = branch.RejoinNodeIndex;
+            int rejoinNodeIndex = RejoinNodeIndex;
 
             ImmutableArray<PathNode>.Builder builder = nodes.ToBuilder();
             ImmutableArray<int>.Builder changed = ImmutableArray.CreateBuilder<int>(anchors.Length + 2);
@@ -1050,13 +1056,13 @@ namespace FreeTrainSimulator.Runtime.Track
                 return false;
 
             role = PassingBranchNodeRole.MainRoute;
-            foreach ((int StartNodeIndex, int RejoinNodeIndex, ImmutableArray<int> InteriorNodes) branch in branches)
+            foreach ((int StartNodeIndex, int RejoinNodeIndex, ImmutableArray<int> InteriorNodes) in branches)
             {
-                if (nodeIndex == branch.StartNodeIndex)
+                if (nodeIndex == StartNodeIndex)
                     role = PassingBranchNodeRole.BranchStart;
-                else if (nodeIndex == branch.RejoinNodeIndex)
+                else if (nodeIndex == RejoinNodeIndex)
                     role = PassingBranchNodeRole.BranchRejoin;
-                else if (branch.InteriorNodes.Contains(nodeIndex))
+                else if (InteriorNodes.Contains(nodeIndex))
                     role = PassingBranchNodeRole.BranchInterior;
             }
             failure = null;
@@ -1073,11 +1079,11 @@ namespace FreeTrainSimulator.Runtime.Track
             if (!TryCollectPassingBranches(nodes, out _, out ImmutableArray<(int StartNodeIndex, int RejoinNodeIndex, ImmutableArray<int> InteriorNodes)> branches, out FormattableString failure))
                 return FailedPassingBranchMessage(failure, pathModel);
 
-            (int StartNodeIndex, int RejoinNodeIndex, ImmutableArray<int> InteriorNodes) branch = branches.FirstOrDefault(item => item.StartNodeIndex == startNodeIndex);
-            if (branch.InteriorNodes.IsDefault)
+            (int StartNodeIndex, int RejoinNodeIndex, ImmutableArray<int> InteriorNodes) = branches.FirstOrDefault(item => item.StartNodeIndex == startNodeIndex);
+            if (InteriorNodes.IsDefault)
                 return FailedPassingBranchMessage($"Node {startNodeIndex} does not start a passing branch.", pathModel);
 
-            HashSet<int> removed = branch.InteriorNodes.ToHashSet();
+            HashSet<int> removed = InteriorNodes.ToHashSet();
             Dictionary<int, int> indexMap = Enumerable.Range(0, nodes.Length).Where(index => !removed.Contains(index))
                 .Select((oldIndex, newIndex) => (oldIndex, newIndex)).ToDictionary(item => item.oldIndex, item => item.newIndex);
             ImmutableArray<PathNode> updatedNodes = Enumerable.Range(0, nodes.Length).Where(indexMap.ContainsKey).Select(index => nodes[index] with
@@ -1151,9 +1157,9 @@ namespace FreeTrainSimulator.Runtime.Track
                 return false;
             }
 
-            foreach ((int StartNodeIndex, int RejoinNodeIndex, ImmutableArray<int> InteriorNodes) branch in branches)
+            foreach ((int StartNodeIndex, int RejoinNodeIndex, _) in branches)
             {
-                if (rejoinPosition >= mainRoute.IndexOf(branch.StartNodeIndex) && startPosition <= mainRoute.IndexOf(branch.RejoinNodeIndex))
+                if (rejoinPosition >= mainRoute.IndexOf(StartNodeIndex) && startPosition <= mainRoute.IndexOf(RejoinNodeIndex))
                 {
                     failure = $"Passing branches must be strictly separated; touching, nested, or overlapping branches are not supported.";
                     return false;
@@ -1300,22 +1306,45 @@ namespace FreeTrainSimulator.Runtime.Track
         {
             ArgumentNullException.ThrowIfNull(pathModel);
 
-            if (waitTimeSeconds <= 0 || waitTimeSeconds > MaximumBasicWaitTimeSeconds)
-                return PathEditResult.Failed(basicWaitTimeOutOfRangeMessage, PathEditorMessageKind.BasicWaitTimeOutOfRange, pathModel);
+            return !PathWaitOperationCodec.TryCreateBasicWait(waitTimeSeconds, out PathNodeWaitInfo operation)
+                ? PathEditResult.Failed(basicWaitTimeOutOfRangeMessage, PathEditorMessageKind.BasicWaitTimeOutOfRange, pathModel)
+                : SetWaitOperation(pathModel, nodeIndex, operation);
+        }
+
+        /// <summary>
+        /// Stores a validated basic or advanced current-FTS wait operation on the selected supported node.
+        /// Typed native parameters are authoritative; legacy integer encoding remains a Runtime compatibility detail.
+        /// </summary>
+        public static PathEditResult SetWaitOperation(PathModel pathModel, int nodeIndex, PathNodeWaitInfo operation)
+        {
+            ArgumentNullException.ThrowIfNull(pathModel);
+            ArgumentNullException.ThrowIfNull(operation);
+
+            if (!PathWaitOperationCodec.IsValidForAuthoring(operation))
+                return PathEditResult.Failed(invalidWaitOperationMessage, PathEditorMessageKind.InvalidWaitOperation, pathModel);
 
             ImmutableArray<PathNode> nodes = Nodes(pathModel);
             if (!CanAnnotateNode(nodes, nodeIndex, "wait point", out string failure))
                 return PathEditResult.Failed(failure, pathModel);
 
-            PathNode node = nodes[nodeIndex] with
+            PathNode existing = nodes[nodeIndex];
+            if (existing.NodeType.Includes(PathNodeType.Wait) && existing.WaitInfo == operation)
+                return PathEditResult.Succeeded("Wait operation is already set.", PathEditorMessageKind.WaitOperationUnchanged,
+                    pathModel, ImmutableArray<int>.Empty);
+
+            PathNode node = existing with
             {
-                NodeType = nodes[nodeIndex].NodeType | PathNodeType.Wait,
-                WaitInfo = new PathNodeWaitInfo { WaitTime = waitTimeSeconds },
+                NodeType = existing.NodeType | PathNodeType.Wait,
+                WaitInfo = operation,
             };
 
             return !TryValidateNodeEvents(pathModel, nodeIndex, node, out FormattableString eventFailure)
                 ? FailedPassingBranchMessage(eventFailure, pathModel)
-                : PathEditResult.Succeeded($"Set wait point of {waitTimeSeconds}s on node {nodeIndex}.", pathModel with { PathNodes = nodes.SetItem(nodeIndex, node) }, ImmutableArray.Create(nodeIndex));
+                : operation.WaitOperation == WaitOperationType.BasicWait
+                    ? PathEditResult.Succeeded($"Set wait point of {operation.Duration.TotalSeconds:0}s on node {nodeIndex}.",
+                            pathModel with { PathNodes = nodes.SetItem(nodeIndex, node) }, ImmutableArray.Create(nodeIndex))
+                        : PathEditResult.Succeeded("Advanced wait operation set.", PathEditorMessageKind.WaitOperationSet,
+                        pathModel with { PathNodes = nodes.SetItem(nodeIndex, node) }, ImmutableArray.Create(nodeIndex));
         }
 
         /// <summary>
@@ -1414,7 +1443,7 @@ namespace FreeTrainSimulator.Runtime.Track
         {
             failure = null;
             if ((node.NodeType & (PathNodeType.Wait | PathNodeType.Reversal)) == PathNodeType.None
-                && (node.WaitInfo?.WaitTime ?? 0) == 0)
+                && PathWaitOperationCodec.GetMstsWaitCode(node.WaitInfo) == 0)
                 return true;
 
             bool isPassingInterior = false;

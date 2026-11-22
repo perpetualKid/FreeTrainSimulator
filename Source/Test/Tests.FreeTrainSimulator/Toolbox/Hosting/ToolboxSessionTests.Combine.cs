@@ -428,7 +428,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.Hosting
             first = await fixture.RoundTripPathAsync(first with
             {
                 PathNodes = [first.PathNodes[0],
-                    SyntheticPathFixture.Node(PathNodeType.Wait, 1, -80, 0, 2, -1) with { WaitInfo = new PathNodeWaitInfo { WaitTime = 45 } },
+                    SyntheticPathFixture.Node(PathNodeType.Wait, 1, -80, 0, 2, -1) with { WaitInfo = PathWaitOperationCodec.FromMstsWaitTime(45) },
                     first.PathNodes[1] with { NextMainNode = -1 }],
             }, TestContext.CancellationToken).ConfigureAwait(false);
             SessionScope scope = await SessionScope.StartAsync().ConfigureAwait(false);
@@ -449,7 +449,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.Hosting
                     combined = editor.TryCaptureCurrentPathModel();
                     world = editor.RuntimeTrackWorld;
                     PathNode wait = combined.PathNodes.Single(node => node.WaitInfo != null);
-                    Assert.AreEqual((-80, 45), (wait.Location.Location.X, wait.WaitInfo.WaitTime));
+                    Assert.AreEqual((-80, 45), (wait.Location.Location.X, PathWaitOperationCodec.GetMstsWaitCode(wait.WaitInfo)));
                 }).ConfigureAwait(false);
 
                 PathPersistenceValidationResult saved = await PathEditor.SaveValidatedPath(combined with
@@ -460,7 +460,8 @@ namespace Tests.FreeTrainSimulator.Toolbox.Hosting
                 Assert.IsTrue(saved.PersistenceAllowed, saved.FailureMessage);
                 PathModel reopened = await fixture.Route.PathModelUncached(saved.PathModel.Id, TestContext.CancellationToken).ConfigureAwait(false);
                 PathNode reopenedWait = reopened.PathNodes.Single(node => node.WaitInfo != null);
-                Assert.AreEqual((-80, 45), (reopenedWait.Location.Location.X, reopenedWait.WaitInfo.WaitTime));
+                Assert.AreEqual((-80, 45), (reopenedWait.Location.Location.X,
+                    PathWaitOperationCodec.GetMstsWaitCode(reopenedWait.WaitInfo)));
                 await Task.WhenAll(commands).WaitAsync(TestContext.CancellationToken).ConfigureAwait(false);
             }
         }

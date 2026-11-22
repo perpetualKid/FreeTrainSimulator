@@ -284,11 +284,12 @@ namespace Tests.FreeTrainSimulator.Toolbox.ViewModels
                         viewModel.Start();
                         Assert.AreEqual("Origin", bridge.CaptureTrainPathSnapshot().PathStart);
                         PathModel reversedWithWait = editor.TryCaptureCurrentPathModel();
-                        Assert.AreEqual((source.PathNodes[1].Location, 30), (reversedWithWait.PathNodes[1].Location, reversedWithWait.PathNodes[1].WaitInfo.WaitTime));
+                        Assert.AreEqual((source.PathNodes[1].Location, 30), (reversedWithWait.PathNodes[1].Location,
+                            PathWaitOperationCodec.GetMstsWaitCode(reversedWithWait.PathNodes[1].WaitInfo)));
                         Assert.IsTrue(await editor.InitializePathAsync(reversedWithWait with
                         {
                             PathNodes = reversedWithWait.PathNodes.SetItem(1, reversedWithWait.PathNodes[1] with
-                            { WaitInfo = new PathNodeWaitInfo { WaitTime = 30000 } }),
+                            { WaitInfo = PathWaitOperationCodec.FromMstsWaitTime(30000) }),
                         }, CancellationToken.None).ConfigureAwait(false));
                         bridge.RefreshSnapshot();
                         viewModel.Start();
@@ -1594,6 +1595,55 @@ namespace Tests.FreeTrainSimulator.Toolbox.ViewModels
 
         [TestMethod]
         [OSCondition(OperatingSystems.Windows)]
+        public async Task WhenQueuedAdvancedOperationUsesStaleCapabilityThenRejectedDraftIsRestored()
+        {
+            TrackWorld world = TrackWorldTestFixture.CreateSingleVectorNodeTrackWorld();
+            PathModel source = new PathModel
+            {
+                Id = "stale-advanced-wait",
+                Name = "Stale Advanced Wait",
+                PathNodes = ImmutableArray.Create(
+                    new PathNode(new WorldLocation(new Tile(0, 0), Vector3.Zero))
+                    { NodeType = PathNodeType.Start, NodeIndex = 1, NextMainNode = 1, NextSidingNode = -1 },
+                    new PathNode(new WorldLocation(new Tile(0, 0), new Vector3(50, 0, 0)))
+                    { NodeType = PathNodeType.Via, NodeIndex = 1, NextMainNode = 2, NextSidingNode = -1 },
+                    new PathNode(new WorldLocation(new Tile(0, 0), new Vector3(100, 0, 0)))
+                    { NodeType = PathNodeType.End, NodeIndex = 1, NextMainNode = -1, NextSidingNode = -1 }),
+            };
+            using (PathEditor editor = new PathEditor(new TestPathEditorContext(world)))
+            {
+                _ = await editor.InitializePathAsync(source, CancellationToken.None).ConfigureAwait(false);
+                editor.SelectAuthoredNode(1);
+                Queue<Action> gameCommands = new Queue<Action>();
+                TrainPathToolWindow bridge = new TrainPathToolWindow(() => editor, () => null, gameCommands.Enqueue, () => { }, () => { }, _ => { }, () => { }, () => { }) { Active = true };
+                bridge.RefreshSnapshot();
+                using (ToolWindowRefreshScheduler scheduler = new ToolWindowRefreshScheduler(Dispatcher.CurrentDispatcher))
+                {
+                    using (TrainPathToolWindowViewModel viewModel = new TrainPathToolWindowViewModel(bridge, scheduler))
+                    {
+                        viewModel.Start();
+
+                        viewModel.SelectedWaitOperationOption = viewModel.WaitOperationOptions.Single(option => option.OperationType == WaitOperationType.WaitUntil);
+                        viewModel.SelectedWaitUntilHour = 17;
+                        viewModel.SelectedWaitUntilMinute = 25;
+                        viewModel.ApplyWaitOperationCommand.Execute(null);
+                        Assert.IsTrue(editor.SetReversalPoint(1).Success);
+
+                        gameCommands.Dequeue()();
+                        bridge.RefreshSnapshot();
+                        viewModel.Start();
+
+                        Assert.IsNull(editor.TryCaptureCurrentPathModel().PathNodes[1].WaitInfo);
+                        Assert.AreEqual(WaitOperationType.BasicWait, viewModel.SelectedWaitOperationType);
+                        Assert.IsNull(viewModel.SelectedNodeWaitTime);
+                        Assert.IsTrue(viewModel.StatusMessageIsWarning);
+                    }
+                }
+            }
+        }
+
+        [TestMethod]
+        [OSCondition(OperatingSystems.Windows)]
         [DataRow(1, 1, false)]
         [DataRow(29999, 29999, false)]
         [DataRow(30000, 30, true)]
@@ -1619,7 +1669,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.ViewModels
                         NodeIndex = 1,
                         NextMainNode = 2,
                         NextSidingNode = -1,
-                        WaitInfo = new PathNodeWaitInfo { WaitTime = 30 },
+                        WaitInfo = PathWaitOperationCodec.FromMstsWaitTime(30),
                     },
                     new PathNode(new WorldLocation(new Tile(0, 0), new Vector3(100, 0, 0)))
                     { NodeType = PathNodeType.End, NodeIndex = 1, NextMainNode = -1, NextSidingNode = -1 }),
@@ -1630,9 +1680,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.ViewModels
                 editor.SelectAuthoredNode(1);
                 PathModel authoritative = editor.TryCaptureCurrentPathModel();
                 Queue<Action> gameCommands = new Queue<Action>();
-                TrainPathToolWindow bridge = new TrainPathToolWindow(() => editor, () => null, gameCommands.Enqueue,
-                () => { }, () => { }, _ => { }, () => { }, () => { })
-                { Active = true };
+                TrainPathToolWindow bridge = new TrainPathToolWindow(() => editor, () => null, gameCommands.Enqueue, () => { }, () => { }, _ => { }, () => { }, () => { }) { Active = true };
                 bridge.RefreshSnapshot();
                 using (ToolWindowRefreshScheduler scheduler = new ToolWindowRefreshScheduler(Dispatcher.CurrentDispatcher))
                 {
@@ -1649,7 +1697,8 @@ namespace Tests.FreeTrainSimulator.Toolbox.ViewModels
 
                         TrainPathSnapshot completed = bridge.CaptureTrainPathSnapshot();
                         Assert.AreEqual(((1, (int?)waitTime), (int?)expectedWaitTime, (int?)expectedWaitTime, warning, warning, !warning, initialVersion + 1, true, 0),
-                            (queued, viewModel.SelectedNodeWaitTime, editor.TryCaptureCurrentPathModel().PathNodes[1].WaitInfo?.WaitTime,
+                            (queued, viewModel.SelectedNodeWaitTime, PathWaitOperationCodec.GetMstsWaitCode(
+                                    editor.TryCaptureCurrentPathModel().PathNodes[1].WaitInfo),
                                 viewModel.StatusMessageIsWarning, ReferenceEquals(authoritative, editor.TryCaptureCurrentPathModel()), editor.CanUndo,
                                 completed.CommandResultVersion, !string.IsNullOrWhiteSpace(viewModel.StatusMessage), gameCommands.Count));
                     }
@@ -1658,14 +1707,115 @@ namespace Tests.FreeTrainSimulator.Toolbox.ViewModels
         }
 
         [TestMethod]
-        [DataRow(30000)]
-        [DataRow(40000)]
-        [DataRow(60001)]
-        [DataRow(60002)]
-        [DataRow(60011)]
-        [DataRow(60021)]
-        [DataRow(int.MaxValue)]
-        public void WhenImportedWaitIsPublishedThenInspectorRetainsRawValueAndAllowsClear(int waitTime)
+        [OSCondition(OperatingSystems.Windows)]
+        public async Task WhenAdvancedWaitOperationIsAppliedThenTheEditorStoresItsEncodedPayload()
+        {
+            TrackWorld world = TrackWorldTestFixture.CreateSingleVectorNodeTrackWorld();
+            PathModel source = new PathModel
+            {
+                Id = "advanced-wait-edit",
+                Name = "Advanced Wait Edit",
+                PathNodes = ImmutableArray.Create(
+                    new PathNode(new WorldLocation(new Tile(0, 0), Vector3.Zero))
+                    { NodeType = PathNodeType.Start, NodeIndex = 1, NextMainNode = 1, NextSidingNode = -1 },
+                    new PathNode(new WorldLocation(new Tile(0, 0), new Vector3(50, 0, 0)))
+                    { NodeType = PathNodeType.Via, NodeIndex = 1, NextMainNode = 2, NextSidingNode = -1 },
+                    new PathNode(new WorldLocation(new Tile(0, 0), new Vector3(100, 0, 0)))
+                    { NodeType = PathNodeType.End, NodeIndex = 1, NextMainNode = -1, NextSidingNode = -1 }),
+            };
+            using (PathEditor editor = new PathEditor(new TestPathEditorContext(world)))
+            {
+                _ = await editor.InitializePathAsync(source, CancellationToken.None).ConfigureAwait(false);
+                editor.SelectAuthoredNode(1);
+                Queue<Action> gameCommands = new Queue<Action>();
+                TrainPathToolWindow bridge = new TrainPathToolWindow(() => editor, () => null, gameCommands.Enqueue, () => { }, () => { }, _ => { }, () => { }, () => { }) { Active = true };
+                bridge.RefreshSnapshot();
+                using (ToolWindowRefreshScheduler scheduler = new ToolWindowRefreshScheduler(Dispatcher.CurrentDispatcher))
+                {
+                    using (TrainPathToolWindowViewModel viewModel = new TrainPathToolWindowViewModel(bridge, scheduler))
+                    {
+                        viewModel.Start();
+
+                        viewModel.SelectedWaitOperationOption = viewModel.WaitOperationOptions.Single(option => option.OperationType == WaitOperationType.WaitUntil);
+                        viewModel.SelectedWaitUntilHour = 17;
+                        viewModel.SelectedWaitUntilMinute = 25;
+                        Assert.IsTrue(viewModel.ApplyWaitOperationCommand.CanExecute(null));
+                        viewModel.ApplyWaitOperationCommand.Execute(null);
+
+                        gameCommands.Dequeue()();
+                        bridge.RefreshSnapshot();
+                        viewModel.Start();
+
+                        Assert.AreEqual(31725, PathWaitOperationCodec.GetMstsWaitCode(editor.TryCaptureCurrentPathModel().PathNodes[1].WaitInfo));
+                        Assert.AreEqual(WaitOperationType.WaitUntil, viewModel.SelectedWaitOperationType);
+                        Assert.IsTrue(editor.CanUndo);
+                    }
+                }
+            }
+        }
+
+        [TestMethod]
+        [OSCondition(OperatingSystems.Windows)]
+        public async Task WhenSwitchingAdvancedOperationToBasicThenApplyCommitsTheDisplayedBasicWait()
+        {
+            TrackWorld world = TrackWorldTestFixture.CreateSingleVectorNodeTrackWorld();
+            PathModel source = new PathModel
+            {
+                Id = "switch-advanced-to-basic",
+                Name = "Switch Advanced To Basic",
+                PathNodes = ImmutableArray.Create(
+                    new PathNode(new WorldLocation(new Tile(0, 0), Vector3.Zero))
+                    { NodeType = PathNodeType.Start, NodeIndex = 1, NextMainNode = 1, NextSidingNode = -1 },
+                    new PathNode(new WorldLocation(new Tile(0, 0), new Vector3(50, 0, 0)))
+                    {
+                        NodeType = PathNodeType.Via | PathNodeType.Wait,
+                        NodeIndex = 1,
+                        NextMainNode = 2,
+                        NextSidingNode = -1,
+                        WaitInfo = PathWaitOperationCodec.FromMstsWaitTime(60002)
+                    },
+                    new PathNode(new WorldLocation(new Tile(0, 0), new Vector3(100, 0, 0)))
+                    { NodeType = PathNodeType.End, NodeIndex = 1, NextMainNode = -1, NextSidingNode = -1 }),
+            };
+            using (PathEditor editor = new PathEditor(new TestPathEditorContext(world)))
+            {
+                _ = await editor.InitializePathAsync(source, CancellationToken.None).ConfigureAwait(false);
+                editor.SelectAuthoredNode(1);
+                Queue<Action> gameCommands = new Queue<Action>();
+                TrainPathToolWindow bridge = new TrainPathToolWindow(() => editor, () => null, gameCommands.Enqueue, () => { }, () => { }, _ => { }, () => { }, () => { }) { Active = true };
+                bridge.RefreshSnapshot();
+                using (ToolWindowRefreshScheduler scheduler = new ToolWindowRefreshScheduler(Dispatcher.CurrentDispatcher))
+                {
+                    using (TrainPathToolWindowViewModel viewModel = new TrainPathToolWindowViewModel(bridge, scheduler))
+                    {
+                        viewModel.Start();
+
+                        viewModel.SelectedWaitOperationOption = viewModel.WaitOperationOptions.Single(option => option.OperationType == WaitOperationType.BasicWait);
+                        Assert.AreEqual((int?)30, viewModel.SelectedNodeWaitTime);
+                        Assert.IsTrue(viewModel.ApplyWaitOperationCommand.CanExecute(null));
+                        viewModel.ApplyWaitOperationCommand.Execute(null);
+                        gameCommands.Dequeue()();
+                        bridge.RefreshSnapshot();
+                        viewModel.Start();
+
+                        Assert.AreEqual((WaitOperationType.BasicWait, 30),
+                            (editor.TryCaptureCurrentPathModel().PathNodes[1].WaitInfo.WaitOperation,
+                                PathWaitOperationCodec.GetMstsWaitCode(editor.TryCaptureCurrentPathModel().PathNodes[1].WaitInfo)));
+                        Assert.IsTrue(editor.CanUndo);
+                    }
+                }
+            }
+        }
+
+        [TestMethod]
+        [DataRow(30000, WaitOperationType.WaitUntil)]
+        [DataRow(40000, WaitOperationType.Uncouple)]
+        [DataRow(60001, WaitOperationType.JoinSplit)]
+        [DataRow(60002, WaitOperationType.PassRedSignal)]
+        [DataRow(60011, WaitOperationType.Horn)]
+        [DataRow(60021, WaitOperationType.Horn)]
+        [DataRow(int.MaxValue, WaitOperationType.Unknown)]
+        public void WhenImportedWaitIsPublishedThenInspectorRetainsRawValueAndAllowsClear(int waitTime, WaitOperationType operationType)
         {
             TrainPathToolWindow bridge = CreateBridge(_ => { });
             SetBridgeSnapshot(bridge, TrainPathSnapshot.Empty with
@@ -1681,7 +1831,8 @@ namespace Tests.FreeTrainSimulator.Toolbox.ViewModels
                 {
                     viewModel.Start();
 
-                    Assert.AreEqual(((int?)waitTime, true), (viewModel.SelectedNodeWaitTime, viewModel.ClearWaitPointCommand.CanExecute(null)));
+                    Assert.AreEqual((waitTime, operationType, true),
+                        (viewModel.SelectedNodeWaitTime, viewModel.SelectedWaitOperationType, viewModel.ClearWaitPointCommand.CanExecute(null)));
                 }
             }
         }

@@ -189,7 +189,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.PathEditing
                 PathNodes = source.PathNodes.SetItem(eventIndex, source.PathNodes[eventIndex] with
                 {
                     NodeType = (extendAfterRejoin ? PathNodeType.Via : source.PathNodes[eventIndex].NodeType) | eventType,
-                    WaitInfo = new PathNodeWaitInfo { WaitTime = 0 },
+                    WaitInfo = PathWaitOperationCodec.FromMstsWaitTime(0),
                     NextMainNode = extendAfterRejoin ? 8 : source.PathNodes[eventIndex].NextMainNode,
                 })
             };
@@ -235,7 +235,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.PathEditing
                 Id = "AmbiguousProjectedWait",
                 PathNodes = ImmutableArray.Create(
                     SyntheticPathFixture.Node(PathNodeType.Via | PathNodeType.Wait, 2, 120, 0, 2, -1) with
-                    { WaitInfo = new PathNodeWaitInfo { WaitTime = 30 } },
+                    { WaitInfo = PathWaitOperationCodec.FromMstsWaitTime(30) },
                     SyntheticPathFixture.Node(PathNodeType.Start, 1, -50, 0, 0, 3),
                     SyntheticPathFixture.Node(PathNodeType.End, 2, 150, 0, -1, -1),
                     SyntheticPathFixture.Node(PathNodeType.Via, 5, 50, 100, -1, 2)),
@@ -279,7 +279,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.PathEditing
             TrackWorld world = RuntimeDataResolver.Instance.TrackWorld;
             PathModel source = CreateProjectionSource(false, PathNodeType.Wait, 30);
             source = source with { PathNodes = source.PathNodes.SetItem(4, source.PathNodes[4] with { NextMainNode = 8 })
-                .Add(source.PathNodes[4] with { WaitInfo = new PathNodeWaitInfo { WaitTime = distinctPayloads ? 60 : 30 } }) };
+                .Add(source.PathNodes[4] with { WaitInfo = PathWaitOperationCodec.FromMstsWaitTime(distinctPayloads ? 60 : 30) }) };
             _ = await fixture.Route.Save(source, TestContext.CancellationToken).ConfigureAwait(false);
             byte[] sourceBytes = MemoryPackSerializer.Serialize(source);
             string nativeFile = ModelFileResolver<PathModelHeader>.FilePath(source) + ContentHandlerBase<PathModelHeader>.SaveStateExtension;
@@ -428,7 +428,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.PathEditing
 
         private static PathModel CreateProjectionSource(bool prefix, PathNodeType eventType, int waitTime)
         {
-            PathNodeWaitInfo wait = new PathNodeWaitInfo { WaitTime = waitTime };
+            PathNodeWaitInfo wait = PathWaitOperationCodec.FromMstsWaitTime(waitTime);
             return new PathModel
             {
                 Id = prefix ? "BypassedPrefixWait" : "BypassedSuffixWait",
@@ -508,6 +508,38 @@ namespace Tests.FreeTrainSimulator.Toolbox.PathEditing
         }
 
         [TestMethod]
+        [DataRow(30000)]
+        [DataRow(40102)]
+        [DataRow(50102)]
+        [DataRow(60001)]
+        [DataRow(60002)]
+        [DataRow(60011)]
+        [DataRow(60021)]
+        public async Task WhenAdvancedWaitOperationIsAuthoredThenNormalSaveAndUncachedReopenPreserveItsRawCode(int waitCode)
+        {
+            RouteModel route = CreateRoute();
+            PathModel source = new PathModel
+            {
+                Id = "advanced-operation-" + waitCode,
+                Name = "Advanced Operation",
+                PathNodes = ImmutableArray.Create(
+                    CreatePathNode(0, PathNodeType.Start, 1),
+                    CreatePathNode(50, PathNodeType.Via, 2),
+                    CreatePathNode(100, PathNodeType.End, -1)),
+            };
+            PathEditResult authored = PathModelEditor.SetWaitOperation(source, 1, PathWaitOperationCodec.FromMstsWaitTime(waitCode));
+            Assert.IsTrue(authored.Success, authored.Message);
+
+            PathPersistenceValidationResult saved = await PathEditor.SaveValidatedPath(authored.PathModel, route,
+                TrackWorldTestFixture.CreateSingleVectorNodeTrackWorld(), TestContext.CancellationToken).ConfigureAwait(false);
+            PathModel reopened = await route.PathModelUncached(source.Id, TestContext.CancellationToken).ConfigureAwait(false);
+
+            Assert.IsTrue(saved.PersistenceAllowed, saved.FailureMessage);
+            Assert.AreEqual(waitCode, PathWaitOperationCodec.GetMstsWaitCode(
+                reopened.PathNodes.Single(node => node.WaitInfo != null).WaitInfo));
+        }
+
+        [TestMethod]
         [DataRow(29999)]
         [DataRow(30000)]
         [DataRow(40000)]
@@ -577,8 +609,9 @@ namespace Tests.FreeTrainSimulator.Toolbox.PathEditing
             PathModel clearedReloaded = await route.PathModel(imported.Id, TestContext.CancellationToken).ConfigureAwait(false);
 
             Assert.AreEqual((waitTime, true, waitTime, true, true, false),
-                (imported.PathNodes[1].WaitInfo.WaitTime, saved.PersistenceAllowed, reloaded.PathNodes[1].WaitInfo.WaitTime,
-                    cleared.Success, clearedSave.PersistenceAllowed, clearedReloaded.PathNodes.Any(node => node.WaitInfo != null || node.NodeType.Includes(PathNodeType.Wait))),
+                (PathWaitOperationCodec.GetMstsWaitCode(imported.PathNodes[1].WaitInfo), saved.PersistenceAllowed,
+                    PathWaitOperationCodec.GetMstsWaitCode(reloaded.PathNodes[1].WaitInfo), cleared.Success,
+                    clearedSave.PersistenceAllowed, clearedReloaded.PathNodes.Any(node => node.WaitInfo != null || node.NodeType.Includes(PathNodeType.Wait))),
                 $"Save: {saved.FailureMessage}; cleared save: {clearedSave.FailureMessage}");
         }
 
@@ -716,7 +749,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.PathEditing
             {
                 PathNodes = ImmutableArray.Create(CreatePathNode(0, PathNodeType.Start, 1),
                     CreatePathNode(50, PathNodeType.Via | PathNodeType.Wait | PathNodeType.Reversal, 2) with
-                    { WaitInfo = new PathNodeWaitInfo { WaitTime = 15 } }, CreatePathNode(100, PathNodeType.End, -1)),
+                    { WaitInfo = PathWaitOperationCodec.FromMstsWaitTime(15) }, CreatePathNode(100, PathNodeType.End, -1)),
             };
 
             PathPersistenceValidationResult result = await PathEditor.SaveValidatedPath(source, route,
@@ -737,7 +770,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.PathEditing
                 Id = "repeated-reversal",
                 PathNodes = ImmutableArray.Create(CreatePathNode(0, PathNodeType.Start, 1),
                     CreatePathNode(20, PathNodeType.Via | PathNodeType.Reversal, 2),
-                    CreatePathNode(40, PathNodeType.Via | PathNodeType.Wait, 3) with { WaitInfo = new PathNodeWaitInfo { WaitTime = 10 } },
+                    CreatePathNode(40, PathNodeType.Via | PathNodeType.Wait, 3) with { WaitInfo = PathWaitOperationCodec.FromMstsWaitTime(10) },
                     CreatePathNode(60, PathNodeType.Via | PathNodeType.Reversal, 4), CreatePathNode(100, PathNodeType.End, -1)),
             };
 
@@ -776,7 +809,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.PathEditing
             source = source with
             {
                 PathNodes = source.PathNodes.SetItem(3, source.PathNodes[3] with
-                { NodeType = PathNodeType.Via | eventType, WaitInfo = new PathNodeWaitInfo { WaitTime = 30 } }),
+                { NodeType = PathNodeType.Via | eventType, WaitInfo = PathWaitOperationCodec.FromMstsWaitTime(30) }),
             };
 
             PathPersistenceValidationResult result = await PathEditor.SaveValidatedPath(source, CreateRoute(), world,

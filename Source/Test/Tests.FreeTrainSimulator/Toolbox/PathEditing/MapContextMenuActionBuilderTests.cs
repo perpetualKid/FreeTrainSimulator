@@ -290,7 +290,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.PathEditing
         {
             TestPathPoint node = new TestPathPoint(PathNodeType.Wait)
             {
-                WaitInfo = new PathNodeWaitInfo { WaitTime = 30 },
+                WaitInfo = PathWaitOperationCodec.FromMstsWaitTime(30),
             };
 
             ImmutableArray<MapContextMenuItem> items = BuildForNode(node, 1, true,

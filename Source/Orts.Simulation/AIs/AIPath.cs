@@ -201,7 +201,7 @@ namespace Orts.Simulation.AIs
 
         private static void ResolveTracks(List<AIPathNode> traversal, bool siding, int incoming)
         {
-            AIPathNode authoredLast = traversal[traversal.Count - 1];
+            AIPathNode authoredLast = traversal[^1];
             (int VectorIndex, TrackDirection Direction)? mainArrival = authoredLast.IncomingTrack;
             // Bind the alternative arrival independently of the shared main node.
             AIPathNode last = siding ? new AIPathNode(authoredLast) : authoredLast;
@@ -296,7 +296,7 @@ namespace Orts.Simulation.AIs
             foreach (List<AIPathNode> siding in sidings)
             {
                 int start = main.IndexOf(siding[0]);
-                int end = main.IndexOf(siding[siding.Count - 1]);
+                int end = main.IndexOf(siding[^1]);
                 int incoming = start == 0 ? -1 : main[start - 1].NextMainTVNIndex;
                 List<AIPathNode> mainSection = main.GetRange(start, end - start + 1);
                 List<(AIPathNode Node, int Position, int Incoming, int Outgoing)> mainJunctions = ReadJunctionTraversal(mainSection, false, incoming);
@@ -492,7 +492,7 @@ namespace Orts.Simulation.AIs
             ArgumentNullException.ThrowIfNull(pathNode);
 
             trackNodeIndexHint = pathNode.NodeIndex;
-            WaitTimeS = pathNode.WaitInfo?.WaitTime ?? 0;
+            WaitTimeS = PathWaitOperationCodec.GetMstsWaitCode(pathNode.WaitInfo);
             Location = pathNode.Location;
             if (!double.IsFinite(Location.Location.X) || !double.IsFinite(Location.Location.Y) || !double.IsFinite(Location.Location.Z))
                 throw new InvalidDataException("Path node has non-finite coordinates.");

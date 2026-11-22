@@ -472,20 +472,70 @@
                               ResizeDirection="Rows" />
                 <ScrollViewer Grid.Row="3" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
                     <StackPanel>
-                        <Grid Margin="0,3">
-                            <Grid.ColumnDefinitions><ColumnDefinition Width="Auto" /><ColumnDefinition Width="*" /><ColumnDefinition Width="Auto" /></Grid.ColumnDefinitions>
-                            <TextBlock Text="{gt:Gettext 'Wait (seconds)'}" VerticalAlignment="Center" Margin="0,0,6,0" />
-                            <TextBox x:Name="WaitTimeEditor" Grid.Column="1" MaxLength="10"
-                                     IsEnabled="{Binding CanEditSelectedNodeWaitTime}"
-                                     Text="{Binding SelectedNodeWaitTime, Mode=TwoWay, UpdateSourceTrigger=Explicit}"
-                                     LostKeyboardFocus="WaitTimeEditor_LostKeyboardFocus" GotKeyboardFocus="WaitTimeEditor_GotKeyboardFocus"
-                                     PreviewTextInput="WaitTimeTextBox_PreviewTextInput" DataObject.Pasting="WaitTimeTextBox_Pasting"
-                                     ToolTip="{gt:Gettext 'Basic wait time: 1 to 29999 seconds. Larger values may encode legacy AI operations. Clear the value or enter zero to remove existing wait data.'}"
-                                     AutomationProperties.Name="{gt:Gettext 'Wait time in seconds'}" />
-                            <Button Grid.Column="2" Content="{gt:Gettext 'Clear Wait Point'}" Command="{Binding ClearWaitPointCommand}"
-                                    Margin="6,0,0,0" AutomationProperties.Name="{gt:Gettext 'Clear Wait Point'}"
-                                    ToolTip="{gt:Gettext 'Remove wait flags and wait data from the selected node.'}" />
-                        </Grid>
+                        <StackPanel Margin="0,3">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Text="{gt:Gettext 'Wait operation'}" VerticalAlignment="Center" Margin="0,0,6,0" />
+                                <ComboBox x:Name="WaitOperationSelector" Grid.Column="1" ItemsSource="{Binding WaitOperationOptions}"
+                                          SelectedItem="{Binding SelectedWaitOperationOption, Mode=TwoWay}"
+                                          DisplayMemberPath="DisplayName" IsEnabled="{Binding CanSetSelectedWaitPoint}"
+                                          AutomationProperties.Name="{gt:Gettext 'Wait operation'}" />
+                            </Grid>
+                            <StackPanel Orientation="Horizontal" Margin="0,4,0,0"
+                                        Visibility="{Binding IsBasicWaitOperation, Converter={StaticResource BooleanToVisibilityConverter}}">
+                                <TextBlock Text="{gt:Gettext 'Wait (seconds)'}" VerticalAlignment="Center" Margin="0,0,6,0" />
+                                <TextBox x:Name="WaitTimeEditor" Width="100" MaxLength="5"
+                                         IsEnabled="{Binding CanEditSelectedNodeWaitTime}"
+                                         Text="{Binding SelectedNodeWaitTime, Mode=TwoWay, UpdateSourceTrigger=Explicit}"
+                                         LostKeyboardFocus="WaitTimeEditor_LostKeyboardFocus" GotKeyboardFocus="WaitTimeEditor_GotKeyboardFocus"
+                                         PreviewTextInput="WaitTimeTextBox_PreviewTextInput" DataObject.Pasting="WaitTimeTextBox_Pasting"
+                                         ToolTip="{gt:Gettext 'Basic wait time: 1 to 29999 seconds.'}"
+                                         AutomationProperties.Name="{gt:Gettext 'Wait time in seconds'}" />
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" Margin="0,4,0,0"
+                                        Visibility="{Binding IsWaitUntilOperation, Converter={StaticResource BooleanToVisibilityConverter}}">
+                                <TextBlock Text="{gt:Gettext 'Wait until (HH:MM)'}" VerticalAlignment="Center" Margin="0,0,6,0" />
+                                <TextBox Width="35" MaxLength="2" Text="{Binding SelectedWaitUntilHour, UpdateSourceTrigger=PropertyChanged}"
+                                         PreviewTextInput="WaitTimeTextBox_PreviewTextInput" AutomationProperties.Name="{gt:Gettext 'Wait until hour'}" />
+                                <TextBlock Text=":" VerticalAlignment="Center" Margin="3,0" />
+                                <TextBox Width="35" MaxLength="2" Text="{Binding SelectedWaitUntilMinute, UpdateSourceTrigger=PropertyChanged}"
+                                         PreviewTextInput="WaitTimeTextBox_PreviewTextInput" AutomationProperties.Name="{gt:Gettext 'Wait until minute'}" />
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" Margin="0,4,0,0"
+                                        Visibility="{Binding IsUncoupleOperation, Converter={StaticResource BooleanToVisibilityConverter}}">
+                                <TextBlock Text="{gt:Gettext 'Keep'}" VerticalAlignment="Center" Margin="0,0,6,0" />
+                                <TextBox Width="35" MaxLength="2" Text="{Binding SelectedUncoupleCarCount, UpdateSourceTrigger=PropertyChanged}"
+                                         PreviewTextInput="WaitTimeTextBox_PreviewTextInput" AutomationProperties.Name="{gt:Gettext 'Cars to keep'}" />
+                                <TextBlock Text="{gt:Gettext 'cars, then wait'}" VerticalAlignment="Center" Margin="6,0" />
+                                <TextBox Width="35" MaxLength="2" Text="{Binding SelectedWaitOperationSeconds, UpdateSourceTrigger=PropertyChanged}"
+                                         PreviewTextInput="WaitTimeTextBox_PreviewTextInput" AutomationProperties.Name="{gt:Gettext 'Uncouple wait seconds'}" />
+                                <TextBlock Text="{gt:Gettext 'seconds'}" VerticalAlignment="Center" Margin="6,0" />
+                                <CheckBox Content="{gt:Gettext 'Keep rear'}" IsChecked="{Binding SelectedUncoupleKeepRear}" VerticalAlignment="Center" />
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" Margin="0,4,0,0"
+                                        Visibility="{Binding IsHornOperation, Converter={StaticResource BooleanToVisibilityConverter}}">
+                                <TextBlock Text="{gt:Gettext 'Blow horn for'}" VerticalAlignment="Center" Margin="0,0,6,0" />
+                                <TextBox Width="35" MaxLength="2" Text="{Binding SelectedHornSeconds, UpdateSourceTrigger=PropertyChanged}"
+                                         PreviewTextInput="WaitTimeTextBox_PreviewTextInput" AutomationProperties.Name="{gt:Gettext 'Horn duration seconds'}" />
+                                <TextBlock Text="{gt:Gettext 'seconds (11 = American sequence)'}" VerticalAlignment="Center" Margin="6,0,0,0" />
+                            </StackPanel>
+                            <TextBlock Text="{gt:Gettext 'This operation uses a single encoded command and has no parameters.'}"
+                                       Margin="0,4,0,0"
+                                       Visibility="{Binding IsParameterlessWaitOperation, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                            <TextBlock Margin="0,4,0,0" TextWrapping="Wrap"
+                                       Visibility="{Binding IsUnknownWaitOperation, Converter={StaticResource BooleanToVisibilityConverter}}"
+                                       Text="{Binding SelectedWaitRawCodeDescription}" />
+                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,4,0,0">
+                                <Button x:Name="ApplyWaitOperationButton" Content="{gt:Gettext 'Apply Operation'}" Command="{Binding ApplyWaitOperationCommand}"
+                                        AutomationProperties.Name="{gt:Gettext 'Apply Operation'}" Margin="0,0,6,0" />
+                                <Button Content="{gt:Gettext 'Clear Wait Point'}" Command="{Binding ClearWaitPointCommand}"
+                                        AutomationProperties.Name="{gt:Gettext 'Clear Wait Point'}"
+                                        ToolTip="{gt:Gettext 'Remove wait flags and wait data from the selected node.'}" />
+                            </StackPanel>
+                        </StackPanel>
                         <TextBlock Text="{Binding SelectedNode.Validation}" TextWrapping="Wrap" />
                         <Expander Header="{gt:Gettext 'Details'}" IsExpanded="True">
                             <Border BorderBrush="DarkGray" BorderThickness="1" SnapsToDevicePixels="True" Margin="0,4,0,0">

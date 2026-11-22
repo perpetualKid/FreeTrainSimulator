@@ -152,7 +152,7 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
         {
             PathModel source = CreateBranches(2);
             source = source with { PathNodes = source.PathNodes.SetItem(9, source.PathNodes[9] with { NodeType = PathNodeType.Via })
-                .SetItem(11, source.PathNodes[11] with { NodeType = PathNodeType.Wait | PathNodeType.Via, WaitInfo = new PathNodeWaitInfo { WaitTime = 30 } }) };
+                .SetItem(11, source.PathNodes[11] with { NodeType = PathNodeType.Wait | PathNodeType.Via, WaitInfo = PathWaitOperationCodec.FromMstsWaitTime(30) }) };
 
             PathEditResult result = PathModelEditor.ClearWaitPoint(source, 11);
             bool classified = PathModelEditor.TryGetPassingBranchNodeRole(result.PathModel, 11, out PassingBranchNodeRole role, out _);

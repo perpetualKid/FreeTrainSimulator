@@ -17,6 +17,7 @@ using MemoryPack;
 namespace Tests.FreeTrainSimulator.Runtime.Track
 {
     [TestClass]
+    [OSCondition(OperatingSystems.Windows)]
     public class PathModelRouteGeneratorTests
     {
         [TestMethod]
@@ -82,7 +83,7 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
             TrackWorld trackWorld = CreateTrackWorld(
                 ImmutableArray.Create<TrackNodeBase>(null, CreateVectorNode(1), CreateVectorNode(2), CreateJunctionNode(3)),
                 ImmutableArray.Create(new TrackNodeConnectorIndex(), CreateConnectors(1, 3), CreateConnectors(2, 3), CreateConnectors(3, 1, 2)));
-            PathNodeWaitInfo waitInfo = new PathNodeWaitInfo { WaitTime = 30 };
+            PathNodeWaitInfo waitInfo = PathWaitOperationCodec.FromMstsWaitTime(30);
             PathModel sourcePath = CreateSourcePath(PathNodeType.End | PathNodeType.Wait | PathNodeType.Reversal, waitInfo);
             PathRouteResolution resolution = PathRouteResolver.Resolve(sourcePath, trackWorld, TestContext.CancellationToken);
 

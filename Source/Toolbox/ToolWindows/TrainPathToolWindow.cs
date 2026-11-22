@@ -707,6 +707,9 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
 
         internal void SetWaitPoint(int nodeIndex, int waitTimeSeconds) => ExecuteEditorCommand(pathEditor => pathEditor.SetWaitPointCommand(nodeIndex, waitTimeSeconds));
 
+        internal void SetWaitOperation(int nodeIndex, PathNodeWaitInfo operation)
+            => ExecuteEditorCommand(pathEditor => pathEditor.SetWaitOperationCommand(nodeIndex, operation));
+
         internal void ClearWaitPoint(int nodeIndex) => ExecuteEditorCommand(pathEditor => pathEditor.ClearWaitPointCommand(nodeIndex));
 
         internal void RemoveRestOfPath(int nodeIndex) => ExecuteEditorCommand(pathEditor => pathEditor.RemoveRestOfPathCommand(nodeIndex));
@@ -1063,6 +1066,12 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
             {
                 PathEditorMessageKind.BasicWaitTimeOutOfRange =>
                     CatalogManager.Catalog.GetString("Basic wait time must be between 1 and 29999 seconds. Values of 30000 or greater may encode legacy AI operations instead of a duration."),
+                PathEditorMessageKind.InvalidWaitOperation =>
+                    CatalogManager.Catalog.GetString("The selected advanced wait operation has invalid parameters."),
+                PathEditorMessageKind.WaitOperationSet =>
+                    CatalogManager.Catalog.GetString("Advanced wait operation set."),
+                PathEditorMessageKind.WaitOperationUnchanged =>
+                    CatalogManager.Catalog.GetString("Wait operation is already set."),
                 PathEditorMessageKind.ReverseChainRequired =>
                     CatalogManager.Catalog.GetString("Reverse Path requires a complete, reachable main chain with exactly one Start and End and at least two nodes."),
                 PathEditorMessageKind.ReverseUnsupportedData =>
@@ -1348,7 +1357,8 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
                     .Where(diagnostic => diagnostic.NodeIndex == i || diagnostic.FromNodeIndex == i || diagnostic.ToNodeIndex == i)
                     .Select(diagnostic => diagnostic.Message) ?? Enumerable.Empty<string>());
                 builder.Add(new TrainPathNodeRow(i, node.NodeType, string.IsNullOrEmpty(validation), node.NodeIndex,
-                    node.NextMainNode, node.NextSidingNode, node.WaitInfo?.WaitTime, validation, null, null, null));
+                    node.NextMainNode, node.NextSidingNode, PathWaitOperationCodec.GetNullableLegacyWaitCode(node.WaitInfo),
+                    validation, null, null, null));
             }
 
             return builder.ToImmutable();
@@ -1385,7 +1395,7 @@ namespace FreeTrainSimulator.Toolbox.ToolWindows
                 PathNodeInvalidReasons validationResult = item.ValidationResult;
                 TrackDistanceDiagnostic nearestTrackDistance = item.NearestTrackDistance;
                 builder.Add(new TrainPathNodeRow(i, item.NodeType, validationResult == PathNodeInvalidReasons.None,
-                    item.NodeIndex, item.NextMainNode, item.NextSidingNode, item.WaitInfo?.WaitTime,
+                    item.NodeIndex, item.NextMainNode, item.NextSidingNode, PathWaitOperationCodec.GetNullableLegacyWaitCode(item.WaitInfo),
                     validationResult == PathNodeInvalidReasons.None ? null : validationResult.ToString(),
                     nearestTrackDistance?.TrackNodeIndex, nearestTrackDistance?.TrackVectorSectionIndex, nearestTrackDistance?.DistanceMeters));
             }

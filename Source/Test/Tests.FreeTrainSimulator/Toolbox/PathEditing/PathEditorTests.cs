@@ -143,9 +143,9 @@ namespace Tests.FreeTrainSimulator.Toolbox.PathEditing
                 PathNodes = ImmutableArray.Create(
                     CreateNodeAt(new Tile(1, 0), 10, PathNodeType.Start, 1),
                     CreateNodeAt(new Tile(1, 0), 30, PathNodeType.Via | PathNodeType.Wait, 2) with
-                    { WaitInfo = new PathNodeWaitInfo { WaitTime = waitTime } },
+                    { WaitInfo = PathWaitOperationCodec.FromMstsWaitTime(waitTime) },
                     CreateNodeAt(new Tile(1, 0), 70, PathNodeType.Via | PathNodeType.Wait, 3) with
-                    { WaitInfo = new PathNodeWaitInfo { WaitTime = 17 } },
+                    { WaitInfo = PathWaitOperationCodec.FromMstsWaitTime(17) },
                     CreateNodeAt(new Tile(1, 0), 90, PathNodeType.End, -1)),
             };
             using (PathEditor editor = new PathEditor(new TestPathEditorContext(world)))
@@ -185,7 +185,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.PathEditing
                 Id = "reverse-hidden-junction-wait",
                 PathNodes = ImmutableArray.Create(
                     CreateNodeAt(tile, -50, PathNodeType.Start, 1) with { NodeIndex = 3 },
-                    CreateNodeAt(tile, 0, PathNodeType.Wait, 2) with { NodeIndex = 2, WaitInfo = new PathNodeWaitInfo { WaitTime = 60 } },
+                    CreateNodeAt(tile, 0, PathNodeType.Wait, 2) with { NodeIndex = 2, WaitInfo = PathWaitOperationCodec.FromMstsWaitTime(60) },
                     CreateNodeAt(tile, 50, PathNodeType.End, -1)),
             };
             PathEditResult reversal = PathModelEditor.ReversePath(source);
@@ -372,7 +372,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.PathEditing
                 Id = "reverse-degenerate-vector",
                 PathNodes = ImmutableArray.Create(CreateNodeAt(endX, PathNodeType.Start, 1),
                     CreateNodeAt(50, hasWait ? PathNodeType.Via | PathNodeType.Wait : PathNodeType.Via, 2) with
-                    { WaitInfo = hasWait ? new PathNodeWaitInfo { WaitTime = 60 } : null }, CreateNodeAt(endX, PathNodeType.End, -1)),
+                    { WaitInfo = hasWait ? PathWaitOperationCodec.FromMstsWaitTime(60) : null }, CreateNodeAt(endX, PathNodeType.End, -1)),
             };
             Assert.IsTrue(PathModelEditor.ReversePath(path).Success);
             using (PathEditor editor = new PathEditor(new TestPathEditorContext(world)))
@@ -481,7 +481,8 @@ namespace Tests.FreeTrainSimulator.Toolbox.PathEditing
 
             Assert.AreEqual((false, true, history, (int?)null),
                 (result.Success, ReferenceEquals(source, editor.TryCaptureCurrentPathModel()),
-                    (editor.CanUndo, editor.CanRedo, editor.HasUnsavedChanges), editor.TryCaptureCurrentPathModel().PathNodes[1].WaitInfo?.WaitTime));
+                    (editor.CanUndo, editor.CanRedo, editor.HasUnsavedChanges),
+                    PathWaitOperationCodec.GetNullableLegacyWaitCode(editor.TryCaptureCurrentPathModel().PathNodes[1].WaitInfo)));
         }
 
         [TestMethod]
@@ -494,11 +495,58 @@ namespace Tests.FreeTrainSimulator.Toolbox.PathEditing
             _ = await editor.InitializePathAsync(source, CancellationToken.None).ConfigureAwait(false);
 
             PathEditorCommandResult result = editor.SetWaitPointCommand(1, waitTime);
-            int? storedWaitTime = editor.TryCaptureCurrentPathModel().PathNodes[1].WaitInfo?.WaitTime;
+            PathNodeWaitInfo storedWaitInfo = editor.TryCaptureCurrentPathModel().PathNodes[1].WaitInfo;
+            int? storedWaitTime = storedWaitInfo == null ? null : PathWaitOperationCodec.GetMstsWaitCode(storedWaitInfo);
             bool undone = editor.Undo();
+            PathNodeWaitInfo undoneWaitInfo = editor.TryCaptureCurrentPathModel().PathNodes[1].WaitInfo;
+            int? undoneWaitTime = undoneWaitInfo == null ? null : PathWaitOperationCodec.GetMstsWaitCode(undoneWaitInfo);
 
             Assert.AreEqual((true, (int?)waitTime, true, (int?)null, false, true),
-                (result.Success, storedWaitTime, undone, editor.TryCaptureCurrentPathModel().PathNodes[1].WaitInfo?.WaitTime, editor.CanUndo, editor.CanRedo));
+                (result.Success, storedWaitTime, undone, undoneWaitTime, editor.CanUndo, editor.CanRedo));
+        }
+
+        [TestMethod]
+        [DataRow(30000)]
+        [DataRow(40102)]
+        [DataRow(50102)]
+        [DataRow(60001)]
+        [DataRow(60002)]
+        [DataRow(60011)]
+        [DataRow(60021)]
+        public async Task WhenAdvancedWaitOperationIsAuthoredThenItIsStoredAndUndoable(int waitCode)
+        {
+            using PathEditor editor = new PathEditor(new TestPathEditorContext(TrackWorldTestFixture.CreateSingleVectorNodeTrackWorld()));
+            PathModel source = CreateMainEventPath(PathNodeType.None, PathNodeType.None);
+            _ = await editor.InitializePathAsync(source, CancellationToken.None).ConfigureAwait(false);
+
+            PathEditorCommandResult result = editor.SetWaitOperationCommand(1, PathWaitOperationCodec.FromMstsWaitTime(waitCode));
+            PathNodeWaitInfo storedWaitInfo = editor.TryCaptureCurrentPathModel().PathNodes[1].WaitInfo;
+            int? storedWaitTime = storedWaitInfo == null ? null : PathWaitOperationCodec.GetMstsWaitCode(storedWaitInfo);
+            bool undone = editor.Undo();
+            PathNodeWaitInfo undoneWaitInfo = editor.TryCaptureCurrentPathModel().PathNodes[1].WaitInfo;
+            int? undoneWaitTime = undoneWaitInfo == null ? null : PathWaitOperationCodec.GetMstsWaitCode(undoneWaitInfo);
+
+            Assert.AreEqual((true, (int?)waitCode, true, (int?)null, false, true),
+                (result.Success, storedWaitTime, undone, undoneWaitTime, editor.CanUndo, editor.CanRedo));
+        }
+
+        [TestMethod]
+        public async Task WhenAdvancedWaitOperationIsReappliedUnchangedThenNoUndoStepOrDirtyMutationIsAdded()
+        {
+            using PathEditor editor = new PathEditor(new TestPathEditorContext(TrackWorldTestFixture.CreateSingleVectorNodeTrackWorld()));
+            _ = await editor.InitializePathAsync(CreateMainEventPath(PathNodeType.None, PathNodeType.None), CancellationToken.None).ConfigureAwait(false);
+            PathNodeWaitInfo operation = PathWaitOperationCodec.FromMstsWaitTime(60002);
+            Assert.IsTrue(editor.SetWaitOperationCommand(1, operation).Success);
+            PathModel before = editor.TryCaptureCurrentPathModel();
+            (bool CanUndo, bool CanRedo, bool HasUnsavedChanges) history = (editor.CanUndo, editor.CanRedo, editor.HasUnsavedChanges);
+
+            PathEditorCommandResult repeated = editor.SetWaitOperationCommand(1, operation);
+
+            Assert.IsTrue(repeated.Success);
+            Assert.AreSame(before, editor.TryCaptureCurrentPathModel());
+            Assert.AreEqual(history, (editor.CanUndo, editor.CanRedo, editor.HasUnsavedChanges));
+            Assert.IsTrue(editor.Undo());
+            Assert.IsFalse(editor.CanUndo);
         }
 
         [TestMethod]
@@ -532,7 +580,8 @@ namespace Tests.FreeTrainSimulator.Toolbox.PathEditing
             {
                 PathEditResult result = editor.SetWaitPoint(3, 25);
 
-                Assert.IsTrue(result.Success && editor.TryCaptureCurrentPathModel().PathNodes[3].WaitInfo.WaitTime == 25);
+                Assert.IsTrue(result.Success && PathWaitOperationCodec.GetMstsWaitCode(
+                    editor.TryCaptureCurrentPathModel().PathNodes[3].WaitInfo) == 25);
             }
         }
 
@@ -565,7 +614,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.PathEditing
 
                 Assert.IsTrue(result.Success, result.Message);
                 PathModel edited = editor.TryCaptureCurrentPathModel();
-                Assert.AreEqual(25, edited.PathNodes[3].WaitInfo.WaitTime);
+                Assert.AreEqual(25, PathWaitOperationCodec.GetMstsWaitCode(edited.PathNodes[3].WaitInfo));
                 Assert.IsTrue(edited.PathNodes[3].NodeType.Includes(PathNodeType.Wait));
                 for (int index = 0; index < source.PathNodes.Length; index++)
                 {
@@ -661,7 +710,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.PathEditing
                 PathNodes = source.PathNodes.SetItem(0, source.PathNodes[0] with
                 {
                     NodeType = PathNodeType.Start | eventType,
-                    WaitInfo = new PathNodeWaitInfo { WaitTime = waitTime },
+                    WaitInfo = PathWaitOperationCodec.FromMstsWaitTime(waitTime),
                 }),
             };
             using (PathEditor editor = new PathEditor(new TestPathEditorContext(world)))
@@ -701,7 +750,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.PathEditing
                 Id = "first-junction-wait",
                 PathNodes = ImmutableArray.Create(
                     CreateAnchoredNode(world, 2, PathNodeType.Start | PathNodeType.Junction | PathNodeType.Wait, 1, -1) with
-                    { WaitInfo = new PathNodeWaitInfo { WaitTime = 17 } },
+                    { WaitInfo = PathWaitOperationCodec.FromMstsWaitTime(17) },
                     CreateNodeAt(tile, 100, PathNodeType.End, -1)),
             };
             using (PathEditor editor = new PathEditor(new TestPathEditorContext(world)))
@@ -775,7 +824,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.PathEditing
                 PathNodes = ImmutableArray.Create(
                     CreateAnchoredNode(world, 3, PathNodeType.Start, 1, -1),
                     CreateAnchoredNode(world, 2, PathNodeType.Via | PathNodeType.Wait, 2, -1) with
-                    { WaitInfo = new PathNodeWaitInfo { WaitTime = 17 } },
+                    { WaitInfo = PathWaitOperationCodec.FromMstsWaitTime(17) },
                     CreateNodeAt(tile, 40, PathNodeType.Via, 3), CreateNodeAt(tile, 100, PathNodeType.End, -1)),
             };
             using (PathEditor editor = new PathEditor(new TestPathEditorContext(world)))
@@ -792,8 +841,9 @@ namespace Tests.FreeTrainSimulator.Toolbox.PathEditing
                 PathEditResult result = editor.SetWaitPoint(2, 25);
 
                 Assert.AreEqual((canSet, 25, 17, true, true),
-                    (result.Success, editor.TryCaptureCurrentPathModel().PathNodes[2].WaitInfo.WaitTime,
-                        editor.TryCaptureCurrentPathModel().PathNodes[1].WaitInfo.WaitTime, editor.CanUndo, editor.HasUnsavedChanges));
+                    (result.Success, PathWaitOperationCodec.GetMstsWaitCode(editor.TryCaptureCurrentPathModel().PathNodes[2].WaitInfo),
+                        PathWaitOperationCodec.GetMstsWaitCode(editor.TryCaptureCurrentPathModel().PathNodes[1].WaitInfo),
+                        editor.CanUndo, editor.HasUnsavedChanges));
                 PathPersistenceValidationResult validation = editor.ValidateCurrentPathForPersistence();
                 Assert.AreEqual((false, PathRouteDiagnosticCode.UnsupportedJunctionEvent, 1),
                     (validation.PersistenceAllowed, validation.HighestActionableDiagnostic.Code, validation.HighestActionableDiagnostic.NodeIndex));
@@ -1320,7 +1370,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.PathEditing
             {
                 PathNodes = CreateEditablePath().PathNodes.Add(CreateNodeAt(50, PathNodeType.Via | PathNodeType.Wait, -1)
                     with
-                { WaitInfo = new PathNodeWaitInfo { WaitTime = 17 } }),
+                { WaitInfo = PathWaitOperationCodec.FromMstsWaitTime(17) }),
             };
             TrackWorld trackWorld = CreatePlacementTrackWorld(out TrackSegmentBase segment);
             using (PathEditor editor = new PathEditor(new TestPathEditorContext(trackWorld)))
@@ -4393,7 +4443,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.PathEditing
             nodes.Add(CreateNodeAt(0, PathNodeType.Start, 1));
             for (int index = 1; index <= eventCount; index++)
                 nodes.Add(CreateNodeAt(50, PathNodeType.Via | eventType, index + 1) with
-                { WaitInfo = eventType.Includes(PathNodeType.Wait) ? new PathNodeWaitInfo { WaitTime = 17 } : null });
+                { WaitInfo = eventType.Includes(PathNodeType.Wait) ? PathWaitOperationCodec.FromMstsWaitTime(17) : null });
             nodes.Add(CreateNodeAt(ordinaryLocation, PathNodeType.Via, eventCount + 2));
             nodes.Add(CreateNodeAt(100, PathNodeType.End, -1));
             return new PathModel { Id = "repeated-event-path", PathNodes = nodes.ToImmutable() };

@@ -3,6 +3,7 @@ using System.Collections.Immutable;
 using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Position;
 using FreeTrainSimulator.Models.Content;
+using FreeTrainSimulator.Runtime.Track;
 
 using MemoryPack;
 
@@ -113,7 +114,7 @@ namespace Tests.FreeTrainSimulator.Models.Content
             PathModel restored = RoundTrip(original);
 
             Assert.IsNotNull(restored.PathNodes[1].WaitInfo);
-            Assert.AreEqual(120, restored.PathNodes[1].WaitInfo.WaitTime);
+            Assert.AreEqual(120, PathWaitOperationCodec.GetMstsWaitCode(restored.PathNodes[1].WaitInfo));
         }
 
         [TestMethod]
@@ -141,12 +142,16 @@ namespace Tests.FreeTrainSimulator.Models.Content
             original = original with
             {
                 PathNodes = original.PathNodes.SetItem(1, original.PathNodes[1] with
-                { WaitInfo = new PathNodeWaitInfo { WaitTime = waitTime } }),
+                { WaitInfo = PathWaitOperationCodec.FromMstsWaitTime(waitTime) }),
             };
 
             PathModel restored = RoundTrip(original);
+            PathNodeWaitInfo restoredWait = restored.PathNodes[1].WaitInfo;
+            PathNodeWaitInfo expected = PathWaitOperationCodec.FromMstsWaitTime(waitTime);
 
-            Assert.AreEqual(waitTime, restored.PathNodes[1].WaitInfo.WaitTime);
+            Assert.AreEqual(waitTime, PathWaitOperationCodec.GetMstsWaitCode(restoredWait));
+            Assert.AreEqual(expected.WaitOperation, restoredWait.WaitOperation);
+            Assert.AreEqual(expected.WaitOperation == WaitOperationType.Unknown ? waitTime : 0, restoredWait.UnknownCode);
         }
 
         [TestMethod]
@@ -219,7 +224,7 @@ namespace Tests.FreeTrainSimulator.Models.Content
                         NodeIndex = 42,
                         NextMainNode = 2,
                         NextSidingNode = 3,
-                        WaitInfo = new PathNodeWaitInfo() { WaitTime = 120 },
+                        WaitInfo = PathWaitOperationCodec.FromMstsWaitTime(120),
                     },
                     new PathNode(new WorldLocation(new Tile(1, 3), new Vector3(50, 3, 60)))
                     {

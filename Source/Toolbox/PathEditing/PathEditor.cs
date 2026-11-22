@@ -1634,6 +1634,11 @@ namespace FreeTrainSimulator.Toolbox.PathEditing
             return ApplySelectedNodeEdit(nodeIndex, model => EvaluateEventEdit(model, PathModelEditor.SetWaitPoint(model, nodeIndex, waitTimeSeconds)));
         }
 
+        public PathEditResult SetWaitOperation(int nodeIndex, PathNodeWaitInfo operation)
+        {
+            return ApplySelectedNodeEdit(nodeIndex, model => EvaluateEventEdit(model, PathModelEditor.SetWaitOperation(model, nodeIndex, operation)));
+        }
+
         /// <summary>Clears the wait point on the node at <paramref name="nodeIndex"/> and records an undo snapshot.</summary>
         public PathEditResult ClearWaitPoint(int nodeIndex)
         {
@@ -2874,6 +2879,11 @@ namespace FreeTrainSimulator.Toolbox.PathEditing
             return PathEditorCommandResult.FromPathEditResult(SetWaitPoint(nodeIndex, waitTimeSeconds));
         }
 
+        public PathEditorCommandResult SetWaitOperationCommand(int nodeIndex, PathNodeWaitInfo operation)
+        {
+            return PathEditorCommandResult.FromPathEditResult(SetWaitOperation(nodeIndex, operation));
+        }
+
         public PathEditorCommandResult ClearWaitPointCommand(int nodeIndex)
         {
             return PathEditorCommandResult.FromPathEditResult(ClearWaitPoint(nodeIndex));
@@ -2916,6 +2926,8 @@ namespace FreeTrainSimulator.Toolbox.PathEditing
 
             PathEditResult result = edit(currentModel);
             if (!result.Success)
+                return result;
+            if (result.ChangedNodeIndexes.IsEmpty || ReferenceEquals(result.PathModel, currentModel))
                 return result;
 
             if (!EditMode)

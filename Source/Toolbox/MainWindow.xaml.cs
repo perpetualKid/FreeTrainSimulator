@@ -145,19 +145,19 @@ namespace FreeTrainSimulator.Toolbox
             {
                 new ToolWindowDescriptor(RouteToolWindowContentId, "Routes", () => RouteToolAnchorable, value => viewModel.IsRouteToolVisible = value),
                 new ToolWindowDescriptor(LocationToolWindowContentId, "Location", () => LocationToolAnchorable, value => viewModel.IsLocationToolVisible = value,
-                    () => viewModel.LocationTool, () => viewModel.LocationTool.Start(), () => viewModel.LocationTool.Stop()),
+                    () => viewModel.LocationTool, viewModel.LocationTool.Start, viewModel.LocationTool.Stop),
                 new ToolWindowDescriptor(DebugToolWindowContentId, "Debug Information", () => DebugToolAnchorable, value => viewModel.IsDebugToolVisible = value,
-                    () => viewModel.DebugTool, () => viewModel.DebugTool.Start(), () => viewModel.DebugTool.Stop()),
+                    () => viewModel.DebugTool, viewModel.DebugTool.Start, viewModel.DebugTool.Stop),
                 new ToolWindowDescriptor(LogToolWindowContentId, "Logging", () => LogToolAnchorable, value => viewModel.IsLogToolVisible = value,
-                    () => viewModel.LogTool, () => viewModel.LogTool.Start(), () => viewModel.LogTool.Stop()),
+                    () => viewModel.LogTool, viewModel.LogTool.Start, viewModel.LogTool.Stop),
                 new ToolWindowDescriptor(RouteNavigationToolWindowContentId, "Route Navigation", () => RouteNavigationToolAnchorable, value => viewModel.IsRouteNavigationToolVisible = value,
-                    () => viewModel.RouteNavigationTool, () => viewModel.RouteNavigationTool.Start(), () => viewModel.RouteNavigationTool.Stop()),
+                    () => viewModel.RouteNavigationTool, viewModel.RouteNavigationTool.Start, viewModel.RouteNavigationTool.Stop),
                 new ToolWindowDescriptor(HelpToolWindowContentId, "Help", () => HelpToolAnchorable, value => viewModel.IsHelpToolVisible = value,
-                    () => viewModel.HelpTool, () => viewModel.HelpTool.Start(), () => viewModel.HelpTool.Stop()),
+                    () => viewModel.HelpTool, viewModel.HelpTool.Start, viewModel.HelpTool.Stop),
                 new ToolWindowDescriptor(SettingsToolWindowContentId, "Settings", () => SettingsToolAnchorable, value => viewModel.IsSettingsToolVisible = value,
-                    () => viewModel.SettingsTool, () => viewModel.SettingsTool.Start(), () => viewModel.SettingsTool.Stop()),
+                    () => viewModel.SettingsTool, viewModel.SettingsTool.Start, viewModel.SettingsTool.Stop),
                 new ToolWindowDescriptor(TrainPathToolWindowContentId, "Path Editor", () => TrainPathToolAnchorable, value => viewModel.IsTrainPathToolVisible = value,
-                    () => viewModel.TrainPathTool, () => viewModel.TrainPathTool.Start(), () => viewModel.TrainPathTool.Stop()),
+                    () => viewModel.TrainPathTool, viewModel.TrainPathTool.Start, viewModel.TrainPathTool.Stop),
             };
         }
 

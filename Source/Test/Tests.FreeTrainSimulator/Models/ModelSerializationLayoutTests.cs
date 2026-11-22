@@ -38,7 +38,7 @@ namespace Tests.FreeTrainSimulator.Models
             [typeof(PathModel)] = ["Id", "Name", "Version", "Tags", "Start", "End", "PlayerPath", "ValidationState", "PathNodes"],
             [typeof(PathModelHeader)] = ["Id", "Name", "Version", "Tags", "Start", "End", "PlayerPath", "ValidationState"],
             [typeof(PathNode)] = ["Location", "NodeType", "NodeIndex", "NextMainNode", "NextSidingNode", "WaitInfo"],
-            [typeof(PathNodeWaitInfo)] = ["WaitTime"],
+            [typeof(PathNodeWaitInfo)] = ["WaitOperation", "Duration", "TimeOfDay", "CarCount", "KeepRear", "UnknownCode"],
             [typeof(RouteConditionModel)] = ["TrackGauge", "Electrified", "MaxLineVoltage", "OverheadWireHeight", "DoubleWireEnabled", "DoubleWireHeight", "TriphaseEnabled", "TriphaseWidth"],
             [typeof(RouteModel)] = ["Id", "Name", "Version", "Tags", "Description", "MetricUnits", "Graphics", "EnvironmentConditions", "RouteKey", "RouteSounds", "RouteConditions", "SpeedRestrictions", "Settings", "SuperElevationRadiusSettings"],
             [typeof(RouteModelHeader)] = ["Id", "Name", "Version", "Tags", "Description", "MetricUnits", "Graphics"],
@@ -159,9 +159,13 @@ namespace Tests.FreeTrainSimulator.Models
             List<string> members = new List<string>();
             foreach (Type type in hierarchy)
             {
-                foreach (PropertyInfo property in type.GetProperties(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly))
+                foreach (PropertyInfo property in type.GetProperties(BindingFlags.Public | BindingFlags.NonPublic
+                    | BindingFlags.Instance | BindingFlags.DeclaredOnly))
                 {
                     if (property.GetMethod == null)
+                        continue;
+                    bool explicitlyIncluded = property.GetCustomAttribute<MemoryPackIncludeAttribute>(inherit: true) != null;
+                    if (!property.GetMethod.IsPublic && !explicitlyIncluded)
                         continue;
                     bool settable = property.SetMethod != null;
                     bool constructorBacked = constructorParameters.Contains(property.Name);

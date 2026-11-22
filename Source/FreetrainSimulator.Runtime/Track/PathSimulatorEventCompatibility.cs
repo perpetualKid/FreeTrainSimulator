@@ -72,7 +72,7 @@ namespace FreeTrainSimulator.Runtime.Track
         {
             ArgumentNullException.ThrowIfNull(node);
 
-            return ValidateNode(node.NodeType, node.WaitInfo?.WaitTime ?? 0, nodeIndex, isFirst, isPassingInterior, isJunction);
+            return ValidateNode(node.NodeType, PathWaitOperationCodec.GetMstsWaitCode(node.WaitInfo), nodeIndex, isFirst, isPassingInterior, isJunction);
         }
 
         /// <summary>

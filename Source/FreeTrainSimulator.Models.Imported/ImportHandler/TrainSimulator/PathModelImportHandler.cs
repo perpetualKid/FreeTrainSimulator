@@ -12,6 +12,8 @@ using FreeTrainSimulator.Models.Content;
 using FreeTrainSimulator.Models.Handler;
 using FreeTrainSimulator.Models.Imported.Shim;
 
+using FreeTrainSimulator.Runtime.Track;
+
 using Orts.Formats.Msts.Files;
 
 namespace FreeTrainSimulator.Models.Imported.ImportHandler.TrainSimulator
@@ -96,7 +98,7 @@ namespace FreeTrainSimulator.Models.Imported.ImportHandler.TrainSimulator
                         NodeType = pathNode.NodeType,
                         NextMainNode = pathNode.NextMainNode,
                         NextSidingNode = pathNode.NextSidingNode,
-                        WaitInfo = pathNode.WaitTime > 0 ? new PathNodeWaitInfo() { WaitTime = pathNode.WaitTime } : null,
+                        WaitInfo = pathNode.WaitTime > 0 ? PathWaitOperationCodec.FromMstsWaitTime(pathNode.WaitTime) : null,
                     }).ToImmutableArray(),
                 };
                 //this is the case where a file may have been renamed but not the path id, ie. in case of copy cloning, so adopting the filename as path id

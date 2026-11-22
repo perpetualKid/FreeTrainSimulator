@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 
 using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Position;
@@ -61,10 +61,7 @@ namespace Tests.FreeTrainSimulator.Models.Imported.Track
         [TestMethod]
         public void ConstructorFromPathNodePreservesRoundTripFields()
         {
-            PathNodeWaitInfo waitInfo = new PathNodeWaitInfo()
-            {
-                WaitTime = 45,
-            };
+            PathNodeWaitInfo waitInfo = PathWaitOperationCodec.FromMstsWaitTime(45);
             PathNode pathNode = new PathNode(new WorldLocation(new Tile(0, 0), Vector3.Zero))
             {
                 NodeType = PathNodeType.Wait | PathNodeType.Junction,

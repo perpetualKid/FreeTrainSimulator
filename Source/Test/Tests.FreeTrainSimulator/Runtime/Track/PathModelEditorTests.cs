@@ -60,11 +60,11 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
         {
             PathModel source = CreatePath(
                 Anchor(30, 11) with { NodeType = PathNodeType.Via | PathNodeType.Wait, NextMainNode = 3, NextSidingNode = -1,
-                    WaitInfo = new PathNodeWaitInfo { WaitTime = waitTime } },
+                    WaitInfo = PathWaitOperationCodec.FromMstsWaitTime(waitTime) },
                 Anchor(90, 12) with { NodeType = PathNodeType.End, NextMainNode = -1, NextSidingNode = -1 },
                 Anchor(10, 10) with { NodeType = PathNodeType.Start, NextMainNode = 0, NextSidingNode = -1 },
                 Anchor(70, 11) with { NodeType = PathNodeType.Wait, NextMainNode = 1, NextSidingNode = -1,
-                    WaitInfo = new PathNodeWaitInfo { WaitTime = 17 } }) with { Start = "Origin", End = "Destination" };
+                    WaitInfo = PathWaitOperationCodec.FromMstsWaitTime(17) }) with { Start = "Origin", End = "Destination" };
             ImmutableArray<PathNode> originalNodes = source.PathNodes;
 
             PathEditResult result = PathModelEditor.ReversePath(source);
@@ -109,7 +109,7 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
         public void WhenWholePathHasUnsupportedWaitDataThenReversePreservesOriginal(PathNodeType nodeType, bool hasPayload, int waitTime)
         {
             PathModel source = CreatePath(Node(PathNodeType.Start, 1),
-                Node(nodeType, 2) with { WaitInfo = hasPayload ? new PathNodeWaitInfo { WaitTime = waitTime } : null },
+                Node(nodeType, 2) with { WaitInfo = hasPayload ? PathWaitOperationCodec.FromMstsWaitTime(waitTime) : null },
                 Node(PathNodeType.End, -1));
 
             PathEditResult result = PathModelEditor.ReversePath(source);
@@ -127,7 +127,7 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
         {
             PathModel source = CreatePath(Node(PathNodeType.Start, 1), Node(PathNodeType.Via, 2), Node(PathNodeType.End, -1));
             source = source with { PathNodes = source.PathNodes.SetItem(waitIndex, source.PathNodes[waitIndex] with
-            { NodeType = source.PathNodes[waitIndex].NodeType | PathNodeType.Wait, WaitInfo = new PathNodeWaitInfo { WaitTime = 60 } }) };
+            { NodeType = source.PathNodes[waitIndex].NodeType | PathNodeType.Wait, WaitInfo = PathWaitOperationCodec.FromMstsWaitTime(60) }) };
 
             PathEditResult result = PathModelEditor.ReversePath(source);
 
@@ -155,7 +155,7 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
         public void WhenWholePathHasZeroWaitPayloadWithoutFlagThenReverseRefusesIt()
         {
             PathModel source = CreatePath(Node(PathNodeType.Start, 1), Node(PathNodeType.End, -1) 
-                with { WaitInfo = new PathNodeWaitInfo { WaitTime = 0 } });
+                with { WaitInfo = PathWaitOperationCodec.FromMstsWaitTime(0) });
 
             PathEditResult result = PathModelEditor.ReversePath(source);
 
@@ -231,7 +231,7 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
         [TestMethod]
         public void WhenSetStartAnchorReplacesAnnotatedStartThenIntentIsPreserved()
         {
-            PathNodeWaitInfo waitInfo = new PathNodeWaitInfo { WaitTime = 30 };
+            PathNodeWaitInfo waitInfo = PathWaitOperationCodec.FromMstsWaitTime(30);
             PathNode start = Node(PathNodeType.Start | PathNodeType.Wait | PathNodeType.Reversal, -1) with { WaitInfo = waitInfo };
             PathModel path = CreatePath(start);
 
@@ -341,7 +341,7 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
         [TestMethod]
         public void WhenSetEndAnchorReplacesAnnotatedEndThenIntentIsPreserved()
         {
-            PathNodeWaitInfo waitInfo = new PathNodeWaitInfo { WaitTime = 45 };
+            PathNodeWaitInfo waitInfo = PathWaitOperationCodec.FromMstsWaitTime(45);
             PathNode end = Node(PathNodeType.End | PathNodeType.Wait | PathNodeType.Reversal, -1) with { WaitInfo = waitInfo };
             PathModel path = CreatePath(Node(PathNodeType.Start, 1), end);
 
@@ -1069,7 +1069,7 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
         [TestMethod]
         public void WhenMoveNodeThenLinksAndWaitInfoArePreserved()
         {
-            PathNodeWaitInfo waitInfo = new PathNodeWaitInfo { WaitTime = 25 };
+            PathNodeWaitInfo waitInfo = PathWaitOperationCodec.FromMstsWaitTime(25);
             PathModel path = CreatePath(
                 Node(PathNodeType.Start, 1),
                 Node(PathNodeType.Wait, 2, -1) with { WaitInfo = waitInfo },
@@ -1144,7 +1144,7 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
                 PathNodes = path.PathNodes.SetItem(5, path.PathNodes[5] with
                 {
                     NodeType = PathNodeType.Via | nodeType,
-                    WaitInfo = new PathNodeWaitInfo { WaitTime = waitTime },
+                    WaitInfo = PathWaitOperationCodec.FromMstsWaitTime(waitTime),
                 }),
             };
 
@@ -1177,7 +1177,7 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
             {
                 PathNodes = path.PathNodes
                     .SetItem(0, path.PathNodes[0] with { NodeType = PathNodeType.Start | PathNodeType.Wait | PathNodeType.Reversal })
-                    .SetItem(6, path.PathNodes[6] with { WaitInfo = new PathNodeWaitInfo { WaitTime = 30 } }),
+                    .SetItem(6, path.PathNodes[6] with { WaitInfo = PathWaitOperationCodec.FromMstsWaitTime(30) }),
             };
 
             PathEditResult result = PathModelEditor.MovePassingBranchAnchor(path, 5, Anchor(20, 42), isJunction);
@@ -1189,7 +1189,7 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
         public void WhenUnmarkedZeroWaitPassingAnchorIsMovedThenPayloadIsPreserved()
         {
             PathModel path = CreateSupportedPassingBranchPath();
-            PathNodeWaitInfo waitInfo = new PathNodeWaitInfo { WaitTime = 0 };
+            PathNodeWaitInfo waitInfo = PathWaitOperationCodec.FromMstsWaitTime(0);
             path = path with { PathNodes = path.PathNodes.SetItem(5, path.PathNodes[5] with { WaitInfo = waitInfo }) };
             PathNode replacement = Anchor(20, 42);
 
@@ -1251,7 +1251,72 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
             PathEditResult result = PathModelEditor.SetWaitPoint(path, 1, waitTime);
 
             Assert.AreEqual((true, PathNodeType.Via | PathNodeType.Wait, waitTime),
-                (result.Success, result.PathModel.PathNodes[1].NodeType, result.PathModel.PathNodes[1].WaitInfo.WaitTime));
+                (result.Success, result.PathModel.PathNodes[1].NodeType,
+                    PathWaitOperationCodec.GetMstsWaitCode(result.PathModel.PathNodes[1].WaitInfo)));
+        }
+
+        [TestMethod]
+        [DataRow(30000)]
+        [DataRow(32359)]
+        [DataRow(40102)]
+        [DataRow(50102)]
+        [DataRow(60001)]
+        [DataRow(60002)]
+        [DataRow(60011)]
+        [DataRow(60021)]
+        public void WhenAdvancedOperationIsSetOnViaNodeThenEncodedPayloadIsStored(int waitCode)
+        {
+            PathModel path = CreatePath(
+                Node(PathNodeType.Start, 1),
+                Node(PathNodeType.Via, 2),
+                Node(PathNodeType.End, -1));
+            PathNodeWaitInfo operation = PathWaitOperationCodec.FromMstsWaitTime(waitCode);
+
+            PathEditResult result = PathModelEditor.SetWaitOperation(path, 1, operation);
+
+            Assert.IsTrue(result.Success, result.Message);
+            Assert.AreEqual(PathNodeType.Via | PathNodeType.Wait, result.PathModel.PathNodes[1].NodeType);
+            Assert.AreEqual(waitCode, PathWaitOperationCodec.GetMstsWaitCode(result.PathModel.PathNodes[1].WaitInfo));
+            Assert.IsNull(path.PathNodes[1].WaitInfo);
+        }
+
+        [TestMethod]
+        public void WhenUnknownAdvancedOperationIsSetThenModelRemainsUnchanged()
+        {
+            PathModel path = CreatePath(
+                Node(PathNodeType.Start, 1),
+                Node(PathNodeType.Via, 2),
+                Node(PathNodeType.End, -1));
+
+            PathEditResult result = PathModelEditor.SetWaitOperation(path, 1, PathWaitOperationCodec.FromMstsWaitTime(60010));
+
+            Assert.IsFalse(result.Success);
+            Assert.AreEqual(PathEditorMessageKind.InvalidWaitOperation, result.MessageKind);
+            Assert.AreSame(path, result.PathModel);
+        }
+
+        [TestMethod]
+        public void WhenTypedOperationHasInvalidParametersThenItIsRefusedBeforeMutation()
+        {
+            PathModel path = CreatePath(
+                Node(PathNodeType.Start, 1),
+                Node(PathNodeType.Via, 2),
+                Node(PathNodeType.End, -1));
+            PathNodeWaitInfo[] invalid =
+            [
+                new PathNodeWaitInfo { WaitOperation = WaitOperationType.BasicWait, Duration = TimeSpan.Zero },
+                new PathNodeWaitInfo { WaitOperation = WaitOperationType.WaitUntil, TimeOfDay = TimeSpan.FromHours(25) },
+                new PathNodeWaitInfo { WaitOperation = WaitOperationType.Uncouple, Duration = TimeSpan.Zero, CarCount = 0 },
+                new PathNodeWaitInfo { WaitOperation = WaitOperationType.Horn, Duration = TimeSpan.FromSeconds(12) },
+            ];
+
+            foreach (PathNodeWaitInfo operation in invalid)
+            {
+                PathEditResult result = PathModelEditor.SetWaitOperation(path, 1, operation);
+                Assert.IsFalse(result.Success);
+                Assert.AreEqual(PathEditorMessageKind.InvalidWaitOperation, result.MessageKind);
+                Assert.AreSame(path, result.PathModel);
+            }
         }
 
         [TestMethod]
@@ -1275,7 +1340,7 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
         {
             PathModel path = CreatePath(
                 Node(PathNodeType.Start, 1),
-                Node(PathNodeType.Via | PathNodeType.Wait, 2) with { WaitInfo = new PathNodeWaitInfo { WaitTime = 30 } },
+                Node(PathNodeType.Via | PathNodeType.Wait, 2) with { WaitInfo = PathWaitOperationCodec.FromMstsWaitTime(30) },
                 Node(PathNodeType.End, -1));
 
             PathEditResult result = PathModelEditor.SetWaitPoint(path, 1, waitTime);
@@ -1296,13 +1361,14 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
         {
             PathModel path = CreatePath(
                 Node(PathNodeType.Start, 1),
-                Node(PathNodeType.Via | PathNodeType.Wait, 2) with { WaitInfo = new PathNodeWaitInfo { WaitTime = waitTime } },
+                Node(PathNodeType.Via | PathNodeType.Wait, 2) with { WaitInfo = PathWaitOperationCodec.FromMstsWaitTime(waitTime) },
                 Node(PathNodeType.End, -1));
 
             PathEditResult result = PathModelEditor.ClearWaitPoint(path, 1);
 
             Assert.AreEqual((true, PathNodeType.Via, (PathNodeWaitInfo)null, waitTime),
-                (result.Success, result.PathModel.PathNodes[1].NodeType, result.PathModel.PathNodes[1].WaitInfo, path.PathNodes[1].WaitInfo.WaitTime));
+                (result.Success, result.PathModel.PathNodes[1].NodeType, result.PathModel.PathNodes[1].WaitInfo,
+                    PathWaitOperationCodec.GetMstsWaitCode(path.PathNodes[1].WaitInfo)));
         }
 
         [TestMethod]
@@ -1315,7 +1381,7 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
             PathNode prospective = path.PathNodes[1] with
             {
                 NodeType = path.PathNodes[1].NodeType | PathNodeType.Wait,
-                WaitInfo = new PathNodeWaitInfo { WaitTime = 30 },
+                WaitInfo = PathWaitOperationCodec.FromMstsWaitTime(30),
             };
             string expectedMessage = PathSimulatorEventCompatibility.ValidateNode(prospective, 1, false, false).Message;
 
@@ -1405,7 +1471,7 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
         public void WhenUnmarkedPassingInteriorWaitPayloadIsClearedThenPayloadIsRemoved(int waitTime)
         {
             PathModel path = CreateSupportedPassingBranchPath();
-            PathNode original = path.PathNodes[5] with { WaitInfo = new PathNodeWaitInfo { WaitTime = waitTime } };
+            PathNode original = path.PathNodes[5] with { WaitInfo = PathWaitOperationCodec.FromMstsWaitTime(waitTime) };
             path = path with { PathNodes = path.PathNodes.SetItem(5, original) };
 
             PathEditResult result = PathModelEditor.ClearWaitPoint(path, 5);
@@ -1420,7 +1486,7 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
         [DataRow(PathNodeType.Junction | PathNodeType.Wait, PathNodeType.Junction)]
         public void WhenImportedWaitIsClearedThenOtherIntentIsPreserved(PathNodeType originalType, PathNodeType expectedType)
         {
-            PathNode original = Node(originalType, -1, 50) with { WaitInfo = new PathNodeWaitInfo { WaitTime = 30 } };
+            PathNode original = Node(originalType, -1, 50) with { WaitInfo = PathWaitOperationCodec.FromMstsWaitTime(30) };
             PathModel path = CreatePath(original);
 
             PathEditResult result = PathModelEditor.ClearWaitPoint(path, 0);
@@ -1459,7 +1525,7 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
         {
             PathModel path = CreatePath(
                 Node(PathNodeType.Start, 1),
-                Node(PathNodeType.Via | PathNodeType.Wait, 2) with { WaitInfo = new PathNodeWaitInfo { WaitTime = 30 } },
+                Node(PathNodeType.Via | PathNodeType.Wait, 2) with { WaitInfo = PathWaitOperationCodec.FromMstsWaitTime(30) },
                 Node(PathNodeType.End, -1));
 
             PathEditResult result = PathModelEditor.SetReversalPoint(path, 1);
@@ -1516,7 +1582,7 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
             PathNode original = path.PathNodes[nodeIndex] with
             {
                 NodeType = path.PathNodes[nodeIndex].NodeType | PathNodeType.Wait | PathNodeType.Reversal,
-                WaitInfo = new PathNodeWaitInfo { WaitTime = 30 },
+                WaitInfo = PathWaitOperationCodec.FromMstsWaitTime(30),
             };
             path = path with { PathNodes = path.PathNodes.SetItem(nodeIndex, original) };
 
@@ -1549,7 +1615,7 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
             Assert.AreEqual(path.PathNodes[nodeIndex] with
             {
                 NodeType = PathNodeType.Via | PathNodeType.Wait,
-                WaitInfo = new PathNodeWaitInfo { WaitTime = 30 },
+                WaitInfo = PathWaitOperationCodec.FromMstsWaitTime(30),
             }, result.PathModel.PathNodes[nodeIndex]);
         }
 
@@ -2068,7 +2134,7 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
             PathModel current = CreateCompositionPath("current", 10, 50);
             PathModel extension = CreateCompositionPath("extension", 50, 90);
             PathModel target = changeExtension ? extension : current;
-            target = target with { PathNodes = target.PathNodes.SetItem(0, target.PathNodes[0] with { WaitInfo = new PathNodeWaitInfo { WaitTime = 0 } }) };
+            target = target with { PathNodes = target.PathNodes.SetItem(0, target.PathNodes[0] with { WaitInfo = PathWaitOperationCodec.FromMstsWaitTime(0) }) };
 
             PathEditResult result = PathModelEditor.AppendPathAtMatchingEndpoint(changeExtension ? current : target,
                 changeExtension ? target : extension, world, TestContext.CancellationToken);

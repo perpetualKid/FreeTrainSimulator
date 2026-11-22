@@ -17,4 +17,17 @@ namespace FreeTrainSimulator.Models.Content
         /// <summary>The path has error or fatal diagnostics and does not resolve against the current track.</summary>
         Invalid,
     }
+
+    /// <summary>Persisted path-wait operation kind for the native FTS model.</summary>
+    public enum WaitOperationType
+    {
+        None = 0,
+        BasicWait,
+        WaitUntil,
+        Uncouple,
+        JoinSplit,
+        PassRedSignal,
+        Horn,
+        Unknown,
+    }
 }

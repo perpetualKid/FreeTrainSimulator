@@ -5,6 +5,8 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
 
+using FreeTrainSimulator.Models.Content;
+using FreeTrainSimulator.Runtime.Track;
 using FreeTrainSimulator.Toolbox.PathEditing;
 using FreeTrainSimulator.Toolbox.ToolWindows;
 
@@ -56,9 +58,18 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
         private int? pendingWaitNodeIndex;
         private string pendingWaitPathId;
         private int? pendingWaitTime;
+        private PathNodeWaitInfo pendingWaitOperation;
         private int pendingWaitResultVersion;
+        private TrainPathWaitOperationOption selectedWaitOperationOption;
+        private int? selectedWaitUntilHour;
+        private int? selectedWaitUntilMinute;
+        private int? selectedUncoupleCarCount;
+        private int? selectedWaitOperationSeconds;
+        private bool selectedUncoupleKeepRear;
+        private int? selectedHornSeconds;
         private bool suppressSelectionCommand;
         private bool suppressWaitTimeCommand;
+        private bool suppressWaitOperationCommand;
         private int blockedSaveFeedbackVersion;
         private string blockedSaveStatusMessage;
         private bool isRepairMode;
@@ -233,6 +244,7 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
             CancelPathInteractionCommand = new RelayCommand(_ => CancelPathInteraction(), _ => CanCancelPathInteraction || IsCandidatePanelVisible);
             RepairSelectedNodeCommand = new RelayCommand(_ => RepairSelectedNode(), _ => CanRepairSelectedNode);
             ClearWaitPointCommand = new RelayCommand(_ => ClearWaitPoint(), _ => CanClearSelectedWaitPoint);
+            ApplyWaitOperationCommand = new RelayCommand(_ => ApplySelectedWaitOperation(), _ => CanApplySelectedWaitOperation);
             ToggleReversalPointCommand = new RelayCommand(_ => ToggleReversalPoint(), _ => CanToggleSelectedReversalPoint);
             AddViaPointCommand = new RelayCommand(_ => AddViaPoint(), _ => CanAddViaPoint);
             RemoveViaPointCommand = new RelayCommand(_ => RemoveViaPoint(), _ => CanRemoveViaPoint);
@@ -261,6 +273,7 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
                 if (!syncingDiagnostics)
                     UpdateVisibleDiagnostics();
             };
+            RefreshWaitOperationOptions();
             UpdateSelectedNodeDetailRows();
         }
 
@@ -282,6 +295,8 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
                 if (!SetProperty(ref selectedNodeWaitTime, value))
                     return;
 
+                ApplyWaitOperationCommand?.RaiseCanExecuteChanged();
+                OnPropertyChanged(nameof(CanApplySelectedWaitOperation));
                 if (suppressWaitTimeCommand)
                     return;
 
@@ -300,6 +315,7 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
                 else
                 {
                     pendingWaitNodeIndex = null;
+                    pendingWaitOperation = null;
                     SyncWaitTimeFromSelectedNode();
                     SetStatusMessage(CatalogManager.Catalog.GetString("Wait time cannot be changed on this node. Use Clear Wait Point to remove existing wait data when available."), true);
                 }
@@ -307,6 +323,95 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
         }
 
         public string Title => toolWindow.Title;
+
+        public ObservableCollection<TrainPathWaitOperationOption> WaitOperationOptions { get; } = new ObservableCollection<TrainPathWaitOperationOption>();
+
+        public TrainPathWaitOperationOption SelectedWaitOperationOption
+        {
+            get => selectedWaitOperationOption;
+            set
+            {
+                if (!SetProperty(ref selectedWaitOperationOption, value))
+                    return;
+                NotifyWaitOperationChanged();
+                if (!suppressWaitOperationCommand)
+                    InitializeWaitOperationParameters(value?.OperationType ?? WaitOperationType.None);
+            }
+        }
+
+        public WaitOperationType SelectedWaitOperationType => SelectedWaitOperationOption?.OperationType ?? WaitOperationType.None;
+        public bool IsBasicWaitOperation => SelectedWaitOperationType == WaitOperationType.BasicWait;
+        public bool IsWaitUntilOperation => SelectedWaitOperationType == WaitOperationType.WaitUntil;
+        public bool IsUncoupleOperation => SelectedWaitOperationType == WaitOperationType.Uncouple;
+        public bool IsHornOperation => SelectedWaitOperationType == WaitOperationType.Horn;
+        public bool IsUnknownWaitOperation => SelectedWaitOperationType == WaitOperationType.Unknown;
+        public bool IsAdvancedWaitOperation => SelectedWaitOperationType is WaitOperationType.WaitUntil or WaitOperationType.Uncouple
+            or WaitOperationType.JoinSplit or WaitOperationType.PassRedSignal or WaitOperationType.Horn;
+        public bool IsParameterlessWaitOperation => SelectedWaitOperationType is WaitOperationType.JoinSplit or WaitOperationType.PassRedSignal;
+        public int? SelectedWaitRawCode => SelectedNode?.WaitTime;
+        public string SelectedWaitRawCodeDescription => SelectedWaitRawCode.HasValue
+            ? CatalogManager.Catalog.GetString("Imported operation code {0} is not editable here; clear it or preserve it unchanged.", SelectedWaitRawCode.Value)
+            : string.Empty;
+
+        public int? SelectedWaitUntilHour
+        {
+            get => selectedWaitUntilHour;
+            set
+            {
+                if (SetProperty(ref selectedWaitUntilHour, value))
+                    ApplyWaitOperationCommand?.RaiseCanExecuteChanged();
+            }
+        }
+
+        public int? SelectedWaitUntilMinute
+        {
+            get => selectedWaitUntilMinute;
+            set
+            {
+                if (SetProperty(ref selectedWaitUntilMinute, value))
+                    ApplyWaitOperationCommand?.RaiseCanExecuteChanged();
+            }
+        }
+
+        public int? SelectedUncoupleCarCount
+        {
+            get => selectedUncoupleCarCount;
+            set
+            {
+                if (SetProperty(ref selectedUncoupleCarCount, value))
+                    ApplyWaitOperationCommand?.RaiseCanExecuteChanged();
+            }
+        }
+
+        public int? SelectedWaitOperationSeconds
+        {
+            get => selectedWaitOperationSeconds;
+            set
+            {
+                if (SetProperty(ref selectedWaitOperationSeconds, value))
+                    ApplyWaitOperationCommand?.RaiseCanExecuteChanged();
+            }
+        }
+
+        public bool SelectedUncoupleKeepRear
+        {
+            get => selectedUncoupleKeepRear;
+            set
+            {
+                if (SetProperty(ref selectedUncoupleKeepRear, value))
+                    ApplyWaitOperationCommand?.RaiseCanExecuteChanged();
+            }
+        }
+
+        public int? SelectedHornSeconds
+        {
+            get => selectedHornSeconds;
+            set
+            {
+                if (SetProperty(ref selectedHornSeconds, value))
+                    ApplyWaitOperationCommand?.RaiseCanExecuteChanged();
+            }
+        }
 
         public ObservableCollection<TrainPathListItemViewModel> Paths { get; } = new ObservableCollection<TrainPathListItemViewModel>();
 
@@ -439,6 +544,9 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
 
         /// <summary>Clears wait flags and payload through the selected node's authoritative command.</summary>
         public RelayCommand ClearWaitPointCommand { get; }
+
+        /// <summary>Applies the selected validated basic or advanced operation to the selected node.</summary>
+        public RelayCommand ApplyWaitOperationCommand { get; }
 
         public RelayCommand ToggleReversalPointCommand { get; }
 
@@ -758,6 +866,9 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
         /// <summary>Whether positive wait editing is available; clearing has a separate command.</summary>
         public bool CanEditSelectedNodeWaitTime => CanSetSelectedWaitPoint;
 
+        public bool CanApplySelectedWaitOperation => CanSetSelectedWaitPoint
+            && TryBuildSelectedWaitOperation(out _, out _);
+
         public bool CanAddViaPoint => !IsRepairMode && SelectedNode != null && !CanCancelPathInteraction;
 
         public bool CanRemoveViaPoint => canRemoveSelectedViaPoint && IsSelectedCapabilityNode() && !CanCancelPathInteraction;
@@ -928,6 +1039,7 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
             pendingSelectedNodeSnapshot = presentationSnapshot;
 
             pendingWaitNodeIndex = null;
+            pendingWaitOperation = null;
             selectedNodeCapabilityIndex = -1;
             SelectedNode = value;
             int nodeIndex = value?.Index ?? -1;
@@ -1065,9 +1177,10 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
             OnPropertyChanged(nameof(IsCombinationPanelVisible));
         }
 
-        /// <summary>Rebinds the few immutable choice rows after a catalog switch without issuing preview commands.</summary>
+        /// <summary>Rebinds localized choice rows after a catalog switch without issuing editor commands.</summary>
         internal void RefreshLocalization()
         {
+            RefreshWaitOperationOptions();
             if (combinationCandidates.IsEmpty)
                 return;
             suppressSelectionCommand = true;
@@ -1082,6 +1195,93 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
             finally
             {
                 suppressSelectionCommand = false;
+            }
+        }
+
+        private void RefreshWaitOperationOptions()
+        {
+            WaitOperationType selectedType = SelectedWaitOperationOption?.OperationType ?? WaitOperationType.BasicWait;
+            WaitOperationOptions.Clear();
+            WaitOperationOptions.Add(new TrainPathWaitOperationOption(WaitOperationType.BasicWait, CatalogManager.Catalog.GetString("Basic wait")));
+            WaitOperationOptions.Add(new TrainPathWaitOperationOption(WaitOperationType.WaitUntil, CatalogManager.Catalog.GetString("Wait until time")));
+            WaitOperationOptions.Add(new TrainPathWaitOperationOption(WaitOperationType.Uncouple, CatalogManager.Catalog.GetString("Uncouple and wait")));
+            WaitOperationOptions.Add(new TrainPathWaitOperationOption(WaitOperationType.JoinSplit, CatalogManager.Catalog.GetString("Join or split")));
+            WaitOperationOptions.Add(new TrainPathWaitOperationOption(WaitOperationType.PassRedSignal, CatalogManager.Catalog.GetString("Request to pass red signal")));
+            WaitOperationOptions.Add(new TrainPathWaitOperationOption(WaitOperationType.Horn, CatalogManager.Catalog.GetString("Blow horn")));
+            WaitOperationOptions.Add(new TrainPathWaitOperationOption(WaitOperationType.Unknown, CatalogManager.Catalog.GetString("Imported operation")));
+            suppressWaitOperationCommand = true;
+            try
+            {
+                SelectedWaitOperationOption = WaitOperationOptions.First(option => option.OperationType == selectedType);
+            }
+            finally
+            {
+                suppressWaitOperationCommand = false;
+            }
+            OnPropertyChanged(nameof(SelectedWaitRawCodeDescription));
+        }
+
+        private void InitializeWaitOperationParameters(WaitOperationType operationType)
+        {
+            suppressWaitTimeCommand = true;
+            try
+            {
+                if (operationType == WaitOperationType.BasicWait && SelectedNodeWaitTime is null or >= 30000)
+                    SelectedNodeWaitTime = 30;
+                SelectedWaitUntilHour = operationType == WaitOperationType.WaitUntil ? 12 : null;
+                SelectedWaitUntilMinute = operationType == WaitOperationType.WaitUntil ? 0 : null;
+                SelectedUncoupleCarCount = operationType == WaitOperationType.Uncouple ? 1 : null;
+                SelectedWaitOperationSeconds = operationType == WaitOperationType.Uncouple ? 0 : null;
+                SelectedUncoupleKeepRear = false;
+                SelectedHornSeconds = operationType == WaitOperationType.Horn ? 1 : null;
+            }
+            finally
+            {
+                suppressWaitTimeCommand = false;
+            }
+            NotifyWaitOperationChanged();
+        }
+
+        private void NotifyWaitOperationChanged()
+        {
+            OnPropertyChanged(nameof(SelectedWaitOperationType));
+            OnPropertyChanged(nameof(IsBasicWaitOperation));
+            OnPropertyChanged(nameof(IsWaitUntilOperation));
+            OnPropertyChanged(nameof(IsUncoupleOperation));
+            OnPropertyChanged(nameof(IsHornOperation));
+            OnPropertyChanged(nameof(IsUnknownWaitOperation));
+            OnPropertyChanged(nameof(IsAdvancedWaitOperation));
+            OnPropertyChanged(nameof(IsParameterlessWaitOperation));
+            OnPropertyChanged(nameof(CanApplySelectedWaitOperation));
+            ApplyWaitOperationCommand?.RaiseCanExecuteChanged();
+        }
+
+        private bool TryBuildSelectedWaitOperation(out PathNodeWaitInfo operation, out string failure)
+        {
+            operation = null;
+            failure = null;
+            switch (SelectedWaitOperationType)
+            {
+                case WaitOperationType.BasicWait:
+                    return SelectedNodeWaitTime.HasValue && PathWaitOperationCodec.TryCreateBasicWait(SelectedNodeWaitTime.Value, out operation);
+                case WaitOperationType.WaitUntil:
+                    return SelectedWaitUntilHour.HasValue && SelectedWaitUntilMinute.HasValue
+                        && PathWaitOperationCodec.TryCreateWaitUntil(SelectedWaitUntilHour.Value, SelectedWaitUntilMinute.Value, out operation);
+                case WaitOperationType.Uncouple:
+                    return SelectedUncoupleCarCount.HasValue && SelectedWaitOperationSeconds.HasValue
+                        && PathWaitOperationCodec.TryCreateUncouple(SelectedUncoupleCarCount.Value, SelectedWaitOperationSeconds.Value,
+                            SelectedUncoupleKeepRear, out operation);
+                case WaitOperationType.JoinSplit:
+                    operation = PathWaitOperationCodec.JoinSplit();
+                    return true;
+                case WaitOperationType.PassRedSignal:
+                    operation = PathWaitOperationCodec.PassRedSignal();
+                    return true;
+                case WaitOperationType.Horn:
+                    return SelectedHornSeconds.HasValue && PathWaitOperationCodec.TryCreateHorn(SelectedHornSeconds.Value, out operation);
+                default:
+                    failure = CatalogManager.Catalog.GetString("Choose a supported wait operation.");
+                    return false;
             }
         }
 
@@ -1119,16 +1319,34 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
             OnPropertyChanged(nameof(CanClearSelectedReversalPoint));
             OnPropertyChanged(nameof(CanToggleSelectedReversalPoint));
             OnPropertyChanged(nameof(CanEditSelectedNodeWaitTime));
+            OnPropertyChanged(nameof(CanApplySelectedWaitOperation));
             ClearWaitPointCommand.RaiseCanExecuteChanged();
+            ApplyWaitOperationCommand.RaiseCanExecuteChanged();
             ToggleReversalPointCommand.RaiseCanExecuteChanged();
         }
 
         private void TrackSubmittedWaitCommand(int? value)
         {
+            pendingWaitOperation = null;
             pendingWaitNodeIndex = SelectedNode.Index;
             pendingWaitPathId = snapshotSelectedPathId;
             pendingWaitTime = value;
             pendingWaitResultVersion = toolWindow.CaptureTrainPathSnapshot().CommandResultVersion;
+        }
+
+        private void TrackSubmittedWaitOperation(PathNodeWaitInfo operation)
+        {
+            TrackSubmittedWaitCommand(PathWaitOperationCodec.GetMstsWaitCode(operation));
+            pendingWaitOperation = operation;
+        }
+
+        private bool IsPendingWaitSubmissionCurrent()
+        {
+            if (pendingWaitOperation == null)
+                return SelectedNodeWaitTime == pendingWaitTime;
+
+            return TryBuildSelectedWaitOperation(out PathNodeWaitInfo current, out _)
+                && PathWaitOperationCodec.GetMstsWaitCode(current) == PathWaitOperationCodec.GetMstsWaitCode(pendingWaitOperation);
         }
 
         private void ApplyCommandResultFeedback(TrainPathSnapshot snapshot)
@@ -1143,9 +1361,10 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
                 // the submission. Do not replace a later selection or an edit that has not been submitted.
                 if (SelectedNode?.Index == pendingWaitNodeIndex.Value
                     && string.Equals(snapshot.SelectedPathId, pendingWaitPathId, StringComparison.Ordinal)
-                    && SelectedNodeWaitTime == pendingWaitTime)
+                    && IsPendingWaitSubmissionCurrent())
                     SyncWaitTimeFromSelectedNode();
                 pendingWaitNodeIndex = null;
+                pendingWaitOperation = null;
             }
             if (!string.IsNullOrWhiteSpace(snapshot.CommandResultMessage))
                 SetStatusMessage(snapshot.CommandResultMessage, snapshot.CommandResultIsWarning);
@@ -1433,6 +1652,23 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
             toolWindow.ExecuteDisplayedPathCommand(presentationSnapshot, bridge => bridge.ClearWaitPoint(nodeIndex));
         }
 
+        private void ApplySelectedWaitOperation()
+        {
+            string failure = null;
+            if (!CanApplySelectedWaitOperation
+                || !TryBuildSelectedWaitOperation(out PathNodeWaitInfo operation, out failure))
+            {
+                SetStatusMessage(string.IsNullOrWhiteSpace(failure)
+                    ? CatalogManager.Catalog.GetString("The selected advanced wait operation has invalid parameters.")
+                    : failure, true);
+                return;
+            }
+
+            TrackSubmittedWaitOperation(operation);
+            int nodeIndex = SelectedNode.Index;
+            ExecuteInlineInput(bridge => bridge.SetWaitOperation(nodeIndex, operation));
+        }
+
         private void ToggleReversalPoint()
         {
             if (!CanToggleSelectedReversalPoint)
@@ -1671,6 +1907,7 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
             try
             {
                 pendingWaitNodeIndex = null;
+                pendingWaitOperation = null;
                 SelectedNode = Nodes.FirstOrDefault(n => n.Index == index);
                 SyncWaitTimeFromSelectedNode();
                 UpdateSelectedNodeDetailRows();
@@ -1684,14 +1921,33 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
         private void SyncWaitTimeFromSelectedNode()
         {
             suppressWaitTimeCommand = true;
+            suppressWaitOperationCommand = true;
             try
             {
                 SelectedNodeWaitTime = SelectedNode?.WaitTime;
+                SyncWaitOperationFromSelectedNode();
             }
             finally
             {
+                suppressWaitOperationCommand = false;
                 suppressWaitTimeCommand = false;
             }
+        }
+
+        private void SyncWaitOperationFromSelectedNode()
+        {
+            int rawCode = SelectedNode?.WaitTime ?? 1;
+            PathNodeWaitInfo operation = PathWaitOperationCodec.FromMstsWaitTime(rawCode);
+            SelectedWaitOperationOption = WaitOperationOptions.FirstOrDefault(option => option.OperationType == operation.WaitOperation)
+                ?? WaitOperationOptions.First();
+            SelectedWaitUntilHour = operation.WaitOperation == WaitOperationType.WaitUntil ? operation.TimeOfDay.Hours : null;
+            SelectedWaitUntilMinute = operation.WaitOperation == WaitOperationType.WaitUntil ? operation.TimeOfDay.Minutes : null;
+            SelectedUncoupleCarCount = operation.WaitOperation == WaitOperationType.Uncouple ? operation.CarCount : null;
+            SelectedWaitOperationSeconds = operation.WaitOperation == WaitOperationType.Uncouple ? (int)operation.Duration.TotalSeconds : null;
+            SelectedUncoupleKeepRear = operation.KeepRear;
+            SelectedHornSeconds = operation.WaitOperation == WaitOperationType.Horn ? (int)operation.Duration.TotalSeconds : null;
+            OnPropertyChanged(nameof(SelectedWaitRawCode));
+            OnPropertyChanged(nameof(SelectedWaitRawCodeDescription));
         }
 
         private void UpdateSelectedNodeDetailRows()

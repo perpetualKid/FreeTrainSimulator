@@ -473,7 +473,7 @@ namespace Tests.FreeTrainSimulator.Simulator
                     SyntheticPathFixture.Node(PathNodeType.Via, 4, 50, 0, 3, -1),
                     SyntheticPathFixture.Node(PathNodeType.Via | PathNodeType.Junction, 6, 100, 0, 4, -1),
                     SyntheticPathFixture.Node(PathNodeType.Via | PathNodeType.Wait, 2, 120, 0, 5, -1) with
-                    { WaitInfo = new PathNodeWaitInfo { WaitTime = 30 } },
+                    { WaitInfo = PathWaitOperationCodec.FromMstsWaitTime(30) },
                     SyntheticPathFixture.Node(PathNodeType.End, 2, 150, 0, -1, -1),
                     SyntheticPathFixture.Node(PathNodeType.Via, 5, 50, 100, -1, 7),
                     SyntheticPathFixture.Node(PathNodeType.Via | PathNodeType.Junction, 6, 100, 0, -1, 5)),
@@ -502,7 +502,7 @@ namespace Tests.FreeTrainSimulator.Simulator
                 PathNodes = ImmutableArray.Create(
                     SyntheticPathFixture.Node(PathNodeType.Start, 1, -80, 0, 1, 6),
                     SyntheticPathFixture.Node(PathNodeType.Via | PathNodeType.Wait, 1, -60, 0, 2, -1) with
-                    { WaitInfo = new PathNodeWaitInfo { WaitTime = 30 } },
+                    { WaitInfo = PathWaitOperationCodec.FromMstsWaitTime(30) },
                     SyntheticPathFixture.Node(PathNodeType.Via | PathNodeType.Junction, 3, 0, 0, 3, -1),
                     SyntheticPathFixture.Node(PathNodeType.Via, 4, 50, 0, 4, -1),
                     SyntheticPathFixture.Node(PathNodeType.Via | PathNodeType.Junction, 6, 100, 0, 5, -1),
@@ -540,7 +540,7 @@ namespace Tests.FreeTrainSimulator.Simulator
                     SyntheticPathFixture.Node(PathNodeType.Via | PathNodeType.Junction, 3, 0, 0, 2, -1),
                     SyntheticPathFixture.Node(PathNodeType.Via | PathNodeType.Reversal, 4, 70, 0, 3, -1),
                     SyntheticPathFixture.Node(PathNodeType.Via | between, 4, 60, 0, 4, -1) with
-                    { WaitInfo = new PathNodeWaitInfo { WaitTime = waitTime } },
+                    { WaitInfo = PathWaitOperationCodec.FromMstsWaitTime(waitTime) },
                     SyntheticPathFixture.Node(PathNodeType.Via | PathNodeType.Reversal, 4, 30, 0, 5, -1),
                     SyntheticPathFixture.Node(PathNodeType.Via | PathNodeType.Junction, 6, 100, 0, 6, -1),
                     SyntheticPathFixture.Node(PathNodeType.End, 2, 150, 0, -1, -1)),
@@ -569,7 +569,7 @@ namespace Tests.FreeTrainSimulator.Simulator
             {
                 Id = "FirstEvent",
                 PathNodes = ImmutableArray.Create(SyntheticPathFixture.Node(PathNodeType.Start | eventType, 1, -80, 0, 1, -1) with
-                    { WaitInfo = eventType == PathNodeType.Wait ? new PathNodeWaitInfo { WaitTime = 30 } : null },
+                    { WaitInfo = eventType == PathNodeType.Wait ? PathWaitOperationCodec.FromMstsWaitTime(30) : null },
                     SyntheticPathFixture.Node(PathNodeType.End, 1, -20, 0, -1, -1)),
             };
             byte[] before = MemoryPackSerializer.Serialize(path);
@@ -597,7 +597,7 @@ namespace Tests.FreeTrainSimulator.Simulator
                 Id = "Wait" + Guid.NewGuid().ToString("N"),
                 PathNodes = ImmutableArray.Create(SyntheticPathFixture.Node(PathNodeType.Start, 1, -80, 0, 1, -1),
                     SyntheticPathFixture.Node(PathNodeType.Via | PathNodeType.Wait, 1, -60, 0, 2, -1) with
-                    { WaitInfo = new PathNodeWaitInfo { WaitTime = waitTime } },
+                    { WaitInfo = PathWaitOperationCodec.FromMstsWaitTime(waitTime) },
                     SyntheticPathFixture.Node(PathNodeType.End, 1, -20, 0, -1, -1)),
             };
             PathModel path = await fixture.RoundTripPathAsync(source, TestContext.CancellationToken).ConfigureAwait(false);
@@ -647,7 +647,7 @@ namespace Tests.FreeTrainSimulator.Simulator
                 Id = "TerminalWait" + Guid.NewGuid().ToString("N"),
                 PathNodes = ImmutableArray.Create(SyntheticPathFixture.Node(PathNodeType.Start, 1, -80, 0, 1, -1),
                     SyntheticPathFixture.Node(PathNodeType.End | PathNodeType.Wait, 1, -20, 0, -1, -1) with
-                    { WaitInfo = new PathNodeWaitInfo { WaitTime = 30 } }),
+                    { WaitInfo = PathWaitOperationCodec.FromMstsWaitTime(30) }),
             };
             PathModel path = await fixture.RoundTripPathAsync(source, TestContext.CancellationToken).ConfigureAwait(false);
             Assert.AreSequenceEqual(MemoryPackSerializer.Serialize(source.PathNodes), MemoryPackSerializer.Serialize(path.PathNodes));
@@ -735,7 +735,7 @@ namespace Tests.FreeTrainSimulator.Simulator
             yield return ("OverlappingSiding", nodes.SetItem(0, nodes[0] with { NextSidingNode = 5 }));
             yield return ("SidingWait", nodes.SetItem(5, nodes[5] with { NodeType = PathNodeType.Via | PathNodeType.Wait }));
             yield return ("SidingReverse", nodes.SetItem(5, nodes[5] with { NodeType = PathNodeType.Via | PathNodeType.Reversal }));
-            yield return ("SidingWaitInfo", nodes.SetItem(5, nodes[5] with { WaitInfo = new PathNodeWaitInfo { WaitTime = 30 } }));
+            yield return ("SidingWaitInfo", nodes.SetItem(5, nodes[5] with { WaitInfo = PathWaitOperationCodec.FromMstsWaitTime(30) }));
             yield return ("CombinedEvent", nodes.SetItem(2, nodes[2] with { NodeType = PathNodeType.Via | PathNodeType.Wait | PathNodeType.Reversal }));
             yield return ("JunctionWait", nodes.SetItem(1, nodes[1] with { NodeType = PathNodeType.Junction | PathNodeType.Wait }));
             yield return ("NonFinite", nodes.SetItem(2, SyntheticPathFixture.Node(PathNodeType.Via, 4, float.NaN, 0, 3, -1)));

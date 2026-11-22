@@ -23,8 +23,8 @@ using FreeTrainSimulator.Toolbox.Views;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-using Tests.FreeTrainSimulator.Toolbox.PathEditing;
 using Tests.FreeTrainSimulator.Toolbox.Hosting;
+using Tests.FreeTrainSimulator.Toolbox.PathEditing;
 using Tests.FreeTrainSimulator.Toolbox.ToolWindows;
 
 using Vector3 = Microsoft.Xna.Framework.Vector3;
@@ -1202,6 +1202,52 @@ namespace Tests.FreeTrainSimulator.Toolbox.Views
                         InvokeButton(clear, window);
 
                         Assert.AreEqual((false, true, 1), (editor.IsEnabled, clear.IsEnabled, invocations));
+                    }
+                }
+            }
+            finally
+            {
+                window?.Close();
+            }
+        }
+
+        [TestMethod]
+        [Timeout(15000, CooperativeCancellation = true)]
+        public void WhenImportedAdvancedWaitIsSelectedThenOperationInspectorShowsAndAppliesIt()
+        {
+            Window window = null;
+            try
+            {
+                int invocations = 0;
+                TrainPathToolWindow bridge = new TrainPathToolWindow(() => null, () => null, _ => invocations++,
+                    () => { }, () => { }, _ => { }, () => { }, () => { });
+                typeof(TrainPathToolWindow).GetField("snapshot", BindingFlags.Instance | BindingFlags.NonPublic).SetValue(bridge,
+                    TrainPathSnapshot.Empty with
+                    {
+                        Nodes = [new TrainPathNodeRow(0, global::FreeTrainSimulator.Common.PathNodeType.Via | global::FreeTrainSimulator.Common.PathNodeType.Wait,
+                            true, 1, -1, -1, 31725, null)],
+                        SelectedNodeIndex = 0,
+                        CanSetSelectedWaitPoint = true,
+                        CanClearSelectedWaitPoint = true,
+                    });
+                using (ToolWindowRefreshScheduler scheduler = new ToolWindowRefreshScheduler(Dispatcher.CurrentDispatcher))
+                {
+                    using (TrainPathToolWindowViewModel viewModel = new TrainPathToolWindowViewModel(bridge, scheduler,
+                    TrainPathToolWindowViewModel.EditorTabIndex))
+                    {
+                        viewModel.Start();
+                        TrainPathToolView view = new TrainPathToolView { DataContext = viewModel };
+                        window = new Window { Content = view, Width = 520, Height = 700, ShowInTaskbar = false };
+                        window.Show();
+                        SettleLayout(window);
+
+                        ComboBox selector = (ComboBox)view.FindName("WaitOperationSelector");
+                        Button apply = (Button)view.FindName("ApplyWaitOperationButton");
+                        InvokeButton(apply, window);
+
+                        Assert.AreEqual((WaitOperationType.WaitUntil, 17, 25, 7, true, 1),
+                            (viewModel.SelectedWaitOperationType, viewModel.SelectedWaitUntilHour, viewModel.SelectedWaitUntilMinute,
+                                selector.Items.Count, apply.IsEnabled, invocations));
                     }
                 }
             }

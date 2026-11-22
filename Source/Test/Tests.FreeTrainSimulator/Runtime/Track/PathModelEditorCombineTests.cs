@@ -176,7 +176,7 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
             PathModel first = CreateCombinePath("first", 10, 40);
             PathModel second = CreateCombinePath("second", 60, 90);
             PathModel target = changeSecond ? second : first;
-            target = target with { PathNodes = target.PathNodes.SetItem(0, target.PathNodes[0] with { WaitInfo = new PathNodeWaitInfo { WaitTime = 0 } }) };
+            target = target with { PathNodes = target.PathNodes.SetItem(0, target.PathNodes[0] with { WaitInfo = PathWaitOperationCodec.FromMstsWaitTime(0) }) };
             first = changeSecond ? first : target;
             second = changeSecond ? target : second;
 
@@ -208,7 +208,7 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
                 PathNodes = first.PathNodes.SetItem(nodeIndex, first.PathNodes[nodeIndex] with
                 {
                     NodeType = nodeType,
-                    WaitInfo = new PathNodeWaitInfo { WaitTime = waitTime },
+                    WaitInfo = PathWaitOperationCodec.FromMstsWaitTime(waitTime),
                 }),
             };
 
@@ -228,7 +228,7 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
             {
                 Id = "first",
                 PathNodes = [Anchor(20, 1) with { NodeType = PathNodeType.Start, NextMainNode = 1, NextSidingNode = -1 },
-                    Anchor(100, 3) with { NodeType = PathNodeType.Wait, NextMainNode = 2, NextSidingNode = -1, WaitInfo = new PathNodeWaitInfo { WaitTime = 30 } },
+                    Anchor(100, 3) with { NodeType = PathNodeType.Wait, NextMainNode = 2, NextSidingNode = -1, WaitInfo = PathWaitOperationCodec.FromMstsWaitTime(30) },
                     Anchor(50, 4) with { NodeType = PathNodeType.End, NextMainNode = -1, NextSidingNode = -1 }],
             };
             PathModel second = new PathModel
@@ -265,7 +265,7 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
             {
                 PathNodes = ImmutableArray.Create(target.PathNodes[0],
                     Anchor(changeSecond ? 70 : 25, 1) with { NodeType = PathNodeType.Wait, NextMainNode = 2, NextSidingNode = -1,
-                        WaitInfo = new PathNodeWaitInfo { WaitTime = waitTime } }, originalEnd),
+                        WaitInfo = PathWaitOperationCodec.FromMstsWaitTime(waitTime) }, originalEnd),
             };
             first = changeSecond ? first : target;
             second = changeSecond ? target : second;
@@ -281,7 +281,7 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
             PathNode combinedWait = combined.PathModel.PathNodes.Single(node => node.NodeType.Includes(PathNodeType.Wait));
             Assert.AreEqual(target.PathNodes[1].Location, combinedWait.Location);
             Assert.AreEqual(target.PathNodes[1].NodeIndex, combinedWait.NodeIndex);
-            Assert.AreEqual(waitTime, combinedWait.WaitInfo.WaitTime);
+            Assert.AreEqual(waitTime, PathWaitOperationCodec.GetMstsWaitCode(combinedWait.WaitInfo));
             Assert.ContainsSingle(node => node.WaitInfo != null, target.PathNodes);
             Assert.ContainsSingle(node => node.WaitInfo != null, combined.PathModel.PathNodes);
             Assert.IsFalse(appended.Success);
@@ -298,13 +298,13 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
             PathModel first = CreateCombinePath("first", 20, 80) with
             {
                 PathNodes = [Anchor(20, 1) with { NodeType = PathNodeType.Start, NextMainNode = 1, NextSidingNode = -1 },
-                    Anchor(50, 1) with { NodeType = PathNodeType.Wait, NextMainNode = 2, NextSidingNode = -1, WaitInfo = new PathNodeWaitInfo { WaitTime = 30 } },
+                    Anchor(50, 1) with { NodeType = PathNodeType.Wait, NextMainNode = 2, NextSidingNode = -1, WaitInfo = PathWaitOperationCodec.FromMstsWaitTime(30) },
                     Anchor(80, 1) with { NodeType = PathNodeType.End, NextMainNode = -1, NextSidingNode = -1 }],
             };
             PathModel second = CreateCombinePath("second", 80, 20) with
             {
                 PathNodes = [Anchor(80, 4) with { NodeType = PathNodeType.Start, NextMainNode = 1, NextSidingNode = -1 },
-                    Anchor(50, 4) with { NodeType = PathNodeType.Wait, NextMainNode = 2, NextSidingNode = -1, WaitInfo = new PathNodeWaitInfo { WaitTime = 60 } },
+                    Anchor(50, 4) with { NodeType = PathNodeType.Wait, NextMainNode = 2, NextSidingNode = -1, WaitInfo = PathWaitOperationCodec.FromMstsWaitTime(60) },
                     Anchor(20, 4) with { NodeType = PathNodeType.End, NextMainNode = -1, NextSidingNode = -1 }],
             };
 
@@ -314,7 +314,8 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
             PathCombinationCandidate candidate = prepared.Candidates[candidateIndex];
             Assert.AreEqual(candidateIndex == 1, candidate.FirstReversed);
             Assert.AreEqual(candidateIndex == 1, candidate.SecondReversed);
-            Assert.AreSequenceEqual(new[] { (1, 30), (4, 60) }, candidate.Combination.PathModel.PathNodes.Where(node => node.WaitInfo != null).Select(node => (node.NodeIndex, node.WaitInfo.WaitTime)));
+            Assert.AreSequenceEqual(new[] { (1, 30), (4, 60) }, candidate.Combination.PathModel.PathNodes.Where(node => node.WaitInfo != null)
+                .Select(node => (node.NodeIndex, PathWaitOperationCodec.GetMstsWaitCode(node.WaitInfo))));
             Assert.AreSequenceEqual(expectedArray50f50f, candidate.Combination.PathModel.PathNodes.Where(node => node.WaitInfo != null).Select(node => node.Location.Location.X));
             Assert.IsTrue(candidate.Combination.PathModel.PathNodes.Where(node => node.WaitInfo != null).All(node => node.NodeType.Includes(PathNodeType.Wait)));
         }

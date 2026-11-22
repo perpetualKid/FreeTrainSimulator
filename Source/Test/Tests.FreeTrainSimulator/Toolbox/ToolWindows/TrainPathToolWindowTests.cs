@@ -333,7 +333,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.ToolWindows
                     command();
 
                 PathModel edited = editor.TryCaptureCurrentPathModel();
-                Assert.AreEqual(("Updated", 30), (edited.Name, edited.PathNodes[1].WaitInfo.WaitTime));
+                Assert.AreEqual(("Updated", 30), (edited.Name, PathWaitOperationCodec.GetMstsWaitCode(edited.PathNodes[1].WaitInfo)));
                 bridge.Undo();
                 bridge.Undo();
                 bridge.Redo();
@@ -434,7 +434,8 @@ namespace Tests.FreeTrainSimulator.Toolbox.ToolWindows
                     bridge.ExecuteDisplayedPathCommand(refreshed, command => command.SetWaitPoint(1, 30));
                     while (commands.TryDequeue(out Action command))
                         command();
-                    Assert.AreEqual(("Fresh pane", 30), (current.TryCaptureCurrentPathModel().Name, current.TryCaptureCurrentPathModel().PathNodes[1].WaitInfo.WaitTime));
+                    Assert.AreEqual(("Fresh pane", 30), (current.TryCaptureCurrentPathModel().Name,
+                        PathWaitOperationCodec.GetMstsWaitCode(current.TryCaptureCurrentPathModel().PathNodes[1].WaitInfo)));
                 }
             }
         }
@@ -686,7 +687,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.ToolWindows
                     Assert.HasCount(1, commands);
                     Assert.IsTrue(commands.TryDequeue(out native));
                     native();
-                    Assert.AreEqual(30, replacement.TryCaptureCurrentPathModel().PathNodes[1].WaitInfo.WaitTime);
+                    Assert.AreEqual(30, PathWaitOperationCodec.GetMstsWaitCode(replacement.TryCaptureCurrentPathModel().PathNodes[1].WaitInfo));
                     Assert.AreSame(source, editor.TryCaptureCurrentPathModel());
                 }
             }
@@ -798,7 +799,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.ToolWindows
                     return completion.Task;
                 }))
             {
-                PathModel source = CreateEventPath(PathNodeType.Wait, new PathNodeWaitInfo { WaitTime = 30 });
+                PathModel source = CreateEventPath(PathNodeType.Wait, PathWaitOperationCodec.FromMstsWaitTime(30));
                 Task<bool> initialLoad = editor.InitializePathAsync(source, TestContext.CancellationToken);
                 commits.Dequeue()();
                 Assert.IsTrue(await initialLoad.ConfigureAwait(false));
@@ -1048,7 +1049,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.ToolWindows
                 PathNodes = source.PathNodes.SetItem(5, source.PathNodes[5] with
                 {
                     NodeType = PathNodeType.Via | PathNodeType.Wait,
-                    WaitInfo = new PathNodeWaitInfo { WaitTime = 30 },
+                    WaitInfo = PathWaitOperationCodec.FromMstsWaitTime(30),
                 })
             };
             using (PathEditor editor = CreatePathEditor(source))
@@ -1076,7 +1077,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.ToolWindows
                 PathNodes = source.PathNodes.SetItem(0, source.PathNodes[0] with
                 {
                     NextMainNode = 99,
-                    WaitInfo = new PathNodeWaitInfo { WaitTime = waitTime },
+                    WaitInfo = PathWaitOperationCodec.FromMstsWaitTime(waitTime),
                 })
             };
             using (PathEditor editor = CreatePathEditor(source))
@@ -1127,7 +1128,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.ToolWindows
         [TestMethod]
         public void WhenSimulatorEventBlocksSaveThenMergedIssuesContainOneAuthoredTargetAndFocusIt()
         {
-            using (PathEditor editor = CreatePathEditor(CreateEventPath(PathNodeType.Wait | PathNodeType.Reversal, new PathNodeWaitInfo { WaitTime = 30 })))
+            using (PathEditor editor = CreatePathEditor(CreateEventPath(PathNodeType.Wait | PathNodeType.Reversal, PathWaitOperationCodec.FromMstsWaitTime(30))))
             {
                 TrainPathToolWindow bridge = CreateCandidateBridge(() => editor);
                 bridge.RefreshSnapshot();
@@ -1169,7 +1170,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.ToolWindows
         [TestMethod]
         public void WhenRepairDraftHasSimulatorAndResolverIssuesThenSnapshotRetainsBoth()
         {
-            PathModel source = CreateEventPath(PathNodeType.Wait | PathNodeType.Reversal, new PathNodeWaitInfo { WaitTime = 30 });
+            PathModel source = CreateEventPath(PathNodeType.Wait | PathNodeType.Reversal, PathWaitOperationCodec.FromMstsWaitTime(30));
             source = source with { PathNodes = source.PathNodes.SetItem(1, source.PathNodes[1] with { NextMainNode = 99 }) };
             using (PathEditor editor = CreatePathEditor(source))
             {
@@ -2784,7 +2785,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.ToolWindows
                 Name = "Test Path",
             });
             trainPath.PathPoints.Add(new TestTrainPathPoint(PathNodeType.Start) { NextSidingNode = 1 });
-            trainPath.PathPoints.Add(new TestTrainPathPoint(PathNodeType.Wait | PathNodeType.Reversal) { WaitInfo = new PathNodeWaitInfo { WaitTime = 30 } });
+            trainPath.PathPoints.Add(new TestTrainPathPoint(PathNodeType.Wait | PathNodeType.Reversal) { WaitInfo = PathWaitOperationCodec.FromMstsWaitTime(30) });
             trainPath.PathPoints.Add(new TestTrainPathPoint(PathNodeType.End) { ValidationResult = PathNodeInvalidReasons.NotOnTrack });
 
             ImmutableArray<ToolWindowRow> rows = TrainPathToolWindow.BuildEditorStateMetadata(trainPath);

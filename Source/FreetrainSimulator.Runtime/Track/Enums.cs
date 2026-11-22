@@ -163,6 +163,9 @@ namespace FreeTrainSimulator.Runtime.Track
     {
         None = 0,
         BasicWaitTimeOutOfRange,
+        InvalidWaitOperation,
+        WaitOperationSet,
+        WaitOperationUnchanged,
         ReverseChainRequired,
         ReverseUnsupportedData,
         PathReversed,

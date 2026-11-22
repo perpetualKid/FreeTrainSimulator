@@ -57,7 +57,7 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
             PathModel path = new PathModel
             {
                 PathNodes = ImmutableArray.Create(Node(PathNodeType.Start, 1, 2), Node(PathNodeType.End, -1, -1),
-                    Node(nodeType, -1, 1) with { WaitInfo = new PathNodeWaitInfo { WaitTime = waitTime } }),
+                    Node(nodeType, -1, 1) with { WaitInfo = PathWaitOperationCodec.FromMstsWaitTime(waitTime) }),
             };
 
             PathRouteDiagnostic diagnostic = PathSimulatorEventCompatibility.Validate(path, 0).Single();
@@ -74,7 +74,7 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
             PathModel path = new PathModel
             {
                 PathNodes = ImmutableArray.Create(Node(PathNodeType.Start, 1, -1),
-                    Node(nodeType, -1, -1) with { WaitInfo = new PathNodeWaitInfo { WaitTime = waitTime } }),
+                    Node(nodeType, -1, -1) with { WaitInfo = PathWaitOperationCodec.FromMstsWaitTime(waitTime) }),
             };
 
             ImmutableArray<PathRouteDiagnostic> diagnostics = PathSimulatorEventCompatibility.Validate(path, 0);
@@ -174,7 +174,7 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
             PathModel path = new PathModel
             {
                 PathNodes = ImmutableArray.Create(Node(PathNodeType.Start, 1, -1),
-                    Node(PathNodeType.Wait, 2, 6) with { WaitInfo = new PathNodeWaitInfo { WaitTime = 37 } },
+                    Node(PathNodeType.Wait, 2, 6) with { WaitInfo = PathWaitOperationCodec.FromMstsWaitTime(37) },
                     Node(PathNodeType.Via, 3, -1), Node(PathNodeType.Via, 4, 7), Node(PathNodeType.Reversal, 5, -1),
                     Node(PathNodeType.End, -1, -1), Node(PathNodeType.Via, -1, 2), Node(PathNodeType.Via, -1, 4)),
             };

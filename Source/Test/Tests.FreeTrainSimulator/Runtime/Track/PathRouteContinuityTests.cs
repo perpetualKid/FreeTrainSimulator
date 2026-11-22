@@ -190,7 +190,7 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
         public void GeneratePathWhenVectorViaHasWaitAndOptionalReversalThenPreservesIntent(bool reversal)
         {
             TrackWorld world = CreateContinuityWorld(TrackDirection.Ahead);
-            PathNodeWaitInfo waitInfo = new PathNodeWaitInfo { WaitTime = 30 };
+            PathNodeWaitInfo waitInfo = PathWaitOperationCodec.FromMstsWaitTime(30);
             PathNode via = CreateNode(PathNodeType.Via | PathNodeType.Wait | (reversal ? PathNodeType.Reversal : PathNodeType.None), 2, 1, 50) with { WaitInfo = waitInfo };
             PathModel source = new PathModel
             {

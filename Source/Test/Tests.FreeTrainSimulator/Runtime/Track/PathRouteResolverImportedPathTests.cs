@@ -212,7 +212,8 @@ namespace Tests.FreeTrainSimulator.Runtime.Track
                 Assert.AreEqual(source.PathNodes[index].NextSidingNode, imported.PathNodes[index].NextSidingNode);
                 int waitTime = index == eventIndex ? (int)(sourceFlags >> 16) : 0;
                 Assert.AreEqual(waitTime, source.PathNodes[index].WaitTime);
-                Assert.AreEqual(waitTime > 0 ? (int?)waitTime : null, imported.PathNodes[index].WaitInfo?.WaitTime);
+                Assert.AreEqual(waitTime > 0 ? (int?)waitTime : null, imported.PathNodes[index].WaitInfo == null
+                    ? null : PathWaitOperationCodec.GetMstsWaitCode(imported.PathNodes[index].WaitInfo));
             }
             Assert.AreSequenceEqual(imported.PathNodes, reloaded.PathNodes);
             Assert.AreSequenceEqual(sourceBytes, await File.ReadAllBytesAsync(sourceFile, TestContext.CancellationToken).ConfigureAwait(false));
