@@ -259,7 +259,9 @@ namespace FreeTrainSimulator.Toolbox.Views
             ((PathChartControl)sender).InvalidateProfileDrawing();
         }
 
+#pragma warning disable CA1859 // Use concrete types when possible for improved performance
         private static object CoerceCursorDistance(DependencyObject sender, object value)
+#pragma warning restore CA1859 // Use concrete types when possible for improved performance
         {
             PathChartControl chart = (PathChartControl)sender;
             double distance = (double)value;

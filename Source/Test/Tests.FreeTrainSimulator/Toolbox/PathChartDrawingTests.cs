@@ -998,7 +998,9 @@ namespace Tests.FreeTrainSimulator.Toolbox
             public PathChartStationItemViewModel[] Stations { get; }
             public PathChartStationItemViewModel SelectedStation { get; set; }
             public const string ExpectedSelectedValuesText = "Distance 5.00 km; elevation 150.0 m; grade 0.00%; curvature 0.00 /km (positive right). Selected main-route geometry values remain accessible.";
+#pragma warning disable CA1822 // Mark members as static
             public string SelectedValuesText => ExpectedSelectedValuesText;
+#pragma warning restore CA1822 // Mark members as static
             public string StatusMessage { get; }
 
             public ChartLayoutData(PathChartProfile profile)
