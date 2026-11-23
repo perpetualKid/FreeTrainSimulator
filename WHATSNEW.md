@@ -2,7 +2,8 @@
 
 ## Features
 
-- Updated Monogame version 3.8.5
+- Toolbox is released as the replacement for the legacy TrackViewer. It provides route inspection and navigation, train-path creation and editing, saved-path comparison and combination, repair workflows, path charts, and native FTS model persistence. See the [Toolbox wiki](https://github.com/perpetualKid/FreeTrainSimulator/wiki/Toolbox) for supported workflows and boundaries.
+- Updated Monogame version 3.8.6.1
 - Toolbox has been reworked into a modern, dockable IDE-style desktop application, with movable, floating, auto-hiding, and tabbed tool windows arranged around the central map view:
   - Tool windows for Routes, Settings, Route Navigation, Train Path details, Location, Logging, Help, and Debug information
   - Settings tool window with separate tabs for general options, item colors, and item visibility, plus a "Reset to Defaults" action
@@ -10,7 +11,6 @@
   - Always-on status bar showing tile, track, and item information under the mouse pointer
   - Window layout, undocked tool window sizes, and main window placement are remembered between sessions and can be reset to a clean default
   - User interface language can be switched at runtime
-- Toolbox Path Editor allows to create and save new train paths. This is still work in progres.
 - Multiple configuration profiles, available through Menu application, allow to have all settings profile-dependent
 - Existing content folder settings are imported from OpenRails
 
@@ -26,11 +26,12 @@
 
 ## Maintenance
 
-- Update to Monogame 3.8.5
+- Update to Monogame 3.8.6.1
 - Removing support for contributed software
   - Contrib.DataCollector
   - Contrib.DataConverter
   - Contrib.DataValidator
+  - Contrib.TrackViewer
 
 ## Known Issues
 
