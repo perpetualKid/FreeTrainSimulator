@@ -9,7 +9,6 @@
     <Project Path="Contrib/ContentChecker/ContentChecker.csproj" />
     <Project Path="Contrib/ContentManager/ContentManager.csproj" />
     <Project Path="Contrib/SimulatorTester/SimulatorTester.csproj" />
-    <Project Path="Contrib/TrackViewer/TrackViewer.Legacy.csproj" />
   </Folder>
   <Folder Name="/Solution Items/">
     <File Path="../CONTRIBUTING.md" />
