@@ -13,6 +13,8 @@ using FreeTrainSimulator.Models.Shim;
 using FreeTrainSimulator.Toolbox.Hosting;
 using FreeTrainSimulator.Toolbox.PathEditing;
 
+using GetText;
+
 namespace FreeTrainSimulator.Toolbox
 {
     /// <summary>Owns route, editor and admitted operation lifetime; the game owns platform resources and transport.</summary>
@@ -51,6 +53,7 @@ namespace FreeTrainSimulator.Toolbox
         internal FolderModel SelectedFolder => selectedFolder;
         internal RouteModelHeader SelectedRoute => selectedRoute;
         internal PathEditor ExistingPathEditor => pathEditor;
+        internal bool LastViewRestorationFailed { get; private set; }
         internal bool HasUnsavedPathChanges => game.HostedServices?.TrainPathToolWindow?.HasUnsavedPathChanges == true || pathEditor?.HasUnsavedChanges == true;
 
         internal ITrainPathToolingContext TrainPathToolingContext => selectedRoute == null || toolboxContent == null ? null
@@ -229,7 +232,8 @@ namespace FreeTrainSimulator.Toolbox
             }
             await game.InvokeOnGameThreadAsync(async () =>
             {
-                if (!game.ToolboxSettings.RestoreLastView || !routeLoads.IsLatestSelection(selection))
+                if (!routeLoads.IsLatestSelection(selection)
+                    || string.IsNullOrWhiteSpace(game.ToolboxSettings.Folder) || string.IsNullOrWhiteSpace(game.ToolboxSettings.RouteId))
                     return;
                 try
                 {
@@ -244,6 +248,9 @@ namespace FreeTrainSimulator.Toolbox
                         {
                             game.SetRouteLoadingStatus(null);
                             game.ToolboxSettings.RestoreLastView = false;
+                            LastViewRestorationFailed = true;
+                            menuError = ex.Message;
+                            PublishMenu();
                         }
                         return Task.CompletedTask;
                     }).ConfigureAwait(false);
@@ -292,6 +299,7 @@ namespace FreeTrainSimulator.Toolbox
                     return Task.FromResult(false);
                 }
                 selectedFolder = folder;
+                LastViewRestorationFailed = false;
                 discoveryContext = ++folderContext;
                 pendingFolder = null;
                 menuRoutes = ImmutableArray<RouteModelHeader>.Empty;
@@ -362,6 +370,7 @@ namespace FreeTrainSimulator.Toolbox
                     return;
                 }
                 pendingRoute = null;
+                LastViewRestorationFailed = false;
                 if (ReferenceEquals(selectedRoute, route))
                 {
                     routeLoads.CancelCurrent();
@@ -538,7 +547,7 @@ namespace FreeTrainSimulator.Toolbox
                 return;
             selectedFolder = contentModel.ContentFolders.FirstOrDefault(folder => string.Equals(folder.Id, folderId, StringComparison.OrdinalIgnoreCase));
             if (selectedFolder == null)
-                return;
+                throw new InvalidOperationException(CatalogManager.Catalog.GetString("The saved content folder is unavailable:") + " " + folderId);
             long discoveryContext = ++folderContext;
             menuRoutes = ImmutableArray<RouteModelHeader>.Empty;
             discoveringRoutes = true;
@@ -553,8 +562,8 @@ namespace FreeTrainSimulator.Toolbox
                 discoveringRoutes = false;
                 PublishMenu();
                 RouteModelHeader route = routes.GetById(routeId);
-                if (route == null || !game.ToolboxSettings.RestoreLastView)
-                    return;
+                if (route == null)
+                    throw new InvalidOperationException(CatalogManager.Catalog.GetString("The saved route is unavailable:") + " " + routeId);
                 using (RouteLoadCoordinator.Request request = BeginRouteLoad(route, selection))
                 {
                     if (request == null || !await LoadRouteAsync(route, request).ConfigureAwait(false))

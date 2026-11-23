@@ -56,6 +56,12 @@ namespace Orts.ActivityRunner.Processes
             processState.WaitTillFinished();
         }
 
+        internal void WaitForTermination()
+        {
+            if ((thread.ThreadState & System.Threading.ThreadState.Unstarted) == 0)
+                thread.Join();
+        }
+
         protected abstract void Update(GameTime gameTime);
 
         protected virtual void Initialize()
@@ -72,6 +78,8 @@ namespace Orts.ActivityRunner.Processes
                 else
                     // Wait for a new trigger command
                     processState.WaitTillStarted();
+                if (processState.Terminated)
+                    break;
                 try
                 {
                     try
@@ -83,6 +91,10 @@ namespace Orts.ActivityRunner.Processes
                     {
                         profiler.Stop();
                     }
+                }
+                catch (OperationCanceledException) when (cancellationTokenSource.IsCancellationRequested)
+                {
+                    Trace.TraceInformation($"{processState.ProcessName}: shutdown cancellation acknowledged.");
                 }
                 catch (Exception error) when (!Debugger.IsAttached)
                 {

@@ -498,6 +498,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.Hosting
 #pragma warning restore CS9216
             SetField(host, "ready", ready);
             SetField(host, "gameThreadCompletion", terminated);
+            SetField(host, "startRequested", true);
             GameWindow.ObserveGameThreadOperation(ready.Task);
             GameWindow.ObserveGameThreadOperation(terminated.Task);
             return host;

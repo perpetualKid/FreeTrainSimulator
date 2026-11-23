@@ -1216,12 +1216,13 @@ namespace Tests.FreeTrainSimulator.Toolbox.Hosting
                 try
                 {
                     await scope.Host.OnOwnerAsync(() => SetField(scope.Session, "contentModel", new ContentModel([folder]))).ConfigureAwait(false);
-                    await scope.Game.InvokeOnGameThreadAsync(() =>
+                    InvalidOperationException error = await Assert.ThrowsExactlyAsync<InvalidOperationException>(() => scope.Game.InvokeOnGameThreadAsync(() =>
                     {
                         RouteLoadCoordinator loads = (RouteLoadCoordinator)typeof(ToolboxSession).GetField("routeLoads", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(scope.Session);
                         long selection = loads.BeginSelection();
                         return InvokeMenuTask(scope.Session, "PreSelectRouteAsync", [useId ? folder.Id : folder.Name, "missing", null, selection]);
-                    }).ConfigureAwait(false);
+                    })).ConfigureAwait(false);
+                    Assert.Contains(useId ? "missing" : folder.Name, error.Message, StringComparison.Ordinal);
                     Assert.AreEqual(useId ? folder : null, scope.Session.SelectedFolder);
                 }
                 finally { MenuRouteCache.RemoveRoutes(folder); }

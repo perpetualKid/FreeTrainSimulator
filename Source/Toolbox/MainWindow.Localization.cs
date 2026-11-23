@@ -8,10 +8,8 @@ using GetText.Wpf;
 
 namespace FreeTrainSimulator.Toolbox
 {
-    // WPF-side localization coordinator. The hosted game thread owns the gettext catalog and raises
-    // GameWindow.LanguageChanged (initial load and every later switch); the host control re-raises it on the
-    // WPF dispatcher as MapHost.LanguageChanged. This partial reacts to it by re-localizing the persistent
-    // shell against the same shared catalog.
+    // The shell initializes localization before map startup. Later game-thread language changes are
+    // forwarded through the host to re-localize the persistent shell against the shared catalog.
     //
     // Unlike fresh modal dialogs (which can use the {gt:Gettext} markup extension), the long-lived MainWindow
     // must support runtime language switching. WPF markup extensions resolve only once at parse time, so the

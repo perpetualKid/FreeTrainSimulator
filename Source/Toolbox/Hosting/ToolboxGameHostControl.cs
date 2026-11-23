@@ -12,6 +12,7 @@ using System.Windows.Threading;
 using FreeTrainSimulator.Common.Native;
 using FreeTrainSimulator.Common.Position;
 using FreeTrainSimulator.Models.Content;
+using FreeTrainSimulator.Models.Settings;
 using FreeTrainSimulator.Toolbox.PathEditing;
 using FreeTrainSimulator.Toolbox.Settings;
 
@@ -26,6 +27,11 @@ namespace FreeTrainSimulator.Toolbox.Hosting
         private bool ownerResourcesReleased;
 
         private Thread gameThread;
+        private bool startRequested;
+        private ProfileModel startupProfile;
+        private ProfileUserSettingsModel startupUserSettings;
+        private ProfileToolboxSettingsModel startupToolboxSettings;
+        private string startupLogFileName;
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Usage", "CA2213:Disposable fields should be disposed",
             Justification = "GameThreadStart owns and disposes the game in a using block on its STA after draining the session; this field only publishes the instance.")]
         private volatile GameWindow gameWindow;
@@ -127,8 +133,6 @@ namespace FreeTrainSimulator.Toolbox.Hosting
             SizeChanged += HostGeometryChanged;
             LayoutUpdated += HostGeometryChanged;
             hostPanel.ClientSizeChanged += HostGeometryChanged;
-
-            StartHostedGame();
         }
 
         private void HostGeometryChanged(object sender, EventArgs e)
@@ -174,15 +178,26 @@ namespace FreeTrainSimulator.Toolbox.Hosting
             }
         }
 
-        private void StartHostedGame()
+        /// <summary>Starts the owner once, using the shell's resolved profile and settings.</summary>
+        internal Task StartAsync(ProfileModel profile, ProfileUserSettingsModel userSettings, ProfileToolboxSettingsModel toolboxSettings, string logFileName)
         {
+            ArgumentNullException.ThrowIfNull(profile);
+            ArgumentNullException.ThrowIfNull(userSettings);
+            ArgumentNullException.ThrowIfNull(toolboxSettings);
+
             lock (syncLock)
             {
-                if (disposed)
-                    return;
+                ObjectDisposedException.ThrowIf(disposed, this);
+                if (stopping)
+                    throw new InvalidOperationException("The Toolbox host is stopping.");
+                if (startRequested)
+                    return ready.Task;
 
-                if (gameThread != null)
-                    return;
+                startRequested = true;
+                startupProfile = profile;
+                startupUserSettings = userSettings;
+                startupToolboxSettings = toolboxSettings;
+                startupLogFileName = logFileName;
 
                 gameThread = new Thread(GameThreadStart)
                 {
@@ -204,6 +219,7 @@ namespace FreeTrainSimulator.Toolbox.Hosting
                     gameThreadCompletion.TrySetException(exception);
                     throw;
                 }
+                return ready.Task;
             }
         }
 
@@ -212,7 +228,7 @@ namespace FreeTrainSimulator.Toolbox.Hosting
             Exception failure = null;
             try
             {
-                using (GameWindow game = new GameWindow())
+                using (GameWindow game = new GameWindow(startupProfile, startupUserSettings, startupToolboxSettings, startupLogFileName))
                 {
                     gameWindow = game;
                     game.EnableHostedMode(ReattachHostedWindow, UpdateHostWindowTitle);
@@ -302,6 +318,13 @@ namespace FreeTrainSimulator.Toolbox.Hosting
             lock (syncLock)
             {
                 stopping = true;
+                if (!startRequested)
+                {
+                    ownerResourcesReleased = true;
+                    ready.TrySetCanceled();
+                    gameThreadCompletion.TrySetResult();
+                    return stopTask ??= Task.CompletedTask;
+                }
                 return stopTask ??= StopCoreAsync();
             }
         }

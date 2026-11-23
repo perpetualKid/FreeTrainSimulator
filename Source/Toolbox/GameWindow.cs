@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
@@ -191,14 +190,15 @@ namespace FreeTrainSimulator.Toolbox
             ToolWindowShortcutRequested?.Invoke(this, new ToolWindowShortcutRequestedEventArgs(command));
         }
 
-        public GameWindow()
+        internal GameWindow(ProfileModel profile, ProfileUserSettingsModel userSettings, ProfileToolboxSettingsModel toolboxSettings, string logFileName)
         {
-            ImmutableArray<string> options = Environment.GetCommandLineArgs().Where(a => a.StartsWith('-') || a.StartsWith('/')).Select(a => a[1..]).ToImmutableArray();
-
-            CatalogManager.SetCatalogDomainPattern(CatalogDomainPattern.AssemblyName, null, RuntimeInfo.LocalesFolder);
-
-            LoadSettingsSynchronously();
-            InitializeLoggingFromSettings();
+            ArgumentNullException.ThrowIfNull(profile);
+            ArgumentNullException.ThrowIfNull(userSettings);
+            ArgumentNullException.ThrowIfNull(toolboxSettings);
+            currentProfile = profile;
+            ToolboxUserSettings = userSettings;
+            ToolboxSettings = toolboxSettings;
+            LogFileName = logFileName;
 
             windowForm = (Form)Control.FromHandle(Window.Handle);
             ownerControl = new GameThreadControl(); // Create the independent dispatch HWND on the game STA.
@@ -814,29 +814,6 @@ namespace FreeTrainSimulator.Toolbox
             LoadLanguage();
         }
 
-        private async Task LoadSettings()
-        {
-            ctsProfileLoading = await ctsProfileLoading.ResetCancellationTokenSource(loadRouteSemaphore, true).ConfigureAwait(false);
-            currentProfile = await currentProfile.Current(ctsProfileLoading.Token).ConfigureAwait(false);
-            ToolboxUserSettings = await currentProfile.LoadSettingsModel<ProfileUserSettingsModel>(ctsProfileLoading.Token).ConfigureAwait(false);
-            ToolboxSettings = await currentProfile.LoadSettingsModel<ProfileToolboxSettingsModel>(ctsProfileLoading.Token).ConfigureAwait(false);
-        }
-
-        private void LoadSettingsSynchronously()
-        {
-            LoadSettings().ConfigureAwait(false).GetAwaiter().GetResult();
-        }
-
-        private void InitializeLoggingFromSettings()
-        {
-            if (ToolboxUserSettings.LogLevel == TraceEventType.Critical)
-                return;
-
-            LogFileName = RuntimeInfo.LogFile(ToolboxUserSettings.LogFilePath, ToolboxUserSettings.LogFileName);
-            LoggingUtil.InitLogging(LogFileName, ToolboxUserSettings.LogLevel, false, false);
-            ToolboxSettings.Log();
-        }
-
         private void ApplySettings()
         {
             windowSize = new System.Drawing.Size(
@@ -859,12 +836,14 @@ namespace FreeTrainSimulator.Toolbox
                 (int)Math.Max(0, Math.Round(100.0 * (windowPosition.Y - currentScreen.Bounds.Top) / (currentScreen.WorkingArea.Height - windowSize.Height))));
 
             ToolboxSettings.WindowScreen = Screen.AllScreens.ToList().IndexOf(currentScreen);
-            ToolboxSettings.ContentPosition = contentArea is IMapHostControl hostControl ? hostControl.CenterPoint : PointD.None;
-            ToolboxSettings.ContentScale = contentArea is IMapHostControl hostControl2 ? hostControl2.Scale : 1;
-
-            ToolboxSettings.Folder = session.SelectedFolder?.Id;
-            ToolboxSettings.RouteId = session.SelectedRoute?.Id;
-            ToolboxSettings.PathId = session.ExistingPathEditor?.PathId;
+            if (!session.LastViewRestorationFailed)
+            {
+                ToolboxSettings.ContentPosition = contentArea is IMapHostControl hostControl ? hostControl.CenterPoint : PointD.None;
+                ToolboxSettings.ContentScale = contentArea is IMapHostControl hostControl2 ? hostControl2.Scale : 1;
+                ToolboxSettings.Folder = session.SelectedFolder?.Id;
+                ToolboxSettings.RouteId = session.SelectedRoute?.Id;
+                ToolboxSettings.PathId = session.ExistingPathEditor?.PathId;
+            }
 
             //            ProfileSettingModelHandler<ProfileUserSettingsModel>.SetValueByName(ToolboxUserSettings, "MultiSamplingCount", 8);
 

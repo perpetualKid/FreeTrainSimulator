@@ -112,6 +112,7 @@ namespace FreeTrainSimulator.Toolbox
                 pendingRoute = null;
                 if (confirmed)
                 {
+                    LastViewRestorationFailed = false;
                     routeLoads.CancelCurrent();
                     ClearRoute();
                     menuError = null;

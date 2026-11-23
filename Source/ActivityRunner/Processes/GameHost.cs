@@ -80,6 +80,7 @@ namespace Orts.ActivityRunner.Processes
         internal GameState State => gameStates.Count > 0 ? gameStates.Peek() : null;
 
         private readonly Stack<GameState> gameStates;
+        private bool processesStopped;
 
         public GameComponentCollection GameComponents { get; } = new GameComponentCollection();
 
@@ -90,7 +91,7 @@ namespace Orts.ActivityRunner.Processes
         public GameHost(ProfileUserSettingsModel userSettings)
         {
             UserSettings = userSettings;
-            Exiting += Game_Exiting;
+            Exiting += GameExiting;
             RenderProcess = new RenderProcess(this);
             UpdaterProcess = new UpdaterProcess(this);
             LoaderProcess = new LoaderProcess(this);
@@ -161,24 +162,48 @@ namespace Orts.ActivityRunner.Processes
         protected override async void EndRun()
         {
             base.EndRun();
+            StopProcesses();
             RenderProcess.Stop();
-            UpdaterProcess.Stop();
-            LoaderProcess.Stop();
-            SoundProcess.Stop();
-            WebServerProcess.Stop();
-            SystemProcess.Stop();
 
             _ = await UserSettings.Parent.UpdateRuntimeUserSettingsModel(UserSettings, CancellationToken.None).ConfigureAwait(false);
         }
 
-        private void Game_Exiting(object sender, EventArgs e)
+        private void GameExiting(object sender, EventArgs e)
         {
+            StopProcesses();
             while (State != null)
                 PopState();
         }
 
+        private void StopProcesses()
+        {
+            if (processesStopped)
+                return;
+
+            LoaderProcess.Stop();
+            UpdaterProcess.Stop();
+            SoundProcess.Stop();
+            WebServerProcess.Stop();
+            SystemProcess.Stop();
+
+            // Cancellation is cooperative; keep states and graphics alive until workers actually exit.
+            LoaderProcess.WaitForTermination();
+            UpdaterProcess.WaitForTermination();
+            SoundProcess.WaitForTermination();
+            SystemProcess.WaitForTermination();
+            processesStopped = true;
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing)
+                StopProcesses();
+            base.Dispose(disposing);
+        }
+
         internal void PushState(GameState state)
         {
+            LoaderProcess.CancellationToken.ThrowIfCancellationRequested();
             state.Game = this;
             gameStates.Push(state);
             Trace.TraceInformation($"Game.PushState({state.GetType().Name})  {string.Join(" | ", gameStates.Select(s => s.GetType().Name).ToArray())}");
@@ -193,6 +218,7 @@ namespace Orts.ActivityRunner.Processes
 
         internal void ReplaceState(GameState state)
         {
+            LoaderProcess.CancellationToken.ThrowIfCancellationRequested();
             if (State != null)
             {
                 State.Dispose();

@@ -160,7 +160,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.ViewModels
                             }
                             menu.Publish(Snapshot(session, ++revision, "folder", "route", ToolboxMenuStatus.Ready, null, false));
                             PumpBindings();
-                            Assert.IsFalse(mainMenu.IsEnabled);
+                            Assert.IsTrue(mainMenu.IsEnabled, "Shell commands remain available when hosted commands are disabled.");
                             Assert.IsFalse(closeRoute.IsEnabled);
                             Assert.IsFalse(viewModel.UnloadRouteCommand.CanExecute(null));
                             viewModel.UnloadRouteCommand.Execute(null);

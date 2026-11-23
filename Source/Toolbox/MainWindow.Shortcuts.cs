@@ -90,7 +90,7 @@ namespace FreeTrainSimulator.Toolbox
             shortcutInputManager.PreProcessInput -= InputManager_PreProcessInput;
             shortcutApplication?.Deactivated -= ShortcutApplication_Deactivated;
             shortcutPressTracker.Reset();
-            MapHost.ToolWindowShortcutRequested -= MapHost_ToolWindowShortcutRequested;
+            MapHost?.ToolWindowShortcutRequested -= MapHost_ToolWindowShortcutRequested;
         }
     }
 }

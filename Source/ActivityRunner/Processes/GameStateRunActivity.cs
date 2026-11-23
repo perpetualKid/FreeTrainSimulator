@@ -163,6 +163,11 @@ namespace Orts.ActivityRunner.Processes
                         break;
                 }
             }
+            catch (OperationCanceledException) when (Game.LoaderProcess.CancellationToken.IsCancellationRequested)
+            {
+                Trace.TraceInformation("Activity loading canceled during shutdown.");
+                return;
+            }
             catch (Exception error) when (!Debugger.IsAttached)
             {
                 Trace.WriteLine(new FatalException(error));
@@ -211,7 +216,8 @@ namespace Orts.ActivityRunner.Processes
                 Game.Exit();
                 Environment.Exit(-1);
             }
-            await UninitLoading().ConfigureAwait(false);
+            if (!Game.LoaderProcess.CancellationToken.IsCancellationRequested)
+                await UninitLoading().ConfigureAwait(false);
         }
 
         /// <summary>
@@ -222,6 +228,7 @@ namespace Orts.ActivityRunner.Processes
         {
             profileSelections.Log();
             await InitSimulator(Game.UserSettings, profileSelections, Game.LoaderProcess.CancellationToken).ConfigureAwait(false);
+            Game.LoaderProcess.CancellationToken.ThrowIfCancellationRequested();
             switch (profileSelections.ActivityType)
             {
                 case ActivityType.TimeTable:
@@ -238,17 +245,14 @@ namespace Orts.ActivityRunner.Processes
                 MultiPlayerManager.Broadcast(new PlayerStateMessage(simulator.Trains[0]));
                 // wait 2 seconds to see if you get a reply from server with updated position/consist data, else go on
 
-                await Task.Delay(2000).ConfigureAwait(false);
+                await Task.Delay(2000, Game.LoaderProcess.CancellationToken).ConfigureAwait(false);
                 if (simulator.Trains[0].RequestJump)
                 {
                     simulator.Trains[0].UpdateRemoteTrainPos(0);
                 }
-                if (Game.LoaderProcess.CancellationToken.IsCancellationRequested)
-                    return;
             }
 
-            Viewer = new Viewer(simulator, Game);
-            Viewer.Initialize();
+            InitializeViewer();
 
 #pragma warning disable CA2000 // Dispose objects before losing scope
             Game.ReplaceState(new GameStateViewer3D(Viewer));
@@ -264,12 +268,12 @@ namespace Orts.ActivityRunner.Processes
             GameSaveState saveState = await GameSaveState.FromFile<GameSaveState>(profileSelections.GameSaveFile, Game.LoaderProcess.CancellationToken).ConfigureAwait(false);
             saveState.ProfileSelections.Log();
             await InitSimulator(Game.UserSettings, saveState.ProfileSelections, Game.LoaderProcess.CancellationToken).ConfigureAwait(false);
+            Game.LoaderProcess.CancellationToken.ThrowIfCancellationRequested();
             simulator.BeforeRestore(saveState.Path, saveState.InitialLocation);
 
             await simulator.Restore(saveState.SimulatorSaveState).ConfigureAwait(false);
 
-            Viewer = new Viewer(simulator, Game);
-            Viewer.Initialize();
+            InitializeViewer();
             if (MultiPlayerManager.IsMultiPlayer())
             {
                 if (saveState.ProfileSelections.ActivityType == ActivityType.Activity)
@@ -297,9 +301,9 @@ namespace Orts.ActivityRunner.Processes
             saveState.ProfileSelections.Log();
 
             await InitSimulator(Game.UserSettings, saveState.ProfileSelections, Game.LoaderProcess.CancellationToken).ConfigureAwait(false);
+            Game.LoaderProcess.CancellationToken.ThrowIfCancellationRequested();
             simulator.Start(Game.LoaderProcess.CancellationToken);
-            Viewer = new Viewer(simulator, Game);
-            Viewer.Initialize();
+            InitializeViewer();
 
             // Load command log to replay
             string replayFile = Path.ChangeExtension(profileSelections.GameSaveFile, "replay");
@@ -362,9 +366,9 @@ namespace Orts.ActivityRunner.Processes
                 saveState.ProfileSelections.Log();
                 await InitSimulator(Game.UserSettings, saveState.ProfileSelections, Game.LoaderProcess.CancellationToken).ConfigureAwait(false);
 
+                Game.LoaderProcess.CancellationToken.ThrowIfCancellationRequested();
                 simulator.Start(Game.LoaderProcess.CancellationToken);
-                Viewer = new Viewer(simulator, Game);
-                Viewer.Initialize();
+                InitializeViewer();
             }
             else
             {
@@ -373,11 +377,11 @@ namespace Orts.ActivityRunner.Processes
 
                 // Resume from previous SaveFile and then replay
                 await InitSimulator(Game.UserSettings, saveState.ProfileSelections, Game.LoaderProcess.CancellationToken).ConfigureAwait(false);
+                Game.LoaderProcess.CancellationToken.ThrowIfCancellationRequested();
                 simulator.BeforeRestore(saveState.Path, saveState.InitialLocation);
                 await simulator.Restore(saveState.SimulatorSaveState).ConfigureAwait(false);
 
-                Viewer = new Viewer(simulator, Game);
-                Viewer.Initialize();
+                InitializeViewer();
                 await Viewer.Restore(saveState.ViewerSaveState).ConfigureAwait(false);
             }
 
@@ -407,9 +411,9 @@ namespace Orts.ActivityRunner.Processes
             {
                 profileSelections.Log();
                 await InitSimulator(Game.UserSettings, profileSelections, Game.LoaderProcess.CancellationToken).ConfigureAwait(false);
+                Game.LoaderProcess.CancellationToken.ThrowIfCancellationRequested();
                 simulator.Start(Game.LoaderProcess.CancellationToken);
-                Viewer = new Viewer(simulator, Game);
-                Viewer.Initialize();
+                InitializeViewer();
                 Game.ReplaceState(exitGameState);
 #pragma warning disable CA2000 // Dispose objects before losing scope
                 Game.PushState(new GameStateViewer3D(Viewer));
@@ -418,11 +422,20 @@ namespace Orts.ActivityRunner.Processes
                 exitGameState.Passed = true;
             }
 #pragma warning disable CA1031 // Do not catch general exception types
-            catch
+            catch (Exception error) when (error is not OperationCanceledException || !Game.LoaderProcess.CancellationToken.IsCancellationRequested)
 #pragma warning restore CA1031 // Do not catch general exception types
             {
                 Game.ReplaceState(exitGameState);
             }
+        }
+
+        private void InitializeViewer()
+        {
+            Game.LoaderProcess.CancellationToken.ThrowIfCancellationRequested();
+            Viewer = new Viewer(simulator, Game);
+            Game.LoaderProcess.CancellationToken.ThrowIfCancellationRequested();
+            Viewer.Initialize();
+            Game.LoaderProcess.CancellationToken.ThrowIfCancellationRequested();
         }
 
         private void InitLogging(bool appendLog = false)

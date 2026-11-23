@@ -16,12 +16,14 @@
 
 ## Updates
 - Toolbox
+	- Lazy map startup retains the regular docked tool windows around an empty map; opening the last route manually also works when automatic startup restoration is disabled.
 	- Improve text readability for named track items by using fount outlining in contrast color
 	- Track segments in Toolbox view are drawn narrower, giving better track overview, but can be changed in toolbox settings (requires reloading the current route if changed to become visible)
 	- Track end nodes rendered narrower
 
 ## Bug Fixes
 
+- Activity Runner cancels loading and waits for workers before disposing the game, preventing viewer initialization against disposed graphics and input resources when closing during loading.
 - Fixing regression in Toolbox to also show invalid Paths (where path nodes are not on track)
 
 ## Maintenance

@@ -6,7 +6,6 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:avalonDock="clr-namespace:AvalonDock;assembly=AvalonDock"
         xmlns:avalonLayout="clr-namespace:AvalonDock.Layout;assembly=AvalonDock"
-        xmlns:host="clr-namespace:FreeTrainSimulator.Toolbox.Hosting"
         xmlns:views="clr-namespace:FreeTrainSimulator.Toolbox.Views"
         xmlns:gt="clr-namespace:GetText.Wpf;assembly=GetText.Wpf"
         mc:Ignorable="d"
@@ -18,20 +17,21 @@
     <DockPanel>
         <Menu x:Name="MainMenu"
               DockPanel.Dock="Top"
-              DataContext="{Binding Menu}"
-              IsEnabled="{Binding Enabled}">
+              DataContext="{Binding Menu}">
             <MenuItem Header="_File">
                 <MenuItem Header="_Open Route"
                           Command="{Binding DataContext.ShowRouteToolCommand, ElementName=RootWindow}" />
                 <MenuItem x:Name="CloseRouteMenuItem"
                           Header="_Close Route"
+                          IsEnabled="{Binding Enabled, FallbackValue=False}"
                           Command="{Binding UnloadRouteCommand}"
                           ToolTip="Close the current route after confirming any unsaved path changes"
                           AutomationProperties.HelpText="{Binding ToolTip, RelativeSource={RelativeSource Self}}" />
                 <Separator />
-                <MenuItem Header="Take _Screenshot" Command="{Binding TakeScreenshotCommand}" />
+                <MenuItem Header="Take _Screenshot" Command="{Binding TakeScreenshotCommand}"
+                          IsEnabled="{Binding Enabled, FallbackValue=False}" />
                 <Separator />
-                <MenuItem Header="E_xit" Command="{Binding QuitCommand}" />
+                <MenuItem Header="E_xit" Command="{Binding DataContext.ExitCommand, ElementName=RootWindow}" />
             </MenuItem>
             <MenuItem Header="_View">
                 <MenuItem Header="_Routes"
@@ -72,7 +72,7 @@
                           Command="{Binding DataContext.TogglePathChartToolCommand, ElementName=RootWindow}" />
             </MenuItem>
             <MenuItem Header="_Help">
-                <MenuItem Header="_About" Command="{Binding ShowAboutCommand}" />
+                <MenuItem Header="_About" Command="{Binding DataContext.ShowAboutCommand, ElementName=RootWindow}" />
             </MenuItem>
         </Menu>
         <StatusBar x:Name="MainStatusBar"
@@ -132,7 +132,24 @@
                                                                  ContentId="MapViewDocument"
                                                                  CanFloat="False"
                                                                  CanClose="False">
-                                        <host:ToolboxGameHostControl x:Name="MapHost" />
+                                        <Grid>
+                                            <ContentControl x:Name="MapSurface" />
+                                            <Border x:Name="WorkspaceOverview" Padding="24" Background="{DynamicResource {x:Static SystemColors.WindowBrushKey}}">
+                                                <StackPanel HorizontalAlignment="Left" VerticalAlignment="Top" MaxWidth="700">
+                                                    <TextBlock Text="Profile:" FontWeight="Bold" />
+                                                    <TextBlock Text="{Binding ProfileName}" Margin="0,0,0,12" />
+                                                    <TextBlock Text="Last route:" FontWeight="Bold" />
+                                                    <TextBlock Text="{Binding LastRoute}" Margin="0,0,0,12" />
+                                                    <TextBlock Text="{Binding WorkspaceStatus}" TextWrapping="Wrap" Margin="0,0,0,16" />
+                                                    <CheckBox x:Name="RestoreLastViewCheckBox" Content="Restore last route and view at startup"
+                                                              IsEnabled="False" Margin="0,0,0,16"
+                                                              Checked="RestoreLastViewCheckBox_Changed" Unchecked="RestoreLastViewCheckBox_Changed" />
+                                                    <Button Content="Open Route" Command="{Binding ShowRouteToolCommand}"
+                                                            ToolTip="Load the last route, or choose a route if none is saved"
+                                                            HorizontalAlignment="Left" Padding="16,6" />
+                                                </StackPanel>
+                                            </Border>
+                                        </Grid>
                                     </avalonLayout:LayoutDocument>
                                 </avalonLayout:LayoutDocumentPane>
                             </avalonLayout:LayoutPanel>

@@ -12,7 +12,9 @@ using System.Windows;
 using AvalonDock.Layout;
 using AvalonDock.Serializer.Json;
 
+using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Info;
+using FreeTrainSimulator.Common.Logging;
 using FreeTrainSimulator.Models.Content;
 using FreeTrainSimulator.Models.Settings;
 using FreeTrainSimulator.Models.Shim;
@@ -41,7 +43,16 @@ namespace FreeTrainSimulator.Toolbox
         private readonly MainWindowViewModel viewModel = new MainWindowViewModel();
         private ProfileModel currentProfile;
         private ProfileToolboxSettingsModel toolboxSettings;
+        private ProfileUserSettingsModel userSettings;
+        private ToolboxGameHostControl MapHost;
+        private Task shellInitializationTask;
+        private Task mapStartupTask;
+        private bool shellInitialized;
+        private bool restoreLastViewChanged;
+        private bool showRoutesWhenReady;
+        private string logFileName;
         private string defaultDockLayoutJson;
+        private string initialDockLayoutJson;
         private bool isShuttingDown;
         private bool shutdownCompleted;
         private Task shutdownTask;
@@ -62,6 +73,13 @@ namespace FreeTrainSimulator.Toolbox
             Loaded += MainWindow_Loaded;
             Activated += MainWindow_Activated;
             Deactivated += MainWindow_Deactivated;
+            shortcutInputManager.PreProcessInput += InputManager_PreProcessInput;
+            shortcutApplication?.Deactivated += ShortcutApplication_Deactivated;
+            DockingManager.ActiveContentChanged += DockingManager_ActiveContentChanged;
+        }
+
+        private void SubscribeMapHost()
+        {
             MapHost.GotFocus += MapHost_GotFocus;
             MapHost.GotKeyboardFocus += MapHost_GotKeyboardFocus;
             MapHost.MouseEnter += MapHost_MouseEnter;
@@ -77,9 +95,6 @@ namespace FreeTrainSimulator.Toolbox
             MapHost.LanguageChanged += MapHost_LanguageChanged;
             MapHost.MapContextMenuRequested += MapHost_MapContextMenuRequested;
             MapHost.ToolWindowShortcutRequested += MapHost_ToolWindowShortcutRequested;
-            shortcutInputManager.PreProcessInput += InputManager_PreProcessInput;
-            shortcutApplication?.Deactivated += ShortcutApplication_Deactivated;
-            DockingManager.ActiveContentChanged += DockingManager_ActiveContentChanged;
         }
 
         private void MapHost_UnsavedPathConfirmationRequested(object sender, UnsavedPathConfirmationEventArgs e)
@@ -98,18 +113,111 @@ namespace FreeTrainSimulator.Toolbox
         {
             try
             {
-                await LoadDockLayoutAsync().ConfigureAwait(true);
-
-                RestoreWindowPlacement();
-
-                HookToolWindowAnchorables();
-
-                UpdateAllToolWindowLifecycles();
-                UpdateHostedInputCapture();
+                await (shellInitializationTask ??= InitializeShellAsync()).ConfigureAwait(true);
+                if (!isShuttingDown && shutdownTask == null && ShouldRestoreRoute())
+                    await StartMapAsync().ConfigureAwait(true);
             }
-            catch (InvalidOperationException ex)
+            catch (Exception ex) when (CleanupExceptionPolicy.CanContinue(ex))
             {
                 Trace.TraceError($"Failed to initialize Toolbox shell: {ex}");
+                viewModel.WorkspaceStatus = CatalogManager.Catalog.GetString("Toolbox startup failed. See the log for details.") + Environment.NewLine + ex.Message;
+                viewModel.ShowRouteToolCommand.RaiseCanExecuteChanged();
+            }
+        }
+
+        private async Task InitializeShellAsync()
+        {
+            viewModel.WorkspaceStatus = CatalogManager.Catalog.GetString("Loading profile settings...");
+            currentProfile = await currentProfile.Current(CancellationToken.None).ConfigureAwait(true);
+            userSettings = await currentProfile.LoadSettingsModel<ProfileUserSettingsModel>(CancellationToken.None).ConfigureAwait(true);
+            toolboxSettings = await currentProfile.LoadSettingsModel<ProfileToolboxSettingsModel>(CancellationToken.None).ConfigureAwait(true);
+            CatalogManager.SetCatalogDomainPattern(CatalogDomainPattern.AssemblyName, null, RuntimeInfo.LocalesFolder);
+            if (userSettings.LogLevel != TraceEventType.Critical)
+            {
+                logFileName = RuntimeInfo.LogFile(userSettings.LogFilePath, userSettings.LogFileName);
+                LoggingUtil.InitLogging(logFileName, userSettings.LogLevel, false, false);
+                toolboxSettings.Log();
+            }
+            ApplyWpfLanguage(userSettings.Language);
+            await LoadDockLayoutAsync().ConfigureAwait(true);
+            RestoreWindowPlacement();
+            HookToolWindowAnchorables();
+            UpdateAllToolWindowLifecycles();
+            initialDockLayoutJson = SerializeDockLayout();
+            viewModel.ProfileName = currentProfile.Name;
+            viewModel.LastRoute = toolboxSettings.RouteId ?? CatalogManager.Catalog.GetString("No saved route");
+            viewModel.WorkspaceStatus = CatalogManager.Catalog.GetString("Load the last route, or use File > Open Route to start the map and choose a route.");
+            RestoreLastViewCheckBox.IsChecked = toolboxSettings.RestoreLastView;
+            restoreLastViewChanged = false;
+            RestoreLastViewCheckBox.IsEnabled = true;
+            shellInitialized = true;
+            viewModel.ShowRouteToolCommand.RaiseCanExecuteChanged();
+            viewModel.ToggleRouteToolCommand.RaiseCanExecuteChanged();
+        }
+
+        private bool ShouldRestoreRoute() => toolboxSettings?.RestoreLastView == true
+            && !string.IsNullOrWhiteSpace(toolboxSettings.Folder) && !string.IsNullOrWhiteSpace(toolboxSettings.RouteId);
+
+        private void RestoreLastViewCheckBox_Changed(object sender, RoutedEventArgs e)
+        {
+            if (toolboxSettings == null)
+                return;
+            toolboxSettings.RestoreLastView = RestoreLastViewCheckBox.IsChecked == true;
+            restoreLastViewChanged = true;
+        }
+
+        private bool CanOpenRouteWorkspace() => shellInitialized && !isShuttingDown && shutdownTask == null
+            && (mapStartupTask == null || mapStartupTask.IsCompletedSuccessfully);
+
+        private async void OpenRouteWorkspace()
+        {
+            try
+            {
+                showRoutesWhenReady = true;
+                await StartMapAsync().ConfigureAwait(true);
+                if (!isShuttingDown && shutdownTask == null && viewModel.Menu != null)
+                {
+                    showRoutesWhenReady = false;
+                    ShowToolWindow(RouteToolWindowContentId);
+                }
+            }
+            catch (Exception ex) when (CleanupExceptionPolicy.CanContinue(ex))
+            {
+                Trace.TraceError($"Failed to open the map workspace: {ex}");
+                viewModel.WorkspaceStatus = CatalogManager.Catalog.GetString("The map workspace could not start. See the log for details.") + Environment.NewLine + ex.Message;
+            }
+        }
+
+        private Task StartMapAsync()
+        {
+            if (!shellInitialized || isShuttingDown || shutdownTask != null)
+                throw new InvalidOperationException("The Toolbox shell is not available for map startup.");
+            return mapStartupTask ??= StartMapCoreAsync();
+        }
+
+        private async Task StartMapCoreAsync()
+        {
+            viewModel.WorkspaceStatus = CatalogManager.Catalog.GetString("Starting the map workspace...");
+            RestoreLastViewCheckBox.IsEnabled = false;
+            MapHost = new ToolboxGameHostControl();
+            SubscribeMapHost();
+            MapSurface.Content = MapHost;
+            try
+            {
+                await MapHost.StartAsync(currentProfile, userSettings, toolboxSettings, logFileName).ConfigureAwait(true);
+                if (isShuttingDown || shutdownTask != null)
+                    return;
+                WorkspaceOverview.Visibility = Visibility.Collapsed;
+                UpdateHostedInputCapture();
+            }
+            finally
+            {
+                // Dispatch after the cached startup task has settled so command availability sees its outcome.
+                _ = Dispatcher.BeginInvoke(new Action(() =>
+                {
+                    viewModel.ShowRouteToolCommand.RaiseCanExecuteChanged();
+                    viewModel.ToggleRouteToolCommand.RaiseCanExecuteChanged();
+                }));
             }
         }
 
@@ -124,20 +232,27 @@ namespace FreeTrainSimulator.Toolbox
 
             viewModel.ToggleRouteToolCommand?.RaiseCanExecuteChanged();
             viewModel.ShowRouteToolCommand?.RaiseCanExecuteChanged();
+            if (showRoutesWhenReady && !isShuttingDown && shutdownTask == null)
+            {
+                showRoutesWhenReady = false;
+                ShowToolWindow(RouteToolWindowContentId);
+            }
         }
 
         private void InitializeToolWindowCommands()
         {
-            viewModel.ToggleRouteToolCommand = new RelayCommand(_ => ToggleToolWindow(RouteToolWindowContentId), _ => viewModel.Menu != null);
-            viewModel.ShowRouteToolCommand = new RelayCommand(_ => ShowToolWindow(RouteToolWindowContentId), _ => viewModel.Menu != null);
-            viewModel.ToggleLocationToolCommand = new RelayCommand(_ => ToggleToolWindow(LocationToolWindowContentId), _ => viewModel.LocationTool != null);
-            viewModel.ToggleDebugToolCommand = new RelayCommand(_ => ToggleToolWindow(DebugToolWindowContentId), _ => viewModel.DebugTool != null);
-            viewModel.ToggleLogToolCommand = new RelayCommand(_ => ToggleToolWindow(LogToolWindowContentId), _ => viewModel.LogTool != null);
-            viewModel.ToggleRouteNavigationToolCommand = new RelayCommand(_ => ToggleToolWindow(RouteNavigationToolWindowContentId), _ => viewModel.RouteNavigationTool != null);
-            viewModel.ToggleHelpToolCommand = new RelayCommand(_ => ToggleToolWindow(HelpToolWindowContentId), _ => viewModel.HelpTool != null);
-            viewModel.ToggleSettingsToolCommand = new RelayCommand(_ => ToggleToolWindow(SettingsToolWindowContentId), _ => viewModel.SettingsTool != null);
-            viewModel.ToggleTrainPathToolCommand = new RelayCommand(_ => ToggleToolWindow(TrainPathToolWindowContentId), _ => viewModel.TrainPathTool != null);
-            viewModel.TogglePathChartToolCommand = new RelayCommand(_ => ToggleToolWindow(PathChartToolWindowContentId), _ => viewModel.PathChartTool != null);
+            viewModel.ToggleRouteToolCommand = new RelayCommand(_ => ToggleToolWindow(RouteToolWindowContentId), _ => !isShuttingDown && shutdownTask == null);
+            viewModel.ShowRouteToolCommand = new RelayCommand(_ => OpenRouteWorkspace(), _ => CanOpenRouteWorkspace());
+            viewModel.ExitCommand = new RelayCommand(_ => Close(), _ => !isShuttingDown);
+            viewModel.ShowAboutCommand = new RelayCommand(_ => MapHost_AboutRequested(this, EventArgs.Empty), _ => !isShuttingDown);
+            viewModel.ToggleLocationToolCommand = new RelayCommand(_ => ToggleToolWindow(LocationToolWindowContentId), _ => !isShuttingDown && shutdownTask == null);
+            viewModel.ToggleDebugToolCommand = new RelayCommand(_ => ToggleToolWindow(DebugToolWindowContentId), _ => !isShuttingDown && shutdownTask == null);
+            viewModel.ToggleLogToolCommand = new RelayCommand(_ => ToggleToolWindow(LogToolWindowContentId), _ => !isShuttingDown && shutdownTask == null);
+            viewModel.ToggleRouteNavigationToolCommand = new RelayCommand(_ => ToggleToolWindow(RouteNavigationToolWindowContentId), _ => !isShuttingDown && shutdownTask == null);
+            viewModel.ToggleHelpToolCommand = new RelayCommand(_ => ToggleToolWindow(HelpToolWindowContentId), _ => !isShuttingDown && shutdownTask == null);
+            viewModel.ToggleSettingsToolCommand = new RelayCommand(_ => ToggleToolWindow(SettingsToolWindowContentId), _ => !isShuttingDown && shutdownTask == null);
+            viewModel.ToggleTrainPathToolCommand = new RelayCommand(_ => ToggleToolWindow(TrainPathToolWindowContentId), _ => !isShuttingDown && shutdownTask == null);
+            viewModel.TogglePathChartToolCommand = new RelayCommand(_ => ToggleToolWindow(PathChartToolWindowContentId), _ => !isShuttingDown && shutdownTask == null);
             viewModel.ShowPathChartToolCommand = new RelayCommand(_ => ShowToolWindow(PathChartToolWindowContentId), _ => viewModel.PathChartTool != null);
             viewModel.ResetSettingsCommand = new RelayCommand(_ => ResetToDefaultsAsync(), _ => viewModel.SettingsTool != null);
         }
@@ -652,13 +767,13 @@ namespace FreeTrainSimulator.Toolbox
             bool mapIsActive = forceMapActive || IsMapInteractionActive();
             // While a tool window holds keyboard focus, hovering the map must not silently take input away from
             // it; otherwise typing in a tool window would be interrupted by an incidental pointer position.
-            MapHost.SetPointerActivationSuppressed(!mapIsActive && IsKeyboardFocusInToolWindow());
-            MapHost.SetInputCaptured(!mapIsActive);
+            MapHost?.SetPointerActivationSuppressed(!mapIsActive && IsKeyboardFocusInToolWindow());
+            MapHost?.SetInputCaptured(!mapIsActive);
         }
 
         private bool IsKeyboardFocusInToolWindow()
         {
-            return DockingManager.IsKeyboardFocusWithin && !MapHost.IsKeyboardFocusWithin;
+            return DockingManager.IsKeyboardFocusWithin && MapHost?.IsKeyboardFocusWithin != true;
         }
 
         private bool IsMapInteractionActive()
@@ -668,7 +783,7 @@ namespace FreeTrainSimulator.Toolbox
             // own owned top-level window, that floating window holds activation and the main window reports
             // IsActive == false, which previously captured input and froze map hover updates. A genuine switch
             // to another application is still handled by the deactivation path (ApplyDeactivationCaptureAsync).
-            return MapHost.IsMouseOver || MapHost.IsKeyboardFocusWithin;
+            return MapHost?.IsMouseOver == true || MapHost?.IsKeyboardFocusWithin == true;
         }
 
         private async Task ApplyDeactivationCaptureAsync(int sequence)
@@ -680,7 +795,7 @@ namespace FreeTrainSimulator.Toolbox
             // that case one of our own windows is still active, so we must keep map input flowing (otherwise
             // hovering the map no longer updates tool-window content such as Track Node Information).
             if (sequence == deactivationSequence && !IsAnyApplicationWindowActive())
-                MapHost.SetInputCaptured(true);
+                MapHost?.SetInputCaptured(true);
         }
 
         private static bool IsAnyApplicationWindowActive()
@@ -705,9 +820,6 @@ namespace FreeTrainSimulator.Toolbox
 
             try
             {
-                currentProfile = await currentProfile.Current(CancellationToken.None).ConfigureAwait(true);
-                toolboxSettings = await currentProfile.LoadSettingsModel<ProfileToolboxSettingsModel>(CancellationToken.None).ConfigureAwait(true);
-
                 if (string.IsNullOrWhiteSpace(toolboxSettings.DockLayoutJson))
                     return;
 
@@ -784,6 +896,23 @@ namespace FreeTrainSimulator.Toolbox
             {
                 if (toolboxSettings is null)
                     return;
+
+                if (MapHost?.HostedServices == null)
+                {
+                    // Persist shell changes without replacing saved map selections or viewport state.
+                    ProfileToolboxSettingsModel savedSettings = await currentProfile.LoadSettingsModel<ProfileToolboxSettingsModel>(CancellationToken.None).ConfigureAwait(true);
+                    WindowBoundsManager.SaveBoundsToSettings(this, savedSettings);
+                    if (initialDockLayoutJson != null)
+                    {
+                        string currentLayout = SerializeDockLayout();
+                        if (!string.Equals(currentLayout, initialDockLayoutJson, StringComparison.Ordinal))
+                            savedSettings.DockLayoutJson = currentLayout;
+                    }
+                    if (restoreLastViewChanged)
+                        savedSettings.RestoreLastView = toolboxSettings.RestoreLastView;
+                    await currentProfile.UpdateSettingsModel(savedSettings, CancellationToken.None).ConfigureAwait(true);
+                    return;
+                }
 
                 string dockLayoutJson = SerializeDockLayout();
                 toolboxSettings.DockLayoutJson = dockLayoutJson;
@@ -886,12 +1015,17 @@ namespace FreeTrainSimulator.Toolbox
 
         private async Task ShutdownCoreAsync()
         {
+            if (shellInitializationTask != null)
+                await shellInitializationTask.ConfigureAwait(ConfigureAwaitOptions.ContinueOnCapturedContext | ConfigureAwaitOptions.SuppressThrowing);
+            if (mapStartupTask != null)
+                await mapStartupTask.ConfigureAwait(ConfigureAwaitOptions.ContinueOnCapturedContext | ConfigureAwaitOptions.SuppressThrowing);
             // Save while admission and both owners are alive. Keep bridges subscribed through drain so
             // pending interactions can settle before releasing any shell/native resources.
             await SaveDockLayoutAsync().ConfigureAwait(true);
             try
             {
-                await MapHost.StopAsync().ConfigureAwait(true);
+                if (MapHost != null)
+                    await MapHost.StopAsync().ConfigureAwait(true);
             }
             finally
             {
@@ -901,7 +1035,7 @@ namespace FreeTrainSimulator.Toolbox
 
         private void ReleaseShellResources()
         {
-            if (shutdownCompleted || !MapHost.IsStoppedSafely)
+            if (shutdownCompleted || (MapHost != null && !MapHost.IsStoppedSafely))
                 return;
 
             UnsubscribeToolWindowShortcuts();
@@ -909,25 +1043,28 @@ namespace FreeTrainSimulator.Toolbox
             Loaded -= MainWindow_Loaded;
             Activated -= MainWindow_Activated;
             Deactivated -= MainWindow_Deactivated;
-            MapHost.GotFocus -= MapHost_GotFocus;
-            MapHost.GotKeyboardFocus -= MapHost_GotKeyboardFocus;
-            MapHost.MouseEnter -= MapHost_MouseEnter;
-            MapHost.PreviewMouseDown -= MapHost_PreviewMouseDown;
-            MapHost.HostedWindowPointerDown -= MapHost_HostedWindowPointerDown;
-            MapHost.HostedMenuReady -= MapHost_HostedMenuReady;
-            MapHost.HostedToolWindowsReady -= MapHost_HostedToolWindowsReady;
-            MapHost.SaveTrainPathRequested -= MapHost_SaveTrainPathRequested;
-            MapHost.UnsavedPathConfirmationRequested -= MapHost_UnsavedPathConfirmationRequested;
-            MapHost.ScreenshotRequested -= MapHost_ScreenshotRequested;
-            MapHost.AboutRequested -= MapHost_AboutRequested;
-            MapHost.ExitRequested -= MapHost_ExitRequested;
-            MapHost.LanguageChanged -= MapHost_LanguageChanged;
-            MapHost.MapContextMenuRequested -= MapHost_MapContextMenuRequested;
+            if (MapHost != null)
+            {
+                MapHost.GotFocus -= MapHost_GotFocus;
+                MapHost.GotKeyboardFocus -= MapHost_GotKeyboardFocus;
+                MapHost.MouseEnter -= MapHost_MouseEnter;
+                MapHost.PreviewMouseDown -= MapHost_PreviewMouseDown;
+                MapHost.HostedWindowPointerDown -= MapHost_HostedWindowPointerDown;
+                MapHost.HostedMenuReady -= MapHost_HostedMenuReady;
+                MapHost.HostedToolWindowsReady -= MapHost_HostedToolWindowsReady;
+                MapHost.SaveTrainPathRequested -= MapHost_SaveTrainPathRequested;
+                MapHost.UnsavedPathConfirmationRequested -= MapHost_UnsavedPathConfirmationRequested;
+                MapHost.ScreenshotRequested -= MapHost_ScreenshotRequested;
+                MapHost.AboutRequested -= MapHost_AboutRequested;
+                MapHost.ExitRequested -= MapHost_ExitRequested;
+                MapHost.LanguageChanged -= MapHost_LanguageChanged;
+                MapHost.MapContextMenuRequested -= MapHost_MapContextMenuRequested;
+            }
             UnhookToolWindowAnchorables();
             DockingManager.ActiveContentChanged -= DockingManager_ActiveContentChanged;
 
             DisposeToolWindowViewModels();
-            MapHost.Dispose();
+            MapHost?.Dispose();
             shutdownCompleted = true;
         }
 
@@ -1005,7 +1142,7 @@ namespace FreeTrainSimulator.Toolbox
 
             try
             {
-                if (await MapHost.HasUnsavedPathChangesAsync().ConfigureAwait(true))
+                if (MapHost != null && await MapHost.HasUnsavedPathChangesAsync().ConfigureAwait(true))
                 {
                     message += Environment.NewLine + Environment.NewLine
                         + "There are unsaved path changes. If you exit now, those changes will be lost.";
@@ -1049,7 +1186,7 @@ namespace FreeTrainSimulator.Toolbox
                     throw new InvalidOperationException("Close the Toolbox window through its awaited shutdown before disposing it.");
 
                 UnsubscribeToolWindowShortcuts();
-                MapHost.LanguageChanged -= MapHost_LanguageChanged;
+                MapHost?.Dispose();
                 refreshScheduler?.Dispose();
             }
 

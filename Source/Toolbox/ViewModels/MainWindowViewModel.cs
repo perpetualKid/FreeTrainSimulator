@@ -37,6 +37,31 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
         private bool isTrainPathToolVisible;
         private bool isRouteToolVisible;
         private bool isPathChartToolVisible;
+        private string profileName;
+        private string lastRoute;
+        private string workspaceStatus;
+
+        public string ProfileName
+        {
+            get => profileName;
+            set => SetProperty(ref profileName, value);
+        }
+
+        public string LastRoute
+        {
+            get => lastRoute;
+            set => SetProperty(ref lastRoute, value);
+        }
+
+        public string WorkspaceStatus
+        {
+            get => workspaceStatus;
+            set => SetProperty(ref workspaceStatus, value);
+        }
+
+        public RelayCommand ExitCommand { get; set; }
+
+        public RelayCommand ShowAboutCommand { get; set; }
 
         public ToolboxMenuViewModel Menu
         {
