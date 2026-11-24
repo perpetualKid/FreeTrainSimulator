@@ -1,3 +1,6 @@
 [submodule "Wiki"]
 	path = Wiki
 	url = https://github.com/perpetualKid/FreeTrainSimulator.wiki.git
+[submodule ".github"]
+	path = .github
+	url = https://github.com/perpetualKid/github.git
