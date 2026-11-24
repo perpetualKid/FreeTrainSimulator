@@ -58,8 +58,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.Hosting
             MenuRouteCache.SetRoutes(first, Task.FromResult(ImmutableArray.Create(firstRoute)));
             MenuRouteCache.SetRoutes(second, Task.FromResult(ImmutableArray.Create(secondRoute)));
             // Cached test routes must not eagerly initialize the folder identity, unlike a cold startup.
-            typeof(ModelBase).GetField("_hierarchy", BindingFlags.Instance | BindingFlags.NonPublic)
-                .SetValue(second, null);
+            typeof(ModelBase).GetField("_hierarchy", BindingFlags.Instance | BindingFlags.NonPublic).SetValue(second, null);
             Task<ContentModel> previous = MenuContentCache.Replace(new ContentModel([first, second]) { Version = ContentModel.MinimumVersion });
             RouteBrowserViewModel browser = new RouteBrowserViewModel((_, _) => Assert.Fail("Folder selection must not start the map."));
             RouteToolView view = new RouteToolView { DataContext = browser };

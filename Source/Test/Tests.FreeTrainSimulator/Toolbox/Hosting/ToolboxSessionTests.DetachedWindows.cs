@@ -55,7 +55,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.Hosting
                     PublishDetachedChart(bridge, second, "Second path");
                     TickDetachedScheduler(scheduler);
                     Assert.AreSame(second, drawing.Profile);
-                    StringAssert.Contains(model.PathChartTool.TitleText, "Second path", StringComparison.Ordinal);
+                    Assert.Contains("Second path", model.PathChartTool.TitleText, StringComparison.Ordinal);
                     model.ShowPathChartToolCommand.Execute(null);
                     Assert.IsTrue(chart.IsDetached, "Showing a detached pane must not create a second docked view.");
                     model.TogglePathChartToolCommand.Execute(null);
@@ -82,13 +82,11 @@ namespace Tests.FreeTrainSimulator.Toolbox.Hosting
         {
             (MainWindow shell, MainWindowViewModel model, _, _) = CreateChartShell();
             DockingManager manager = DetachedTestManager(shell);
-            LayoutAnchorable editor = manager.Layout.Descendents().OfType<LayoutAnchorable>()
-                .Single(window => window.ContentId == "TrainPathToolWindow");
+            LayoutAnchorable editor = manager.Layout.Descendents().OfType<LayoutAnchorable>().Single(window => window.ContentId == "TrainPathToolWindow");
             Window owner = new Window { Content = manager, Width = 800, Height = 600, ShowInTaskbar = false };
             using (ToolWindowRefreshScheduler scheduler = new ToolWindowRefreshScheduler(Dispatcher.CurrentDispatcher))
             {
-                TrainPathToolWindow bridge = new TrainPathToolWindow(() => null, () => null, action => action(),
-                    () => { }, () => { }, _ => { }, () => { }, () => { });
+                TrainPathToolWindow bridge = new TrainPathToolWindow(() => null, () => null, action => action(), () => { }, () => { }, _ => { }, () => { }, () => { });
                 model.TrainPathTool = new TrainPathToolWindowViewModel(bridge, scheduler, TrainPathToolWindowViewModel.PathsTabIndex);
                 ListBox list = new ListBox { DataContext = model.TrainPathTool };
                 list.SetBinding(ItemsControl.ItemsSourceProperty, new Binding(nameof(TrainPathToolWindowViewModel.Paths)));
@@ -132,8 +130,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.Hosting
 
         private static DockingManager DetachedTestManager(MainWindow shell)
         {
-            DockingManager manager = (DockingManager)typeof(MainWindow)
-                .GetField("DockingManager", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public).GetValue(shell);
+            DockingManager manager = (DockingManager)typeof(MainWindow).GetField("DockingManager", BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public).GetValue(shell);
             manager.AllowDetachedWindows = true;
             return manager;
         }
