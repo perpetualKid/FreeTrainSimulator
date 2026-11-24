@@ -493,9 +493,15 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
                 SignalEvent(BrakeControllerEvent.StartDecrease, target);
         }
 
+        /// <summary>
+        /// Sets service-brake demand; values above 100 select the controller's full travel, including emergency.
+        /// </summary>
         public float SetPercent(float percent)
         {
-            SignalEvent(BrakeControllerEvent.SetCurrentPercent, percent);
+            if (percent > 100)
+                SignalEvent(BrakeControllerEvent.SetCurrentValue, MaximumValue);
+            else
+                SignalEvent(BrakeControllerEvent.SetCurrentPercent, percent);
             return CurrentValue;
         }
 

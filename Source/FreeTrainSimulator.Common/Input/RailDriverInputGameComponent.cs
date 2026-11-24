@@ -18,10 +18,9 @@ namespace FreeTrainSimulator.Common.Input
         private float directionPercent;      // -100 (reverse) to 100 (forward)
         private float throttlePercent;       // 0 to 100
         private float dynamicBrakePercent;   // 0 to 100 if active otherwise less than 0
-        private float trainBrakePercent;     // 0 (release) to 100 (CS), does not include emergency
+        private float trainBrakePercent;     // 0 (release) to 100 (CS), 200 for emergency
         private float engineBrakePercent;    // 0 to 100
         private bool bailOff;                // true when bail off pressed
-        private bool emergency;              // true when train brake handle in emergency or E-stop button pressed
         private int Wipers;                  // wiper rotary, 1 off, 2 slow, 3 full
         private int Lights;                  // lights rotary, 1 off, 2 dim, 3 full
 
@@ -171,6 +170,8 @@ namespace FreeTrainSimulator.Common.Input
                 // train brake
                 handle = trainBrakePercent;
                 trainBrakePercent = Percentage(readBuffer[3], autoBrake);
+                if (trainBrakePercent >= 100 && Percentage(readBuffer[3], emergencyBrake) > 50)
+                    trainBrakePercent = 200;
                 if (trainBrakePercent != handle)
                     handleActionHandler?.Invoke(RailDriverHandleEventType.TrainBrake, gameTime, new UserCommandArgs<float>() { Value = trainBrakePercent });
                 //engine brake
@@ -186,11 +187,6 @@ namespace FreeTrainSimulator.Common.Input
                 bailOff = Percentage(readBuffer[5], calOff, calOn) > 80;
                 if (bailOff != buttonPress)
                     handleActionHandler?.Invoke(RailDriverHandleEventType.BailOff, gameTime, new UserCommandArgs<bool>() { Value = bailOff });
-                // emergency brake
-                buttonPress = emergency;
-                emergency = trainBrakePercent >= 100 && Percentage(readBuffer[3], emergencyBrake) > 50;
-                if (emergency != buttonPress)
-                    handleActionHandler?.Invoke(RailDriverHandleEventType.Emergency, gameTime, new UserCommandArgs<bool>() { Value = emergency });
 
                 int rotaryInput = Wipers;
                 Wipers = (int)(.01 * Percentage(readBuffer[6], wipers) + 2.5);

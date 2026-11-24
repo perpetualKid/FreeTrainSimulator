@@ -257,7 +257,6 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
             Viewer.UserCommandController.AddEvent(AnalogUserCommand.TrainBrake, TrainBrakeHandleCommand);
             Viewer.UserCommandController.AddEvent(AnalogUserCommand.EngineBrake, EngineBrakeHandleCommand);
             Viewer.UserCommandController.AddEvent(AnalogUserCommand.BailOff, BailOffHandleCommand);
-            Viewer.UserCommandController.AddEvent(AnalogUserCommand.Emergency, EmergencyHandleCommand);
             Viewer.UserCommandController.AddEvent(AnalogUserCommand.CabActivity, AlerterResetCommand);
 
             cruiseControlViewer?.RegisterUserCommandHandling();
@@ -359,7 +358,6 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
             Viewer.UserCommandController.RemoveEvent(AnalogUserCommand.TrainBrake, TrainBrakeHandleCommand);
             Viewer.UserCommandController.RemoveEvent(AnalogUserCommand.EngineBrake, EngineBrakeHandleCommand);
             Viewer.UserCommandController.RemoveEvent(AnalogUserCommand.BailOff, BailOffHandleCommand);
-            Viewer.UserCommandController.RemoveEvent(AnalogUserCommand.Emergency, EmergencyHandleCommand);
             Viewer.UserCommandController.RemoveEvent(AnalogUserCommand.CabActivity, AlerterResetCommand);
 
             cruiseControlViewer?.UnregisterUserCommandHandling();
@@ -401,7 +399,7 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
         private void HornOffCommand() => _ = new HornCommand(Viewer.Log, false);
         private void BellOnCommand() => _ = new BellCommand(Viewer.Log, true);
         private void BellOffCommand() => _ = new BellCommand(Viewer.Log, false);
-        private void BellToggleCommand() => _ = new BellCommand(Viewer.Log, !locomotive.Bell);
+        private void BellToggleCommand() => _ = new BellCommand(Viewer.Log, !locomotive.ManualBell);
         private void AlerterOnCommand() => _ = new AlerterCommand(Viewer.Log, true);
         private void AlerterOffCommand() => _ = new AlerterCommand(Viewer.Log, false);
         private void HeadlightIncreaseCommand()
@@ -574,14 +572,6 @@ namespace Orts.ActivityRunner.Viewer3D.RollingStock
             if (commandArgs is UserCommandArgs<bool> handleCommandArgs)
             {
                 locomotive.SetBailOff(handleCommandArgs.Value);
-            }
-        }
-
-        private void EmergencyHandleCommand(UserCommandArgs commandArgs, GameTime gameTime)
-        {
-            if (commandArgs is UserCommandArgs<bool>)
-            {
-                EmergencyPushButtonCommand();
             }
         }
 

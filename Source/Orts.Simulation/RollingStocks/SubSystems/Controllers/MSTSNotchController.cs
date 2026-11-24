@@ -389,8 +389,12 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
 
             if (NotchIndex >= 0)
             {
-                if (Notches[Notches.Count - 1].NotchStateType == ControllerState.Emergency)
-                    v = Notches[Notches.Count - 1].Value * percent / 100;
+                if (Notches[^1].NotchStateType == ControllerState.Emergency)
+                {
+                    v = Notches[^1].Value * percent / 100;
+                    if (percent <= 100 && NotchIndex == Notches.Count - 1 && NotchIndex > 0)
+                        NotchIndex--;
+                }
                 for (; ; )
                 {
                     IControllerNotch notch = Notches[NotchIndex];
@@ -417,10 +421,8 @@ namespace Orts.Simulation.RollingStocks.SubSystems.Controllers
                     }
                     break;
                 }
-                if (Notches[NotchIndex].Smooth)
-                    CurrentValue = v;
-                else
-                    CurrentValue = Notches[NotchIndex].Value;
+
+                CurrentValue = Notches[NotchIndex].Smooth ? v : Notches[NotchIndex].Value;
             }
             IntermediateValue = CurrentValue;
             return 100 * CurrentValue;

@@ -16,8 +16,8 @@ namespace FreeTrainSimulator.Common.Input
         {
             StringBuilder errors = new StringBuilder();
 
-            IOrderedEnumerable<IGrouping<byte, (int Index, byte Button)>> duplicates = buttonSettings.Where(button => button < 255).
-                Select((value, index) => (Index: index, Button: value)).
+            IOrderedEnumerable<IGrouping<byte, (int Index, byte Button)>> duplicates = buttonSettings.Select((value, index) => (Index: index, Button: value)).
+                Where(button => button.Button < byte.MaxValue).
                 GroupBy(g => g.Button).
                 Where(g => g.Count() > 1).
                 OrderBy(g => g.Key);

@@ -39,7 +39,7 @@ namespace Orts.Scripting.Api
         private float releaseValue;
         private float lapValue;
         private float applyValue;
-        private float emergencyValue;
+        private float emergencyValue = float.NaN;
 
         // brake controller values
         private const double overchargePressureBar = 0.4;
@@ -54,6 +54,7 @@ namespace Orts.Scripting.Api
         private bool quickRelease;
         private bool release;
         private bool apply;
+        private bool emergency;
 
         private double regulatorPressureBar;
 
@@ -87,6 +88,7 @@ namespace Orts.Scripting.Api
                         break;
                 }
             }
+            emergency = CurrentValue() == emergencyValue;
         }
 
         public override void InitializeMoving()
@@ -95,7 +97,9 @@ namespace Orts.Scripting.Api
 
         public override float Update(double elapsedSeconds)
         {
-            if (apply)
+            if (emergency)
+                SetCurrentValue(emergencyValue);
+            else if (apply)
                 SetCurrentValue(applyValue);
             else if (release)
                 SetCurrentValue(releaseValue);
@@ -119,7 +123,7 @@ namespace Orts.Scripting.Api
             if (apply && quickRelease)
                 quickRelease = false;
 
-            if (EmergencyBrakingPushButton() || TCSEmergencyBraking())
+            if (emergency || EmergencyBrakingPushButton() || TCSEmergencyBraking())
                 currentState = InternalControllerState.Emergency;
             else if (
                 apply && pressureBar > regulatorPressureBar - FullServReductionBar()
@@ -250,6 +254,7 @@ namespace Orts.Scripting.Api
             switch (evt)
             {
                 case BrakeControllerEvent.StartIncrease:
+                    emergency = false;
                     apply = true;
                     break;
 
@@ -258,6 +263,7 @@ namespace Orts.Scripting.Api
                     break;
 
                 case BrakeControllerEvent.StartDecrease:
+                    emergency = false;
                     release = true;
                     break;
 
@@ -272,33 +278,20 @@ namespace Orts.Scripting.Api
             switch (evt)
             {
                 case BrakeControllerEvent.StartIncrease:
+                    emergency = false;
                     apply = true;
                     break;
 
                 case BrakeControllerEvent.StartDecrease:
+                    emergency = false;
                     release = true;
                     break;
 
                 case BrakeControllerEvent.SetCurrentPercent:
                     if (value.HasValue)
                     {
-                        float percent = value.Value * 100;
-
-                        if (percent < 40)
-                        {
-                            apply = true;
-                            release = false;
-                        }
-                        else if (percent > 60)
-                        {
-                            apply = false;
-                            release = true;
-                        }
-                        else
-                        {
-                            apply = false;
-                            release = false;
-                        }
+                        float percent = value.Value;
+                        SetValue(percent < 40 ? releaseValue : percent > 60 ? applyValue : lapValue);
                     }
                     break;
 
@@ -362,7 +355,8 @@ namespace Orts.Scripting.Api
         {
             SetCurrentValue(v);
 
-            if (CurrentValue() == emergencyValue)
+            emergency = CurrentValue() == emergencyValue;
+            if (emergency)
             {
                 apply = false;
                 release = false;
