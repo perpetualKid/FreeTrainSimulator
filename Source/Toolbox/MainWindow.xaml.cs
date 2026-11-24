@@ -47,8 +47,8 @@ namespace FreeTrainSimulator.Toolbox
         private ToolboxGameHostControl MapHost;
         private Task shellInitializationTask;
         private Task mapStartupTask;
+        private RouteBrowserViewModel routeBrowser;
         private bool shellInitialized;
-        private bool restoreLastViewChanged;
         private bool showRoutesWhenReady;
         private string logFileName;
         private string defaultDockLayoutJson;
@@ -140,16 +140,15 @@ namespace FreeTrainSimulator.Toolbox
             }
             ApplyWpfLanguage(userSettings.Language);
             await LoadDockLayoutAsync().ConfigureAwait(true);
+            SynchronizeMapDocument();
             RestoreWindowPlacement();
             HookToolWindowAnchorables();
             UpdateAllToolWindowLifecycles();
             initialDockLayoutJson = SerializeDockLayout();
-            viewModel.ProfileName = currentProfile.Name;
-            viewModel.LastRoute = toolboxSettings.RouteId ?? CatalogManager.Catalog.GetString("No saved route");
-            viewModel.WorkspaceStatus = CatalogManager.Catalog.GetString("Load the last route, or use File > Open Route to start the map and choose a route.");
-            RestoreLastViewCheckBox.IsChecked = toolboxSettings.RestoreLastView;
-            restoreLastViewChanged = false;
-            RestoreLastViewCheckBox.IsEnabled = true;
+            routeBrowser = new RouteBrowserViewModel(OpenBrowsedRoute);
+            viewModel.SetRouteBrowser(routeBrowser);
+            await routeBrowser.InitializeAsync(toolboxSettings.Folder).ConfigureAwait(true);
+            viewModel.WorkspaceStatus = CatalogManager.Catalog.GetString("Use File > Open Route to load the last route or choose a route.");
             shellInitialized = true;
             viewModel.ShowRouteToolCommand.RaiseCanExecuteChanged();
             viewModel.ToggleRouteToolCommand.RaiseCanExecuteChanged();
@@ -158,12 +157,20 @@ namespace FreeTrainSimulator.Toolbox
         private bool ShouldRestoreRoute() => toolboxSettings?.RestoreLastView == true
             && !string.IsNullOrWhiteSpace(toolboxSettings.Folder) && !string.IsNullOrWhiteSpace(toolboxSettings.RouteId);
 
-        private void RestoreLastViewCheckBox_Changed(object sender, RoutedEventArgs e)
+        private void OpenBrowsedRoute(FolderModel folder, RouteModelHeader route)
         {
-            if (toolboxSettings == null)
+            if (MapHost != null || !CanOpenRouteWorkspace())
                 return;
-            toolboxSettings.RestoreLastView = RestoreLastViewCheckBox.IsChecked == true;
-            restoreLastViewChanged = true;
+            if (!string.Equals(toolboxSettings.Folder, folder.Id, StringComparison.OrdinalIgnoreCase)
+                || !string.Equals(toolboxSettings.RouteId, route.Id, StringComparison.OrdinalIgnoreCase))
+            {
+                toolboxSettings.PathId = null;
+                toolboxSettings.ContentPosition = FreeTrainSimulator.Common.Position.PointD.None;
+                toolboxSettings.ContentScale = 1;
+            }
+            toolboxSettings.Folder = folder.Id;
+            toolboxSettings.RouteId = route.Id;
+            OpenRouteWorkspace();
         }
 
         private bool CanOpenRouteWorkspace() => shellInitialized && !isShuttingDown && shutdownTask == null
@@ -198,16 +205,16 @@ namespace FreeTrainSimulator.Toolbox
         private async Task StartMapCoreAsync()
         {
             viewModel.WorkspaceStatus = CatalogManager.Catalog.GetString("Starting the map workspace...");
-            RestoreLastViewCheckBox.IsEnabled = false;
+            routeBrowser?.Stop();
             MapHost = new ToolboxGameHostControl();
             SubscribeMapHost();
-            MapSurface.Content = MapHost;
             try
             {
+                SynchronizeMapDocument();
                 await MapHost.StartAsync(currentProfile, userSettings, toolboxSettings, logFileName).ConfigureAwait(true);
                 if (isShuttingDown || shutdownTask != null)
                     return;
-                WorkspaceOverview.Visibility = Visibility.Collapsed;
+                viewModel.WorkspaceStatus = null;
                 UpdateHostedInputCapture();
             }
             finally
@@ -714,10 +721,9 @@ namespace FreeTrainSimulator.Toolbox
                 pane = FindToolWindowAnchorable(LogToolWindowContentId)?.Parent as LayoutAnchorablePane;
                 if (pane == null)
                 {
-                    LayoutDocument mapDocument = DockingManager.Layout.Descendents().OfType<LayoutDocument>()
-                        .FirstOrDefault(document => document.ContentId == "MapViewDocument");
+                    LayoutDocumentPane documentPane = DockingManager.Layout.Descendents().OfType<LayoutDocumentPane>().FirstOrDefault();
                     LayoutPanel mapPanel = null;
-                    for (ILayoutContainer parent = mapDocument?.Parent; parent != null; parent = parent.Parent)
+                    for (ILayoutContainer parent = documentPane?.Parent; parent != null; parent = parent.Parent)
                     {
                         if (parent is LayoutPanel candidate && candidate.Orientation == System.Windows.Controls.Orientation.Vertical)
                         {
@@ -908,8 +914,6 @@ namespace FreeTrainSimulator.Toolbox
                         if (!string.Equals(currentLayout, initialDockLayoutJson, StringComparison.Ordinal))
                             savedSettings.DockLayoutJson = currentLayout;
                     }
-                    if (restoreLastViewChanged)
-                        savedSettings.RestoreLastView = toolboxSettings.RestoreLastView;
                     await currentProfile.UpdateSettingsModel(savedSettings, CancellationToken.None).ConfigureAwait(true);
                     return;
                 }
@@ -973,6 +977,7 @@ namespace FreeTrainSimulator.Toolbox
             {
                 UnhookToolWindowAnchorables();
                 DeserializeDockLayout(defaultDockLayoutJson);
+                SynchronizeMapDocument();
                 HookToolWindowAnchorables();
                 SelectRouteToolByDefault();
                 UpdateAllToolWindowLifecycles();
@@ -1001,7 +1006,36 @@ namespace FreeTrainSimulator.Toolbox
                 .OfType<LayoutDocument>()
                 .FirstOrDefault(document => string.Equals(document.ContentId, "MapViewDocument", StringComparison.Ordinal));
 
-            return mapDocument is null || mapDocument.IsFloating;
+            return mapDocument?.IsFloating == true;
+        }
+
+        private void SynchronizeMapDocument()
+        {
+            LayoutDocument mapDocument = DockingManager.Layout?.Descendents().OfType<LayoutDocument>()
+                .FirstOrDefault(document => string.Equals(document.ContentId, "MapViewDocument", StringComparison.Ordinal));
+            if (MapHost == null)
+            {
+                if (mapDocument?.Parent is LayoutDocumentPane parent)
+                    parent.Children.Remove(mapDocument);
+                return;
+            }
+
+            if (mapDocument == null)
+            {
+                LayoutDocumentPane pane = DockingManager.Layout?.Descendents().OfType<LayoutDocumentPane>().FirstOrDefault();
+                if (pane == null)
+                    throw new InvalidOperationException("The Toolbox layout has no document pane for the map.");
+                mapDocument = new LayoutDocument
+                {
+                    ContentId = "MapViewDocument",
+                    Title = CatalogManager.Catalog.GetString("Map View"),
+                    CanFloat = false,
+                    CanClose = false,
+                };
+                pane.Children.Add(mapDocument);
+            }
+            mapDocument.Content = MapHost;
+            mapDocument.IsSelected = true;
         }
 
         private Task ShutdownAsync()
@@ -1084,6 +1118,7 @@ namespace FreeTrainSimulator.Toolbox
 
         private void DisposeToolWindowViewModels()
         {
+            routeBrowser?.Stop();
             viewModel.Menu?.Dispose();
             viewModel.LocationTool?.Dispose();
             viewModel.DebugTool?.Dispose();

@@ -78,6 +78,10 @@
         <StatusBar x:Name="MainStatusBar"
                    DockPanel.Dock="Bottom"
                    DataContext="{Binding StatusBar}">
+            <TextBlock Text="{Binding DataContext.WorkspaceStatus, ElementName=RootWindow}"
+                       ToolTip="{Binding Text, RelativeSource={RelativeSource Self}}"
+                       TextTrimming="CharacterEllipsis" MaxWidth="700"
+                       Visibility="{Binding DataContext.WorkspaceStatus, ElementName=RootWindow, Converter={StaticResource StringToVisibilityConverter}}" />
             <ItemsControl ItemsSource="{Binding Fields}">
                 <ItemsControl.ItemsPanel>
                     <ItemsPanelTemplate>
@@ -116,7 +120,7 @@
                                                                   CanClose="False"
                                                                   CanHide="True"
                                                                   IsSelected="True">
-                                        <views:RouteToolView DataContext="{Binding DataContext.Menu, ElementName=RootWindow}" />
+                                        <views:RouteToolView DataContext="{Binding DataContext.RouteBrowser, ElementName=RootWindow}" />
                                     </avalonLayout:LayoutAnchorable>
                                     <avalonLayout:LayoutAnchorable x:Name="TrainPathToolAnchorable"
                                                                   ContentId="TrainPathToolWindow"
@@ -127,31 +131,7 @@
                                         <views:TrainPathToolView DataContext="{Binding DataContext.TrainPathTool, ElementName=RootWindow}" />
                                     </avalonLayout:LayoutAnchorable>
                                 </avalonLayout:LayoutAnchorablePane>
-                                <avalonLayout:LayoutDocumentPane>
-                                    <avalonLayout:LayoutDocument Title="Map View"
-                                                                 ContentId="MapViewDocument"
-                                                                 CanFloat="False"
-                                                                 CanClose="False">
-                                        <Grid>
-                                            <ContentControl x:Name="MapSurface" />
-                                            <Border x:Name="WorkspaceOverview" Padding="24" Background="{DynamicResource {x:Static SystemColors.WindowBrushKey}}">
-                                                <StackPanel HorizontalAlignment="Left" VerticalAlignment="Top" MaxWidth="700">
-                                                    <TextBlock Text="Profile:" FontWeight="Bold" />
-                                                    <TextBlock Text="{Binding ProfileName}" Margin="0,0,0,12" />
-                                                    <TextBlock Text="Last route:" FontWeight="Bold" />
-                                                    <TextBlock Text="{Binding LastRoute}" Margin="0,0,0,12" />
-                                                    <TextBlock Text="{Binding WorkspaceStatus}" TextWrapping="Wrap" Margin="0,0,0,16" />
-                                                    <CheckBox x:Name="RestoreLastViewCheckBox" Content="Restore last route and view at startup"
-                                                              IsEnabled="False" Margin="0,0,0,16"
-                                                              Checked="RestoreLastViewCheckBox_Changed" Unchecked="RestoreLastViewCheckBox_Changed" />
-                                                    <Button Content="Open Route" Command="{Binding ShowRouteToolCommand}"
-                                                            ToolTip="Load the last route, or choose a route if none is saved"
-                                                            HorizontalAlignment="Left" Padding="16,6" />
-                                                </StackPanel>
-                                            </Border>
-                                        </Grid>
-                                    </avalonLayout:LayoutDocument>
-                                </avalonLayout:LayoutDocumentPane>
+                                <avalonLayout:LayoutDocumentPane />
                             </avalonLayout:LayoutPanel>
                             <avalonLayout:LayoutAnchorablePane DockHeight="160">
                                 <avalonLayout:LayoutAnchorable x:Name="LogToolAnchorable"

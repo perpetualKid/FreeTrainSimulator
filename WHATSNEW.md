@@ -16,7 +16,8 @@
 
 ## Updates
 - Toolbox
-	- Lazy map startup retains the regular docked tool windows around an empty map; opening the last route manually also works when automatic startup restoration is disabled.
+	- Lazy map startup restores regular docked tool windows with no map document open; automatic restoration or Open Route creates the map on demand. Startup messages appear in the status bar, and manual opening works even when automatic restoration is disabled.
+	- Content folders and route lists are available before the map starts; choosing a route in the Routes pane opens it on demand.
 	- Improve text readability for named track items by using fount outlining in contrast color
 	- Track segments in Toolbox view are drawn narrower, giving better track overview, but can be changed in toolbox settings (requires reloading the current route if changed to become visible)
 	- Track end nodes rendered narrower

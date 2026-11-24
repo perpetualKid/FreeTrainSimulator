@@ -8,6 +8,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 
+using AvalonDock.Layout;
+
 using FreeTrainSimulator.Common.Position;
 using FreeTrainSimulator.Models.Content;
 using FreeTrainSimulator.Models.Settings;
@@ -96,6 +98,103 @@ namespace Tests.FreeTrainSimulator.Toolbox.Hosting
 
         [TestMethod]
         [Timeout(10000, CooperativeCancellation = true)]
+        public async Task WhenContentBrowserStartsThenFoldersAndRoutesAreAvailableWithoutOpeningMap()
+        {
+            FolderModel folder = MenuFolder("Saved folder");
+            RouteModelHeader route = MenuRoute(folder, "route", "Route");
+            MenuRouteCache.SetRoutes(folder, Task.FromResult(ImmutableArray.Create(route)));
+            Task<ContentModel> previous = MenuContentCache.Replace(new ContentModel([folder]) { Version = ContentModel.MinimumVersion });
+            StaControlHost owner = await StaControlHost.StartAsync().ConfigureAwait(false);
+            await using (owner.ConfigureAwait(false))
+            {
+                RouteBrowserViewModel browser = null;
+                Task discovery = null;
+                int openings = 0;
+                try
+                {
+                    await owner.OnOwnerAsync(() =>
+                    {
+                        browser = new RouteBrowserViewModel((selectedFolder, selectedRoute) =>
+                        {
+                            Assert.AreSame(folder, selectedFolder);
+                            Assert.AreSame(route, selectedRoute);
+                            ++openings;
+                        });
+                        discovery = browser.InitializeAsync(folder.Id);
+                    }).ConfigureAwait(false);
+                    await discovery.WaitAsync(TestContext.CancellationToken).ConfigureAwait(false);
+                    await owner.OnOwnerAsync(() =>
+                    {
+                        Assert.AreSequenceEqual(new[] { folder }, browser.ContentFolders);
+                        Assert.AreSequenceEqual(new[] { route }, browser.Routes);
+                        Assert.AreSame(folder, browser.SelectedFolder);
+                        Assert.IsNull(browser.SelectedRoute);
+                        Assert.IsNull(browser.Error);
+                        Assert.AreEqual(0, openings);
+                        browser.SelectedRoute = route;
+                        Assert.AreEqual(1, openings);
+                        browser.Stop();
+                        Assert.IsFalse(browser.Enabled);
+                    }).ConfigureAwait(false);
+                }
+                finally
+                {
+                    await owner.OnOwnerAsync(() => browser?.Stop()).ConfigureAwait(false);
+                    MenuRouteCache.RemoveRoutes(folder);
+                    MenuContentCache.Restore(previous);
+                }
+            }
+        }
+
+        [TestMethod]
+        [Timeout(10000, CooperativeCancellation = true)]
+        public async Task WhenFolderDiscoveryCompletesOutOfOrderThenOnlyCurrentFolderPublishesRoutes()
+        {
+            FolderModel first = MenuFolder("First");
+            FolderModel second = MenuFolder("Second");
+            RouteModelHeader oldRoute = MenuRoute(first, "old", "Old route");
+            RouteModelHeader currentRoute = MenuRoute(second, "current", "Current route");
+            TaskCompletionSource<ImmutableArray<RouteModelHeader>> oldDiscovery = new TaskCompletionSource<ImmutableArray<RouteModelHeader>>(TaskCreationOptions.RunContinuationsAsynchronously);
+            MenuRouteCache.SetRoutes(first, oldDiscovery.Task);
+            MenuRouteCache.SetRoutes(second, Task.FromResult(ImmutableArray.Create(currentRoute)));
+            Task<ContentModel> previous = MenuContentCache.Replace(new ContentModel([first, second]) { Version = ContentModel.MinimumVersion });
+            StaControlHost owner = await StaControlHost.StartAsync().ConfigureAwait(false);
+            await using (owner.ConfigureAwait(false))
+            {
+                RouteBrowserViewModel browser = null;
+                Task initialize = null;
+                try
+                {
+                    await owner.OnOwnerAsync(() =>
+                    {
+                        browser = new RouteBrowserViewModel((_, _) => Assert.Fail("Browsing must not open a map."));
+                        initialize = browser.InitializeAsync(first.Id);
+                    }).ConfigureAwait(false);
+                    await owner.OnOwnerAsync(() => browser.SelectedFolder = second).ConfigureAwait(false);
+                    oldDiscovery.SetResult(ImmutableArray.Create(oldRoute));
+                    await initialize.WaitAsync(TestContext.CancellationToken).ConfigureAwait(false);
+                    await owner.OnOwnerAsync(() =>
+                    {
+                        Assert.AreSame(second, browser.SelectedFolder);
+                        Assert.AreSequenceEqual(new[] { currentRoute }, browser.Routes);
+                        browser.Stop();
+                        browser.SelectedRoute = currentRoute;
+                        Assert.IsNull(browser.SelectedRoute);
+                    }).ConfigureAwait(false);
+                }
+                finally
+                {
+                    oldDiscovery.TrySetResult([]);
+                    await owner.OnOwnerAsync(() => browser?.Stop()).ConfigureAwait(false);
+                    MenuRouteCache.RemoveRoutes(first);
+                    MenuRouteCache.RemoveRoutes(second);
+                    MenuContentCache.Restore(previous);
+                }
+            }
+        }
+
+        [TestMethod]
+        [Timeout(10000, CooperativeCancellation = true)]
         public async Task WhenHostNeverStartsThenStopAndDisposeDoNotWaitForGameReadiness()
         {
             StaControlHost owner = await StaControlHost.StartAsync().ConfigureAwait(false);
@@ -152,10 +251,8 @@ namespace Tests.FreeTrainSimulator.Toolbox.Hosting
         }
 
         [TestMethod]
-        [DataRow(false)]
-        [DataRow(true)]
         [Timeout(10000, CooperativeCancellation = true)]
-        public async Task WhenManagementOnlySettingsAreSavedThenMapStateAndFreshPreferencesArePreserved(bool changeRestoration)
+        public async Task WhenManagementOnlySettingsAreSavedThenMapStateAndFreshPreferencesArePreserved()
         {
             ProfileModel profile = new ProfileModel("lazy-startup-" + Guid.NewGuid().ToString("N"));
             ProfileToolboxSettingsModel original = await profile.LoadSettingsModel<ProfileToolboxSettingsModel>(CancellationToken.None).ConfigureAwait(false);
@@ -181,7 +278,6 @@ namespace Tests.FreeTrainSimulator.Toolbox.Hosting
                     SetField(shell, "currentProfile", profile);
                     SetField(shell, "toolboxSettings", stale);
                     stale.RestoreLastView = false;
-                    SetField(shell, "restoreLastViewChanged", changeRestoration);
                     save = (Task)typeof(MainWindow).GetMethod("SaveDockLayoutAsync", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(shell, null);
                 }).ConfigureAwait(false);
                 await save.WaitAsync(TestContext.CancellationToken).ConfigureAwait(false);
@@ -194,7 +290,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.Hosting
             Assert.AreEqual("saved-layout", restored.DockLayoutJson);
             Assert.AreEqual(1, restored.PathEditorSelectedTabIndex);
             Assert.IsFalse(restored.FontOutline);
-            Assert.AreEqual(!changeRestoration, restored.RestoreLastView);
+            Assert.IsTrue(restored.RestoreLastView);
         }
 
         [TestMethod]
@@ -205,14 +301,15 @@ namespace Tests.FreeTrainSimulator.Toolbox.Hosting
                 XDocument document = XDocument.Load(stream);
                 XNamespace xaml = "http://schemas.microsoft.com/winfx/2006/xaml";
                 Assert.AreEqual(0, document.Descendants().Count(element => element.Name.LocalName == nameof(ToolboxGameHostControl)));
-                XElement surface = document.Descendants().Single(element => (string)element.Attribute(xaml + "Name") == "MapSurface");
-                Assert.AreEqual("ContentControl", surface.Name.LocalName);
-                Assert.IsEmpty(surface.Elements());
+                Assert.IsEmpty(document.Descendants().Where(element => element.Name.LocalName == "LayoutDocument"));
+                XElement pane = document.Descendants().Single(element => element.Name.LocalName == "LayoutDocumentPane");
+                Assert.IsEmpty(pane.Elements());
                 XElement docking = document.Descendants().Single(element => (string)element.Attribute(xaml + "Name") == "DockingManager");
                 Assert.IsNull(docking.Attribute("Visibility"), "The regular docking layout must remain visible without a map host.");
-                XElement overview = document.Descendants().Single(element => (string)element.Attribute(xaml + "Name") == "WorkspaceOverview");
-                Assert.AreSame(surface.Parent, overview.Parent, "The startup hint belongs inside the map, not over the tool windows.");
-                Assert.AreEqual("MapViewDocument", (string)overview.Ancestors().Single(element => element.Name.LocalName == "LayoutDocument").Attribute("ContentId"));
+                Assert.IsEmpty(document.Descendants().Where(element => (string)element.Attribute(xaml + "Name") == "WorkspaceOverview"));
+                XElement status = document.Descendants().Single(element => (string)element.Attribute(xaml + "Name") == "MainStatusBar");
+                Assert.AreEqual("{Binding DataContext.WorkspaceStatus, ElementName=RootWindow}",
+                    (string)status.Elements().Single(element => element.Name.LocalName == "TextBlock").Attribute("Text"));
                 XElement menu = document.Descendants().Single(element => (string)element.Attribute(xaml + "Name") == "MainMenu");
                 Assert.IsNull(menu.Attribute("IsEnabled"));
                 XElement exit = menu.Descendants().Single(element => (string)element.Attribute("Header") == "E_xit");
@@ -259,6 +356,62 @@ namespace Tests.FreeTrainSimulator.Toolbox.Hosting
                 ProfileToolboxSettingsModel restored = await profile.LoadSettingsModel<ProfileToolboxSettingsModel>(CancellationToken.None).ConfigureAwait(false);
                 Assert.AreEqual(expected, restored.DockLayoutJson);
                 Assert.AreEqual("saved-route", restored.RouteId);
+            }
+        }
+
+        [STATestMethod]
+        public void WhenSavedLayoutContainsMapThenShellRemovesOnlyMapDocumentUntilRequested()
+        {
+            MainWindow shell = CreateShutdownShell(null);
+            AvalonDock.DockingManager manager = (AvalonDock.DockingManager)typeof(MainWindow)
+                .GetField("DockingManager", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic).GetValue(shell);
+            LayoutDocumentPane pane = manager.Layout.Descendents().OfType<LayoutDocumentPane>().First();
+            pane.Children.Add(new AvalonDock.Layout.LayoutDocument { ContentId = "MapViewDocument" });
+            MethodInfo floating = typeof(MainWindow).GetMethod("IsMapDocumentFloating", BindingFlags.Instance | BindingFlags.NonPublic);
+            MethodInfo synchronize = typeof(MainWindow).GetMethod("SynchronizeMapDocument", BindingFlags.Instance | BindingFlags.NonPublic);
+            synchronize.Invoke(shell, null);
+            Assert.IsEmpty(pane.Children);
+            Assert.AreSame(manager.Layout, pane.Root);
+            Assert.IsFalse((bool)floating.Invoke(shell, null), "An absent map is a valid saved layout.");
+            string saved = (string)typeof(MainWindow).GetMethod("SerializeDockLayout", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(shell, null);
+            typeof(MainWindow).GetMethod("DeserializeDockLayout", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(shell, [saved]);
+            Assert.IsNotEmpty(manager.Layout.Descendents().OfType<AvalonDock.Layout.LayoutDocumentPane>());
+            Assert.IsEmpty(manager.Layout.Descendents().OfType<AvalonDock.Layout.LayoutDocument>());
+            ShutdownChartShell(shell);
+        }
+
+        [STATestMethod]
+        public void WhenMapIsRequestedThenOneDocumentIsCreatedAndReattachedAfterLayoutReset()
+        {
+            ToolboxGameHostControl host = new ToolboxGameHostControl();
+            MainWindow shell = CreateShutdownShell(host);
+            AvalonDock.DockingManager manager = (AvalonDock.DockingManager)typeof(MainWindow)
+                .GetField("DockingManager", BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic).GetValue(shell);
+            AvalonDock.Layout.LayoutDocumentPane pane = new AvalonDock.Layout.LayoutDocumentPane();
+            manager.Layout = new LayoutRoot { RootPanel = new LayoutPanel() };
+            manager.Layout.RootPanel.Children.Add(pane);
+            MethodInfo synchronize = typeof(MainWindow).GetMethod("SynchronizeMapDocument", BindingFlags.Instance | BindingFlags.NonPublic);
+            try
+            {
+                synchronize.Invoke(shell, null);
+                LayoutContent map = pane.Children.Single();
+                Assert.IsInstanceOfType<LayoutDocument>(map);
+                Assert.AreEqual("MapViewDocument", map.ContentId);
+                Assert.AreSame(host, map.Content);
+                Assert.IsFalse(map.CanClose);
+                Assert.IsFalse(map.CanFloat);
+                synchronize.Invoke(shell, null);
+                Assert.AreSame(map, pane.Children.Single());
+                map.Content = null;
+                pane.Children.Remove(map);
+                synchronize.Invoke(shell, null);
+                Assert.AreSame(host, pane.Children.Single().Content);
+                Assert.IsNull(typeof(MainWindow).GetField("mapStartupTask", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(shell));
+            }
+            finally
+            {
+                ShutdownChartShell(shell);
+                host.Dispose();
             }
         }
 

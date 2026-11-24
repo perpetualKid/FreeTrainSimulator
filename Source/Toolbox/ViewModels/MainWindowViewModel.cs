@@ -37,20 +37,15 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
         private bool isTrainPathToolVisible;
         private bool isRouteToolVisible;
         private bool isPathChartToolVisible;
-        private string profileName;
-        private string lastRoute;
         private string workspaceStatus;
+        private RouteBrowserViewModel routeBrowser;
 
-        public string ProfileName
-        {
-            get => profileName;
-            set => SetProperty(ref profileName, value);
-        }
+        public object RouteBrowser => (object)menu ?? routeBrowser;
 
-        public string LastRoute
+        internal void SetRouteBrowser(RouteBrowserViewModel browser)
         {
-            get => lastRoute;
-            set => SetProperty(ref lastRoute, value);
+            routeBrowser = browser;
+            OnPropertyChanged(nameof(RouteBrowser));
         }
 
         public string WorkspaceStatus
@@ -66,7 +61,11 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
         public ToolboxMenuViewModel Menu
         {
             get => menu;
-            set => SetProperty(ref menu, value);
+            set
+            {
+                if (SetProperty(ref menu, value))
+                    OnPropertyChanged(nameof(RouteBrowser));
+            }
         }
 
         public DebugToolWindowViewModel DebugTool
