@@ -6,11 +6,14 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Windows;
+using System.Windows.Controls;
 using System.Xml.Linq;
 
 using AvalonDock.Layout;
 
 using FreeTrainSimulator.Common.Position;
+using FreeTrainSimulator.Models.Base;
 using FreeTrainSimulator.Models.Content;
 using FreeTrainSimulator.Models.Settings;
 using FreeTrainSimulator.Models.Shim;
@@ -18,6 +21,7 @@ using FreeTrainSimulator.Toolbox;
 using FreeTrainSimulator.Toolbox.Hosting;
 using FreeTrainSimulator.Toolbox.Settings;
 using FreeTrainSimulator.Toolbox.ViewModels;
+using FreeTrainSimulator.Toolbox.Views;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -41,6 +45,62 @@ namespace Tests.FreeTrainSimulator.Toolbox.Hosting
 
             Assert.AreEqual(expected, actual);
             Assert.IsNull(typeof(MainWindow).GetField("MapHost", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(shell));
+        }
+
+        [STATestMethod]
+        [Timeout(10000, CooperativeCancellation = true)]
+        public void WhenFolderIsChangedInRoutesViewBeforeMapStartupThenItsRoutesAreShown()
+        {
+            FolderModel first = MenuFolder("First");
+            FolderModel second = MenuFolder("Second");
+            RouteModelHeader firstRoute = MenuRoute(first, "first", "First route");
+            RouteModelHeader secondRoute = MenuRoute(second, "second", "Second route");
+            MenuRouteCache.SetRoutes(first, Task.FromResult(ImmutableArray.Create(firstRoute)));
+            MenuRouteCache.SetRoutes(second, Task.FromResult(ImmutableArray.Create(secondRoute)));
+            // Cached test routes must not eagerly initialize the folder identity, unlike a cold startup.
+            typeof(ModelBase).GetField("_hierarchy", BindingFlags.Instance | BindingFlags.NonPublic)
+                .SetValue(second, null);
+            Task<ContentModel> previous = MenuContentCache.Replace(new ContentModel([first, second]) { Version = ContentModel.MinimumVersion });
+            RouteBrowserViewModel browser = new RouteBrowserViewModel((_, _) => Assert.Fail("Folder selection must not start the map."));
+            RouteToolView view = new RouteToolView { DataContext = browser };
+            Window window = new Window { Content = view, ShowInTaskbar = false };
+            try
+            {
+                browser.InitializeAsync(first.Id).GetAwaiter().GetResult();
+                window.Show();
+                PumpMenuBindings();
+                StackPanel selectors = ((DockPanel)view.Content).Children.OfType<StackPanel>().Single();
+                ComboBox folders = selectors.Children.OfType<ComboBox>().First();
+                ComboBox routes = selectors.Children.OfType<ComboBox>().Last();
+                Assert.IsTrue(folders.IsEnabled);
+                Assert.AreEqual(first.Id, ((ToolboxMenuEntry)folders.SelectedItem).Key.FolderId);
+                Assert.AreEqual(2, folders.Items.Count);
+                folders.IsDropDownOpen = true;
+                PumpMenuBindings();
+                ((ComboBoxItem)folders.ItemContainerGenerator.ContainerFromIndex(1)).IsSelected = true;
+                folders.IsDropDownOpen = false;
+                PumpMenuBindings();
+                Assert.AreEqual(second.Id, browser.SelectedFolder.Key.FolderId);
+                Assert.AreSame(browser.SelectedFolder, folders.SelectedItem);
+                Assert.AreEqual(1, routes.Items.Count);
+                Assert.AreEqual(secondRoute.Id, ((ToolboxMenuEntry)routes.Items[0]).Key.RouteId);
+                Assert.IsNull(browser.SelectedRoute);
+                folders.IsDropDownOpen = true;
+                PumpMenuBindings();
+                ((ComboBoxItem)folders.ItemContainerGenerator.ContainerFromIndex(0)).IsSelected = true;
+                folders.IsDropDownOpen = false;
+                PumpMenuBindings();
+                Assert.AreEqual(first.Id, browser.SelectedFolder.Key.FolderId);
+                Assert.AreEqual(firstRoute.Id, ((ToolboxMenuEntry)routes.Items[0]).Key.RouteId);
+            }
+            finally
+            {
+                window.Close();
+                browser.Stop();
+                MenuRouteCache.RemoveRoutes(first);
+                MenuRouteCache.RemoveRoutes(second);
+                MenuContentCache.Restore(previous);
+            }
         }
 
         [TestMethod]
@@ -125,13 +185,15 @@ namespace Tests.FreeTrainSimulator.Toolbox.Hosting
                     await discovery.WaitAsync(TestContext.CancellationToken).ConfigureAwait(false);
                     await owner.OnOwnerAsync(() =>
                     {
-                        Assert.AreSequenceEqual(new[] { folder }, browser.ContentFolders);
-                        Assert.AreSequenceEqual(new[] { route }, browser.Routes);
-                        Assert.AreSame(folder, browser.SelectedFolder);
+                        Assert.AreSequenceEqual(new[] { folder.Id }, browser.ContentFolders.Select(entry => entry.Key.FolderId));
+                        Assert.AreSequenceEqual(new[] { route.Id }, browser.Routes.Select(entry => entry.Key.RouteId));
+                        Assert.AreEqual(folder.Id, browser.SelectedFolder.Key.FolderId);
+                        Assert.AreEqual(folder.Name, browser.SelectedFolder.Name);
+                        Assert.AreEqual(route.Description, browser.Routes[0].Description);
                         Assert.IsNull(browser.SelectedRoute);
                         Assert.IsNull(browser.Error);
                         Assert.AreEqual(0, openings);
-                        browser.SelectedRoute = route;
+                        browser.SelectedRoute = browser.Routes[0];
                         Assert.AreEqual(1, openings);
                         browser.Stop();
                         Assert.IsFalse(browser.Enabled);
@@ -170,15 +232,15 @@ namespace Tests.FreeTrainSimulator.Toolbox.Hosting
                         browser = new RouteBrowserViewModel((_, _) => Assert.Fail("Browsing must not open a map."));
                         initialize = browser.InitializeAsync(first.Id);
                     }).ConfigureAwait(false);
-                    await owner.OnOwnerAsync(() => browser.SelectedFolder = second).ConfigureAwait(false);
+                    await owner.OnOwnerAsync(() => browser.SelectedFolder = browser.ContentFolders.Single(entry => entry.Key.FolderId == second.Id)).ConfigureAwait(false);
                     oldDiscovery.SetResult(ImmutableArray.Create(oldRoute));
                     await initialize.WaitAsync(TestContext.CancellationToken).ConfigureAwait(false);
                     await owner.OnOwnerAsync(() =>
                     {
-                        Assert.AreSame(second, browser.SelectedFolder);
-                        Assert.AreSequenceEqual(new[] { currentRoute }, browser.Routes);
+                        Assert.AreEqual(second.Id, browser.SelectedFolder.Key.FolderId);
+                        Assert.AreSequenceEqual(new[] { currentRoute.Id }, browser.Routes.Select(entry => entry.Key.RouteId));
                         browser.Stop();
-                        browser.SelectedRoute = currentRoute;
+                        browser.SelectedRoute = browser.Routes[0];
                         Assert.IsNull(browser.SelectedRoute);
                     }).ConfigureAwait(false);
                 }

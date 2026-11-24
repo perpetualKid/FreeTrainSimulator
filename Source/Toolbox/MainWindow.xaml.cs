@@ -634,7 +634,12 @@ namespace FreeTrainSimulator.Toolbox
             if (anchorable is null)
                 return;
 
-            if (!anchorable.IsVisible)
+            if (anchorable.IsDetached)
+            {
+                DockingManager.ReattachAnchorable(anchorable);
+                anchorable.Hide();
+            }
+            else if (!anchorable.IsVisible)
             {
                 anchorable.Show();
                 if (string.Equals(anchorable.ContentId, PathChartToolWindowContentId, StringComparison.Ordinal))
@@ -656,6 +661,14 @@ namespace FreeTrainSimulator.Toolbox
             LayoutAnchorable anchorable = EnsureToolWindowAnchorable(descriptor);
             if (anchorable is null)
                 return;
+
+            if (anchorable.IsDetached)
+            {
+                if (anchorable.Content is DependencyObject content)
+                    Window.GetWindow(content)?.Activate();
+                UpdateToolWindowLifecycle(descriptor);
+                return;
+            }
 
             if (!anchorable.IsVisible)
             {
@@ -684,7 +697,8 @@ namespace FreeTrainSimulator.Toolbox
 
         private void ToolWindowAnchorable_PropertyChanged(object sender, PropertyChangedEventArgs e)
         {
-            if (e?.PropertyName != nameof(LayoutAnchorable.IsVisible) || sender is not LayoutAnchorable anchorable)
+            if (e?.PropertyName is not (nameof(LayoutAnchorable.IsVisible) or nameof(LayoutAnchorable.IsDetached))
+                || sender is not LayoutAnchorable anchorable)
                 return;
 
             ToolWindowDescriptor descriptor = FindToolWindowDescriptor(anchorable.ContentId);
@@ -759,7 +773,9 @@ namespace FreeTrainSimulator.Toolbox
 
         private void UpdateToolWindowLifecycle(ToolWindowDescriptor descriptor)
         {
-            bool isVisible = FindToolWindowAnchorable(descriptor.ContentId)?.IsVisible == true;
+            LayoutAnchorable anchorable = FindToolWindowAnchorable(descriptor.ContentId);
+            // AvalonDock parks detached panes in Hidden while their content remains in a live window.
+            bool isVisible = anchorable != null && (anchorable.IsVisible || anchorable.IsDetached);
             descriptor.UpdateLifecycle(isVisible);
         }
 

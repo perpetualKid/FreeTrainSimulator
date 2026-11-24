@@ -431,17 +431,61 @@ namespace Tests.FreeTrainSimulator.Toolbox.PathEditing
         }
 
         [TestMethod]
-        public async Task WhenEmptyPathIsLoadedThenEditorEntersRepairModeWithoutRuntimePath()
+        [DataRow(false)]
+        [DataRow(true)]
+        public async Task WhenEmptyPathIsLoadedThenEditorEntersRepairModeWithoutRuntimePath(bool defaultNodes)
         {
-            PathModel source = new PathModel { Id = "empty", Name = "Empty", PathNodes = ImmutableArray<PathNode>.Empty };
+            PathModel source = new PathModel { Id = "empty", Name = "Empty", PathNodes = defaultNodes ? default : ImmutableArray<PathNode>.Empty };
             using (PathEditor editor = new PathEditor(new TestPathEditorContext(TrackWorldTestFixture.CreateSingleVectorNodeTrackWorld())))
             {
                 bool initialized = await editor.InitializePathAsync(source, CancellationToken.None).ConfigureAwait(false);
 
                 Assert.IsTrue(initialized);
                 Assert.IsTrue(editor.IsRepairMode);
-                Assert.AreSame(source, editor.TryCaptureCurrentPathModel());
+                PathModel currentModel = editor.TryCaptureCurrentPathModel();
+                Assert.AreEqual(defaultNodes, source.PathNodes.IsDefault);
+                Assert.IsFalse(currentModel.PathNodes.IsDefault);
+                Assert.IsTrue(currentModel.PathNodes.IsEmpty);
+                if (defaultNodes)
+                    Assert.AreEqual(source with { PathNodes = ImmutableArray<PathNode>.Empty }, currentModel);
+                else
+                    Assert.AreSame(source, currentModel);
                 Assert.IsNull(editor.TrainPath);
+                Assert.IsTrue(editor.CanPlaceStartAnchor);
+                Assert.IsFalse(editor.CanPlaceEndAnchor);
+                Assert.IsFalse(editor.CanAddStart);
+                Assert.IsFalse(editor.CanAddEnd);
+                Assert.IsFalse(editor.CanRemoveStart);
+                Assert.IsFalse(editor.CanRemoveEnd);
+                Assert.IsFalse(editor.CanSnapToTrack);
+                Assert.IsFalse(editor.CanReversePath);
+                Assert.IsTrue(editor.ResolveCurrent(source).Diagnostics.Any(diagnostic => diagnostic.Code == PathRouteDiagnosticCode.EmptyPath));
+                Assert.IsTrue(editor.BeginStartAnchorPlacementCommand().Success);
+                Assert.IsTrue(editor.CancelPlacementCommand().Success);
+                Assert.IsTrue(editor.TryCaptureCurrentPathModel().PathNodes.IsEmpty);
+            }
+        }
+
+        [TestMethod]
+        public void WhenDefaultNodesAreRestoredThenEditorKeepsInitializedRepairStateWithoutChangingSource()
+        {
+            PathModel source = new PathModel { Id = "default-nodes", PathNodes = default };
+            using (PathEditor editor = new PathEditor(new TestPathEditorContext(TrackWorldTestFixture.CreateSingleVectorNodeTrackWorld())))
+            {
+                editor.InitializeNewPath();
+
+                typeof(PathEditor).GetMethod("RestoreSnapshot", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(editor, new object[] { source });
+
+                PathModel currentModel = editor.TryCaptureCurrentPathModel();
+                Assert.IsTrue(source.PathNodes.IsDefault);
+                Assert.IsFalse(currentModel.PathNodes.IsDefault);
+                Assert.IsTrue(currentModel.PathNodes.IsEmpty);
+                Assert.AreEqual(PathValidationState.Invalid, currentModel.ValidationState);
+                Assert.IsTrue(editor.IsRepairMode);
+                Assert.IsNull(editor.TrainPath);
+                Assert.IsTrue(editor.CanPlaceStartAnchor);
+                Assert.IsFalse(editor.CanPlaceEndAnchor);
+                Assert.IsFalse(editor.CanSnapToTrack);
             }
         }
 

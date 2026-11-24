@@ -24,6 +24,9 @@
 
 ## Bug Fixes
 
+- Toolbox content folders remain selectable before loading a route, using stable folder and route identities in the startup browser.
+- Toolbox opens paths with uninitialized node collections in repair mode without crashing, retaining the empty-path diagnostic.
+- Undocked Toolbox tool windows keep refreshing when routes or paths change, including the Path Editor list and Path Chart.
 - Activity Runner cancels loading and waits for workers before disposing the game, preventing viewer initialization against disposed graphics and input resources when closing during loading.
 - Fixing regression in Toolbox to also show invalid Paths (where path nodes are not on track)
 

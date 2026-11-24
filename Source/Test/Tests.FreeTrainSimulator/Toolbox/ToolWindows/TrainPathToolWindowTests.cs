@@ -19,6 +19,8 @@ using FreeTrainSimulator.Toolbox.PathEditing;
 using FreeTrainSimulator.Toolbox.ToolWindows;
 using FreeTrainSimulator.Toolbox.ViewModels;
 
+using MemoryPack;
+
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.Xna.Framework;
 
@@ -2827,6 +2829,44 @@ namespace Tests.FreeTrainSimulator.Toolbox.ToolWindows
                 TrainPathSnapshot snapshot = trainPathToolWindow.CaptureTrainPathSnapshot();
                 Assert.HasCount(authoredPath.PathNodes.Length, snapshot.Nodes);
                 Assert.AreEqual(authoredPath.PathNodes.Length.ToString(System.Globalization.CultureInfo.InvariantCulture), snapshot.Metadata.Single(row => row.Name == "Node Count").Value);
+            }
+        }
+
+        [TestMethod]
+        [DataRow("empty")]
+        [DataRow("default")]
+        [DataRow("serialized-default")]
+        [DataRow("header-only")]
+        public async Task WhenEmptyPathIsLoadedThenSnapshotShowsRepairModeAndEmptyPathDiagnostic(string sourceKind)
+        {
+            PathModel source = new PathModel { Id = "empty", Name = "Empty", PathNodes = sourceKind == "empty" ? ImmutableArray<PathNode>.Empty : default };
+            if (sourceKind == "serialized-default")
+                source = MemoryPackSerializer.Deserialize<PathModel>(MemoryPackSerializer.Serialize(source));
+            else if (sourceKind == "header-only")
+                source = MemoryPackSerializer.Deserialize<PathModel>(MemoryPackSerializer.Serialize(new PathModelHeader { Id = source.Id, Name = source.Name }));
+
+            using (PathEditor editor = new PathEditor(new TestPathEditorContext(CreateInitializedTrackWorld())))
+            {
+                Assert.IsTrue(await editor.InitializePathAsync(source, TestContext.CancellationToken).ConfigureAwait(false));
+                Assert.AreEqual(sourceKind != "empty", source.PathNodes.IsDefault);
+                TrainPathToolWindow trainPathToolWindow = new TrainPathToolWindow(() => editor, () => null, action => action(), () => { }, () => { }, _ => { }, () => { }, () => { })
+                {
+                    Active = true,
+                };
+
+                trainPathToolWindow.RefreshSnapshot();
+
+                TrainPathSnapshot snapshot = trainPathToolWindow.CaptureTrainPathSnapshot();
+                Assert.IsTrue(snapshot.IsRepairMode);
+                Assert.IsTrue(snapshot.Nodes.IsEmpty);
+                Assert.AreEqual("0", snapshot.Metadata.Single(row => row.Name == "Authored Node Count").Value);
+                Assert.IsTrue(snapshot.Diagnostics.Any(row => row.Code == PathRouteDiagnosticCode.EmptyPath));
+                Assert.IsTrue(snapshot.CanPlaceStartAnchor);
+                Assert.IsFalse(snapshot.CanPlaceEndAnchor);
+                Assert.IsFalse(snapshot.CanSavePath);
+
+                trainPathToolWindow.RefreshSnapshot();
+                Assert.AreSame(snapshot, trainPathToolWindow.CaptureTrainPathSnapshot());
             }
         }
 

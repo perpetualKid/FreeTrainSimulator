@@ -31,6 +31,28 @@ namespace Tests.FreeTrainSimulator.Models.Content
         }
 
         [TestMethod]
+        public void WhenDefaultNodesRoundTripThenPathModelPreservesDefaultNodes()
+        {
+            PathModel original = new PathModel { Id = "default-nodes", PathNodes = default };
+
+            PathModel restored = RoundTrip(original);
+
+            Assert.AreEqual("default-nodes", restored.Id);
+            Assert.IsTrue(restored.PathNodes.IsDefault);
+        }
+
+        [TestMethod]
+        public void WhenHeaderOnlyPayloadIsDeserializedThenPathModelHasDefaultNodes()
+        {
+            byte[] payload = MemoryPackSerializer.Serialize(new PathModelHeader { Id = "header-only" });
+
+            PathModel restored = MemoryPackSerializer.Deserialize<PathModel>(payload);
+
+            Assert.AreEqual("header-only", restored.Id);
+            Assert.IsTrue(restored.PathNodes.IsDefault);
+        }
+
+        [TestMethod]
         public void WhenPathModelRoundTripsThenHeaderFieldsArePreserved()
         {
             PathModel original = CreatePathModel();

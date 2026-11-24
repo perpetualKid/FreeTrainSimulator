@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Models.Content;
 using FreeTrainSimulator.Models.Shim;
+using FreeTrainSimulator.Toolbox.Hosting;
 
 using GetText;
 
@@ -19,8 +20,10 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
         private readonly Action<FolderModel, RouteModelHeader> openRoute;
         private ImmutableArray<FolderModel> folders = ImmutableArray<FolderModel>.Empty;
         private ImmutableArray<RouteModelHeader> routes = ImmutableArray<RouteModelHeader>.Empty;
-        private FolderModel selectedFolder;
-        private RouteModelHeader selectedRoute;
+        private ImmutableArray<ToolboxMenuEntry> folderEntries = ImmutableArray<ToolboxMenuEntry>.Empty;
+        private ImmutableArray<ToolboxMenuEntry> routeEntries = ImmutableArray<ToolboxMenuEntry>.Empty;
+        private ToolboxMenuEntry selectedFolder;
+        private ToolboxMenuEntry selectedRoute;
         private string statusMessage;
         private string error;
         private bool enabled = true;
@@ -31,31 +34,33 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
             this.openRoute = openRoute ?? throw new ArgumentNullException(nameof(openRoute));
         }
 
-        public ImmutableArray<FolderModel> ContentFolders => folders;
-        public ImmutableArray<RouteModelHeader> Routes => routes;
+        public ImmutableArray<ToolboxMenuEntry> ContentFolders => folderEntries;
+        public ImmutableArray<ToolboxMenuEntry> Routes => routeEntries;
         public bool Enabled => enabled;
         public string StatusMessage => statusMessage;
         public string Error => error;
 
-        public FolderModel SelectedFolder
+        public ToolboxMenuEntry SelectedFolder
         {
             get => selectedFolder;
             set
             {
-                if (!enabled || value == null || !folders.Contains(value) || ReferenceEquals(value, selectedFolder))
+                if (!enabled || value == null || !folderEntries.Contains(value) || value.Equals(selectedFolder))
                     return;
-                DiscoverRoutes(value);
+                DiscoverRoutes(folders.Single(folder => string.Equals(folder.Id, value.Key.FolderId, StringComparison.OrdinalIgnoreCase)));
             }
         }
 
-        public RouteModelHeader SelectedRoute
+        public ToolboxMenuEntry SelectedRoute
         {
             get => selectedRoute;
             set
             {
-                if (!enabled || value == null || !routes.Contains(value) || !SetProperty(ref selectedRoute, value))
+                if (!enabled || value == null || !routeEntries.Contains(value) || !SetProperty(ref selectedRoute, value))
                     return;
-                openRoute(selectedFolder, value);
+                FolderModel folder = folders.Single(folder => string.Equals(folder.Id, selectedFolder.Key.FolderId, StringComparison.OrdinalIgnoreCase));
+                RouteModelHeader route = routes.Single(route => string.Equals(route.Id, value.Key.RouteId, StringComparison.OrdinalIgnoreCase));
+                openRoute(folder, route);
             }
         }
 
@@ -73,6 +78,8 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
                     throw new InvalidOperationException(CatalogManager.Catalog.GetString("Content analysis is required. Import or refresh content before opening a route."));
                 
                 folders = content.ContentFolders.OrderBy(folder => folder.Name, StringComparer.CurrentCultureIgnoreCase).ToImmutableArray();
+                // Native records have lazy mutable caches in their equality/hash; WPF needs stable identities.
+                folderEntries = folders.Select(folder => new ToolboxMenuEntry(new ToolboxMenuKey(folder.Id, null, null), folder.Name, null)).ToImmutableArray();
                 OnPropertyChanged(nameof(ContentFolders));
                 statusMessage = null;
                 OnPropertyChanged(nameof(StatusMessage));
@@ -97,9 +104,10 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
         private async Task LoadRoutesAsync(FolderModel folder)
         {
             long version = ++discoveryVersion;
-            SetProperty(ref selectedFolder, folder, nameof(SelectedFolder));
+            SetProperty(ref selectedFolder, folderEntries.Single(entry => string.Equals(entry.Key.FolderId, folder.Id, StringComparison.OrdinalIgnoreCase)), nameof(SelectedFolder));
             selectedRoute = null;
             routes = ImmutableArray<RouteModelHeader>.Empty;
+            routeEntries = ImmutableArray<ToolboxMenuEntry>.Empty;
             error = null;
             statusMessage = CatalogManager.Catalog.GetString("Discovering routes...");
             OnPropertyChanged(nameof(SelectedRoute));
@@ -114,6 +122,7 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
                     return;
                 
                 routes = discovered.OrderBy(route => route.Name, StringComparer.CurrentCultureIgnoreCase).ToImmutableArray();
+                routeEntries = routes.Select(route => new ToolboxMenuEntry(new ToolboxMenuKey(folder.Id, route.Id, null), route.Name, route.Description)).ToImmutableArray();
                 statusMessage = null;
                 OnPropertyChanged(nameof(Routes));
                 OnPropertyChanged(nameof(StatusMessage));

@@ -349,6 +349,7 @@ namespace FreeTrainSimulator.Toolbox.PathEditing
             if (!OwnsPathLoad(loadGeneration))
                 return false;
 
+            pathModel = NormalizeEditorPathModel(pathModel);
             path = pathModel ?? requestedPath;
             currentPathModel = pathModel;
             ClearAuthoredNodeSelection();
@@ -4053,7 +4054,7 @@ namespace FreeTrainSimulator.Toolbox.PathEditing
             ++editRevision;
 
             // Every mutation funnels through here, so this is where the model's validation state is refreshed.
-            snapshot = RefreshValidationState(snapshot);
+            snapshot = RefreshValidationState(NormalizeEditorPathModel(snapshot));
 
             // Preserve the current View/Edit mode across the rebuild: undoing/redoing or mutating must not
             // silently switch a path that was opened for viewing into edit mode.
@@ -4067,6 +4068,14 @@ namespace FreeTrainSimulator.Toolbox.PathEditing
             ReconcileAuthoredNodeSelection(snapshot);
             ClearMoveNodeState();
             editorDragged = false;
+        }
+
+        // Repair-mode consumers require initialized nodes, even when persisted content has no node array.
+        private static PathModel NormalizeEditorPathModel(PathModel pathModel)
+        {
+            return pathModel?.PathNodes.IsDefault == true
+                ? pathModel with { PathNodes = ImmutableArray<PathNode>.Empty }
+                : pathModel;
         }
 
         // Recomputes the model's persisted ValidationState. ValidationState travels with the model, so an edit
