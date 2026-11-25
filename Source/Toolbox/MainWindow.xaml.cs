@@ -142,6 +142,7 @@ namespace FreeTrainSimulator.Toolbox
             await LoadDockLayoutAsync().ConfigureAwait(true);
             SynchronizeMapDocument();
             RestoreWindowPlacement();
+            InitializeShellSettings();
             HookToolWindowAnchorables();
             UpdateAllToolWindowLifecycles();
             initialDockLayoutJson = SerializeDockLayout();
@@ -206,6 +207,8 @@ namespace FreeTrainSimulator.Toolbox
         {
             viewModel.WorkspaceStatus = CatalogManager.Catalog.GetString("Starting the map workspace...");
             routeBrowser?.Stop();
+            viewModel.SettingsTool.IsEditable = false;
+            viewModel.ResetSettingsCommand.RaiseCanExecuteChanged();
             MapHost = new ToolboxGameHostControl();
             SubscribeMapHost();
             try
@@ -261,7 +264,7 @@ namespace FreeTrainSimulator.Toolbox
             viewModel.ToggleTrainPathToolCommand = new RelayCommand(_ => ToggleToolWindow(TrainPathToolWindowContentId), _ => !isShuttingDown && shutdownTask == null);
             viewModel.TogglePathChartToolCommand = new RelayCommand(_ => ToggleToolWindow(PathChartToolWindowContentId), _ => !isShuttingDown && shutdownTask == null);
             viewModel.ShowPathChartToolCommand = new RelayCommand(_ => ShowToolWindow(PathChartToolWindowContentId), _ => viewModel.PathChartTool != null);
-            viewModel.ResetSettingsCommand = new RelayCommand(_ => ResetToDefaultsAsync(), _ => viewModel.SettingsTool != null);
+            viewModel.ResetSettingsCommand = new RelayCommand(_ => ResetToDefaultsAsync(), _ => viewModel.SettingsTool?.IsEditable == true);
         }
 
         private void InitializeToolWindowDescriptors()
@@ -595,10 +598,7 @@ namespace FreeTrainSimulator.Toolbox
             viewModel.LogTool = new LogToolWindowViewModel(services.LogToolWindow, refreshScheduler);
             viewModel.RouteNavigationTool = new RouteNavigationToolWindowViewModel(services.RouteNavigationToolWindow, refreshScheduler);
             viewModel.HelpTool = new HelpToolWindowViewModel(services.HelpToolWindow, refreshScheduler);
-            viewModel.SettingsTool = new SettingsToolWindowViewModel(services.SettingsToolWindow)
-            {
-                ResetCommand = viewModel.ResetSettingsCommand
-            };
+            BindSettings(services.SettingsToolWindow);
             viewModel.TrainPathTool = new TrainPathToolWindowViewModel(services.TrainPathToolWindow, refreshScheduler, MapHost.ToolboxSettings?.PathEditorSelectedTabIndex ?? TrainPathToolWindowViewModel.PathsTabIndex)
             {
                 ShowPathChartCommand = viewModel.ShowPathChartToolCommand,
@@ -721,6 +721,7 @@ namespace FreeTrainSimulator.Toolbox
             LayoutAnchorable existing = FindToolWindowAnchorable(descriptor.ContentId);
             if (existing is not null)
             {
+                existing.Title = CatalogManager.Catalog.GetString(descriptor.Title);
                 Views.ToolWindow.ApplyDefaultAutoHideSize(existing);
                 return existing;
             }
@@ -765,7 +766,7 @@ namespace FreeTrainSimulator.Toolbox
             template.ContentId = descriptor.ContentId;
             template.CanClose = false;
             template.CanHide = true;
-            template.Title = descriptor.Title;
+            template.Title = CatalogManager.Catalog.GetString(descriptor.Title);
             ApplyDefaultFloatingSize(template);
 
             return template;
@@ -923,6 +924,7 @@ namespace FreeTrainSimulator.Toolbox
                 {
                     // Persist shell changes without replacing saved map selections or viewport state.
                     ProfileToolboxSettingsModel savedSettings = await currentProfile.LoadSettingsModel<ProfileToolboxSettingsModel>(CancellationToken.None).ConfigureAwait(true);
+                    shellSettingsApplier?.CopyChangedToolboxPreferences(savedSettings);
                     WindowBoundsManager.SaveBoundsToSettings(this, savedSettings);
                     if (initialDockLayoutJson != null)
                     {
@@ -931,6 +933,8 @@ namespace FreeTrainSimulator.Toolbox
                             savedSettings.DockLayoutJson = currentLayout;
                     }
                     await currentProfile.UpdateSettingsModel(savedSettings, CancellationToken.None).ConfigureAwait(true);
+                    if (shellSettingsApplier != null)
+                        await shellSettingsApplier.SaveChangedUserPreferencesAsync().ConfigureAwait(true);
                     return;
                 }
 
@@ -955,7 +959,8 @@ namespace FreeTrainSimulator.Toolbox
         {
             try
             {
-                if (viewModel.SettingsTool is null)
+                SettingsToolWindowViewModel settings = viewModel.SettingsTool;
+                if (settings?.IsEditable != true)
                     return;
 
                 MessageBoxResult result = MessageBox.Show(
@@ -966,15 +971,16 @@ namespace FreeTrainSimulator.Toolbox
                     MessageBoxButton.YesNo,
                     MessageBoxImage.Warning);
 
-                if (result != MessageBoxResult.Yes)
+                if (result != MessageBoxResult.Yes || !ReferenceEquals(settings, viewModel.SettingsTool) || !settings.IsEditable)
                     return;
 
-                await viewModel.SettingsTool.ResetToDefaultsAsync().ConfigureAwait(true);
+                await settings.ResetToDefaultsAsync().ConfigureAwait(true);
 
                 viewModel.TrainPathTool?.SelectedTabIndex = TrainPathToolWindowViewModel.PathsTabIndex;
 
                 ResetDockLayoutToDefault();
-                await SaveDockLayoutAsync().ConfigureAwait(true);
+                if (MapHost?.HostedServices != null)
+                    await SaveDockLayoutAsync().ConfigureAwait(true);
             }
             catch (InvalidOperationException ex)
             {
@@ -1044,12 +1050,12 @@ namespace FreeTrainSimulator.Toolbox
                 mapDocument = new LayoutDocument
                 {
                     ContentId = "MapViewDocument",
-                    Title = CatalogManager.Catalog.GetString("Map View"),
                     CanFloat = false,
                     CanClose = false,
                 };
                 pane.Children.Add(mapDocument);
             }
+            mapDocument.Title = CatalogManager.Catalog.GetString("Map View");
             mapDocument.Content = MapHost;
             mapDocument.IsSelected = true;
         }
@@ -1187,24 +1193,18 @@ namespace FreeTrainSimulator.Toolbox
 
         private async Task<bool> ConfirmExitAsync()
         {
-            string message = RuntimeInfo.ApplicationName is null
-                ? "Exit?"
-                : $"Exit {RuntimeInfo.ApplicationName}?";
+            bool hasUnsavedPathChanges = false;
 
             try
             {
-                if (MapHost != null && await MapHost.HasUnsavedPathChangesAsync().ConfigureAwait(true))
-                {
-                    message += Environment.NewLine + Environment.NewLine
-                        + "There are unsaved path changes. If you exit now, those changes will be lost.";
-                }
+                hasUnsavedPathChanges = MapHost != null && await MapHost.HasUnsavedPathChangesAsync().ConfigureAwait(true);
             }
             catch (InvalidOperationException ex)
             {
                 Trace.TraceWarning($"Failed to query unsaved path changes during exit confirmation: {ex.Message}");
             }
 
-            QuitDialog dialog = new QuitDialog(message)
+            QuitDialog dialog = new QuitDialog(hasUnsavedPathChanges)
             {
                 Owner = this,
             };

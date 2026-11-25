@@ -1,8 +1,8 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: Toolbox\n"
-"POT-Creation-Date: 2025-01-10 20:24:47+0100\n"
-"PO-Revision-Date: 2025-01-10 20:24:48+0100\n"
+"POT-Creation-Date: 2026-11-25 15:16:59+0100\n"
+"PO-Revision-Date: 2026-11-25 15:17:00+0100\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "MIME-Version: 1.0\n"
@@ -10,621 +10,1802 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "X-Generator: GetText.NET Extractor\n"
 
-#: ..\..\..\Toolbox\Views\TrainPathToolView.xaml
-msgid "Compare"
+#: ..\..\Toolbox\Views\TrainPathToolView.xaml:188
+msgid " *"
 msgstr ""
 
-#: ..\..\..\Toolbox\Views\TrainPathToolView.xaml
-msgid "Compare saved path"
-msgstr ""
-
-#: ..\..\..\Toolbox\Views\TrainPathToolView.xaml
-msgid "Saved"
-msgstr ""
-
-#: ..\..\..\Toolbox\ViewModels\TrainPathListItemViewModel.cs
-msgid "Save this new path before comparing it."
-msgstr ""
-
-#: ..\..\..\Toolbox\ViewModels\TrainPathListItemViewModel.cs
-msgid "Loading saved path comparison..."
-msgstr ""
-
-#: ..\..\..\Toolbox\ViewModels\TrainPathListItemViewModel.cs
-msgid "Saved baseline only (read-only). Up to six comparisons; independent of Show Path and editor changes."
-msgstr ""
-
-#: ..\..\..\Toolbox\ToolboxSession.Comparison.cs
-msgid "Only saved paths in the current route can be compared."
-msgstr ""
-
-#: ..\..\..\Toolbox\ToolboxSession.Comparison.cs
-msgid "At most six saved paths can be compared. Uncheck a comparison before adding another."
-msgstr ""
-
-#: ..\..\..\Toolbox\ToolboxSession.Comparison.cs
-msgid "Saved path comparison displayed."
-msgstr ""
-
-#: ..\..\..\Toolbox\ToolboxSession.Comparison.cs
-msgid "Saved path comparison was canceled. Check the saved path again to retry."
-msgstr ""
-
-#: ..\..\..\Toolbox\ToolboxSession.Comparison.cs
-msgid "Saved path comparison requires an unambiguous, resolved main and passing route. Open the saved path and repair or select its route, then save again."
-msgstr ""
-
-#: ..\..\..\Toolbox\ToolboxSession.Comparison.cs
-msgid "Saved path comparison could not match its selected track geometry. Validate the route and saved path before comparing again."
-msgstr ""
-
-#: ..\..\..\Toolbox\ToolboxSession.Comparison.cs
-msgid "The saved path could not be loaded for comparison. Verify the native saved model and access permissions, then try again."
-msgstr ""
-
-#: ..\..\..\Toolbox\Views\TrainPathToolView.xaml
-msgid "Reverse Path"
-msgstr ""
-
-#: ..\..\..\Toolbox\ToolWindows\TrainPathToolWindow.cs
-msgid "Reverse Path requires a complete, reachable main chain with exactly one Start and End and at least two nodes."
-msgstr ""
-
-#: ..\..\..\Toolbox\ToolWindows\TrainPathToolWindow.cs
-msgid "Reverse Path supports only event-free paths without siding links, invalid nodes, or unknown flags."
-msgstr ""
-
-#: ..\..\..\Toolbox\ToolWindows\TrainPathToolWindow.cs
-msgid "Path reversed."
-msgstr ""
-
-#: ..\..\..\Toolbox\ToolWindows\TrainPathToolWindow.cs
-msgid "Reverse Path is unavailable during repair, placement, route selection, or saving."
-msgstr ""
-
-#: ..\..\..\Toolbox\ToolWindows\TrainPathToolWindow.cs
-msgid "Reverse Path requires an unambiguous route with exactly reversed track edges and matching anchors."
-msgstr ""
-
-#: ..\..\..\Toolbox\ToolWindows\TrainPathToolWindow.cs
-msgid "Reverse Path requires both directions to pass normal save validation."
-msgstr ""
-
-#: ..\..\..\Toolbox\GameWindow.cs:76
+#: ..\..\Toolbox\GameWindow.cs:88
 #, csharp-format
 msgid " Route: {0}"
 msgstr ""
 
-#: ..\..\..\Toolbox\PopupWindows\LocationWindow.cs:107
-#, csharp-format
-msgid "{0} {1}"
+#: ..\..\Toolbox\MainWindow.xaml:75
+msgid "_About"
 msgstr ""
 
-#: ..\..\..\Toolbox\PopupWindows\AboutWindow.cs:20
-#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:721
+#: ..\..\Toolbox\MainWindow.xaml:25
+msgid "_Close Route"
+msgstr ""
+
+#: ..\..\Toolbox\MainWindow.xaml:45
+msgid "_Debug Window"
+msgstr ""
+
+#: ..\..\Toolbox\MainWindow.xaml:21
+msgid "_File"
+msgstr ""
+
+#: ..\..\Toolbox\MainWindow.xaml:74
+msgid "_Help"
+msgstr ""
+
+#: ..\..\Toolbox\MainWindow.xaml:57
+msgid "_Help Window"
+msgstr ""
+
+#: ..\..\Toolbox\MainWindow.xaml:41
+msgid "_Location Window"
+msgstr ""
+
+#: ..\..\Toolbox\MainWindow.xaml:22
+msgid "_Open Route"
+msgstr ""
+
+#: ..\..\Toolbox\MainWindow.xaml:65
+msgid "_Path Editor"
+msgstr ""
+
+#: ..\..\Toolbox\MainWindow.xaml:37
+msgid "_Routes"
+msgstr ""
+
+#: ..\..\Toolbox\MainWindow.xaml:61
+msgid "_Settings Window"
+msgstr ""
+
+#: ..\..\Toolbox\MainWindow.xaml:36
+msgid "_View"
+msgstr ""
+
+#: ..\..\Toolbox\Views\TrainPathToolView.xaml:405
+msgid "–"
+msgstr ""
+
+#: ..\..\Toolbox\Views\TrainPathToolView.xaml:505
+msgid ":"
+msgstr ""
+
+#: ..\..\Toolbox\ToolWindows\TrainPathCombinationRow.cs:26
+#, csharp-format
+msgid "{0} ({1}); then {2} ({3}). Start: {4}. End: {5}."
+msgstr ""
+
+#: ..\..\Toolbox\Views\PathChartControl.cs:518
+#, csharp-format
+msgid "{0} km/h"
+msgstr ""
+
+#: ..\..\Toolbox\Views\PathChartControl.cs:519
+#, csharp-format
+msgid "{0} mph"
+msgstr ""
+
+#: ..\..\Toolbox\Views\TrainPathToolView.xaml:454
+msgid "#"
+msgstr ""
+
+#: ..\..\Toolbox\Views\TrainPathToolView.xaml:215
+msgid "↶"
+msgstr ""
+
+#: ..\..\Toolbox\Views\TrainPathToolView.xaml:216
+msgid "↷"
+msgstr ""
+
+#: ..\..\Toolbox\ViewModels\PathChartToolWindowViewModel.cs:398
+msgid "A chart item cannot be located unambiguously on its owning track."
+msgstr ""
+
+#: ..\..\Toolbox\MainWindow.xaml.cs:424
+#, csharp-format
+msgid ""
+"A path with ID '{0}' already exists. Replace that path? The active path will "
+"remain unchanged unless the save succeeds."
+msgstr ""
+
+#: ..\..\Toolbox\ViewModels\PathChartToolWindowViewModel.cs:397
+msgid "A platform pair cannot be established on the traversed track."
+msgstr ""
+
+#: ..\..\Toolbox\ToolboxSession.Combine.cs:116
+msgid ""
+"A selected saved path could not be read. Verify the native model and access "
+"permissions, then retry."
+msgstr ""
+
+#: ..\..\Toolbox\Dialogs\AboutDialog.xaml:5
 msgid "About"
 msgstr ""
 
-#: ..\..\..\Toolbox\PopupWindows\TrainPathWindow.cs:130
-msgid "Available Train Paths"
+#: ..\..\Toolbox\Views\TrainPathToolView.xaml:412
+msgid "Accept candidate"
 msgstr ""
 
-#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:478
-msgid "Background Color"
+#: ..\..\Toolbox\PathEditing\PathEditor.cs:3398
+msgid "Accept or cancel the pending route candidate before editing the path."
 msgstr ""
 
-#: ..\..\..\Toolbox\PopupWindows\QuitWindow.cs:46
+#: ..\..\Toolbox\Views\TrainPathToolView.xaml:368
+msgid "Accept orientation"
+msgstr ""
+
+#: ..\..\Toolbox\Enums.cs:39
+msgid "Accept Route Candidate"
+msgstr ""
+
+#: ..\..\Toolbox\ViewModels\SettingsToolWindowViewModel.cs:120
 #, csharp-format
-msgid "Cancel ({0})"
+msgid "Active profile: {0}"
 msgstr ""
 
-#: ..\..\..\Toolbox\UserCommand.cs:7
+#: ..\..\Toolbox\Views\TrainPathToolView.xaml:383
+msgid "Add route point"
+msgstr ""
+
+#: ..\..\Toolbox\MainWindow.xaml.cs:555
+msgid "Add Route Point Here"
+msgstr ""
+
+#: ..\..\Toolbox\ToolWindows\TrainPathToolWindow.cs:1117
+#: ..\..\Toolbox\PathEditing\PathEditor.cs:2012
+msgid ""
+"Adding a passing branch must preserve the main route and every existing "
+"passing branch."
+msgstr ""
+
+#: ..\..\Toolbox\ToolWindows\TrainPathToolWindow.cs:1072
+msgid "Advanced wait operation set."
+msgstr ""
+
+#: ..\..\Toolbox\Views\TrainPathToolView.xaml:534
+#: ..\..\Toolbox\Views\TrainPathToolView.xaml:535
+msgid "Apply Operation"
+msgstr ""
+
+#: ..\..\Toolbox\ToolboxSession.Comparison.cs:63
+msgid ""
+"At most six saved paths can be compared. Uncheck a comparison before adding "
+"another."
+msgstr ""
+
+#: ..\..\Toolbox\ToolWindows\TrainPathToolWindow.cs:1138
+msgid "At most two strictly separated passing branches can be authored."
+msgstr ""
+
+#: ..\..\Toolbox\ViewModels\TrainPathToolWindowViewModel.cs:1208
+msgid "Basic wait"
+msgstr ""
+
+#: ..\..\Toolbox\ToolWindows\TrainPathToolWindow.cs:1068
+msgid ""
+"Basic wait time must be between 1 and 29999 seconds. Values of 30000 or "
+"greater may encode legacy AI operations instead of a duration."
+msgstr ""
+
+#: ..\..\Toolbox\Views\TrainPathToolView.xaml:497
+msgid "Basic wait time: 1 to 29999 seconds."
+msgstr ""
+
+#: ..\..\Toolbox\Views\TrainPathToolView.xaml:83
+msgid ""
+"Basic wait time: 1 to 29999 seconds. Larger values may encode legacy AI "
+"operations. Clear the value or enter zero to remove existing wait data."
+msgstr ""
+
+#: ..\..\Toolbox\ViewModels\TrainPathToolWindowViewModel.cs:1213
+msgid "Blow horn"
+msgstr ""
+
+#: ..\..\Toolbox\Views\TrainPathToolView.xaml:522
+msgid "Blow horn for"
+msgstr ""
+
+#: ..\..\Toolbox\ToolWindows\TrainPathToolWindow.cs:1090
+#: ..\..\Toolbox\ToolWindows\TrainPathToolWindow.cs:1100
+msgid "Both paths must belong to the same route."
+msgstr ""
+
+#: ..\..\Toolbox\Dialogs\QuitDialog.xaml:30
+#: ..\..\Toolbox\Views\TrainPathToolView.xaml:369
+#: ..\..\Toolbox\Views\TrainPathToolView.xaml:397
+msgid "Cancel"
+msgstr ""
+
+#: ..\..\Toolbox\Views\TrainPathToolView.xaml:227
+msgid "Cancel combining paths"
+msgstr ""
+
+#: ..\..\Toolbox\Views\TrainPathToolView.xaml:380
+#: ..\..\Toolbox\Views\TrainPathToolView.xaml:385
+#: ..\..\Toolbox\Views\TrainPathToolView.xaml:392
+#: ..\..\Toolbox\Views\TrainPathToolView.xaml:413
+msgid "Cancel interaction"
+msgstr ""
+
+#: ..\..\Toolbox\Views\TrainPathToolView.xaml:233
+msgid "Cancel new path"
+msgstr ""
+
+#: ..\..\Toolbox\Enums.cs:14
 msgid "Cancel or Close"
 msgstr ""
 
-#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:285
-msgid "Car Spawners"
+#: ..\..\Toolbox\MainWindow.xaml.cs:548
+msgid "Cancel Passing Branch"
 msgstr ""
 
-#: ..\..\..\Toolbox\UserCommand.cs:9
+#: ..\..\Toolbox\MainWindow.xaml.cs:537
+msgid "Cancel Placement"
+msgstr ""
+
+#: ..\..\Toolbox\Views\TrainPathToolView.xaml:513
+msgid "Cars to keep"
+msgstr ""
+
+#: ..\..\Toolbox\Views\TrainPathToolView.xaml:514
+msgid "cars, then wait"
+msgstr ""
+
+#: ..\..\Toolbox\Enums.cs:16
 msgid "Change Screen Mode"
 msgstr ""
 
-#: ..\..\..\Toolbox\PopupWindows\HelpWindow.cs:44
+#: ..\..\Toolbox\Views\TrainPathToolView.xaml:226
+msgid ""
+"Check exactly two saved paths in the Paths list to combine them into a new "
+"unsaved path."
+msgstr ""
+
+#: ..\..\Toolbox\ToolWindows\TrainPathToolWindow.cs:1089
+msgid "Choose a different saved path as the extension."
+msgstr ""
+
+#: ..\..\Toolbox\ToolboxSession.Combine.cs:87
+msgid "Choose a path orientation to preview, then accept it or Cancel."
+msgstr ""
+
+#: ..\..\Toolbox\ViewModels\TrainPathToolWindowViewModel.cs:1286
+msgid "Choose a supported wait operation."
+msgstr ""
+
+#: ..\..\Toolbox\PathEditing\PathEditor.cs:3037
+msgid "Choose a track location for the passing-branch via."
+msgstr ""
+
+#: ..\..\Toolbox\Views\TrainPathToolView.xaml:378
+msgid "Choose a track location on the map, then confirm placement."
+msgstr ""
+
+#: ..\..\Toolbox\Views\TrainPathToolView.xaml:395
+msgid ""
+"Choose one passing via on the track. Confirm its preview before selecting any "
+"ambiguous route legs."
+msgstr ""
+
+#: ..\..\Toolbox\PathEditing\PathEditor.cs:2212
+msgid "Choose one passing-branch via on the track, preview it, then confirm."
+msgstr ""
+
+#: ..\..\Toolbox\Views\TrainPathToolView.xaml:362
+msgid "Choose path orientation - selecting a candidate previews it."
+msgstr ""
+
+#: ..\..\Toolbox\Views\TrainPathToolView.xaml:401
+msgid "Choose route — selecting a candidate previews it."
+msgstr ""
+
+#: ..\..\Toolbox\ToolWindows\TrainPathToolWindow.cs:1099
+msgid "Choose two different saved paths to combine."
+msgstr ""
+
+#: ..\..\Toolbox\Views\ColumnFilterHeader.xaml:46
+#: ..\..\Toolbox\Views\ColumnFilterHeader.xaml:48
+msgid "Clear column filter"
+msgstr ""
+
+#: ..\..\Toolbox\MainWindow.xaml.cs:542
+msgid "Clear Reversal Point"
+msgstr ""
+
+#: ..\..\Toolbox\MainWindow.xaml.cs:540
+#: ..\..\Toolbox\Views\TrainPathToolView.xaml:536
+#: ..\..\Toolbox\Views\TrainPathToolView.xaml:537
+msgid "Clear Wait Point"
+msgstr ""
+
+#: ..\..\Toolbox\MainWindow.xaml:28
+msgid "Close the current route after confirming any unsaved path changes"
+msgstr ""
+
+#: ..\..\Toolbox\ViewModels\PathChartToolWindowViewModel.cs:54
+#, csharp-format
+msgid "Collapse encounters at {0}"
+msgstr ""
+
+#: ..\..\Toolbox\Views\SettingsToolView.xaml:68
+msgid "Colors"
+msgstr ""
+
+#: ..\..\Toolbox\Views\ColumnFilterHeader.xaml:42
+#: ..\..\Toolbox\Views\ColumnFilterHeader.xaml:44
+msgid "Column filter"
+msgstr ""
+
+#: ..\..\Toolbox\Views\TrainPathToolView.xaml:224
+#: ..\..\Toolbox\Views\TrainPathToolView.xaml:225
+msgid "Combine Paths"
+msgstr ""
+
+#: ..\..\Toolbox\ToolWindows\TrainPathToolWindow.cs:556
+msgid "Combine Paths is not available in this host."
+msgstr ""
+
+#: ..\..\Toolbox\ToolWindows\TrainPathToolWindow.cs:1109
+msgid ""
+"Combine Paths is unavailable during repair, placement, route selection, or "
+"saving."
+msgstr ""
+
+#: ..\..\Toolbox\ToolboxSession.Combine.cs:44
+msgid ""
+"Combine Paths requires exactly two checked, loaded saved paths and an idle "
+"editor."
+msgstr ""
+
+#: ..\..\Toolbox\Views\HelpToolView.xaml:25
+#: ..\..\Toolbox\Views\HelpToolView.xaml:36
 msgid "Command"
 msgstr ""
 
-#: ..\..\..\Toolbox\PopupWindows\SettingsWindow.cs:29
+#: ..\..\Toolbox\Enums.cs:36
+msgid "Commit Path Placement"
+msgstr ""
+
+#: ..\..\Toolbox\Views\SettingsToolView.xaml:29
 msgid "Common"
 msgstr ""
 
-#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:237
-msgid "Crossver Nodes"
+#: ..\..\Toolbox\Views\TrainPathToolView.xaml:284
+msgid "Compare"
 msgstr ""
 
-#: ..\..\..\Toolbox\UserCommand.cs:19
+#: ..\..\Toolbox\Views\TrainPathToolView.xaml:25
+msgid "Compare saved path"
+msgstr ""
+
+#: ..\..\Toolbox\Views\TrainPathToolView.xaml:396
+msgid "Confirm passing via"
+msgstr ""
+
+#: ..\..\Toolbox\MainWindow.xaml.cs:547
+msgid "Confirm Passing Via"
+msgstr ""
+
+#: ..\..\Toolbox\Views\TrainPathToolView.xaml:379
+msgid "Confirm placement"
+msgstr ""
+
+#: ..\..\Toolbox\MainWindow.xaml.cs:425
+msgid "Confirm Save As Overwrite"
+msgstr ""
+
+#: ..\..\Toolbox\ViewModels\RouteBrowserViewModel.cs:78
+msgid ""
+"Content analysis is required. Import or refresh content before opening a "
+"route."
+msgstr ""
+
+#: ..\..\Toolbox\Views\RouteToolView.xaml:17
+msgid "Content Folder"
+msgstr ""
+
+#: ..\..\Toolbox\Views\TrainPathToolView.xaml:416
+msgid "Continue path"
+msgstr ""
+
+#: ..\..\Toolbox\MainWindow.xaml.cs:554
+msgid "Continue Path"
+msgstr ""
+
+#: ..\..\Toolbox\Views\PathChartControl.cs:357
+msgid "Curvature (1/km; + right)"
+msgstr ""
+
+#: ..\..\Toolbox\MainWindow.xaml:193
+msgid "Debug Information"
+msgstr ""
+
+#: ..\..\Toolbox\Enums.cs:26
 msgid "Debug Information (Tab)"
 msgstr ""
 
-#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.cs:343
-msgid "Do you want to visit the website now?"
+#: ..\..\Toolbox\Views\RouteToolView.xaml:72
+msgid "Description of the selected route"
 msgstr ""
 
-#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:714
-msgid "Documentation"
+#: ..\..\Toolbox\Views\RouteNavigationToolView.xaml:176
+#: ..\..\Toolbox\Views\TrainPathToolView.xaml:542
+msgid "Details"
 msgstr ""
 
-#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.cs:340
+#: ..\..\Toolbox\ViewModels\RouteBrowserViewModel.cs:69
+msgid "Discovering content folders..."
+msgstr ""
+
+#: ..\..\Toolbox\ViewModels\RouteBrowserViewModel.cs:112
+#: ..\..\Toolbox\ViewModels\ToolboxMenuViewModel.cs:60
+msgid "Discovering routes..."
+msgstr ""
+
+#: ..\..\Toolbox\Views\PathChartToolView.xaml:162
+msgid "Distance"
+msgstr ""
+
+#: ..\..\Toolbox\ViewModels\PathChartToolWindowViewModel.cs:189
 #, csharp-format
-msgid "Documentation for {0} is available online at:"
+msgid ""
+"Distance {0:N2} km; elevation {1:N1} m; grade {2:N2}%; curvature {3:N2} /km "
+"(positive right)"
 msgstr ""
 
-#: ..\..\..\Toolbox\PopupWindows\SettingsWindow.cs:60
+#: ..\..\Toolbox\ViewModels\PathChartToolWindowViewModel.cs:191
+#, csharp-format
+msgid ""
+"Distance {0:N2} mi; elevation {1:N1} ft; grade {2:N2}%; curvature {3:N2} /km "
+"(positive right)"
+msgstr ""
+
+#: ..\..\Toolbox\Views\PathChartControl.cs:377
+msgid "Distance along main route (km)"
+msgstr ""
+
+#: ..\..\Toolbox\Views\PathChartControl.cs:377
+msgid "Distance along main route (mi)"
+msgstr ""
+
+#: ..\..\Toolbox\MainWindow.xaml:34
+msgid "E_xit"
+msgstr ""
+
+#: ..\..\Toolbox\Views\TrainPathToolView.xaml:351
+msgid "Editor"
+msgstr ""
+
+#: ..\..\Toolbox\Views\PathChartControl.cs:354
+msgid "Elevation (ft)"
+msgstr ""
+
+#: ..\..\Toolbox\Views\PathChartControl.cs:354
+msgid "Elevation (m)"
+msgstr ""
+
+#: ..\..\Toolbox\Views\SettingsToolView.xaml:31
 msgid "Enable Logging"
 msgstr ""
 
-#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:223
-msgid "End Nodes"
+#: ..\..\Toolbox\Views\TrainPathToolView.xaml:331
+msgid "End"
 msgstr ""
 
-#: ..\..\..\Toolbox\PopupWindows\QuitWindow.cs:34
+#: ..\..\Toolbox\Views\RouteNavigationToolView.xaml:131
+msgid "Enter a track item index to center the map on it."
+msgstr ""
+
+#: ..\..\Toolbox\Views\RouteNavigationToolView.xaml:162
+msgid "Enter a track node index to center and highlight it on the map."
+msgstr ""
+
+#: ..\..\Toolbox\Dialogs\QuitDialog.xaml:5
+#: ..\..\Toolbox\Dialogs\QuitDialog.xaml:26
+msgid "Exit"
+msgstr ""
+
+#: ..\..\Toolbox\Dialogs\QuitDialog.xaml.cs:17
 #, csharp-format
-msgid "Exit {0}"
+msgid "Exit {0}?"
 msgstr ""
 
-#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:139
-msgid "File"
+#: ..\..\Toolbox\ViewModels\PathChartToolWindowViewModel.cs:55
+#, csharp-format
+msgid "Expand encounters at {0}"
 msgstr ""
 
-#: ..\..\..\Toolbox\PopupWindows\TrackItemInfoWindow.cs:46
+#: ..\..\Toolbox\Views\RouteNavigationToolView.xaml:65
+msgid "Filter platforms by name or station"
+msgstr ""
+
+#: ..\..\Toolbox\Views\RouteNavigationToolView.xaml:87
+msgid "Filter sidings by name or nearest station"
+msgstr ""
+
+#: ..\..\Toolbox\Views\RouteNavigationToolView.xaml:44
+msgid "Filter stations by name"
+msgstr ""
+
+#: ..\..\Toolbox\Views\RouteNavigationToolView.xaml:109
+#: ..\..\Toolbox\Views\RouteNavigationToolView.xaml:140
+msgid "Find"
+msgstr ""
+
+#: ..\..\Toolbox\Views\RouteNavigationToolView.xaml:113
 msgid "Find Track Item by Index"
 msgstr ""
 
-#: ..\..\..\Toolbox\PopupWindows\TrackNodeInfoWindow.cs:59
+#: ..\..\Toolbox\Views\RouteNavigationToolView.xaml:144
 msgid "Find Track Node by Index"
 msgstr ""
 
-#: ..\..\..\Toolbox\PopupWindows\SettingsWindow.cs:33
+#: ..\..\Toolbox\PathEditing\PathEditor.cs:1012
+#: ..\..\Toolbox\PathEditing\PathEditor.cs:2534
+#: ..\..\Toolbox\PathEditing\PathEditor.cs:3381
+msgid "Finish or cancel the active path interaction before editing the path."
+msgstr ""
+
+#: ..\..\Toolbox\PathEditing\PathEditor.cs:3529
+msgid "Finish or cancel the active path interaction before saving."
+msgstr ""
+
+#: ..\..\Toolbox\ToolWindows\TrainPathToolWindow.cs:1029
+msgid "Finish or cancel the path combination before editing the path."
+msgstr ""
+
+#: ..\..\Toolbox\PathEditing\PathEditor.cs:2573
+#: ..\..\Toolbox\PathEditing\PathEditor.cs:2637
+msgid ""
+"Finish or cancel the path combination before selecting a connecting route."
+msgstr ""
+
+#: ..\..\Toolbox\Views\TrainPathToolView.xaml:384
+msgid "Finish path"
+msgstr ""
+
+#: ..\..\Toolbox\MainWindow.xaml.cs:557
+msgid "Finish Path"
+msgstr ""
+
+#: ..\..\Toolbox\MainWindow.xaml.cs:556
+msgid "Finish Path Here"
+msgstr ""
+
+#: ..\..\Toolbox\MainWindow.xaml:12
+msgid "Free Train Simulator Toolbox"
+msgstr ""
+
+#: ..\..\Toolbox\Views\SettingsToolView.xaml:25
+msgid "General"
+msgstr ""
+
+#: ..\..\Toolbox\Views\PathChartControl.cs:356
+msgid "Grade (%; + uphill)"
+msgstr ""
+
+#: ..\..\Toolbox\Views\SettingsToolView.xaml:55
 msgid "Graphics"
 msgstr ""
 
-#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:376
-msgid "Hazards"
+#: ..\..\Toolbox\PathEditing\PathEditor.cs:2497
+msgid "Guided passing branch created and resolved."
 msgstr ""
 
-#: ..\..\..\Toolbox\PopupWindows\HelpWindow.cs:33
-#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:708
+#: ..\..\Toolbox\PathEditing\PathEditor.cs:2511
+msgid "Guided passing-branch interaction canceled."
+msgstr ""
+
+#: ..\..\Toolbox\PathEditing\PathEditor.cs:2441
+msgid ""
+"Guided passing-route candidate previewed; compatible remaining legs are "
+"previews only."
+msgstr ""
+
+#: ..\..\Toolbox\MainWindow.xaml:185
 msgid "Help"
 msgstr ""
 
-#: ..\..\..\Toolbox\UserCommand.cs:21
+#: ..\..\Toolbox\Enums.cs:28
 msgid "Help Window (Tab)"
 msgstr ""
 
-#: ..\..\..\Toolbox\PopupWindows\TrainPathWindow.cs:103
-msgid "Idx"
+#: ..\..\Toolbox\Views\TrainPathToolView.xaml:524
+msgid "Horn duration seconds"
 msgstr ""
 
-#: ..\..\..\Toolbox\GameWindow.UserActivity.cs:179
+#: ..\..\Toolbox\GameWindow.UserActivity.cs:552
 msgid "Image files (*.png)"
 msgstr ""
 
-#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:305
+#: ..\..\Toolbox\ViewModels\TrainPathToolWindowViewModel.cs:1214
+msgid "Imported operation"
+msgstr ""
+
+#: ..\..\Toolbox\ViewModels\TrainPathToolWindowViewModel.cs:356
+#, csharp-format
+msgid ""
+"Imported operation code {0} is not editable here; clear it or preserve it "
+"unchanged."
+msgstr ""
+
+#: ..\..\Toolbox\MainWindow.xaml.cs:538
+msgid "Insert Via Point Here"
+msgstr ""
+
+#: ..\..\Toolbox\ToolWindows\TrainPathToolWindow.cs:1160
+#, csharp-format
+msgid "Inserted passing-branch via point at node {0}."
+msgstr ""
+
+#: ..\..\Toolbox\Views\SettingsToolView.xaml:133
 msgid "Interactives"
 msgstr ""
 
-#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:230
-msgid "Junction Nodes"
+#: ..\..\Toolbox\Views\TrainPathToolView.xaml:166
+msgid "Invalid path node"
 msgstr ""
 
-#: ..\..\..\Toolbox\PopupWindows\HelpWindow.cs:47
+#: ..\..\Toolbox\Views\TrainPathToolView.xaml:581
+msgid "Issues"
+msgstr ""
+
+#: ..\..\Toolbox\Views\SettingsToolView.xaml:107
+msgid "Item Visibility"
+msgstr ""
+
+#: ..\..\Toolbox\ViewModels\TrainPathToolWindowViewModel.cs:1211
+msgid "Join or split"
+msgstr ""
+
+#: ..\..\Toolbox\Views\TrainPathToolView.xaml:511
+msgid "Keep"
+msgstr ""
+
+#: ..\..\Toolbox\Views\TrainPathToolView.xaml:518
+msgid "Keep rear"
+msgstr ""
+
+#: ..\..\Toolbox\Views\HelpToolView.xaml:29
+#: ..\..\Toolbox\Views\HelpToolView.xaml:37
 msgid "Key"
 msgstr ""
 
-#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:244
-#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:278
-msgid "Level Crossings"
+#: ..\..\Toolbox\Views\SettingsToolView.xaml:43
+msgid "Language"
 msgstr ""
 
-#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:686
-msgid "Load Path"
+#: ..\..\Toolbox\MainWindow.xaml:49
+msgid "Lo_g Window"
 msgstr ""
 
-#: ..\..\..\Toolbox\PopupWindows\StatusTextWindow.cs:21
+#: ..\..\Toolbox\ViewModels\PathChartToolWindowViewModel.cs:368
+msgid "Load a route to view its path chart."
+msgstr ""
+
+#: ..\..\Toolbox\MainWindow.xaml.cs:130
+msgid "Loading profile settings..."
+msgstr ""
+
+#: ..\..\Toolbox\PopupWindows\StatusTextWindow.cs:21
 msgid "Loading Route"
 msgstr ""
 
-#: ..\..\..\Toolbox\PopupWindows\LocationWindow.cs:112
-#, csharp-format
-msgid "Location (x, z) {0,4:00.##} {1,4:00.##}"
+#: ..\..\Toolbox\ViewModels\ToolboxMenuViewModel.cs:61
+msgid "Loading route..."
 msgstr ""
 
-#: ..\..\..\Toolbox\UserCommand.cs:20
+#: ..\..\Toolbox\ViewModels\TrainPathListItemViewModel.cs:77
+msgid "Loading saved path comparison..."
+msgstr ""
+
+#: ..\..\Toolbox\MainWindow.xaml:159
+msgid "Location"
+msgstr ""
+
+#: ..\..\Toolbox\Enums.cs:27
 msgid "Location Window (Tab)"
 msgstr ""
 
-#: ..\..\..\Toolbox\UserCommand.cs:25
+#: ..\..\Toolbox\Enums.cs:30
 msgid "Log Window (Tab)"
 msgstr ""
 
-#: ..\..\..\Toolbox\PopupWindows\LoggingWindow.cs:19
+#: ..\..\Toolbox\MainWindow.xaml:139
 msgid "Logging"
 msgstr ""
 
-#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:313
-msgid "Main Signals"
+#: ..\..\Toolbox\ViewModels\PathChartToolWindowViewModel.cs:131
+#: ..\..\Toolbox\Views\PathChartToolView.xaml:96
+msgid "Main route"
 msgstr ""
 
-#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:126
-msgid "MenuStrip1"
+#: ..\..\Toolbox\ViewModels\PathChartToolWindowViewModel.cs:132
+#, csharp-format
+msgid "Main route: {0}"
 msgstr ""
 
-#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:369
-msgid "Mileposts"
+#: ..\..\Toolbox\ViewModels\PathChartToolWindowViewModel.cs:379
+msgid "Map centered on chart position."
 msgstr ""
 
-#: ..\..\..\Toolbox\UserCommand.cs:14
+#: ..\..\Toolbox\MainWindow.xaml.cs:1052
+msgid "Map View"
+msgstr ""
+
+#: ..\..\Toolbox\Views\TrainPathToolView.xaml:629
+msgid "Message"
+msgstr ""
+
+#: ..\..\Toolbox\Views\PathChartControl.cs:522
+#, csharp-format
+msgid "Milepost {0} km"
+msgstr ""
+
+#: ..\..\Toolbox\Views\PathChartControl.cs:521
+#, csharp-format
+msgid "Milepost {0} mi"
+msgstr ""
+
+#: ..\..\Toolbox\ViewModels\PathChartToolWindowViewModel.cs:399
+msgid "Milepost units and direction are not retained in this track model."
+msgstr ""
+
+#: ..\..\Toolbox\ToolWindows\TrainPathToolWindow.cs:1106
+msgid ""
+"More than one orientation connects these two paths. Preview and accept an "
+"orientation using Combine Paths."
+msgstr ""
+
+#: ..\..\Toolbox\Views\PathChartToolView.xaml.cs:32
+msgid ""
+"Mouse wheel: zoom; drag or Page Up/Down: pan; arrow keys: select distance; "
+"Home/End: route ends; +/-: zoom"
+msgstr ""
+
+#: ..\..\Toolbox\Enums.cs:21
 msgid "Move Down (South)"
 msgstr ""
 
-#: ..\..\..\Toolbox\UserCommand.cs:11
+#: ..\..\Toolbox\Enums.cs:18
 msgid "Move Left (East)"
 msgstr ""
 
-#: ..\..\..\Toolbox\UserCommand.cs:12
+#: ..\..\Toolbox\MainWindow.xaml.cs:536
+msgid "Move Node"
+msgstr ""
+
+#: ..\..\Toolbox\Enums.cs:19
 msgid "Move Right (West)"
 msgstr ""
 
-#: ..\..\..\Toolbox\UserCommand.cs:13
+#: ..\..\Toolbox\Enums.cs:20
 msgid "Move Up (North)"
 msgstr ""
 
-#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:698
-msgid "New Path"
+#: ..\..\Toolbox\ToolWindows\TrainPathToolWindow.cs:1540
+msgid ""
+"Multiple reversals in one continuous vector occurrence at node {0}; the "
+"circuit consumer cannot preserve every leg."
 msgstr ""
 
-#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:320
-msgid "Other Signals"
+#: ..\..\Toolbox\Views\DebugToolView.xaml:22
+#: ..\..\Toolbox\Views\LocationToolView.xaml:22
+#: ..\..\Toolbox\Views\RouteNavigationToolView.xaml:183
+#: ..\..\Toolbox\Views\TrainPathToolView.xaml:285
+#: ..\..\Toolbox\Views\TrainPathToolView.xaml:294
+#: ..\..\Toolbox\Views\TrainPathToolView.xaml:327
+#: ..\..\Toolbox\Views\TrainPathToolView.xaml:551
+msgid "Name"
 msgstr ""
 
-#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:598
-msgid "Path Color"
+#: ..\..\Toolbox\Views\RouteNavigationToolView.xaml:95
+msgid "Nearest Station"
 msgstr ""
 
-#: ..\..\..\Toolbox\PopupWindows\TrainPathWindow.cs:31
-msgid "Path Data"
+#: ..\..\Toolbox\Views\TrainPathToolView.xaml:213
+msgid "New"
 msgstr ""
 
-#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:680
+#: ..\..\Toolbox\Enums.cs:37
+msgid "Next Route Candidate"
+msgstr ""
+
+#: ..\..\Toolbox\ToolWindows\TrainPathToolWindow.cs:1104
+msgid ""
+"No supported orientation connects these two paths. Add via points to bridge "
+"them manually, or choose different paths."
+msgstr ""
+
+#: ..\..\Toolbox\ToolWindows\TrainPathToolWindow.cs:1158
+#, csharp-format
+msgid "Node {0} does not start a passing branch."
+msgstr ""
+
+#: ..\..\Toolbox\ToolWindows\TrainPathToolWindow.cs:1156
+#, csharp-format
+msgid "Node {0} is a start or end node and is not a via point."
+msgstr ""
+
+#: ..\..\Toolbox\ToolWindows\TrainPathToolWindow.cs:1154
+#, csharp-format
+msgid "Node {0} is null."
+msgstr ""
+
+#: ..\..\Toolbox\Views\TrainPathToolView.xaml:420
+msgid "Node actions ▾"
+msgstr ""
+
+#: ..\..\Toolbox\Views\TrainPathToolView.xaml:405
+msgid "Nodes "
+msgstr ""
+
+#: ..\..\Toolbox\Dialogs\AboutDialog.xaml:31
+msgid "OK"
+msgstr ""
+
+#: ..\..\Toolbox\ToolboxSession.Comparison.cs:55
+msgid "Only saved paths in the current route can be compared."
+msgstr ""
+
+#: ..\..\Toolbox\ViewModels\PathChartToolWindowViewModel.cs:370
+msgid "Open or create a path to view its main-route chart."
+msgstr ""
+
+#: ..\..\Toolbox\ToolWindows\TrainPathCombinationRow.cs:43
+msgid "original direction"
+msgstr ""
+
+#: ..\..\Toolbox\ViewModels\PathChartToolWindowViewModel.cs:400
+msgid "Passing branch profiles are not included in the main path chart."
+msgstr ""
+
+#: ..\..\Toolbox\ToolWindows\TrainPathToolWindow.cs:1140
+msgid ""
+"Passing branches must be strictly separated; touching, nested, or overlapping "
+"branches are not supported."
+msgstr ""
+
+#: ..\..\Toolbox\ToolWindows\TrainPathToolWindow.cs:1148
+msgid "Passing topology requires exactly one main-route start node."
+msgstr ""
+
+#: ..\..\Toolbox\ToolWindows\TrainPathToolWindow.cs:1119
+msgid ""
+"Passing-branch materialization did not preserve the selected route or "
+"supported events."
+msgstr ""
+
+#: ..\..\Toolbox\ToolWindows\TrainPathToolWindow.cs:1120
+msgid "Passing-branch preview resolved."
+msgstr ""
+
+#: ..\..\Toolbox\PathEditing\PathEditor.cs:2409
+msgid ""
+"Passing-branch via confirmed; explicitly preview and accept every ambiguous "
+"leg."
+msgstr ""
+
+#: ..\..\Toolbox\ToolWindows\TrainPathToolWindow.cs:1124
+#: ..\..\Toolbox\PathEditing\PathEditor.cs:3028
+msgid ""
+"Passing-branch via previewed; confirm this via or choose another track "
+"location."
+msgstr ""
+
+#: ..\..\Toolbox\PathEditing\PathEditor.cs:2452
+msgid ""
+"Passing-route leg accepted; explicitly preview and accept the remaining leg."
+msgstr ""
+
+#: ..\..\Toolbox\Views\TrainPathToolView.xaml:219
+msgid "Path actions ▾"
+msgstr ""
+
+#: ..\..\Toolbox\MainWindow.xaml:69
+#: ..\..\Toolbox\MainWindow.xaml:147
+msgid "Path Chart"
+msgstr ""
+
+#: ..\..\Toolbox\ToolboxSession.Combine.cs:34
+#: ..\..\Toolbox\ToolboxSession.Combine.cs:180
+#: ..\..\Toolbox\PathEditing\PathEditor.cs:2800
+msgid "Path combination canceled."
+msgstr ""
+
+#: ..\..\Toolbox\Views\TrainPathToolView.xaml:365
+msgid "Path combination orientations"
+msgstr ""
+
+#: ..\..\Toolbox\ToolWindows\TrainPathToolWindow.cs:1102
+msgid ""
+"Path combination requires complete, reachable main paths with exactly one "
+"Start and End, no siding links, and only basic interior waits of 1 to 29999 "
+"seconds."
+msgstr ""
+
+#: ..\..\Toolbox\ToolboxSession.Composition.cs:31
+msgid "Path composition canceled."
+msgstr ""
+
+#: ..\..\Toolbox\ToolWindows\TrainPathToolWindow.cs:1092
+msgid ""
+"Path composition requires complete, reachable, event-free main paths with "
+"exactly one Start and End and no siding links or wait payloads."
+msgstr ""
+
+#: ..\..\Toolbox\ToolWindows\TrainPathToolWindow.cs:1094
+msgid ""
+"Path composition requires unambiguous matching track anchors and continuous "
+"routes without repeated track nodes or duplicate connectors."
+msgstr ""
+
+#: ..\..\Toolbox\ToolWindows\TrainPathToolWindow.cs:1098
+msgid ""
+"Path composition would change a selected track route or require a reversal at "
+"the join. Choose an extension with a compatible departure direction."
+msgstr ""
+
+#: ..\..\Toolbox\Views\TrainPathToolView.xaml:315
+msgid "Path Details"
+msgstr ""
+
+#: ..\..\Toolbox\PathEditing\PathEditor.cs:3377
+msgid "Path editing is unavailable after the editor has stopped."
+msgstr ""
+
+#: ..\..\Toolbox\MainWindow.xaml:127
 msgid "Path Editor"
 msgstr ""
 
-#: ..\..\..\Toolbox\PopupWindows\TrainPathWindow.cs:29
-msgid "Path Nodes"
+#: ..\..\Toolbox\Enums.cs:34
+msgid "Path Editor Alternate Redo"
 msgstr ""
 
-#: ..\..\..\Toolbox\PopupWindows\TrainPathWindow.cs:33
-#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:411
-msgid "Paths"
+#: ..\..\Toolbox\Enums.cs:33
+msgid "Path Editor Redo"
 msgstr ""
 
-#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:383
-msgid "Pickup Points (Fuel, Cargo)"
+#: ..\..\Toolbox\Enums.cs:32
+msgid "Path Editor Undo"
 msgstr ""
 
-#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:628
-msgid "Platform Color"
+#: ..\..\Toolbox\ToolWindows\TrainPathToolWindow.cs:1086
+msgid "Path extension composed at the matching endpoint."
 msgstr ""
 
-#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:334
-msgid "Platform Names"
+#: ..\..\Toolbox\ToolboxSession.Combine.cs:195
+msgid ""
+"Path orientation previewed. Accept to create a new unsaved path, or Cancel."
 msgstr ""
 
-#: ..\..\..\Toolbox\GameWindow.UserActivity.cs:683
-msgid "Path save was canceled. Your changes are still available; try saving again."
+#: ..\..\Toolbox\ToolWindows\TrainPathToolWindow.cs:1079
+msgid "Path reversed."
 msgstr ""
 
-#: ..\..\..\Toolbox\GameWindow.UserActivity.cs:665
+#: ..\..\Toolbox\ToolboxSession.Persistence.cs:132
+msgid ""
+"Path save was canceled. Your changes are still available; try saving again."
+msgstr ""
+
+#: ..\..\Toolbox\ToolboxSession.Persistence.cs:117
 msgid "Path saved."
 msgstr ""
 
-#: ..\..\..\Toolbox\GameWindow.UserActivity.cs:697
-#: ..\..\..\Toolbox\GameWindow.UserActivity.cs:711
-msgid "The path could not be saved. Your changes are still available; try saving again."
+#: ..\..\Toolbox\Views\TrainPathToolView.xaml:248
+msgid "Paths"
 msgstr ""
 
-#: ..\..\..\Toolbox\GameWindow.UserActivity.cs:725
-msgid "The path could not be saved because access was denied. Your changes are still available; try saving again."
+#: ..\..\Toolbox\ToolWindows\TrainPathToolWindow.cs:1107
+msgid "Paths combined into a new unsaved path."
 msgstr ""
 
-#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:327
-msgid "Platforms"
-msgstr ""
-
-#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:443
-msgid "Preferences"
-msgstr ""
-
-#: ..\..\..\Toolbox\UserCommand.cs:10
-msgid "Quit"
-msgstr ""
-
-#: ..\..\..\Toolbox\PopupWindows\QuitWindow.cs:44
-#, csharp-format
-msgid "Quit ({0})"
-msgstr ""
-
-#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:167
-msgid "Quit (Q)"
-msgstr ""
-
-#: ..\..\..\Toolbox\UserCommand.cs:17
-msgid "Reset Zoom and Center Location"
-msgstr ""
-
-#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:450
-msgid "Restore last view on Start"
-msgstr ""
-
-#: ..\..\..\Toolbox\PopupWindows\SettingsWindow.cs:67
-msgid "Restore Last View on Start"
-msgstr ""
-
-#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:568
-msgid "Road Color"
-msgstr ""
-
-#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:583
-msgid "Road End Node Color"
-msgstr ""
-
-#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:271
-msgid "Road End Nodes"
-msgstr ""
-
-#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:256
-msgid "Road Items"
-msgstr ""
-
-#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:264
-msgid "Road Segments"
-msgstr ""
-
-#: ..\..\..\Toolbox\PopupWindows\TrackNodeInfoWindow.cs:57
-msgid "Roads"
-msgstr ""
-
-#: ..\..\..\Toolbox\UserCommand.cs:18
-msgid "Screenshot"
-msgstr ""
-
-#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:459
-msgid "Select Language"
-msgstr ""
-
-#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:156
-msgid "Select Route"
-msgstr ""
-
-#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:150
-msgid "Select Route Folder"
-msgstr ""
-
-#: ..\..\..\Toolbox\PopupWindows\TrainPathWindow.cs:116
-msgid "Setting"
-msgstr ""
-
-#: ..\..\..\Toolbox\PopupWindows\SettingsWindow.cs:43
-msgid "Settings"
-msgstr ""
-
-#: ..\..\..\Toolbox\UserCommand.cs:24
-msgid "Settings Window (Tab)"
-msgstr ""
-
-#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:419
-msgid "Show Path"
-msgstr ""
-
-#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:643
-msgid "Siding Color"
-msgstr ""
-
-#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:355
-msgid "Siding Names"
-msgstr ""
-
-#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:348
-msgid "Sidings"
-msgstr ""
-
-#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:390
-msgid "Sound Regions"
-msgstr ""
-
-#: ..\..\..\Toolbox\UserCommand.cs:8
-msgid "Span another instance"
-msgstr ""
-
-#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:362
-msgid "Speed Limits"
-msgstr ""
-
-#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:658
-msgid "SpeedPost Text Color"
-msgstr ""
-
-#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:613
-msgid "Station Color"
-msgstr ""
-
-#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:341
-msgid "Station Names"
-msgstr ""
-
-#: ..\..\..\Toolbox\WinForms.Controls\StatusbarControl.Designer.cs:51
-msgid "statusStrip1"
-msgstr ""
-
-#: ..\..\..\Toolbox\PopupWindows\QuitWindow.cs:53
-#, csharp-format
-msgid "Take Screenshot ({0})"
-msgstr ""
-
-#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:189
-msgid "Take Screenshot (PrtScr)"
-msgstr ""
-
-#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.cs:344
-msgid "This will open the page in standard web browser."
-msgstr ""
-
-#: ..\..\..\Toolbox\PopupWindows\LocationWindow.cs:111
-#, csharp-format
-msgid "Tile (X:Z) {0}:{1}"
-msgstr ""
-
-#: ..\..\..\Toolbox\PopupWindows\LocationWindow.cs:78
-msgid "Tile Coordinates"
-msgstr ""
-
-#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:397
-msgid "Tile Grid"
-msgstr ""
-
-#: ..\..\..\Toolbox\PopupWindows\SettingsWindow.cs:31
-msgid "Toolbox"
-msgstr ""
-
-#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:493
-msgid "Track Color"
-msgstr ""
-
-#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:538
-msgid "Track Crossing Color"
-msgstr ""
-
-#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:508
-msgid "Track End Node Color"
-msgstr ""
-
-#: ..\..\..\Toolbox\UserCommand.cs:23
-msgid "Track Item Info Window (Tab)"
-msgstr ""
-
-#: ..\..\..\Toolbox\PopupWindows\TrackItemInfoWindow.cs:28
-msgid "Track Item Information"
-msgstr ""
-
-#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:208
-msgid "Track Items"
-msgstr ""
-
-#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:523
-msgid "Track Junction Node Color"
-msgstr ""
-
-#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:553
-msgid "Track Level Crossing Color"
-msgstr ""
-
-#: ..\..\..\Toolbox\UserCommand.cs:22
-msgid "Track Node Info Window (Tab)"
-msgstr ""
-
-#: ..\..\..\Toolbox\PopupWindows\TrackNodeInfoWindow.cs:36
-msgid "Track Node Information"
-msgstr ""
-
-#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:216
-msgid "Track Segments"
-msgstr ""
-
-#: ..\..\..\Toolbox\PopupWindows\TrackNodeInfoWindow.cs:55
-msgid "Tracks"
-msgstr ""
-
-#: ..\..\..\Toolbox\PopupWindows\TrainPathWindow.cs:74
-msgid "Train Path Details"
-msgstr ""
-
-#: ..\..\..\Toolbox\UserCommand.cs:26
-msgid "Train Path Window (Tab)"
-msgstr ""
-
-#: ..\..\..\Toolbox\PopupWindows\TrainPathWindow.cs:104
-msgid "Type"
-msgstr ""
-
-#: ..\..\..\Toolbox\PopupWindows\SettingsWindow.cs:74
-msgid "Use Font Outline"
-msgstr ""
-
-#: ..\..\..\Toolbox\PopupWindows\TrainPathWindow.cs:105
-msgid "Valid"
-msgstr ""
-
-#: ..\..\..\Toolbox\PopupWindows\TrainPathWindow.cs:117
-msgid "Value"
-msgstr ""
-
-#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:183
-msgid "View"
-msgstr ""
-
-#: ..\..\..\Toolbox\PopupWindows\LocationWindow.cs:34
-#: ..\..\..\Toolbox\PopupWindows\LocationWindow.cs:78
-msgid "World Coordinates"
-msgstr ""
-
-#: ..\..\..\Toolbox\UserCommand.cs:15
-msgid "Zoom In"
-msgstr ""
-
-#: ..\..\..\Toolbox\UserCommand.cs:16
-msgid "Zoom Out"
-msgstr ""
-
-#: ..\..\..\Toolbox\ToolWindows\TrainPathToolWindow.cs
-msgid "Unsupported wait/reverse event at first main node; the circuit consumer skips this event."
-msgstr ""
-
-#: ..\..\..\Toolbox\ToolWindows\TrainPathToolWindow.cs
-msgid "Place the wait or reversal after the first main node."
-msgstr ""
-
-#: ..\..\..\Toolbox\ToolWindows\TrainPathToolWindow.cs
-#, csharp-format
-msgid "Unsupported junction or combined wait/reverse event at node {0}."
-msgstr ""
-
-#: ..\..\..\Toolbox\ToolWindows\TrainPathToolWindow.cs
+#: ..\..\Toolbox\ToolWindows\TrainPathToolWindow.cs:1535
 msgid "Place a single wait or reversal on an ordinary main-path node."
 msgstr ""
 
-#: ..\..\..\Toolbox\ToolWindows\TrainPathToolWindow.cs
-#, csharp-format
-msgid "Unsupported siding event at node {0}; branch waits/reversals cannot be preserved."
-msgstr ""
-
-#: ..\..\..\Toolbox\ToolWindows\TrainPathToolWindow.cs
+#: ..\..\Toolbox\ToolWindows\TrainPathToolWindow.cs:1538
 msgid "Place the event on the main path outside the passing interior."
 msgstr ""
 
-#: ..\..\..\Toolbox\ToolWindows\TrainPathToolWindow.cs
+#: ..\..\Toolbox\ToolWindows\TrainPathToolWindow.cs:1532
+msgid "Place the wait or reversal after the first main node."
+msgstr ""
+
+#: ..\..\Toolbox\ToolWindows\TrainPathToolWindow.cs:1544
+msgid "Place the wait or reversal outside the common passing prefix or suffix."
+msgstr ""
+
+#: ..\..\Toolbox\Views\RouteNavigationToolView.xaml:74
+msgid "Platform"
+msgstr ""
+
+#: ..\..\Toolbox\Views\RouteNavigationToolView.xaml:59
+msgid "Platforms"
+msgstr ""
+
+#: ..\..\Toolbox\Views\TrainPathToolView.xaml:333
+msgid "Player Path"
+msgstr ""
+
+#: ..\..\Toolbox\ToolboxSession.Combine.cs:187
+msgid "Preview a current path orientation before accepting it."
+msgstr ""
+
+#: ..\..\Toolbox\PathEditing\PathEditor.cs:2398
+msgid "Preview a valid passing-branch via before confirming it."
+msgstr ""
+
+#: ..\..\Toolbox\MainWindow.xaml.cs:546
+msgid "Preview Passing Via Here"
+msgstr ""
+
+#: ..\..\Toolbox\Enums.cs:38
+msgid "Previous Route Candidate"
+msgstr ""
+
+#: ..\..\Toolbox\Enums.cs:17
+msgid "Quit"
+msgstr ""
+
+#: ..\..\Toolbox\Views\TrainPathToolView.xaml:220
+msgid "Re-resolve path"
+msgstr ""
+
+#: ..\..\Toolbox\MainWindow.xaml.cs:558
+msgid "Re-resolve Path"
+msgstr ""
+
+#: ..\..\Toolbox\MainWindow.xaml.cs:565
+#: ..\..\Toolbox\Views\TrainPathToolView.xaml:216
+msgid "Redo"
+msgstr ""
+
+#: ..\..\Toolbox\Views\TrainPathToolView.xaml:389
+msgid "Rejoin at selected node"
+msgstr ""
+
+#: ..\..\Toolbox\MainWindow.xaml.cs:544
+msgid "Rejoin Passing Branch"
+msgstr ""
+
+#: ..\..\Toolbox\MainWindow.xaml.cs:545
+msgid "Rejoin Passing Branch With Via"
+msgstr ""
+
+#: ..\..\Toolbox\Views\TrainPathToolView.xaml:390
+msgid "Rejoin with one passing via"
+msgstr ""
+
+#: ..\..\Toolbox\MainWindow.xaml.cs:549
+msgid "Remove Passing Branch"
+msgstr ""
+
+#: ..\..\Toolbox\MainWindow.xaml.cs:551
+msgid "Remove Rest of Path"
+msgstr ""
+
+#: ..\..\Toolbox\Enums.cs:35
+msgid "Remove Selected Via Point"
+msgstr ""
+
+#: ..\..\Toolbox\MainWindow.xaml.cs:539
+msgid "Remove Via Point"
+msgstr ""
+
+#: ..\..\Toolbox\Views\TrainPathToolView.xaml:538
+msgid "Remove wait flags and wait data from the selected node."
+msgstr ""
+
+#: ..\..\Toolbox\ToolWindows\TrainPathToolWindow.cs:1162
 #, csharp-format
-msgid "Multiple reversals in one continuous vector occurrence at node {0}; the circuit consumer cannot preserve every leg."
+msgid "Removed passing branch from node {0}."
 msgstr ""
 
-#: ..\..\..\Toolbox\ToolWindows\TrainPathToolWindow.cs
-msgid "Separate successive reversals with a junction before using the path in Simulator."
+#: ..\..\Toolbox\ToolWindows\TrainPathToolWindow.cs:1167
+#, csharp-format
+msgid "Removing node {0} would invalidate the supported passing branch: {1}"
 msgstr ""
 
-#: ..\..\..\Toolbox\ToolWindows\TrainPathToolWindow.cs
-msgid "Basic wait time must be between 1 and 29999 seconds. Values of 30000 or greater may encode legacy AI operations instead of a duration."
+#: ..\..\Toolbox\Views\TrainPathToolView.xaml:238
+msgid ""
+"Repair mode: inspect issues and repair authored nodes. Runtime route "
+"rendering is disabled."
 msgstr ""
 
-#: ..\..\..\Toolbox\Views\TrainPathToolView.xaml
-msgid "Basic wait time: 1 to 29999 seconds. Larger values may encode legacy AI operations. Clear the value or enter zero to remove existing wait data."
+#: ..\..\Toolbox\Views\TrainPathToolView.xaml:652
+msgid "Repair node"
+msgstr ""
+
+#: ..\..\Toolbox\MainWindow.xaml.cs:550
+msgid "Repair Node"
+msgstr ""
+
+#: ..\..\Toolbox\ViewModels\TrainPathToolWindowViewModel.cs:1212
+msgid "Request to pass red signal"
+msgstr ""
+
+#: ..\..\Toolbox\Views\SettingsToolView.xaml:20
+msgid "Reset to Defaults"
+msgstr ""
+
+#: ..\..\Toolbox\Views\PathChartToolView.xaml:151
+msgid "Reset View"
+msgstr ""
+
+#: ..\..\Toolbox\Views\SettingsToolView.xaml:21
+msgid ""
+"Reset window layout, colors, item visibility, and appearance options to their "
+"defaults"
+msgstr ""
+
+#: ..\..\Toolbox\Enums.cs:24
+msgid "Reset Zoom and Center Location"
+msgstr ""
+
+#: ..\..\Toolbox\Views\SettingsToolView.xaml:34
+msgid "Restore Last View on Start"
+msgstr ""
+
+#: ..\..\Toolbox\Views\TrainPathToolView.xaml:221
+#: ..\..\Toolbox\Views\TrainPathToolView.xaml:222
+msgid "Reverse Path"
+msgstr ""
+
+#: ..\..\Toolbox\ToolWindows\TrainPathToolWindow.cs:1081
+msgid ""
+"Reverse Path is unavailable during repair, placement, route selection, or "
+"saving."
+msgstr ""
+
+#: ..\..\Toolbox\ToolWindows\TrainPathToolWindow.cs:1076
+msgid ""
+"Reverse Path requires a complete, reachable main chain with exactly one Start "
+"and End and at least two nodes."
+msgstr ""
+
+#: ..\..\Toolbox\ToolWindows\TrainPathToolWindow.cs:1083
+msgid ""
+"Reverse Path requires an unambiguous route with exactly reversed track edges "
+"and matching anchors."
+msgstr ""
+
+#: ..\..\Toolbox\ToolWindows\TrainPathToolWindow.cs:1085
+msgid "Reverse Path requires both directions to pass normal save validation."
+msgstr ""
+
+#: ..\..\Toolbox\ToolWindows\TrainPathToolWindow.cs:1078
+msgid ""
+"Reverse Path supports only main paths with basic interior waits of 1 to 29999 "
+"seconds and no endpoint or junction waits, reversals, siding links, invalid "
+"nodes, or unknown flags."
+msgstr ""
+
+#: ..\..\Toolbox\ToolWindows\TrainPathCombinationRow.cs:43
+msgid "reversed"
+msgstr ""
+
+#: ..\..\Toolbox\Views\SettingsToolView.xaml:122
+msgid "Road Items"
+msgstr ""
+
+#: ..\..\Toolbox\Views\RouteNavigationToolView.xaml:127
+#: ..\..\Toolbox\Views\RouteNavigationToolView.xaml:158
+msgid "Roads"
+msgstr ""
+
+#: ..\..\Toolbox\Views\RouteToolView.xaml:24
+msgid "Route"
+msgstr ""
+
+#: ..\..\Toolbox\MainWindow.xaml:53
+msgid "Route Na_vigation"
+msgstr ""
+
+#: ..\..\Toolbox\MainWindow.xaml:167
+msgid "Route Navigation"
+msgstr ""
+
+#: ..\..\Toolbox\MainWindow.xaml.cs:553
+msgid "Route Through Exit"
+msgstr ""
+
+#: ..\..\Toolbox\MainWindow.xaml:119
+msgid "Routes"
+msgstr ""
+
+#: ..\..\Toolbox\Views\TrainPathToolView.xaml:214
+msgid "Save"
+msgstr ""
+
+#: ..\..\Toolbox\MainWindow.xaml.cs:563
+msgid "Save Path"
+msgstr ""
+
+#: ..\..\Toolbox\ViewModels\TrainPathListItemViewModel.cs:76
+msgid "Save this new path before comparing it."
+msgstr ""
+
+#: ..\..\Toolbox\Views\TrainPathToolView.xaml:30
+msgid "Saved"
+msgstr ""
+
+#: ..\..\Toolbox\ViewModels\TrainPathListItemViewModel.cs:78
+msgid ""
+"Saved baseline only (read-only). Up to six comparisons; check exactly two "
+"saved paths to use Path actions > Combine Paths. Independent of Show Path and "
+"editor changes."
+msgstr ""
+
+#: ..\..\Toolbox\ToolboxSession.Comparison.cs:102
+msgid ""
+"Saved path comparison could not match its selected track geometry. Validate "
+"the route and saved path before comparing again."
+msgstr ""
+
+#: ..\..\Toolbox\ToolboxSession.Comparison.cs:86
+msgid "Saved path comparison displayed."
+msgstr ""
+
+#: ..\..\Toolbox\ToolboxSession.Comparison.cs:101
+msgid ""
+"Saved path comparison requires an unambiguous, resolved main and passing "
+"route. Open the saved path and repair or select its route, then save again."
+msgstr ""
+
+#: ..\..\Toolbox\ToolboxSession.Comparison.cs:94
+msgid ""
+"Saved path comparison was canceled. Check the saved path again to retry."
+msgstr ""
+
+#: ..\..\Toolbox\ToolboxSession.Composition.cs:48
+msgid ""
+"Saved-path composition requires an idle, event-free main path and is "
+"unavailable during repair or saving."
+msgstr ""
+
+#: ..\..\Toolbox\Enums.cs:25
+msgid "Screenshot"
+msgstr ""
+
+#: ..\..\Toolbox\Views\PathChartToolView.xaml.cs:31
+msgid "Scroll to pan the zoomed path chart"
+msgstr ""
+
+#: ..\..\Toolbox\Views\HelpToolView.xaml:19
+msgid "Search Help"
+msgstr ""
+
+#: ..\..\Toolbox\Views\TrainPathToolView.xaml:517
+msgid "seconds"
+msgstr ""
+
+#: ..\..\Toolbox\Views\TrainPathToolView.xaml:388
+msgid "Select a later main-path node to rejoin the passing branch."
+msgstr ""
+
+#: ..\..\Toolbox\PathEditing\PathEditor.cs:2199
+msgid "Select a later main-route node before placing a passing-branch via."
+msgstr ""
+
+#: ..\..\Toolbox\PathEditing\PathEditor.cs:1970
+msgid ""
+"Select a main-route start with an available strictly separated rejoin; at "
+"most two passing branches can be authored."
+msgstr ""
+
+#: ..\..\Toolbox\Views\RouteToolView.xaml:29
+msgid "Select a route to open"
+msgstr ""
+
+#: ..\..\Toolbox\Views\RouteToolView.xaml:23
+msgid "Select the content folder to load routes from"
+msgstr ""
+
+#: ..\..\Toolbox\Views\SettingsToolView.xaml:51
+msgid "Select the user interface language"
+msgstr ""
+
+#: ..\..\Toolbox\ToolWindows\TrainPathToolWindow.cs:1541
+msgid ""
+"Separate successive reversals with a junction before using the path in "
+"Simulator."
+msgstr ""
+
+#: ..\..\Toolbox\Views\TrainPathToolView.xaml:374
+msgid "Set end"
+msgstr ""
+
+#: ..\..\Toolbox\MainWindow.xaml.cs:562
+msgid "Set End Here"
+msgstr ""
+
+#: ..\..\Toolbox\MainWindow.xaml.cs:541
+msgid "Set Reversal Point"
+msgstr ""
+
+#: ..\..\Toolbox\Views\TrainPathToolView.xaml:373
+msgid "Set start"
+msgstr ""
+
+#: ..\..\Toolbox\MainWindow.xaml.cs:561
+msgid "Set Start Here"
+msgstr ""
+
+#: ..\..\Toolbox\Views\TrainPathToolView.xaml:343
+msgid "Setting"
+msgstr ""
+
+#: ..\..\Toolbox\MainWindow.xaml:175
+msgid "Settings"
+msgstr ""
+
+#: ..\..\Toolbox\Enums.cs:29
+msgid "Settings Window (Tab)"
+msgstr ""
+
+#: ..\..\Toolbox\Views\PathChartToolView.xaml:150
+msgid "Show on Map"
+msgstr ""
+
+#: ..\..\Toolbox\Views\TrainPathToolView.xaml:230
+msgid "Show Path Chart"
+msgstr ""
+
+#: ..\..\Toolbox\MainWindow.xaml.cs:1183
+msgid "Shutdown Failed"
+msgstr ""
+
+#: ..\..\Toolbox\Views\RouteNavigationToolView.xaml:96
+msgid "Siding"
+msgstr ""
+
+#: ..\..\Toolbox\ToolWindows\TrainPathToolWindow.cs:1543
+msgid ""
+"Siding projection changes branch participation in main event at node {0} in "
+"the common prefix or suffix."
+msgstr ""
+
+#: ..\..\Toolbox\Views\RouteNavigationToolView.xaml:81
+msgid "Sidings"
+msgstr ""
+
+#: ..\..\Toolbox\Enums.cs:15
+msgid "Span another instance"
+msgstr ""
+
+#: ..\..\Toolbox\Views\TrainPathToolView.xaml:329
+msgid "Start"
+msgstr ""
+
+#: ..\..\Toolbox\MainWindow.xaml.cs:559
+msgid "Start New Path"
+msgstr ""
+
+#: ..\..\Toolbox\MainWindow.xaml.cs:560
+msgid "Start New Path Here"
+msgstr ""
+
+#: ..\..\Toolbox\MainWindow.xaml.cs:543
+msgid "Start Passing Branch"
+msgstr ""
+
+#: ..\..\Toolbox\MainWindow.xaml.cs:208
+msgid "Starting the map workspace..."
+msgstr ""
+
+#: ..\..\Toolbox\Views\RouteNavigationToolView.xaml:52
+#: ..\..\Toolbox\Views\RouteNavigationToolView.xaml:73
+#: ..\..\Toolbox\Views\PathChartToolView.xaml:161
+msgid "Station"
+msgstr ""
+
+#: ..\..\Toolbox\Views\RouteNavigationToolView.xaml:38
+#: ..\..\Toolbox\Views\PathChartToolView.xaml:148
+msgid "Stations"
+msgstr ""
+
+#: ..\..\Toolbox\Views\PathChartToolView.xaml.cs:29
+msgid "Stations along the main route"
+msgstr ""
+
+#: ..\..\Toolbox\Views\PathChartToolView.xaml.cs:33
+msgid ""
+"Stations encountered along the main route are not scheduled stops. Speedposts "
+"are source annotations, not an operating speed profile."
+msgstr ""
+
+#: ..\..\Toolbox\Views\TrainPathToolView.xaml:647
+msgid "Suggested Action"
+msgstr ""
+
+#: ..\..\Toolbox\MainWindow.xaml:31
+msgid "Take _Screenshot"
+msgstr ""
+
+#: ..\..\Toolbox\ViewModels\PathChartToolWindowViewModel.cs:391
+msgid "The authored main path topology is not proven."
+msgstr ""
+
+#: ..\..\Toolbox\ToolWindows\TrainPathToolWindow.cs:1096
+msgid ""
+"The current end and extension start must have the same track node, section, "
+"and stored location. Move the endpoints into alignment before composing paths."
+msgstr ""
+
+#: ..\..\Toolbox\ToolWindows\TrainPathToolWindow.cs:1088
+msgid ""
+"The current path changed while its extension was loading. Select the saved "
+"path again to retry."
+msgstr ""
+
+#: ..\..\Toolbox\ViewModels\PathChartToolWindowViewModel.cs:372
+msgid "The current route geometry is not available for this path."
+msgstr ""
+
+#: ..\..\Toolbox\ToolWindows\TrainPathToolWindow.cs:1122
+msgid ""
+"The forced passing via cannot form a continuous, physically distinct branch "
+"with the unchanged main route."
+msgstr ""
+
+#: ..\..\Toolbox\PathEditing\PathEditor.cs:2256
+#: ..\..\Toolbox\PathEditing\PathEditor.cs:2261
+#: ..\..\Toolbox\PathEditing\PathEditor.cs:2483
+msgid "The guided passing-branch interaction is no longer current."
+msgstr ""
+
+#: ..\..\Toolbox\PathEditing\PathEditor.cs:2417
+#: ..\..\Toolbox\PathEditing\PathEditor.cs:2421
+#: ..\..\Toolbox\PathEditing\PathEditor.cs:2432
+msgid "The guided passing-route candidate is no longer current."
+msgstr ""
+
+#: ..\..\Toolbox\ViewModels\PathChartToolWindowViewModel.cs:393
+msgid "The main path contains an unresolved or ambiguous span."
+msgstr ""
+
+#: ..\..\Toolbox\ViewModels\PathChartToolWindowViewModel.cs:394
+msgid "The main path contains missing or inconsistent track geometry."
+msgstr ""
+
+#: ..\..\Toolbox\MainWindow.xaml.cs:195
+msgid "The map workspace could not start. See the log for details."
+msgstr ""
+
+#: ..\..\Toolbox\ToolWindows\TrainPathToolWindow.cs:1150
+msgid ""
+"The passing branch already has authored interior anchors; insert a via point "
+"instead of replacing them."
+msgstr ""
+
+#: ..\..\Toolbox\ToolWindows\TrainPathToolWindow.cs:1144
+msgid "The passing branch does not rejoin a later main-route node."
+msgstr ""
+
+#: ..\..\Toolbox\ToolWindows\TrainPathToolWindow.cs:1142
+msgid ""
+"The passing branch is cyclic, shared, nested, or does not rejoin the main "
+"route."
+msgstr ""
+
+#: ..\..\Toolbox\ToolWindows\TrainPathToolWindow.cs:1152
+msgid "The passing route candidate contains a null anchor."
+msgstr ""
+
+#: ..\..\Toolbox\ToolWindows\TrainPathToolWindow.cs:933
+#: ..\..\Toolbox\ToolWindows\TrainPathToolWindow.cs:1036
+msgid ""
+"The passing-branch interaction changed before the queued command ran; retry "
+"the current action."
+msgstr ""
+
+#: ..\..\Toolbox\PathEditing\PathEditor.cs:3187
+msgid ""
+"The passing-branch preview could not be evaluated. Choose another track "
+"location to retry."
+msgstr ""
+
+#: ..\..\Toolbox\ToolWindows\TrainPathToolWindow.cs:1254
+msgid ""
+"The path changed before the queued command ran; retry the current action."
+msgstr ""
+
+#: ..\..\Toolbox\PathEditing\PathEditor.cs:1358
+msgid ""
+"The path changed while the route candidate was pending; the candidate was "
+"canceled."
+msgstr ""
+
+#: ..\..\Toolbox\ViewModels\PathChartToolWindowViewModel.cs:396
+msgid "The path chart exceeds the supported sample limit."
+msgstr ""
+
+#: ..\..\Toolbox\ToolWindows\TrainPathToolWindow.cs:1146
+msgid ""
+"The path contains disconnected nodes outside the main route and passing "
+"branches."
+msgstr ""
+
+#: ..\..\Toolbox\ToolboxSession.Persistence.cs:144
+msgid ""
+"The path could not be saved because access was denied. Your changes are still "
+"available; try saving again."
+msgstr ""
+
+#: ..\..\Toolbox\ToolboxSession.Persistence.cs:145
+msgid ""
+"The path could not be saved. Your changes are still available; try saving "
+"again."
+msgstr ""
+
+#: ..\..\Toolbox\ViewModels\PathChartToolWindowViewModel.cs:390
+msgid "The path has no resolved main traversal."
+msgstr ""
+
+#: ..\..\Toolbox\ViewModels\PathChartToolWindowViewModel.cs:392
+msgid "The path resolution does not match the authored main path."
+msgstr ""
+
+#: ..\..\Toolbox\ViewModels\PathChartToolWindowViewModel.cs:380
+msgid ""
+"The route or path has changed. Select a position on the current chart and try "
+"again."
+msgstr ""
+
+#: ..\..\Toolbox\ToolboxSession.cs:550
+msgid "The saved content folder is unavailable:"
+msgstr ""
+
+#: ..\..\Toolbox\ToolboxSession.Composition.cs:94
+msgid ""
+"The saved extension could not be read. Verify the native model and access "
+"permissions, then retry."
+msgstr ""
+
+#: ..\..\Toolbox\ToolboxSession.Comparison.cs:103
+#: ..\..\Toolbox\ToolboxSession.Comparison.cs:111
+msgid ""
+"The saved path could not be loaded for comparison. Verify the native saved "
+"model and access permissions, then try again."
+msgstr ""
+
+#: ..\..\Toolbox\ToolboxSession.cs:566
+msgid "The saved route is unavailable:"
+msgstr ""
+
+#: ..\..\Toolbox\ToolboxSession.Composition.cs:43
+#: ..\..\Toolbox\ToolWindows\TrainPathToolWindow.cs:512
+msgid "The saved-path list changed. Select a current source to retry."
+msgstr ""
+
+#: ..\..\Toolbox\ToolWindows\TrainPathToolWindow.cs:1070
+#: ..\..\Toolbox\ViewModels\TrainPathToolWindowViewModel.cs:1665
+msgid "The selected advanced wait operation has invalid parameters."
+msgstr ""
+
+#: ..\..\Toolbox\ViewModels\PathChartToolWindowViewModel.cs:395
+msgid "The selected main path connector cannot be established."
+msgstr ""
+
+#: ..\..\Toolbox\ToolWindows\TrainPathToolWindow.cs:1111
+msgid ""
+"The selected paths or editor changed while loading. Select two saved paths "
+"again to retry."
+msgstr ""
+
+#: ..\..\Toolbox\ViewModels\ToolboxMenuViewModel.cs:63
+msgid "The Toolbox session has stopped."
+msgstr ""
+
+#: ..\..\Toolbox\MainWindow.xaml.cs:106
+msgid ""
+"There are unsaved path changes. Changing the route will discard them. "
+"Continue?"
+msgstr ""
+
+#: ..\..\Toolbox\Views\TrainPathToolView.xaml:527
+msgid "This operation uses a single encoded command and has no parameters."
+msgstr ""
+
+#: ..\..\Toolbox\Views\ColumnFilterHeader.xaml:26
+#: ..\..\Toolbox\Views\ColumnFilterHeader.xaml:28
+msgid "Toggle column filter"
+msgstr ""
+
+#: ..\..\Toolbox\MainWindow.xaml.cs:1182
+msgid ""
+"Toolbox could not shut down safely. The window will remain open. See the log "
+"for details."
+msgstr ""
+
+#: ..\..\Toolbox\MainWindow.xaml.cs:1181
+msgid ""
+"Toolbox encountered an error while shutting down. Resources were released "
+"safely and the window will close. Changes may not have been saved. See the log "
+"for details."
+msgstr ""
+
+#: ..\..\Toolbox\MainWindow.xaml.cs:123
+msgid "Toolbox startup failed. See the log for details."
+msgstr ""
+
+#: ..\..\Toolbox\Views\RouteNavigationToolView.xaml:103
+msgid "Track Item"
+msgstr ""
+
+#: ..\..\Toolbox\Views\SettingsToolView.xaml:111
+msgid "Track Items"
+msgstr ""
+
+#: ..\..\Toolbox\Views\RouteNavigationToolView.xaml:134
+msgid "Track Node"
+msgstr ""
+
+#: ..\..\Toolbox\Views\RouteNavigationToolView.xaml:123
+#: ..\..\Toolbox\Views\RouteNavigationToolView.xaml:154
+msgid "Tracks"
+msgstr ""
+
+#: ..\..\Toolbox\Enums.cs:31
+msgid "Train Path Window (Tab)"
+msgstr ""
+
+#: ..\..\Toolbox\ToolWindows\TrainPathToolWindow.cs:1164
+#, csharp-format
+msgid "Truncating after node {0} would invalidate the passing topology: {1}"
+msgstr ""
+
+#: ..\..\Toolbox\Views\TrainPathToolView.xaml:461
+msgid "Type"
+msgstr ""
+
+#: ..\..\Toolbox\ViewModels\RouteBrowserViewModel.cs:146
+msgid "Unable to discover content folders or routes."
+msgstr ""
+
+#: ..\..\Toolbox\ViewModels\ToolboxMenuViewModel.cs:62
+msgid "Unable to load routes or open the selected route."
+msgstr ""
+
+#: ..\..\Toolbox\ViewModels\TrainPathToolWindowViewModel.cs:1210
+msgid "Uncouple and wait"
+msgstr ""
+
+#: ..\..\Toolbox\Views\TrainPathToolView.xaml:516
+msgid "Uncouple wait seconds"
+msgstr ""
+
+#: ..\..\Toolbox\MainWindow.xaml.cs:564
+#: ..\..\Toolbox\Views\TrainPathToolView.xaml:215
+msgid "Undo"
+msgstr ""
+
+#: ..\..\Toolbox\Views\TrainPathToolView.xaml:189
+msgid "Unsaved changes"
+msgstr ""
+
+#: ..\..\Toolbox\MainWindow.xaml.cs:107
+msgid "Unsaved Path Changes"
+msgstr ""
+
+#: ..\..\Toolbox\ToolWindows\TrainPathToolWindow.cs:1534
+msgid "Unsupported junction or combined wait/reverse event at node {0}."
+msgstr ""
+
+#: ..\..\Toolbox\ToolWindows\TrainPathToolWindow.cs:1537
+msgid ""
+"Unsupported siding event at node {0}; branch waits/reversals cannot be "
+"preserved."
+msgstr ""
+
+#: ..\..\Toolbox\ToolWindows\TrainPathToolWindow.cs:1531
+msgid ""
+"Unsupported wait/reverse event at first main node; the circuit consumer skips "
+"this event."
+msgstr ""
+
+#: ..\..\Toolbox\MainWindow.xaml.cs:152
+msgid "Use File > Open Route to load the last route or choose a route."
+msgstr ""
+
+#: ..\..\Toolbox\Views\SettingsToolView.xaml:57
+msgid "Use Font Outline"
+msgstr ""
+
+#: ..\..\Toolbox\Views\SettingsToolView.xaml:60
+msgid "Use Real Track Width"
+msgstr ""
+
+#: ..\..\Toolbox\MainWindow.xaml.cs:552
+msgid "Use Route"
+msgstr ""
+
+#: ..\..\Toolbox\Views\TrainPathToolView.xaml:161
+msgid "Valid path node"
+msgstr ""
+
+#: ..\..\Toolbox\Views\TrainPathToolView.xaml:229
+msgid "Validate all paths"
+msgstr ""
+
+#: ..\..\Toolbox\Views\DebugToolView.xaml:23
+#: ..\..\Toolbox\Views\LocationToolView.xaml:23
+#: ..\..\Toolbox\Views\RouteNavigationToolView.xaml:184
+#: ..\..\Toolbox\Views\TrainPathToolView.xaml:344
+#: ..\..\Toolbox\Views\TrainPathToolView.xaml:552
+msgid "Value"
+msgstr ""
+
+#: ..\..\Toolbox\Views\PathChartToolView.xaml.cs:30
+msgid "Visible main-route distance range"
+msgstr ""
+
+#: ..\..\Toolbox\Views\TrainPathToolView.xaml:491
+msgid "Wait (seconds)"
+msgstr ""
+
+#: ..\..\Toolbox\PathEditing\PathEditor.cs:1423
+msgid "Wait for the current save to finish before re-resolving the path."
+msgstr ""
+
+#: ..\..\Toolbox\Views\TrainPathToolView.xaml:483
+#: ..\..\Toolbox\Views\TrainPathToolView.xaml:487
+msgid "Wait operation"
+msgstr ""
+
+#: ..\..\Toolbox\ToolWindows\TrainPathToolWindow.cs:1074
+msgid "Wait operation is already set."
+msgstr ""
+
+#: ..\..\Toolbox\ViewModels\TrainPathToolWindowViewModel.cs:323
+msgid ""
+"Wait time cannot be changed on this node. Use Clear Wait Point to remove "
+"existing wait data when available."
+msgstr ""
+
+#: ..\..\Toolbox\Views\TrainPathToolView.xaml:498
+msgid "Wait time in seconds"
+msgstr ""
+
+#: ..\..\Toolbox\Views\TrainPathToolView.xaml:502
+msgid "Wait until (HH:MM)"
+msgstr ""
+
+#: ..\..\Toolbox\Views\TrainPathToolView.xaml:504
+msgid "Wait until hour"
+msgstr ""
+
+#: ..\..\Toolbox\Views\TrainPathToolView.xaml:507
+msgid "Wait until minute"
+msgstr ""
+
+#: ..\..\Toolbox\ViewModels\TrainPathToolWindowViewModel.cs:1209
+msgid "Wait until time"
+msgstr ""
+
+#: ..\..\Toolbox\ViewModels\ToolboxMenuViewModel.cs:59
+msgid "Waiting for confirmation of unsaved path changes."
+msgstr ""
+
+#: ..\..\Toolbox\Enums.cs:22
+msgid "Zoom In"
+msgstr ""
+
+#: ..\..\Toolbox\Enums.cs:23
+msgid "Zoom Out"
+msgstr ""
+
+#: ..\..\Toolbox\Views\ColumnFilterHeader.xaml:49
+msgid ""
+msgstr ""
+
+#: ..\..\Toolbox\Views\ColumnFilterHeader.xaml:29
+msgid ""
 msgstr ""
 

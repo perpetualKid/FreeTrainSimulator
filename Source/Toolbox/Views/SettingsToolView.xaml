@@ -11,7 +11,9 @@
              views:ToolWindow.DefaultFloatingSize="480,560"
              d:DesignWidth="480"
              d:DesignHeight="560">
-    <DockPanel Margin="6">
+    <DockPanel Margin="6" IsEnabled="{Binding IsEditable, FallbackValue=False}">
+        <TextBlock x:Name="ActiveProfileLabel" DockPanel.Dock="Top" Margin="6,3,6,6"
+                   Text="{Binding ActiveProfileText}" FontWeight="SemiBold" TextWrapping="Wrap" />
         <Border DockPanel.Dock="Bottom" Margin="0,6,0,0">
             <Button HorizontalAlignment="Right"
                     Padding="10,3"
@@ -41,7 +43,7 @@
                                                Text="Language"
                                                VerticalAlignment="Center"
                                                Margin="0,0,8,0" />
-                                    <ComboBox Grid.Column="1"
+                                    <ComboBox x:Name="LanguagePicker" Grid.Column="1"
                                               ItemsSource="{Binding AvailableLanguages}"
                                               SelectedItem="{Binding SelectedLanguage, Mode=OneWay}"
                                               DisplayMemberPath="DisplayName"

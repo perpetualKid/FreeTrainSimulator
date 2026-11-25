@@ -1,7 +1,10 @@
 using System;
 using System.Diagnostics;
 using System.Globalization;
+using System.Linq;
 using System.Threading;
+
+using AvalonDock.Layout;
 
 using GetText;
 using GetText.Wpf;
@@ -48,11 +51,32 @@ namespace FreeTrainSimulator.Toolbox
             GettextExtension.DefaultCatalog = catalog;
 
             Localizer.Localize(this, catalog, wpfLocalizationStore);
+            RefreshDockingTitles(catalog);
             viewModel.Menu?.RefreshLocalization();
+            viewModel.SettingsTool?.RefreshLocalization();
             viewModel.TrainPathTool?.RefreshLocalization();
             viewModel.PathChartTool?.RefreshLocalization();
             if (PathChartToolAnchorable.Content is Views.PathChartToolView chartView)
                 chartView.RefreshLocalization();
+        }
+
+        private void RefreshDockingTitles(Catalog catalog)
+        {
+            // AvalonDock headers bind to layout models outside the WPF localization tree.
+            foreach (ToolWindowDescriptor descriptor in toolWindowDescriptors)
+            {
+                string title = catalog.GetString(descriptor.Title);
+                LayoutAnchorable template = descriptor.TemplateAnchorable();
+                if (template != null)
+                    template.Title = title;
+                LayoutAnchorable current = FindToolWindowAnchorable(descriptor.ContentId);
+                if (current != null && !ReferenceEquals(current, template))
+                    current.Title = title;
+            }
+            LayoutDocument mapDocument = DockingManager.Layout?.Descendents().OfType<LayoutDocument>()
+                .FirstOrDefault(document => string.Equals(document.ContentId, "MapViewDocument", StringComparison.Ordinal));
+            if (mapDocument != null)
+                mapDocument.Title = catalog.GetString("Map View");
         }
 
         private static CultureInfo ResolveCulture(string language)

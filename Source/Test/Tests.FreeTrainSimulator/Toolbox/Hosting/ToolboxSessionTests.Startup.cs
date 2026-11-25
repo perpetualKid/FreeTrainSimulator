@@ -12,7 +12,9 @@ using System.Xml.Linq;
 
 using AvalonDock.Layout;
 
+using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Position;
+using FreeTrainSimulator.Graphics;
 using FreeTrainSimulator.Models.Base;
 using FreeTrainSimulator.Models.Content;
 using FreeTrainSimulator.Models.Settings;
@@ -313,7 +315,9 @@ namespace Tests.FreeTrainSimulator.Toolbox.Hosting
 
         [TestMethod]
         [Timeout(10000, CooperativeCancellation = true)]
-        public async Task WhenManagementOnlySettingsAreSavedThenMapStateAndFreshPreferencesArePreserved()
+        [DataRow(false)]
+        [DataRow(true)]
+        public async Task WhenManagementOnlySettingsAreSavedThenMapStateAndFreshPreferencesArePreserved(bool editPreferences)
         {
             ProfileModel profile = new ProfileModel("lazy-startup-" + Guid.NewGuid().ToString("N"));
             ProfileToolboxSettingsModel original = await profile.LoadSettingsModel<ProfileToolboxSettingsModel>(CancellationToken.None).ConfigureAwait(false);
@@ -324,9 +328,12 @@ namespace Tests.FreeTrainSimulator.Toolbox.Hosting
             original.ContentScale = 3;
             original.DockLayoutJson = "saved-layout";
             original.PathEditorSelectedTabIndex = 1;
+            original.ColorSettings[ColorSetting.Background] = "Black";
+            original.ViewSettings[MapContentType.Tracks] = false;
             await profile.UpdateSettingsModel(original, CancellationToken.None).ConfigureAwait(false);
             ProfileToolboxSettingsModel stale = await profile.LoadSettingsModel<ProfileToolboxSettingsModel>(CancellationToken.None).ConfigureAwait(false);
             original.FontOutline = false;
+            original.ColorSettings[ColorSetting.RailTrack] = "White";
             await profile.UpdateSettingsModel(original, CancellationToken.None).ConfigureAwait(false);
 
             StaControlHost owner = await StaControlHost.StartAsync().ConfigureAwait(false);
@@ -338,7 +345,30 @@ namespace Tests.FreeTrainSimulator.Toolbox.Hosting
                     MainWindow shell = CreateShutdownShell(null);
                     SetField(shell, "currentProfile", profile);
                     SetField(shell, "toolboxSettings", stale);
-                    stale.RestoreLastView = false;
+                    SetField(shell, "userSettings", new ProfileUserSettingsModel { LogLevel = System.Diagnostics.TraceEventType.Critical });
+                    typeof(MainWindow).GetMethod("InitializeToolWindowCommands", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(shell, null);
+                    typeof(MainWindow).GetMethod("InitializeShellSettings", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(shell, null);
+                    MainWindowViewModel model = (MainWindowViewModel)typeof(MainWindow).GetField("viewModel", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(shell);
+                    SettingsToolWindowViewModel settings = model.SettingsTool;
+                    SettingsToolView view = new SettingsToolView { DataContext = settings };
+                    PumpMenuBindings();
+                    StringAssert.Contains(((TextBlock)view.FindName("ActiveProfileLabel")).Text, profile.Name, StringComparison.Ordinal);
+                    ComboBox language = (ComboBox)view.FindName("LanguagePicker");
+                    Assert.IsTrue(language.Items.Count >= 1);
+                    Assert.AreSame(settings.AvailableLanguages[0], language.SelectedItem);
+                    Assert.IsFalse(settings.EnableLogging);
+                    Assert.IsTrue(settings.RestoreLastView);
+                    Assert.AreEqual("Black", settings.ColorItems.Single(item => item.Setting == ColorSetting.Background).SelectedColorName);
+                    Assert.IsFalse(settings.TrackVisibilityItems.Single(item => item.Setting == MapContentType.Tracks).IsVisible);
+                    if (editPreferences)
+                    {
+                        settings.RestoreLastView = false;
+                        settings.RealTrackWidth = true;
+                        settings.TrackVisibilityItems.Single(item => item.Setting == MapContentType.Tracks).IsVisible = true;
+                    }
+
+                    Assert.AreEqual(!editPreferences, stale.RestoreLastView, "The map will receive the same populated settings model.");
+                    Assert.IsNull(typeof(MainWindow).GetField("MapHost", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(shell));
                     save = (Task)typeof(MainWindow).GetMethod("SaveDockLayoutAsync", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(shell, null);
                 }).ConfigureAwait(false);
                 await save.WaitAsync(TestContext.CancellationToken).ConfigureAwait(false);
@@ -351,7 +381,10 @@ namespace Tests.FreeTrainSimulator.Toolbox.Hosting
             Assert.AreEqual("saved-layout", restored.DockLayoutJson);
             Assert.AreEqual(1, restored.PathEditorSelectedTabIndex);
             Assert.IsFalse(restored.FontOutline);
-            Assert.IsTrue(restored.RestoreLastView);
+            Assert.AreEqual("White", restored.ColorSettings[ColorSetting.RailTrack]);
+            Assert.AreEqual(!editPreferences, restored.RestoreLastView);
+            Assert.AreEqual(!editPreferences, restored.LimitTrackWidth);
+            Assert.AreEqual(editPreferences, restored.ViewSettings[MapContentType.Tracks]);
         }
 
         [TestMethod]

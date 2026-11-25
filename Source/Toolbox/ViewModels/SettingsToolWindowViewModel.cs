@@ -10,6 +10,8 @@ using FreeTrainSimulator.Graphics;
 using FreeTrainSimulator.Graphics.Xna;
 using FreeTrainSimulator.Toolbox.ToolWindows;
 
+using GetText;
+
 namespace FreeTrainSimulator.Toolbox.ViewModels
 {
     /// <summary>
@@ -88,6 +90,7 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
         private bool realTrackWidth;
         private LanguageOption selectedLanguage;
         private ICommand resetCommand;
+        private bool isEditable = true;
         private bool disposed;
 
         public SettingsToolWindowViewModel(SettingsToolWindow toolWindow)
@@ -111,6 +114,18 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
         }
 
         public string Title => toolWindow.Title;
+
+        public string ProfileName { get; init; }
+
+        public string ActiveProfileText => string.IsNullOrEmpty(ProfileName) ? string.Empty : CatalogManager.Catalog.GetString("Active profile: {0}", ProfileName);
+
+        internal void RefreshLocalization() => OnPropertyChanged(nameof(ActiveProfileText));
+
+        public bool IsEditable
+        {
+            get => isEditable;
+            set => SetProperty(ref isEditable, value);
+        }
 
         /// <summary>
         /// Command invoked by the Settings view's "Reset to Defaults" button. The shell owns the reset flow

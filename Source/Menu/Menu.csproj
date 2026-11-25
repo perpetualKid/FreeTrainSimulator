@@ -13,8 +13,8 @@
 	</PropertyGroup>
   <ItemGroup>
     <PackageReference Include="MonoGame.Framework.WindowsDX" Version="3.8.6.1" />
-    <PackageReference Include="GetText.NET" Version="11.0.10-preview.1" />
-    <PackageReference Include="GetText.NET.WindowsForms" Version="11.0.10-preview.1" />
+    <PackageReference Include="GetText.NET" Version="11.1.12-rc" />
+    <PackageReference Include="GetText.NET.WindowsForms" Version="11.1.12-rc" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\FreeTrainSimulator.Models.Imported\FreeTrainSimulator.Models.Imported.csproj" />

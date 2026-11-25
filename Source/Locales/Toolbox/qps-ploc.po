@@ -1,508 +1,1946 @@
 msgid ""
 msgstr ""
 "Project-Id-Version: Toolbox\n"
-"POT-Creation-Date: 2025-01-10 20:24:47+0100\n"
-"PO-Revision-Date: 2025-01-11 08:30+0100\n"
+"POT-Creation-Date: 2026-11-25 15:16:59+0100\n"
+"PO-Revision-Date: 2026-11-25 15:17:00+0100\n"
 "Last-Translator: \n"
 "Language-Team: Open Rails Dev Team\n"
-"Language: qps\n"
+"Language: qps-ploc\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=utf-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"X-Generator: PowerShell Update-Pseudo.ps1\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"X-Generator: Poedit 3.5\n"
 
-#: ..\..\..\Toolbox\GameWindow.cs:76
+#: ..\..\Toolbox\Views\TrainPathToolView.xaml:188
+msgid " *"
+msgstr "[ * !!!]"
+
+#: ..\..\Toolbox\GameWindow.cs:88
 #, csharp-format
 msgid " Route: {0}"
 msgstr "[ Rôúƭè: {0} !!!]"
 
-#: ..\..\..\Toolbox\PopupWindows\LocationWindow.cs:107
-#, csharp-format
-msgid "{0} {1}"
-msgstr "[{0} {1} !!!]"
+#: ..\..\Toolbox\MainWindow.xaml:75
+msgid "_About"
+msgstr "[_Âβôúƭ !!!]"
 
-#: ..\..\..\Toolbox\PopupWindows\AboutWindow.cs:20
-#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:721
+#: ..\..\Toolbox\MainWindow.xaml:25
+msgid "_Close Route"
+msgstr "[_Çℓôƨè Rôúƭè !!!]"
+
+#: ..\..\Toolbox\MainWindow.xaml:45
+msgid "_Debug Window"
+msgstr "[_Ðèβúϱ Wïñδôω !!!]"
+
+#: ..\..\Toolbox\MainWindow.xaml:21
+msgid "_File"
+msgstr "[_Fïℓè !!!]"
+
+#: ..\..\Toolbox\MainWindow.xaml:74
+msgid "_Help"
+msgstr "[_Hèℓƥ !!!]"
+
+#: ..\..\Toolbox\MainWindow.xaml:57
+msgid "_Help Window"
+msgstr "[_Hèℓƥ Wïñδôω !!!]"
+
+#: ..\..\Toolbox\MainWindow.xaml:41
+msgid "_Location Window"
+msgstr "[_£ôçáƭïôñ Wïñδôω !!!]"
+
+#: ..\..\Toolbox\MainWindow.xaml:22
+msgid "_Open Route"
+msgstr "[_Óƥèñ Rôúƭè !!!]"
+
+#: ..\..\Toolbox\MainWindow.xaml:65
+msgid "_Path Editor"
+msgstr "[_Þáƭλ Éδïƭôř !!!]"
+
+#: ..\..\Toolbox\MainWindow.xaml:37
+msgid "_Routes"
+msgstr "[_Rôúƭèƨ !!!]"
+
+#: ..\..\Toolbox\MainWindow.xaml:61
+msgid "_Settings Window"
+msgstr "[_§èƭƭïñϱƨ Wïñδôω !!!]"
+
+#: ..\..\Toolbox\MainWindow.xaml:36
+msgid "_View"
+msgstr "[_Vïèω !!!]"
+
+#: ..\..\Toolbox\Views\TrainPathToolView.xaml:405
+msgid "–"
+msgstr "[– !!!]"
+
+#: ..\..\Toolbox\Views\TrainPathToolView.xaml:505
+msgid ":"
+msgstr "[: !!!]"
+
+#: ..\..\Toolbox\ToolWindows\TrainPathCombinationRow.cs:26
+#, csharp-format
+msgid "{0} ({1}); then {2} ({3}). Start: {4}. End: {5}."
+msgstr "[{0} ({1}); ƭλèñ {2} ({3}). §ƭářƭ: {4}. Éñδ: {5}. !!!]"
+
+#: ..\..\Toolbox\Views\PathChartControl.cs:518
+#, csharp-format
+msgid "{0} km/h"
+msgstr "[{0} ƙ₥/λ !!!]"
+
+#: ..\..\Toolbox\Views\PathChartControl.cs:519
+#, csharp-format
+msgid "{0} mph"
+msgstr "[{0} ₥ƥλ !!!]"
+
+#: ..\..\Toolbox\Views\TrainPathToolView.xaml:454
+msgid "#"
+msgstr "[# !!!]"
+
+#: ..\..\Toolbox\Views\TrainPathToolView.xaml:215
+msgid "↶"
+msgstr "[↶ !!!]"
+
+#: ..\..\Toolbox\Views\TrainPathToolView.xaml:216
+msgid "↷"
+msgstr "[↷ !!!]"
+
+#: ..\..\Toolbox\ViewModels\PathChartToolWindowViewModel.cs:398
+msgid "A chart item cannot be located unambiguously on its owning track."
+msgstr "[Â çλářƭ ïƭè₥ çáññôƭ βè ℓôçáƭèδ úñá₥βïϱúôúƨℓ¥ ôñ ïƭƨ ôωñïñϱ ƭřáçƙ. !!!]"
+
+#: ..\..\Toolbox\MainWindow.xaml.cs:424
+#, csharp-format
+msgid ""
+"A path with ID '{0}' already exists. Replace that path? The active path will "
+"remain unchanged unless the save succeeds."
+msgstr ""
+"[Â ƥáƭλ ωïƭλ ÌÐ '{0}' áℓřèáδ¥ èжïƨƭƨ. Rèƥℓáçè ƭλáƭ ƥáƭλ? Tλè áçƭïƲè ƥáƭλ ωïℓℓ "
+"řè₥áïñ úñçλáñϱèδ úñℓèƨƨ ƭλè ƨáƲè ƨúççèèδƨ. !!!]"
+
+#: ..\..\Toolbox\ViewModels\PathChartToolWindowViewModel.cs:397
+msgid "A platform pair cannot be established on the traversed track."
+msgstr "[Â ƥℓáƭƒôř₥ ƥáïř çáññôƭ βè èƨƭáβℓïƨλèδ ôñ ƭλè ƭřáƲèřƨèδ ƭřáçƙ. !!!]"
+
+#: ..\..\Toolbox\ToolboxSession.Combine.cs:116
+msgid ""
+"A selected saved path could not be read. Verify the native model and access "
+"permissions, then retry."
+msgstr ""
+"[Â ƨèℓèçƭèδ ƨáƲèδ ƥáƭλ çôúℓδ ñôƭ βè řèáδ. Vèřïƒ¥ ƭλè ñáƭïƲè ₥ôδèℓ áñδ áççèƨƨ "
+"ƥèř₥ïƨƨïôñƨ, ƭλèñ řèƭř¥. !!!]"
+
+#: ..\..\Toolbox\Dialogs\AboutDialog.xaml:5
 msgid "About"
 msgstr "[Âβôúƭ !!!]"
 
-#: ..\..\..\Toolbox\PopupWindows\TrainPathWindow.cs:130
-msgid "Available Train Paths"
-msgstr "[ÂƲáïℓáβℓè Třáïñ Þáƭλƨ !!!]"
+#: ..\..\Toolbox\Views\TrainPathToolView.xaml:412
+msgid "Accept candidate"
+msgstr "[Âççèƥƭ çáñδïδáƭè !!!]"
 
-#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:478
-msgid "Background Color"
-msgstr "[ßáçƙϱřôúñδ Çôℓôř !!!]"
+#: ..\..\Toolbox\PathEditing\PathEditor.cs:3398
+msgid "Accept or cancel the pending route candidate before editing the path."
+msgstr "[Âççèƥƭ ôř çáñçèℓ ƭλè ƥèñδïñϱ řôúƭè çáñδïδáƭè βèƒôřè èδïƭïñϱ ƭλè ƥáƭλ. !!!]"
 
-#: ..\..\..\Toolbox\PopupWindows\QuitWindow.cs:46
+#: ..\..\Toolbox\Views\TrainPathToolView.xaml:368
+msgid "Accept orientation"
+msgstr "[Âççèƥƭ ôřïèñƭáƭïôñ !!!]"
+
+#: ..\..\Toolbox\Enums.cs:39
+msgid "Accept Route Candidate"
+msgstr "[Âççèƥƭ Rôúƭè Çáñδïδáƭè !!!]"
+
+#: ..\..\Toolbox\ViewModels\SettingsToolWindowViewModel.cs:120
 #, csharp-format
-msgid "Cancel ({0})"
-msgstr "[Çáñçèℓ ({0}) !!!]"
+msgid "Active profile: {0}"
+msgstr "[ÂçƭïƲè ƥřôƒïℓè: {0} !!!]"
 
-#: ..\..\..\Toolbox\UserCommand.cs:7
+#: ..\..\Toolbox\Views\TrainPathToolView.xaml:383
+msgid "Add route point"
+msgstr "[Âδδ řôúƭè ƥôïñƭ !!!]"
+
+#: ..\..\Toolbox\MainWindow.xaml.cs:555
+msgid "Add Route Point Here"
+msgstr "[Âδδ Rôúƭè Þôïñƭ Hèřè !!!]"
+
+#: ..\..\Toolbox\ToolWindows\TrainPathToolWindow.cs:1117
+#: ..\..\Toolbox\PathEditing\PathEditor.cs:2012
+msgid ""
+"Adding a passing branch must preserve the main route and every existing "
+"passing branch."
+msgstr ""
+"[Âδδïñϱ á ƥáƨƨïñϱ βřáñçλ ₥úƨƭ ƥřèƨèřƲè ƭλè ₥áïñ řôúƭè áñδ èƲèř¥ èжïƨƭïñϱ "
+"ƥáƨƨïñϱ βřáñçλ. !!!]"
+
+#: ..\..\Toolbox\ToolWindows\TrainPathToolWindow.cs:1072
+msgid "Advanced wait operation set."
+msgstr "[ÂδƲáñçèδ ωáïƭ ôƥèřáƭïôñ ƨèƭ. !!!]"
+
+#: ..\..\Toolbox\Views\TrainPathToolView.xaml:534
+#: ..\..\Toolbox\Views\TrainPathToolView.xaml:535
+msgid "Apply Operation"
+msgstr "[Âƥƥℓ¥ Óƥèřáƭïôñ !!!]"
+
+#: ..\..\Toolbox\ToolboxSession.Comparison.cs:63
+msgid ""
+"At most six saved paths can be compared. Uncheck a comparison before adding "
+"another."
+msgstr ""
+"[Âƭ ₥ôƨƭ ƨïж ƨáƲèδ ƥáƭλƨ çáñ βè çô₥ƥářèδ. Ûñçλèçƙ á çô₥ƥářïƨôñ βèƒôřè áδδïñϱ "
+"áñôƭλèř. !!!]"
+
+#: ..\..\Toolbox\ToolWindows\TrainPathToolWindow.cs:1138
+msgid "At most two strictly separated passing branches can be authored."
+msgstr "[Âƭ ₥ôƨƭ ƭωô ƨƭřïçƭℓ¥ ƨèƥářáƭèδ ƥáƨƨïñϱ βřáñçλèƨ çáñ βè áúƭλôřèδ. !!!]"
+
+#: ..\..\Toolbox\ViewModels\TrainPathToolWindowViewModel.cs:1208
+msgid "Basic wait"
+msgstr "[ßáƨïç ωáïƭ !!!]"
+
+#: ..\..\Toolbox\ToolWindows\TrainPathToolWindow.cs:1068
+msgid ""
+"Basic wait time must be between 1 and 29999 seconds. Values of 30000 or "
+"greater may encode legacy AI operations instead of a duration."
+msgstr ""
+"[ßáƨïç ωáïƭ ƭï₥è ₥úƨƭ βè βèƭωèèñ 1 áñδ 29999 ƨèçôñδƨ. Váℓúèƨ ôƒ 30000 ôř "
+"ϱřèáƭèř ₥á¥ èñçôδè ℓèϱáç¥ ÂÌ ôƥèřáƭïôñƨ ïñƨƭèáδ ôƒ á δúřáƭïôñ. !!!]"
+
+#: ..\..\Toolbox\Views\TrainPathToolView.xaml:497
+msgid "Basic wait time: 1 to 29999 seconds."
+msgstr "[ßáƨïç ωáïƭ ƭï₥è: 1 ƭô 29999 ƨèçôñδƨ. !!!]"
+
+#: ..\..\Toolbox\Views\TrainPathToolView.xaml:83
+msgid ""
+"Basic wait time: 1 to 29999 seconds. Larger values may encode legacy AI "
+"operations. Clear the value or enter zero to remove existing wait data."
+msgstr ""
+"[ßáƨïç ωáïƭ ƭï₥è: 1 ƭô 29999 ƨèçôñδƨ. £ářϱèř Ʋáℓúèƨ ₥á¥ èñçôδè ℓèϱáç¥ ÂÌ "
+"ôƥèřáƭïôñƨ. Çℓèář ƭλè Ʋáℓúè ôř èñƭèř ƺèřô ƭô řè₥ôƲè èжïƨƭïñϱ ωáïƭ δáƭá. !!!]"
+
+#: ..\..\Toolbox\ViewModels\TrainPathToolWindowViewModel.cs:1213
+msgid "Blow horn"
+msgstr "[ßℓôω λôřñ !!!]"
+
+#: ..\..\Toolbox\Views\TrainPathToolView.xaml:522
+msgid "Blow horn for"
+msgstr "[ßℓôω λôřñ ƒôř !!!]"
+
+#: ..\..\Toolbox\ToolWindows\TrainPathToolWindow.cs:1090
+#: ..\..\Toolbox\ToolWindows\TrainPathToolWindow.cs:1100
+msgid "Both paths must belong to the same route."
+msgstr "[ßôƭλ ƥáƭλƨ ₥úƨƭ βèℓôñϱ ƭô ƭλè ƨá₥è řôúƭè. !!!]"
+
+#: ..\..\Toolbox\Dialogs\QuitDialog.xaml:30
+#: ..\..\Toolbox\Views\TrainPathToolView.xaml:369
+#: ..\..\Toolbox\Views\TrainPathToolView.xaml:397
+msgid "Cancel"
+msgstr "[Çáñçèℓ !!!]"
+
+#: ..\..\Toolbox\Views\TrainPathToolView.xaml:227
+msgid "Cancel combining paths"
+msgstr "[Çáñçèℓ çô₥βïñïñϱ ƥáƭλƨ !!!]"
+
+#: ..\..\Toolbox\Views\TrainPathToolView.xaml:380
+#: ..\..\Toolbox\Views\TrainPathToolView.xaml:385
+#: ..\..\Toolbox\Views\TrainPathToolView.xaml:392
+#: ..\..\Toolbox\Views\TrainPathToolView.xaml:413
+msgid "Cancel interaction"
+msgstr "[Çáñçèℓ ïñƭèřáçƭïôñ !!!]"
+
+#: ..\..\Toolbox\Views\TrainPathToolView.xaml:233
+msgid "Cancel new path"
+msgstr "[Çáñçèℓ ñèω ƥáƭλ !!!]"
+
+#: ..\..\Toolbox\Enums.cs:14
 msgid "Cancel or Close"
 msgstr "[Çáñçèℓ ôř Çℓôƨè !!!]"
 
-#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:285
-msgid "Car Spawners"
-msgstr "[Çář §ƥáωñèřƨ !!!]"
+#: ..\..\Toolbox\MainWindow.xaml.cs:548
+msgid "Cancel Passing Branch"
+msgstr "[Çáñçèℓ Þáƨƨïñϱ ßřáñçλ !!!]"
 
-#: ..\..\..\Toolbox\UserCommand.cs:9
+#: ..\..\Toolbox\MainWindow.xaml.cs:537
+msgid "Cancel Placement"
+msgstr "[Çáñçèℓ Þℓáçè₥èñƭ !!!]"
+
+#: ..\..\Toolbox\Views\TrainPathToolView.xaml:513
+msgid "Cars to keep"
+msgstr "[Çářƨ ƭô ƙèèƥ !!!]"
+
+#: ..\..\Toolbox\Views\TrainPathToolView.xaml:514
+msgid "cars, then wait"
+msgstr "[çářƨ, ƭλèñ ωáïƭ !!!]"
+
+#: ..\..\Toolbox\Enums.cs:16
 msgid "Change Screen Mode"
 msgstr "[Çλáñϱè §çřèèñ Môδè !!!]"
 
-#: ..\..\..\Toolbox\PopupWindows\HelpWindow.cs:44
+#: ..\..\Toolbox\Views\TrainPathToolView.xaml:226
+msgid ""
+"Check exactly two saved paths in the Paths list to combine them into a new "
+"unsaved path."
+msgstr ""
+"[Çλèçƙ èжáçƭℓ¥ ƭωô ƨáƲèδ ƥáƭλƨ ïñ ƭλè Þáƭλƨ ℓïƨƭ ƭô çô₥βïñè ƭλè₥ ïñƭô á ñèω "
+"úñƨáƲèδ ƥáƭλ. !!!]"
+
+#: ..\..\Toolbox\ToolWindows\TrainPathToolWindow.cs:1089
+msgid "Choose a different saved path as the extension."
+msgstr "[Çλôôƨè á δïƒƒèřèñƭ ƨáƲèδ ƥáƭλ áƨ ƭλè èжƭèñƨïôñ. !!!]"
+
+#: ..\..\Toolbox\ToolboxSession.Combine.cs:87
+msgid "Choose a path orientation to preview, then accept it or Cancel."
+msgstr "[Çλôôƨè á ƥáƭλ ôřïèñƭáƭïôñ ƭô ƥřèƲïèω, ƭλèñ áççèƥƭ ïƭ ôř Çáñçèℓ. !!!]"
+
+#: ..\..\Toolbox\ViewModels\TrainPathToolWindowViewModel.cs:1286
+msgid "Choose a supported wait operation."
+msgstr "[Çλôôƨè á ƨúƥƥôřƭèδ ωáïƭ ôƥèřáƭïôñ. !!!]"
+
+#: ..\..\Toolbox\PathEditing\PathEditor.cs:3037
+msgid "Choose a track location for the passing-branch via."
+msgstr "[Çλôôƨè á ƭřáçƙ ℓôçáƭïôñ ƒôř ƭλè ƥáƨƨïñϱ-βřáñçλ Ʋïá. !!!]"
+
+#: ..\..\Toolbox\Views\TrainPathToolView.xaml:378
+msgid "Choose a track location on the map, then confirm placement."
+msgstr "[Çλôôƨè á ƭřáçƙ ℓôçáƭïôñ ôñ ƭλè ₥áƥ, ƭλèñ çôñƒïř₥ ƥℓáçè₥èñƭ. !!!]"
+
+#: ..\..\Toolbox\Views\TrainPathToolView.xaml:395
+msgid ""
+"Choose one passing via on the track. Confirm its preview before selecting any "
+"ambiguous route legs."
+msgstr ""
+"[Çλôôƨè ôñè ƥáƨƨïñϱ Ʋïá ôñ ƭλè ƭřáçƙ. Çôñƒïř₥ ïƭƨ ƥřèƲïèω βèƒôřè ƨèℓèçƭïñϱ áñ¥ "
+"á₥βïϱúôúƨ řôúƭè ℓèϱƨ. !!!]"
+
+#: ..\..\Toolbox\PathEditing\PathEditor.cs:2212
+msgid "Choose one passing-branch via on the track, preview it, then confirm."
+msgstr "[Çλôôƨè ôñè ƥáƨƨïñϱ-βřáñçλ Ʋïá ôñ ƭλè ƭřáçƙ, ƥřèƲïèω ïƭ, ƭλèñ çôñƒïř₥. !!!]"
+
+#: ..\..\Toolbox\Views\TrainPathToolView.xaml:362
+msgid "Choose path orientation - selecting a candidate previews it."
+msgstr "[Çλôôƨè ƥáƭλ ôřïèñƭáƭïôñ - ƨèℓèçƭïñϱ á çáñδïδáƭè ƥřèƲïèωƨ ïƭ. !!!]"
+
+#: ..\..\Toolbox\Views\TrainPathToolView.xaml:401
+msgid "Choose route — selecting a candidate previews it."
+msgstr "[Çλôôƨè řôúƭè — ƨèℓèçƭïñϱ á çáñδïδáƭè ƥřèƲïèωƨ ïƭ. !!!]"
+
+#: ..\..\Toolbox\ToolWindows\TrainPathToolWindow.cs:1099
+msgid "Choose two different saved paths to combine."
+msgstr "[Çλôôƨè ƭωô δïƒƒèřèñƭ ƨáƲèδ ƥáƭλƨ ƭô çô₥βïñè. !!!]"
+
+#: ..\..\Toolbox\Views\ColumnFilterHeader.xaml:46
+#: ..\..\Toolbox\Views\ColumnFilterHeader.xaml:48
+msgid "Clear column filter"
+msgstr "[Çℓèář çôℓú₥ñ ƒïℓƭèř !!!]"
+
+#: ..\..\Toolbox\MainWindow.xaml.cs:542
+msgid "Clear Reversal Point"
+msgstr "[Çℓèář RèƲèřƨáℓ Þôïñƭ !!!]"
+
+#: ..\..\Toolbox\MainWindow.xaml.cs:540
+#: ..\..\Toolbox\Views\TrainPathToolView.xaml:536
+#: ..\..\Toolbox\Views\TrainPathToolView.xaml:537
+msgid "Clear Wait Point"
+msgstr "[Çℓèář Wáïƭ Þôïñƭ !!!]"
+
+#: ..\..\Toolbox\MainWindow.xaml:28
+msgid "Close the current route after confirming any unsaved path changes"
+msgstr "[Çℓôƨè ƭλè çúřřèñƭ řôúƭè áƒƭèř çôñƒïř₥ïñϱ áñ¥ úñƨáƲèδ ƥáƭλ çλáñϱèƨ !!!]"
+
+#: ..\..\Toolbox\ViewModels\PathChartToolWindowViewModel.cs:54
+#, csharp-format
+msgid "Collapse encounters at {0}"
+msgstr "[Çôℓℓáƥƨè èñçôúñƭèřƨ áƭ {0} !!!]"
+
+#: ..\..\Toolbox\Views\SettingsToolView.xaml:68
+msgid "Colors"
+msgstr "[Çôℓôřƨ !!!]"
+
+#: ..\..\Toolbox\Views\ColumnFilterHeader.xaml:42
+#: ..\..\Toolbox\Views\ColumnFilterHeader.xaml:44
+msgid "Column filter"
+msgstr "[Çôℓú₥ñ ƒïℓƭèř !!!]"
+
+#: ..\..\Toolbox\Views\TrainPathToolView.xaml:224
+#: ..\..\Toolbox\Views\TrainPathToolView.xaml:225
+msgid "Combine Paths"
+msgstr "[Çô₥βïñè Þáƭλƨ !!!]"
+
+#: ..\..\Toolbox\ToolWindows\TrainPathToolWindow.cs:556
+msgid "Combine Paths is not available in this host."
+msgstr "[Çô₥βïñè Þáƭλƨ ïƨ ñôƭ áƲáïℓáβℓè ïñ ƭλïƨ λôƨƭ. !!!]"
+
+#: ..\..\Toolbox\ToolWindows\TrainPathToolWindow.cs:1109
+msgid ""
+"Combine Paths is unavailable during repair, placement, route selection, or "
+"saving."
+msgstr ""
+"[Çô₥βïñè Þáƭλƨ ïƨ úñáƲáïℓáβℓè δúřïñϱ řèƥáïř, ƥℓáçè₥èñƭ, řôúƭè ƨèℓèçƭïôñ, ôř "
+"ƨáƲïñϱ. !!!]"
+
+#: ..\..\Toolbox\ToolboxSession.Combine.cs:44
+msgid ""
+"Combine Paths requires exactly two checked, loaded saved paths and an idle "
+"editor."
+msgstr ""
+"[Çô₥βïñè Þáƭλƨ řè9úïřèƨ èжáçƭℓ¥ ƭωô çλèçƙèδ, ℓôáδèδ ƨáƲèδ ƥáƭλƨ áñδ áñ ïδℓè "
+"èδïƭôř. !!!]"
+
+#: ..\..\Toolbox\Views\HelpToolView.xaml:25
+#: ..\..\Toolbox\Views\HelpToolView.xaml:36
 msgid "Command"
 msgstr "[Çô₥₥áñδ !!!]"
 
-#: ..\..\..\Toolbox\PopupWindows\SettingsWindow.cs:29
+#: ..\..\Toolbox\Enums.cs:36
+msgid "Commit Path Placement"
+msgstr "[Çô₥₥ïƭ Þáƭλ Þℓáçè₥èñƭ !!!]"
+
+#: ..\..\Toolbox\Views\SettingsToolView.xaml:29
 msgid "Common"
 msgstr "[Çô₥₥ôñ !!!]"
 
-#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:237
-msgid "Crossver Nodes"
-msgstr "[ÇřôƨƨƲèř Nôδèƨ !!!]"
+#: ..\..\Toolbox\Views\TrainPathToolView.xaml:284
+msgid "Compare"
+msgstr "[Çô₥ƥářè !!!]"
 
-#: ..\..\..\Toolbox\UserCommand.cs:19
+#: ..\..\Toolbox\Views\TrainPathToolView.xaml:25
+msgid "Compare saved path"
+msgstr "[Çô₥ƥářè ƨáƲèδ ƥáƭλ !!!]"
+
+#: ..\..\Toolbox\Views\TrainPathToolView.xaml:396
+msgid "Confirm passing via"
+msgstr "[Çôñƒïř₥ ƥáƨƨïñϱ Ʋïá !!!]"
+
+#: ..\..\Toolbox\MainWindow.xaml.cs:547
+msgid "Confirm Passing Via"
+msgstr "[Çôñƒïř₥ Þáƨƨïñϱ Vïá !!!]"
+
+#: ..\..\Toolbox\Views\TrainPathToolView.xaml:379
+msgid "Confirm placement"
+msgstr "[Çôñƒïř₥ ƥℓáçè₥èñƭ !!!]"
+
+#: ..\..\Toolbox\MainWindow.xaml.cs:425
+msgid "Confirm Save As Overwrite"
+msgstr "[Çôñƒïř₥ §áƲè Âƨ ÓƲèřωřïƭè !!!]"
+
+#: ..\..\Toolbox\ViewModels\RouteBrowserViewModel.cs:78
+msgid ""
+"Content analysis is required. Import or refresh content before opening a "
+"route."
+msgstr ""
+"[Çôñƭèñƭ áñáℓ¥ƨïƨ ïƨ řè9úïřèδ. Ì₥ƥôřƭ ôř řèƒřèƨλ çôñƭèñƭ βèƒôřè ôƥèñïñϱ á "
+"řôúƭè. !!!]"
+
+#: ..\..\Toolbox\Views\RouteToolView.xaml:17
+msgid "Content Folder"
+msgstr "[Çôñƭèñƭ Fôℓδèř !!!]"
+
+#: ..\..\Toolbox\Views\TrainPathToolView.xaml:416
+msgid "Continue path"
+msgstr "[Çôñƭïñúè ƥáƭλ !!!]"
+
+#: ..\..\Toolbox\MainWindow.xaml.cs:554
+msgid "Continue Path"
+msgstr "[Çôñƭïñúè Þáƭλ !!!]"
+
+#: ..\..\Toolbox\Views\PathChartControl.cs:357
+msgid "Curvature (1/km; + right)"
+msgstr "[ÇúřƲáƭúřè (1/ƙ₥; + řïϱλƭ) !!!]"
+
+#: ..\..\Toolbox\MainWindow.xaml:193
+msgid "Debug Information"
+msgstr "[Ðèβúϱ Ìñƒôř₥áƭïôñ !!!]"
+
+#: ..\..\Toolbox\Enums.cs:26
 msgid "Debug Information (Tab)"
 msgstr "[Ðèβúϱ Ìñƒôř₥áƭïôñ (Táβ) !!!]"
 
-#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.cs:343
-msgid "Do you want to visit the website now?"
-msgstr "[Ðô ¥ôú ωáñƭ ƭô Ʋïƨïƭ ƭλè ωèβƨïƭè ñôω? !!!]"
+#: ..\..\Toolbox\Views\RouteToolView.xaml:72
+msgid "Description of the selected route"
+msgstr "[Ðèƨçřïƥƭïôñ ôƒ ƭλè ƨèℓèçƭèδ řôúƭè !!!]"
 
-#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:714
-msgid "Documentation"
-msgstr "[Ðôçú₥èñƭáƭïôñ !!!]"
+#: ..\..\Toolbox\Views\RouteNavigationToolView.xaml:176
+#: ..\..\Toolbox\Views\TrainPathToolView.xaml:542
+msgid "Details"
+msgstr "[Ðèƭáïℓƨ !!!]"
 
-#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.cs:340
+#: ..\..\Toolbox\ViewModels\RouteBrowserViewModel.cs:69
+msgid "Discovering content folders..."
+msgstr "[ÐïƨçôƲèřïñϱ çôñƭèñƭ ƒôℓδèřƨ... !!!]"
+
+#: ..\..\Toolbox\ViewModels\RouteBrowserViewModel.cs:112
+#: ..\..\Toolbox\ViewModels\ToolboxMenuViewModel.cs:60
+msgid "Discovering routes..."
+msgstr "[ÐïƨçôƲèřïñϱ řôúƭèƨ... !!!]"
+
+#: ..\..\Toolbox\Views\PathChartToolView.xaml:162
+msgid "Distance"
+msgstr "[Ðïƨƭáñçè !!!]"
+
+#: ..\..\Toolbox\ViewModels\PathChartToolWindowViewModel.cs:189
 #, csharp-format
-msgid "Documentation for {0} is available online at:"
-msgstr "[Ðôçú₥èñƭáƭïôñ ƒôř {0} ïƨ áƲáïℓáβℓè ôñℓïñè áƭ: !!!]"
+msgid ""
+"Distance {0:N2} km; elevation {1:N1} m; grade {2:N2}%; curvature {3:N2} /km "
+"(positive right)"
+msgstr ""
+"[Ðïƨƭáñçè {0:N2} ƙ₥; èℓèƲáƭïôñ {1:N1} ₥; ϱřáδè {2:N2}%; çúřƲáƭúřè {3:N2} /ƙ₥ "
+"(ƥôƨïƭïƲè řïϱλƭ) !!!]"
 
-#: ..\..\..\Toolbox\PopupWindows\SettingsWindow.cs:60
+#: ..\..\Toolbox\ViewModels\PathChartToolWindowViewModel.cs:191
+#, csharp-format
+msgid ""
+"Distance {0:N2} mi; elevation {1:N1} ft; grade {2:N2}%; curvature {3:N2} /km "
+"(positive right)"
+msgstr ""
+"[Ðïƨƭáñçè {0:N2} ₥ï; èℓèƲáƭïôñ {1:N1} ƒƭ; ϱřáδè {2:N2}%; çúřƲáƭúřè {3:N2} /ƙ₥ "
+"(ƥôƨïƭïƲè řïϱλƭ) !!!]"
+
+#: ..\..\Toolbox\Views\PathChartControl.cs:377
+msgid "Distance along main route (km)"
+msgstr "[Ðïƨƭáñçè áℓôñϱ ₥áïñ řôúƭè (ƙ₥) !!!]"
+
+#: ..\..\Toolbox\Views\PathChartControl.cs:377
+msgid "Distance along main route (mi)"
+msgstr "[Ðïƨƭáñçè áℓôñϱ ₥áïñ řôúƭè (₥ï) !!!]"
+
+#: ..\..\Toolbox\MainWindow.xaml:34
+msgid "E_xit"
+msgstr "[É_жïƭ !!!]"
+
+#: ..\..\Toolbox\Views\TrainPathToolView.xaml:351
+msgid "Editor"
+msgstr "[Éδïƭôř !!!]"
+
+#: ..\..\Toolbox\Views\PathChartControl.cs:354
+msgid "Elevation (ft)"
+msgstr "[ÉℓèƲáƭïôñ (ƒƭ) !!!]"
+
+#: ..\..\Toolbox\Views\PathChartControl.cs:354
+msgid "Elevation (m)"
+msgstr "[ÉℓèƲáƭïôñ (₥) !!!]"
+
+#: ..\..\Toolbox\Views\SettingsToolView.xaml:31
 msgid "Enable Logging"
 msgstr "[Éñáβℓè £ôϱϱïñϱ !!!]"
 
-#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:223
-msgid "End Nodes"
-msgstr "[Éñδ Nôδèƨ !!!]"
+#: ..\..\Toolbox\Views\TrainPathToolView.xaml:331
+msgid "End"
+msgstr "[Éñδ !!!]"
 
-#: ..\..\..\Toolbox\PopupWindows\QuitWindow.cs:34
+#: ..\..\Toolbox\Views\RouteNavigationToolView.xaml:131
+msgid "Enter a track item index to center the map on it."
+msgstr "[Éñƭèř á ƭřáçƙ ïƭè₥ ïñδèж ƭô çèñƭèř ƭλè ₥áƥ ôñ ïƭ. !!!]"
+
+#: ..\..\Toolbox\Views\RouteNavigationToolView.xaml:162
+msgid "Enter a track node index to center and highlight it on the map."
+msgstr "[Éñƭèř á ƭřáçƙ ñôδè ïñδèж ƭô çèñƭèř áñδ λïϱλℓïϱλƭ ïƭ ôñ ƭλè ₥áƥ. !!!]"
+
+#: ..\..\Toolbox\Dialogs\QuitDialog.xaml:5
+#: ..\..\Toolbox\Dialogs\QuitDialog.xaml:26
+msgid "Exit"
+msgstr "[Éжïƭ !!!]"
+
+#: ..\..\Toolbox\Dialogs\QuitDialog.xaml.cs:17
 #, csharp-format
-msgid "Exit {0}"
-msgstr "[Éжïƭ {0} !!!]"
+msgid "Exit {0}?"
+msgstr "[Éжïƭ {0}? !!!]"
 
-#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:139
-msgid "File"
-msgstr "[Fïℓè !!!]"
+#: ..\..\Toolbox\ViewModels\PathChartToolWindowViewModel.cs:55
+#, csharp-format
+msgid "Expand encounters at {0}"
+msgstr "[Éжƥáñδ èñçôúñƭèřƨ áƭ {0} !!!]"
 
-#: ..\..\..\Toolbox\PopupWindows\TrackItemInfoWindow.cs:46
+#: ..\..\Toolbox\Views\RouteNavigationToolView.xaml:65
+msgid "Filter platforms by name or station"
+msgstr "[Fïℓƭèř ƥℓáƭƒôř₥ƨ β¥ ñá₥è ôř ƨƭáƭïôñ !!!]"
+
+#: ..\..\Toolbox\Views\RouteNavigationToolView.xaml:87
+msgid "Filter sidings by name or nearest station"
+msgstr "[Fïℓƭèř ƨïδïñϱƨ β¥ ñá₥è ôř ñèářèƨƭ ƨƭáƭïôñ !!!]"
+
+#: ..\..\Toolbox\Views\RouteNavigationToolView.xaml:44
+msgid "Filter stations by name"
+msgstr "[Fïℓƭèř ƨƭáƭïôñƨ β¥ ñá₥è !!!]"
+
+#: ..\..\Toolbox\Views\RouteNavigationToolView.xaml:109
+#: ..\..\Toolbox\Views\RouteNavigationToolView.xaml:140
+msgid "Find"
+msgstr "[Fïñδ !!!]"
+
+#: ..\..\Toolbox\Views\RouteNavigationToolView.xaml:113
 msgid "Find Track Item by Index"
 msgstr "[Fïñδ Třáçƙ Ìƭè₥ β¥ Ìñδèж !!!]"
 
-#: ..\..\..\Toolbox\PopupWindows\TrackNodeInfoWindow.cs:59
+#: ..\..\Toolbox\Views\RouteNavigationToolView.xaml:144
 msgid "Find Track Node by Index"
 msgstr "[Fïñδ Třáçƙ Nôδè β¥ Ìñδèж !!!]"
 
-#: ..\..\..\Toolbox\PopupWindows\SettingsWindow.cs:33
+#: ..\..\Toolbox\PathEditing\PathEditor.cs:1012
+#: ..\..\Toolbox\PathEditing\PathEditor.cs:2534
+#: ..\..\Toolbox\PathEditing\PathEditor.cs:3381
+msgid "Finish or cancel the active path interaction before editing the path."
+msgstr "[Fïñïƨλ ôř çáñçèℓ ƭλè áçƭïƲè ƥáƭλ ïñƭèřáçƭïôñ βèƒôřè èδïƭïñϱ ƭλè ƥáƭλ. !!!]"
+
+#: ..\..\Toolbox\PathEditing\PathEditor.cs:3529
+msgid "Finish or cancel the active path interaction before saving."
+msgstr "[Fïñïƨλ ôř çáñçèℓ ƭλè áçƭïƲè ƥáƭλ ïñƭèřáçƭïôñ βèƒôřè ƨáƲïñϱ. !!!]"
+
+#: ..\..\Toolbox\ToolWindows\TrainPathToolWindow.cs:1029
+msgid "Finish or cancel the path combination before editing the path."
+msgstr "[Fïñïƨλ ôř çáñçèℓ ƭλè ƥáƭλ çô₥βïñáƭïôñ βèƒôřè èδïƭïñϱ ƭλè ƥáƭλ. !!!]"
+
+#: ..\..\Toolbox\PathEditing\PathEditor.cs:2573
+#: ..\..\Toolbox\PathEditing\PathEditor.cs:2637
+msgid ""
+"Finish or cancel the path combination before selecting a connecting route."
+msgstr ""
+"[Fïñïƨλ ôř çáñçèℓ ƭλè ƥáƭλ çô₥βïñáƭïôñ βèƒôřè ƨèℓèçƭïñϱ á çôññèçƭïñϱ řôúƭè. !!!]"
+
+#: ..\..\Toolbox\Views\TrainPathToolView.xaml:384
+msgid "Finish path"
+msgstr "[Fïñïƨλ ƥáƭλ !!!]"
+
+#: ..\..\Toolbox\MainWindow.xaml.cs:557
+msgid "Finish Path"
+msgstr "[Fïñïƨλ Þáƭλ !!!]"
+
+#: ..\..\Toolbox\MainWindow.xaml.cs:556
+msgid "Finish Path Here"
+msgstr "[Fïñïƨλ Þáƭλ Hèřè !!!]"
+
+#: ..\..\Toolbox\MainWindow.xaml:12
+msgid "Free Train Simulator Toolbox"
+msgstr "[Fřèè Třáïñ §ï₥úℓáƭôř Tôôℓβôж !!!]"
+
+#: ..\..\Toolbox\Views\SettingsToolView.xaml:25
+msgid "General"
+msgstr "[Gèñèřáℓ !!!]"
+
+#: ..\..\Toolbox\Views\PathChartControl.cs:356
+msgid "Grade (%; + uphill)"
+msgstr "[Gřáδè (%; + úƥλïℓℓ) !!!]"
+
+#: ..\..\Toolbox\Views\SettingsToolView.xaml:55
 msgid "Graphics"
 msgstr "[Gřáƥλïçƨ !!!]"
 
-#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:376
-msgid "Hazards"
-msgstr "[Háƺářδƨ !!!]"
+#: ..\..\Toolbox\PathEditing\PathEditor.cs:2497
+msgid "Guided passing branch created and resolved."
+msgstr "[Gúïδèδ ƥáƨƨïñϱ βřáñçλ çřèáƭèδ áñδ řèƨôℓƲèδ. !!!]"
 
-#: ..\..\..\Toolbox\PopupWindows\HelpWindow.cs:33
-#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:708
+#: ..\..\Toolbox\PathEditing\PathEditor.cs:2511
+msgid "Guided passing-branch interaction canceled."
+msgstr "[Gúïδèδ ƥáƨƨïñϱ-βřáñçλ ïñƭèřáçƭïôñ çáñçèℓèδ. !!!]"
+
+#: ..\..\Toolbox\PathEditing\PathEditor.cs:2441
+msgid ""
+"Guided passing-route candidate previewed; compatible remaining legs are "
+"previews only."
+msgstr ""
+"[Gúïδèδ ƥáƨƨïñϱ-řôúƭè çáñδïδáƭè ƥřèƲïèωèδ; çô₥ƥáƭïβℓè řè₥áïñïñϱ ℓèϱƨ ářè "
+"ƥřèƲïèωƨ ôñℓ¥. !!!]"
+
+#: ..\..\Toolbox\MainWindow.xaml:185
 msgid "Help"
 msgstr "[Hèℓƥ !!!]"
 
-#: ..\..\..\Toolbox\UserCommand.cs:21
+#: ..\..\Toolbox\Enums.cs:28
 msgid "Help Window (Tab)"
 msgstr "[Hèℓƥ Wïñδôω (Táβ) !!!]"
 
-#: ..\..\..\Toolbox\PopupWindows\TrainPathWindow.cs:103
-msgid "Idx"
-msgstr "[Ìδж !!!]"
+#: ..\..\Toolbox\Views\TrainPathToolView.xaml:524
+msgid "Horn duration seconds"
+msgstr "[Hôřñ δúřáƭïôñ ƨèçôñδƨ !!!]"
 
-#: ..\..\..\Toolbox\GameWindow.UserActivity.cs:179
+#: ..\..\Toolbox\GameWindow.UserActivity.cs:552
 msgid "Image files (*.png)"
 msgstr "[Ì₥áϱè ƒïℓèƨ (*.ƥñϱ) !!!]"
 
-#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:305
+#: ..\..\Toolbox\ViewModels\TrainPathToolWindowViewModel.cs:1214
+msgid "Imported operation"
+msgstr "[Ì₥ƥôřƭèδ ôƥèřáƭïôñ !!!]"
+
+#: ..\..\Toolbox\ViewModels\TrainPathToolWindowViewModel.cs:356
+#, csharp-format
+msgid ""
+"Imported operation code {0} is not editable here; clear it or preserve it "
+"unchanged."
+msgstr ""
+"[Ì₥ƥôřƭèδ ôƥèřáƭïôñ çôδè {0} ïƨ ñôƭ èδïƭáβℓè λèřè; çℓèář ïƭ ôř ƥřèƨèřƲè ïƭ "
+"úñçλáñϱèδ. !!!]"
+
+#: ..\..\Toolbox\MainWindow.xaml.cs:538
+msgid "Insert Via Point Here"
+msgstr "[Ìñƨèřƭ Vïá Þôïñƭ Hèřè !!!]"
+
+#: ..\..\Toolbox\ToolWindows\TrainPathToolWindow.cs:1160
+#, csharp-format
+msgid "Inserted passing-branch via point at node {0}."
+msgstr "[Ìñƨèřƭèδ ƥáƨƨïñϱ-βřáñçλ Ʋïá ƥôïñƭ áƭ ñôδè {0}. !!!]"
+
+#: ..\..\Toolbox\Views\SettingsToolView.xaml:133
 msgid "Interactives"
 msgstr "[ÌñƭèřáçƭïƲèƨ !!!]"
 
-#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:230
-msgid "Junction Nodes"
-msgstr "[Júñçƭïôñ Nôδèƨ !!!]"
+#: ..\..\Toolbox\Views\TrainPathToolView.xaml:166
+msgid "Invalid path node"
+msgstr "[ÌñƲáℓïδ ƥáƭλ ñôδè !!!]"
 
-#: ..\..\..\Toolbox\PopupWindows\HelpWindow.cs:47
+#: ..\..\Toolbox\Views\TrainPathToolView.xaml:581
+msgid "Issues"
+msgstr "[Ìƨƨúèƨ !!!]"
+
+#: ..\..\Toolbox\Views\SettingsToolView.xaml:107
+msgid "Item Visibility"
+msgstr "[Ìƭè₥ Vïƨïβïℓïƭ¥ !!!]"
+
+#: ..\..\Toolbox\ViewModels\TrainPathToolWindowViewModel.cs:1211
+msgid "Join or split"
+msgstr "[Jôïñ ôř ƨƥℓïƭ !!!]"
+
+#: ..\..\Toolbox\Views\TrainPathToolView.xaml:511
+msgid "Keep"
+msgstr "[Kèèƥ !!!]"
+
+#: ..\..\Toolbox\Views\TrainPathToolView.xaml:518
+msgid "Keep rear"
+msgstr "[Kèèƥ řèář !!!]"
+
+#: ..\..\Toolbox\Views\HelpToolView.xaml:29
+#: ..\..\Toolbox\Views\HelpToolView.xaml:37
 msgid "Key"
 msgstr "[Kè¥ !!!]"
 
-#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:244
-#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:278
-msgid "Level Crossings"
-msgstr "[£èƲèℓ Çřôƨƨïñϱƨ !!!]"
+#: ..\..\Toolbox\Views\SettingsToolView.xaml:43
+msgid "Language"
+msgstr "[£áñϱúáϱè !!!]"
 
-#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:686
-msgid "Load Path"
-msgstr "[£ôáδ Þáƭλ !!!]"
+#: ..\..\Toolbox\MainWindow.xaml:49
+msgid "Lo_g Window"
+msgstr "[£ô_ϱ Wïñδôω !!!]"
 
-#: ..\..\..\Toolbox\PopupWindows\StatusTextWindow.cs:21
+#: ..\..\Toolbox\ViewModels\PathChartToolWindowViewModel.cs:368
+msgid "Load a route to view its path chart."
+msgstr "[£ôáδ á řôúƭè ƭô Ʋïèω ïƭƨ ƥáƭλ çλářƭ. !!!]"
+
+#: ..\..\Toolbox\MainWindow.xaml.cs:130
+msgid "Loading profile settings..."
+msgstr "[£ôáδïñϱ ƥřôƒïℓè ƨèƭƭïñϱƨ... !!!]"
+
+#: ..\..\Toolbox\PopupWindows\StatusTextWindow.cs:21
 msgid "Loading Route"
 msgstr "[£ôáδïñϱ Rôúƭè !!!]"
 
-#: ..\..\..\Toolbox\PopupWindows\LocationWindow.cs:112
-#, csharp-format
-msgid "Location (x, z) {0,4:00.##} {1,4:00.##}"
-msgstr "[£ôçáƭïôñ (ж, ƺ) {0,4:00.##} {1,4:00.##} !!!]"
+#: ..\..\Toolbox\ViewModels\ToolboxMenuViewModel.cs:61
+msgid "Loading route..."
+msgstr "[£ôáδïñϱ řôúƭè... !!!]"
 
-#: ..\..\..\Toolbox\UserCommand.cs:20
+#: ..\..\Toolbox\ViewModels\TrainPathListItemViewModel.cs:77
+msgid "Loading saved path comparison..."
+msgstr "[£ôáδïñϱ ƨáƲèδ ƥáƭλ çô₥ƥářïƨôñ... !!!]"
+
+#: ..\..\Toolbox\MainWindow.xaml:159
+msgid "Location"
+msgstr "[£ôçáƭïôñ !!!]"
+
+#: ..\..\Toolbox\Enums.cs:27
 msgid "Location Window (Tab)"
 msgstr "[£ôçáƭïôñ Wïñδôω (Táβ) !!!]"
 
-#: ..\..\..\Toolbox\UserCommand.cs:25
+#: ..\..\Toolbox\Enums.cs:30
 msgid "Log Window (Tab)"
 msgstr "[£ôϱ Wïñδôω (Táβ) !!!]"
 
-#: ..\..\..\Toolbox\PopupWindows\LoggingWindow.cs:19
+#: ..\..\Toolbox\MainWindow.xaml:139
 msgid "Logging"
 msgstr "[£ôϱϱïñϱ !!!]"
 
-#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:313
-msgid "Main Signals"
-msgstr "[Máïñ §ïϱñáℓƨ !!!]"
+#: ..\..\Toolbox\ViewModels\PathChartToolWindowViewModel.cs:131
+#: ..\..\Toolbox\Views\PathChartToolView.xaml:96
+msgid "Main route"
+msgstr "[Máïñ řôúƭè !!!]"
 
-#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:126
-msgid "MenuStrip1"
-msgstr "[Mèñú§ƭřïƥ1 !!!]"
+#: ..\..\Toolbox\ViewModels\PathChartToolWindowViewModel.cs:132
+#, csharp-format
+msgid "Main route: {0}"
+msgstr "[Máïñ řôúƭè: {0} !!!]"
 
-#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:369
-msgid "Mileposts"
-msgstr "[Mïℓèƥôƨƭƨ !!!]"
+#: ..\..\Toolbox\ViewModels\PathChartToolWindowViewModel.cs:379
+msgid "Map centered on chart position."
+msgstr "[Máƥ çèñƭèřèδ ôñ çλářƭ ƥôƨïƭïôñ. !!!]"
 
-#: ..\..\..\Toolbox\UserCommand.cs:14
+#: ..\..\Toolbox\MainWindow.xaml.cs:1052
+msgid "Map View"
+msgstr "[Máƥ Vïèω !!!]"
+
+#: ..\..\Toolbox\Views\TrainPathToolView.xaml:629
+msgid "Message"
+msgstr "[Mèƨƨáϱè !!!]"
+
+#: ..\..\Toolbox\Views\PathChartControl.cs:522
+#, csharp-format
+msgid "Milepost {0} km"
+msgstr "[Mïℓèƥôƨƭ {0} ƙ₥ !!!]"
+
+#: ..\..\Toolbox\Views\PathChartControl.cs:521
+#, csharp-format
+msgid "Milepost {0} mi"
+msgstr "[Mïℓèƥôƨƭ {0} ₥ï !!!]"
+
+#: ..\..\Toolbox\ViewModels\PathChartToolWindowViewModel.cs:399
+msgid "Milepost units and direction are not retained in this track model."
+msgstr "[Mïℓèƥôƨƭ úñïƭƨ áñδ δïřèçƭïôñ ářè ñôƭ řèƭáïñèδ ïñ ƭλïƨ ƭřáçƙ ₥ôδèℓ. !!!]"
+
+#: ..\..\Toolbox\ToolWindows\TrainPathToolWindow.cs:1106
+msgid ""
+"More than one orientation connects these two paths. Preview and accept an "
+"orientation using Combine Paths."
+msgstr ""
+"[Môřè ƭλáñ ôñè ôřïèñƭáƭïôñ çôññèçƭƨ ƭλèƨè ƭωô ƥáƭλƨ. ÞřèƲïèω áñδ áççèƥƭ áñ "
+"ôřïèñƭáƭïôñ úƨïñϱ Çô₥βïñè Þáƭλƨ. !!!]"
+
+#: ..\..\Toolbox\Views\PathChartToolView.xaml.cs:32
+msgid ""
+"Mouse wheel: zoom; drag or Page Up/Down: pan; arrow keys: select distance; "
+"Home/End: route ends; +/-: zoom"
+msgstr ""
+"[Môúƨè ωλèèℓ: ƺôô₥; δřáϱ ôř Þáϱè Ûƥ/Ðôωñ: ƥáñ; ářřôω ƙè¥ƨ: ƨèℓèçƭ δïƨƭáñçè; "
+"Hô₥è/Éñδ: řôúƭè èñδƨ; +/-: ƺôô₥ !!!]"
+
+#: ..\..\Toolbox\Enums.cs:21
 msgid "Move Down (South)"
 msgstr "[MôƲè Ðôωñ (§ôúƭλ) !!!]"
 
-#: ..\..\..\Toolbox\UserCommand.cs:11
+#: ..\..\Toolbox\Enums.cs:18
 msgid "Move Left (East)"
 msgstr "[MôƲè £èƒƭ (Éáƨƭ) !!!]"
 
-#: ..\..\..\Toolbox\UserCommand.cs:12
+#: ..\..\Toolbox\MainWindow.xaml.cs:536
+msgid "Move Node"
+msgstr "[MôƲè Nôδè !!!]"
+
+#: ..\..\Toolbox\Enums.cs:19
 msgid "Move Right (West)"
 msgstr "[MôƲè Rïϱλƭ (Wèƨƭ) !!!]"
 
-#: ..\..\..\Toolbox\UserCommand.cs:13
+#: ..\..\Toolbox\Enums.cs:20
 msgid "Move Up (North)"
 msgstr "[MôƲè Ûƥ (Nôřƭλ) !!!]"
 
-#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:698
-msgid "New Path"
-msgstr "[Nèω Þáƭλ !!!]"
+#: ..\..\Toolbox\ToolWindows\TrainPathToolWindow.cs:1540
+msgid ""
+"Multiple reversals in one continuous vector occurrence at node {0}; the "
+"circuit consumer cannot preserve every leg."
+msgstr ""
+"[Múℓƭïƥℓè řèƲèřƨáℓƨ ïñ ôñè çôñƭïñúôúƨ Ʋèçƭôř ôççúřřèñçè áƭ ñôδè {0}; ƭλè "
+"çïřçúïƭ çôñƨú₥èř çáññôƭ ƥřèƨèřƲè èƲèř¥ ℓèϱ. !!!]"
 
-#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:320
-msgid "Other Signals"
-msgstr "[Óƭλèř §ïϱñáℓƨ !!!]"
+#: ..\..\Toolbox\Views\DebugToolView.xaml:22
+#: ..\..\Toolbox\Views\LocationToolView.xaml:22
+#: ..\..\Toolbox\Views\RouteNavigationToolView.xaml:183
+#: ..\..\Toolbox\Views\TrainPathToolView.xaml:285
+#: ..\..\Toolbox\Views\TrainPathToolView.xaml:294
+#: ..\..\Toolbox\Views\TrainPathToolView.xaml:327
+#: ..\..\Toolbox\Views\TrainPathToolView.xaml:551
+msgid "Name"
+msgstr "[Ná₥è !!!]"
 
-#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:598
-msgid "Path Color"
-msgstr "[Þáƭλ Çôℓôř !!!]"
+#: ..\..\Toolbox\Views\RouteNavigationToolView.xaml:95
+msgid "Nearest Station"
+msgstr "[Nèářèƨƭ §ƭáƭïôñ !!!]"
 
-#: ..\..\..\Toolbox\PopupWindows\TrainPathWindow.cs:31
-msgid "Path Data"
-msgstr "[Þáƭλ Ðáƭá !!!]"
+#: ..\..\Toolbox\Views\TrainPathToolView.xaml:213
+msgid "New"
+msgstr "[Nèω !!!]"
 
-#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:680
+#: ..\..\Toolbox\Enums.cs:37
+msgid "Next Route Candidate"
+msgstr "[Nèжƭ Rôúƭè Çáñδïδáƭè !!!]"
+
+#: ..\..\Toolbox\ToolWindows\TrainPathToolWindow.cs:1104
+msgid ""
+"No supported orientation connects these two paths. Add via points to bridge "
+"them manually, or choose different paths."
+msgstr ""
+"[Nô ƨúƥƥôřƭèδ ôřïèñƭáƭïôñ çôññèçƭƨ ƭλèƨè ƭωô ƥáƭλƨ. Âδδ Ʋïá ƥôïñƭƨ ƭô βřïδϱè "
+"ƭλè₥ ₥áñúáℓℓ¥, ôř çλôôƨè δïƒƒèřèñƭ ƥáƭλƨ. !!!]"
+
+#: ..\..\Toolbox\ToolWindows\TrainPathToolWindow.cs:1158
+#, csharp-format
+msgid "Node {0} does not start a passing branch."
+msgstr "[Nôδè {0} δôèƨ ñôƭ ƨƭářƭ á ƥáƨƨïñϱ βřáñçλ. !!!]"
+
+#: ..\..\Toolbox\ToolWindows\TrainPathToolWindow.cs:1156
+#, csharp-format
+msgid "Node {0} is a start or end node and is not a via point."
+msgstr "[Nôδè {0} ïƨ á ƨƭářƭ ôř èñδ ñôδè áñδ ïƨ ñôƭ á Ʋïá ƥôïñƭ. !!!]"
+
+#: ..\..\Toolbox\ToolWindows\TrainPathToolWindow.cs:1154
+#, csharp-format
+msgid "Node {0} is null."
+msgstr "[Nôδè {0} ïƨ ñúℓℓ. !!!]"
+
+#: ..\..\Toolbox\Views\TrainPathToolView.xaml:420
+msgid "Node actions ▾"
+msgstr "[Nôδè áçƭïôñƨ ▾ !!!]"
+
+#: ..\..\Toolbox\Views\TrainPathToolView.xaml:405
+msgid "Nodes "
+msgstr "[Nôδèƨ  !!!]"
+
+#: ..\..\Toolbox\Dialogs\AboutDialog.xaml:31
+msgid "OK"
+msgstr "[ÓK !!!]"
+
+#: ..\..\Toolbox\ToolboxSession.Comparison.cs:55
+msgid "Only saved paths in the current route can be compared."
+msgstr "[Óñℓ¥ ƨáƲèδ ƥáƭλƨ ïñ ƭλè çúřřèñƭ řôúƭè çáñ βè çô₥ƥářèδ. !!!]"
+
+#: ..\..\Toolbox\ViewModels\PathChartToolWindowViewModel.cs:370
+msgid "Open or create a path to view its main-route chart."
+msgstr "[Óƥèñ ôř çřèáƭè á ƥáƭλ ƭô Ʋïèω ïƭƨ ₥áïñ-řôúƭè çλářƭ. !!!]"
+
+#: ..\..\Toolbox\ToolWindows\TrainPathCombinationRow.cs:43
+msgid "original direction"
+msgstr "[ôřïϱïñáℓ δïřèçƭïôñ !!!]"
+
+#: ..\..\Toolbox\ViewModels\PathChartToolWindowViewModel.cs:400
+msgid "Passing branch profiles are not included in the main path chart."
+msgstr "[Þáƨƨïñϱ βřáñçλ ƥřôƒïℓèƨ ářè ñôƭ ïñçℓúδèδ ïñ ƭλè ₥áïñ ƥáƭλ çλářƭ. !!!]"
+
+#: ..\..\Toolbox\ToolWindows\TrainPathToolWindow.cs:1140
+msgid ""
+"Passing branches must be strictly separated; touching, nested, or overlapping "
+"branches are not supported."
+msgstr ""
+"[Þáƨƨïñϱ βřáñçλèƨ ₥úƨƭ βè ƨƭřïçƭℓ¥ ƨèƥářáƭèδ; ƭôúçλïñϱ, ñèƨƭèδ, ôř ôƲèřℓáƥƥïñϱ "
+"βřáñçλèƨ ářè ñôƭ ƨúƥƥôřƭèδ. !!!]"
+
+#: ..\..\Toolbox\ToolWindows\TrainPathToolWindow.cs:1148
+msgid "Passing topology requires exactly one main-route start node."
+msgstr "[Þáƨƨïñϱ ƭôƥôℓôϱ¥ řè9úïřèƨ èжáçƭℓ¥ ôñè ₥áïñ-řôúƭè ƨƭářƭ ñôδè. !!!]"
+
+#: ..\..\Toolbox\ToolWindows\TrainPathToolWindow.cs:1119
+msgid ""
+"Passing-branch materialization did not preserve the selected route or "
+"supported events."
+msgstr ""
+"[Þáƨƨïñϱ-βřáñçλ ₥áƭèřïáℓïƺáƭïôñ δïδ ñôƭ ƥřèƨèřƲè ƭλè ƨèℓèçƭèδ řôúƭè ôř "
+"ƨúƥƥôřƭèδ èƲèñƭƨ. !!!]"
+
+#: ..\..\Toolbox\ToolWindows\TrainPathToolWindow.cs:1120
+msgid "Passing-branch preview resolved."
+msgstr "[Þáƨƨïñϱ-βřáñçλ ƥřèƲïèω řèƨôℓƲèδ. !!!]"
+
+#: ..\..\Toolbox\PathEditing\PathEditor.cs:2409
+msgid ""
+"Passing-branch via confirmed; explicitly preview and accept every ambiguous "
+"leg."
+msgstr ""
+"[Þáƨƨïñϱ-βřáñçλ Ʋïá çôñƒïř₥èδ; èжƥℓïçïƭℓ¥ ƥřèƲïèω áñδ áççèƥƭ èƲèř¥ á₥βïϱúôúƨ "
+"ℓèϱ. !!!]"
+
+#: ..\..\Toolbox\ToolWindows\TrainPathToolWindow.cs:1124
+#: ..\..\Toolbox\PathEditing\PathEditor.cs:3028
+msgid ""
+"Passing-branch via previewed; confirm this via or choose another track "
+"location."
+msgstr ""
+"[Þáƨƨïñϱ-βřáñçλ Ʋïá ƥřèƲïèωèδ; çôñƒïř₥ ƭλïƨ Ʋïá ôř çλôôƨè áñôƭλèř ƭřáçƙ "
+"ℓôçáƭïôñ. !!!]"
+
+#: ..\..\Toolbox\PathEditing\PathEditor.cs:2452
+msgid ""
+"Passing-route leg accepted; explicitly preview and accept the remaining leg."
+msgstr ""
+"[Þáƨƨïñϱ-řôúƭè ℓèϱ áççèƥƭèδ; èжƥℓïçïƭℓ¥ ƥřèƲïèω áñδ áççèƥƭ ƭλè řè₥áïñïñϱ ℓèϱ. !!!]"
+
+#: ..\..\Toolbox\Views\TrainPathToolView.xaml:219
+msgid "Path actions ▾"
+msgstr "[Þáƭλ áçƭïôñƨ ▾ !!!]"
+
+#: ..\..\Toolbox\MainWindow.xaml:69
+#: ..\..\Toolbox\MainWindow.xaml:147
+msgid "Path Chart"
+msgstr "[Þáƭλ Çλářƭ !!!]"
+
+#: ..\..\Toolbox\ToolboxSession.Combine.cs:34
+#: ..\..\Toolbox\ToolboxSession.Combine.cs:180
+#: ..\..\Toolbox\PathEditing\PathEditor.cs:2800
+msgid "Path combination canceled."
+msgstr "[Þáƭλ çô₥βïñáƭïôñ çáñçèℓèδ. !!!]"
+
+#: ..\..\Toolbox\Views\TrainPathToolView.xaml:365
+msgid "Path combination orientations"
+msgstr "[Þáƭλ çô₥βïñáƭïôñ ôřïèñƭáƭïôñƨ !!!]"
+
+#: ..\..\Toolbox\ToolWindows\TrainPathToolWindow.cs:1102
+msgid ""
+"Path combination requires complete, reachable main paths with exactly one "
+"Start and End, no siding links, and only basic interior waits of 1 to 29999 "
+"seconds."
+msgstr ""
+"[Þáƭλ çô₥βïñáƭïôñ řè9úïřèƨ çô₥ƥℓèƭè, řèáçλáβℓè ₥áïñ ƥáƭλƨ ωïƭλ èжáçƭℓ¥ ôñè "
+"§ƭářƭ áñδ Éñδ, ñô ƨïδïñϱ ℓïñƙƨ, áñδ ôñℓ¥ βáƨïç ïñƭèřïôř ωáïƭƨ ôƒ 1 ƭô 29999 "
+"ƨèçôñδƨ. !!!]"
+
+#: ..\..\Toolbox\ToolboxSession.Composition.cs:31
+msgid "Path composition canceled."
+msgstr "[Þáƭλ çô₥ƥôƨïƭïôñ çáñçèℓèδ. !!!]"
+
+#: ..\..\Toolbox\ToolWindows\TrainPathToolWindow.cs:1092
+msgid ""
+"Path composition requires complete, reachable, event-free main paths with "
+"exactly one Start and End and no siding links or wait payloads."
+msgstr ""
+"[Þáƭλ çô₥ƥôƨïƭïôñ řè9úïřèƨ çô₥ƥℓèƭè, řèáçλáβℓè, èƲèñƭ-ƒřèè ₥áïñ ƥáƭλƨ ωïƭλ "
+"èжáçƭℓ¥ ôñè §ƭářƭ áñδ Éñδ áñδ ñô ƨïδïñϱ ℓïñƙƨ ôř ωáïƭ ƥá¥ℓôáδƨ. !!!]"
+
+#: ..\..\Toolbox\ToolWindows\TrainPathToolWindow.cs:1094
+msgid ""
+"Path composition requires unambiguous matching track anchors and continuous "
+"routes without repeated track nodes or duplicate connectors."
+msgstr ""
+"[Þáƭλ çô₥ƥôƨïƭïôñ řè9úïřèƨ úñá₥βïϱúôúƨ ₥áƭçλïñϱ ƭřáçƙ áñçλôřƨ áñδ çôñƭïñúôúƨ "
+"řôúƭèƨ ωïƭλôúƭ řèƥèáƭèδ ƭřáçƙ ñôδèƨ ôř δúƥℓïçáƭè çôññèçƭôřƨ. !!!]"
+
+#: ..\..\Toolbox\ToolWindows\TrainPathToolWindow.cs:1098
+msgid ""
+"Path composition would change a selected track route or require a reversal at "
+"the join. Choose an extension with a compatible departure direction."
+msgstr ""
+"[Þáƭλ çô₥ƥôƨïƭïôñ ωôúℓδ çλáñϱè á ƨèℓèçƭèδ ƭřáçƙ řôúƭè ôř řè9úïřè á řèƲèřƨáℓ áƭ "
+"ƭλè Jôïñ. Çλôôƨè áñ èжƭèñƨïôñ ωïƭλ á çô₥ƥáƭïβℓè δèƥářƭúřè δïřèçƭïôñ. !!!]"
+
+#: ..\..\Toolbox\Views\TrainPathToolView.xaml:315
+msgid "Path Details"
+msgstr "[Þáƭλ Ðèƭáïℓƨ !!!]"
+
+#: ..\..\Toolbox\PathEditing\PathEditor.cs:3377
+msgid "Path editing is unavailable after the editor has stopped."
+msgstr "[Þáƭλ èδïƭïñϱ ïƨ úñáƲáïℓáβℓè áƒƭèř ƭλè èδïƭôř λáƨ ƨƭôƥƥèδ. !!!]"
+
+#: ..\..\Toolbox\MainWindow.xaml:127
 msgid "Path Editor"
 msgstr "[Þáƭλ Éδïƭôř !!!]"
 
-#: ..\..\..\Toolbox\PopupWindows\TrainPathWindow.cs:29
-msgid "Path Nodes"
-msgstr "[Þáƭλ Nôδèƨ !!!]"
+#: ..\..\Toolbox\Enums.cs:34
+msgid "Path Editor Alternate Redo"
+msgstr "[Þáƭλ Éδïƭôř Âℓƭèřñáƭè Rèδô !!!]"
 
-#: ..\..\..\Toolbox\PopupWindows\TrainPathWindow.cs:33
-#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:411
-msgid "Paths"
-msgstr "[Þáƭλƨ !!!]"
+#: ..\..\Toolbox\Enums.cs:33
+msgid "Path Editor Redo"
+msgstr "[Þáƭλ Éδïƭôř Rèδô !!!]"
 
-#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:383
-msgid "Pickup Points (Fuel, Cargo)"
-msgstr "[Þïçƙúƥ Þôïñƭƨ (Fúèℓ, Çářϱô) !!!]"
+#: ..\..\Toolbox\Enums.cs:32
+msgid "Path Editor Undo"
+msgstr "[Þáƭλ Éδïƭôř Ûñδô !!!]"
 
-#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:628
-msgid "Platform Color"
-msgstr "[Þℓáƭƒôř₥ Çôℓôř !!!]"
+#: ..\..\Toolbox\ToolWindows\TrainPathToolWindow.cs:1086
+msgid "Path extension composed at the matching endpoint."
+msgstr "[Þáƭλ èжƭèñƨïôñ çô₥ƥôƨèδ áƭ ƭλè ₥áƭçλïñϱ èñδƥôïñƭ. !!!]"
 
-#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:334
-msgid "Platform Names"
-msgstr "[Þℓáƭƒôř₥ Ná₥èƨ !!!]"
+#: ..\..\Toolbox\ToolboxSession.Combine.cs:195
+msgid ""
+"Path orientation previewed. Accept to create a new unsaved path, or Cancel."
+msgstr ""
+"[Þáƭλ ôřïèñƭáƭïôñ ƥřèƲïèωèδ. Âççèƥƭ ƭô çřèáƭè á ñèω úñƨáƲèδ ƥáƭλ, ôř Çáñçèℓ. !!!]"
 
-#: ..\..\..\Toolbox\GameWindow.UserActivity.cs:683
-msgid "Path save was canceled. Your changes are still available; try saving again."
-msgstr "[Þáƭλ ƨáƲè ωáƨ çáñçèℓèδ. Ýôúř çλáñϱèƨ ářè ƨƭïℓℓ áƲáïℓáβℓè; ƭř¥ ƨáƲïñϱ áϱáïñ. !!!]"
+#: ..\..\Toolbox\ToolWindows\TrainPathToolWindow.cs:1079
+msgid "Path reversed."
+msgstr "[Þáƭλ řèƲèřƨèδ. !!!]"
 
-#: ..\..\..\Toolbox\GameWindow.UserActivity.cs:665
+#: ..\..\Toolbox\ToolboxSession.Persistence.cs:132
+msgid ""
+"Path save was canceled. Your changes are still available; try saving again."
+msgstr ""
+"[Þáƭλ ƨáƲè ωáƨ çáñçèℓèδ. Ýôúř çλáñϱèƨ ářè ƨƭïℓℓ áƲáïℓáβℓè; ƭř¥ ƨáƲïñϱ áϱáïñ. !!!]"
+
+#: ..\..\Toolbox\ToolboxSession.Persistence.cs:117
 msgid "Path saved."
 msgstr "[Þáƭλ ƨáƲèδ. !!!]"
 
-#: ..\..\..\Toolbox\GameWindow.UserActivity.cs:697
-#: ..\..\..\Toolbox\GameWindow.UserActivity.cs:711
-msgid "The path could not be saved. Your changes are still available; try saving again."
-msgstr "[Tλè ƥáƭλ çôúℓδ ñôƭ βè ƨáƲèδ. Ýôúř çλáñϱèƨ ářè ƨƭïℓℓ áƲáïℓáβℓè; ƭř¥ ƨáƲïñϱ áϱáïñ. !!!]"
+#: ..\..\Toolbox\Views\TrainPathToolView.xaml:248
+msgid "Paths"
+msgstr "[Þáƭλƨ !!!]"
 
-#: ..\..\..\Toolbox\GameWindow.UserActivity.cs:725
-msgid "The path could not be saved because access was denied. Your changes are still available; try saving again."
-msgstr "[Tλè ƥáƭλ çôúℓδ ñôƭ βè ƨáƲèδ βèçáúƨè áççèƨƨ ωáƨ δèñïèδ. Ýôúř çλáñϱèƨ ářè ƨƭïℓℓ áƲáïℓáβℓè; ƭř¥ ƨáƲïñϱ áϱáïñ. !!!]"
+#: ..\..\Toolbox\ToolWindows\TrainPathToolWindow.cs:1107
+msgid "Paths combined into a new unsaved path."
+msgstr "[Þáƭλƨ çô₥βïñèδ ïñƭô á ñèω úñƨáƲèδ ƥáƭλ. !!!]"
 
-#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:327
+#: ..\..\Toolbox\ToolWindows\TrainPathToolWindow.cs:1535
+msgid "Place a single wait or reversal on an ordinary main-path node."
+msgstr "[Þℓáçè á ƨïñϱℓè ωáïƭ ôř řèƲèřƨáℓ ôñ áñ ôřδïñář¥ ₥áïñ-ƥáƭλ ñôδè. !!!]"
+
+#: ..\..\Toolbox\ToolWindows\TrainPathToolWindow.cs:1538
+msgid "Place the event on the main path outside the passing interior."
+msgstr "[Þℓáçè ƭλè èƲèñƭ ôñ ƭλè ₥áïñ ƥáƭλ ôúƭƨïδè ƭλè ƥáƨƨïñϱ ïñƭèřïôř. !!!]"
+
+#: ..\..\Toolbox\ToolWindows\TrainPathToolWindow.cs:1532
+msgid "Place the wait or reversal after the first main node."
+msgstr "[Þℓáçè ƭλè ωáïƭ ôř řèƲèřƨáℓ áƒƭèř ƭλè ƒïřƨƭ ₥áïñ ñôδè. !!!]"
+
+#: ..\..\Toolbox\ToolWindows\TrainPathToolWindow.cs:1544
+msgid "Place the wait or reversal outside the common passing prefix or suffix."
+msgstr "[Þℓáçè ƭλè ωáïƭ ôř řèƲèřƨáℓ ôúƭƨïδè ƭλè çô₥₥ôñ ƥáƨƨïñϱ ƥřèƒïж ôř ƨúƒƒïж. !!!]"
+
+#: ..\..\Toolbox\Views\RouteNavigationToolView.xaml:74
+msgid "Platform"
+msgstr "[Þℓáƭƒôř₥ !!!]"
+
+#: ..\..\Toolbox\Views\RouteNavigationToolView.xaml:59
 msgid "Platforms"
 msgstr "[Þℓáƭƒôř₥ƨ !!!]"
 
-#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:443
-msgid "Preferences"
-msgstr "[Þřèƒèřèñçèƨ !!!]"
+#: ..\..\Toolbox\Views\TrainPathToolView.xaml:333
+msgid "Player Path"
+msgstr "[Þℓá¥èř Þáƭλ !!!]"
 
-#: ..\..\..\Toolbox\UserCommand.cs:10
+#: ..\..\Toolbox\ToolboxSession.Combine.cs:187
+msgid "Preview a current path orientation before accepting it."
+msgstr "[ÞřèƲïèω á çúřřèñƭ ƥáƭλ ôřïèñƭáƭïôñ βèƒôřè áççèƥƭïñϱ ïƭ. !!!]"
+
+#: ..\..\Toolbox\PathEditing\PathEditor.cs:2398
+msgid "Preview a valid passing-branch via before confirming it."
+msgstr "[ÞřèƲïèω á Ʋáℓïδ ƥáƨƨïñϱ-βřáñçλ Ʋïá βèƒôřè çôñƒïř₥ïñϱ ïƭ. !!!]"
+
+#: ..\..\Toolbox\MainWindow.xaml.cs:546
+msgid "Preview Passing Via Here"
+msgstr "[ÞřèƲïèω Þáƨƨïñϱ Vïá Hèřè !!!]"
+
+#: ..\..\Toolbox\Enums.cs:38
+msgid "Previous Route Candidate"
+msgstr "[ÞřèƲïôúƨ Rôúƭè Çáñδïδáƭè !!!]"
+
+#: ..\..\Toolbox\Enums.cs:17
 msgid "Quit"
 msgstr "[Qúïƭ !!!]"
 
-#: ..\..\..\Toolbox\PopupWindows\QuitWindow.cs:44
+#: ..\..\Toolbox\Views\TrainPathToolView.xaml:220
+msgid "Re-resolve path"
+msgstr "[Rè-řèƨôℓƲè ƥáƭλ !!!]"
+
+#: ..\..\Toolbox\MainWindow.xaml.cs:558
+msgid "Re-resolve Path"
+msgstr "[Rè-řèƨôℓƲè Þáƭλ !!!]"
+
+#: ..\..\Toolbox\MainWindow.xaml.cs:565
+#: ..\..\Toolbox\Views\TrainPathToolView.xaml:216
+msgid "Redo"
+msgstr "[Rèδô !!!]"
+
+#: ..\..\Toolbox\Views\TrainPathToolView.xaml:389
+msgid "Rejoin at selected node"
+msgstr "[RèJôïñ áƭ ƨèℓèçƭèδ ñôδè !!!]"
+
+#: ..\..\Toolbox\MainWindow.xaml.cs:544
+msgid "Rejoin Passing Branch"
+msgstr "[RèJôïñ Þáƨƨïñϱ ßřáñçλ !!!]"
+
+#: ..\..\Toolbox\MainWindow.xaml.cs:545
+msgid "Rejoin Passing Branch With Via"
+msgstr "[RèJôïñ Þáƨƨïñϱ ßřáñçλ Wïƭλ Vïá !!!]"
+
+#: ..\..\Toolbox\Views\TrainPathToolView.xaml:390
+msgid "Rejoin with one passing via"
+msgstr "[RèJôïñ ωïƭλ ôñè ƥáƨƨïñϱ Ʋïá !!!]"
+
+#: ..\..\Toolbox\MainWindow.xaml.cs:549
+msgid "Remove Passing Branch"
+msgstr "[Rè₥ôƲè Þáƨƨïñϱ ßřáñçλ !!!]"
+
+#: ..\..\Toolbox\MainWindow.xaml.cs:551
+msgid "Remove Rest of Path"
+msgstr "[Rè₥ôƲè Rèƨƭ ôƒ Þáƭλ !!!]"
+
+#: ..\..\Toolbox\Enums.cs:35
+msgid "Remove Selected Via Point"
+msgstr "[Rè₥ôƲè §èℓèçƭèδ Vïá Þôïñƭ !!!]"
+
+#: ..\..\Toolbox\MainWindow.xaml.cs:539
+msgid "Remove Via Point"
+msgstr "[Rè₥ôƲè Vïá Þôïñƭ !!!]"
+
+#: ..\..\Toolbox\Views\TrainPathToolView.xaml:538
+msgid "Remove wait flags and wait data from the selected node."
+msgstr "[Rè₥ôƲè ωáïƭ ƒℓáϱƨ áñδ ωáïƭ δáƭá ƒřô₥ ƭλè ƨèℓèçƭèδ ñôδè. !!!]"
+
+#: ..\..\Toolbox\ToolWindows\TrainPathToolWindow.cs:1162
 #, csharp-format
-msgid "Quit ({0})"
-msgstr "[Qúïƭ ({0}) !!!]"
+msgid "Removed passing branch from node {0}."
+msgstr "[Rè₥ôƲèδ ƥáƨƨïñϱ βřáñçλ ƒřô₥ ñôδè {0}. !!!]"
 
-#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:167
-msgid "Quit (Q)"
-msgstr "[Qúïƭ (Q) !!!]"
+#: ..\..\Toolbox\ToolWindows\TrainPathToolWindow.cs:1167
+#, csharp-format
+msgid "Removing node {0} would invalidate the supported passing branch: {1}"
+msgstr "[Rè₥ôƲïñϱ ñôδè {0} ωôúℓδ ïñƲáℓïδáƭè ƭλè ƨúƥƥôřƭèδ ƥáƨƨïñϱ βřáñçλ: {1} !!!]"
 
-#: ..\..\..\Toolbox\UserCommand.cs:17
+#: ..\..\Toolbox\Views\TrainPathToolView.xaml:238
+msgid ""
+"Repair mode: inspect issues and repair authored nodes. Runtime route "
+"rendering is disabled."
+msgstr ""
+"[Rèƥáïř ₥ôδè: ïñƨƥèçƭ ïƨƨúèƨ áñδ řèƥáïř áúƭλôřèδ ñôδèƨ. Rúñƭï₥è řôúƭè "
+"řèñδèřïñϱ ïƨ δïƨáβℓèδ. !!!]"
+
+#: ..\..\Toolbox\Views\TrainPathToolView.xaml:652
+msgid "Repair node"
+msgstr "[Rèƥáïř ñôδè !!!]"
+
+#: ..\..\Toolbox\MainWindow.xaml.cs:550
+msgid "Repair Node"
+msgstr "[Rèƥáïř Nôδè !!!]"
+
+#: ..\..\Toolbox\ViewModels\TrainPathToolWindowViewModel.cs:1212
+msgid "Request to pass red signal"
+msgstr "[Rè9úèƨƭ ƭô ƥáƨƨ řèδ ƨïϱñáℓ !!!]"
+
+#: ..\..\Toolbox\Views\SettingsToolView.xaml:20
+msgid "Reset to Defaults"
+msgstr "[Rèƨèƭ ƭô Ðèƒáúℓƭƨ !!!]"
+
+#: ..\..\Toolbox\Views\PathChartToolView.xaml:151
+msgid "Reset View"
+msgstr "[Rèƨèƭ Vïèω !!!]"
+
+#: ..\..\Toolbox\Views\SettingsToolView.xaml:21
+msgid ""
+"Reset window layout, colors, item visibility, and appearance options to their "
+"defaults"
+msgstr ""
+"[Rèƨèƭ ωïñδôω ℓá¥ôúƭ, çôℓôřƨ, ïƭè₥ Ʋïƨïβïℓïƭ¥, áñδ áƥƥèářáñçè ôƥƭïôñƨ ƭô ƭλèïř "
+"δèƒáúℓƭƨ !!!]"
+
+#: ..\..\Toolbox\Enums.cs:24
 msgid "Reset Zoom and Center Location"
 msgstr "[Rèƨèƭ Zôô₥ áñδ Çèñƭèř £ôçáƭïôñ !!!]"
 
-#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:450
-msgid "Restore last view on Start"
-msgstr "[Rèƨƭôřè ℓáƨƭ Ʋïèω ôñ §ƭářƭ !!!]"
-
-#: ..\..\..\Toolbox\PopupWindows\SettingsWindow.cs:67
+#: ..\..\Toolbox\Views\SettingsToolView.xaml:34
 msgid "Restore Last View on Start"
 msgstr "[Rèƨƭôřè £áƨƭ Vïèω ôñ §ƭářƭ !!!]"
 
-#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:568
-msgid "Road Color"
-msgstr "[Rôáδ Çôℓôř !!!]"
+#: ..\..\Toolbox\Views\TrainPathToolView.xaml:221
+#: ..\..\Toolbox\Views\TrainPathToolView.xaml:222
+msgid "Reverse Path"
+msgstr "[RèƲèřƨè Þáƭλ !!!]"
 
-#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:583
-msgid "Road End Node Color"
-msgstr "[Rôáδ Éñδ Nôδè Çôℓôř !!!]"
+#: ..\..\Toolbox\ToolWindows\TrainPathToolWindow.cs:1081
+msgid ""
+"Reverse Path is unavailable during repair, placement, route selection, or "
+"saving."
+msgstr ""
+"[RèƲèřƨè Þáƭλ ïƨ úñáƲáïℓáβℓè δúřïñϱ řèƥáïř, ƥℓáçè₥èñƭ, řôúƭè ƨèℓèçƭïôñ, ôř "
+"ƨáƲïñϱ. !!!]"
 
-#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:271
-msgid "Road End Nodes"
-msgstr "[Rôáδ Éñδ Nôδèƨ !!!]"
+#: ..\..\Toolbox\ToolWindows\TrainPathToolWindow.cs:1076
+msgid ""
+"Reverse Path requires a complete, reachable main chain with exactly one Start "
+"and End and at least two nodes."
+msgstr ""
+"[RèƲèřƨè Þáƭλ řè9úïřèƨ á çô₥ƥℓèƭè, řèáçλáβℓè ₥áïñ çλáïñ ωïƭλ èжáçƭℓ¥ ôñè §ƭářƭ "
+"áñδ Éñδ áñδ áƭ ℓèáƨƭ ƭωô ñôδèƨ. !!!]"
 
-#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:256
+#: ..\..\Toolbox\ToolWindows\TrainPathToolWindow.cs:1083
+msgid ""
+"Reverse Path requires an unambiguous route with exactly reversed track edges "
+"and matching anchors."
+msgstr ""
+"[RèƲèřƨè Þáƭλ řè9úïřèƨ áñ úñá₥βïϱúôúƨ řôúƭè ωïƭλ èжáçƭℓ¥ řèƲèřƨèδ ƭřáçƙ èδϱèƨ "
+"áñδ ₥áƭçλïñϱ áñçλôřƨ. !!!]"
+
+#: ..\..\Toolbox\ToolWindows\TrainPathToolWindow.cs:1085
+msgid "Reverse Path requires both directions to pass normal save validation."
+msgstr "[RèƲèřƨè Þáƭλ řè9úïřèƨ βôƭλ δïřèçƭïôñƨ ƭô ƥáƨƨ ñôř₥áℓ ƨáƲè Ʋáℓïδáƭïôñ. !!!]"
+
+#: ..\..\Toolbox\ToolWindows\TrainPathToolWindow.cs:1078
+msgid ""
+"Reverse Path supports only main paths with basic interior waits of 1 to 29999 "
+"seconds and no endpoint or junction waits, reversals, siding links, invalid "
+"nodes, or unknown flags."
+msgstr ""
+"[RèƲèřƨè Þáƭλ ƨúƥƥôřƭƨ ôñℓ¥ ₥áïñ ƥáƭλƨ ωïƭλ βáƨïç ïñƭèřïôř ωáïƭƨ ôƒ 1 ƭô 29999 "
+"ƨèçôñδƨ áñδ ñô èñδƥôïñƭ ôř Júñçƭïôñ ωáïƭƨ, řèƲèřƨáℓƨ, ƨïδïñϱ ℓïñƙƨ, ïñƲáℓïδ "
+"ñôδèƨ, ôř úñƙñôωñ ƒℓáϱƨ. !!!]"
+
+#: ..\..\Toolbox\ToolWindows\TrainPathCombinationRow.cs:43
+msgid "reversed"
+msgstr "[řèƲèřƨèδ !!!]"
+
+#: ..\..\Toolbox\Views\SettingsToolView.xaml:122
 msgid "Road Items"
 msgstr "[Rôáδ Ìƭè₥ƨ !!!]"
 
-#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:264
-msgid "Road Segments"
-msgstr "[Rôáδ §èϱ₥èñƭƨ !!!]"
-
-#: ..\..\..\Toolbox\PopupWindows\TrackNodeInfoWindow.cs:57
+#: ..\..\Toolbox\Views\RouteNavigationToolView.xaml:127
+#: ..\..\Toolbox\Views\RouteNavigationToolView.xaml:158
 msgid "Roads"
 msgstr "[Rôáδƨ !!!]"
 
-#: ..\..\..\Toolbox\UserCommand.cs:18
+#: ..\..\Toolbox\Views\RouteToolView.xaml:24
+msgid "Route"
+msgstr "[Rôúƭè !!!]"
+
+#: ..\..\Toolbox\MainWindow.xaml:53
+msgid "Route Na_vigation"
+msgstr "[Rôúƭè Ná_Ʋïϱáƭïôñ !!!]"
+
+#: ..\..\Toolbox\MainWindow.xaml:167
+msgid "Route Navigation"
+msgstr "[Rôúƭè NáƲïϱáƭïôñ !!!]"
+
+#: ..\..\Toolbox\MainWindow.xaml.cs:553
+msgid "Route Through Exit"
+msgstr "[Rôúƭè Tλřôúϱλ Éжïƭ !!!]"
+
+#: ..\..\Toolbox\MainWindow.xaml:119
+msgid "Routes"
+msgstr "[Rôúƭèƨ !!!]"
+
+#: ..\..\Toolbox\Views\TrainPathToolView.xaml:214
+msgid "Save"
+msgstr "[§áƲè !!!]"
+
+#: ..\..\Toolbox\MainWindow.xaml.cs:563
+msgid "Save Path"
+msgstr "[§áƲè Þáƭλ !!!]"
+
+#: ..\..\Toolbox\ViewModels\TrainPathListItemViewModel.cs:76
+msgid "Save this new path before comparing it."
+msgstr "[§áƲè ƭλïƨ ñèω ƥáƭλ βèƒôřè çô₥ƥářïñϱ ïƭ. !!!]"
+
+#: ..\..\Toolbox\Views\TrainPathToolView.xaml:30
+msgid "Saved"
+msgstr "[§áƲèδ !!!]"
+
+#: ..\..\Toolbox\ViewModels\TrainPathListItemViewModel.cs:78
+msgid ""
+"Saved baseline only (read-only). Up to six comparisons; check exactly two "
+"saved paths to use Path actions > Combine Paths. Independent of Show Path and "
+"editor changes."
+msgstr ""
+"[§áƲèδ βáƨèℓïñè ôñℓ¥ (řèáδ-ôñℓ¥). Ûƥ ƭô ƨïж çô₥ƥářïƨôñƨ; çλèçƙ èжáçƭℓ¥ ƭωô "
+"ƨáƲèδ ƥáƭλƨ ƭô úƨè Þáƭλ áçƭïôñƨ > Çô₥βïñè Þáƭλƨ. Ìñδèƥèñδèñƭ ôƒ §λôω Þáƭλ áñδ "
+"èδïƭôř çλáñϱèƨ. !!!]"
+
+#: ..\..\Toolbox\ToolboxSession.Comparison.cs:102
+msgid ""
+"Saved path comparison could not match its selected track geometry. Validate "
+"the route and saved path before comparing again."
+msgstr ""
+"[§áƲèδ ƥáƭλ çô₥ƥářïƨôñ çôúℓδ ñôƭ ₥áƭçλ ïƭƨ ƨèℓèçƭèδ ƭřáçƙ ϱèô₥èƭř¥. Váℓïδáƭè "
+"ƭλè řôúƭè áñδ ƨáƲèδ ƥáƭλ βèƒôřè çô₥ƥářïñϱ áϱáïñ. !!!]"
+
+#: ..\..\Toolbox\ToolboxSession.Comparison.cs:86
+msgid "Saved path comparison displayed."
+msgstr "[§áƲèδ ƥáƭλ çô₥ƥářïƨôñ δïƨƥℓá¥èδ. !!!]"
+
+#: ..\..\Toolbox\ToolboxSession.Comparison.cs:101
+msgid ""
+"Saved path comparison requires an unambiguous, resolved main and passing "
+"route. Open the saved path and repair or select its route, then save again."
+msgstr ""
+"[§áƲèδ ƥáƭλ çô₥ƥářïƨôñ řè9úïřèƨ áñ úñá₥βïϱúôúƨ, řèƨôℓƲèδ ₥áïñ áñδ ƥáƨƨïñϱ "
+"řôúƭè. Óƥèñ ƭλè ƨáƲèδ ƥáƭλ áñδ řèƥáïř ôř ƨèℓèçƭ ïƭƨ řôúƭè, ƭλèñ ƨáƲè áϱáïñ. !!!]"
+
+#: ..\..\Toolbox\ToolboxSession.Comparison.cs:94
+msgid ""
+"Saved path comparison was canceled. Check the saved path again to retry."
+msgstr ""
+"[§áƲèδ ƥáƭλ çô₥ƥářïƨôñ ωáƨ çáñçèℓèδ. Çλèçƙ ƭλè ƨáƲèδ ƥáƭλ áϱáïñ ƭô řèƭř¥. !!!]"
+
+#: ..\..\Toolbox\ToolboxSession.Composition.cs:48
+msgid ""
+"Saved-path composition requires an idle, event-free main path and is "
+"unavailable during repair or saving."
+msgstr ""
+"[§áƲèδ-ƥáƭλ çô₥ƥôƨïƭïôñ řè9úïřèƨ áñ ïδℓè, èƲèñƭ-ƒřèè ₥áïñ ƥáƭλ áñδ ïƨ "
+"úñáƲáïℓáβℓè δúřïñϱ řèƥáïř ôř ƨáƲïñϱ. !!!]"
+
+#: ..\..\Toolbox\Enums.cs:25
 msgid "Screenshot"
 msgstr "[§çřèèñƨλôƭ !!!]"
 
-#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:459
-msgid "Select Language"
-msgstr "[§èℓèçƭ £áñϱúáϱè !!!]"
+#: ..\..\Toolbox\Views\PathChartToolView.xaml.cs:31
+msgid "Scroll to pan the zoomed path chart"
+msgstr "[§çřôℓℓ ƭô ƥáñ ƭλè ƺôô₥èδ ƥáƭλ çλářƭ !!!]"
 
-#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:156
-msgid "Select Route"
-msgstr "[§èℓèçƭ Rôúƭè !!!]"
+#: ..\..\Toolbox\Views\HelpToolView.xaml:19
+msgid "Search Help"
+msgstr "[§èářçλ Hèℓƥ !!!]"
 
-#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:150
-msgid "Select Route Folder"
-msgstr "[§èℓèçƭ Rôúƭè Fôℓδèř !!!]"
+#: ..\..\Toolbox\Views\TrainPathToolView.xaml:517
+msgid "seconds"
+msgstr "[ƨèçôñδƨ !!!]"
 
-#: ..\..\..\Toolbox\PopupWindows\TrainPathWindow.cs:116
+#: ..\..\Toolbox\Views\TrainPathToolView.xaml:388
+msgid "Select a later main-path node to rejoin the passing branch."
+msgstr "[§èℓèçƭ á ℓáƭèř ₥áïñ-ƥáƭλ ñôδè ƭô řèJôïñ ƭλè ƥáƨƨïñϱ βřáñçλ. !!!]"
+
+#: ..\..\Toolbox\PathEditing\PathEditor.cs:2199
+msgid "Select a later main-route node before placing a passing-branch via."
+msgstr "[§èℓèçƭ á ℓáƭèř ₥áïñ-řôúƭè ñôδè βèƒôřè ƥℓáçïñϱ á ƥáƨƨïñϱ-βřáñçλ Ʋïá. !!!]"
+
+#: ..\..\Toolbox\PathEditing\PathEditor.cs:1970
+msgid ""
+"Select a main-route start with an available strictly separated rejoin; at "
+"most two passing branches can be authored."
+msgstr ""
+"[§èℓèçƭ á ₥áïñ-řôúƭè ƨƭářƭ ωïƭλ áñ áƲáïℓáβℓè ƨƭřïçƭℓ¥ ƨèƥářáƭèδ řèJôïñ; áƭ "
+"₥ôƨƭ ƭωô ƥáƨƨïñϱ βřáñçλèƨ çáñ βè áúƭλôřèδ. !!!]"
+
+#: ..\..\Toolbox\Views\RouteToolView.xaml:29
+msgid "Select a route to open"
+msgstr "[§èℓèçƭ á řôúƭè ƭô ôƥèñ !!!]"
+
+#: ..\..\Toolbox\Views\RouteToolView.xaml:23
+msgid "Select the content folder to load routes from"
+msgstr "[§èℓèçƭ ƭλè çôñƭèñƭ ƒôℓδèř ƭô ℓôáδ řôúƭèƨ ƒřô₥ !!!]"
+
+#: ..\..\Toolbox\Views\SettingsToolView.xaml:51
+msgid "Select the user interface language"
+msgstr "[§èℓèçƭ ƭλè úƨèř ïñƭèřƒáçè ℓáñϱúáϱè !!!]"
+
+#: ..\..\Toolbox\ToolWindows\TrainPathToolWindow.cs:1541
+msgid ""
+"Separate successive reversals with a junction before using the path in "
+"Simulator."
+msgstr ""
+"[§èƥářáƭè ƨúççèƨƨïƲè řèƲèřƨáℓƨ ωïƭλ á Júñçƭïôñ βèƒôřè úƨïñϱ ƭλè ƥáƭλ ïñ "
+"§ï₥úℓáƭôř. !!!]"
+
+#: ..\..\Toolbox\Views\TrainPathToolView.xaml:374
+msgid "Set end"
+msgstr "[§èƭ èñδ !!!]"
+
+#: ..\..\Toolbox\MainWindow.xaml.cs:562
+msgid "Set End Here"
+msgstr "[§èƭ Éñδ Hèřè !!!]"
+
+#: ..\..\Toolbox\MainWindow.xaml.cs:541
+msgid "Set Reversal Point"
+msgstr "[§èƭ RèƲèřƨáℓ Þôïñƭ !!!]"
+
+#: ..\..\Toolbox\Views\TrainPathToolView.xaml:373
+msgid "Set start"
+msgstr "[§èƭ ƨƭářƭ !!!]"
+
+#: ..\..\Toolbox\MainWindow.xaml.cs:561
+msgid "Set Start Here"
+msgstr "[§èƭ §ƭářƭ Hèřè !!!]"
+
+#: ..\..\Toolbox\Views\TrainPathToolView.xaml:343
 msgid "Setting"
 msgstr "[§èƭƭïñϱ !!!]"
 
-#: ..\..\..\Toolbox\PopupWindows\SettingsWindow.cs:43
+#: ..\..\Toolbox\MainWindow.xaml:175
 msgid "Settings"
 msgstr "[§èƭƭïñϱƨ !!!]"
 
-#: ..\..\..\Toolbox\UserCommand.cs:24
+#: ..\..\Toolbox\Enums.cs:29
 msgid "Settings Window (Tab)"
 msgstr "[§èƭƭïñϱƨ Wïñδôω (Táβ) !!!]"
 
-#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:419
-msgid "Show Path"
-msgstr "[§λôω Þáƭλ !!!]"
+#: ..\..\Toolbox\Views\PathChartToolView.xaml:150
+msgid "Show on Map"
+msgstr "[§λôω ôñ Máƥ !!!]"
 
-#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:643
-msgid "Siding Color"
-msgstr "[§ïδïñϱ Çôℓôř !!!]"
+#: ..\..\Toolbox\Views\TrainPathToolView.xaml:230
+msgid "Show Path Chart"
+msgstr "[§λôω Þáƭλ Çλářƭ !!!]"
 
-#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:355
-msgid "Siding Names"
-msgstr "[§ïδïñϱ Ná₥èƨ !!!]"
+#: ..\..\Toolbox\MainWindow.xaml.cs:1183
+msgid "Shutdown Failed"
+msgstr "[§λúƭδôωñ Fáïℓèδ !!!]"
 
-#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:348
+#: ..\..\Toolbox\Views\RouteNavigationToolView.xaml:96
+msgid "Siding"
+msgstr "[§ïδïñϱ !!!]"
+
+#: ..\..\Toolbox\ToolWindows\TrainPathToolWindow.cs:1543
+msgid ""
+"Siding projection changes branch participation in main event at node {0} in "
+"the common prefix or suffix."
+msgstr ""
+"[§ïδïñϱ ƥřôJèçƭïôñ çλáñϱèƨ βřáñçλ ƥářƭïçïƥáƭïôñ ïñ ₥áïñ èƲèñƭ áƭ ñôδè {0} ïñ "
+"ƭλè çô₥₥ôñ ƥřèƒïж ôř ƨúƒƒïж. !!!]"
+
+#: ..\..\Toolbox\Views\RouteNavigationToolView.xaml:81
 msgid "Sidings"
 msgstr "[§ïδïñϱƨ !!!]"
 
-#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:390
-msgid "Sound Regions"
-msgstr "[§ôúñδ Rèϱïôñƨ !!!]"
-
-#: ..\..\..\Toolbox\UserCommand.cs:8
+#: ..\..\Toolbox\Enums.cs:15
 msgid "Span another instance"
 msgstr "[§ƥáñ áñôƭλèř ïñƨƭáñçè !!!]"
 
-#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:362
-msgid "Speed Limits"
-msgstr "[§ƥèèδ £ï₥ïƭƨ !!!]"
+#: ..\..\Toolbox\Views\TrainPathToolView.xaml:329
+msgid "Start"
+msgstr "[§ƭářƭ !!!]"
 
-#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:658
-msgid "SpeedPost Text Color"
-msgstr "[§ƥèèδÞôƨƭ Tèжƭ Çôℓôř !!!]"
+#: ..\..\Toolbox\MainWindow.xaml.cs:559
+msgid "Start New Path"
+msgstr "[§ƭářƭ Nèω Þáƭλ !!!]"
 
-#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:613
-msgid "Station Color"
-msgstr "[§ƭáƭïôñ Çôℓôř !!!]"
+#: ..\..\Toolbox\MainWindow.xaml.cs:560
+msgid "Start New Path Here"
+msgstr "[§ƭářƭ Nèω Þáƭλ Hèřè !!!]"
 
-#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:341
-msgid "Station Names"
-msgstr "[§ƭáƭïôñ Ná₥èƨ !!!]"
+#: ..\..\Toolbox\MainWindow.xaml.cs:543
+msgid "Start Passing Branch"
+msgstr "[§ƭářƭ Þáƨƨïñϱ ßřáñçλ !!!]"
 
-#: ..\..\..\Toolbox\WinForms.Controls\StatusbarControl.Designer.cs:51
-msgid "statusStrip1"
-msgstr "[ƨƭáƭúƨ§ƭřïƥ1 !!!]"
+#: ..\..\Toolbox\MainWindow.xaml.cs:208
+msgid "Starting the map workspace..."
+msgstr "[§ƭářƭïñϱ ƭλè ₥áƥ ωôřƙƨƥáçè... !!!]"
 
-#: ..\..\..\Toolbox\PopupWindows\QuitWindow.cs:53
-#, csharp-format
-msgid "Take Screenshot ({0})"
-msgstr "[Táƙè §çřèèñƨλôƭ ({0}) !!!]"
+#: ..\..\Toolbox\Views\RouteNavigationToolView.xaml:52
+#: ..\..\Toolbox\Views\RouteNavigationToolView.xaml:73
+#: ..\..\Toolbox\Views\PathChartToolView.xaml:161
+msgid "Station"
+msgstr "[§ƭáƭïôñ !!!]"
 
-#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:189
-msgid "Take Screenshot (PrtScr)"
-msgstr "[Táƙè §çřèèñƨλôƭ (Þřƭ§çř) !!!]"
+#: ..\..\Toolbox\Views\RouteNavigationToolView.xaml:38
+#: ..\..\Toolbox\Views\PathChartToolView.xaml:148
+msgid "Stations"
+msgstr "[§ƭáƭïôñƨ !!!]"
 
-#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.cs:344
-msgid "This will open the page in standard web browser."
-msgstr "[Tλïƨ ωïℓℓ ôƥèñ ƭλè ƥáϱè ïñ ƨƭáñδářδ ωèβ βřôωƨèř. !!!]"
+#: ..\..\Toolbox\Views\PathChartToolView.xaml.cs:29
+msgid "Stations along the main route"
+msgstr "[§ƭáƭïôñƨ áℓôñϱ ƭλè ₥áïñ řôúƭè !!!]"
 
-#: ..\..\..\Toolbox\PopupWindows\LocationWindow.cs:111
-#, csharp-format
-msgid "Tile (X:Z) {0}:{1}"
-msgstr "[Tïℓè (X:Z) {0}:{1} !!!]"
+#: ..\..\Toolbox\Views\PathChartToolView.xaml.cs:33
+msgid ""
+"Stations encountered along the main route are not scheduled stops. Speedposts "
+"are source annotations, not an operating speed profile."
+msgstr ""
+"[§ƭáƭïôñƨ èñçôúñƭèřèδ áℓôñϱ ƭλè ₥áïñ řôúƭè ářè ñôƭ ƨçλèδúℓèδ ƨƭôƥƨ. §ƥèèδƥôƨƭƨ "
+"ářè ƨôúřçè áññôƭáƭïôñƨ, ñôƭ áñ ôƥèřáƭïñϱ ƨƥèèδ ƥřôƒïℓè. !!!]"
 
-#: ..\..\..\Toolbox\PopupWindows\LocationWindow.cs:78
-msgid "Tile Coordinates"
-msgstr "[Tïℓè Çôôřδïñáƭèƨ !!!]"
+#: ..\..\Toolbox\Views\TrainPathToolView.xaml:647
+msgid "Suggested Action"
+msgstr "[§úϱϱèƨƭèδ Âçƭïôñ !!!]"
 
-#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:397
-msgid "Tile Grid"
-msgstr "[Tïℓè Gřïδ !!!]"
+#: ..\..\Toolbox\MainWindow.xaml:31
+msgid "Take _Screenshot"
+msgstr "[Táƙè _§çřèèñƨλôƭ !!!]"
 
-#: ..\..\..\Toolbox\PopupWindows\SettingsWindow.cs:31
-msgid "Toolbox"
-msgstr "[Tôôℓβôж !!!]"
+#: ..\..\Toolbox\ViewModels\PathChartToolWindowViewModel.cs:391
+msgid "The authored main path topology is not proven."
+msgstr "[Tλè áúƭλôřèδ ₥áïñ ƥáƭλ ƭôƥôℓôϱ¥ ïƨ ñôƭ ƥřôƲèñ. !!!]"
 
-#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:493
-msgid "Track Color"
-msgstr "[Třáçƙ Çôℓôř !!!]"
+#: ..\..\Toolbox\ToolWindows\TrainPathToolWindow.cs:1096
+msgid ""
+"The current end and extension start must have the same track node, section, "
+"and stored location. Move the endpoints into alignment before composing paths."
+msgstr ""
+"[Tλè çúřřèñƭ èñδ áñδ èжƭèñƨïôñ ƨƭářƭ ₥úƨƭ λáƲè ƭλè ƨá₥è ƭřáçƙ ñôδè, ƨèçƭïôñ, "
+"áñδ ƨƭôřèδ ℓôçáƭïôñ. MôƲè ƭλè èñδƥôïñƭƨ ïñƭô áℓïϱñ₥èñƭ βèƒôřè çô₥ƥôƨïñϱ ƥáƭλƨ. !!!]"
 
-#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:538
-msgid "Track Crossing Color"
-msgstr "[Třáçƙ Çřôƨƨïñϱ Çôℓôř !!!]"
+#: ..\..\Toolbox\ToolWindows\TrainPathToolWindow.cs:1088
+msgid ""
+"The current path changed while its extension was loading. Select the saved "
+"path again to retry."
+msgstr ""
+"[Tλè çúřřèñƭ ƥáƭλ çλáñϱèδ ωλïℓè ïƭƨ èжƭèñƨïôñ ωáƨ ℓôáδïñϱ. §èℓèçƭ ƭλè ƨáƲèδ "
+"ƥáƭλ áϱáïñ ƭô řèƭř¥. !!!]"
 
-#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:508
-msgid "Track End Node Color"
-msgstr "[Třáçƙ Éñδ Nôδè Çôℓôř !!!]"
+#: ..\..\Toolbox\ViewModels\PathChartToolWindowViewModel.cs:372
+msgid "The current route geometry is not available for this path."
+msgstr "[Tλè çúřřèñƭ řôúƭè ϱèô₥èƭř¥ ïƨ ñôƭ áƲáïℓáβℓè ƒôř ƭλïƨ ƥáƭλ. !!!]"
 
-#: ..\..\..\Toolbox\UserCommand.cs:23
-msgid "Track Item Info Window (Tab)"
-msgstr "[Třáçƙ Ìƭè₥ Ìñƒô Wïñδôω (Táβ) !!!]"
+#: ..\..\Toolbox\ToolWindows\TrainPathToolWindow.cs:1122
+msgid ""
+"The forced passing via cannot form a continuous, physically distinct branch "
+"with the unchanged main route."
+msgstr ""
+"[Tλè ƒôřçèδ ƥáƨƨïñϱ Ʋïá çáññôƭ ƒôř₥ á çôñƭïñúôúƨ, ƥλ¥ƨïçáℓℓ¥ δïƨƭïñçƭ βřáñçλ "
+"ωïƭλ ƭλè úñçλáñϱèδ ₥áïñ řôúƭè. !!!]"
 
-#: ..\..\..\Toolbox\PopupWindows\TrackItemInfoWindow.cs:28
-msgid "Track Item Information"
-msgstr "[Třáçƙ Ìƭè₥ Ìñƒôř₥áƭïôñ !!!]"
+#: ..\..\Toolbox\PathEditing\PathEditor.cs:2256
+#: ..\..\Toolbox\PathEditing\PathEditor.cs:2261
+#: ..\..\Toolbox\PathEditing\PathEditor.cs:2483
+msgid "The guided passing-branch interaction is no longer current."
+msgstr "[Tλè ϱúïδèδ ƥáƨƨïñϱ-βřáñçλ ïñƭèřáçƭïôñ ïƨ ñô ℓôñϱèř çúřřèñƭ. !!!]"
 
-#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:208
+#: ..\..\Toolbox\PathEditing\PathEditor.cs:2417
+#: ..\..\Toolbox\PathEditing\PathEditor.cs:2421
+#: ..\..\Toolbox\PathEditing\PathEditor.cs:2432
+msgid "The guided passing-route candidate is no longer current."
+msgstr "[Tλè ϱúïδèδ ƥáƨƨïñϱ-řôúƭè çáñδïδáƭè ïƨ ñô ℓôñϱèř çúřřèñƭ. !!!]"
+
+#: ..\..\Toolbox\ViewModels\PathChartToolWindowViewModel.cs:393
+msgid "The main path contains an unresolved or ambiguous span."
+msgstr "[Tλè ₥áïñ ƥáƭλ çôñƭáïñƨ áñ úñřèƨôℓƲèδ ôř á₥βïϱúôúƨ ƨƥáñ. !!!]"
+
+#: ..\..\Toolbox\ViewModels\PathChartToolWindowViewModel.cs:394
+msgid "The main path contains missing or inconsistent track geometry."
+msgstr "[Tλè ₥áïñ ƥáƭλ çôñƭáïñƨ ₥ïƨƨïñϱ ôř ïñçôñƨïƨƭèñƭ ƭřáçƙ ϱèô₥èƭř¥. !!!]"
+
+#: ..\..\Toolbox\MainWindow.xaml.cs:195
+msgid "The map workspace could not start. See the log for details."
+msgstr "[Tλè ₥áƥ ωôřƙƨƥáçè çôúℓδ ñôƭ ƨƭářƭ. §èè ƭλè ℓôϱ ƒôř δèƭáïℓƨ. !!!]"
+
+#: ..\..\Toolbox\ToolWindows\TrainPathToolWindow.cs:1150
+msgid ""
+"The passing branch already has authored interior anchors; insert a via point "
+"instead of replacing them."
+msgstr ""
+"[Tλè ƥáƨƨïñϱ βřáñçλ áℓřèáδ¥ λáƨ áúƭλôřèδ ïñƭèřïôř áñçλôřƨ; ïñƨèřƭ á Ʋïá ƥôïñƭ "
+"ïñƨƭèáδ ôƒ řèƥℓáçïñϱ ƭλè₥. !!!]"
+
+#: ..\..\Toolbox\ToolWindows\TrainPathToolWindow.cs:1144
+msgid "The passing branch does not rejoin a later main-route node."
+msgstr "[Tλè ƥáƨƨïñϱ βřáñçλ δôèƨ ñôƭ řèJôïñ á ℓáƭèř ₥áïñ-řôúƭè ñôδè. !!!]"
+
+#: ..\..\Toolbox\ToolWindows\TrainPathToolWindow.cs:1142
+msgid ""
+"The passing branch is cyclic, shared, nested, or does not rejoin the main "
+"route."
+msgstr ""
+"[Tλè ƥáƨƨïñϱ βřáñçλ ïƨ ç¥çℓïç, ƨλářèδ, ñèƨƭèδ, ôř δôèƨ ñôƭ řèJôïñ ƭλè ₥áïñ "
+"řôúƭè. !!!]"
+
+#: ..\..\Toolbox\ToolWindows\TrainPathToolWindow.cs:1152
+msgid "The passing route candidate contains a null anchor."
+msgstr "[Tλè ƥáƨƨïñϱ řôúƭè çáñδïδáƭè çôñƭáïñƨ á ñúℓℓ áñçλôř. !!!]"
+
+#: ..\..\Toolbox\ToolWindows\TrainPathToolWindow.cs:933
+#: ..\..\Toolbox\ToolWindows\TrainPathToolWindow.cs:1036
+msgid ""
+"The passing-branch interaction changed before the queued command ran; retry "
+"the current action."
+msgstr ""
+"[Tλè ƥáƨƨïñϱ-βřáñçλ ïñƭèřáçƭïôñ çλáñϱèδ βèƒôřè ƭλè 9úèúèδ çô₥₥áñδ řáñ; řèƭř¥ "
+"ƭλè çúřřèñƭ áçƭïôñ. !!!]"
+
+#: ..\..\Toolbox\PathEditing\PathEditor.cs:3187
+msgid ""
+"The passing-branch preview could not be evaluated. Choose another track "
+"location to retry."
+msgstr ""
+"[Tλè ƥáƨƨïñϱ-βřáñçλ ƥřèƲïèω çôúℓδ ñôƭ βè èƲáℓúáƭèδ. Çλôôƨè áñôƭλèř ƭřáçƙ "
+"ℓôçáƭïôñ ƭô řèƭř¥. !!!]"
+
+#: ..\..\Toolbox\ToolWindows\TrainPathToolWindow.cs:1254
+msgid ""
+"The path changed before the queued command ran; retry the current action."
+msgstr ""
+"[Tλè ƥáƭλ çλáñϱèδ βèƒôřè ƭλè 9úèúèδ çô₥₥áñδ řáñ; řèƭř¥ ƭλè çúřřèñƭ áçƭïôñ. !!!]"
+
+#: ..\..\Toolbox\PathEditing\PathEditor.cs:1358
+msgid ""
+"The path changed while the route candidate was pending; the candidate was "
+"canceled."
+msgstr ""
+"[Tλè ƥáƭλ çλáñϱèδ ωλïℓè ƭλè řôúƭè çáñδïδáƭè ωáƨ ƥèñδïñϱ; ƭλè çáñδïδáƭè ωáƨ "
+"çáñçèℓèδ. !!!]"
+
+#: ..\..\Toolbox\ViewModels\PathChartToolWindowViewModel.cs:396
+msgid "The path chart exceeds the supported sample limit."
+msgstr "[Tλè ƥáƭλ çλářƭ èжçèèδƨ ƭλè ƨúƥƥôřƭèδ ƨá₥ƥℓè ℓï₥ïƭ. !!!]"
+
+#: ..\..\Toolbox\ToolWindows\TrainPathToolWindow.cs:1146
+msgid ""
+"The path contains disconnected nodes outside the main route and passing "
+"branches."
+msgstr ""
+"[Tλè ƥáƭλ çôñƭáïñƨ δïƨçôññèçƭèδ ñôδèƨ ôúƭƨïδè ƭλè ₥áïñ řôúƭè áñδ ƥáƨƨïñϱ "
+"βřáñçλèƨ. !!!]"
+
+#: ..\..\Toolbox\ToolboxSession.Persistence.cs:144
+msgid ""
+"The path could not be saved because access was denied. Your changes are still "
+"available; try saving again."
+msgstr ""
+"[Tλè ƥáƭλ çôúℓδ ñôƭ βè ƨáƲèδ βèçáúƨè áççèƨƨ ωáƨ δèñïèδ. Ýôúř çλáñϱèƨ ářè ƨƭïℓℓ "
+"áƲáïℓáβℓè; ƭř¥ ƨáƲïñϱ áϱáïñ. !!!]"
+
+#: ..\..\Toolbox\ToolboxSession.Persistence.cs:145
+msgid ""
+"The path could not be saved. Your changes are still available; try saving "
+"again."
+msgstr ""
+"[Tλè ƥáƭλ çôúℓδ ñôƭ βè ƨáƲèδ. Ýôúř çλáñϱèƨ ářè ƨƭïℓℓ áƲáïℓáβℓè; ƭř¥ ƨáƲïñϱ "
+"áϱáïñ. !!!]"
+
+#: ..\..\Toolbox\ViewModels\PathChartToolWindowViewModel.cs:390
+msgid "The path has no resolved main traversal."
+msgstr "[Tλè ƥáƭλ λáƨ ñô řèƨôℓƲèδ ₥áïñ ƭřáƲèřƨáℓ. !!!]"
+
+#: ..\..\Toolbox\ViewModels\PathChartToolWindowViewModel.cs:392
+msgid "The path resolution does not match the authored main path."
+msgstr "[Tλè ƥáƭλ řèƨôℓúƭïôñ δôèƨ ñôƭ ₥áƭçλ ƭλè áúƭλôřèδ ₥áïñ ƥáƭλ. !!!]"
+
+#: ..\..\Toolbox\ViewModels\PathChartToolWindowViewModel.cs:380
+msgid ""
+"The route or path has changed. Select a position on the current chart and try "
+"again."
+msgstr ""
+"[Tλè řôúƭè ôř ƥáƭλ λáƨ çλáñϱèδ. §èℓèçƭ á ƥôƨïƭïôñ ôñ ƭλè çúřřèñƭ çλářƭ áñδ ƭř¥ "
+"áϱáïñ. !!!]"
+
+#: ..\..\Toolbox\ToolboxSession.cs:550
+msgid "The saved content folder is unavailable:"
+msgstr "[Tλè ƨáƲèδ çôñƭèñƭ ƒôℓδèř ïƨ úñáƲáïℓáβℓè: !!!]"
+
+#: ..\..\Toolbox\ToolboxSession.Composition.cs:94
+msgid ""
+"The saved extension could not be read. Verify the native model and access "
+"permissions, then retry."
+msgstr ""
+"[Tλè ƨáƲèδ èжƭèñƨïôñ çôúℓδ ñôƭ βè řèáδ. Vèřïƒ¥ ƭλè ñáƭïƲè ₥ôδèℓ áñδ áççèƨƨ "
+"ƥèř₥ïƨƨïôñƨ, ƭλèñ řèƭř¥. !!!]"
+
+#: ..\..\Toolbox\ToolboxSession.Comparison.cs:103
+#: ..\..\Toolbox\ToolboxSession.Comparison.cs:111
+msgid ""
+"The saved path could not be loaded for comparison. Verify the native saved "
+"model and access permissions, then try again."
+msgstr ""
+"[Tλè ƨáƲèδ ƥáƭλ çôúℓδ ñôƭ βè ℓôáδèδ ƒôř çô₥ƥářïƨôñ. Vèřïƒ¥ ƭλè ñáƭïƲè ƨáƲèδ "
+"₥ôδèℓ áñδ áççèƨƨ ƥèř₥ïƨƨïôñƨ, ƭλèñ ƭř¥ áϱáïñ. !!!]"
+
+#: ..\..\Toolbox\ToolboxSession.cs:566
+msgid "The saved route is unavailable:"
+msgstr "[Tλè ƨáƲèδ řôúƭè ïƨ úñáƲáïℓáβℓè: !!!]"
+
+#: ..\..\Toolbox\ToolboxSession.Composition.cs:43
+#: ..\..\Toolbox\ToolWindows\TrainPathToolWindow.cs:512
+msgid "The saved-path list changed. Select a current source to retry."
+msgstr "[Tλè ƨáƲèδ-ƥáƭλ ℓïƨƭ çλáñϱèδ. §èℓèçƭ á çúřřèñƭ ƨôúřçè ƭô řèƭř¥. !!!]"
+
+#: ..\..\Toolbox\ToolWindows\TrainPathToolWindow.cs:1070
+#: ..\..\Toolbox\ViewModels\TrainPathToolWindowViewModel.cs:1665
+msgid "The selected advanced wait operation has invalid parameters."
+msgstr "[Tλè ƨèℓèçƭèδ áδƲáñçèδ ωáïƭ ôƥèřáƭïôñ λáƨ ïñƲáℓïδ ƥářá₥èƭèřƨ. !!!]"
+
+#: ..\..\Toolbox\ViewModels\PathChartToolWindowViewModel.cs:395
+msgid "The selected main path connector cannot be established."
+msgstr "[Tλè ƨèℓèçƭèδ ₥áïñ ƥáƭλ çôññèçƭôř çáññôƭ βè èƨƭáβℓïƨλèδ. !!!]"
+
+#: ..\..\Toolbox\ToolWindows\TrainPathToolWindow.cs:1111
+msgid ""
+"The selected paths or editor changed while loading. Select two saved paths "
+"again to retry."
+msgstr ""
+"[Tλè ƨèℓèçƭèδ ƥáƭλƨ ôř èδïƭôř çλáñϱèδ ωλïℓè ℓôáδïñϱ. §èℓèçƭ ƭωô ƨáƲèδ ƥáƭλƨ "
+"áϱáïñ ƭô řèƭř¥. !!!]"
+
+#: ..\..\Toolbox\ViewModels\ToolboxMenuViewModel.cs:63
+msgid "The Toolbox session has stopped."
+msgstr "[Tλè Tôôℓβôж ƨèƨƨïôñ λáƨ ƨƭôƥƥèδ. !!!]"
+
+#: ..\..\Toolbox\MainWindow.xaml.cs:106
+msgid ""
+"There are unsaved path changes. Changing the route will discard them. "
+"Continue?"
+msgstr ""
+"[Tλèřè ářè úñƨáƲèδ ƥáƭλ çλáñϱèƨ. Çλáñϱïñϱ ƭλè řôúƭè ωïℓℓ δïƨçářδ ƭλè₥. "
+"Çôñƭïñúè? !!!]"
+
+#: ..\..\Toolbox\Views\TrainPathToolView.xaml:527
+msgid "This operation uses a single encoded command and has no parameters."
+msgstr "[Tλïƨ ôƥèřáƭïôñ úƨèƨ á ƨïñϱℓè èñçôδèδ çô₥₥áñδ áñδ λáƨ ñô ƥářá₥èƭèřƨ. !!!]"
+
+#: ..\..\Toolbox\Views\ColumnFilterHeader.xaml:26
+#: ..\..\Toolbox\Views\ColumnFilterHeader.xaml:28
+msgid "Toggle column filter"
+msgstr "[Tôϱϱℓè çôℓú₥ñ ƒïℓƭèř !!!]"
+
+#: ..\..\Toolbox\MainWindow.xaml.cs:1182
+msgid ""
+"Toolbox could not shut down safely. The window will remain open. See the log "
+"for details."
+msgstr ""
+"[Tôôℓβôж çôúℓδ ñôƭ ƨλúƭ δôωñ ƨáƒèℓ¥. Tλè ωïñδôω ωïℓℓ řè₥áïñ ôƥèñ. §èè ƭλè ℓôϱ "
+"ƒôř δèƭáïℓƨ. !!!]"
+
+#: ..\..\Toolbox\MainWindow.xaml.cs:1181
+msgid ""
+"Toolbox encountered an error while shutting down. Resources were released "
+"safely and the window will close. Changes may not have been saved. See the log "
+"for details."
+msgstr ""
+"[Tôôℓβôж èñçôúñƭèřèδ áñ èřřôř ωλïℓè ƨλúƭƭïñϱ δôωñ. Rèƨôúřçèƨ ωèřè řèℓèáƨèδ "
+"ƨáƒèℓ¥ áñδ ƭλè ωïñδôω ωïℓℓ çℓôƨè. Çλáñϱèƨ ₥á¥ ñôƭ λáƲè βèèñ ƨáƲèδ. §èè ƭλè ℓôϱ "
+"ƒôř δèƭáïℓƨ. !!!]"
+
+#: ..\..\Toolbox\MainWindow.xaml.cs:123
+msgid "Toolbox startup failed. See the log for details."
+msgstr "[Tôôℓβôж ƨƭářƭúƥ ƒáïℓèδ. §èè ƭλè ℓôϱ ƒôř δèƭáïℓƨ. !!!]"
+
+#: ..\..\Toolbox\Views\RouteNavigationToolView.xaml:103
+msgid "Track Item"
+msgstr "[Třáçƙ Ìƭè₥ !!!]"
+
+#: ..\..\Toolbox\Views\SettingsToolView.xaml:111
 msgid "Track Items"
 msgstr "[Třáçƙ Ìƭè₥ƨ !!!]"
 
-#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:523
-msgid "Track Junction Node Color"
-msgstr "[Třáçƙ Júñçƭïôñ Nôδè Çôℓôř !!!]"
+#: ..\..\Toolbox\Views\RouteNavigationToolView.xaml:134
+msgid "Track Node"
+msgstr "[Třáçƙ Nôδè !!!]"
 
-#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:553
-msgid "Track Level Crossing Color"
-msgstr "[Třáçƙ £èƲèℓ Çřôƨƨïñϱ Çôℓôř !!!]"
-
-#: ..\..\..\Toolbox\UserCommand.cs:22
-msgid "Track Node Info Window (Tab)"
-msgstr "[Třáçƙ Nôδè Ìñƒô Wïñδôω (Táβ) !!!]"
-
-#: ..\..\..\Toolbox\PopupWindows\TrackNodeInfoWindow.cs:36
-msgid "Track Node Information"
-msgstr "[Třáçƙ Nôδè Ìñƒôř₥áƭïôñ !!!]"
-
-#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:216
-msgid "Track Segments"
-msgstr "[Třáçƙ §èϱ₥èñƭƨ !!!]"
-
-#: ..\..\..\Toolbox\PopupWindows\TrackNodeInfoWindow.cs:55
+#: ..\..\Toolbox\Views\RouteNavigationToolView.xaml:123
+#: ..\..\Toolbox\Views\RouteNavigationToolView.xaml:154
 msgid "Tracks"
 msgstr "[Třáçƙƨ !!!]"
 
-#: ..\..\..\Toolbox\PopupWindows\TrainPathWindow.cs:74
-msgid "Train Path Details"
-msgstr "[Třáïñ Þáƭλ Ðèƭáïℓƨ !!!]"
-
-#: ..\..\..\Toolbox\UserCommand.cs:26
+#: ..\..\Toolbox\Enums.cs:31
 msgid "Train Path Window (Tab)"
 msgstr "[Třáïñ Þáƭλ Wïñδôω (Táβ) !!!]"
 
-#: ..\..\..\Toolbox\PopupWindows\TrainPathWindow.cs:104
+#: ..\..\Toolbox\ToolWindows\TrainPathToolWindow.cs:1164
+#, csharp-format
+msgid "Truncating after node {0} would invalidate the passing topology: {1}"
+msgstr "[Třúñçáƭïñϱ áƒƭèř ñôδè {0} ωôúℓδ ïñƲáℓïδáƭè ƭλè ƥáƨƨïñϱ ƭôƥôℓôϱ¥: {1} !!!]"
+
+#: ..\..\Toolbox\Views\TrainPathToolView.xaml:461
 msgid "Type"
 msgstr "[T¥ƥè !!!]"
 
-#: ..\..\..\Toolbox\PopupWindows\SettingsWindow.cs:74
+#: ..\..\Toolbox\ViewModels\RouteBrowserViewModel.cs:146
+msgid "Unable to discover content folders or routes."
+msgstr "[Ûñáβℓè ƭô δïƨçôƲèř çôñƭèñƭ ƒôℓδèřƨ ôř řôúƭèƨ. !!!]"
+
+#: ..\..\Toolbox\ViewModels\ToolboxMenuViewModel.cs:62
+msgid "Unable to load routes or open the selected route."
+msgstr "[Ûñáβℓè ƭô ℓôáδ řôúƭèƨ ôř ôƥèñ ƭλè ƨèℓèçƭèδ řôúƭè. !!!]"
+
+#: ..\..\Toolbox\ViewModels\TrainPathToolWindowViewModel.cs:1210
+msgid "Uncouple and wait"
+msgstr "[Ûñçôúƥℓè áñδ ωáïƭ !!!]"
+
+#: ..\..\Toolbox\Views\TrainPathToolView.xaml:516
+msgid "Uncouple wait seconds"
+msgstr "[Ûñçôúƥℓè ωáïƭ ƨèçôñδƨ !!!]"
+
+#: ..\..\Toolbox\MainWindow.xaml.cs:564
+#: ..\..\Toolbox\Views\TrainPathToolView.xaml:215
+msgid "Undo"
+msgstr "[Ûñδô !!!]"
+
+#: ..\..\Toolbox\Views\TrainPathToolView.xaml:189
+msgid "Unsaved changes"
+msgstr "[ÛñƨáƲèδ çλáñϱèƨ !!!]"
+
+#: ..\..\Toolbox\MainWindow.xaml.cs:107
+msgid "Unsaved Path Changes"
+msgstr "[ÛñƨáƲèδ Þáƭλ Çλáñϱèƨ !!!]"
+
+#: ..\..\Toolbox\ToolWindows\TrainPathToolWindow.cs:1534
+msgid "Unsupported junction or combined wait/reverse event at node {0}."
+msgstr "[Ûñƨúƥƥôřƭèδ Júñçƭïôñ ôř çô₥βïñèδ ωáïƭ/řèƲèřƨè èƲèñƭ áƭ ñôδè {0}. !!!]"
+
+#: ..\..\Toolbox\ToolWindows\TrainPathToolWindow.cs:1537
+msgid ""
+"Unsupported siding event at node {0}; branch waits/reversals cannot be "
+"preserved."
+msgstr ""
+"[Ûñƨúƥƥôřƭèδ ƨïδïñϱ èƲèñƭ áƭ ñôδè {0}; βřáñçλ ωáïƭƨ/řèƲèřƨáℓƨ çáññôƭ βè "
+"ƥřèƨèřƲèδ. !!!]"
+
+#: ..\..\Toolbox\ToolWindows\TrainPathToolWindow.cs:1531
+msgid ""
+"Unsupported wait/reverse event at first main node; the circuit consumer skips "
+"this event."
+msgstr ""
+"[Ûñƨúƥƥôřƭèδ ωáïƭ/řèƲèřƨè èƲèñƭ áƭ ƒïřƨƭ ₥áïñ ñôδè; ƭλè çïřçúïƭ çôñƨú₥èř ƨƙïƥƨ "
+"ƭλïƨ èƲèñƭ. !!!]"
+
+#: ..\..\Toolbox\MainWindow.xaml.cs:152
+msgid "Use File > Open Route to load the last route or choose a route."
+msgstr "[Ûƨè Fïℓè > Óƥèñ Rôúƭè ƭô ℓôáδ ƭλè ℓáƨƭ řôúƭè ôř çλôôƨè á řôúƭè. !!!]"
+
+#: ..\..\Toolbox\Views\SettingsToolView.xaml:57
 msgid "Use Font Outline"
 msgstr "[Ûƨè Fôñƭ Óúƭℓïñè !!!]"
 
-#: ..\..\..\Toolbox\PopupWindows\TrainPathWindow.cs:105
-msgid "Valid"
-msgstr "[Váℓïδ !!!]"
+#: ..\..\Toolbox\Views\SettingsToolView.xaml:60
+msgid "Use Real Track Width"
+msgstr "[Ûƨè Rèáℓ Třáçƙ Wïδƭλ !!!]"
 
-#: ..\..\..\Toolbox\PopupWindows\TrainPathWindow.cs:117
+#: ..\..\Toolbox\MainWindow.xaml.cs:552
+msgid "Use Route"
+msgstr "[Ûƨè Rôúƭè !!!]"
+
+#: ..\..\Toolbox\Views\TrainPathToolView.xaml:161
+msgid "Valid path node"
+msgstr "[Váℓïδ ƥáƭλ ñôδè !!!]"
+
+#: ..\..\Toolbox\Views\TrainPathToolView.xaml:229
+msgid "Validate all paths"
+msgstr "[Váℓïδáƭè áℓℓ ƥáƭλƨ !!!]"
+
+#: ..\..\Toolbox\Views\DebugToolView.xaml:23
+#: ..\..\Toolbox\Views\LocationToolView.xaml:23
+#: ..\..\Toolbox\Views\RouteNavigationToolView.xaml:184
+#: ..\..\Toolbox\Views\TrainPathToolView.xaml:344
+#: ..\..\Toolbox\Views\TrainPathToolView.xaml:552
 msgid "Value"
 msgstr "[Váℓúè !!!]"
 
-#: ..\..\..\Toolbox\WinForms.Controls\MainMenuControl.Designer.cs:183
-msgid "View"
-msgstr "[Vïèω !!!]"
+#: ..\..\Toolbox\Views\PathChartToolView.xaml.cs:30
+msgid "Visible main-route distance range"
+msgstr "[Vïƨïβℓè ₥áïñ-řôúƭè δïƨƭáñçè řáñϱè !!!]"
 
-#: ..\..\..\Toolbox\PopupWindows\LocationWindow.cs:34
-#: ..\..\..\Toolbox\PopupWindows\LocationWindow.cs:78
-msgid "World Coordinates"
-msgstr "[Wôřℓδ Çôôřδïñáƭèƨ !!!]"
+#: ..\..\Toolbox\Views\TrainPathToolView.xaml:491
+msgid "Wait (seconds)"
+msgstr "[Wáïƭ (ƨèçôñδƨ) !!!]"
 
-#: ..\..\..\Toolbox\UserCommand.cs:15
+#: ..\..\Toolbox\PathEditing\PathEditor.cs:1423
+msgid "Wait for the current save to finish before re-resolving the path."
+msgstr "[Wáïƭ ƒôř ƭλè çúřřèñƭ ƨáƲè ƭô ƒïñïƨλ βèƒôřè řè-řèƨôℓƲïñϱ ƭλè ƥáƭλ. !!!]"
+
+#: ..\..\Toolbox\Views\TrainPathToolView.xaml:483
+#: ..\..\Toolbox\Views\TrainPathToolView.xaml:487
+msgid "Wait operation"
+msgstr "[Wáïƭ ôƥèřáƭïôñ !!!]"
+
+#: ..\..\Toolbox\ToolWindows\TrainPathToolWindow.cs:1074
+msgid "Wait operation is already set."
+msgstr "[Wáïƭ ôƥèřáƭïôñ ïƨ áℓřèáδ¥ ƨèƭ. !!!]"
+
+#: ..\..\Toolbox\ViewModels\TrainPathToolWindowViewModel.cs:323
+msgid ""
+"Wait time cannot be changed on this node. Use Clear Wait Point to remove "
+"existing wait data when available."
+msgstr ""
+"[Wáïƭ ƭï₥è çáññôƭ βè çλáñϱèδ ôñ ƭλïƨ ñôδè. Ûƨè Çℓèář Wáïƭ Þôïñƭ ƭô řè₥ôƲè "
+"èжïƨƭïñϱ ωáïƭ δáƭá ωλèñ áƲáïℓáβℓè. !!!]"
+
+#: ..\..\Toolbox\Views\TrainPathToolView.xaml:498
+msgid "Wait time in seconds"
+msgstr "[Wáïƭ ƭï₥è ïñ ƨèçôñδƨ !!!]"
+
+#: ..\..\Toolbox\Views\TrainPathToolView.xaml:502
+msgid "Wait until (HH:MM)"
+msgstr "[Wáïƭ úñƭïℓ (HH:MM) !!!]"
+
+#: ..\..\Toolbox\Views\TrainPathToolView.xaml:504
+msgid "Wait until hour"
+msgstr "[Wáïƭ úñƭïℓ λôúř !!!]"
+
+#: ..\..\Toolbox\Views\TrainPathToolView.xaml:507
+msgid "Wait until minute"
+msgstr "[Wáïƭ úñƭïℓ ₥ïñúƭè !!!]"
+
+#: ..\..\Toolbox\ViewModels\TrainPathToolWindowViewModel.cs:1209
+msgid "Wait until time"
+msgstr "[Wáïƭ úñƭïℓ ƭï₥è !!!]"
+
+#: ..\..\Toolbox\ViewModels\ToolboxMenuViewModel.cs:59
+msgid "Waiting for confirmation of unsaved path changes."
+msgstr "[Wáïƭïñϱ ƒôř çôñƒïř₥áƭïôñ ôƒ úñƨáƲèδ ƥáƭλ çλáñϱèƨ. !!!]"
+
+#: ..\..\Toolbox\Enums.cs:22
 msgid "Zoom In"
 msgstr "[Zôô₥ Ìñ !!!]"
 
-#: ..\..\..\Toolbox\UserCommand.cs:16
+#: ..\..\Toolbox\Enums.cs:23
 msgid "Zoom Out"
 msgstr "[Zôô₥ Óúƭ !!!]"
+
+#: ..\..\Toolbox\Views\ColumnFilterHeader.xaml:49
+msgid ""
+msgstr "[ !!!]"
+
+#: ..\..\Toolbox\Views\ColumnFilterHeader.xaml:29
+msgid ""
+msgstr "[ !!!]"

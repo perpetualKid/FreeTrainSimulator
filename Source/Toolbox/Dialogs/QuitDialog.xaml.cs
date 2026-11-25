@@ -1,3 +1,4 @@
+using System;
 using System.Windows;
 
 using FreeTrainSimulator.Common.Info;
@@ -14,14 +15,20 @@ namespace FreeTrainSimulator.Toolbox.Dialogs
     public partial class QuitDialog : Window
     {
         internal QuitDialog()
-            : this(CatalogManager.Catalog.GetString($"Exit {RuntimeInfo.ApplicationName}?"))
+            : this(false)
         {
         }
 
-        internal QuitDialog(string message)
+        internal QuitDialog(bool hasUnsavedPathChanges)
         {
             InitializeComponent();
-            Message = message;
+            Catalog catalog = CatalogManager.Catalog;
+            Message = RuntimeInfo.ApplicationName is null
+                ? catalog.GetString("Exit?")
+                : catalog.GetString("Exit {0}?", RuntimeInfo.ApplicationName);
+            if (hasUnsavedPathChanges)
+                Message += Environment.NewLine + Environment.NewLine
+                    + catalog.GetString("There are unsaved path changes. If you exit now, those changes will be lost.");
             DataContext = this;
         }
 
