@@ -1044,8 +1044,7 @@ namespace FreeTrainSimulator.Toolbox
 
             if (mapDocument == null)
             {
-                LayoutDocumentPane pane = DockingManager.Layout?.Descendents().OfType<LayoutDocumentPane>().FirstOrDefault();
-                if (pane == null)
+                LayoutDocumentPane pane = (DockingManager.Layout?.Descendents().OfType<LayoutDocumentPane>().FirstOrDefault()) ?? 
                     throw new InvalidOperationException("The Toolbox layout has no document pane for the map.");
                 mapDocument = new LayoutDocument
                 {

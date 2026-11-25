@@ -67,16 +67,14 @@ namespace FreeTrainSimulator.Toolbox
             {
                 string title = catalog.GetString(descriptor.Title);
                 LayoutAnchorable template = descriptor.TemplateAnchorable();
-                if (template != null)
-                    template.Title = title;
+                template?.Title = title;
                 LayoutAnchorable current = FindToolWindowAnchorable(descriptor.ContentId);
                 if (current != null && !ReferenceEquals(current, template))
                     current.Title = title;
             }
             LayoutDocument mapDocument = DockingManager.Layout?.Descendents().OfType<LayoutDocument>()
                 .FirstOrDefault(document => string.Equals(document.ContentId, "MapViewDocument", StringComparison.Ordinal));
-            if (mapDocument != null)
-                mapDocument.Title = catalog.GetString("Map View");
+            mapDocument?.Title = catalog.GetString("Map View");
         }
 
         private static CultureInfo ResolveCulture(string language)

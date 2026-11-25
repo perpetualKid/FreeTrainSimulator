@@ -352,9 +352,9 @@ namespace Tests.FreeTrainSimulator.Toolbox.Hosting
                     SettingsToolWindowViewModel settings = model.SettingsTool;
                     SettingsToolView view = new SettingsToolView { DataContext = settings };
                     PumpMenuBindings();
-                    StringAssert.Contains(((TextBlock)view.FindName("ActiveProfileLabel")).Text, profile.Name, StringComparison.Ordinal);
+                    Assert.Contains(profile.Name, ((TextBlock)view.FindName("ActiveProfileLabel")).Text, StringComparison.Ordinal);
                     ComboBox language = (ComboBox)view.FindName("LanguagePicker");
-                    Assert.IsTrue(language.Items.Count >= 1);
+                    Assert.IsGreaterThanOrEqualTo(1, language.Items.Count);
                     Assert.AreSame(settings.AvailableLanguages[0], language.SelectedItem);
                     Assert.IsFalse(settings.EnableLogging);
                     Assert.IsTrue(settings.RestoreLastView);
