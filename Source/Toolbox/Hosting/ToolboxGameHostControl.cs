@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Drawing;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -11,7 +12,6 @@ using System.Windows.Threading;
 
 using FreeTrainSimulator.Common.Native;
 using FreeTrainSimulator.Common.Position;
-using FreeTrainSimulator.Models.Content;
 using FreeTrainSimulator.Models.Settings;
 using FreeTrainSimulator.Toolbox.PathEditing;
 using FreeTrainSimulator.Toolbox.Settings;
@@ -686,6 +686,23 @@ namespace FreeTrainSimulator.Toolbox.Hosting
                 return Task.FromResult(false);
             return game.InvokeOnGameThreadAsync(() => Task.FromResult(game.HasUnsavedPathChanges));
         }
+
+        internal Task<(string Folder, string Route, bool Unsaved)> CaptureProfileSwitchStateAsync()
+        {
+            GameWindow game = gameWindow;
+            return game == null ? Task.FromResult<(string, string, bool)>(default)
+                : game.InvokeOnGameThreadAsync(() => Task.FromResult((game.Session.SelectedFolder?.Id, game.Session.SelectedRoute?.Id, game.HasUnsavedPathChanges)));
+        }
+
+        internal Task<(ProfileToolboxSettingsModel Toolbox, string Language, TraceEventType LogLevel)> CaptureProfilePreferencesAsync(ProfileModel destination)
+        {
+            GameWindow game = gameWindow ?? throw new InvalidOperationException("The map workspace is not running.");
+            return game.InvokeOnGameThreadAsync(() => Task.FromResult((game.ToolboxSettings.CopyPreferences(destination),
+                game.ToolboxUserSettings.Language, game.ToolboxUserSettings.LogLevel)));
+        }
+
+        internal Task WaitForInitialRouteAsync() => gameWindow?.InitialRouteTask
+            ?? Task.FromException(new InvalidOperationException("The map workspace did not initialize."));
 
         private void OnHostedWindowPointerDown()
         {

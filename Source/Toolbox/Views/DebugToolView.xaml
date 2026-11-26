@@ -12,6 +12,9 @@
              views:ToolWindow.DefaultFloatingSize="520,480"
              d:DesignWidth="520"
              d:DesignHeight="480">
+    <UserControl.Resources>
+        <ResourceDictionary Source="/Toolbox;component/Themes/SharedResources.xaml" />
+    </UserControl.Resources>
     <ListView Margin="6"
               ItemsSource="{Binding Rows}"
               ItemContainerStyle="{StaticResource ToolWindowRowItemStyle}"

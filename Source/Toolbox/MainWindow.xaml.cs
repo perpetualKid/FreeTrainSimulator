@@ -60,6 +60,11 @@ namespace FreeTrainSimulator.Toolbox
         private int deactivationSequence;
         private ToolWindowDescriptor[] toolWindowDescriptors;
         private ToolWindowRefreshScheduler refreshScheduler;
+        private readonly bool isProfileReopen;
+        private readonly (string Folder, string Route) routeToReopen;
+        private readonly string reopenStatus;
+        private bool reopeningProfileRoute;
+        private bool skipWorkspaceSave;
 
         public MainWindow()
         {
@@ -76,6 +81,14 @@ namespace FreeTrainSimulator.Toolbox
             shortcutInputManager.PreProcessInput += InputManager_PreProcessInput;
             shortcutApplication?.Deactivated += ShortcutApplication_Deactivated;
             DockingManager.ActiveContentChanged += DockingManager_ActiveContentChanged;
+        }
+
+        private MainWindow(ProfileModel profile, (string Folder, string Route) route, string status) : this()
+        {
+            currentProfile = profile;
+            isProfileReopen = true;
+            routeToReopen = route;
+            reopenStatus = status;
         }
 
         private void SubscribeMapHost()
@@ -114,8 +127,20 @@ namespace FreeTrainSimulator.Toolbox
             try
             {
                 await (shellInitializationTask ??= InitializeShellAsync()).ConfigureAwait(true);
-                if (!isShuttingDown && shutdownTask == null && ShouldRestoreRoute())
-                    await StartMapAsync().ConfigureAwait(true);
+                if (!isShuttingDown && shutdownTask == null)
+                {
+                    if (isProfileReopen)
+                    {
+                        ShowToolWindow(SettingsToolWindowContentId);
+                        SettingsPane.ShowProfiles();
+                        if (routeToReopen.Route != null)
+                            await ReopenProfileRouteAsync().ConfigureAwait(true);
+                        else if (reopenStatus != null)
+                            viewModel.WorkspaceStatus = reopenStatus;
+                    }
+                    else if (ShouldRestoreRoute())
+                        await StartMapAsync().ConfigureAwait(true);
+                }
             }
             catch (Exception ex) when (CleanupExceptionPolicy.CanContinue(ex))
             {
@@ -128,7 +153,8 @@ namespace FreeTrainSimulator.Toolbox
         private async Task InitializeShellAsync()
         {
             viewModel.WorkspaceStatus = CatalogManager.Catalog.GetString("Loading profile settings...");
-            currentProfile = await currentProfile.Current(CancellationToken.None).ConfigureAwait(true);
+            if (!isProfileReopen)
+                currentProfile = await currentProfile.Current(CancellationToken.None).ConfigureAwait(true);
             userSettings = await currentProfile.LoadSettingsModel<ProfileUserSettingsModel>(CancellationToken.None).ConfigureAwait(true);
             toolboxSettings = await currentProfile.LoadSettingsModel<ProfileToolboxSettingsModel>(CancellationToken.None).ConfigureAwait(true);
             CatalogManager.SetCatalogDomainPattern(CatalogDomainPattern.AssemblyName, null, RuntimeInfo.LocalesFolder);
@@ -138,6 +164,8 @@ namespace FreeTrainSimulator.Toolbox
                 LoggingUtil.InitLogging(logFileName, userSettings.LogLevel, false, false);
                 toolboxSettings.Log();
             }
+            else if (isProfileReopen)
+                LoggingUtil.StopLogging();
             ApplyWpfLanguage(userSettings.Language);
             await LoadDockLayoutAsync().ConfigureAwait(true);
             SynchronizeMapDocument();
@@ -1072,11 +1100,14 @@ namespace FreeTrainSimulator.Toolbox
         {
             if (shellInitializationTask != null)
                 await shellInitializationTask.ConfigureAwait(ConfigureAwaitOptions.ContinueOnCapturedContext | ConfigureAwaitOptions.SuppressThrowing);
+            if (profileManagement != null)
+                await profileManagement.FinishAsync().ConfigureAwait(true);
             if (mapStartupTask != null)
                 await mapStartupTask.ConfigureAwait(ConfigureAwaitOptions.ContinueOnCapturedContext | ConfigureAwaitOptions.SuppressThrowing);
             // Save while admission and both owners are alive. Keep bridges subscribed through drain so
             // pending interactions can settle before releasing any shell/native resources.
-            await SaveDockLayoutAsync().ConfigureAwait(true);
+            if (!skipWorkspaceSave)
+                await SaveDockLayoutAsync().ConfigureAwait(true);
             try
             {
                 if (MapHost != null)
@@ -1161,7 +1192,7 @@ namespace FreeTrainSimulator.Toolbox
             }
 
             e?.Cancel = true;
-            if (isShuttingDown)
+            if (isShuttingDown || reopeningProfileRoute)
                 return;
 
             // Set the guard before the first await/modal prompt: nested closes share this attempt.

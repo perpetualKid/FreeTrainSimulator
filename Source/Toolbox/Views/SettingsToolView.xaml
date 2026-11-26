@@ -11,6 +11,9 @@
              views:ToolWindow.DefaultFloatingSize="480,560"
              d:DesignWidth="480"
              d:DesignHeight="560">
+    <UserControl.Resources>
+        <ResourceDictionary Source="/Toolbox;component/Themes/SharedResources.xaml" />
+    </UserControl.Resources>
     <DockPanel Margin="6" IsEnabled="{Binding IsEditable, FallbackValue=False}">
         <TextBlock x:Name="ActiveProfileLabel" DockPanel.Dock="Top" Margin="6,3,6,6"
                    Text="{Binding ActiveProfileText}" FontWeight="SemiBold" TextWrapping="Wrap" />
@@ -19,9 +22,19 @@
                     Padding="10,3"
                     Content="Reset to Defaults"
                     ToolTip="Reset window layout, colors, item visibility, and appearance options to their defaults"
-                    Command="{Binding ResetCommand}" />
+                    Command="{Binding ResetCommand}">
+                <Button.Style>
+                    <Style TargetType="Button">
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding IsSelected, ElementName=ProfilesTab}" Value="True">
+                                <Setter Property="Visibility" Value="Collapsed" />
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </Button.Style>
+            </Button>
         </Border>
-        <TabControl>
+        <TabControl SelectionChanged="SettingsTabs_SelectionChanged">
             <TabItem Header="General">
                 <ScrollViewer VerticalScrollBarVisibility="Auto"
                               HorizontalScrollBarVisibility="Disabled">
@@ -152,6 +165,22 @@
                         </ItemsControl>
                     </StackPanel>
                 </ScrollViewer>
+            </TabItem>
+            <TabItem x:Name="ProfilesTab" Header="{Binding ProfilesLabel, FallbackValue=Profiles}">
+                <DockPanel Margin="6">
+                    <StackPanel DockPanel.Dock="Bottom" Margin="0,8,0,0">
+                        <TextBlock x:Name="ProfileNameLabel" Text="{Binding NewProfileNameLabel}" TextWrapping="Wrap" />
+                        <TextBox x:Name="ProfileNameInput" AutomationProperties.LabeledBy="{Binding ElementName=ProfileNameLabel}" IsEnabled="False" />
+                        <TextBlock x:Name="ProfileStatus" TextWrapping="Wrap" AutomationProperties.LiveSetting="Polite" Margin="0,6,0,0" />
+                        <Button x:Name="CreateProfileButton" Content="{Binding CreateProfileLabel}" HorizontalAlignment="Right"
+                                Padding="10,3" Margin="0,8,0,0" IsEnabled="False" Click="CreateProfileButton_Click" />
+                        <Button x:Name="DuplicateProfileButton" Content="{Binding DuplicateProfileLabel}" HorizontalAlignment="Right"
+                                Padding="10,3" Margin="0,6,0,0" IsEnabled="False" Click="DuplicateProfileButton_Click" />
+                        <Button x:Name="UseProfileButton" Content="{Binding UseProfileLabel}" HorizontalAlignment="Right"
+                                Padding="10,3" Margin="0,6,0,0" IsEnabled="False" Click="UseProfileButton_Click" />
+                    </StackPanel>
+                    <ListBox x:Name="ProfilesList" AutomationProperties.Name="{Binding ProfilesLabel}" SelectionChanged="ProfilesList_SelectionChanged" />
+                </DockPanel>
             </TabItem>
         </TabControl>
     </DockPanel>

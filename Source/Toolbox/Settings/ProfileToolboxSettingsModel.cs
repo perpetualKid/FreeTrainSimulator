@@ -121,5 +121,16 @@ namespace FreeTrainSimulator.Toolbox.Settings
             get => pathEditorSelectedTabIndex;
             set => pathEditorSelectedTabIndex = value is 0 or 1 ? value : 0;
         }
+
+        internal ProfileToolboxSettingsModel CopyPreferences(ProfileModel destination) => new ProfileToolboxSettingsModel
+        {
+            Name = destination.Name,
+            Id = destination.Id,
+            ColorSettings = new EnumArray<string, ColorSetting>(ColorSettings),
+            ViewSettings = new EnumArray<bool, MapContentType>(ViewSettings),
+            RestoreLastView = RestoreLastView,
+            FontOutline = FontOutline,
+            LimitTrackWidth = LimitTrackWidth,
+        };
     }
 }

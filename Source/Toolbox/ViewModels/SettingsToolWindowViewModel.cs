@@ -117,9 +117,29 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
 
         public string ProfileName { get; init; }
 
+        public ManageProfilesViewModel ProfileManagement { get; init; }
+
         public string ActiveProfileText => string.IsNullOrEmpty(ProfileName) ? string.Empty : CatalogManager.Catalog.GetString("Active profile: {0}", ProfileName);
 
-        internal void RefreshLocalization() => OnPropertyChanged(nameof(ActiveProfileText));
+        public string ProfilesLabel => CatalogManager.Catalog.GetString("Profiles");
+
+        public string NewProfileNameLabel => CatalogManager.Catalog.GetString("New profile name");
+
+        public string CreateProfileLabel => CatalogManager.Catalog.GetString("Create Profile");
+
+        public string DuplicateProfileLabel => CatalogManager.Catalog.GetString("Duplicate Profile");
+
+        public string UseProfileLabel => CatalogManager.Catalog.GetString("Use in Toolbox");
+
+        internal void RefreshLocalization()
+        {
+            OnPropertyChanged(nameof(ActiveProfileText));
+            OnPropertyChanged(nameof(ProfilesLabel));
+            OnPropertyChanged(nameof(NewProfileNameLabel));
+            OnPropertyChanged(nameof(CreateProfileLabel));
+            OnPropertyChanged(nameof(DuplicateProfileLabel));
+            OnPropertyChanged(nameof(UseProfileLabel));
+        }
 
         public bool IsEditable
         {

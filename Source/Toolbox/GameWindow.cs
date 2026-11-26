@@ -1004,9 +1004,12 @@ namespace FreeTrainSimulator.Toolbox
             Components.Add(windowManager);
             base.Initialize();
 
-            ObserveGameThreadOperation(session.StartAsync());
+            InitialRouteTask = session.StartAsync();
+            ObserveGameThreadOperation(InitialRouteTask);
             HostedReady?.Invoke(this, EventArgs.Empty);
         }
+
+        internal Task InitialRouteTask { get; private set; }
 
         private void WindowManager_OnModalWindow(object sender, ModalWindowEventArgs e)
         {

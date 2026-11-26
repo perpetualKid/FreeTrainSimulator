@@ -23,7 +23,11 @@ namespace FreeTrainSimulator.Models.Shim
         public static Task<ProfileModel> Get(this ProfileModel profileModel, CancellationToken cancellationToken) => Get(null, profileModel?.Name, cancellationToken);
         public static Task<ProfileModel> Get(this ProfileModel _, string profileName, CancellationToken cancellationToken) => ProfileModelHandler.GetCore(profileName, cancellationToken);
         public static Task<ImmutableArray<ProfileModel>> GetProfiles(this ProfileModel _, CancellationToken cancellationToken) => ProfileModelHandler.GetProfiles(cancellationToken);
+        /// <summary>Rescans the profile store for changes made by another application.</summary>
+        public static Task<ImmutableArray<ProfileModel>> RefreshProfiles(this ProfileModel _, CancellationToken cancellationToken) => ProfileModelHandler.RefreshProfiles(cancellationToken);
         public static Task<ImmutableArray<ProfileModel>> Create(this ProfileModel profileModel, CancellationToken cancellationToken) => ProfileModelHandler.Create(profileModel, cancellationToken);
+        /// <summary>Creates a profile without changing the effective launcher profile.</summary>
+        public static Task<ImmutableArray<ProfileModel>> CreateWithoutActivating(this ProfileModel profileModel, CancellationToken cancellationToken) => ProfileModelHandler.CreateWithoutActivating(profileModel, cancellationToken);
         public static Task<ImmutableArray<ProfileModel>> Delete(this ProfileModel profileModel, CancellationToken cancellationToken) => ProfileModelHandler.Delete(profileModel, cancellationToken);
     }
 }

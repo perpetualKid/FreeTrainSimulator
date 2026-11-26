@@ -14,6 +14,9 @@
         Height="900"
         MinWidth="1024"
         MinHeight="720">
+    <Window.Resources>
+        <ResourceDictionary Source="/Toolbox;component/Themes/SharedResources.xaml" />
+    </Window.Resources>
     <DockPanel>
         <Menu x:Name="MainMenu"
               DockPanel.Dock="Top"
@@ -176,7 +179,7 @@
                                                               CanClose="False"
                                                               CanHide="True"
                                                               IsVisible="False">
-                                    <views:SettingsToolView DataContext="{Binding DataContext.SettingsTool, ElementName=RootWindow}" />
+                                    <views:SettingsToolView x:Name="SettingsPane" DataContext="{Binding DataContext.SettingsTool, ElementName=RootWindow}" />
                                 </avalonLayout:LayoutAnchorable>
                             </avalonLayout:LayoutAnchorablePane>
                             <avalonLayout:LayoutAnchorablePane DockHeight="2*">

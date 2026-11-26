@@ -28,6 +28,22 @@ namespace FreeTrainSimulator.Models.Shim
             return ProfileSettingModelHandler<T>.FromFile(settingsModel, cancellationToken);
         }
 
+        /// <summary>Copies simulator, input and Dispatcher settings to a newly created profile, without copying launcher selections.</summary>
+        public static async Task CopySimulatorConfigurationTo(this ProfileModel source, ProfileModel destination, ProfileUserSettingsModel userSettings, CancellationToken cancellationToken)
+        {
+            ArgumentNullException.ThrowIfNull(source);
+            ArgumentNullException.ThrowIfNull(destination);
+            ArgumentNullException.ThrowIfNull(userSettings);
+
+            await CopySettingsAsync(userSettings).ConfigureAwait(false);
+            await CopySettingsAsync(await source.LoadSettingsModel<ProfileKeyboardSettingsModel>(cancellationToken).ConfigureAwait(false)).ConfigureAwait(false);
+            await CopySettingsAsync(await source.LoadSettingsModel<ProfileRailDriverSettingsModel>(cancellationToken).ConfigureAwait(false)).ConfigureAwait(false);
+            await CopySettingsAsync(await source.LoadSettingsModel<ProfileDispatcherSettingsModel>(cancellationToken).ConfigureAwait(false)).ConfigureAwait(false);
+
+            Task<T> CopySettingsAsync<T>(T settings) where T : ProfileSettingsModelBase
+                => destination.UpdateSettingsModel(settings with { Name = destination.Name, Id = destination.Id }, cancellationToken);
+        }
+
         public static Task<T> UpdateSettingsModel<T>(this ProfileModel profileModel, T settingsModel, CancellationToken cancellationToken) where T : ProfileSettingsModelBase
         {
             ArgumentNullException.ThrowIfNull(profileModel, nameof(profileModel));

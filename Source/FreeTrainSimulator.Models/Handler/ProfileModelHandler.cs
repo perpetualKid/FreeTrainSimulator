@@ -80,6 +80,34 @@ namespace FreeTrainSimulator.Models.Handler
             return GetProfiles(cancellationToken);
         }
 
+        public static Task<ImmutableArray<ProfileModel>> RefreshProfiles(CancellationToken cancellationToken)
+        {
+            Task<ImmutableArray<ProfileModel>> profiles = LoadProfiles(cancellationToken);
+            modelSetTaskCache[root] = profiles;
+            return profiles;
+        }
+
+        public static async Task<ImmutableArray<ProfileModel>> CreateWithoutActivating(ProfileModel profile, CancellationToken cancellationToken)
+        {
+            ArgumentNullException.ThrowIfNull(profile);
+
+            ImmutableArray<ProfileModel> before = await RefreshProfiles(cancellationToken).ConfigureAwait(false);
+            AllProfileSettingsModel settings = await ProfileSettingModelHandler<AllProfileSettingsModel>.FromFile(null, cancellationToken).ConfigureAwait(false);
+            ProfileModel current = before.GetByNameOrFirstByName(settings?.Profile) ?? new ProfileModel(DefaultProfile);
+            
+            if (before.GetByName(profile.Name) != null || string.Equals(current.Name, profile.Name, StringComparison.OrdinalIgnoreCase))
+                throw new IOException($"A profile named '{profile.Name}' already exists.");
+
+            // A new folder can otherwise take over the alphabetical (or virtual Default) fallback.
+            if (!string.Equals(before.Add(profile).GetByNameOrFirstByName(settings?.Profile)?.Name, current.Name, StringComparison.OrdinalIgnoreCase))
+            {
+                if (before.GetByName(current.Name) == null)
+                    _ = await Create(current, cancellationToken).ConfigureAwait(false);
+                await AllProfileSettingsHandler.UpdateCurrent(current, settings, cancellationToken).ConfigureAwait(false);
+            }
+            return await Create(profile, cancellationToken).ConfigureAwait(false);
+        }
+
         public static Task<ImmutableArray<ProfileModel>> Delete(ProfileModel profileModel, CancellationToken cancellationToken)
         {
             ArgumentNullException.ThrowIfNull(profileModel, nameof(profileModel));

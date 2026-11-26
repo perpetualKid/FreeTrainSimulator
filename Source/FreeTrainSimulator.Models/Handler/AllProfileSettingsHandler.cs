@@ -36,12 +36,17 @@ namespace FreeTrainSimulator.Models.Handler
 
         public static async Task UpdateCurrent(ProfileModel profileModel, CancellationToken cancellationToken)
         {
-            Task<AllProfileSettingsModel> modelTask;
-            AllProfileSettingsModel currentProfileSettingsModel = ((await GetCore(cancellationToken).ConfigureAwait(false)) ?? new AllProfileSettingsModel()) with
+            await UpdateCurrent(profileModel, await GetCore(cancellationToken).ConfigureAwait(false), cancellationToken).ConfigureAwait(false);
+        }
+
+        internal static async Task UpdateCurrent(ProfileModel profileModel, AllProfileSettingsModel settings, CancellationToken cancellationToken)
+        {
+            AllProfileSettingsModel currentProfileSettingsModel = (settings ?? new AllProfileSettingsModel()) with
             {
                 Profile = profileModel?.Name,
             };
-            modelTaskCache[root] = modelTask = ToFile(currentProfileSettingsModel, cancellationToken);
+            Task<AllProfileSettingsModel> modelTask = ToFile(currentProfileSettingsModel, cancellationToken);
+            modelTaskCache[root] = modelTask;
             _ = await modelTask.ConfigureAwait(false);
         }
     }
