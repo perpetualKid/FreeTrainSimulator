@@ -17,6 +17,7 @@
 
 using System.Diagnostics;
 using System.Globalization;
+using System.Linq;
 using System.Text.RegularExpressions;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -30,22 +31,37 @@ namespace Tests.Orts
     /// Instead of having the warnings go to the output window, they are captured by this class.
     /// This means that if a warning is not expected, a fail will result.
     /// And if you want to test that a warning is given, you can test for that also.
-    /// Two methods are present that can be called from within a test:
-    /// AssertWarnings.Active:  start monitoring warnings
-    /// AssertWarnings.ExpectWarning: the code that is given to this method will be executed and will be tested for indeed giving a warning.
-    ///     use this as: AssertWarnings.ExpectWarning( () => {code_to_execute;});
+    /// NotExpected and Expected set whether trace events are allowed; Matching checks a specific message.
+    /// The assembly's global test cleanup restores the original listeners after each test, even on failure.
     /// </summary>
     internal sealed class AssertWarnings : TraceListener
     {
         private static readonly AssertWarnings listener = new AssertWarnings();
+        private static TraceListener[] originalListeners;
 
         private static void Initialize()
         {
+            if (originalListeners == null)
+                originalListeners = Trace.Listeners.Cast<TraceListener>().ToArray();
+
             // Prevent warnings from going to MsTest.
-            // We assume that MSTest takes control back for the next unit test (meaning that the listener will be removed again for the next test).
             Trace.Listeners.Clear();
             // We now intercept the trace warnings with our own listener.
             Trace.Listeners.Add(listener);
+        }
+
+        /// <summary>
+        /// Restores the caller-owned listeners without disposing them and resets warning expectations.
+        /// </summary>
+        public static void RestoreListeners()
+        {
+            if (originalListeners != null)
+            {
+                Trace.Listeners.Clear();
+                Trace.Listeners.AddRange(originalListeners);
+                originalListeners = null;
+            }
+            listener.Set(false);
         }
 
         /// <summary>
