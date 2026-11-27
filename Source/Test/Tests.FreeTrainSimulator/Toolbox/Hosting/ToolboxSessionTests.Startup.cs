@@ -661,11 +661,13 @@ namespace Tests.FreeTrainSimulator.Toolbox.Hosting
                     SetField(shell, "currentProfile", profile);
                     SetField(shell, "toolboxSettings", stale);
                     SetField(shell, "userSettings", new ProfileUserSettingsModel { LogLevel = System.Diagnostics.TraceEventType.Critical });
+                    SettingsToolView view = new SettingsToolView();
+                    SetField(shell, "SettingsPane", view);
                     typeof(MainWindow).GetMethod("InitializeToolWindowCommands", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(shell, null);
                     typeof(MainWindow).GetMethod("InitializeShellSettings", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(shell, null);
                     MainWindowViewModel model = (MainWindowViewModel)typeof(MainWindow).GetField("viewModel", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(shell);
                     SettingsToolWindowViewModel settings = model.SettingsTool;
-                    SettingsToolView view = new SettingsToolView { DataContext = settings };
+                    view.DataContext = settings;
                     PumpMenuBindings();
                     Assert.Contains(profile.Name, ((TextBlock)view.FindName("ActiveProfileLabel")).Text, StringComparison.Ordinal);
                     ComboBox language = (ComboBox)view.FindName("LanguagePicker");

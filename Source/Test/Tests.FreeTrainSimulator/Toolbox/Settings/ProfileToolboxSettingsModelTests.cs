@@ -1,4 +1,5 @@
 using System;
+using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -68,13 +69,16 @@ namespace Tests.FreeTrainSimulator.Toolbox.Settings
         [DataRow(int.MaxValue)]
         public void WhenSerializedTabIsInvalidThenPathsTabIsRestored(int invalidTabIndex)
         {
-            byte[] payload = MemoryPackSerializer.Serialize(new ProfileToolboxSettingsModel { PathEditorSelectedTabIndex = 1 });
-            // The append-only schema ends with the four-byte integer preference.
-            BitConverter.GetBytes(invalidTabIndex).CopyTo(payload, payload.Length - sizeof(int));
+            ProfileToolboxSettingsModel settings = new ProfileToolboxSettingsModel { SettingsSelectedTabIndex = 1 };
+            // Bypass normalization to serialize invalid stored data without depending on member offsets.
+            typeof(ProfileToolboxSettingsModel).GetField("pathEditorSelectedTabIndex", BindingFlags.Instance | BindingFlags.NonPublic)
+                .SetValue(settings, invalidTabIndex);
+            byte[] payload = MemoryPackSerializer.Serialize(settings);
 
             ProfileToolboxSettingsModel restored = MemoryPackSerializer.Deserialize<ProfileToolboxSettingsModel>(payload);
 
             Assert.AreEqual(0, restored.PathEditorSelectedTabIndex);
+            Assert.AreEqual(1, restored.SettingsSelectedTabIndex);
         }
 
         [TestMethod]
