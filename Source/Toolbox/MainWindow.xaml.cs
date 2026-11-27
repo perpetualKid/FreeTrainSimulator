@@ -122,7 +122,9 @@ namespace FreeTrainSimulator.Toolbox
             e.Completion.TrySetResult(result == MessageBoxResult.Yes);
         }
 
-        private async void MainWindow_Loaded(object sender, RoutedEventArgs e)
+        private async void MainWindow_Loaded(object sender, RoutedEventArgs e) => await StartShellAsync().ConfigureAwait(true);
+
+        private async Task StartShellAsync()
         {
             try
             {

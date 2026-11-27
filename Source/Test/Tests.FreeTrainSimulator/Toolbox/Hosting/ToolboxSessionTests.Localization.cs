@@ -105,7 +105,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.Hosting
                     Grid content = (Grid)dialog.Content;
                     Assert.AreEqual(expected, content.Children.OfType<TextBlock>().Single().Text);
                     Assert.AreEqual("Leave", dialog.Title);
-                    Assert.AreSequenceEqual(new[] { "Leave", "Stay" }, content.Children.OfType<StackPanel>().Single().Children.OfType<Button>().Select(button => button.Content));
+                    Assert.AreSequenceEqual(expectedArrayLeaveStay, content.Children.OfType<StackPanel>().Single().Children.OfType<Button>().Select(button => button.Content));
                 }
                 finally
                 {
@@ -113,6 +113,8 @@ namespace Tests.FreeTrainSimulator.Toolbox.Hosting
                 }
             }
         }
+
+        private static readonly string[] expectedArrayLeaveStay = new[] { "Leave", "Stay" };
 
         private sealed class LocalizationCatalogScope : IDisposable
         {

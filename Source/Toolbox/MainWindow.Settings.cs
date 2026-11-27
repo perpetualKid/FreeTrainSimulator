@@ -53,7 +53,8 @@ namespace FreeTrainSimulator.Toolbox
                 string status = CatalogManager.Catalog.GetString("Could not reopen the route: {0}", failure.Message);
                 skipWorkspaceSave = true;
                 await ShutdownAsync().ConfigureAwait(true);
-                ReopenToolboxWindow(currentProfile, default, status);
+                await ShowReplacementToolboxAsync(currentProfile, default, status).ConfigureAwait(true);
+                Close();
             }
             finally
             {
@@ -99,15 +100,24 @@ namespace FreeTrainSimulator.Toolbox
                     throw new InvalidOperationException(CatalogManager.Catalog.GetString("The selected profile no longer exists."));
 
                 await ShutdownAsync().ConfigureAwait(true);
-                ReopenToolboxWindow(target, reopenRoute ? (state.Folder, state.Route) : default, null);
+                await ShowReplacementToolboxAsync(target, reopenRoute ? (state.Folder, state.Route) : default, null).ConfigureAwait(true);
             }
             catch (Exception failure) when (CleanupExceptionPolicy.CanContinue(failure))
             {
                 Trace.TraceError($"Failed to switch Toolbox profile: {failure}");
                 MessageBox.Show(this, CatalogManager.Catalog.GetString("Could not switch Toolbox profiles: {0}", failure.Message),
                     CatalogManager.Catalog.GetString("Switch Toolbox Profile"), MessageBoxButton.OK, MessageBoxImage.Error);
-                if (shutdownCompleted)
-                    ReopenToolboxWindow(currentProfile, default, null);
+                if (!shutdownCompleted)
+                    return;
+
+                try
+                {
+                    await ShowReplacementToolboxAsync(currentProfile, default, null).ConfigureAwait(true);
+                }
+                catch (Exception recoveryFailure) when (CleanupExceptionPolicy.CanContinue(recoveryFailure))
+                {
+                    Trace.TraceError($"Failed to reopen the previous Toolbox profile: {recoveryFailure}");
+                }
             }
             finally
             {
@@ -115,15 +125,40 @@ namespace FreeTrainSimulator.Toolbox
                 if (!shutdownCompleted)
                     IsEnabled = true;
             }
+            Close();
         }
 
-        private void ReopenToolboxWindow(ProfileModel profile, (string Folder, string Route) route, string status)
+        private Task ShowReplacementToolboxAsync(ProfileModel profile, (string Folder, string Route) route, string status)
         {
+            // Once shown, the replacement closes and disposes itself. The show method cleans up on failure.
+#pragma warning disable CA2000
             MainWindow next = new MainWindow(profile, route, status);
-            if (Application.Current?.MainWindow == this)
-                Application.Current.MainWindow = next;
-            next.Show();
-            Close();
+#pragma warning restore CA2000
+            return next.ShowForProfileHandoffAsync(this);
+        }
+
+        private async Task ShowForProfileHandoffAsync(MainWindow previous)
+        {
+            // Do not open a new workspace until showing the window has succeeded.
+            Loaded -= MainWindow_Loaded;
+            try
+            {
+                Show();
+                if (Application.Current?.MainWindow == previous)
+                    Application.Current.MainWindow = this;
+            }
+            catch (Exception failure) when (CleanupExceptionPolicy.CanContinue(failure))
+            {
+                skipWorkspaceSave = true;
+                await ShutdownAsync().ConfigureAwait(true);
+                Close();
+                throw;
+            }
+
+            if (IsLoaded)
+                _ = StartShellAsync();
+            else
+                Loaded += MainWindow_Loaded;
         }
 
         private void InitializeShellSettings()
