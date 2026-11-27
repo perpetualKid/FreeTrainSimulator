@@ -25,7 +25,7 @@ namespace FreeTrainSimulator.Toolbox.Views
         public TrainPathToolView()
         {
             InitializeComponent();
-            RefreshToolbarLocalization();
+            RefreshLocalization();
             AddHandler(Button.ClickEvent, new RoutedEventHandler(EditorAction_PreviewClick), true);
             PreviewMouseDown += EditorAction_PreviewMouseDown;
             PreviewKeyDown += EditorAction_PreviewKeyDown;
@@ -35,7 +35,7 @@ namespace FreeTrainSimulator.Toolbox.Views
             Unloaded += (_, _) => Dispose();
         }
 
-        internal void RefreshToolbarLocalization()
+        internal void RefreshLocalization()
         {
             Catalog catalog = CatalogManager.Catalog;
             AutomationProperties.SetName(PathEditorToolbar, catalog.GetString("Path Editor"));
@@ -46,6 +46,45 @@ namespace FreeTrainSimulator.Toolbox.Views
             string pathActions = catalog.GetString("Path actions");
             AutomationProperties.SetName(PathActionsMenuItem, pathActions);
             PathActionsMenuItem.Header = pathActions + " \u25BE";
+            ReResolvePathMenuItem.Header = catalog.GetString("Re-resolve path");
+            ValidateAllPathsMenuItem.Header = catalog.GetString("Validate all paths");
+            CancelNewPathMenuItem.Header = catalog.GetString("Cancel new path");
+
+            PathsTab.Header = catalog.GetString("Paths");
+            EditorTab.Header = catalog.GetString("Editor");
+            SetStartButton.Content = catalog.GetString("Set start");
+            SetEndButton.Content = catalog.GetString("Set end");
+            ContinuePathButton.Content = catalog.GetString("Continue path");
+            string nodeActions = catalog.GetString("Node actions");
+            AutomationProperties.SetName(NodeActionsMenuItem, nodeActions);
+            NodeActionsMenuItem.Header = nodeActions + " \u25BE";
+
+            CombinationInstructions.Text = catalog.GetString("Choose path orientation - selecting a candidate previews it.");
+            AcceptPathCombinationButton.Content = catalog.GetString("Accept orientation");
+            PlacementInstructions.Text = catalog.GetString("Choose a track location on the map, then confirm placement.");
+            ConfirmPlacementButton.Content = catalog.GetString("Confirm placement");
+            BuildInstructions.Text = catalog.GetString("Choose a track location to add a route point, or finish at the last committed point.");
+            AddRoutePointButton.Content = catalog.GetString("Add route point");
+            FinishPathButton.Content = catalog.GetString("Finish path");
+            RejoinInstructions.Text = catalog.GetString("Select a later main-path node to rejoin the passing branch.");
+            RejoinAtSelectedNodeButton.Content = catalog.GetString("Rejoin at selected node");
+            RejoinWithPassingViaButton.Content = catalog.GetString("Rejoin with one passing via");
+            PassingViaInstructions.Text = catalog.GetString("Choose one passing via on the track. Confirm its preview before selecting any ambiguous route legs.");
+            ConfirmPassingViaButton.Content = catalog.GetString("Confirm passing via");
+            CandidateInstructions.Text = catalog.GetString("Choose route — selecting a candidate previews it.");
+            AutomationProperties.SetName(CandidateSpanSelector, catalog.GetString("Route span"));
+            AcceptCandidateButton.Content = catalog.GetString("Accept candidate");
+
+            string cancel = catalog.GetString("Cancel");
+            CancelPathCombinationButton.Content = cancel;
+            CancelPlacementButton.Content = cancel;
+            CancelBuildButton.Content = cancel;
+            CancelRejoinButton.Content = cancel;
+            CancelPassingViaButton.Content = cancel;
+            CancelCandidateButton.Content = cancel;
+            ApplyWaitOperationButton.Content = catalog.GetString("Apply Operation");
+            ClearWaitPointButton.Content = catalog.GetString("Clear Wait Point");
+            ClearWaitPointButton.ToolTip = catalog.GetString("Remove wait flags and wait data from the selected node.");
         }
 
         private int? waitEditorNodeIndex;
@@ -258,9 +297,16 @@ namespace FreeTrainSimulator.Toolbox.Views
             CancellationToken cancellation = nodeActionsCancellation.Token;
             long generation = ++nodeActionsGeneration;
             nodeActionsMenu = menu;
-            menu.Items.Clear();
-            // Keep the opening alive while the owner collects entries; never reopen it from a completion.
-            menu.Items.Add(new Separator());
+            bool needsNodeSelection = menu is MenuItem && nodeIndex < 0;
+            // Keep a child in the toolbar menu so WPF never changes it from a submenu to a leaf.
+            menu.Items.Add(needsNodeSelection
+                ? new MenuItem { Header = CatalogManager.Catalog.GetString("Select a node to see its actions."), IsEnabled = false }
+                : new Separator());
+            while (menu.Items.Count > 1)
+                menu.Items.RemoveAt(0);
+            if (needsNodeSelection)
+                return;
+
             if (viewModel.PendingInlineInput is { } pending)
             {
                 _ = pending.WaitAsync(cancellation).ContinueWith(completion =>
@@ -299,7 +345,21 @@ namespace FreeTrainSimulator.Toolbox.Views
 
         private static void SetNodeActions(ItemsControl menu, TrainPathToolWindowViewModel viewModel, PathEditorMenuRequest request)
         {
-            menu.Items.Clear();
+            if (request.Items.IsEmpty)
+            {
+                if (menu is ContextMenu contextMenu)
+                {
+                    menu.Items.Clear();
+                    contextMenu.IsOpen = false;
+                }
+                else if (menu is MenuItem menuItem)
+                {
+                    menuItem.IsSubmenuOpen = false;
+                }
+                return;
+            }
+
+            int previousCount = menu.Items.Count;
             foreach (MapContextMenuItem action in request.Items)
             {
                 if (action.IsSeparator)
@@ -314,13 +374,8 @@ namespace FreeTrainSimulator.Toolbox.Views
                 menu.Items.Add(item);
             }
 
-            if (menu.Items.Count == 0)
-            {
-                if (menu is ContextMenu contextMenu)
-                    contextMenu.IsOpen = false;
-                else if (menu is MenuItem menuItem)
-                    menuItem.IsSubmenuOpen = false;
-            }
+            for (int i = 0; i < previousCount; i++)
+                menu.Items.RemoveAt(0);
         }
 
         // The path/node/diagnostic/route-candidate lists bind SelectedItem OneWay and forward user picks here;

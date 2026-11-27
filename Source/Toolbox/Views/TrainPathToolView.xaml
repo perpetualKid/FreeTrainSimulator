@@ -19,6 +19,22 @@
             <ResourceDictionary Source="/Toolbox;component/Themes/SharedResources.xaml" />
         </ResourceDictionary.MergedDictionaries>
         <BooleanToVisibilityConverter x:Key="BooleanToVisibilityConverter" />
+        <DataTemplate x:Key="PathEditorWrappingLabelTemplate">
+            <TextBlock Text="{Binding}" TextWrapping="Wrap" />
+        </DataTemplate>
+        <Style x:Key="PathEditorToolbarButtonStyle" TargetType="Button"
+               BasedOn="{StaticResource {x:Static ToolBar.ButtonStyleKey}}">
+            <Setter Property="MinHeight" Value="26" />
+            <Setter Property="Padding" Value="6,2" />
+        </Style>
+        <Style x:Key="PathEditorActionButtonStyle" TargetType="Button">
+            <Setter Property="Padding" Value="6,2" />
+            <Setter Property="Margin" Value="0,2,4,2" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+            <Setter Property="MaxWidth" Value="{Binding ActualWidth, RelativeSource={RelativeSource AncestorType=WrapPanel}}" />
+            <Setter Property="ContentTemplate" Value="{StaticResource PathEditorWrappingLabelTemplate}" />
+            <Setter Property="AutomationProperties.Name" Value="{Binding Content, RelativeSource={RelativeSource Self}}" />
+        </Style>
         <DataTemplate x:Key="TrainPathComparisonCellTemplate">
             <CheckBox x:Name="SavedPathComparisonToggle" IsChecked="{Binding IsCompared, Mode=OneWay}"
                       IsEnabled="{Binding CanCompare}" ToolTip="{Binding ComparisonStatus}"
@@ -210,7 +226,7 @@
                     <Separator />
                     <Menu Background="Transparent" VerticalAlignment="Center" ToolBar.OverflowMode="Never">
                         <MenuItem x:Name="PathActionsMenuItem">
-                            <MenuItem x:Name="ReResolvePathMenuItem" Header="Re-resolve path" Command="{Binding SnapToTrackCommand}" />
+                            <MenuItem x:Name="ReResolvePathMenuItem" Command="{Binding SnapToTrackCommand}" />
                             <MenuItem x:Name="ReversePathMenuItem" Header="{gt:Gettext 'Reverse Path'}" Command="{Binding ReversePathCommand}"
                                       AutomationProperties.Name="{gt:Gettext 'Reverse Path'}"
                                       Visibility="{Binding IsIdlePanelVisible, Converter={StaticResource BooleanToVisibilityConverter}}" />
@@ -219,10 +235,10 @@
                                       ToolTip="{gt:Gettext 'Check exactly two saved paths in the Paths list to combine them into a new unsaved path.'}" />
                             <MenuItem x:Name="CancelPathCombineMenuItem" Header="{gt:Gettext 'Cancel combining paths'}" Command="{Binding CancelPathCombineCommand}"
                                       Visibility="{Binding IsCombiningPaths, Converter={StaticResource BooleanToVisibilityConverter}}" />
-                            <MenuItem Header="Validate all paths" Command="{Binding ValidateAllPathsCommand}" />
+                            <MenuItem x:Name="ValidateAllPathsMenuItem" Command="{Binding ValidateAllPathsCommand}" />
                             <MenuItem x:Name="ShowPathChartMenuItem" Header="{gt:Gettext 'Show Path Chart'}" Command="{Binding ShowPathChartCommand}" />
                             <Separator />
-                            <MenuItem x:Name="CancelNewPathMenuItem" Header="Cancel new path" Command="{Binding CancelNewPathCommand}" />
+                            <MenuItem x:Name="CancelNewPathMenuItem" Command="{Binding CancelNewPathCommand}" />
                         </MenuItem>
                     </Menu>
                 </ToolBar>
@@ -238,7 +254,7 @@
                 Margin="0,3,0,0"
                 SelectionChanged="PathEditorTabs_SelectionChanged"
                 SelectedIndex="{Binding SelectedTabIndex, Mode=OneWay}">
-        <TabItem Header="Paths">
+        <TabItem x:Name="PathsTab">
             <Grid Margin="6">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="*" />
@@ -338,7 +354,7 @@
                 </DockPanel>
             </Grid>
         </TabItem>
-        <TabItem Header="Editor">
+        <TabItem x:Name="EditorTab">
             <Grid Margin="6">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto" />
@@ -349,71 +365,84 @@
                 </Grid.RowDefinitions>
                 <StackPanel Grid.Row="0">
                     <StackPanel Visibility="{Binding IsCombinationPanelVisible, Converter={StaticResource BooleanToVisibilityConverter}}">
-                        <TextBlock Text="{gt:Gettext 'Choose path orientation - selecting a candidate previews it.'}" TextWrapping="Wrap" />
+                        <TextBlock x:Name="CombinationInstructions" TextWrapping="Wrap" />
                         <ListView x:Name="CombinationCandidatesList" MaxHeight="140" ItemsSource="{Binding CombinationCandidates}"
                                   SelectedItem="{Binding SelectedCombinationCandidate, Mode=TwoWay}"
                                   AutomationProperties.Name="{gt:Gettext 'Path combination orientations'}" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
                             <ListView.ItemTemplate><DataTemplate><TextBlock Text="{Binding Description}" TextWrapping="Wrap" Style="{StaticResource ToolWindowSelectedPrimaryTextStyle}" /></DataTemplate></ListView.ItemTemplate>
                         </ListView>
-                        <Button x:Name="AcceptPathCombinationButton" Content="{gt:Gettext 'Accept orientation'}" Command="{Binding AcceptPathCombinationCommand}" AutomationProperties.Name="{gt:Gettext 'Accept orientation'}" />
-                        <Button x:Name="CancelPathCombinationButton" Content="{gt:Gettext 'Cancel'}" Command="{Binding CancelPathInteractionCommand}" />
-                    </StackPanel>
-                    <StackPanel Visibility="{Binding IsIdlePanelVisible, Converter={StaticResource BooleanToVisibilityConverter}}">
-                        <StackPanel Orientation="Horizontal">
-                            <Button Content="Set start" Command="{Binding SetStartHereCommand}" Padding="6,2" Margin="0,0,4,3" />
-                            <Button Content="Set end" Command="{Binding SetEndHereCommand}" Padding="6,2" Margin="0,0,0,3" />
-                        </StackPanel>
+                        <WrapPanel>
+                            <Button x:Name="AcceptPathCombinationButton" Command="{Binding AcceptPathCombinationCommand}" Style="{StaticResource PathEditorActionButtonStyle}" />
+                            <Button x:Name="CancelPathCombinationButton" Command="{Binding CancelPathInteractionCommand}" Style="{StaticResource PathEditorActionButtonStyle}" />
+                        </WrapPanel>
                     </StackPanel>
                     <StackPanel Visibility="{Binding IsPlacementPanelVisible, Converter={StaticResource BooleanToVisibilityConverter}}">
-                        <TextBlock Text="Choose a track location on the map, then confirm placement." TextWrapping="Wrap" />
-                        <Button Content="Confirm placement" Command="{Binding CommitPlacementCommand}" />
-                        <Button Content="Cancel interaction" Command="{Binding CancelPathInteractionCommand}" />
+                        <TextBlock x:Name="PlacementInstructions" TextWrapping="Wrap" />
+                        <WrapPanel>
+                            <Button x:Name="ConfirmPlacementButton" Command="{Binding CommitPlacementCommand}" Style="{StaticResource PathEditorActionButtonStyle}" />
+                            <Button x:Name="CancelPlacementButton" Command="{Binding CancelPathInteractionCommand}" Style="{StaticResource PathEditorActionButtonStyle}" />
+                        </WrapPanel>
                     </StackPanel>
                     <StackPanel Visibility="{Binding IsBuildingPanelVisible, Converter={StaticResource BooleanToVisibilityConverter}}">
-                        <Button Content="Add route point" Command="{Binding CommitPlacementCommand}" />
-                        <Button Content="Finish path" Command="{Binding FinishPathCommand}" />
-                        <Button Content="Cancel interaction" Command="{Binding CancelPathInteractionCommand}" />
+                        <TextBlock x:Name="BuildInstructions" TextWrapping="Wrap" />
+                        <WrapPanel>
+                            <Button x:Name="AddRoutePointButton" Command="{Binding CommitPlacementCommand}" Style="{StaticResource PathEditorActionButtonStyle}" />
+                            <Button x:Name="FinishPathButton" Command="{Binding FinishPathCommand}" Style="{StaticResource PathEditorActionButtonStyle}" />
+                            <Button x:Name="CancelBuildButton" Command="{Binding CancelPathInteractionCommand}" Style="{StaticResource PathEditorActionButtonStyle}" />
+                        </WrapPanel>
                     </StackPanel>
                     <StackPanel Visibility="{Binding IsRejoinPanelVisible, Converter={StaticResource BooleanToVisibilityConverter}}">
-                        <TextBlock Text="Select a later main-path node to rejoin the passing branch." TextWrapping="Wrap" />
-                        <Button Content="Rejoin at selected node" Command="{Binding CompletePassingBranchCommand}" />
-                        <Button Content="{gt:Gettext 'Rejoin with one passing via'}" Command="{Binding RejoinPassingBranchWithViaCommand}"
-                                AutomationProperties.Name="Rejoin with one passing via" />
-                        <Button Content="Cancel interaction" Command="{Binding CancelPassingBranchCommand}" />
+                        <TextBlock x:Name="RejoinInstructions" TextWrapping="Wrap" />
+                        <WrapPanel>
+                            <Button x:Name="RejoinAtSelectedNodeButton" Command="{Binding CompletePassingBranchCommand}" Style="{StaticResource PathEditorActionButtonStyle}" />
+                            <Button x:Name="RejoinWithPassingViaButton" Command="{Binding RejoinPassingBranchWithViaCommand}" Style="{StaticResource PathEditorActionButtonStyle}" />
+                            <Button x:Name="CancelRejoinButton" Command="{Binding CancelPassingBranchCommand}" Style="{StaticResource PathEditorActionButtonStyle}" />
+                        </WrapPanel>
                     </StackPanel>
                     <StackPanel Visibility="{Binding IsPassingViaPanelVisible, Converter={StaticResource BooleanToVisibilityConverter}}">
-                        <TextBlock Text="{gt:Gettext 'Choose one passing via on the track. Confirm its preview before selecting any ambiguous route legs.'}" TextWrapping="Wrap" />
-                        <Button Content="{gt:Gettext 'Confirm passing via'}" Command="{Binding CommitPlacementCommand}" AutomationProperties.Name="Confirm passing via" />
-                        <Button Content="{gt:Gettext 'Cancel'}" Command="{Binding CancelPassingBranchCommand}" />
+                        <TextBlock x:Name="PassingViaInstructions" TextWrapping="Wrap" />
+                        <WrapPanel>
+                            <Button x:Name="ConfirmPassingViaButton" Command="{Binding CommitPlacementCommand}" Style="{StaticResource PathEditorActionButtonStyle}" />
+                            <Button x:Name="CancelPassingViaButton" Command="{Binding CancelPassingBranchCommand}" Style="{StaticResource PathEditorActionButtonStyle}" />
+                        </WrapPanel>
                     </StackPanel>
-                    <Grid Visibility="{Binding IsCandidatePanelVisible, Converter={StaticResource BooleanToVisibilityConverter}}">
-                        <Grid.RowDefinitions><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /><RowDefinition Height="Auto" /></Grid.RowDefinitions>
-                        <TextBlock Text="Choose route — selecting a candidate previews it." TextWrapping="Wrap" />
-                        <ComboBox Grid.Row="1" ItemsSource="{Binding CandidateSpans}" SelectedItem="{Binding SelectedCandidateSpan, Mode=OneWay}"
-                                  SelectionChanged="CandidateSpan_SelectionChanged" AutomationProperties.Name="Route span">
+                    <StackPanel Visibility="{Binding IsCandidatePanelVisible, Converter={StaticResource BooleanToVisibilityConverter}}">
+                        <TextBlock x:Name="CandidateInstructions" TextWrapping="Wrap" />
+                        <ComboBox x:Name="CandidateSpanSelector" ItemsSource="{Binding CandidateSpans}" SelectedItem="{Binding SelectedCandidateSpan, Mode=OneWay}"
+                                  SelectionChanged="CandidateSpan_SelectionChanged">
                             <ComboBox.ItemTemplate><DataTemplate>
                                 <TextBlock><Run Text="Nodes " /><Run Text="{Binding FromNodeIndex, Mode=OneWay}" /><Run Text="–" /><Run Text="{Binding ToNodeIndex, Mode=OneWay}" /></TextBlock>
                             </DataTemplate></ComboBox.ItemTemplate>
                         </ComboBox>
-                        <ListView Grid.Row="2" MaxHeight="90" ItemsSource="{Binding VisibleRouteCandidates}" SelectedItem="{Binding SelectedRouteCandidate, Mode=OneWay}" SelectionChanged="RouteCandidateList_SelectionChanged"
+                        <ListView MaxHeight="90" ItemsSource="{Binding VisibleRouteCandidates}" SelectedItem="{Binding SelectedRouteCandidate, Mode=OneWay}" SelectionChanged="RouteCandidateList_SelectionChanged"
                                   ScrollViewer.HorizontalScrollBarVisibility="Disabled">
                             <ListView.ItemTemplate><DataTemplate><TextBlock Text="{Binding Description}" TextWrapping="Wrap" Style="{StaticResource ToolWindowSelectedPrimaryTextStyle}" /></DataTemplate></ListView.ItemTemplate>
                         </ListView>
-                        <Button Grid.Row="3" Content="Accept candidate" Command="{Binding AcceptRouteCandidateCommand}" />
-                        <Button Grid.Row="4" Content="Cancel interaction" Command="{Binding CancelPathInteractionCommand}" />
-                    </Grid>
-                    <WrapPanel Margin="0,0,0,3">
-                        <Button Content="Continue path" Command="{Binding ContinuePathCommand}" Padding="6,2" Margin="0,0,4,0"
-                                Visibility="{Binding IsIdlePanelVisible, Converter={StaticResource BooleanToVisibilityConverter}}" />
-                        <Border BorderBrush="Black" BorderThickness="1" SnapsToDevicePixels="True" VerticalAlignment="Center">
-                        <Menu Background="{DynamicResource {x:Static SystemColors.ControlBrushKey}}">
-                            <MenuItem Header="{gt:Gettext 'Node actions ▾'}" AutomationProperties.Name="Node actions"
-                                      SubmenuOpened="NodeActions_SubmenuOpened" SubmenuClosed="NodeActions_Closed">
-                                <Separator />
-                            </MenuItem>
-                        </Menu>
-                        </Border>
-                    </WrapPanel>
+                        <WrapPanel>
+                            <Button x:Name="AcceptCandidateButton" Command="{Binding AcceptRouteCandidateCommand}" Style="{StaticResource PathEditorActionButtonStyle}" />
+                            <Button x:Name="CancelCandidateButton" Command="{Binding CancelPathInteractionCommand}" Style="{StaticResource PathEditorActionButtonStyle}" />
+                        </WrapPanel>
+                    </StackPanel>
+                    <Border Style="{StaticResource ToolWindowToolbarBandStyle}">
+                        <ToolBarTray Style="{StaticResource ToolWindowToolbarTrayStyle}">
+                            <ToolBar x:Name="EditorActionToolbar" Style="{StaticResource ToolWindowToolbarStyle}"
+                                     AutomationProperties.Name="{Binding Header, ElementName=EditorTab}">
+                                <Button x:Name="SetStartButton" Command="{Binding SetStartHereCommand}" Style="{StaticResource PathEditorToolbarButtonStyle}"
+                                        Visibility="{Binding IsIdlePanelVisible, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                                <Button x:Name="SetEndButton" Command="{Binding SetEndHereCommand}" Style="{StaticResource PathEditorToolbarButtonStyle}"
+                                        Visibility="{Binding IsIdlePanelVisible, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                                <Button x:Name="ContinuePathButton" Command="{Binding ContinuePathCommand}" Style="{StaticResource PathEditorToolbarButtonStyle}"
+                                        Visibility="{Binding IsIdlePanelVisible, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                                <Separator x:Name="NodeActionsSeparator" ToolBar.OverflowMode="Never"
+                                           Visibility="{Binding IsIdlePanelVisible, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                                <Menu Background="Transparent" VerticalAlignment="Center" ToolBar.OverflowMode="Never">
+                                    <MenuItem x:Name="NodeActionsMenuItem" SubmenuOpened="NodeActions_SubmenuOpened" SubmenuClosed="NodeActions_Closed">
+                                        <Separator />
+                                    </MenuItem>
+                                </Menu>
+                            </ToolBar>
+                        </ToolBarTray>
+                    </Border>
                 </StackPanel>
                 <ListView Grid.Row="1"
                           ContextMenuOpening="PathNodes_ContextMenuOpening"
@@ -518,13 +547,10 @@
                             <TextBlock Margin="0,4,0,0" TextWrapping="Wrap"
                                        Visibility="{Binding IsUnknownWaitOperation, Converter={StaticResource BooleanToVisibilityConverter}}"
                                        Text="{Binding SelectedWaitRawCodeDescription}" />
-                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,4,0,0">
-                                <Button x:Name="ApplyWaitOperationButton" Content="{gt:Gettext 'Apply Operation'}" Command="{Binding ApplyWaitOperationCommand}"
-                                        AutomationProperties.Name="{gt:Gettext 'Apply Operation'}" Margin="0,0,6,0" />
-                                <Button Content="{gt:Gettext 'Clear Wait Point'}" Command="{Binding ClearWaitPointCommand}"
-                                        AutomationProperties.Name="{gt:Gettext 'Clear Wait Point'}"
-                                        ToolTip="{gt:Gettext 'Remove wait flags and wait data from the selected node.'}" />
-                            </StackPanel>
+                            <WrapPanel Margin="0,4,0,0">
+                                <Button x:Name="ApplyWaitOperationButton" Command="{Binding ApplyWaitOperationCommand}" Style="{StaticResource PathEditorActionButtonStyle}" />
+                                <Button x:Name="ClearWaitPointButton" Command="{Binding ClearWaitPointCommand}" Style="{StaticResource PathEditorActionButtonStyle}" />
+                            </WrapPanel>
                         </StackPanel>
                         <TextBlock Text="{Binding SelectedNode.Validation}" TextWrapping="Wrap" />
                         <Expander Header="{gt:Gettext 'Details'}" IsExpanded="True">

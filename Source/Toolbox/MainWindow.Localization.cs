@@ -57,7 +57,7 @@ namespace FreeTrainSimulator.Toolbox
             viewModel.TrainPathTool?.RefreshLocalization();
             viewModel.PathChartTool?.RefreshLocalization();
             if (TrainPathToolAnchorable?.Content is Views.TrainPathToolView pathView)
-                pathView.RefreshToolbarLocalization();
+                pathView.RefreshLocalization();
             if (PathChartToolAnchorable.Content is Views.PathChartToolView chartView)
                 chartView.RefreshLocalization();
         }

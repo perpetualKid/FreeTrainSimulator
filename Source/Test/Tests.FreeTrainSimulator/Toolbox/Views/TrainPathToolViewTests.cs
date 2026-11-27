@@ -775,6 +775,74 @@ namespace Tests.FreeTrainSimulator.Toolbox.Views
             }
         }
 
+        [STATestMethod(UseSTASynchronizationContext = true)]
+        [Timeout(15000, CooperativeCancellation = true)]
+        public async Task WhenNodeActionsFirstOpensWithoutANodeThenItCanExpandAgainForASelectedNode()
+        {
+            using (SeparatedPassingFixture fixture = await SeparatedPassingFixture.CreateAsync().ConfigureAwait(true))
+            { using (PathEditor editor = new PathEditor(fixture.Content))
+                {
+                    using (ToolWindowRefreshScheduler scheduler = new ToolWindowRefreshScheduler(Dispatcher.CurrentDispatcher))
+                    {
+                        PathEditor currentEditor = null;
+                        Queue<Action> commands = new Queue<Action>();
+                        TrainPathToolWindow bridge = new TrainPathToolWindow(() => currentEditor, () => null, commands.Enqueue,
+                            () => { }, () => { }, _ => { }, () => { }, () => { })
+                        { Active = true };
+                        using (TrainPathToolWindowViewModel model = new TrainPathToolWindowViewModel(bridge, scheduler, TrainPathToolWindowViewModel.EditorTabIndex))
+                        {
+                            using (TrainPathToolView view = new TrainPathToolView { DataContext = model })
+                            {
+                                model.Start();
+                                Window window = new Window { Content = view, Width = 320, Height = 700, ShowInTaskbar = false };
+                                try
+                                {
+                                    window.Show();
+                                    SettleLayout(window);
+                                    MenuItem menu = (MenuItem)view.FindName("NodeActionsMenuItem");
+                                    MenuItemAutomationPeer peer = new MenuItemAutomationPeer(menu);
+                                    IExpandCollapseProvider dropdown = (IExpandCollapseProvider)peer.GetPattern(PatternInterface.ExpandCollapse);
+                                    Assert.IsNotNull(dropdown);
+                                    dropdown.Expand();
+                                    DrainCommands(commands);
+                                    SettleLayout(window);
+                                    Assert.IsTrue(menu.IsSubmenuOpen);
+                                    MenuItem hint = menu.Items.OfType<MenuItem>().Single();
+                                    Assert.IsFalse(hint.IsEnabled);
+                                    Assert.AreEqual("Select a node to see its actions.", hint.Header);
+                                    dropdown.Collapse();
+
+                                    PathModel path = SeparatedPassingFixture.CreateMain();
+                                    Assert.IsTrue(editor.InitializePathAsync(path, TestContext.CancellationToken).GetAwaiter().GetResult());
+                                    int nodeIndex = SeparatedPassingFixture.Index(path, 4);
+                                    editor.SelectAuthoredNode(nodeIndex);
+                                    currentEditor = editor;
+                                    bridge.RefreshSnapshot();
+                                    model.Start();
+                                    SettleLayout(window);
+                                    Assert.AreEqual(nodeIndex, model.SelectedNode?.Index);
+
+                                    dropdown = (IExpandCollapseProvider)peer.GetPattern(PatternInterface.ExpandCollapse);
+                                    Assert.IsNotNull(dropdown, "An empty opening must not turn Node actions into a leaf menu item.");
+                                    dropdown.Expand();
+                                    DrainCommands(commands);
+                                    SettleLayout(window);
+                                    Assert.IsTrue(menu.IsSubmenuOpen);
+                                    Assert.Contains(item => item.IsEnabled && Equals(item.Header,
+                                        global::FreeTrainSimulator.Toolbox.MainWindow.GetMapContextMenuCaption(new MapContextMenuItem(MapContextMenuAction.RemoveViaPoint, nodeIndex))),
+                                        menu.Items.OfType<MenuItem>());
+                                }
+                                finally
+                                {
+                                    window.Close();
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
         [TestMethod]
         public void WhenNoEditorExistsThenNodeMenuCaptureAndDispatchAreEmptyAndSafe()
         {

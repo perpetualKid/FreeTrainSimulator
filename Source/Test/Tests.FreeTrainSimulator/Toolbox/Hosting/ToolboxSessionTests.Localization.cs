@@ -1,15 +1,21 @@
 using System;
 using System.Linq;
 using System.Reflection;
+using System.Windows;
 using System.Windows.Automation;
 using System.Windows.Controls;
+using System.Windows.Threading;
 
 using AvalonDock;
 using AvalonDock.Layout;
 
+using FreeTrainSimulator.Common;
 using FreeTrainSimulator.Common.Info;
 using FreeTrainSimulator.Toolbox;
 using FreeTrainSimulator.Toolbox.Dialogs;
+using FreeTrainSimulator.Toolbox.PathEditing;
+using FreeTrainSimulator.Toolbox.ToolWindows;
+using FreeTrainSimulator.Toolbox.ViewModels;
 using FreeTrainSimulator.Toolbox.Views;
 
 using GetText;
@@ -43,7 +49,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.Hosting
                         catalogScope.Catalog.Translations[label] = ["Translated " + label];
                     catalogScope.Catalog.Translations["Path actions"] = ["Translated actions"];
 
-                    editor.RefreshToolbarLocalization();
+                    editor.RefreshLocalization();
                     chart.RefreshLocalization();
                     PumpMenuBindings();
 
@@ -55,6 +61,121 @@ namespace Tests.FreeTrainSimulator.Toolbox.Hosting
                     MenuItem pathActions = (MenuItem)editor.FindName("PathActionsMenuItem");
                     Assert.AreEqual("Translated actions", AutomationProperties.GetName(pathActions));
                     Assert.StartsWith("Translated actions", (string)pathActions.Header, StringComparison.Ordinal);
+                }
+            }
+        }
+
+        [STATestMethod]
+        [DoNotParallelize]
+        public void WhenPathWorkflowLabelsExpandThenActionsWrapInANarrowPane()
+        {
+            using (LocalizationCatalogScope catalogScope = new LocalizationCatalogScope())
+            using (ToolWindowRefreshScheduler scheduler = new ToolWindowRefreshScheduler(Dispatcher.CurrentDispatcher))
+            {
+                TrainPathToolWindow bridge = new TrainPathToolWindow(() => null, () => null, _ => { }, () => { }, () => { }, _ => { }, () => { }, () => { });
+                FieldInfo snapshot = typeof(TrainPathToolWindow).GetField("snapshot", BindingFlags.Instance | BindingFlags.NonPublic);
+                snapshot.SetValue(bridge, TrainPathSnapshot.Empty with { PassingBranchPhase = PassingBranchAuthoringPhase.SelectingRejoin });
+                using (TrainPathToolWindowViewModel model = new TrainPathToolWindowViewModel(bridge, scheduler, TrainPathToolWindowViewModel.EditorTabIndex))
+                {
+                    using (TrainPathToolView editor = new TrainPathToolView { DataContext = model })
+                    {
+                        model.Start();
+                        Window window = new Window { Content = editor, Width = 220, Height = 700, ShowInTaskbar = false };
+                        try
+                        {
+                            window.Show();
+                            PumpMenuBindings();
+                            Button rejoin = (Button)editor.FindName("RejoinWithPassingViaButton");
+                            Button cancel = (Button)editor.FindName("CancelRejoinButton");
+                            double originalHeight = rejoin.ActualHeight;
+                            const string expanded = "[Řéĵôîñ ţĥé þåššîñĝ ƀřåñçĥ ŵîţĥ ôñé åððîţîôñåļ þåššîñĝ vîå !!!]";
+                            catalogScope.Catalog.Translations["Rejoin with one passing via"] = [expanded];
+                            catalogScope.Catalog.Translations["Cancel"] = ["[Çåñçéļ !!!]"];
+                            catalogScope.Catalog.Translations["Paths"] = ["[Þåţĥš !!!]"];
+                            catalogScope.Catalog.Translations["Editor"] = ["[Éðîţôř !!!]"];
+                            editor.RefreshLocalization();
+                            PumpMenuBindings();
+                            window.UpdateLayout();
+
+                            Assert.AreEqual("[Þåţĥš !!!]", ((TabItem)editor.FindName("PathsTab")).Header);
+                            Assert.AreEqual("[Éðîţôř !!!]", ((TabItem)editor.FindName("EditorTab")).Header);
+                            Assert.AreEqual(expanded, rejoin.Content);
+                            Assert.AreEqual(expanded, AutomationProperties.GetName(rejoin));
+                            Assert.AreEqual("[Çåñçéļ !!!]", cancel.Content);
+                            Assert.AreSame(model.CancelPassingBranchCommand, cancel.Command);
+                            Assert.IsTrue(rejoin.IsVisible);
+                            Assert.IsTrue(cancel.IsVisible);
+                            Assert.IsFalse(((Button)editor.FindName("SetStartButton")).IsVisible);
+                            Separator nodeActionsSeparator = (Separator)editor.FindName("NodeActionsSeparator");
+                            Assert.AreEqual(Visibility.Collapsed, nodeActionsSeparator.Visibility);
+                            WrapPanel row = (WrapPanel)rejoin.Parent;
+                            Point rejoinOrigin = rejoin.TranslatePoint(new Point(), row);
+                            Point cancelOrigin = cancel.TranslatePoint(new Point(), row);
+                            Assert.IsGreaterThan(originalHeight, rejoin.ActualHeight, "The long translated label must wrap inside its button.");
+                            Assert.IsLessThanOrEqualTo(row.ActualWidth + 0.5, rejoinOrigin.X + rejoin.ActualWidth);
+                            Assert.IsGreaterThan(rejoinOrigin.Y, cancelOrigin.Y, "Cancel must wrap to the next line rather than clip.");
+
+                            snapshot.SetValue(bridge, TrainPathSnapshot.Empty with
+                            {
+                                Nodes = [new TrainPathNodeRow(0, PathNodeType.Via | PathNodeType.Wait, true, 1, -1, -1, 31725, null)],
+                                SelectedNodeIndex = 0,
+                                CanSetSelectedWaitPoint = true,
+                                CanClearSelectedWaitPoint = true,
+                            });
+                            model.Start();
+                            PumpMenuBindings();
+                            ToolBar toolbar = (ToolBar)editor.FindName("EditorActionToolbar");
+                            Button start = (Button)editor.FindName("SetStartButton");
+                            Button end = (Button)editor.FindName("SetEndButton");
+                            Button continuePath = (Button)editor.FindName("ContinuePathButton");
+                            MenuItem nodeActions = (MenuItem)editor.FindName("NodeActionsMenuItem");
+                            Assert.AreSame(model.SetStartHereCommand, start.Command);
+                            Assert.AreSame(model.SetEndHereCommand, end.Command);
+                            Assert.AreSame(model.ContinuePathCommand, continuePath.Command);
+                            Assert.IsTrue(toolbar.HasOverflowItems);
+                            Assert.IsTrue(nodeActions.IsVisible);
+                            Assert.IsFalse(ToolBar.GetIsOverflowItem((Menu)nodeActions.Parent));
+                            Assert.IsTrue(nodeActionsSeparator.IsVisible);
+                            Assert.IsFalse(ToolBar.GetIsOverflowItem(nodeActionsSeparator));
+                            Assert.IsGreaterThan(0, nodeActionsSeparator.ActualWidth);
+                            Assert.IsGreaterThanOrEqualTo(
+                                nodeActionsSeparator.TranslatePoint(new Point(nodeActionsSeparator.ActualWidth, 0), toolbar).X,
+                                nodeActions.TranslatePoint(new Point(), toolbar).X + 0.5);
+                            Button[] overflow = new[] { start, end, continuePath }.Where(ToolBar.GetIsOverflowItem).ToArray();
+                            Assert.IsNotEmpty(overflow);
+                            toolbar.IsOverflowOpen = true;
+                            PumpMenuBindings();
+                            Assert.IsTrue(toolbar.IsOverflowOpen);
+                            Assert.IsTrue(overflow.All(button => button.IsVisible));
+                            toolbar.IsOverflowOpen = false;
+
+                            window.Width = 700;
+                            PumpMenuBindings();
+                            Assert.IsFalse(toolbar.HasOverflowItems);
+                            Assert.IsTrue(start.IsVisible && end.IsVisible && continuePath.IsVisible && nodeActions.IsVisible);
+                            window.Width = 220;
+                            PumpMenuBindings();
+
+                            Button apply = (Button)editor.FindName("ApplyWaitOperationButton");
+                            Button clear = (Button)editor.FindName("ClearWaitPointButton");
+                            double originalApplyHeight = apply.ActualHeight;
+                            catalogScope.Catalog.Translations["Apply Operation"] = ["[Åþþļý ţĥé šéļéçţéð ôþéřåţîôñ ţô ţĥîš ŵåîţ þôîñţ !!!]"];
+                            editor.RefreshLocalization();
+                            PumpMenuBindings();
+                            window.UpdateLayout();
+                            WrapPanel waitRow = (WrapPanel)apply.Parent;
+                            Point applyOrigin = apply.TranslatePoint(new Point(), waitRow);
+                            Assert.IsTrue(apply.IsVisible);
+                            Assert.IsTrue(clear.IsVisible);
+                            Assert.IsGreaterThan(originalApplyHeight, apply.ActualHeight);
+                            Assert.IsLessThanOrEqualTo(waitRow.ActualWidth + 0.5, applyOrigin.X + apply.ActualWidth);
+                            Assert.IsGreaterThan(applyOrigin.Y, clear.TranslatePoint(new Point(), waitRow).Y);
+                        }
+                        finally
+                        {
+                            window.Close();
+                        }
+                    }
                 }
             }
         }
