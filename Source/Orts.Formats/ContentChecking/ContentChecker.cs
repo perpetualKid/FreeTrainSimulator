@@ -20,6 +20,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Text;
+using System.Threading;
 
 using FreeTrainSimulator.Common.Logging;
 
@@ -33,7 +34,7 @@ namespace Orts.Formats.ContentChecking
     /// </summary>
     public sealed class ContentChecker
     {
-        private static readonly object checkLock = new object();
+        private static readonly Lock checkLock = new Lock();
         private readonly List<string> requestedFiles = new List<string>();
         private readonly Dictionary<string, bool> loaded = new Dictionary<string, bool>(StringComparer.OrdinalIgnoreCase);
         private readonly HashSet<string> activeFiles = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
@@ -247,6 +248,17 @@ namespace Orts.Formats.ContentChecking
             public override void WriteLine(string value)
             {
                 writer.WriteLine(value);
+            }
+
+            protected override void Dispose(bool disposing)
+            {
+                base.Dispose(disposing);
+                if (disposing)
+                {
+                    writer?.Flush();
+                    writer?.Close();
+                    writer?.Dispose();
+                }
             }
         }
     }
