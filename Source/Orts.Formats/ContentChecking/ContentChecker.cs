@@ -18,6 +18,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Text;
 using System.Threading;
@@ -231,6 +232,7 @@ namespace Orts.Formats.ContentChecking
 
         private sealed class BorrowedTextWriter : TextWriter
         {
+            [SuppressMessage("Usage", "CA2213:Disposable fields should be disposed", Justification = "The caller owns this writer; disposing the adapter must leave it open.")]
             private readonly TextWriter writer;
 
             public override Encoding Encoding => writer.Encoding;
@@ -252,13 +254,8 @@ namespace Orts.Formats.ContentChecking
 
             protected override void Dispose(bool disposing)
             {
+                // Disposing this adapter must not close the caller-owned writer.
                 base.Dispose(disposing);
-                if (disposing)
-                {
-                    writer?.Flush();
-                    writer?.Close();
-                    writer?.Dispose();
-                }
             }
         }
     }
