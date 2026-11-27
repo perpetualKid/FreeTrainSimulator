@@ -6,7 +6,6 @@
     <BuildType Name="UpdateContentVersion" />
   </Configurations>
   <Folder Name="/Contrib/">
-    <Project Path="Contrib/ContentChecker/ContentChecker.csproj" />
     <Project Path="Contrib/ContentManager/ContentManager.csproj" />
     <Project Path="Contrib/SimulatorTester/SimulatorTester.csproj" />
   </Folder>
