@@ -9,6 +9,10 @@
              views:ToolWindow.DefaultFloatingSize="1000,450"
              d:DesignWidth="1000" d:DesignHeight="450">
     <UserControl.Resources>
+        <ResourceDictionary>
+        <ResourceDictionary.MergedDictionaries>
+            <ResourceDictionary Source="/Toolbox;component/Themes/SharedResources.xaml" />
+        </ResourceDictionary.MergedDictionaries>
         <!-- Encounters are separate ListView rows; this template renders only the run header. -->
         <ControlTemplate x:Key="StationRunExpanderTemplate" TargetType="{x:Type Expander}">
             <ToggleButton x:Name="HeaderSite" MinHeight="18" Padding="0" Margin="0"
@@ -58,12 +62,13 @@
                           ToolTip="{Binding ExpansionActionText}" AutomationProperties.Name="{Binding StationName}">
                     <Expander.HeaderTemplate>
                         <DataTemplate>
-                            <TextBlock Text="{Binding}" TextTrimming="CharacterEllipsis" />
+                            <TextBlock Text="{Binding}" TextTrimming="CharacterEllipsis" Style="{StaticResource ToolWindowSelectedPrimaryTextStyle}" />
                         </DataTemplate>
                     </Expander.HeaderTemplate>
                 </Expander>
                 <TextBlock x:Name="EncounterName" Text="{Binding StationName}" ToolTip="{Binding StationName}"
-                           TextTrimming="CharacterEllipsis" VerticalAlignment="Center" Margin="18,0,0,0" />
+                           TextTrimming="CharacterEllipsis" VerticalAlignment="Center" Margin="18,0,0,0"
+                           Style="{StaticResource ToolWindowSelectedPrimaryTextStyle}" />
             </Grid>
             <DataTemplate.Triggers>
                 <DataTrigger Binding="{Binding CanExpand}" Value="True">
@@ -78,6 +83,7 @@
                 </DataTrigger>
             </DataTemplate.Triggers>
         </DataTemplate>
+        </ResourceDictionary>
     </UserControl.Resources>
     <ScrollViewer x:Name="ChartLayoutScroll"
                   HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto"
@@ -146,10 +152,14 @@
             </Grid>
             <DockPanel Grid.Column="1" Margin="8,0,0,0">
                 <TextBlock DockPanel.Dock="Top" Text="Stations" FontWeight="Bold" Margin="0,0,0,4" />
-                <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal" Margin="0,6,0,0">
-                    <Button Content="Show on Map" Command="{Binding ShowOnMapCommand}" Padding="8,3" />
-                    <Button Content="Reset View" Click="ResetView_Click" Margin="6,0,0,0" Padding="8,3" />
-                </StackPanel>
+                <Border DockPanel.Dock="Top" Style="{StaticResource ToolWindowToolbarBandStyle}">
+                    <ToolBarTray Style="{StaticResource ToolWindowToolbarTrayStyle}">
+                        <ToolBar x:Name="PathChartToolbar" Style="{StaticResource ToolWindowToolbarStyle}">
+                            <Button x:Name="ShowOnMapButton" Content="&#xE707;" Command="{Binding ShowOnMapCommand}" Style="{StaticResource ToolWindowToolbarIconButtonStyle}" />
+                            <Button x:Name="ResetChartViewButton" Content="&#xE72C;" Click="ResetView_Click" Style="{StaticResource ToolWindowToolbarIconButtonStyle}" />
+                        </ToolBar>
+                    </ToolBarTray>
+                </Border>
                 <ListView x:Name="StationList" ItemsSource="{Binding Stations}"
                           SelectedItem="{Binding SelectedStation, Mode=TwoWay}"
                           SelectionChanged="StationList_SelectionChanged"

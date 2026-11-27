@@ -122,6 +122,9 @@ namespace FreeTrainSimulator.Toolbox.Settings
             set => pathEditorSelectedTabIndex = value is 0 or 1 ? value : 0;
         }
 
+        /// <summary>Last selected tab in the Settings tool window. Older profiles start on General (0).</summary>
+        public int SettingsSelectedTabIndex { get; set; }
+
         internal ProfileToolboxSettingsModel CopyPreferences(ProfileModel destination) => new ProfileToolboxSettingsModel
         {
             Name = destination.Name,

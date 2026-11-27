@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using System.Reflection;
+using System.Windows.Automation;
 using System.Windows.Controls;
 
 using AvalonDock;
@@ -9,6 +10,7 @@ using AvalonDock.Layout;
 using FreeTrainSimulator.Common.Info;
 using FreeTrainSimulator.Toolbox;
 using FreeTrainSimulator.Toolbox.Dialogs;
+using FreeTrainSimulator.Toolbox.Views;
 
 using GetText;
 using GetText.Wpf;
@@ -19,6 +21,44 @@ namespace Tests.FreeTrainSimulator.Toolbox.Hosting
 {
     public sealed partial class ToolboxSessionTests
     {
+        [STATestMethod]
+        [DoNotParallelize]
+        public void WhenPathToolbarsRefreshThenAccessibleLabelsAndTooltipsFollowTheCatalog()
+        {
+            using (LocalizationCatalogScope catalogScope = new LocalizationCatalogScope())
+            {
+                using (TrainPathToolView editor = new TrainPathToolView())
+                {
+                    PathChartToolView chart = new PathChartToolView();
+                    (Button Button, string Label)[] commands =
+                    [
+                        ((Button)editor.FindName("NewPathButton"), "New path"),
+                        ((Button)editor.FindName("SavePathButton"), "Save path"),
+                        ((Button)editor.FindName("UndoPathButton"), "Undo"),
+                        ((Button)editor.FindName("RedoPathButton"), "Redo"),
+                        ((Button)chart.FindName("ShowOnMapButton"), "Show on Map"),
+                        ((Button)chart.FindName("ResetChartViewButton"), "Reset View"),
+                ];
+                    foreach ((_, string label) in commands)
+                        catalogScope.Catalog.Translations[label] = ["Translated " + label];
+                    catalogScope.Catalog.Translations["Path actions"] = ["Translated actions"];
+
+                    editor.RefreshToolbarLocalization();
+                    chart.RefreshLocalization();
+                    PumpMenuBindings();
+
+                    foreach ((Button button, string label) in commands)
+                    {
+                        Assert.AreEqual("Translated " + label, AutomationProperties.GetName(button));
+                        Assert.AreEqual("Translated " + label, button.ToolTip);
+                    }
+                    MenuItem pathActions = (MenuItem)editor.FindName("PathActionsMenuItem");
+                    Assert.AreEqual("Translated actions", AutomationProperties.GetName(pathActions));
+                    Assert.StartsWith("Translated actions", (string)pathActions.Header, StringComparison.Ordinal);
+                }
+            }
+        }
+
         [STATestMethod]
         [DoNotParallelize]
         [Timeout(10000, CooperativeCancellation = true)]

@@ -12,6 +12,13 @@
              views:ToolWindow.DefaultFloatingSize="480,520"
              d:DesignWidth="480"
              d:DesignHeight="520">
+    <UserControl.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="/Toolbox;component/Themes/SharedResources.xaml" />
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
+    </UserControl.Resources>
     <DockPanel Margin="6">
         <DockPanel DockPanel.Dock="Top" Margin="0,0,0,6">
             <TextBox VerticalContentAlignment="Center"
@@ -33,7 +40,7 @@
                   behaviors:GridViewColumnBehavior.StretchListView="True">
             <ListView.View>
                 <GridView>
-                    <GridViewColumn Header="Command" Width="260" DisplayMemberBinding="{Binding Name}" />
+                    <GridViewColumn Header="Command" Width="260" CellTemplate="{StaticResource ToolWindowPrimaryNameCellTemplate}" />
                     <GridViewColumn Header="Key" Width="180" DisplayMemberBinding="{Binding Value}"
                                     behaviors:GridViewColumnBehavior.StretchColumn="True" />
                 </GridView>

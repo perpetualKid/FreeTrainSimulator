@@ -1121,7 +1121,9 @@ namespace Tests.FreeTrainSimulator.Toolbox.Views
 
         [TestMethod]
         [Timeout(15000, CooperativeCancellation = true)]
-        public void WhenWholePathReverseMenuItemIsInvokedThenItDispatchesTheBoundCommandAndTracksAvailability()
+        [DataRow(520, false)]
+        [DataRow(180, true)]
+        public void WhenWholePathReverseMenuItemIsInvokedThenItDispatchesTheBoundCommandAndTracksAvailability(int width, bool expectsOverflow)
         {
             Window window = null;
             try
@@ -1137,11 +1139,18 @@ namespace Tests.FreeTrainSimulator.Toolbox.Views
                     {
                         viewModel.Start();
                         TrainPathToolView view = new TrainPathToolView { DataContext = viewModel };
-                        window = new Window { Content = view, Width = 520, Height = 700, ShowInTaskbar = false };
+                        window = new Window { Content = view, Width = width, Height = 700, ShowInTaskbar = false };
                         window.Show();
                         SettleLayout(window);
+                        ToolBar toolbar = (ToolBar)view.FindName("PathEditorToolbar");
+                        Assert.AreEqual(expectsOverflow, toolbar.HasOverflowItems);
+                        Assert.AreSame(viewModel.NewPathCommand, ((Button)view.FindName("NewPathButton")).Command);
+                        Assert.AreSame(viewModel.SavePathCommand, ((Button)view.FindName("SavePathButton")).Command);
+                        Assert.AreSame(viewModel.UndoCommand, ((Button)view.FindName("UndoPathButton")).Command);
+                        Assert.AreSame(viewModel.RedoCommand, ((Button)view.FindName("RedoPathButton")).Command);
                         MenuItem reverse = (MenuItem)view.FindName("ReversePathMenuItem");
                         MenuItem pathActions = (MenuItem)reverse.Parent;
+                        Assert.IsTrue(pathActions.IsVisible, "Path actions must stay in the main toolbar row when icons overflow.");
                         bool correctMenu = ReferenceEquals(pathActions, ((MenuItem)view.FindName("ReResolvePathMenuItem")).Parent)
                             && AutomationProperties.GetName(pathActions) == "Path actions";
                         bool duplicateButton = Descendants(view).OfType<Button>().Any(button => ReferenceEquals(button.Command, viewModel.ReversePathCommand));
@@ -1406,7 +1415,10 @@ namespace Tests.FreeTrainSimulator.Toolbox.Views
                         ListView list = Descendants(view).OfType<ListView>().Single(element => ReferenceEquals(element.ItemsSource, viewModel.Paths));
                         Assert.AreSame(path, list.SelectedItem);
                         ListViewItem row = (ListViewItem)list.ItemContainerGenerator.ContainerFromItem(path);
-                        Assert.AreEqual(FontWeights.Bold, row.FontWeight);
+                        TextBlock selectedName = Descendants(row).OfType<TextBlock>().Single(element => element.Text == "Morning service");
+                        CheckBox compare = Descendants(row).OfType<CheckBox>().Single();
+                        Assert.AreEqual(FontWeights.SemiBold, selectedName.FontWeight);
+                        Assert.AreEqual(FontWeights.Normal, compare.FontWeight);
                         ListViewItem otherRow = (ListViewItem)list.ItemContainerGenerator.ContainerFromItem(otherPath);
                         Assert.AreEqual(Visibility.Collapsed, otherRow.Visibility);
 
@@ -1489,7 +1501,8 @@ namespace Tests.FreeTrainSimulator.Toolbox.Views
                         viewModel.UserSelectPath(path);
                         SettleLayout(window);
 
-                        Assert.AreEqual(FontWeights.Bold, name.FontWeight);
+                        Assert.AreEqual(FontWeights.SemiBold, name.FontWeight);
+                        Assert.AreEqual(FontWeights.Normal, marker.FontWeight);
                         Assert.IsTrue(marker.IsVisible);
                     }
                 }

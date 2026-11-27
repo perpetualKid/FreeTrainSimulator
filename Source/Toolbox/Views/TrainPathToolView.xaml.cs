@@ -3,12 +3,15 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Automation;
 using System.Windows.Controls;
 using System.Windows.Input;
 
 using FreeTrainSimulator.Toolbox.PathEditing;
 using FreeTrainSimulator.Toolbox.ToolWindows;
 using FreeTrainSimulator.Toolbox.ViewModels;
+
+using GetText;
 
 namespace FreeTrainSimulator.Toolbox.Views
 {
@@ -22,6 +25,7 @@ namespace FreeTrainSimulator.Toolbox.Views
         public TrainPathToolView()
         {
             InitializeComponent();
+            RefreshToolbarLocalization();
             AddHandler(Button.ClickEvent, new RoutedEventHandler(EditorAction_PreviewClick), true);
             PreviewMouseDown += EditorAction_PreviewMouseDown;
             PreviewKeyDown += EditorAction_PreviewKeyDown;
@@ -29,6 +33,19 @@ namespace FreeTrainSimulator.Toolbox.Views
             AddHandler(Keyboard.LostKeyboardFocusEvent, new KeyboardFocusChangedEventHandler(Editor_LostKeyboardFocus), true);
             DataContextChanged += (_, _) => CloseNodeActions();
             Unloaded += (_, _) => Dispose();
+        }
+
+        internal void RefreshToolbarLocalization()
+        {
+            Catalog catalog = CatalogManager.Catalog;
+            AutomationProperties.SetName(PathEditorToolbar, catalog.GetString("Path Editor"));
+            AutomationProperties.SetName(NewPathButton, catalog.GetString("New path"));
+            AutomationProperties.SetName(SavePathButton, catalog.GetString("Save path"));
+            AutomationProperties.SetName(UndoPathButton, catalog.GetString("Undo"));
+            AutomationProperties.SetName(RedoPathButton, catalog.GetString("Redo"));
+            string pathActions = catalog.GetString("Path actions");
+            AutomationProperties.SetName(PathActionsMenuItem, pathActions);
+            PathActionsMenuItem.Header = pathActions + " \u25BE";
         }
 
         private int? waitEditorNodeIndex;

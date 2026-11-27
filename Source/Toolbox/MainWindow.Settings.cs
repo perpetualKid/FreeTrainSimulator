@@ -2,7 +2,6 @@ using System;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Linq;
 using System.Windows;
 
 using FreeTrainSimulator.Common;
@@ -24,6 +23,7 @@ namespace FreeTrainSimulator.Toolbox
     {
         private ShellSettingsApplier shellSettingsApplier;
         private ManageProfilesViewModel profileManagement;
+        private int? initialSettingsTabIndex;
 
         private async Task ReopenProfileRouteAsync()
         {
@@ -64,7 +64,7 @@ namespace FreeTrainSimulator.Toolbox
             }
         }
 
-        private async Task SwitchToolboxProfileAsync(ProfileModel target)
+        private async Task ChangeToolboxProfileAsync(ProfileModel target, bool deleteActiveProfile)
         {
             if (isShuttingDown || shutdownTask != null)
                 return;
@@ -75,6 +75,7 @@ namespace FreeTrainSimulator.Toolbox
                 return;
             }
 
+            ProfileModel recoveryProfile = currentProfile;
             isShuttingDown = true;
             try
             {
@@ -86,7 +87,7 @@ namespace FreeTrainSimulator.Toolbox
                     return;
 
                 bool reopenRoute = false;
-                if (state.Route != null)
+                if (!deleteActiveProfile && state.Route != null)
                 {
                     MessageBoxResult choice = MessageBox.Show(this,
                         CatalogManager.Catalog.GetString("Reopen the current route under profile '{0}'? Choose No to switch with the map closed.", target.Name),
@@ -96,23 +97,41 @@ namespace FreeTrainSimulator.Toolbox
                     reopenRoute = choice == MessageBoxResult.Yes;
                 }
 
-                if (!(await target.RefreshProfiles(CancellationToken.None).ConfigureAwait(true)).Any(profile => string.Equals(profile.Name, target.Name, StringComparison.OrdinalIgnoreCase)))
+                if (!deleteActiveProfile && (await target.RefreshProfiles(CancellationToken.None).ConfigureAwait(true)).GetByName(target.Name) == null)
                     throw new InvalidOperationException(CatalogManager.Catalog.GetString("The selected profile no longer exists."));
 
                 await ShutdownAsync().ConfigureAwait(true);
+                if (deleteActiveProfile)
+                {
+                    await ManageProfilesViewModel.DeleteStoredProfileAsync(currentProfile, CancellationToken.None).ConfigureAwait(true);
+                    target = recoveryProfile = await currentProfile.Current(CancellationToken.None).ConfigureAwait(true);
+                }
                 await ShowReplacementToolboxAsync(target, reopenRoute ? (state.Folder, state.Route) : default, null).ConfigureAwait(true);
+                try
+                {
+                    await target.UpdateCurrent(CancellationToken.None).ConfigureAwait(true);
+                }
+                catch (Exception failure) when (CleanupExceptionPolicy.CanContinue(failure))
+                {
+                    Trace.TraceError($"Failed to save the shared profile selection: {failure}");
+                    MessageBox.Show(this, CatalogManager.Catalog.GetString("Toolbox switched profiles, but the shared selection could not be saved: {0}", failure.Message),
+                        CatalogManager.Catalog.GetString("Switch Toolbox Profile"), MessageBoxButton.OK, MessageBoxImage.Error);
+                }
             }
             catch (Exception failure) when (CleanupExceptionPolicy.CanContinue(failure))
             {
                 Trace.TraceError($"Failed to switch Toolbox profile: {failure}");
-                MessageBox.Show(this, CatalogManager.Catalog.GetString("Could not switch Toolbox profiles: {0}", failure.Message),
-                    CatalogManager.Catalog.GetString("Switch Toolbox Profile"), MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show(this, deleteActiveProfile
+                        ? CatalogManager.Catalog.GetString("Could not complete the profile deletion: {0}", failure.Message)
+                        : CatalogManager.Catalog.GetString("Could not switch Toolbox profiles: {0}", failure.Message),
+                    deleteActiveProfile ? CatalogManager.Catalog.GetString("Delete Profile") : CatalogManager.Catalog.GetString("Switch Toolbox Profile"),
+                    MessageBoxButton.OK, MessageBoxImage.Error);
                 if (!shutdownCompleted)
                     return;
 
                 try
                 {
-                    await ShowReplacementToolboxAsync(currentProfile, default, null).ConfigureAwait(true);
+                    await ShowReplacementToolboxAsync(recoveryProfile, default, null).ConfigureAwait(true);
                 }
                 catch (Exception recoveryFailure) when (CleanupExceptionPolicy.CanContinue(recoveryFailure))
                 {
@@ -167,9 +186,12 @@ namespace FreeTrainSimulator.Toolbox
             profileManagement = new ManageProfilesViewModel(currentProfile)
             {
                 CaptureActiveConfigurationAsync = CaptureActiveConfigurationAsync,
-                UseProfileAsync = SwitchToolboxProfileAsync,
+                UseProfileAsync = target => ChangeToolboxProfileAsync(target, false),
+                DeleteActiveProfileAsync = () => ChangeToolboxProfileAsync(currentProfile, true),
             };
             BindSettings(new SettingsToolWindow(toolboxSettings, userSettings, shellSettingsApplier));
+            SettingsPane.SelectedTabIndex = toolboxSettings.SettingsSelectedTabIndex;
+            initialSettingsTabIndex = SettingsPane.SelectedTabIndex;
         }
 
         private async Task<(ProfileToolboxSettingsModel Toolbox, ProfileUserSettingsModel User)> CaptureActiveConfigurationAsync(ProfileModel destination, CancellationToken cancellationToken)

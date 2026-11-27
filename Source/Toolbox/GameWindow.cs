@@ -615,18 +615,20 @@ namespace FreeTrainSimulator.Toolbox
             }, CancellationToken.None, TaskContinuationOptions.OnlyOnFaulted | TaskContinuationOptions.ExecuteSynchronously, TaskScheduler.Default);
         }
 
-        internal Task SaveHostedSettingsAsync(string dockLayoutJson, WindowPlacementSettings windowPlacement, int pathEditorSelectedTabIndex)
+        internal Task SaveHostedSettingsAsync(string dockLayoutJson, WindowPlacementSettings windowPlacement, int pathEditorSelectedTabIndex, int? settingsTabIndex)
         {
-            return InvokeOnGameThreadAsync(() => session.RunAsync(() => SaveHostedSettingsOnGameThreadAsync(dockLayoutJson, windowPlacement, pathEditorSelectedTabIndex)));
+            return InvokeOnGameThreadAsync(() => session.RunAsync(() => SaveHostedSettingsOnGameThreadAsync(dockLayoutJson, windowPlacement, pathEditorSelectedTabIndex, settingsTabIndex)));
         }
 
-        private async Task SaveHostedSettingsOnGameThreadAsync(string dockLayoutJson, WindowPlacementSettings windowPlacement, int pathEditorSelectedTabIndex)
+        private async Task SaveHostedSettingsOnGameThreadAsync(string dockLayoutJson, WindowPlacementSettings windowPlacement, int pathEditorSelectedTabIndex, int? settingsTabIndex)
         {
             if (ToolboxSettings != null)
             {
                 ToolboxSettings.DockLayoutJson = dockLayoutJson;
                 ToolboxSettings.WindowPlacements = windowPlacement;
                 ToolboxSettings.PathEditorSelectedTabIndex = pathEditorSelectedTabIndex;
+                if (settingsTabIndex is >= 0)
+                    ToolboxSettings.SettingsSelectedTabIndex = settingsTabIndex.Value;
             }
 
             await SaveSettings().ConfigureAwait(false);

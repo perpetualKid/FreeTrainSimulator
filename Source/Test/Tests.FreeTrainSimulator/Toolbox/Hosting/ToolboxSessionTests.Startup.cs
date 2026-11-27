@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Automation;
 using System.Windows.Controls;
+using System.Windows.Input;
 using System.Windows.Threading;
 using System.Xml.Linq;
 
@@ -33,6 +34,7 @@ using GetText;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 using SimulatorCommand = global::FreeTrainSimulator.Common.Input.UserCommand;
+using ProfileRow = FreeTrainSimulator.Toolbox.ViewModels.ManageProfilesViewModel.ProfileRow;
 
 namespace Tests.FreeTrainSimulator.Toolbox.Hosting
 {
@@ -40,14 +42,24 @@ namespace Tests.FreeTrainSimulator.Toolbox.Hosting
     {
         private static void AssertProfileLabelsRefresh(SettingsToolView view, SettingsToolWindowViewModel model)
         {
+            ListBox profiles = (ListBox)view.FindName("ProfilesList");
+            CheckBox reopenRoute = (CheckBox)view.FindName("ReopenLastRouteOption");
+            ProfileRow activeProfile = profiles.Items.OfType<ProfileRow>().Single(row => row.IsActive);
+            ((Button)view.FindName("CreateProfileButton")).RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+            (TextBox name, Button save, Button cancel) = ProfileDraftControls(profiles);
             (string Source, Func<string> Read)[] labels =
             [
+                ("Reopen last route on startup", () => (string)reopenRoute.Content),
+                ("Reopens the last route and restores its saved path and map view.", () => (string)reopenRoute.ToolTip),
                 ("Profiles", () => (string)((TabItem)view.FindName("ProfilesTab")).Header),
                 ("Profiles", () => AutomationProperties.GetName((ListBox)view.FindName("ProfilesList"))),
-                ("New profile name", () => ((TextBlock)view.FindName("ProfileNameLabel")).Text),
-                ("Create Profile", () => (string)((Button)view.FindName("CreateProfileButton")).Content),
-                ("Duplicate Profile", () => (string)((Button)view.FindName("DuplicateProfileButton")).Content),
-                ("Use in Toolbox", () => (string)((Button)view.FindName("UseProfileButton")).Content),
+                ("Active", () => AutomationProperties.GetItemStatus(profiles.ItemContainerGenerator.ContainerFromItem(activeProfile))),
+                ("New profile name", () => AutomationProperties.GetName(name)),
+                ("Save", () => ReadProfileActionLabel(save)),
+                ("Cancel", () => ReadProfileActionLabel(cancel)),
+                ("Create Profile", () => ReadProfileActionLabel((Button)view.FindName("CreateProfileButton"))),
+                ("Duplicate Profile", () => ReadProfileActionLabel((Button)view.FindName("DuplicateProfileButton"))),
+                ("Delete Profile", () => ReadProfileActionLabel((Button)view.FindName("DeleteProfileButton"))),
             ];
             foreach ((string source, Func<string> read) in labels)
                 Assert.AreEqual(CatalogManager.Catalog.GetString(source), read(), source);
@@ -68,6 +80,39 @@ namespace Tests.FreeTrainSimulator.Toolbox.Hosting
                     Assert.AreEqual(source, read(), source);
             }
             model.RefreshLocalization();
+            cancel.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+            Assert.IsEmpty(profiles.Items.OfType<ListBoxItem>());
+        }
+
+        private static string ReadProfileActionLabel(Button button)
+        {
+            string label = AutomationProperties.GetName(button);
+            Assert.AreEqual(label, button.ToolTip);
+            return label;
+        }
+
+        private static (TextBox Name, Button Save, Button Cancel) ProfileDraftControls(ListBox profiles)
+        {
+            PumpMenuBindings();
+            Grid draft = (Grid)profiles.Items.OfType<ListBoxItem>().Single().Content;
+            TextBox name = (TextBox)draft.Children[0];
+            Button save = (Button)draft.Children[1];
+            Button cancel = (Button)draft.Children[2];
+            Point nameOrigin = name.TranslatePoint(new Point(), draft);
+            Point saveOrigin = save.TranslatePoint(new Point(), draft);
+            Point cancelOrigin = cancel.TranslatePoint(new Point(), draft);
+            Assert.IsTrue(name.ActualWidth > 0 && nameOrigin.X < saveOrigin.X && saveOrigin.X < cancelOrigin.X);
+            Assert.AreEqual(nameOrigin.Y, saveOrigin.Y, 0.5);
+            Assert.AreEqual(saveOrigin.Y, cancelOrigin.Y, 0.5);
+            return (name, save, cancel);
+        }
+
+        private static void PressProfileDraftKey(TextBox name, Key key)
+        {
+            name.RaiseEvent(new KeyEventArgs(Keyboard.PrimaryDevice, PresentationSource.FromVisual(name), 0, key)
+            {
+                RoutedEvent = Keyboard.PreviewKeyDownEvent,
+            });
         }
 
         [TestMethod]
@@ -137,12 +182,16 @@ namespace Tests.FreeTrainSimulator.Toolbox.Hosting
             ProfileSelectionsModel selections = profile.LoadSettingsModel<ProfileSelectionsModel>(CancellationToken.None).GetAwaiter().GetResult();
             selections.RouteId = "menu-route";
             _ = profile.UpdateSettingsModel(selections, CancellationToken.None).GetAwaiter().GetResult();
+            ProfileToolboxSettingsModel startupSettings = profile.LoadSettingsModel<ProfileToolboxSettingsModel>(CancellationToken.None).GetAwaiter().GetResult();
+            startupSettings.SettingsSelectedTabIndex = 3;
+            _ = profile.UpdateSettingsModel(startupSettings, CancellationToken.None).GetAwaiter().GetResult();
             FolderModel folder = MenuFolder("Pending startup folder");
             TaskCompletionSource<ImmutableArray<RouteModelHeader>> routes = new TaskCompletionSource<ImmutableArray<RouteModelHeader>>(TaskCreationOptions.RunContinuationsAsynchronously);
             MenuRouteCache.SetRoutes(folder, routes.Task);
             Task<ContentModel> previous = MenuContentCache.Replace(new ContentModel([folder]) { Version = ContentModel.MinimumVersion });
             MainWindow shell = null;
             MainWindow reopened = null;
+            MainWindow fallbackWindow = null;
             SynchronizationContext previousContext = SynchronizationContext.Current;
             SynchronizationContext.SetSynchronizationContext(new DispatcherSynchronizationContext());
             try
@@ -156,10 +205,23 @@ namespace Tests.FreeTrainSimulator.Toolbox.Hosting
                     Assert.AreEqual(profile.Name, model.SettingsTool.ProfileName);
                     SettingsToolView settings = (SettingsToolView)shell.FindName("SettingsPane");
                     TabItem tab = (TabItem)settings.FindName("ProfilesTab");
-                    tab.IsSelected = true;
+                    Assert.IsTrue(tab.IsSelected, "Startup should restore the saved Profiles tab.");
                     ListBox profiles = (ListBox)settings.FindName("ProfilesList");
-                    PumpMenuUntil(() => profiles.IsVisible && profiles.Items.Contains(profile.Name));
-                    Assert.IsTrue(((Button)settings.FindName("CreateProfileButton")).IsEnabled);
+                    PumpMenuUntil(() => profiles.IsVisible && profiles.Items.OfType<ProfileRow>().Any(row => row.Name == profile.Name));
+                    Assert.AreEqual(profile.Name, profiles.Items.OfType<ProfileRow>().Single(row => row.IsActive).Name);
+                    Button create = (Button)settings.FindName("CreateProfileButton");
+                    Button duplicateAction = (Button)settings.FindName("DuplicateProfileButton");
+                    Button delete = (Button)settings.FindName("DeleteProfileButton");
+                    ToolBar toolbar = (ToolBar)settings.FindName("ProfilesToolbar");
+                    Assert.IsTrue(create.IsEnabled);
+                    Assert.AreEqual(4, toolbar.Items.Count);
+                    Assert.AreSame(create, toolbar.Items[0]);
+                    Assert.AreSame(duplicateAction, toolbar.Items[1]);
+                    Assert.IsInstanceOfType<Separator>(toolbar.Items[2]);
+                    Assert.AreSame(delete, toolbar.Items[3]);
+                    Assert.IsLessThanOrEqualTo(duplicateAction.TranslatePoint(new Point(), toolbar).X, create.TranslatePoint(new Point(), toolbar).X + create.ActualWidth);
+                    Assert.IsLessThan(delete.TranslatePoint(new Point(), toolbar).X, duplicateAction.TranslatePoint(new Point(), toolbar).X + duplicateAction.ActualWidth);
+                    Assert.IsLessThanOrEqualTo(profiles.TranslatePoint(new Point(), settings).Y, create.TranslatePoint(new Point(0, create.ActualHeight), settings).Y);
                     Assert.Contains(profile.Name, ((TextBlock)settings.FindName("ActiveProfileLabel")).Text, StringComparison.Ordinal);
                     AvalonDock.DockingManager manager = (AvalonDock.DockingManager)shell.FindName("DockingManager");
                     LayoutAnchorable pane = manager.Layout.Descendents().OfType<LayoutAnchorable>().Single(item => ReferenceEquals(settings, item.Content));
@@ -186,12 +248,27 @@ namespace Tests.FreeTrainSimulator.Toolbox.Hosting
                     ProfileToolboxSettingsModel activeWorkspace = (ProfileToolboxSettingsModel)typeof(MainWindow).GetField("toolboxSettings", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(shell);
                     activeWorkspace.RouteId = "toolbox-route";
                     activeWorkspace.PathId = "toolbox-path";
-                    profiles.SelectedItem = profile.Name;
-                    ((TextBox)settings.FindName("ProfileNameInput")).Text = copy.Name;
+                    profiles.SelectedValue = profile.Name;
                     Button duplicate = (Button)settings.FindName("DuplicateProfileButton");
                     Assert.IsTrue(duplicate.IsEnabled);
                     duplicate.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
-                    PumpMenuUntil(() => profiles.Items.Contains(copy.Name) && duplicate.IsEnabled);
+                    (TextBox copyName, Button saveCopy, _) = ProfileDraftControls(profiles);
+                    copyName.Text = copy.Name;
+                    saveCopy.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+                    PumpMenuUntil(() => profiles.Items.OfType<ProfileRow>().Any(row => row.Name == copy.Name) && duplicate.IsEnabled);
+                    Assert.AreEqual(copy.Name, profiles.SelectedValue);
+                    PumpMenuBindings();
+                    ProfileRow activeRow = profiles.Items.OfType<ProfileRow>().Single(row => row.IsActive);
+                    ListBoxItem activeContainer = (ListBoxItem)profiles.ItemContainerGenerator.ContainerFromItem(activeRow);
+                    ListBoxItem selectedContainer = (ListBoxItem)profiles.ItemContainerGenerator.ContainerFromItem(profiles.SelectedItem);
+                    Assert.AreEqual(profile.Name, activeRow.Name);
+                    Assert.IsFalse(activeContainer.IsSelected);
+                    Assert.AreEqual(FontWeights.SemiBold, activeContainer.FontWeight);
+                    Assert.AreEqual(CatalogManager.Catalog.GetString("Active"), AutomationProperties.GetItemStatus(activeContainer));
+                    Assert.IsTrue(selectedContainer.IsSelected);
+                    Assert.AreEqual(FontWeights.Normal, selectedContainer.FontWeight);
+                    Assert.IsTrue(string.IsNullOrEmpty(AutomationProperties.GetItemStatus(selectedContainer)));
+                    Assert.AreEqual(profile.Name, profiles.Items.OfType<ProfileRow>().Single(row => row.IsActive).Name);
                     ProfileToolboxSettingsModel preferences = copy.LoadSettingsModel<ProfileToolboxSettingsModel>(CancellationToken.None).GetAwaiter().GetResult();
                     Assert.AreEqual("Black", preferences.ColorSettings[ColorSetting.Background]);
                     Assert.IsFalse(preferences.ViewSettings[MapContentType.Tracks]);
@@ -211,18 +288,36 @@ namespace Tests.FreeTrainSimulator.Toolbox.Hosting
                     Assert.IsTrue(preferences.RestoreLastView);
                     _ = copy.UpdateSettingsModel(preferences, CancellationToken.None).GetAwaiter().GetResult();
                     routes.TrySetResult([]);
-                    Button use = (Button)settings.FindName("UseProfileButton");
-                    Assert.IsTrue(use.IsEnabled);
-                    use.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+                    profiles.ScrollIntoView(profiles.SelectedItem);
+                    PumpMenuBindings();
+                    ListBoxItem copyRow = (ListBoxItem)profiles.ItemContainerGenerator.ContainerFromItem(profiles.SelectedItem);
+                    Assert.IsNotNull(copyRow);
+                    profiles.RaiseEvent(new MouseButtonEventArgs(Mouse.PrimaryDevice, 0, MouseButton.Left)
+                    {
+                        RoutedEvent = Control.MouseDoubleClickEvent,
+                        Source = copyRow,
+                    });
                     PumpMenuUntil(() => (reopened = PresentationSource.CurrentSources.Cast<PresentationSource>()
                         .Select(source => source.RootVisual).OfType<MainWindow>()
                         .FirstOrDefault(window => window.Dispatcher == shell.Dispatcher && !ReferenceEquals(window, shell))) != null
                         && ((MainWindowViewModel)reopened.DataContext).SettingsTool?.ProfileName == copy.Name && !shell.IsVisible);
                     Assert.IsNull(typeof(MainWindow).GetField("MapHost", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(reopened));
-                    Assert.AreEqual(profile.Name, copy.Current(CancellationToken.None).GetAwaiter().GetResult().Name);
+                    Assert.AreEqual(copy.Name, copy.Current(CancellationToken.None).GetAwaiter().GetResult().Name);
                     SettingsToolWindowViewModel copySettings = ((MainWindowViewModel)reopened.DataContext).SettingsTool;
                     copySettings.ColorItems.Single(item => item.Setting == ColorSetting.Background).UserSelectColorName("White");
                     Assert.AreEqual("Black", profile.LoadSettingsModel<ProfileToolboxSettingsModel>(CancellationToken.None).GetAwaiter().GetResult().ColorSettings[ColorSetting.Background]);
+
+                    ProfileModel fallback = copy.RefreshProfiles(CancellationToken.None).GetAwaiter().GetResult()
+                        .Where(item => item.Name != copy.Name).OrderBy(item => item.Name).First();
+                    Task deletion = copySettings.ProfileManagement.DeleteActiveProfileAsync();
+                    PumpMenuUntil(() => (fallbackWindow = PresentationSource.CurrentSources.Cast<PresentationSource>()
+                        .Select(source => source.RootVisual).OfType<MainWindow>()
+                        .FirstOrDefault(window => window.Dispatcher == shell.Dispatcher && !ReferenceEquals(window, reopened))) != null
+                        && ((MainWindowViewModel)fallbackWindow.DataContext).SettingsTool?.ProfileName == fallback.Name && deletion.IsCompleted);
+                    deletion.GetAwaiter().GetResult();
+                    Assert.IsFalse(reopened.IsVisible);
+                    Assert.IsNull(copy.RefreshProfiles(CancellationToken.None).GetAwaiter().GetResult().GetByName(copy.Name));
+                    Assert.AreEqual(fallback.Name, copy.Current(CancellationToken.None).GetAwaiter().GetResult().Name);
                 }
             }
             finally
@@ -230,7 +325,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.Hosting
                 try
                 {
                     routes.TrySetResult([]);
-                    MainWindow remaining = reopened ?? shell;
+                    MainWindow remaining = fallbackWindow ?? reopened ?? shell;
                     if (remaining?.IsVisible == true)
                     {
                         Task shutdown = (Task)typeof(MainWindow).GetMethod("ShutdownAsync", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(remaining, null);
@@ -652,43 +747,69 @@ namespace Tests.FreeTrainSimulator.Toolbox.Hosting
             SynchronizationContext previousContext = SynchronizationContext.Current;
             SynchronizationContext.SetSynchronizationContext(new DispatcherSynchronizationContext());
             SettingsToolWindowViewModel model = null;
+            Window settingsWindow = null;
             try
             {
                 MainWindow shell = CreateShutdownShell(null);
                 SetField(shell, "currentProfile", active);
                 SetField(shell, "toolboxSettings", saved);
                 SetField(shell, "userSettings", new ProfileUserSettingsModel { LogLevel = System.Diagnostics.TraceEventType.Critical });
+                SettingsToolView settings = new SettingsToolView();
+                SetField(shell, "SettingsPane", settings);
                 typeof(MainWindow).GetMethod("InitializeToolWindowCommands", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(shell, null);
                 typeof(MainWindow).GetMethod("InitializeShellSettings", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(shell, null);
                 model = ((MainWindowViewModel)typeof(MainWindow).GetField("viewModel", BindingFlags.Instance | BindingFlags.NonPublic).GetValue(shell)).SettingsTool;
-                SettingsToolView settings = new SettingsToolView { DataContext = model };
+                settings.DataContext = model;
+                settingsWindow = new Window { Content = settings, Width = 480, Height = 480, ShowInTaskbar = false };
+                settingsWindow.Show();
                 ((TabItem)settings.FindName("ProfilesTab")).IsSelected = true;
                 ListBox profiles = (ListBox)settings.FindName("ProfilesList");
-                TextBox name = (TextBox)settings.FindName("ProfileNameInput");
                 Button create = (Button)settings.FindName("CreateProfileButton");
                 TextBlock status = (TextBlock)settings.FindName("ProfileStatus");
                 PumpMenuUntil(() => create.IsEnabled);
-                Assert.Contains(active.Name, profiles.Items);
+                Assert.IsTrue(profiles.Items.OfType<ProfileRow>().Any(row => row.Name == active.Name));
+                Assert.IsFalse(profiles.Items.OfType<ListBoxItem>().Any());
+                create.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+                (TextBox name, _, _) = ProfileDraftControls(profiles);
+                Assert.IsTrue(name.IsVisible);
+                name.Text = created.Name;
+                PressProfileDraftKey(name, Key.Escape);
+                Assert.IsFalse(profiles.Items.OfType<ListBoxItem>().Any());
+                Assert.AreEqual(active.Name, profiles.SelectedValue);
+                Assert.IsNull(active.RefreshProfiles(cancellationToken).GetAwaiter().GetResult().GetByName(created.Name));
+
+                create.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+                (name, Button save, _) = ProfileDraftControls(profiles);
+                Assert.AreEqual(string.Empty, name.Text);
                 name.Text = "CON";
-                create.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
-                PumpMenuUntil(() => create.IsEnabled);
+                PressProfileDraftKey(name, Key.Enter);
+                PumpMenuUntil(() => save.IsEnabled);
                 Assert.Contains("valid profile name", status.Text, StringComparison.Ordinal);
-                Assert.IsFalse(profiles.Items.Contains("CON"));
+                Assert.IsFalse(profiles.Items.OfType<ProfileRow>().Any(row => row.Name == "CON"));
+                Assert.AreEqual("CON", name.Text);
                 name.Text = active.Name.ToUpperInvariant();
-                create.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
-                PumpMenuUntil(() => create.IsEnabled);
+                PressProfileDraftKey(name, Key.Enter);
+                PumpMenuUntil(() => save.IsEnabled);
                 Assert.Contains("already exists", status.Text, StringComparison.Ordinal);
                 name.Text = created.Name;
-                create.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
+                PressProfileDraftKey(name, Key.Enter);
                 PumpMenuUntil(() => create.IsEnabled);
-                Assert.Contains(created.Name, profiles.Items);
+                Assert.IsFalse(profiles.Items.OfType<ListBoxItem>().Any());
+                Assert.IsTrue(profiles.Items.OfType<ProfileRow>().Any(row => row.Name == created.Name));
                 Assert.IsTrue(active.RefreshProfiles(cancellationToken).GetAwaiter().GetResult().Any(profile => profile.Name == created.Name));
                 Assert.AreEqual(active.Name, active.Current(cancellationToken).GetAwaiter().GetResult().Name);
                 Assert.AreEqual("saved-route", active.LoadSettingsModel<ProfileToolboxSettingsModel>(cancellationToken).GetAwaiter().GetResult().RouteId);
                 Assert.IsNull(created.LoadSettingsModel<ProfileToolboxSettingsModel>(cancellationToken).GetAwaiter().GetResult().RouteId);
+                Task deletion = model.ProfileManagement.DeleteOtherProfileAsync(created.Name, cancellationToken);
+                PumpMenuUntil(() => deletion.IsCompleted);
+                deletion.GetAwaiter().GetResult();
+                Assert.IsNull(active.RefreshProfiles(cancellationToken).GetAwaiter().GetResult().GetByName(created.Name));
+                Assert.AreEqual(active.Name, active.Current(cancellationToken).GetAwaiter().GetResult().Name);
+                Assert.AreEqual("saved-route", active.LoadSettingsModel<ProfileToolboxSettingsModel>(cancellationToken).GetAwaiter().GetResult().RouteId);
             }
             finally
             {
+                settingsWindow?.Close();
                 SynchronizationContext.SetSynchronizationContext(previousContext);
                 model?.Dispose();
                 original.UpdateCurrent(CancellationToken.None).GetAwaiter().GetResult();
@@ -707,6 +828,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.Hosting
             ProfileToolboxSettingsModel settings = await profile.LoadSettingsModel<ProfileToolboxSettingsModel>(CancellationToken.None).ConfigureAwait(false);
             settings.DockLayoutJson = "previous-layout";
             settings.RouteId = "saved-route";
+            settings.SettingsSelectedTabIndex = 1;
             await profile.UpdateSettingsModel(settings, CancellationToken.None).ConfigureAwait(false);
             StaControlHost owner = await StaControlHost.StartAsync().ConfigureAwait(false);
             await using (owner.ConfigureAwait(false))
@@ -722,6 +844,12 @@ namespace Tests.FreeTrainSimulator.Toolbox.Hosting
                     SetField(shell, "MapHost", null);
                     SetField(shell, "currentProfile", profile);
                     SetField(shell, "toolboxSettings", settings);
+                    SetField(shell, "userSettings", new ProfileUserSettingsModel());
+                    SettingsToolView settingsPane = new SettingsToolView();
+                    SetField(shell, "SettingsPane", settingsPane);
+                    typeof(MainWindow).GetMethod("InitializeShellSettings", BindingFlags.Instance | BindingFlags.NonPublic).Invoke(shell, null);
+                    Assert.AreEqual(1, settingsPane.SelectedTabIndex);
+                    settingsPane.SelectedTabIndex = 2;
                     MethodInfo serialize = typeof(MainWindow).GetMethod("SerializeDockLayout", BindingFlags.Instance | BindingFlags.NonPublic);
                     SetField(shell, "initialDockLayoutJson", (string)serialize.Invoke(shell, null));
                     if (changeLayout)
@@ -736,6 +864,7 @@ namespace Tests.FreeTrainSimulator.Toolbox.Hosting
                 ProfileToolboxSettingsModel restored = await profile.LoadSettingsModel<ProfileToolboxSettingsModel>(CancellationToken.None).ConfigureAwait(false);
                 Assert.AreEqual(expected, restored.DockLayoutJson);
                 Assert.AreEqual("saved-route", restored.RouteId);
+                Assert.AreEqual(2, restored.SettingsSelectedTabIndex);
             }
         }
 

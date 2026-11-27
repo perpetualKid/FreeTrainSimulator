@@ -49,7 +49,7 @@
                           behaviors:GridViewColumnBehavior.StretchListView="True">
                     <ListView.View>
                         <GridView>
-                            <GridViewColumn Header="Station" Width="460" DisplayMemberBinding="{Binding Name}"
+                            <GridViewColumn Header="Station" Width="460" CellTemplate="{StaticResource ToolWindowPrimaryNameCellTemplate}"
                                             behaviors:GridViewColumnBehavior.StretchColumn="True" />
                         </GridView>
                     </ListView.View>
@@ -71,7 +71,7 @@
                     <ListView.View>
                         <GridView>
                             <GridViewColumn Header="Station" Width="Auto" DisplayMemberBinding="{Binding GroupName}" />
-                            <GridViewColumn Header="Platform" DisplayMemberBinding="{Binding Name}"
+                            <GridViewColumn Header="Platform" CellTemplate="{StaticResource ToolWindowPrimaryNameCellTemplate}"
                                             behaviors:GridViewColumnBehavior.StretchColumn="True" />
                         </GridView>
                     </ListView.View>
@@ -93,7 +93,7 @@
                     <ListView.View>
                         <GridView>
                             <GridViewColumn Header="Nearest Station" Width="Auto" DisplayMemberBinding="{Binding GroupName}" />
-                            <GridViewColumn Header="Siding" DisplayMemberBinding="{Binding Name}"
+                            <GridViewColumn Header="Siding" CellTemplate="{StaticResource ToolWindowPrimaryNameCellTemplate}"
                                             behaviors:GridViewColumnBehavior.StretchColumn="True" />
                         </GridView>
                     </ListView.View>

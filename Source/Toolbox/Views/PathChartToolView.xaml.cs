@@ -26,6 +26,10 @@ namespace FreeTrainSimulator.Toolbox.Views
         /// <summary>Refreshes native drawing labels; the shell's Localizer owns the static XAML strings.</summary>
         public void RefreshLocalization()
         {
+            Catalog catalog = CatalogManager.Catalog;
+            AutomationProperties.SetName(PathChartToolbar, catalog.GetString("Path Chart"));
+            AutomationProperties.SetName(ShowOnMapButton, catalog.GetString("Show on Map"));
+            AutomationProperties.SetName(ResetChartViewButton, catalog.GetString("Reset View"));
             AutomationProperties.SetName(StationList, CatalogManager.Catalog.GetString("Stations along the main route"));
             AutomationProperties.SetName(ViewportScrollBar, CatalogManager.Catalog.GetString("Visible main-route distance range"));
             ViewportScrollBar.ToolTip = CatalogManager.Catalog.GetString("Scroll to pan the zoomed path chart");

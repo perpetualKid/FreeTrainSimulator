@@ -6,14 +6,48 @@
     <viewModels:BoolToFontWeightConverter x:Key="BoolToFontWeightConverter" />
     <viewModels:ColorNameToBrushConverter x:Key="ColorNameToBrushConverter" />
     <viewModels:StringToVisibilityConverter x:Key="StringToVisibilityConverter" />
+    <Style x:Key="ToolWindowToolbarBandStyle" TargetType="Border">
+        <Setter Property="BorderThickness" Value="0,0,0,1" />
+        <Setter Property="BorderBrush" Value="{DynamicResource {x:Static SystemColors.ControlDarkBrushKey}}" />
+        <Setter Property="Margin" Value="0,0,0,3" />
+    </Style>
+    <Style x:Key="ToolWindowToolbarTrayStyle" TargetType="ToolBarTray">
+        <Setter Property="IsLocked" Value="True" />
+        <Setter Property="Background" Value="{DynamicResource {x:Static SystemColors.ControlBrushKey}}" />
+    </Style>
+    <Style x:Key="ToolWindowToolbarStyle" TargetType="ToolBar">
+        <Setter Property="Background" Value="Transparent" />
+    </Style>
+    <Style x:Key="ToolWindowToolbarIconButtonStyle" TargetType="Button"
+           BasedOn="{StaticResource {x:Static ToolBar.ButtonStyleKey}}">
+        <Setter Property="FontFamily" Value="Segoe MDL2 Assets" />
+        <Setter Property="FontSize" Value="14" />
+        <Setter Property="Width" Value="28" />
+        <Setter Property="Height" Value="26" />
+        <Setter Property="Padding" Value="0" />
+        <Setter Property="ToolTip" Value="{Binding Path=(AutomationProperties.Name), RelativeSource={RelativeSource Self}}" />
+        <Setter Property="ToolTipService.ShowOnDisabled" Value="True" />
+    </Style>
+    <Style x:Key="ToolWindowSelectedPrimaryTextStyle" TargetType="TextBlock">
+        <Style.Triggers>
+            <DataTrigger Binding="{Binding IsSelected, RelativeSource={RelativeSource AncestorType=ListBoxItem}}" Value="True">
+                <Setter Property="FontWeight" Value="SemiBold" />
+            </DataTrigger>
+        </Style.Triggers>
+    </Style>
+    <DataTemplate x:Key="ToolWindowPrimaryNameCellTemplate">
+        <TextBlock Text="{Binding Name}" Style="{StaticResource ToolWindowSelectedPrimaryTextStyle}" />
+    </DataTemplate>
     <DataTemplate x:Key="ToolWindowNameCellTemplate">
         <TextBlock Text="{Binding Name}">
             <TextBlock.Style>
-                <Style TargetType="TextBlock">
+                <Style TargetType="TextBlock" BasedOn="{StaticResource ToolWindowSelectedPrimaryTextStyle}">
                     <Setter Property="Padding" Value="4,0,0,0" />
                     <Style.Triggers>
+                        <!-- Section headings retain their emphasis whether or not they are selected. -->
                         <DataTrigger Binding="{Binding Bold}" Value="True">
                             <Setter Property="Padding" Value="0,0,0,0" />
+                            <Setter Property="FontWeight" Value="Bold" />
                         </DataTrigger>
                     </Style.Triggers>
                 </Style>

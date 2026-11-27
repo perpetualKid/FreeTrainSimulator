@@ -35,7 +35,7 @@
             <TextBlock Text="{Binding Name}"
                        TextWrapping="Wrap">
                 <TextBlock.Style>
-                    <Style TargetType="TextBlock">
+                    <Style TargetType="TextBlock" BasedOn="{StaticResource ToolWindowSelectedPrimaryTextStyle}">
                         <Setter Property="Padding" Value="4,0,0,0" />
                         <Style.Triggers>
                             <DataTrigger Binding="{Binding Bold}" Value="True">
@@ -170,21 +170,11 @@
                 </TextBlock.Style>
             </TextBlock>
         </DataTemplate>
-        <!-- Bold identifies selection; the trailing asterisk independently identifies unsaved changes. -->
+    <!-- The trailing asterisk identifies unsaved changes independently of selection. -->
         <DataTemplate x:Key="TrainPathNameCellTemplate">
             <StackPanel Orientation="Horizontal">
                 <TextBlock Text="{Binding Name}"
-                           TextTrimming="CharacterEllipsis">
-                    <TextBlock.Style>
-                        <Style TargetType="TextBlock">
-                            <Style.Triggers>
-                                <DataTrigger Binding="{Binding IsSelected, RelativeSource={RelativeSource AncestorType=ListViewItem}}" Value="True">
-                                    <Setter Property="FontWeight" Value="Bold" />
-                                </DataTrigger>
-                            </Style.Triggers>
-                        </Style>
-                    </TextBlock.Style>
-                </TextBlock>
+                           TextTrimming="CharacterEllipsis" Style="{StaticResource ToolWindowSelectedPrimaryTextStyle}" />
                 <TextBlock Text=" *"
                            ToolTip="Unsaved changes">
                     <TextBlock.Style>
@@ -209,32 +199,35 @@
             <RowDefinition Height="*" />
             <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
-        <StackPanel Orientation="Horizontal">
-            <Button x:Name="NewPathButton" Content="New" Command="{Binding NewPathCommand}" Padding="5,2" Margin="0,0,3,0" />
-            <Button Content="Save" Command="{Binding SavePathCommand}" Padding="5,2" Margin="0,0,3,0" />
-            <Button Content="↶" ToolTip="Undo" AutomationProperties.Name="Undo" Command="{Binding UndoCommand}" Padding="5,2" Margin="0,0,3,0" />
-            <Button Content="↷" ToolTip="Redo" AutomationProperties.Name="Redo" Command="{Binding RedoCommand}" Padding="5,2" Margin="0,0,3,0" />
-            <Border BorderBrush="Black" BorderThickness="1" SnapsToDevicePixels="True">
-            <Menu Background="{Binding Background, ElementName=NewPathButton}">
-                <MenuItem Header="Path actions ▾" AutomationProperties.Name="Path actions">
-                    <MenuItem x:Name="ReResolvePathMenuItem" Header="Re-resolve path" Command="{Binding SnapToTrackCommand}" />
-                    <MenuItem x:Name="ReversePathMenuItem" Header="{gt:Gettext 'Reverse Path'}" Command="{Binding ReversePathCommand}"
-                              AutomationProperties.Name="{gt:Gettext 'Reverse Path'}"
-                              Visibility="{Binding IsIdlePanelVisible, Converter={StaticResource BooleanToVisibilityConverter}}" />
-                    <MenuItem x:Name="CombinePathsMenuItem" Header="{gt:Gettext 'Combine Paths'}" Command="{Binding CombineSelectedPathsCommand}"
-                              AutomationProperties.Name="{gt:Gettext 'Combine Paths'}"
-                              ToolTip="{gt:Gettext 'Check exactly two saved paths in the Paths list to combine them into a new unsaved path.'}" />
-                    <MenuItem x:Name="CancelPathCombineMenuItem" Header="{gt:Gettext 'Cancel combining paths'}" Command="{Binding CancelPathCombineCommand}"
-                              Visibility="{Binding IsCombiningPaths, Converter={StaticResource BooleanToVisibilityConverter}}" />
-                    <MenuItem Header="Validate all paths" Command="{Binding ValidateAllPathsCommand}" />
-                     <MenuItem x:Name="ShowPathChartMenuItem" Header="{gt:Gettext 'Show Path Chart'}"
-                               Command="{Binding ShowPathChartCommand}" />
+        <Border Style="{StaticResource ToolWindowToolbarBandStyle}">
+            <ToolBarTray Style="{StaticResource ToolWindowToolbarTrayStyle}">
+                <ToolBar x:Name="PathEditorToolbar" Style="{StaticResource ToolWindowToolbarStyle}">
+                    <Button x:Name="NewPathButton" Content="&#xE710;" Command="{Binding NewPathCommand}" Style="{StaticResource ToolWindowToolbarIconButtonStyle}" />
+                    <Button x:Name="SavePathButton" Content="&#xE74E;" Command="{Binding SavePathCommand}" Style="{StaticResource ToolWindowToolbarIconButtonStyle}" />
                     <Separator />
-                    <MenuItem x:Name="CancelNewPathMenuItem" Header="Cancel new path" Command="{Binding CancelNewPathCommand}" />
-                </MenuItem>
-            </Menu>
-            </Border>
-        </StackPanel>
+                    <Button x:Name="UndoPathButton" Content="&#xE7A7;" Command="{Binding UndoCommand}" Style="{StaticResource ToolWindowToolbarIconButtonStyle}" />
+                    <Button x:Name="RedoPathButton" Content="&#xE7A6;" Command="{Binding RedoCommand}" Style="{StaticResource ToolWindowToolbarIconButtonStyle}" />
+                    <Separator />
+                    <Menu Background="Transparent" VerticalAlignment="Center" ToolBar.OverflowMode="Never">
+                        <MenuItem x:Name="PathActionsMenuItem">
+                            <MenuItem x:Name="ReResolvePathMenuItem" Header="Re-resolve path" Command="{Binding SnapToTrackCommand}" />
+                            <MenuItem x:Name="ReversePathMenuItem" Header="{gt:Gettext 'Reverse Path'}" Command="{Binding ReversePathCommand}"
+                                      AutomationProperties.Name="{gt:Gettext 'Reverse Path'}"
+                                      Visibility="{Binding IsIdlePanelVisible, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                            <MenuItem x:Name="CombinePathsMenuItem" Header="{gt:Gettext 'Combine Paths'}" Command="{Binding CombineSelectedPathsCommand}"
+                                      AutomationProperties.Name="{gt:Gettext 'Combine Paths'}"
+                                      ToolTip="{gt:Gettext 'Check exactly two saved paths in the Paths list to combine them into a new unsaved path.'}" />
+                            <MenuItem x:Name="CancelPathCombineMenuItem" Header="{gt:Gettext 'Cancel combining paths'}" Command="{Binding CancelPathCombineCommand}"
+                                      Visibility="{Binding IsCombiningPaths, Converter={StaticResource BooleanToVisibilityConverter}}" />
+                            <MenuItem Header="Validate all paths" Command="{Binding ValidateAllPathsCommand}" />
+                            <MenuItem x:Name="ShowPathChartMenuItem" Header="{gt:Gettext 'Show Path Chart'}" Command="{Binding ShowPathChartCommand}" />
+                            <Separator />
+                            <MenuItem x:Name="CancelNewPathMenuItem" Header="Cancel new path" Command="{Binding CancelNewPathCommand}" />
+                        </MenuItem>
+                    </Menu>
+                </ToolBar>
+            </ToolBarTray>
+        </Border>
         <TextBlock Grid.Row="1" Text="Repair mode: inspect issues and repair authored nodes. Runtime route rendering is disabled."
                    TextWrapping="Wrap" Background="Moccasin" Foreground="DarkRed"
                    Visibility="{Binding IsRepairMode, Converter={StaticResource BooleanToVisibilityConverter}, FallbackValue=Collapsed}" />
@@ -269,9 +262,6 @@
                         <Style TargetType="ListViewItem">
                             <Setter Property="Visibility" Value="Visible" />
                             <Style.Triggers>
-                                <Trigger Property="IsSelected" Value="True">
-                                    <Setter Property="FontWeight" Value="Bold" />
-                                </Trigger>
                                 <DataTrigger Binding="{Binding IsVisible}" Value="False">
                                     <Setter Property="Visibility" Value="Collapsed" />
                                 </DataTrigger>
@@ -363,7 +353,7 @@
                         <ListView x:Name="CombinationCandidatesList" MaxHeight="140" ItemsSource="{Binding CombinationCandidates}"
                                   SelectedItem="{Binding SelectedCombinationCandidate, Mode=TwoWay}"
                                   AutomationProperties.Name="{gt:Gettext 'Path combination orientations'}" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
-                            <ListView.ItemTemplate><DataTemplate><TextBlock Text="{Binding Description}" TextWrapping="Wrap" /></DataTemplate></ListView.ItemTemplate>
+                            <ListView.ItemTemplate><DataTemplate><TextBlock Text="{Binding Description}" TextWrapping="Wrap" Style="{StaticResource ToolWindowSelectedPrimaryTextStyle}" /></DataTemplate></ListView.ItemTemplate>
                         </ListView>
                         <Button x:Name="AcceptPathCombinationButton" Content="{gt:Gettext 'Accept orientation'}" Command="{Binding AcceptPathCombinationCommand}" AutomationProperties.Name="{gt:Gettext 'Accept orientation'}" />
                         <Button x:Name="CancelPathCombinationButton" Content="{gt:Gettext 'Cancel'}" Command="{Binding CancelPathInteractionCommand}" />
@@ -407,7 +397,7 @@
                         </ComboBox>
                         <ListView Grid.Row="2" MaxHeight="90" ItemsSource="{Binding VisibleRouteCandidates}" SelectedItem="{Binding SelectedRouteCandidate, Mode=OneWay}" SelectionChanged="RouteCandidateList_SelectionChanged"
                                   ScrollViewer.HorizontalScrollBarVisibility="Disabled">
-                            <ListView.ItemTemplate><DataTemplate><TextBlock Text="{Binding Description}" TextWrapping="Wrap" /></DataTemplate></ListView.ItemTemplate>
+                            <ListView.ItemTemplate><DataTemplate><TextBlock Text="{Binding Description}" TextWrapping="Wrap" Style="{StaticResource ToolWindowSelectedPrimaryTextStyle}" /></DataTemplate></ListView.ItemTemplate>
                         </ListView>
                         <Button Grid.Row="3" Content="Accept candidate" Command="{Binding AcceptRouteCandidateCommand}" />
                         <Button Grid.Row="4" Content="Cancel interaction" Command="{Binding CancelPathInteractionCommand}" />
@@ -416,7 +406,7 @@
                         <Button Content="Continue path" Command="{Binding ContinuePathCommand}" Padding="6,2" Margin="0,0,4,0"
                                 Visibility="{Binding IsIdlePanelVisible, Converter={StaticResource BooleanToVisibilityConverter}}" />
                         <Border BorderBrush="Black" BorderThickness="1" SnapsToDevicePixels="True" VerticalAlignment="Center">
-                        <Menu Background="{Binding Background, ElementName=NewPathButton}">
+                        <Menu Background="{DynamicResource {x:Static SystemColors.ControlBrushKey}}">
                             <MenuItem Header="{gt:Gettext 'Node actions ▾'}" AutomationProperties.Name="Node actions"
                                       SubmenuOpened="NodeActions_SubmenuOpened" SubmenuClosed="NodeActions_Closed">
                                 <Separator />
@@ -439,9 +429,6 @@
                         <Style TargetType="ListViewItem">
                             <Setter Property="ToolTip" Value="{Binding Validation}" />
                             <Style.Triggers>
-                                <Trigger Property="IsSelected" Value="True">
-                                    <Setter Property="FontWeight" Value="Bold" />
-                                </Trigger>
                                 <DataTrigger Binding="{Binding Valid}" Value="False">
                                     <Setter Property="Foreground" Value="OrangeRed" />
                                 </DataTrigger>
@@ -460,7 +447,8 @@
                             </GridViewColumn>
                             <GridViewColumn Header="{gt:Gettext 'Type'}" Width="200" behaviors:GridViewColumnBehavior.StretchColumn="True">
                                 <GridViewColumn.CellTemplate><DataTemplate>
-                                    <TextBlock Text="{Binding NodeType}" TextWrapping="Wrap" ToolTip="{Binding Validation}" />
+                                    <TextBlock Text="{Binding NodeType}" TextWrapping="Wrap" ToolTip="{Binding Validation}"
+                                               Style="{StaticResource ToolWindowSelectedPrimaryTextStyle}" />
                                 </DataTemplate></GridViewColumn.CellTemplate>
                             </GridViewColumn>
                         </GridView>
@@ -596,16 +584,13 @@
                                 <DataTrigger Binding="{Binding Severity}" Value="Fatal">
                                     <Setter Property="Foreground" Value="Red" />
                                 </DataTrigger>
-                                <Trigger Property="IsSelected" Value="True">
-                                    <Setter Property="FontWeight" Value="Bold" />
-                                </Trigger>
                             </Style.Triggers>
                         </Style>
                     </ListView.ItemContainerStyle>
                     <ListView.ItemTemplate>
                         <DataTemplate>
                             <StackPanel Margin="3,2">
-                                <TextBlock TextWrapping="Wrap">
+                                <TextBlock TextWrapping="Wrap" Style="{StaticResource ToolWindowSelectedPrimaryTextStyle}">
                                     <Run Text="{Binding Severity, Mode=OneWay}" />
                                     <Run Text="{Binding Target, Mode=OneWay}" />
                                 </TextBlock>

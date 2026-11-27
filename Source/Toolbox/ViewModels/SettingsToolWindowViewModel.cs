@@ -90,11 +90,16 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
         private bool realTrackWidth;
         private LanguageOption selectedLanguage;
         private ICommand resetCommand;
+        private string reopenLastRouteLabel;
+        private string reopenLastRouteTooltip;
         private string profilesLabel;
+        private string activeProfileRowLabel;
         private string newProfileNameLabel;
+        private string saveProfileNameLabel;
+        private string cancelProfileNameLabel;
         private string createProfileLabel;
         private string duplicateProfileLabel;
-        private string useProfileLabel;
+        private string deleteProfileLabel;
         private bool isEditable = true;
         private bool disposed;
 
@@ -116,7 +121,7 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
             InteractiveVisibilityItems = CreateVisibilityItems(interactiveVisibilityItems);
             OtherVisibilityItems = CreateVisibilityItems(otherVisibilityItems);
             ColorItems = CreateColorItems();
-            UpdateProfileLabels();
+            UpdateLocalizedLabels();
         }
 
         public string Title => toolWindow.Title;
@@ -127,30 +132,45 @@ namespace FreeTrainSimulator.Toolbox.ViewModels
 
         public string ActiveProfileText => string.IsNullOrEmpty(ProfileName) ? string.Empty : CatalogManager.Catalog.GetString("Active profile: {0}", ProfileName);
 
+        public string ReopenLastRouteLabel => reopenLastRouteLabel;
+
+        public string ReopenLastRouteTooltip => reopenLastRouteTooltip;
+
         public string ProfilesLabel => profilesLabel;
 
+        public string ActiveProfileRowLabel => activeProfileRowLabel;
+
         public string NewProfileNameLabel => newProfileNameLabel;
+
+        public string SaveProfileNameLabel => saveProfileNameLabel;
+
+        public string CancelProfileNameLabel => cancelProfileNameLabel;
 
         public string CreateProfileLabel => createProfileLabel;
 
         public string DuplicateProfileLabel => duplicateProfileLabel;
 
-        public string UseProfileLabel => useProfileLabel;
+        public string DeleteProfileLabel => deleteProfileLabel;
 
         internal void RefreshLocalization()
         {
-            UpdateProfileLabels();
+            UpdateLocalizedLabels();
             OnPropertyChanged(nameof(ActiveProfileText));
         }
 
-        private void UpdateProfileLabels()
+        private void UpdateLocalizedLabels()
         {
             Catalog catalog = CatalogManager.Catalog;
+            SetProperty(ref reopenLastRouteLabel, catalog.GetString("Reopen last route on startup"), nameof(ReopenLastRouteLabel));
+            SetProperty(ref reopenLastRouteTooltip, catalog.GetString("Reopens the last route and restores its saved path and map view."), nameof(ReopenLastRouteTooltip));
             SetProperty(ref profilesLabel, catalog.GetString("Profiles"), nameof(ProfilesLabel));
+            SetProperty(ref activeProfileRowLabel, catalog.GetString("Active"), nameof(ActiveProfileRowLabel));
             SetProperty(ref newProfileNameLabel, catalog.GetString("New profile name"), nameof(NewProfileNameLabel));
+            SetProperty(ref saveProfileNameLabel, catalog.GetString("Save"), nameof(SaveProfileNameLabel));
+            SetProperty(ref cancelProfileNameLabel, catalog.GetString("Cancel"), nameof(CancelProfileNameLabel));
             SetProperty(ref createProfileLabel, catalog.GetString("Create Profile"), nameof(CreateProfileLabel));
             SetProperty(ref duplicateProfileLabel, catalog.GetString("Duplicate Profile"), nameof(DuplicateProfileLabel));
-            SetProperty(ref useProfileLabel, catalog.GetString("Use in Toolbox"), nameof(UseProfileLabel));
+            SetProperty(ref deleteProfileLabel, catalog.GetString("Delete Profile"), nameof(DeleteProfileLabel));
         }
 
         public bool IsEditable

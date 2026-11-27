@@ -950,11 +950,14 @@ namespace FreeTrainSimulator.Toolbox
                 if (toolboxSettings is null)
                     return;
 
+                int? settingsTabIndex = initialSettingsTabIndex.HasValue ? SettingsPane.SelectedTabIndex : null;
                 if (MapHost?.HostedServices == null)
                 {
                     // Persist shell changes without replacing saved map selections or viewport state.
                     ProfileToolboxSettingsModel savedSettings = await currentProfile.LoadSettingsModel<ProfileToolboxSettingsModel>(CancellationToken.None).ConfigureAwait(true);
                     shellSettingsApplier?.CopyChangedToolboxPreferences(savedSettings);
+                    if (settingsTabIndex is >= 0 && settingsTabIndex != initialSettingsTabIndex)
+                        savedSettings.SettingsSelectedTabIndex = settingsTabIndex.Value;
                     WindowBoundsManager.SaveBoundsToSettings(this, savedSettings);
                     if (initialDockLayoutJson != null)
                     {
@@ -971,9 +974,9 @@ namespace FreeTrainSimulator.Toolbox
                 string dockLayoutJson = SerializeDockLayout();
                 toolboxSettings.DockLayoutJson = dockLayoutJson;
                 WindowBoundsManager.SaveBoundsToSettings(this, toolboxSettings);
-                int selectedTabIndex = viewModel.TrainPathTool?.SelectedTabIndex
+                int pathEditorTabIndex = viewModel.TrainPathTool?.SelectedTabIndex
                     ?? MapHost.ToolboxSettings?.PathEditorSelectedTabIndex ?? TrainPathToolWindowViewModel.PathsTabIndex;
-                await MapHost.SaveHostedSettingsAsync(dockLayoutJson, toolboxSettings.WindowPlacements, selectedTabIndex).ConfigureAwait(true);
+                await MapHost.SaveHostedSettingsAsync(dockLayoutJson, toolboxSettings.WindowPlacements, pathEditorTabIndex, settingsTabIndex).ConfigureAwait(true);
             }
             catch (Exception ex) when (ex is not ObjectDisposedException)
             {

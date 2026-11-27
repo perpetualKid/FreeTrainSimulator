@@ -462,7 +462,8 @@ namespace Tests.FreeTrainSimulator.Toolbox
                 Assert.AreEqual(chart.ViewportStart, scrollBar.Value, 0.001);
                 chart.CursorDistance = profile.Length;
                 Assert.AreEqual(scrollBar.Maximum, scrollBar.Value, 0.001, "Selecting an offscreen station reveals it and updates the scrollbar.");
-                chart.ResetViewport();
+                Button resetView = (Button)view.FindName("ResetChartViewButton");
+                resetView.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
                 Assert.IsFalse(scrollBar.IsEnabled);
                 Assert.AreEqual(0, scrollBar.Value);
                 Assert.AreEqual(0, scrollBar.Maximum);
@@ -589,11 +590,15 @@ namespace Tests.FreeTrainSimulator.Toolbox
                     DrawingGroup localized = GetField<DrawingGroup>(chart, "profileDrawing");
                     Assert.AreNotSame(original, localized);
                     Assert.Contains("80,5 km/h", GetLabels(localized));
-                    double width = GetField<Rect>(chart, "plotBounds").Width;
+                    double chartWidthBefore = chart.RenderSize.Width;
+                    double plotWidthBefore = GetField<Rect>(chart, "plotBounds").Width;
                     host.Window.Width += 150;
                     host.Render();
                     Assert.AreNotSame(localized, GetField<DrawingGroup>(chart, "profileDrawing"));
-                    Assert.AreEqual(width + 150, GetField<Rect>(chart, "plotBounds").Width, 0.001);
+                    double chartWidthGrowth = chart.RenderSize.Width - chartWidthBefore;
+                    double plotWidthGrowth = GetField<Rect>(chart, "plotBounds").Width - plotWidthBefore;
+                    Assert.IsGreaterThan(0, chartWidthGrowth, "The window resize must increase the rendered chart width.");
+                    Assert.AreEqual(chartWidthGrowth, plotWidthGrowth, 0.001, "The plot must grow by the actual chart width change after WPF layout.");
                 }
             }
             finally
