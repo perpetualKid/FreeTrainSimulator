@@ -8,6 +8,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace Tests.Orts
 {
     [TestClass]
+    [OSCondition(OperatingSystems.Windows)]
     public sealed class AssertWarningsTests
     {
         private readonly TestContext testContext;
@@ -20,59 +21,60 @@ namespace Tests.Orts
         [TestMethod]
         [DataRow(false)]
         [DataRow(true)]
-        public void GlobalCleanup_RestoresHostListenersAfterWarningAssertions(bool assertionFails)
+        public void GlobalCleanupRestoresHostListenersAfterWarningAssertions(bool assertionFails)
         {
             using (StringWriter output = new StringWriter(CultureInfo.InvariantCulture))
-            using (TextWriterTraceListener hostListener = new TextWriterTraceListener(output))
             {
-                Trace.Listeners.Add(hostListener);
-                try
+                using (TextWriterTraceListener hostListener = new TextWriterTraceListener(output))
                 {
-                    TraceListener[] listeners = Trace.Listeners.Cast<TraceListener>().ToArray();
+                    Trace.Listeners.Add(hostListener);
                     try
                     {
-                        AssertWarnings.Expected();
-                        AssertWarnings.NotExpected();
-                        if (assertionFails)
+                        TraceListener[] listeners = Trace.Listeners.Cast<TraceListener>().ToArray();
+                        try
                         {
-                            Assert.ThrowsExactly<AssertFailedException>(() => AssertWarnings.Matching(
-                                "expected warning", () => Trace.TraceWarning("different warning")));
+                            AssertWarnings.Expected();
+                            AssertWarnings.NotExpected();
+                            if (assertionFails)
+                            {
+                                Assert.ThrowsExactly<AssertFailedException>(() => AssertWarnings.Matching("expected warning", () => Trace.TraceWarning("different warning")));
+                            }
+                            else
+                            {
+                                AssertWarnings.Matching("expected warning", () => Trace.TraceWarning("expected warning"));
+                            }
+
+                            Assert.HasCount(1, Trace.Listeners);
+                            Assert.IsInstanceOfType<AssertWarnings>(Trace.Listeners[0]);
                         }
-                        else
+                        finally
                         {
-                            AssertWarnings.Matching("expected warning", () => Trace.TraceWarning("expected warning"));
+                            TraceListenerCleanup.RestoreTraceListeners(testContext);
                         }
 
-                        Assert.HasCount(1, Trace.Listeners);
-                        Assert.IsInstanceOfType<AssertWarnings>(Trace.Listeners[0]);
+                        Assert.AreSequenceEqual(listeners, Trace.Listeners.Cast<TraceListener>().ToArray());
+                        Trace.TraceInformation("trace after warning cleanup");
+                        Assert.Contains("trace after warning cleanup", output.ToString());
+
+                        TraceListenerCleanup.RestoreTraceListeners(testContext);
+                        Assert.AreSequenceEqual(listeners, Trace.Listeners.Cast<TraceListener>().ToArray());
                     }
                     finally
                     {
-                        TraceListenerCleanup.RestoreTraceListeners(testContext);
+                        Trace.Listeners.Remove(hostListener);
                     }
-
-                    CollectionAssert.AreEqual(listeners, Trace.Listeners.Cast<TraceListener>().ToArray());
-                    Trace.TraceInformation("trace after warning cleanup");
-                    StringAssert.Contains(output.ToString(), "trace after warning cleanup");
-
-                    TraceListenerCleanup.RestoreTraceListeners(testContext);
-                    CollectionAssert.AreEqual(listeners, Trace.Listeners.Cast<TraceListener>().ToArray());
-                }
-                finally
-                {
-                    Trace.Listeners.Remove(hostListener);
                 }
             }
         }
 
         [TestMethod]
-        public void GlobalCleanup_LeavesListenersUnchangedWithoutWarningMonitoring()
+        public void GlobalCleanupLeavesListenersUnchangedWithoutWarningMonitoring()
         {
             TraceListener[] listeners = Trace.Listeners.Cast<TraceListener>().ToArray();
 
             TraceListenerCleanup.RestoreTraceListeners(testContext);
 
-            CollectionAssert.AreEqual(listeners, Trace.Listeners.Cast<TraceListener>().ToArray());
+            Assert.AreSequenceEqual(listeners, Trace.Listeners.Cast<TraceListener>().ToArray());
         }
     }
 }
