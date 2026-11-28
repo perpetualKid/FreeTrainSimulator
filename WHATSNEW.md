@@ -34,6 +34,7 @@
 
 - Update to Monogame 3.8.6.1
 - Removing support for contributed software
+  - Contrib.ContentChecker
   - Contrib.DataCollector
   - Contrib.DataConverter
   - Contrib.DataValidator
